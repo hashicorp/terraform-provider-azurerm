@@ -8,14 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -406,18 +405,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			if !features.ThreePointOhBeta() {
-				if d.HasChange("start_task.0.max_task_retry_count") || d.HasChange("start_task.0.task_retry_maximum") {
-					_, newMax := d.GetChange("start_task.0.task_retry_maximum")
-					d.SetNew("start_task.0.max_task_retry_count", newMax)
-					d.SetNew("start_task.0.task_retry_maximum", newMax)
-				}
-			}
-
-			return nil
-		}),
 	}
 }
 
@@ -831,7 +818,7 @@ func validateUserIdentity(userIdentity *batch.UserIdentity) error {
 		return errors.New("auto_user or user_name needs to be specified in the user_identity block")
 	}
 
-	if userIdentity.AutoUser != nil && userIdentity.UserName != nil {
+	if userIdentity.AutoUser != nil && userIdentity.UserName != nil && *userIdentity.UserName != "" {
 		return errors.New("auto_user and user_name cannot be specified in the user_identity at the same time")
 	}
 
@@ -919,7 +906,7 @@ func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error)
 }
 
 func startTaskSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"command_line": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -929,13 +916,6 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 		"task_retry_maximum": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"start_task.0.max_task_retry_count"}
-				}
-				return nil
-			}(),
 		},
 
 		"wait_for_success": {
@@ -947,16 +927,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 		"common_environment_properties": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"start_task.0.environment"}
-				}
-				return nil
-			}(),
 		},
 
 		"user_identity": {
@@ -1035,32 +1008,4 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["max_task_retry_count"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			// Need to default this in the expand function for this block for the deprecation
-			Deprecated: "Deprecated in favour of `task_retry_maximum`",
-			ConflictsWith: []string{
-				"start_task.0.task_retry_maximum",
-			},
-		}
-
-		out["environment"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-			Deprecated: "Deprecated in favour of `common_environment_properties`",
-			ConflictsWith: []string{
-				"start_task.0.common_environment_properties",
-			},
-		}
-	}
-	return out
-
 }

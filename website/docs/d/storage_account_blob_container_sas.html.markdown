@@ -74,7 +74,7 @@ output "sas_url_query_string" {
 
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
 
-* `ip_address` - (Optional) Single ipv4 address or range (connected with a dash) of ipv4 addresses.
+* `ip_address` - (Optional) Single IPv4 address or range (connected with a dash) of IPv4 addresses.
 
 * `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 
@@ -111,7 +111,7 @@ A `permissions` block contains:
 
 * `list` - Should List permissions be enabled for this SAS?
 
-Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas)
+Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/create-service-sas)
 for additional details on the fields above.
 
 ## Attributes Reference

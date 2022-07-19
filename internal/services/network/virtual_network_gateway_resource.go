@@ -6,14 +6,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -47,7 +45,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -60,26 +58,24 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"location": azure.SchemaLocation(),
 
 		"type": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(network.VirtualNetworkGatewayTypeExpressRoute),
 				string(network.VirtualNetworkGatewayTypeVpn),
-			}, !features.ThreePointOhBeta()),
+			}, false),
 		},
 
 		"vpn_type": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ForceNew:         true,
-			Default:          string(network.VpnTypeRouteBased),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(network.VpnTypeRouteBased),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(network.VpnTypeRouteBased),
 				string(network.VpnTypePolicyBased),
-			}, !features.ThreePointOhBeta()),
+			}, false),
 		},
 
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -104,9 +100,8 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			// This validator checks for all possible values for the SKU regardless of the attributes vpn_type and
 			// type. For a validation which depends on the attributes vpn_type and type, refer to the special case
 			// validators validateVirtualNetworkGatewayPolicyBasedVpnSku, validateVirtualNetworkGatewayRouteBasedVpnSku
@@ -285,8 +280,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								string(network.VpnClientProtocolIkeV2),
 								string(network.VpnClientProtocolOpenVPN),
 								string(network.VpnClientProtocolSSTP),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 					},
 				},
@@ -303,31 +297,19 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					"asn": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						AtLeastOneOf: func() []string {
-							out := []string{
-								"bgp_settings.0.asn",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-							}
-							if !features.ThreePointOhBeta() {
-								out = append(out, "bgp_settings.0.peering_address")
-							}
-							return out
-						}(),
+						AtLeastOneOf: []string{
+							"bgp_settings.0.asn",
+							"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+						},
 					},
 
 					"peer_weight": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						AtLeastOneOf: func() []string {
-							out := []string{
-								"bgp_settings.0.asn",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-							}
-							if !features.ThreePointOhBeta() {
-								out = append(out, "bgp_settings.0.peering_address")
-							}
-							return out
-						}(),
+						AtLeastOneOf: []string{
+							"bgp_settings.0.asn",
+							"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+						},
 					},
 
 					//lintignore:XS003
@@ -371,16 +353,10 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: func() []string {
-							out := []string{
-								"bgp_settings.0.asn",
-								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-							}
-							if !features.ThreePointOhBeta() {
-								out = append(out, "bgp_settings.0.peering_address")
-							}
-							return out
-						}(),
+						AtLeastOneOf: []string{
+							"bgp_settings.0.asn",
+							"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+						},
 					},
 				},
 			},
@@ -412,22 +388,6 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := out["bgp_settings"].Elem.(*pluginsdk.Resource)
-		s.Schema["peering_address"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favor of `bgp_settings.0.peering_addresses.0.default_addresses.0`",
-			AtLeastOneOf: []string{
-				"bgp_settings.0.asn", "bgp_settings.0.peering_address",
-				"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
-			},
-		}
-	}
-
-	return out
 }
 
 func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -651,10 +611,6 @@ func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d 
 	bgp := bgpSets[0].(map[string]interface{})
 
 	asn := int64(bgp["asn"].(int))
-	var peeringAddress string
-	if !features.ThreePointOhBeta() {
-		peeringAddress = bgp["peering_address"].(string)
-	}
 	peerWeight := int32(bgp["peer_weight"].(int))
 
 	ipConfiguration := d.Get("ip_configuration").([]interface{})
@@ -665,7 +621,6 @@ func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d 
 
 	return &network.BgpSettings{
 		Asn:                 &asn,
-		BgpPeeringAddress:   &peeringAddress,
 		PeerWeight:          &peerWeight,
 		BgpPeeringAddresses: peeringAddresses,
 	}, nil
@@ -857,9 +812,6 @@ func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) ([]i
 		if asn := settings.Asn; asn != nil {
 			flat["asn"] = int(*asn)
 		}
-		if address := settings.BgpPeeringAddress; !features.ThreePointOhBeta() && address != nil {
-			flat["peering_address"] = *address
-		}
 		if weight := settings.PeerWeight; weight != nil {
 			flat["peer_weight"] = int(*weight)
 		}
@@ -1034,7 +986,7 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 func validateVirtualNetworkGatewayPolicyBasedVpnSku() pluginsdk.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(network.VirtualNetworkGatewaySkuTierBasic),
-	}, !features.ThreePointOhBeta())
+	}, false)
 }
 
 func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() pluginsdk.SchemaValidateFunc {
@@ -1048,7 +1000,7 @@ func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() pluginsdk.Schema
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
-	}, !features.ThreePointOhBeta())
+	}, false)
 }
 
 func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() pluginsdk.SchemaValidateFunc {
@@ -1061,7 +1013,7 @@ func validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() pluginsdk.Schema
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw4AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw5AZ),
-	}, !features.ThreePointOhBeta())
+	}, false)
 }
 
 func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc {
@@ -1072,7 +1024,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
-	}, !features.ThreePointOhBeta())
+	}, false)
 }
 
 func flattenVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []interface{} {

@@ -27,6 +27,8 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagedPrivateEndpointResource{},
 		OutputFunctionResource{},
 		OutputTableResource{},
+		OutputPowerBIResource{},
+		OutputCosmosDBResource{},
 	}
 }
 

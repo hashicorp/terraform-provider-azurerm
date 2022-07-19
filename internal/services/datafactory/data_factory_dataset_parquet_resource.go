@@ -85,6 +85,11 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"path": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,

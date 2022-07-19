@@ -5,12 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -261,8 +258,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, !features.ThreePointOhBeta()),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					}, false),
 				},
 
 				"http2_enabled": {
@@ -294,8 +290,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"JAVA",
 						"JETTY",
 						"TOMCAT",
-					}, !features.ThreePointOhBeta()),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					}, false),
 				},
 
 				"java_container_version": {
@@ -316,8 +311,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
-					}, !features.ThreePointOhBeta()),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					}, false),
 				},
 
 				"php_version": {
@@ -350,24 +344,13 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_version": {
-					Type:             pluginsdk.TypeString,
-					Optional:         true,
-					Computed:         true,
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-						out := []string{
-							"VS2017",
-							"VS2019",
-						}
-						if !features.ThreePointOhBeta() {
-							out = append(out, []string{
-								"VS2012",
-								"VS2013",
-								"VS2015",
-							}...)
-						}
-						return validation.StringInSlice(out, !features.ThreePointOhBeta())
-					}(),
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"VS2017",
+						"VS2019",
+					}, false),
 				},
 
 				"scm_type": {

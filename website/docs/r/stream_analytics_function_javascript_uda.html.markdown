@@ -19,7 +19,7 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = data.azurerm_resource_group.example.name
 }
 
 resource "azurerm_stream_analytics_function_javascript_uda" "example" {
@@ -71,6 +71,8 @@ The following arguments are supported:
 An `input` block supports the following:
 
 * `type` - The input data type of this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
+
+* `configuration_parameter` - (Optional) Is this input parameter a configuration parameter? Defaults to `false`.
 
 ---
 

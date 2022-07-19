@@ -248,7 +248,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Sku of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
+* `name` - (Required) SKU of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
 
 ---
 

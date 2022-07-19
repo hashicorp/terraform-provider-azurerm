@@ -10,7 +10,7 @@ description: |-
 
 Manages a PostgreSQL Virtual Network Rule.
 
--> **NOTE:** PostgreSQL Virtual Network Rules [can only be used with SKU Tiers of `GeneralPurpose` or `MemoryOptimized`](https://docs.microsoft.com/en-us/azure/postgresql/concepts-data-access-and-security-vnet)
+-> **NOTE:** PostgreSQL Virtual Network Rules [can only be used with SKU Tiers of `GeneralPurpose` or `MemoryOptimized`](https://docs.microsoft.com/azure/postgresql/concepts-data-access-and-security-vnet)
 
 ## Example Usage
 
@@ -44,7 +44,6 @@ resource "azurerm_postgresql_server" "example" {
 
   storage_mb            = 5120
   backup_retention_days = 7
-  geo_redundant_backup  = "Disabled"
 
 
   administrator_login          = "psqladmin"

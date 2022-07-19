@@ -197,6 +197,8 @@ resource "azurerm_virtual_machine" "test" {
 
   vm_size = "Standard_B1s"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     publisher = "OpenLogic"
     offer     = "CentOS"
@@ -434,6 +436,9 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -804,6 +809,8 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   vm_size = "Standard_B1s"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "OpenLogic"

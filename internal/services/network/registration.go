@@ -109,6 +109,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_hub_route_table_route":             resourceVirtualHubRouteTableRoute(),
 		"azurerm_virtual_network_dns_servers":               resourceVirtualNetworkDnsServers(),
 		"azurerm_virtual_network_gateway_connection":        resourceVirtualNetworkGatewayConnection(),
+		"azurerm_virtual_network_gateway_nat_rule":          resourceVirtualNetworkGatewayNatRule(),
 		"azurerm_virtual_network_gateway":                   resourceVirtualNetworkGateway(),
 		"azurerm_virtual_network_peering":                   resourceVirtualNetworkPeering(),
 		"azurerm_virtual_network":                           resourceVirtualNetwork(),
@@ -117,6 +118,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_vpn_gateway_connection":                    resourceVPNGatewayConnection(),
 		"azurerm_vpn_gateway_nat_rule":                      resourceVPNGatewayNatRule(),
 		"azurerm_vpn_server_configuration":                  resourceVPNServerConfiguration(),
+		"azurerm_vpn_server_configuration_policy_group":     resourceVPNServerConfigurationPolicyGroup(),
 		"azurerm_vpn_site":                                  resourceVpnSite(),
 		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),
 	}

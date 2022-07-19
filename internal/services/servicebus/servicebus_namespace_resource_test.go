@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -39,6 +39,26 @@ func TestAccAzureRMServiceBusNamespace_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMServiceBusNamespace_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
 		data.ImportStep(),
 	})
@@ -187,17 +207,17 @@ func TestAccAzureRMServiceBusNamespace_customerManagedKey(t *testing.T) {
 }
 
 func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceID(state.ID)
+	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.ServiceBus.NamespacesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Service Bus NameSpace (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ServiceBusNamespaceResource) basic(data acceptance.TestData) string {
@@ -240,6 +260,27 @@ resource "azurerm_servicebus_namespace" "test" {
   tags = {
     ENV = "Test"
   }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ServiceBusNamespaceResource) standardSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  local_auth_enabled  = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
