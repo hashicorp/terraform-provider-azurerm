@@ -36,7 +36,7 @@ func (id WebPubsubSharedPrivateLinkResourceId) String() string {
 }
 
 func (id WebPubsubSharedPrivateLinkResourceId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/WebPubSub/%s/sharedPrivateLinkResources/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/webPubSub/%s/sharedPrivateLinkResources/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WebPubSubName, id.SharedPrivateLinkResourceName)
 }
 
@@ -60,7 +60,7 @@ func WebPubsubSharedPrivateLinkResourceID(input string) (*WebPubsubSharedPrivate
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.WebPubSubName, err = id.PopSegment("WebPubSub"); err != nil {
+	if resourceId.WebPubSubName, err = id.PopSegment("webPubSub"); err != nil {
 		return nil, err
 	}
 	if resourceId.SharedPrivateLinkResourceName, err = id.PopSegment("sharedPrivateLinkResources"); err != nil {

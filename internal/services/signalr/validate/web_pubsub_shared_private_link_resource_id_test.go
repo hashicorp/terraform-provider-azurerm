@@ -48,25 +48,25 @@ func TestWebPubsubSharedPrivateLinkResourceID(t *testing.T) {
 
 		{
 			// missing value for WebPubSubName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/webPubSub/",
 			Valid: false,
 		},
 
 		{
 			// missing SharedPrivateLinkResourceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/webPubSub/Webpubsub1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for SharedPrivateLinkResourceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/webPubSub/Webpubsub1/sharedPrivateLinkResources/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/resource1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/webPubSub/Webpubsub1/sharedPrivateLinkResources/resource1",
 			Valid: true,
 		},
 
