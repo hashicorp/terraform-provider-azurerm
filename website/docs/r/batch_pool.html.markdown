@@ -3,7 +3,7 @@ subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_pool"
 description: |-
-  Manages an Azure Batch pool.
+Manages an Azure Batch pool.
 
 ---
 
@@ -122,15 +122,30 @@ The following arguments are supported:
 
 * `node_agent_sku_id` - (Required) Specifies the SKU of the node agents that will be created in the Batch pool.
 
+-> **NOTE:** `node_agent_sku_id` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.node_agent_sku_id` in version 4.0 of the AzureRM Provider.
+
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool.
 
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
 
+-> **NOTE:** `storage_image_reference` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.image_reference` in version 4.0 of the AzureRM Provider.
+
+* `application_packages` - (Optional) The list of application packages to be installed on each compute node in the pool.
+  Changes to application package references affect all new compute nodes joining the pool, but do not affect compute nodes that are already in the pool until they are rebooted or reimaged. There is a maximum of 10 application package references on any given pool.
+
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
+
+* `deployment_configuration` - (Optional) A `deployment_configuration` block as defined below.
+
+-> **NOTE:** `deployment_configuration` will only be available for 4.0 and later version.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `inter_node_communication` - (Optional) Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to "Disabled". Values allowed are "Disabled" and "Enabled".
+
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
+
+* `mount_configuration` - (Optional) A `mount_configuration` block defined as below.
 
 * `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
 
@@ -140,7 +155,13 @@ The following arguments are supported:
 
 * `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
 
+* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread.
+
+* `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
+
 * `container_configuration` - (Optional) The container configuration used in the pool's VMs.
+
+-> **NOTE:** `container_configuration` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.container_configuration` in version 4.0 of the AzureRM Provider.
 
 * `metadata` - (Optional) A map of custom batch pool metadata.
 
@@ -152,11 +173,235 @@ The following arguments are supported:
 
 ---
 
+An `deployment_configuration` block supports `cloud_service_configuration` block and `virtual_machine_configuration` block:
+
+This property describes how the pool nodes will be deployed - using Cloud Services or Virtual Machines.
+Using `cloud_service_configuration` specifies that the nodes should be creating using Azure Cloud Services (PaaS), while `virtual_machine_configuration` uses Azure Virtual Machines (IaaS).
+
+Property `cloud_service_configuration` and `virtual_machine_configuration` are mutually exclusive and one of the properties must be specified.
+
+Property `cloud_service_configuration` can not be specified if `azurerm_batch_account` was created with its `pool_allocation_mode` property set to 'UserSubscription'.
+
+* `cloud_service_configuration` - (Optional) An `cloud_service_configuration` block as defined below.
+
+* `virtual_machine_configuration` - (Optional) An `virtual_machine_configuration` block as defined below.
+
+---
+
+An `cloud_service_configuration` block supports the following:
+
+* `os_family` - (Required) The Azure Guest OS family to be installed on the virtual machines in the pool.
+  Possible values are: 2 - OS Family 2, equivalent to Windows Server 2008 R2 SP1. 3 - OS Family 3, equivalent to Windows Server 2012. 4 - OS Family 4, equivalent to Windows Server 2012 R2. 5 - OS Family 5, equivalent to Windows Server 2016. 6 - OS Family 6, equivalent to Windows Server 2019. For more information, see Azure Guest OS Releases (https://azure.microsoft.com/documentation/articles/cloud-services-guestos-update-matrix/#releases).
+
+* `os_version` - (Optional) The Azure Guest OS version to be installed on the virtual machines in the pool.
+  The default value is * which specifies the latest operating system version for the specified OS family.
+
+---
+
+A `virtual_machine_configuration` block supports the following:
+
+* `image_reference` - (Required) An `image_reference` block as defined below.
+
+* `node_agent_sku_id` - (Required) The SKU of the Batch node agent to be provisioned on compute nodes in the pool. The Batch node agent is a program that runs on each node in the pool, and provides the command-and-control interface between the node and the Batch service. There are different implementations of the node agent, known as SKUs, for different operating systems. You must specify a node agent SKU which matches the selected image reference. To get the list of supported node agent SKUs along with their list of verified image references, see the 'List supported node agent SKUs' operation.
+
+* `container_configuration` - (Optional) A `container_configuration` block as defined below.
+
+* `data_disks` - (Optional) A `data_disks` block as defined below.
+
+* `disk_encryption_configuration` - (Optional) A `disk_encryption_configuration` block as defined below.
+
+* `extensions` - (Optional) An `extensions` block as defined below.
+
+* `license_type` - (Optional) The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: Windows_Server - The on-premises license is for Windows Server. Windows_Client - The on-premises license is for Windows Client.
+
+* `node_placement_configuration` - (Optional)  A `node_placement_configuration` block as defined below.
+
+* `os_disk` - (Optional) An `os_disk` block as defined below.
+
+* `windows_configuration` - (Optional) A `windows_configuration` block as defined below.
+
+---
+
+An `mount_configuration` block supports the following:
+
+Any property below is mutually exclusive with all other properties.
+
+* `azure_blob_file_system_configuration` - (Optional) A `azure_blob_file_system_configuration` block defined as below.
+
+* `azure_file_share_configuration` - (Optional) A `azure_file_share_configuration` block defined as below.
+
+* `cifs_mount_configuration` - (Optional) A `cifs_mount_configuration` block defined as below.
+
+* `nfs_mount_configuration` - (Optional) A `nfs_mount_configuration` block defined as below.
+
+---
+
+An `azure_blob_file_system_configuration` block supports the following:
+
+* `account_name` - (Required) The Azure Storage Account name.
+
+* `container_name` - (Required) The Azure Blob Storage Container name.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `account_key` - (Optional) The Azure Storage Account key. This property is mutually exclusive with both `sas_key` and `identity_reference`; exactly one must be specified.
+
+* `sas_key` - (Optional) The Azure Storage SAS token. This property is mutually exclusive with both `account_key` and `identity_reference`; exactly one must be specified.
+
+* `identity_reference` - (Optional) An `identity_reference` block defined as below. This property is mutually exclusive with both `account_key` and `sas_key`; exactly one must be specified.
+
+* `blobfuse_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `azure_file_share_configuration` block supports the following:
+
+* `account_name` - (Required) The Azure Storage Account name.
+
+* `account_key` - (Required) The Azure Storage Account key.
+
+* `azure_file_url` - (Required) The Azure Files URL. This is of the form 'https://{account}.file.core.windows.net/'.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+A `cifs_mount_configuration` block supports the following:
+
+* `user_name` - (Required) The user to use for authentication against the CIFS file system.
+
+* `password` - (Required) The password to use for authentication against the CIFS file system.
+
+* `source` - (Required) The URI of the file system to mount.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+A `nfs_mount_configuration` block supports the following:
+
+* `source` - (Required) The URI of the file system to mount.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `identity_reference` block supports the following:
+
+* `identity_id` - (Required) The ARM resource id of the user assigned identity.
+
+---
+
+A `image_reference` block supports the following:
+
+A reference to an Azure Virtual Machines Marketplace image or the Azure Image resource of a custom Virtual Machine. To get the list of all imageReferences verified by Azure Batch, see the 'List supported node agent SKUs' operation.
+
+* `id` - (Optional) The ARM resource identifier of the Shared Image Gallery Image. Compute Nodes in the Pool will be created using this Image Id. This is of the form /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Compute/galleries/{galleryName}/images/{imageDefinitionName}/versions/{versionId}. This property is mutually exclusive with other properties. The Shared Image Gallery image must have replicas in the same region as the Azure Batch account. For information about the firewall settings for the Batch node agent to communicate with the Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration.
+
+* `publisher` - (Optional) The publisher of the Azure Virtual Machines Marketplace image. For example, Canonical or MicrosoftWindowsServer.
+
+* `offer` - (Optional) The offer type of the Azure Virtual Machines Marketplace image. For example, UbuntuServer or WindowsServer.
+
+* `sku` - (Optional) The SKU of the Azure Virtual Machines Marketplace image. For example, 18.04-LTS or 2022-datacenter.
+
+* `version` - (Optional) The version of the Azure Virtual Machines Marketplace image. A value of 'latest' can be specified to select the latest version of an image. If omitted, the default is 'latest'.
+
+---
+
+A `container_configuration` block supports the following:
+
+If `container_configuration` is specified, setup is performed on each node in the pool to allow tasks to run in containers. All regular tasks and job manager tasks run on this pool must specify the containerSettings property, and all other tasks may specify it.
+
+* `type` - (Required) A Docker compatible container technology will be used to launch the containers. Now only "DockerCompatible" is supported.
+
+* `container_image_names` - (Optional) This is the full image reference, as would be specified to \"docker pull\". An image will be sourced from the default Docker registry unless the image is fully qualified with an alternative registry.
+
+* `container_registries` - (Optional) A `container_registries` block as defined below.
+
+---
+
+A `task_scheduling_policy` block supports the following:
+
+* `node_fill_type` - (Required) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
+
+---
+
+A `data_disks` block supports the following:
+
+* `lun` - (Required) The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun. The value must be between 0 and 63, inclusive.
+
+* `caching` - (Required) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. The default value for caching is "none". For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/.
+
+* `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
+
+* `storage_account_type` - (Optional) The storage account type to be used for the data disk. If omitted, the default is "Standard_LRS". Values are: "Standard_LRS" - The data disk should use standard locally redundant storage. "Premium_LRS" - The data disk should use premium locally redundant storage.
+
+---
+
+A `disk_encryption_configuration` block supports the following:
+
+The disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
+
+* `disk_encryption_target` - (Required) On Linux pool, only \"TemporaryDisk\" is supported; on Windows pool, \"OsDisk\" and \"TemporaryDisk\" must be specified.
+
+---
+
+An `extensions` block supports the following:
+
+The virtual machine extension for the pool.
+If specified, the extensions mentioned in this configuration will be installed on each node.
+
+* `name` - (Required) The name of the virtual machine extension.
+
+* `publisher` - (Required) The name of the extension handler publisher.The name of the extension handler publisher.
+
+* `type` - (Required) The type of the extensions.
+
+* `type_handler_version` - (Optional) The version of script handler.
+
+* `auto_upgrade_minor_version` - (Optional) Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
+
+* `settings` - (Optional) JSON formatted public settings for the extension.
+
+* `protected_settings` - (Optional) The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
+
+* `provision_after_extensions` - (Optional) The collection of extension names. Collection of extension names after which this extension needs to be provisioned.
+
+---
+
+A `node_placement_configuration` block supports the following:
+
+Node placement Policy type on Batch Pools. Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy.
+
+* `policy` - (Required) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing.
+
+---
+
+An `os_disk` block supports the following:
+
+* `ephemeral_os_disk_settings` - (Required) An `ephemeral_os_disk_settings` block defined as follows.
+
+---
+
+A `windows_configuration` block supports the following:
+
+Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
+
+* `enable_automatic_updates` - (Required) Whether automatic updates are enabled on the virtual machine. If omitted, the default value is true.
+
+---
+
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Only possible value is `UserAssigned`.
 
- * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
 ---
 
@@ -201,6 +446,8 @@ A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
+* `container_settings` - (Optional) A `container_setting` block is the settings for the container under which the start task runs. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
+
 * `task_retry_maximum` - (Optional) The number of retry count. Defaults to `1`.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
@@ -210,6 +457,18 @@ A `start_task` block supports the following:
 * `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs.
 
 * `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
+---
+
+A `container_settings` block supports the following:
+
+* `image_name` - (Required) The image to use to create the container in which the task will run. This is the full image reference, as would be specified to "docker pull". If no tag is provided as part of the image name, the tag ":latest" is used as a default.
+
+* `container_run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
+
+* `registry` - (Optional) The same reference as `container_registry` block defined as follows.
+
+* `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is "TaskWorkingDirectory", an alternative value is "ContainerImageDefault".
 
 ---
 
@@ -237,11 +496,41 @@ A `certificate` block supports the following:
 
 * `store_location` - (Required) The location of the certificate store on the compute node into which to install the certificate. Possible values are `CurrentUser` or `LocalMachine`.
 
- -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+-> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 * `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used. The default value is `My`.
 
 * `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate.
+
+---
+
+A `user_accounts` block supports the following:
+
+* `name` - (Required) The name of the user account.
+
+* `password` - (Required) The password for the user account.
+
+* `elevation_level` - (Required) The elevation level of the user account. "NonAdmin" - The auto user is a standard user without elevated access. "Admin" - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin.
+
+* `linux_user_configuration` - (Optional) The `linux_user_configuration` block defined below is a linux-specific user configuration for the user account. This property is ignored if specified on a Windows pool. If not specified, the user is created with the default options.
+
+* `windows_user_configuration` - (Optional) The `windows_user_configuration` block defined below is a windows-specific user configuration for the user account. This property can only be specified if the user is on a Windows pool. If not specified and on a Windows pool, the user is created with the default options.
+
+---
+
+A `linux_user_configuration` block supports the following:
+
+* `uid` - (Optional) The group ID for the user account. The `uid` and `gid` properties must be specified together or not at all. If not specified the underlying operating system picks the gid.
+
+* `gid` - (Optional) The user ID of the user account. The `uid` and `gid` properties must be specified together or not at all. If not specified the underlying operating system picks the uid.
+
+* `ssh_private_key` - (Optional) The SSH private key for the user account. The private key must not be password protected. The private key is used to automatically configure asymmetric-key based authentication for SSH between nodes in a Linux pool when the pool's enableInterNodeCommunication property is true (it is ignored if enableInterNodeCommunication is false). It does this by placing the key pair into the user's .ssh directory. If not specified, password-less SSH is not configured between nodes (no modification of the user's .ssh directory is done).
+
+---
+
+A `windows_user_configuration` block supports the following:
+
+* `login_mode` - (Optional) Specifies login mode for the user. The default value for VirtualMachineConfiguration pools is interactive mode and for CloudServiceConfiguration pools is batch mode. Values supported are "Batch" and "Interactive".
 
 ---
 
@@ -269,11 +558,15 @@ A `resource_file` block supports the following:
 
 * `storage_container_url` - (Optional) The URL of the blob container within Azure Blob Storage. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
 
+* `identity_reference` - (Optional) The reference `identity_reference` which is used to use to access Azure Blob Storage specified by storageContainerUrl or httpUrl. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
+
 ~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
 ---
 
 A `container_registries` block supports the following:
+
+* `identity_reference` - (Optional) The reference to the `identity_reference` block which is used to access an Azure Container Registry instead of username and password. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
 
 * `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
 
@@ -287,6 +580,8 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
+* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment.
+
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
@@ -297,13 +592,13 @@ A `network_configuration` block supports the following:
 
 A `endpoint_configuration` block supports the following:
 
-* `name` - The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
 
-* `backend_port` - The port number on the compute node. Acceptable values are between `1` and `65535` except for `29876`, `29877` as these are reserved. Changing this forces a new resource to be created.
+* `backend_port` - (Required) The port number on the compute node. Acceptable values are between `1` and `65535` except for `29876`, `29877` as these are reserved. Changing this forces a new resource to be created.
 
-* `protocol` - The protocol of the endpoint. Acceptable values are `TCP` and `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Required) The protocol of the endpoint. Acceptable values are `TCP` and `UDP`. Changing this forces a new resource to be created.
 
-* `frontend_port_range` - The range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes in the format of `1000-1100`. Acceptable values range between `1` and `65534` except ports from `50000` to `55000` which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least `100` nodes. Changing this forces a new resource to be created.
+* `frontend_port_range` - (Required) The range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes in the format of `1000-1100`. Acceptable values range between `1` and `65534` except ports from `50000` to `55000` which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least `100` nodes. Changing this forces a new resource to be created.
 
 * `network_security_group_rules` - (Optional) A list of network security group rules that will be applied to the endpoint. The maximum number of rules that can be specified across all the endpoints on a Batch pool is `25`. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. Set as documented in the network_security_group_rules block below. Changing this forces a new resource to be created.
 
@@ -311,11 +606,13 @@ A `endpoint_configuration` block supports the following:
 
 A `network_security_group_rules` block supports the following:
 
-* `access` - The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
+* `access` - (Required) The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
 
-* `priority` - The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
+* `priority` - (Required) The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
 
-* `source_address_prefix` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+* `source_address_prefix` - (Required) The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+
+* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are '*' (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. 100-200). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be *.
 
 ## Attributes Reference
 

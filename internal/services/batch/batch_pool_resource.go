@@ -10,11 +10,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceBatchPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	result := &pluginsdk.Resource{
 		Create: resourceBatchPoolCreate,
 		Read:   resourceBatchPoolRead,
 		Update: resourceBatchPoolUpdate,
@@ -49,58 +50,18 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.PoolName,
 			},
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AccountName,
 			},
-			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
 			"vm_size": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-			},
-			"max_tasks_per_node": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"fixed_scale": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"target_dedicated_nodes": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntBetween(0, 2000),
-						},
-						"target_low_priority_nodes": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 1000),
-						},
-						"resize_timeout": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "PT15M",
-						},
-					},
-				},
 			},
 			"auto_scale": {
 				Type:     pluginsdk.TypeList,
@@ -123,121 +84,24 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"container_configuration": {
+			"application_packages": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MinItems: 1,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
-						},
-						"container_image_names": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							ForceNew: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
-						},
-						"container_registries": {
-							Type:       pluginsdk.TypeList,
-							Optional:   true,
-							ForceNew:   true,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"registry_server": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"user_name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"password": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										Sensitive:    true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
-						},
-					},
-				},
-			},
-			"storage_image_reference": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+							Required:     true,
+							ValidateFunc: validate.ApplicationID,
 						},
-
-						"publisher": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-
-						"offer": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-
-						"sku": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.StringIsNotEmpty,
-							AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-
 						"version": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
 						},
 					},
 				},
-			},
-			"node_agent_sku_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"stop_pending_resize_operation": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
 			},
 			"certificate": {
 				Type:     pluginsdk.TypeList,
@@ -282,16 +146,56 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"identity": commonschema.UserAssignedIdentityOptional(),
-
-			"start_task": {
+			"display_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"fixed_scale": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
-					Schema: startTaskSchema(),
+					Schema: map[string]*pluginsdk.Schema{
+						//This is a writeOnly option by service team and not able to perform GET only applicable when PUT
+						"node_deallocation_option": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeDeallocationOptionRequeue),
+								string(batch.ComputeNodeDeallocationOptionRetainedData),
+								string(batch.ComputeNodeDeallocationOptionTaskCompletion),
+								string(batch.ComputeNodeDeallocationOptionTerminate),
+							}, false),
+						},
+						"target_dedicated_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
+							ValidateFunc: validation.IntBetween(0, 2000),
+						},
+						"target_low_priority_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 1000),
+						},
+						"resize_timeout": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "PT15M",
+						},
+					},
 				},
+			},
+			"inter_node_communication": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(batch.InterNodeCommunicationStateEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(batch.InterNodeCommunicationStateEnabled),
+					string(batch.InterNodeCommunicationStateDisabled),
+				}, false),
 			},
 			"metadata": {
 				Type:     pluginsdk.TypeMap,
@@ -299,6 +203,153 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+			"mount_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"azure_blob_file_system_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"container_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"account_key": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"sas_key": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"identity_reference": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: identityReference(),
+										},
+									},
+									"blobfuse_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"azure_file_share_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"azure_file_url": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsURLWithHTTPS,
+									},
+									"account_key": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"cifs_mount_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"user_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"source": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"password": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"nfs_mount_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"source": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 			"network_configuration": {
@@ -313,6 +364,15 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_vnet_assignment_scope": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.DynamicVNetAssignmentScopeNone),
+								string(batch.DynamicVNetAssignmentScopeJob),
+							}, false),
 						},
 						"public_ips": {
 							Type:     pluginsdk.TypeSet,
@@ -395,6 +455,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
+												"source_port_ranges": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Computed: true,
+													ForceNew: true,
+													Elem: &pluginsdk.Schema{
+														Type:         pluginsdk.TypeString,
+														Default:      "*",
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
 											},
 										},
 									},
@@ -404,8 +475,536 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"start_task": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: startTaskSchema(),
+				},
+			},
+			"task_scheduling_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"node_fill_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeFillTypeSpread),
+								string(batch.ComputeNodeFillTypePack),
+							}, false),
+						},
+					},
+				},
+			},
+			"max_tasks_per_node": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ForceNew:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+			"stop_pending_resize_operation": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"user_accounts": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"elevation_level": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ElevationLevelNonAdmin),
+								string(batch.ElevationLevelAdmin),
+							}, false),
+						},
+						"linux_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"uid": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+									},
+									"gid": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+									},
+									"ssh_private_key": {
+										Type:      pluginsdk.TypeString,
+										Optional:  true,
+										Sensitive: true,
+									},
+								},
+							},
+						},
+						"windows_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"login_mode": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(batch.LoginModeBatch),
+											string(batch.LoginModeInteractive),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"identity": commonschema.UserAssignedIdentityOptional(),
 		},
 	}
+	if !features.FourPointOhBeta() {
+		result.Schema["container_configuration"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MinItems:   1,
+			MaxItems:   1,
+			Deprecated: "de",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+					"container_image_names": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+					"container_registries": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						ForceNew:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"registry_server": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"user_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"password": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									Sensitive:    true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+				},
+			},
+		}
+		result.Schema["storage_image_reference"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ForceNew:   true,
+			MaxItems:   1,
+			Deprecated: "`storage_image_reference` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.image_reference` in version 4.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"publisher": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"offer": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"sku": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     validation.StringIsNotEmpty,
+						AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+				},
+			}}
+		result.Schema["node_agent_sku_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: "`node_agent_sku_id` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.node_agent_sku_id` in version 4.0 of the AzureRM Provider.",
+		}
+	} else {
+		result.Schema["deployment_configuration"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cloud_service_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"os_family": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"os_version": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      utils.String("*"),
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+					"virtual_machine_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"container_configuration": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MinItems: 1,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"type": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+												AtLeastOneOf: []string{
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.type",
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_image_names",
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_registries",
+												},
+											},
+											"container_image_names": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												ForceNew: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												AtLeastOneOf: []string{
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.type",
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_image_names",
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_registries",
+												},
+											},
+											"container_registries": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												ForceNew: true,
+												// ConfigMode: pluginsdk.SchemaConfigModeAttr,
+												Elem: &pluginsdk.Resource{
+													Schema: containerRegistry(),
+												},
+												AtLeastOneOf: []string{
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.type",
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_image_names",
+													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_registries",
+												},
+											},
+										},
+									},
+								},
+								"data_disks": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"lun": {
+												Type:         pluginsdk.TypeInt,
+												Required:     true,
+												ValidateFunc: validation.IntBetween(0, 63),
+											},
+											"caching": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												Default:  string(batch.CachingTypeReadOnly),
+												ValidateFunc: validation.StringInSlice([]string{
+													string(batch.CachingTypeNone),
+													string(batch.CachingTypeReadOnly),
+													string(batch.CachingTypeReadWrite),
+												}, false),
+											},
+											"disk_size_gb": {
+												Type:         pluginsdk.TypeInt,
+												Required:     true,
+												ValidateFunc: validation.IntAtLeast(0),
+											},
+											"storage_account_type": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												Default:  batch.StorageAccountTypeStandardLRS,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(batch.StorageAccountTypeStandardLRS),
+													string(batch.StorageAccountTypePremiumLRS),
+												}, false),
+											},
+										},
+									},
+								},
+								"disk_encryption_configuration": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"disk_encryption_target": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(batch.DiskEncryptionTargetTemporaryDisk),
+													string(batch.DiskEncryptionTargetOsDisk),
+												}, false),
+											},
+										},
+									},
+								},
+								"extensions": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"publisher": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"type": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"type_handler_version": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"auto_upgrade_minor_version": {
+												Type:     pluginsdk.TypeBool,
+												Optional: true,
+											},
+											"settings": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringIsJSON,
+											},
+											"protected_settings": {
+												Type:      pluginsdk.TypeString,
+												Optional:  true,
+												Sensitive: true,
+											},
+											"provision_after_extensions": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
+									},
+								},
+								"image_reference": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"id": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: azure.ValidateResourceID,
+												AtLeastOneOf: []string{
+													"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id",
+													"deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher",
+													"deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer",
+													"deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku",
+													"deployment_configuration.0.virtual_machine_configuration.0.image_reference.version",
+												},
+											},
+
+											"publisher": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+												AtLeastOneOf: []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
+											},
+
+											"offer": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+												AtLeastOneOf: []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
+											},
+
+											"sku": {
+												Type:             pluginsdk.TypeString,
+												Optional:         true,
+												ForceNew:         true,
+												DiffSuppressFunc: suppress.CaseDifference,
+												ValidateFunc:     validation.StringIsNotEmpty,
+												AtLeastOneOf:     []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
+											},
+
+											"version": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+												AtLeastOneOf: []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
+											},
+										},
+									},
+								},
+								"license_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"node_agent_sku_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+								},
+								"node_placement_configuration": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"policy": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												Default:  string(batch.NodePlacementPolicyTypeRegional),
+												ValidateFunc: validation.StringInSlice([]string{
+													string(batch.NodePlacementPolicyTypeZonal),
+													string(batch.NodePlacementPolicyTypeRegional),
+												}, false),
+											},
+										},
+									},
+								},
+								"os_disk": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"ephemeral_os_disk_settings": {
+												Type:     pluginsdk.TypeList,
+												Required: true,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"placement": {
+															Type:     pluginsdk.TypeString,
+															Required: true,
+															ValidateFunc: validation.StringInSlice(
+																[]string{
+																	string(batch.DiffDiskPlacementCacheDisk),
+																}, false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								"windows_configuration": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"enable_automatic_updates": {
+												Type:     pluginsdk.TypeBool,
+												Default:  true,
+												Optional: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+	return result
 }
 
 func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -431,15 +1030,34 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
-			VMSize:           utils.String(d.Get("vm_size").(string)),
-			DisplayName:      utils.String(d.Get("display_name").(string)),
-			TaskSlotsPerNode: utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
+			VMSize:                 utils.String(d.Get("vm_size").(string)),
+			DisplayName:            utils.String(d.Get("display_name").(string)),
+			InterNodeCommunication: batch.InterNodeCommunicationState(d.Get("inter_node_communication").(string)),
+			TaskSlotsPerNode:       utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
+	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
+	}
+	parameters.PoolProperties.ApplicationPackages = applicationPackages
+
+	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
+	}
+	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
+
+	userAccounts, err := ExpandBatchPoolUserAccounts(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
+	}
+	parameters.PoolProperties.UserAccounts = userAccounts
+
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return fmt.Errorf(`expanding "identity": %v`, err)
+		log.Printf(`[DEBUG] expanding "identity": %v`, err)
 	}
 	parameters.Identity = identity
 
@@ -447,27 +1065,36 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("expanding scale settings: %+v", err)
 	}
-
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
-	nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
+	if !features.FourPointOhBeta() {
+		nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
 
-	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-	imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
+		storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+		imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
 
-	if imageReference != nil {
-		// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
-		if imageReference.ID != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
-			return fmt.Errorf("creating %s: Properties version, offer, publish cannot be defined when using a custom image id", id)
-		} else if imageReference.ID == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
-			return fmt.Errorf("creating %s: Properties version, offer, publish and sku are mandatory when not using a custom image", id)
+		containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+
+		parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+			VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
+				NodeAgentSkuID:         &nodeAgentSkuID,
+				ImageReference:         imageReference,
+				ContainerConfiguration: containerConfiguration,
+			},
 		}
 	} else {
-		return fmt.Errorf("creating %s: image reference property can not be empty", id)
+		if deploymentConfiguration, deploymentErr := ExpandBatchPoolDeploymentConfiguration(d); deploymentErr == nil {
+			parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
+		}
 	}
+	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
+	parameters.PoolProperties.MountConfiguration = mountConfiguration
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
@@ -486,23 +1113,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.StartTask = startTask
 	}
 
-	containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
-		VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
-			NodeAgentSkuID:         &nodeAgentSkuID,
-			ImageReference:         imageReference,
-			ContainerConfiguration: containerConfiguration,
-		},
-	}
-
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
-		return fmt.Errorf("expanding `certificate`: %+v", err)
+		log.Printf("[DEBUG] expanding `certificate`: %+v", err)
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
@@ -580,15 +1194,74 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return fmt.Errorf(`expanding "identity": %v`, err)
+		log.Printf(`[DEBUG] expanding "identity": %v`, err)
 	}
 	parameters.Identity = identity
 
-	scaleSettings, err := expandBatchPoolScaleSettings(d)
+	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
 	if err != nil {
-		return fmt.Errorf("expanding scale settings: %+v", err)
+		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
+	}
+	parameters.PoolProperties.ApplicationPackages = applicationPackages
+
+	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
+	}
+	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
+
+	userAccounts, err := ExpandBatchPoolUserAccounts(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
+	}
+	parameters.PoolProperties.UserAccounts = userAccounts
+
+	deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d)
+	if err != nil {
+		if !features.FourPointOhBeta() {
+			nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
+
+			storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+			imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+				VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
+					NodeAgentSkuID:         &nodeAgentSkuID,
+					ImageReference:         imageReference,
+					ContainerConfiguration: containerConfiguration,
+				},
+			}
+		}
+
+		log.Printf(`[DEBUG] expanding "deployment_configuration": %v`, err)
+	} else {
+		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 	}
 
+	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "mount_configuration": %v`, err)
+	}
+	parameters.PoolProperties.MountConfiguration = mountConfiguration
+
+	networkConfiguration := d.Get("network_configuration").([]interface{})
+	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	if err != nil {
+		log.Printf("[DEBUG] expanding `network_configuration`: %+v", err)
+	}
+
+	scaleSettings, err := expandBatchPoolScaleSettings(d)
+	if err != nil {
+		log.Printf("[DEBUG] expanding scale settings: %+v", err)
+	}
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
@@ -607,10 +1280,11 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		parameters.PoolProperties.StartTask = startTask
 	}
+
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
-		return fmt.Errorf("expanding `certificate`: %+v", err)
+		log.Printf("[DEBUG] expanding `certificate`: %+v", err)
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
@@ -621,7 +1295,6 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if d.HasChange("metadata") {
 		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
-
 		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
 
@@ -673,6 +1346,45 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if props := resp.PoolProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("vm_size", props.VMSize)
+		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
+		d.Set("inter_node_communication", string(props.InterNodeCommunication))
+
+		if props.ApplicationPackages != nil {
+			applicationPackages := make([]interface{}, 0)
+			for _, pkg := range *props.ApplicationPackages {
+				appPkg := make(map[string]interface{})
+				appPkg["id"] = *pkg.ID
+				if pkg.Version != nil {
+					appPkg["version"] = *pkg.Version
+				}
+				applicationPackages = append(applicationPackages, appPkg)
+			}
+			d.Set("application_packages", applicationPackages)
+		}
+
+		if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
+			taskSchedulingPolicy := make([]interface{}, 0)
+			nodeFillType := make(map[string]interface{})
+			nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
+			taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
+			d.Set("task_scheduling_policy", taskSchedulingPolicy)
+		}
+
+		if props.UserAccounts != nil {
+			userAccounts := make([]interface{}, 0)
+			for _, userAccount := range *props.UserAccounts {
+				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
+			}
+			d.Set("user_accounts", userAccounts)
+		}
+
+		if props.MountConfiguration != nil {
+			mountConfigs := make([]interface{}, 0)
+			for _, mountConfig := range *props.MountConfiguration {
+				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
+			}
+			d.Set("mount_configuration", mountConfigs)
+		}
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
@@ -683,20 +1395,38 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
+		if !features.FourPointOhBeta() {
+			if props.DeploymentConfiguration != nil &&
+				props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+				props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
+				imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 
-		if props.DeploymentConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+				d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
+				d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+			}
 
-			d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
-			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
-		}
-
-		if dcfg := props.DeploymentConfiguration; dcfg != nil {
-			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
+			if dcfg := props.DeploymentConfiguration; dcfg != nil {
+				if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
+				}
+			}
+		} else {
+			if props.DeploymentConfiguration != nil {
+				deploymentConfigMap := make(map[string]interface{}, 0)
+				if props.DeploymentConfiguration.CloudServiceConfiguration != nil {
+					deploymentConfigMap["cloud_service_configuration"] = []interface{}{
+						flattenBatchPoolCloudServiceConfiguration(props.DeploymentConfiguration.CloudServiceConfiguration),
+					}
+				}
+				if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+					deploymentConfigMap["virtual_machine_configuration"] = []interface{}{
+						flattenBatchPoolVirtualMachineConfiguration(d, props.DeploymentConfiguration.VirtualMachineConfiguration),
+					}
+				}
+				deploymentConfigList := []interface{}{
+					deploymentConfigMap,
+				}
+				d.Set("deployment_configuration", deploymentConfigList)
 			}
 		}
 
@@ -704,7 +1434,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("flattening `certificate`: %+v", err)
 		}
 
-		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
+		d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
@@ -736,57 +1466,6 @@ func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 	return nil
-}
-
-func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettings, error) {
-	scaleSettings := &batch.ScaleSettings{}
-
-	autoScaleValue, autoScaleOk := d.GetOk("auto_scale")
-	fixedScaleValue, fixedScaleOk := d.GetOk("fixed_scale")
-
-	if !autoScaleOk && !fixedScaleOk {
-		return nil, fmt.Errorf("auto_scale block or fixed_scale block need to be specified")
-	}
-
-	if autoScaleOk && fixedScaleOk {
-		return nil, fmt.Errorf("auto_scale and fixed_scale blocks cannot be specified at the same time")
-	}
-
-	if autoScaleOk {
-		autoScale := autoScaleValue.([]interface{})
-		if len(autoScale) == 0 {
-			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
-		}
-
-		autoScaleSettings := autoScale[0].(map[string]interface{})
-
-		autoScaleEvaluationInterval := autoScaleSettings["evaluation_interval"].(string)
-		autoScaleFormula := autoScaleSettings["formula"].(string)
-
-		scaleSettings.AutoScale = &batch.AutoScaleSettings{
-			EvaluationInterval: &autoScaleEvaluationInterval,
-			Formula:            &autoScaleFormula,
-		}
-	} else if fixedScaleOk {
-		fixedScale := fixedScaleValue.([]interface{})
-		if len(fixedScale) == 0 {
-			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
-		}
-
-		fixedScaleSettings := fixedScale[0].(map[string]interface{})
-
-		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
-		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
-		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
-
-		scaleSettings.FixedScale = &batch.FixedScaleSettings{
-			ResizeTimeout:          &resizeTimeout,
-			TargetDedicatedNodes:   &targetDedicatedNodes,
-			TargetLowPriorityNodes: &targetLowPriorityNodes,
-		}
-	}
-
-	return scaleSettings, nil
 }
 
 func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
@@ -865,44 +1544,46 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	return nil
 }
 
-func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
-	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil {
-		return nil, err
+func identityReference() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"identity_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
 	}
-
-	out := batch.PoolIdentity{
-		Type: batch.PoolIdentityType(string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*batch.UserAssignedIdentities)
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &batch.UserAssignedIdentities{
-				// intentionally empty
-			}
-		}
-	}
-
-	return &out, nil
 }
 
-func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error) {
-	var transform *identity.UserAssignedMap
-
-	if input != nil {
-		transform = &identity.UserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
+func containerRegistry() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"user_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"registry_server": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      utils.String("docker.io"),
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"identity_reference": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: identityReference(),
+			},
+		},
 	}
-
-	return identity.FlattenUserAssignedMap(transform)
 }
 
 func startTaskSchema() map[string]*pluginsdk.Schema {
@@ -911,6 +1592,40 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"container_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"container_run_options": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"image_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"registry": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: containerRegistry(),
+						},
+					},
+					"working_directory": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(batch.ContainerWorkingDirectoryTaskWorkingDirectory),
+							string(batch.ContainerWorkingDirectoryContainerImageDefault),
+						}, false),
+					},
+				},
+			},
 		},
 
 		"task_retry_maximum": {
@@ -999,6 +1714,13 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 					"http_url": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+					},
+					"identity_reference": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: identityReference(),
+						},
 					},
 					"storage_container_url": {
 						Type:     pluginsdk.TypeString,
