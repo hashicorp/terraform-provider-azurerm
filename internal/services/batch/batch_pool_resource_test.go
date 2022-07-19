@@ -514,7 +514,7 @@ func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.
 	})
 }
 
-func TestAccBatchPool_vnetSecurity(t *testing.T) {
+func TestAccBatchPool_vnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
@@ -1797,47 +1797,9 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) vnet(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
-  location = "%s"
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "testnsg-batch-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "testsubnet" {
-  name                 = "batchtestsubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = azurerm_subnet.testsubnet.id
-  network_security_group_id = azurerm_network_security_group.test.id
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "testvn-batch-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-  dns_servers         = ["10.0.0.4", "10.0.0.5"]
-}
-
-resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
+%s
 
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
@@ -1859,11 +1821,11 @@ resource "azurerm_batch_pool" "test" {
 
   network_configuration {
     subnet_id = azurerm_subnet.testsubnet.id
-    # protential bug dynamic_vnet_assignment_scope = "none"
+    dynamic_vnet_assignment_scope = "none"
     public_address_provisioning_type = "BatchManaged"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfiguration(data acceptance.TestData) string {
@@ -1974,4 +1936,49 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "testnsg-batch-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "testsubnet" {
+  name                 = "batchtestsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.testsubnet.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testvn-batch-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }

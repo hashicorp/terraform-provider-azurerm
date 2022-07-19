@@ -35,7 +35,7 @@ func flattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []inte
 }
 
 // flattenBatchPoolFixedScaleSettings flattens the fixed scale settings for a Batch pool
-func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []interface{} {
+func flattenBatchPoolFixedScaleSettings(d *pluginsdk.ResourceData, settings *batch.FixedScaleSettings) []interface{} {
 	results := make([]interface{}, 0)
 
 	if settings == nil {
@@ -45,8 +45,9 @@ func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 
 	result := make(map[string]interface{})
 
-	if settings.NodeDeallocationOption != "" {
-		result["node_deallocation_option"] = settings.NodeDeallocationOption
+	// for now, this is a writeOnly property, so we treat this as secret.
+	if v, ok := d.GetOk("fixed_scale.0.node_deallocation_option"); ok {
+		result["node_deallocation_option"] = v.(string)
 	}
 
 	if settings.TargetDedicatedNodes != nil {

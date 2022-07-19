@@ -939,7 +939,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
 				return fmt.Errorf("flattening `auto_scale`: %+v", err)
 			}
-			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
+			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
 		}
