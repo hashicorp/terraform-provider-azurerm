@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -182,18 +181,9 @@ func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.systemAssignedUserAssignedIdentity(data),
+			Config: r.userAssignedIdentityUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.systemAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -303,8 +293,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 
 func (r WorkspaceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_container_registry" "test" {
@@ -348,65 +337,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"
   v1_legacy_mode                = false
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  encryption {
-    key_vault_id = azurerm_key_vault.test.id
-    key_id       = azurerm_key_vault_key.test.id
-  }
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, template, data.RandomIntOfLength(16))
-	}
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_container_registry" "test" {
-  name                = "acctestacr%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
-  admin_enabled       = true
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "acctest-kv-key-%[2]d"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-
-  depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
-}
-
-resource "azurerm_machine_learning_workspace" "test" {
-  name                                         = "acctest-MLW-%[2]d"
-  location                                     = azurerm_resource_group.test.location
-  resource_group_name                          = azurerm_resource_group.test.name
-  friendly_name                                = "test-workspace"
-  description                                  = "Test machine learning workspace"
-  application_insights_id                      = azurerm_application_insights.test.id
-  key_vault_id                                 = azurerm_key_vault.test.id
-  storage_account_id                           = azurerm_storage_account.test.id
-  container_registry_id                        = azurerm_container_registry.test.id
-  sku_name                                     = "Basic"
-  high_business_impact                         = true
-  public_access_behind_virtual_network_enabled = true
-  image_build_compute_name                     = "terraformCompute"
 
   identity {
     type = "SystemAssigned"
@@ -467,6 +397,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   container_registry_id    = azurerm_container_registry.test.id
   sku_name                 = "Basic"
   high_business_impact     = true
+  public_network_access_enabled = true
   image_build_compute_name = "terraformCompute"
 
   identity {
@@ -600,6 +531,55 @@ resource "azurerm_machine_learning_workspace" "test" {
   depends_on = [azurerm_role_assignment.test]
 }
 `, r.template(data), data.RandomInteger)
+}
+func (r WorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestUAI-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Reader"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Reader"
+  principal_id         = azurerm_user_assigned_identity.test2.principal_id
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                           = "acctest-MLW-%[2]d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  application_insights_id        = azurerm_application_insights.test.id
+  key_vault_id                   = azurerm_key_vault.test.id
+  storage_account_id             = azurerm_storage_account.test.id
+  primary_user_assigned_identity = azurerm_user_assigned_identity.test.id
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+      azurerm_user_assigned_identity.test2.id,
+    ]
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
 
 func (r WorkspaceResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
