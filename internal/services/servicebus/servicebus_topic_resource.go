@@ -164,7 +164,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", resourceId.ID())
+			return tf.ImportAsExistsError("azurerm_servicebus_topic", resourceId.ID())
 		}
 	}
 
