@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -74,9 +74,9 @@ func expandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 		Type: compute.ResourceIdentityType(string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
+		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{
+			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
 				// intentionally empty
 			}
 		}
@@ -283,10 +283,10 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.IPVersionIPv4),
+					Default:  string(compute.IPv4),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.IPVersionIPv4),
-						string(compute.IPVersionIPv6),
+						string(compute.IPv4),
+						string(compute.IPv6),
 					}, false),
 				},
 			},
@@ -525,7 +525,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
-	if primary && version == compute.IPVersionIPv6 {
+	if primary && version == compute.IPv6 {
 		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
@@ -656,7 +656,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 
-	if primary && version == compute.IPVersionIPv6 {
+	if primary && version == compute.IPv6 {
 		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
@@ -1097,17 +1097,17 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskOptionsLocal),
+									string(compute.Local),
 								}, false),
 							},
 							"placement": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
 								ForceNew: true,
-								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								Default:  string(compute.CacheDisk),
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskPlacementCacheDisk),
-									string(compute.DiffDiskPlacementResourceDisk),
+									string(compute.CacheDisk),
+									string(compute.ResourceDisk),
 								}, false),
 							},
 						},
@@ -1145,8 +1145,8 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
-						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+						string(compute.VMGuestStateOnly),
+						string(compute.DiskWithVMGuestState),
 					}, false),
 				},
 
@@ -1182,7 +1182,7 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		}
 	}
 	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
-		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+		if compute.DiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
 			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{

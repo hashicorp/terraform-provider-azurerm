@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -15,6 +14,7 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -61,7 +61,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	exists, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	exists, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists.Response) {
 			return fmt.Errorf("checking for existing Linux %s: %+v", id, err)
@@ -230,7 +230,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.VirtualMachinePriorityTypesSpot {
+		if priority != compute.Spot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -245,7 +245,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		if encryptionAtHostEnabled.(bool) {
-			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+			if compute.DiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
 				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 			}
 		}
@@ -309,11 +309,11 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
+		if virtualMachineProfile.Priority != compute.Spot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.VirtualMachinePriorityTypesSpot {
+	} else if priority == compute.Spot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
@@ -355,7 +355,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
-			OrchestrationMode: compute.OrchestrationModeUniform,
+			OrchestrationMode: compute.Uniform,
 			ScaleInPolicy: &compute.ScaleInPolicy{
 				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
 			},
@@ -416,7 +416,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 	if err != nil {
 		return fmt.Errorf("retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -483,7 +483,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
-		if priority != compute.VirtualMachinePriorityTypesSpot {
+		if priority != compute.Spot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -641,7 +641,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		if d.Get("encryption_at_host_enabled").(bool) {
 			osDiskRaw := d.Get("os_disk").([]interface{})
 			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+			if compute.DiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
 				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 			}
 		}
@@ -739,7 +739,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Linux Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -804,7 +804,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
 
-	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
+	rule := string(compute.Default)
 	if props.ScaleInPolicy != nil {
 		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
 			rule = string((*rules)[0])
@@ -834,7 +834,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 
 		// the service just return empty when this is not assigned when provisioned
 		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
-		priority := compute.VirtualMachinePriorityTypesRegular
+		priority := compute.Regular
 		if profile.Priority != "" {
 			priority = profile.Priority
 		}
@@ -974,7 +974,7 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
@@ -1185,10 +1185,10 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  string(compute.VirtualMachinePriorityTypesRegular),
+			Default:  string(compute.Regular),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(compute.VirtualMachinePriorityTypesRegular),
-				string(compute.VirtualMachinePriorityTypesSpot),
+				string(compute.Regular),
+				string(compute.Spot),
 			}, false),
 		},
 
@@ -1275,11 +1275,11 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"scale_in_policy": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+			Default:  string(compute.Default),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
-				string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+				string(compute.Default),
+				string(compute.NewestVM),
+				string(compute.OldestVM),
 			}, false),
 		},
 

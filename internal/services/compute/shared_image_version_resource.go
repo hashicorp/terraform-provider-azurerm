@@ -6,12 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -142,10 +142,10 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.ReplicationModeFull),
-					string(compute.ReplicationModeShallow),
+					string(compute.Full),
+					string(compute.Shallow),
 				}, false),
-				Default: compute.ReplicationModeFull,
+				Default: compute.Full,
 			},
 
 			"exclude_from_latest": {
@@ -276,7 +276,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
 
-			replicationMode := string(compute.ReplicationModeFull)
+			replicationMode := string(compute.Full)
 			if profile.ReplicationMode != "" {
 				replicationMode = string(profile.ReplicationMode)
 			}
@@ -378,7 +378,7 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]comput
 		}
 
 		if diskEncryptionSetId != "" {
-			if d.Get("replication_mode").(string) == string(compute.ReplicationModeShallow) {
+			if d.Get("replication_mode").(string) == string(compute.Shallow) {
 				return nil, fmt.Errorf("`disk_encryption_set_id` cannot be used when `replication_mode` is `Shallow`")
 			}
 

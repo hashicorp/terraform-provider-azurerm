@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	legacyCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 )
 
 type Client struct {
@@ -14,27 +15,27 @@ type Client struct {
 	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
 	DedicatedHostsClient             *compute.DedicatedHostsClient
 	DedicatedHostGroupsClient        *compute.DedicatedHostGroupsClient
-	DisksClient                      *compute.DisksClient
+	DisksClient                      *legacyCompute.DisksClient
 	DiskAccessClient                 *compute.DiskAccessesClient
-	DiskEncryptionSetsClient         *compute.DiskEncryptionSetsClient
+	DiskEncryptionSetsClient         *legacyCompute.DiskEncryptionSetsClient
 	GalleriesClient                  *compute.GalleriesClient
 	GalleryApplicationsClient        *compute.GalleryApplicationsClient
 	GalleryApplicationVersionsClient *compute.GalleryApplicationVersionsClient
 	GalleryImagesClient              *compute.GalleryImagesClient
-	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
+	GalleryImageVersionsClient       *legacyCompute.GalleryImageVersionsClient
 	ImagesClient                     *compute.ImagesClient
 	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
 	ProximityPlacementGroupsClient   *compute.ProximityPlacementGroupsClient
 	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
-	SnapshotsClient                  *compute.SnapshotsClient
+	SnapshotsClient                  *legacyCompute.SnapshotsClient
 	UsageClient                      *compute.UsageClient
 	VMExtensionImageClient           *compute.VirtualMachineExtensionImagesClient
 	VMExtensionClient                *compute.VirtualMachineExtensionsClient
-	VMScaleSetClient                 *compute.VirtualMachineScaleSetsClient
+	VMScaleSetClient                 *legacyCompute.VirtualMachineScaleSetsClient
 	VMScaleSetExtensionsClient       *compute.VirtualMachineScaleSetExtensionsClient
 	VMScaleSetRollingUpgradesClient  *compute.VirtualMachineScaleSetRollingUpgradesClient
 	VMScaleSetVMsClient              *compute.VirtualMachineScaleSetVMsClient
-	VMClient                         *compute.VirtualMachinesClient
+	VMClient                         *legacyCompute.VirtualMachinesClient
 	VMImageClient                    *compute.VirtualMachineImagesClient
 }
 
@@ -54,13 +55,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	dedicatedHostGroupsClient := compute.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	disksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	disksClient := legacyCompute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
 
 	diskAccessClient := compute.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&diskAccessClient.Client, o.ResourceManagerAuthorizer)
 
-	diskEncryptionSetsClient := compute.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	diskEncryptionSetsClient := legacyCompute.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&diskEncryptionSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	galleriesClient := compute.NewGalleriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -75,7 +76,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&galleryImagesClient.Client, o.ResourceManagerAuthorizer)
 
-	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	galleryImageVersionsClient := legacyCompute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&galleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
 
 	imagesClient := compute.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -87,7 +88,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	proximityPlacementGroupsClient := compute.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&proximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	snapshotsClient := legacyCompute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&snapshotsClient.Client, o.ResourceManagerAuthorizer)
 
 	sshPublicKeysClient := sshpublickeys.NewSshPublicKeysClientWithBaseURI(o.ResourceManagerEndpoint)
@@ -105,7 +106,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	vmImageClient := compute.NewVirtualMachineImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmImageClient.Client, o.ResourceManagerAuthorizer)
 
-	vmScaleSetClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	vmScaleSetClient := legacyCompute.NewVirtualMachineScaleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetClient.Client, o.ResourceManagerAuthorizer)
 
 	vmScaleSetExtensionsClient := compute.NewVirtualMachineScaleSetExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -117,7 +118,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	vmScaleSetVMsClient := compute.NewVirtualMachineScaleSetVMsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetVMsClient.Client, o.ResourceManagerAuthorizer)
 
-	vmClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	vmClient := legacyCompute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

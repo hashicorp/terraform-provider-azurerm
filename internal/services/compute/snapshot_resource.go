@@ -5,10 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -53,8 +53,8 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskCreateOptionCopy),
-					string(compute.DiskCreateOptionImport),
+					string(compute.Copy),
+					string(compute.Import),
 				}, false),
 			},
 
@@ -211,7 +211,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		trustedLaunchEnabled := false
 		if securityProfile := props.SecurityProfile; securityProfile != nil {
-			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+			if securityProfile.SecurityType == compute.TrustedLaunch {
 				trustedLaunchEnabled = true
 			}
 		}

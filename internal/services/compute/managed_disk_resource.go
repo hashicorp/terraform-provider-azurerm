@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -61,6 +61,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					string(compute.StorageAccountTypesStandardLRS),
 					string(compute.StorageAccountTypesStandardSSDZRS),
 					string(compute.StorageAccountTypesPremiumLRS),
+					string(compute.StorageAccountTypesPremiumV2LRS),
 					string(compute.StorageAccountTypesPremiumZRS),
 					string(compute.StorageAccountTypesStandardSSDLRS),
 					string(compute.StorageAccountTypesUltraSSDLRS),
@@ -73,11 +74,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskCreateOptionCopy),
-					string(compute.DiskCreateOptionEmpty),
-					string(compute.DiskCreateOptionFromImage),
-					string(compute.DiskCreateOptionImport),
-					string(compute.DiskCreateOptionRestore),
+					string(compute.Copy),
+					string(compute.Empty),
+					string(compute.FromImage),
+					string(compute.Import),
+					string(compute.Restore),
 				}, false),
 			},
 
@@ -189,9 +190,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.NetworkAccessPolicyAllowAll),
-					string(compute.NetworkAccessPolicyAllowPrivate),
-					string(compute.NetworkAccessPolicyDenyAll),
+					string(compute.AllowAll),
+					string(compute.AllowPrivate),
+					string(compute.DenyAll),
 				}, false),
 			},
 			"disk_access_id": {
@@ -241,9 +242,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskSecurityTypesConfidentialVMVMGuestStateOnlyEncryptedWithPlatformKey),
-					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithPlatformKey),
-					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey),
+					string(compute.ConfidentialVMVMGuestStateOnlyEncryptedWithPlatformKey),
+					string(compute.ConfidentialVMDiskEncryptedWithPlatformKey),
+					string(compute.ConfidentialVMDiskEncryptedWithCustomerKey),
 				}, false),
 			},
 
@@ -252,8 +253,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true, // Not supported by disk update
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.HyperVGenerationV1),
-					string(compute.HyperVGenerationV2),
+					string(compute.V1),
+					string(compute.V2),
 				}, false),
 			},
 
@@ -358,7 +359,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks")
 	}
 
-	if createOption == compute.DiskCreateOptionImport {
+	if createOption == compute.Import {
 		sourceUri := d.Get("source_uri").(string)
 		if sourceUri == "" {
 			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import`")
@@ -372,7 +373,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.CreationData.StorageAccountID = utils.String(storageAccountId)
 		props.CreationData.SourceURI = utils.String(sourceUri)
 	}
-	if createOption == compute.DiskCreateOptionCopy || createOption == compute.DiskCreateOptionRestore {
+	if createOption == compute.Copy || createOption == compute.Restore {
 		sourceResourceId := d.Get("source_resource_id").(string)
 		if sourceResourceId == "" {
 			return fmt.Errorf("`source_resource_id` must be specified when `create_option` is set to `Copy` or `Restore`")
@@ -380,7 +381,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
 	}
-	if createOption == compute.DiskCreateOptionFromImage {
+	if createOption == compute.FromImage {
 		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
 			props.CreationData.ImageReference = &compute.ImageDiskReference{
 				ID: utils.String(imageReferenceId),
@@ -415,14 +416,14 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
 		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
 	} else {
-		props.NetworkAccessPolicy = compute.NetworkAccessPolicyAllowAll
+		props.NetworkAccessPolicy = compute.AllowAll
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
 		switch {
-		case props.NetworkAccessPolicy == compute.NetworkAccessPolicyAllowPrivate:
+		case props.NetworkAccessPolicy == compute.AllowPrivate:
 			props.DiskAccessID = utils.String(diskAccessID)
-		case diskAccessID != "" && props.NetworkAccessPolicy != compute.NetworkAccessPolicyAllowPrivate:
+		case diskAccessID != "" && props.NetworkAccessPolicy != compute.AllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			props.DiskAccessID = nil
@@ -430,9 +431,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.Get("public_network_access_enabled").(bool) {
-		props.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+		props.PublicNetworkAccess = compute.Enabled
 	} else {
-		props.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+		props.PublicNetworkAccess = compute.Disabled
 	}
 
 	if tier := d.Get("tier").(string); tier != "" {
@@ -444,12 +445,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.Get("trusted_launch_enabled").(bool) {
 		props.SecurityProfile = &compute.DiskSecurityProfile{
-			SecurityType: compute.DiskSecurityTypesTrustedLaunch,
+			SecurityType: compute.TrustedLaunch,
 		}
 
 		switch createOption {
-		case compute.DiskCreateOptionFromImage:
-		case compute.DiskCreateOptionImport:
+		case compute.FromImage:
+		case compute.Import:
 		default:
 			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
 		}
@@ -463,13 +464,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		switch createOption {
-		case compute.DiskCreateOptionFromImage:
-		case compute.DiskCreateOptionImport:
+		case compute.FromImage:
+		case compute.Import:
 		default:
 			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage` or `Import`")
 		}
 
-		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == compute.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
+		if compute.ConfidentialVMDiskEncryptedWithCustomerKey == compute.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
 			return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 		}
 
@@ -479,7 +480,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if secureVMDiskEncryptionId != "" {
-		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey != compute.DiskSecurityTypes(securityType) {
+		if compute.ConfidentialVMDiskEncryptedWithCustomerKey != compute.DiskSecurityTypes(securityType) {
 			return fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 		}
 		props.SecurityProfile.SecureVMDiskEncryptionSetID = utils.String(secureVMDiskEncryptionId.(string))
@@ -678,14 +679,14 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
 		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
 	} else {
-		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicyAllowAll
+		diskUpdate.NetworkAccessPolicy = compute.AllowAll
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
 		switch {
-		case diskUpdate.NetworkAccessPolicy == compute.NetworkAccessPolicyAllowPrivate:
+		case diskUpdate.NetworkAccessPolicy == compute.AllowPrivate:
 			diskUpdate.DiskAccessID = utils.String(diskAccessID)
-		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.NetworkAccessPolicyAllowPrivate:
+		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.AllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			diskUpdate.DiskAccessID = nil
@@ -694,9 +695,9 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("public_network_access_enabled") {
 		if d.Get("public_network_access_enabled").(bool) {
-			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+			diskUpdate.PublicNetworkAccess = compute.Enabled
 		} else {
-			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+			diskUpdate.PublicNetworkAccess = compute.Disabled
 		}
 	}
 
@@ -910,12 +911,12 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("max_shares", props.MaxShares)
 		d.Set("hyper_v_generation", props.HyperVGeneration)
 
-		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
+		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.AllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
 		}
 		d.Set("disk_access_id", props.DiskAccessID)
 
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == compute.PublicNetworkAccessEnabled)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == compute.Enabled)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
@@ -931,7 +932,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		securityType := ""
 		secureVMDiskEncryptionSetId := ""
 		if securityProfile := props.SecurityProfile; securityProfile != nil {
-			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+			if securityProfile.SecurityType == compute.TrustedLaunch {
 				trustedLaunchEnabled = true
 			} else {
 				securityType = string(securityProfile.SecurityType)

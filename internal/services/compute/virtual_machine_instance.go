@@ -3,7 +3,7 @@ package compute
 import (
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 )
 
 // virtualMachineShouldBeStarted determines if the Virtual Machine should be started after

@@ -6,12 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -71,11 +71,11 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
+				Default:  string(compute.EncryptionAtRestWithCustomerKey),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
-					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
-					string(compute.DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey),
+					string(compute.EncryptionAtRestWithCustomerKey),
+					string(compute.EncryptionAtRestWithPlatformAndCustomerKeys),
+					string(compute.ConfidentialVMEncryptedWithCustomerKey),
 				}, false),
 			},
 
@@ -194,7 +194,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("key_vault_key_id", keyVaultKeyId)
 		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
 
-		encryptionType := string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey)
+		encryptionType := string(compute.EncryptionAtRestWithCustomerKey)
 		if props.EncryptionType != "" {
 			encryptionType = string(props.EncryptionType)
 		}

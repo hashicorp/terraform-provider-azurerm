@@ -3,8 +3,8 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,8 +33,8 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.SettingNamesAutoLogon),
-						string(compute.SettingNamesFirstLogonCommands),
+						string(compute.AutoLogon),
+						string(compute.FirstLogonCommands),
 					}, false),
 				},
 			},
@@ -53,8 +53,8 @@ func expandAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalU
 			Content:     utils.String(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      compute.PassNamesOobeSystem,
-			ComponentName: compute.ComponentNamesMicrosoftWindowsShellSetup,
+			PassName:      compute.OobeSystem,
+			ComponentName: compute.MicrosoftWindowsShellSetup,
 		})
 	}
 
@@ -465,8 +465,8 @@ func winRmListenerSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.ProtocolTypesHTTP),
-						string(compute.ProtocolTypesHTTPS),
+						string(compute.HTTP),
+						string(compute.HTTPS),
 					}, false),
 				},
 

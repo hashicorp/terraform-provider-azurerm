@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -157,10 +157,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.VirtualMachinePriorityTypesRegular),
+				Default:  string(compute.Regular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachinePriorityTypesRegular),
-					string(compute.VirtualMachinePriorityTypesSpot),
+					string(compute.Regular),
+					string(compute.Spot),
 				}, false),
 			},
 
@@ -215,7 +215,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if d.IsNewResource() {
 		// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -239,7 +239,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
-			OrchestrationMode: compute.OrchestrationModeFlexible,
+			OrchestrationMode: compute.Flexible,
 		},
 	}
 
@@ -254,7 +254,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
 		// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-		NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
+		NetworkAPIVersion: compute.TwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -444,7 +444,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
+		if virtualMachineProfile.Priority != compute.Spot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -460,11 +460,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("eviction_policy"); ok {
-		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
+		if virtualMachineProfile.Priority != compute.Spot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(v.(string))
-	} else if virtualMachineProfile.Priority == compute.VirtualMachinePriorityTypesSpot {
+	} else if virtualMachineProfile.Priority == compute.Spot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
@@ -572,7 +572,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 	if err != nil {
 		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -614,7 +614,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 		priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 		if d.HasChange("max_bid_price") {
-			if priority != compute.VirtualMachinePriorityTypesSpot {
+			if priority != compute.Spot {
 				return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 			}
 
@@ -734,7 +734,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if d.HasChange("os_profile.0.linux_configuration.0.patch_mode") {
-					if patchMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) {
+					if patchMode == string(compute.AutomaticByPlatform) {
 						if !provisionVMAgent {
 							return fmt.Errorf("when the %q field is set to %q the %q field must always be set to %q, got %q", "patch_mode", patchMode, "provision_vm_agent", "true", strconv.FormatBool(provisionVMAgent))
 						}
@@ -804,7 +804,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
 				NetworkInterfaceConfigurations: networkInterfaces,
 				// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-				NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
+				NetworkAPIVersion: compute.TwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
 			}
 		}
 
@@ -892,7 +892,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 
 			if linuxAutomaticVMGuestPatchingEnabled && !hasHealthExtension {
-				return fmt.Errorf("when the %q field is set to %q the %q field must contain at least one %q, got %q", "patch_mode", compute.LinuxPatchAssessmentModeAutomaticByPlatform, "extension", "application health extension", "0")
+				return fmt.Errorf("when the %q field is set to %q the %q field must contain at least one %q, got %q", "patch_mode", compute.AutomaticByPlatform, "extension", "application health extension", "0")
 			}
 
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
@@ -951,7 +951,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -1030,7 +1030,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 		// the service just return empty when this is not assigned when provisioned
 		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
-		priority := compute.VirtualMachinePriorityTypesRegular
+		priority := compute.Regular
 		if profile.Priority != "" {
 			priority = profile.Priority
 		}
@@ -1108,7 +1108,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.UserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
