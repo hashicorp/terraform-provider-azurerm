@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,7 +27,7 @@ func resourceArmUserAssignedIdentity() *pluginsdk.Resource {
 		Update: resourceArmUserAssignedIdentityCreateUpdate,
 		Delete: resourceArmUserAssignedIdentityDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managedidentity.ParseUserAssignedIdentitiesID(id)
+			_, err := commonids.ParseUserAssignedIdentityID(id)
 			return err
 		}),
 
@@ -50,11 +51,11 @@ func resourceArmUserAssignedIdentity() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"principal_id": {
 				Type:     pluginsdk.TypeString,
@@ -82,10 +83,9 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	log.Printf("[INFO] preparing arguments for User Assigned Identity create/update.")
 
-	location := d.Get("location").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	resourceId := managedidentity.NewUserAssignedIdentitiesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resourceId := commonids.NewUserAssignedIdentityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.UserAssignedIdentitiesGet(ctx, resourceId)
 		if err != nil {
@@ -101,8 +101,8 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	identity := managedidentity.Identity{
 		Name:     utils.String(resourceId.ResourceName),
-		Location: location,
-		Tags:     expandTags(t),
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, resourceId, identity); err != nil {
@@ -118,7 +118,7 @@ func resourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedidentity.ParseUserAssignedIdentitiesID(d.Id())
+	id, err := commonids.ParseUserAssignedIdentityID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func resourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("tenant_id", props.TenantId)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -157,7 +157,7 @@ func resourceArmUserAssignedIdentityDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedidentity.ParseUserAssignedIdentitiesID(d.Id())
+	id, err := commonids.ParseUserAssignedIdentityID(d.Id())
 	if err != nil {
 		return err
 	}

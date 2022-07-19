@@ -103,8 +103,9 @@ EOF
   }
 
   certificate {
-    id         = azurerm_batch_certificate.example.id
-    visibility = ["StartTask"]
+    id             = azurerm_batch_certificate.example.id
+    store_location = "CurrentUser"
+    visibility     = ["StartTask"]
   }
 }
 ```

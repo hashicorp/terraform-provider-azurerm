@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/sdk/2021-05-01/managedcluster"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/sdk/2021-05-01/nodetype"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -241,7 +240,146 @@ func (k ClusterResource) ResourceType() string {
 
 func (k ClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Func:    createOrUpdate,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model ClusterResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+			ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
+			defer cancel()
+
+			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
+			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
+
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
+			cluster := managedcluster.ManagedCluster{
+				Location:   model.Location,
+				Name:       utils.String(model.Name),
+				Properties: expandClusterProperties(&model),
+				Sku:        &managedcluster.Sku{Name: model.Sku},
+			}
+
+			tagsMap := make(map[string]string)
+			for k, v := range model.Tags {
+				tagsMap[k] = v.(string)
+			}
+			cluster.Tags = &tagsMap
+
+			existing, err := clusterClient.Get(ctx, managedClusterId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+				}
+			} else {
+				return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
+			}
+
+			resp, err := clusterClient.CreateOrUpdate(ctx, managedClusterId, cluster)
+			if err != nil {
+				return fmt.Errorf("while creating cluster %q: %+v", model.Name, err)
+			}
+			// Wait for the cluster creation operation to be completed
+			err = resp.Poller.PollUntilDone()
+			if err != nil {
+				return fmt.Errorf("while waiting for cluster %q to get created: : %+v", model.Name, err)
+			}
+
+			toDelete := make([]string, 0)
+			if metadata.ResourceData.HasChange("node_type") {
+				o, n := metadata.ResourceData.GetChange("node_type")
+				ont := o.([]interface{})
+				nnt := n.([]interface{})
+
+				for _, on := range ont {
+					oldNodeType := on.(map[string]interface{})
+					oldId := oldNodeType["name"].(string)
+					found := false
+					for _, nt := range nnt {
+						newNodeType := nt.(map[string]interface{})
+						newId := newNodeType["name"].(string)
+						if oldId == newId {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						toDelete = append(toDelete, oldId)
+					}
+				}
+			}
+
+			deleteResponses := make([]nodetype.DeleteOperationResponse, 0)
+			// Delete the old nodetypes
+			for _, nt := range toDelete {
+				resp, err := nodeTypeClient.Delete(ctx, nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt))
+				if err != nil {
+					return fmt.Errorf("while deleting node type %q of cluster %q: %+v", nt, model.Name, err)
+				}
+
+				if resp.HttpResponse != nil {
+					deleteResponses = append(deleteResponses, resp)
+				}
+			}
+
+			if len(deleteResponses) > 0 {
+				lastResp := deleteResponses[len(model.NodeTypes)-1]
+				if err = lastResp.Poller.PollUntilDone(); err != nil {
+					return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
+				}
+
+				for idx, resp := range deleteResponses {
+					if idx == len(deleteResponses)-1 {
+						continue
+					}
+					if err = resp.Poller.PollUntilDone(); err != nil {
+						return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
+					}
+				}
+			}
+
+			// Send all Create NodeType requests, and store all responses to a list.
+			nodeTypeResponses := make([]nodetype.CreateOrUpdateOperationResponse, len(model.NodeTypes))
+			for idx, nt := range model.NodeTypes {
+				nodeTypeProperties, err := expandNodeTypeProperties(&nt)
+				if err != nil {
+					return fmt.Errorf("while expanding node type %q: %+v", nt.Name, err)
+				}
+				nodeTypeId := nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt.Name)
+				nodeTypeInput := nodetype.NodeType{
+					Name:       nil,
+					Properties: nodeTypeProperties,
+				}
+
+				if resp, err := nodeTypeClient.CreateOrUpdate(ctx, nodeTypeId, nodeTypeInput); err == nil {
+					nodeTypeResponses[idx] = resp
+				} else {
+					return fmt.Errorf("while adding node type %q to cluster %q: %+v", nt.Name, model.Name, err)
+				}
+			}
+
+			if len(nodeTypeResponses) > 0 {
+				lastResp := nodeTypeResponses[len(model.NodeTypes)-1]
+				if err = lastResp.Poller.PollUntilDone(); err != nil {
+					return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
+				}
+
+				for idx, resp := range nodeTypeResponses {
+					if idx == len(nodeTypeResponses)-1 {
+						continue
+					}
+					if err = resp.Poller.PollUntilDone(); err != nil {
+						return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
+					}
+				}
+			}
+
+			metadata.SetID(managedClusterId)
+			return nil
+		},
+
 		Timeout: 90 * time.Minute,
 	}
 }
@@ -293,7 +431,136 @@ func (k ClusterResource) Read() sdk.ResourceFunc {
 
 func (k ClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Func:    createOrUpdate,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model ClusterResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+			ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
+			defer cancel()
+
+			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
+			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
+
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
+			cluster := managedcluster.ManagedCluster{
+				Location:   model.Location,
+				Name:       utils.String(model.Name),
+				Properties: expandClusterProperties(&model),
+				Sku:        &managedcluster.Sku{Name: model.Sku},
+			}
+
+			tagsMap := make(map[string]string)
+			for k, v := range model.Tags {
+				tagsMap[k] = v.(string)
+			}
+			cluster.Tags = &tagsMap
+
+			resp, err := clusterClient.CreateOrUpdate(ctx, managedClusterId, cluster)
+			if err != nil {
+				return fmt.Errorf("while creating cluster %q: %+v", model.Name, err)
+			}
+			// Wait for the cluster creation operation to be completed
+			err = resp.Poller.PollUntilDone()
+			if err != nil {
+				return fmt.Errorf("while waiting for cluster %q to get created: : %+v", model.Name, err)
+			}
+
+			toDelete := make([]string, 0)
+			if metadata.ResourceData.HasChange("node_type") {
+				o, n := metadata.ResourceData.GetChange("node_type")
+				ont := o.([]interface{})
+				nnt := n.([]interface{})
+
+				for _, on := range ont {
+					oldNodeType := on.(map[string]interface{})
+					oldId := oldNodeType["name"].(string)
+					found := false
+					for _, nt := range nnt {
+						newNodeType := nt.(map[string]interface{})
+						newId := newNodeType["name"].(string)
+						if oldId == newId {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						toDelete = append(toDelete, oldId)
+					}
+				}
+			}
+
+			deleteResponses := make([]nodetype.DeleteOperationResponse, 0)
+			// Delete the old nodetypes
+			for _, nt := range toDelete {
+				resp, err := nodeTypeClient.Delete(ctx, nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt))
+				if err != nil {
+					return fmt.Errorf("while deleting node type %q of cluster %q: %+v", nt, model.Name, err)
+				}
+
+				if resp.HttpResponse != nil {
+					deleteResponses = append(deleteResponses, resp)
+				}
+			}
+
+			if len(deleteResponses) > 0 {
+				lastResp := deleteResponses[len(model.NodeTypes)-1]
+				if err = lastResp.Poller.PollUntilDone(); err != nil {
+					return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
+				}
+
+				for idx, resp := range deleteResponses {
+					if idx == len(deleteResponses)-1 {
+						continue
+					}
+					if err = resp.Poller.PollUntilDone(); err != nil {
+						return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
+					}
+				}
+			}
+
+			// Send all Create NodeType requests, and store all responses to a list.
+			nodeTypeResponses := make([]nodetype.CreateOrUpdateOperationResponse, len(model.NodeTypes))
+			for idx, nt := range model.NodeTypes {
+				nodeTypeProperties, err := expandNodeTypeProperties(&nt)
+				if err != nil {
+					return fmt.Errorf("while expanding node type %q: %+v", nt.Name, err)
+				}
+				nodeTypeId := nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt.Name)
+				nodeTypeInput := nodetype.NodeType{
+					Name:       nil,
+					Properties: nodeTypeProperties,
+				}
+
+				if resp, err := nodeTypeClient.CreateOrUpdate(ctx, nodeTypeId, nodeTypeInput); err == nil {
+					nodeTypeResponses[idx] = resp
+				} else {
+					return fmt.Errorf("while adding node type %q to cluster %q: %+v", nt.Name, model.Name, err)
+				}
+			}
+
+			if len(nodeTypeResponses) > 0 {
+				lastResp := nodeTypeResponses[len(model.NodeTypes)-1]
+				if err = lastResp.Poller.PollUntilDone(); err != nil {
+					return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
+				}
+
+				for idx, resp := range nodeTypeResponses {
+					if idx == len(nodeTypeResponses)-1 {
+						continue
+					}
+					if err = resp.Poller.PollUntilDone(); err != nil {
+						return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
+					}
+				}
+			}
+
+			return nil
+		},
+
 		Timeout: 90 * time.Minute,
 	}
 }
@@ -378,149 +645,7 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (k ClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ServiceFabricManagedClusterID
-}
-
-func createOrUpdate(ctx context.Context, metadata sdk.ResourceMetaData) error {
-	var model ClusterResourceModel
-	if err := metadata.Decode(&model); err != nil {
-		return fmt.Errorf("decoding %+v", err)
-	}
-	ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
-	defer cancel()
-
-	clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
-	nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
-
-	subscriptionId := metadata.Client.Account.SubscriptionId
-
-	managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
-	cluster := managedcluster.ManagedCluster{
-		Location:   model.Location,
-		Name:       utils.String(model.Name),
-		Properties: expandClusterProperties(&model),
-		Sku:        &managedcluster.Sku{Name: model.Sku},
-	}
-
-	tagsMap := make(map[string]string)
-	for k, v := range model.Tags {
-		tagsMap[k] = v.(string)
-	}
-	cluster.Tags = &tagsMap
-
-	if metadata.ResourceData.IsNewResource() {
-		resp, err := clusterClient.Get(ctx, managedClusterId)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
-			}
-		} else {
-			return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
-		}
-	}
-
-	resp, err := clusterClient.CreateOrUpdate(ctx, managedClusterId, cluster)
-	if err != nil {
-		return fmt.Errorf("while creating cluster %q: %+v", model.Name, err)
-	}
-	// Wait for the cluster creation operation to be completed
-	err = resp.Poller.PollUntilDone()
-	if err != nil {
-		return fmt.Errorf("while waiting for cluster %q to get created: : %+v", model.Name, err)
-	}
-
-	toDelete := make([]string, 0)
-	if metadata.ResourceData.HasChange("node_type") {
-		o, n := metadata.ResourceData.GetChange("node_type")
-		ont := o.([]interface{})
-		nnt := n.([]interface{})
-
-		for _, on := range ont {
-			oldNodeType := on.(map[string]interface{})
-			oldId := oldNodeType["name"].(string)
-			found := false
-			for _, nt := range nnt {
-				newNodeType := nt.(map[string]interface{})
-				newId := newNodeType["name"].(string)
-				if oldId == newId {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				toDelete = append(toDelete, oldId)
-			}
-		}
-	}
-
-	deleteResponses := make([]nodetype.DeleteResponse, 0)
-	// Delete the old nodetypes
-	for _, nt := range toDelete {
-		resp, err := nodeTypeClient.Delete(ctx, nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt))
-		if err != nil {
-			return fmt.Errorf("while deleting node type %q of cluster %q: %+v", nt, model.Name, err)
-		}
-
-		if resp.HttpResponse != nil {
-			deleteResponses = append(deleteResponses, resp)
-		}
-	}
-
-	if len(deleteResponses) > 0 {
-		lastResp := deleteResponses[len(model.NodeTypes)-1]
-		if err = lastResp.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
-		}
-
-		for idx, resp := range deleteResponses {
-			if idx == len(deleteResponses)-1 {
-				continue
-			}
-			if err = resp.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
-			}
-		}
-	}
-
-	// Send all Create NodeType requests, and store all responses to a list.
-	nodeTypeResponses := make([]nodetype.CreateOrUpdateResponse, len(model.NodeTypes))
-	for idx, nt := range model.NodeTypes {
-		nodeTypeProperties, err := expandNodeTypeProperties(&nt)
-		if err != nil {
-			return fmt.Errorf("while expanding node type %q: %+v", nt.Name, err)
-		}
-		nodeTypeId := nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt.Name)
-		nodeTypeInput := nodetype.NodeType{
-			Name:       nil,
-			Properties: nodeTypeProperties,
-		}
-
-		if resp, err := nodeTypeClient.CreateOrUpdate(ctx, nodeTypeId, nodeTypeInput); err == nil {
-			nodeTypeResponses[idx] = resp
-		} else {
-			return fmt.Errorf("while adding node type %q to cluster %q: %+v", nt.Name, model.Name, err)
-		}
-	}
-
-	if len(nodeTypeResponses) > 0 {
-		lastResp := nodeTypeResponses[len(model.NodeTypes)-1]
-		if err = lastResp.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
-		}
-
-		for idx, resp := range nodeTypeResponses {
-			if idx == len(nodeTypeResponses)-1 {
-				continue
-			}
-			if err = resp.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
-			}
-		}
-	}
-
-	metadata.SetID(managedClusterId)
-	return nil
+	return managedcluster.ValidateManagedClusterID
 }
 
 func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterResourceModel {

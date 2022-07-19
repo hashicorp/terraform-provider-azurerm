@@ -236,6 +236,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"request_timeout": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
+							Default:      30,
 							ValidateFunc: validation.IntBetween(1, 86400),
 						},
 
@@ -4443,6 +4444,9 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 func expandApplicationGatewayWafConfig(d *pluginsdk.ResourceData) *network.ApplicationGatewayWebApplicationFirewallConfiguration {
 	vs := d.Get("waf_configuration").([]interface{})
+	if len(vs) == 0 || vs[0] == nil {
+		return nil
+	}
 	v := vs[0].(map[string]interface{})
 
 	enabled := v["enabled"].(bool)

@@ -96,8 +96,7 @@ The following arguments are supported:
 * `target_resource_id` - (Required) The resource id of an Azure resource to
   target.
 
-* `weight` - (Required) Specifies how much traffic should be distributed to this
-  endpoint. Valid values are between `1` and `1000`.
+* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
 
 ---
 

@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/migration"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,37 +34,32 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.CustomerManagedKeyID(id)
+			_, err := workspaces.ParseWorkspaceID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-			client := meta.(*clients.Client).DataBricks.WorkspacesClient
-
 			// validate that the passed ID is a valid CMK configuration ID
-			customManagedKey, err := parse.CustomerManagedKeyID(d.Id())
+			id, err := workspaces.ParseWorkspaceID(d.Id())
 			if err != nil {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Databricks workspace customer managed key ID %q for import: %v", d.Id(), err)
-			}
-
-			// convert the passed custom Managed Key ID to a valid workspace ID
-			workspace := workspaces.NewWorkspaceID(customManagedKey.SubscriptionId, customManagedKey.ResourceGroup, customManagedKey.CustomerMangagedKeyName)
-
-			// validate that the workspace exists
-			if _, err = client.Get(ctx, workspace); err != nil {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving the Databricks workspace customer managed key configuration(ID: %q) for workspace (ID: %q): %s", customManagedKey.ID(), workspace.ID(), err)
+				return []*pluginsdk.ResourceData{d}, err
 			}
 
 			// set the new values for the CMK resource
-			d.SetId(customManagedKey.ID())
-			d.Set("workspace_id", workspace.ID())
+			d.SetId(id.ID())
+			d.Set("workspace_id", id.ID())
 
 			return []*pluginsdk.ResourceData{d}, nil
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CustomerManagedKeyV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			// Make this key vault key id and abstract everything from the string...
@@ -81,7 +75,6 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -124,11 +117,9 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	resourceID := parse.NewCustomerManagedKeyID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
-
 	if d.IsNewResource() {
 		if workspace.Model != nil && workspace.Model.Properties.Parameters != nil && workspace.Model.Properties.Parameters.Encryption != nil {
-			return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", resourceID.ID())
+			return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
 		}
 	}
 
@@ -149,13 +140,13 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	props := getProps(workspace.Model, params)
+	props := getProps(*workspace.Model, params)
 
 	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceID, err)
+		return fmt.Errorf("creating/updating Customer Managed Key for %s: %+v", *id, err)
 	}
 
-	d.SetId(resourceID.ID())
+	d.SetId(id.ID())
 	return databricksWorkspaceCustomerManagedKeyRead(d, meta)
 }
 
@@ -164,14 +155,12 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomerManagedKeyID(d.Id())
+	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.CustomerMangagedKeyName)
-
-	resp, err := client.Get(ctx, workspaceId)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
@@ -207,11 +196,12 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	if strings.EqualFold(keySource, string(workspaces.KeySourceMicrosoftPointKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
-		return fmt.Errorf("%s: `Workspace.WorkspaceProperties.Parameters.Encryption.Value(s)` were nil", *id)
+		d.SetId("")
+		return nil
 	}
 
 	d.SetId(id.ID())
-	d.Set("workspace_id", workspaceId.ID())
+	d.Set("workspace_id", id.ID())
 
 	if keyVaultURI != "" {
 		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
@@ -228,25 +218,17 @@ func databricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomerManagedKeyID(d.Id())
+	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	workspaceID := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.CustomerMangagedKeyName)
-
 	// Not sure if I should also lock the key vault here too
-	locks.ByName(workspaceID.WorkspaceName, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(workspaceID.WorkspaceName, "azurerm_databricks_workspace")
+	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
 
-	workspace, err := client.Get(ctx, workspaceID)
+	workspace, err := client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(workspace.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state", *id)
-			d.SetId("")
-			return nil
-		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
@@ -265,16 +247,16 @@ func databricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	props := getProps(workspace.Model, params)
+	props := getProps(*workspace.Model, params)
 
-	if err = client.CreateOrUpdateThenPoll(ctx, workspaceID, props); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", workspaceID, err)
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
+		return fmt.Errorf("removing Customer Managed Key from %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func getProps(workspace *workspaces.Workspace, params *workspaces.WorkspaceCustomParameters) workspaces.Workspace {
+func getProps(workspace workspaces.Workspace, params *workspaces.WorkspaceCustomParameters) workspaces.Workspace {
 	props := workspaces.Workspace{
 		Location: workspace.Location,
 		Sku:      workspace.Sku,

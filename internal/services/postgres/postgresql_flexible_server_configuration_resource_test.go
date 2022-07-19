@@ -38,6 +38,29 @@ func TestAccFlexibleServerConfiguration_backslashQuote(t *testing.T) {
 	})
 }
 
+func TestAccFlexibleServerConfiguration_azureExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
+	r := PostgresqlFlexibleServerConfigurationResource{}
+	name := "azure.extensions"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, name, "CUBE,CITEXT,BTREE_GIST"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("value").HasValue("CUBE,CITEXT,BTREE_GIST"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+			),
+		},
+	})
+}
+
 func TestAccFlexibleServerConfiguration_pgbouncerEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
 	r := PostgresqlFlexibleServerConfigurationResource{}

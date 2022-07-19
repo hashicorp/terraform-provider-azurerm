@@ -144,6 +144,12 @@ A `container` block supports:
 
 ~> **Note:** Gpu resources are currently only supported in Linux containers.
 
+* `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
+
+* `memory_limit` - (Optional) The the upper limit of the memory of the containers in GB.
+
+* `gpu_limit` - (Optional) A `gpu_limit` block as defined below.
+
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
@@ -213,6 +219,14 @@ A `gpu` block supports:
 * `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
+
+---
+
+A `gpu_limit` block supports:
+
+* `count` - (Optional) The upper limit of the number of GPUs which should be assigned to this container.
+
+* `sku` - (Optional) The allowed SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
 
 ---
 
@@ -293,6 +307,8 @@ The `http_get` block supports:
 * `port` - (Optional) Number of the port to access on the container. Changing this forces a new resource to be created.
 
 * `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
+
+* `http_headers` - (Optional) A map of HTTP headers used to access on the container. Changing this forces a new resource to be created.
 
 ---
 

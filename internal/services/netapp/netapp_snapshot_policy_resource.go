@@ -8,13 +8,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshotpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,7 +36,7 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SnapshotPolicyID(id)
+			_, err := snapshotpolicy.ParseSnapshotPoliciesID(id)
 			return err
 		}),
 
@@ -189,68 +190,50 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
+	id := snapshotpolicy.NewSnapshotPoliciesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, name)
+		existing, err := client.SnapshotPoliciesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing NetApp SnapshotPolicy %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_netapp_snapshot_policy", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_netapp_snapshot_policy", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	enabled := d.Get("enabled").(bool)
-
-	hourlyScheduleRaw := d.Get("hourly_schedule").([]interface{})
-	hourlySchedule := expandNetAppSnapshotPolicyHourlySchedule(hourlyScheduleRaw)
-
-	dailyScheduleRaw := d.Get("daily_schedule").([]interface{})
-	dailySchedule := expandNetAppSnapshotPolicyDailySchedule(dailyScheduleRaw)
-
-	weeklyScheduleRaw := d.Get("weekly_schedule").([]interface{})
-	weeklySchedule := expandNetAppSnapshotPolicyWeeklySchedule(weeklyScheduleRaw)
-
-	monthlyScheduleRaw := d.Get("monthly_schedule").([]interface{})
-	monthlySchedule := expandNetAppSnapshotPolicyMonthlySchedule(monthlyScheduleRaw)
-
-	parameters := netapp.SnapshotPolicy{
-		Location: utils.String(location),
-		Name:     utils.String(name),
-		SnapshotPolicyProperties: &netapp.SnapshotPolicyProperties{
-			HourlySchedule:  hourlySchedule,
-			DailySchedule:   dailySchedule,
-			WeeklySchedule:  weeklySchedule,
-			MonthlySchedule: monthlySchedule,
-			Enabled:         utils.Bool(enabled),
+	parameters := snapshotpolicy.SnapshotPolicy{
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Name:     utils.String(id.SnapshotPolicyName),
+		Properties: snapshotpolicy.SnapshotPolicyProperties{
+			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]interface{})),
+			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]interface{})),
+			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]interface{})),
+			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]interface{})),
+			Enabled:         utils.Bool(d.Get("enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, parameters, resourceGroup, accountName, name); err != nil {
-		return fmt.Errorf("creating NetApp SnapshotPolicy %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.SnapshotPoliciesCreate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	// Waiting for snapshot policy be completely provisioned
-	id := parse.NewSnapshotPolicyID(client.SubscriptionID, resourceGroup, accountName, name)
-	log.Printf("[DEBUG] Waiting for NetApp Snapshot Policy Provisioning Service %q (Resource Group %q) to complete", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to complete", id)
 	if err := waitForSnapshotPolicyCreation(ctx, client, id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 		return err
 	}
@@ -265,46 +248,26 @@ func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
+	id, err := snapshotpolicy.ParseSnapshotPoliciesID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	enabled := d.Get("enabled").(bool)
-
-	hourlyScheduleRaw := d.Get("hourly_schedule").([]interface{})
-	hourlySchedule := expandNetAppSnapshotPolicyHourlySchedule(hourlyScheduleRaw)
-
-	dailyScheduleRaw := d.Get("daily_schedule").([]interface{})
-	dailySchedule := expandNetAppSnapshotPolicyDailySchedule(dailyScheduleRaw)
-
-	weeklyScheduleRaw := d.Get("weekly_schedule").([]interface{})
-	weeklySchedule := expandNetAppSnapshotPolicyWeeklySchedule(weeklyScheduleRaw)
-
-	monthlyScheduleRaw := d.Get("monthly_schedule").([]interface{})
-	monthlySchedule := expandNetAppSnapshotPolicyMonthlySchedule(monthlyScheduleRaw)
-
-	parameters := netapp.SnapshotPolicyPatch{
-		Location: utils.String(location),
-		Name:     utils.String(name),
-		SnapshotPolicyProperties: &netapp.SnapshotPolicyProperties{
-			HourlySchedule:  hourlySchedule,
-			DailySchedule:   dailySchedule,
-			WeeklySchedule:  weeklySchedule,
-			MonthlySchedule: monthlySchedule,
-			Enabled:         utils.Bool(enabled),
+	parameters := snapshotpolicy.SnapshotPolicyPatch{
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Name:     utils.String(id.SnapshotPolicyName),
+		Properties: &snapshotpolicy.SnapshotPolicyProperties{
+			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]interface{})),
+			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]interface{})),
+			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]interface{})),
+			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]interface{})),
+			Enabled:         utils.Bool(d.Get("enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, parameters, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("updating NetApp SnapshotPolicy %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err = client.SnapshotPoliciesUpdateThenPoll(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceNetAppSnapshotPolicyRead(d, meta)
@@ -315,44 +278,47 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SnapshotPolicyID(d.Id())
+	id, err := snapshotpolicy.ParseSnapshotPoliciesID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+	resp, err := client.SnapshotPoliciesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] NetApp SnapshotPolicy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading NetApp SnapshotPolicy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.NetAppAccountName)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if props := resp.SnapshotPolicyProperties; props != nil {
+	d.Set("name", id.SnapshotPolicyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("account_name", id.AccountName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		props := model.Properties
 		d.Set("enabled", props.Enabled)
-		if err := d.Set("hourly_schedule", flattenNetAppVolumeSnapshotPolicyHourlySchedule(props.HourlySchedule)); err != nil {
+		if err = d.Set("hourly_schedule", flattenNetAppVolumeSnapshotPolicyHourlySchedule(props.HourlySchedule)); err != nil {
 			return fmt.Errorf("setting `hourly_schedule`: %+v", err)
 		}
-		if err := d.Set("daily_schedule", flattenNetAppVolumeSnapshotPolicyDailySchedule(props.DailySchedule)); err != nil {
+		if err = d.Set("daily_schedule", flattenNetAppVolumeSnapshotPolicyDailySchedule(props.DailySchedule)); err != nil {
 			return fmt.Errorf("setting `daily_schedule`: %+v", err)
 		}
-		if err := d.Set("weekly_schedule", flattenNetAppVolumeSnapshotPolicyWeeklySchedule(props.WeeklySchedule)); err != nil {
+		if err = d.Set("weekly_schedule", flattenNetAppVolumeSnapshotPolicyWeeklySchedule(props.WeeklySchedule)); err != nil {
 			return fmt.Errorf("setting `weekly_schedule`: %+v", err)
 		}
-		if err := d.Set("monthly_schedule", flattenNetAppVolumeSnapshotPolicyMonthlySchedule(props.MonthlySchedule)); err != nil {
+		if err = d.Set("monthly_schedule", flattenNetAppVolumeSnapshotPolicyMonthlySchedule(props.MonthlySchedule)); err != nil {
 			return fmt.Errorf("setting `monthly_schedule`: %+v", err)
 		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -360,21 +326,17 @@ func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SnapshotPolicyID(d.Id())
+	id, err := snapshotpolicy.ParseSnapshotPoliciesID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Deleting snapshot policy and waiting for it fo fully complete the operation
-	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting NetApp Snapshot Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err = client.SnapshotPoliciesDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for NetApp SnapshotPolicy Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
-	}
+	log.Printf("[DEBUG] Waiting for %s to be deleted", id)
 	if err := waitForSnapshotPolicyDeletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 		return err
 	}
@@ -382,98 +344,98 @@ func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandNetAppSnapshotPolicyHourlySchedule(input []interface{}) *netapp.HourlySchedule {
+func expandNetAppSnapshotPolicyHourlySchedule(input []interface{}) *snapshotpolicy.HourlySchedule {
 	if len(input) == 0 || input[0] == nil {
-		return &netapp.HourlySchedule{}
+		return &snapshotpolicy.HourlySchedule{}
 	}
 
-	hourlyScheduleObject := netapp.HourlySchedule{}
+	hourlyScheduleObject := snapshotpolicy.HourlySchedule{}
 
 	hourlyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := hourlyScheduleRaw["snapshots_to_keep"]; ok {
-		hourlyScheduleObject.SnapshotsToKeep = utils.Int32(int32(v.(int)))
+		hourlyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
 	}
 	if v, ok := hourlyScheduleRaw["minute"]; ok {
-		hourlyScheduleObject.Minute = utils.Int32(int32(v.(int)))
+		hourlyScheduleObject.Minute = utils.Int64(int64(v.(int)))
 	}
 
 	return &hourlyScheduleObject
 }
 
-func expandNetAppSnapshotPolicyDailySchedule(input []interface{}) *netapp.DailySchedule {
+func expandNetAppSnapshotPolicyDailySchedule(input []interface{}) *snapshotpolicy.DailySchedule {
 	if len(input) == 0 || input[0] == nil {
-		return &netapp.DailySchedule{}
+		return &snapshotpolicy.DailySchedule{}
 	}
 
-	dailyScheduleObject := netapp.DailySchedule{}
+	dailyScheduleObject := snapshotpolicy.DailySchedule{}
 
 	dailyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := dailyScheduleRaw["snapshots_to_keep"]; ok {
-		dailyScheduleObject.SnapshotsToKeep = utils.Int32(int32(v.(int)))
+		dailyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
 	}
 	if v, ok := dailyScheduleRaw["hour"]; ok {
-		dailyScheduleObject.Hour = utils.Int32(int32(v.(int)))
+		dailyScheduleObject.Hour = utils.Int64(int64(v.(int)))
 	}
 	if v, ok := dailyScheduleRaw["minute"]; ok {
-		dailyScheduleObject.Minute = utils.Int32(int32(v.(int)))
+		dailyScheduleObject.Minute = utils.Int64(int64(v.(int)))
 	}
 
 	return &dailyScheduleObject
 }
 
-func expandNetAppSnapshotPolicyWeeklySchedule(input []interface{}) *netapp.WeeklySchedule {
+func expandNetAppSnapshotPolicyWeeklySchedule(input []interface{}) *snapshotpolicy.WeeklySchedule {
 	if len(input) == 0 || input[0] == nil {
-		return &netapp.WeeklySchedule{}
+		return &snapshotpolicy.WeeklySchedule{}
 	}
 
-	weeklyScheduleObject := netapp.WeeklySchedule{}
+	weeklyScheduleObject := snapshotpolicy.WeeklySchedule{}
 
 	weeklyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := weeklyScheduleRaw["snapshots_to_keep"]; ok {
-		weeklyScheduleObject.SnapshotsToKeep = utils.Int32(int32(v.(int)))
+		weeklyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
 	}
 	if _, ok := weeklyScheduleRaw["days_of_week"]; ok {
 		weeklyScheduleObject.Day = utils.ExpandStringSliceWithDelimiter(weeklyScheduleRaw["days_of_week"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := weeklyScheduleRaw["hour"]; ok {
-		weeklyScheduleObject.Hour = utils.Int32(int32(v.(int)))
+		weeklyScheduleObject.Hour = utils.Int64(int64(v.(int)))
 	}
 	if v, ok := weeklyScheduleRaw["minute"]; ok {
-		weeklyScheduleObject.Minute = utils.Int32(int32(v.(int)))
+		weeklyScheduleObject.Minute = utils.Int64(int64(v.(int)))
 	}
 
 	return &weeklyScheduleObject
 }
 
-func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *netapp.MonthlySchedule {
+func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *snapshotpolicy.MonthlySchedule {
 	if len(input) == 0 || input[0] == nil {
-		return &netapp.MonthlySchedule{}
+		return &snapshotpolicy.MonthlySchedule{}
 	}
 
-	monthlyScheduleObject := netapp.MonthlySchedule{}
+	monthlyScheduleObject := snapshotpolicy.MonthlySchedule{}
 
 	monthlyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := monthlyScheduleRaw["snapshots_to_keep"]; ok {
-		monthlyScheduleObject.SnapshotsToKeep = utils.Int32(int32(v.(int)))
+		monthlyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
 	}
 	if _, ok := monthlyScheduleRaw["days_of_month"]; ok {
 		monthlyScheduleObject.DaysOfMonth = utils.ExpandIntSliceWithDelimiter(monthlyScheduleRaw["days_of_month"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := monthlyScheduleRaw["hour"]; ok {
-		monthlyScheduleObject.Hour = utils.Int32(int32(v.(int)))
+		monthlyScheduleObject.Hour = utils.Int64(int64(v.(int)))
 	}
 	if v, ok := monthlyScheduleRaw["minute"]; ok {
-		monthlyScheduleObject.Minute = utils.Int32(int32(v.(int)))
+		monthlyScheduleObject.Minute = utils.Int64(int64(v.(int)))
 	}
 
 	return &monthlyScheduleObject
 }
 
-func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *netapp.HourlySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *snapshotpolicy.HourlySchedule) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -486,7 +448,7 @@ func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *netapp.HourlySchedul
 	}
 }
 
-func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *netapp.DailySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicy.DailySchedule) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -500,7 +462,7 @@ func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *netapp.DailySchedule)
 	}
 }
 
-func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *netapp.WeeklySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicy.WeeklySchedule) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -522,7 +484,7 @@ func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *netapp.WeeklySchedul
 	}
 }
 
-func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *netapp.MonthlySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicy.MonthlySchedule) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -545,7 +507,7 @@ func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *netapp.MonthlySched
 	}
 }
 
-func waitForSnapshotPolicyCreation(ctx context.Context, client *netapp.SnapshotPoliciesClient, id parse.SnapshotPolicyId, timeout time.Duration) error {
+func waitForSnapshotPolicyCreation(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPoliciesId, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -557,13 +519,13 @@ func waitForSnapshotPolicyCreation(ctx context.Context, client *netapp.SnapshotP
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to complete: %+v", id, err)
 	}
 
 	return nil
 }
 
-func waitForSnapshotPolicyDeletion(ctx context.Context, client *netapp.SnapshotPoliciesClient, id parse.SnapshotPolicyId, timeout time.Duration) error {
+func waitForSnapshotPolicyDeletion(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPoliciesId, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -575,21 +537,21 @@ func waitForSnapshotPolicyDeletion(ctx context.Context, client *netapp.SnapshotP
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for NetApp SnapshotPolicy Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil
 }
 
-func netappSnapshotPolicyStateRefreshFunc(ctx context.Context, client *netapp.SnapshotPoliciesClient, id parse.SnapshotPolicyId) pluginsdk.StateRefreshFunc {
+func netappSnapshotPolicyStateRefreshFunc(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPoliciesId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+		res, err := client.SnapshotPoliciesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("retrieving NetApp SnapshotPolicy %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
 			}
 		}
 
-		return res, strconv.Itoa(res.StatusCode), nil
+		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
 	}
 }
