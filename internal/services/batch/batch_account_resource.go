@@ -91,7 +91,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 						string(batch.AuthenticationModeTaskAuthenticationToken),
 					}, false),
 				},
-				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"pool_allocation_mode": {
