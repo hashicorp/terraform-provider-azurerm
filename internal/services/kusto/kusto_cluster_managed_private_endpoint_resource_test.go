@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterManagedEndpointResource struct{}
+type KustoClusterManagedPrivateEndpointResource struct{}
 
-func TestAccKustoClusterManagedEndpoint_basic(t *testing.T) {
+func TestAccKustoClusterManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_managed_private_endpoint", "test")
-	r := KustoClusterManagedEndpointResource{}
+	r := KustoClusterManagedPrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccKustoClusterManagedEndpoint_basic(t *testing.T) {
 	)
 }
 
-func TestAccKustoClusterManagedEndpoint_complete(t *testing.T) {
+func TestAccKustoClusterManagedPrivateEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_managed_private_endpoint", "test")
-	r := KustoClusterManagedEndpointResource{}
+	r := KustoClusterManagedPrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccKustoClusterManagedEndpoint_complete(t *testing.T) {
 	)
 }
 
-func (KustoClusterManagedEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (KustoClusterManagedPrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedPrivateEndpointsID(state.ID)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (KustoClusterManagedEndpointResource) Exists(ctx context.Context, clients *
 	return utils.Bool(resp.ManagedPrivateEndpointProperties != nil), nil
 }
 
-func (r KustoClusterManagedEndpointResource) basic(data acceptance.TestData) string {
+func (r KustoClusterManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -102,7 +102,7 @@ resource "azurerm_kusto_cluster_managed_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
-func (r KustoClusterManagedEndpointResource) complete(data acceptance.TestData) string {
+func (r KustoClusterManagedPrivateEndpointResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
