@@ -79,9 +79,10 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_kubernetes_cluster" "example" {
-  name                = "example-aks"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  name                       = "example-aks"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  dns_prefix_private_cluster = "prefix"
 
   default_node_pool {
     name           = "default"

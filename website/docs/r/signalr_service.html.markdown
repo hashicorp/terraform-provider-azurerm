@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
+* `live_trace` - (Optional) A `live_trace` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -88,6 +90,18 @@ An `upstream_endpoint` block supports the following:
 * `event_pattern` - (Optional) The events to match on, or `*` for all.
 
 * `hub_pattern` - (Optional) The hubs to match on, or `*` for all.
+
+---
+
+A `live_trace` block supports the following:
+
+* `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
+
+* `messaging_logs_enabled` - (Optional) Whether the log category `MessagingLogs` is enabled? Defaults to `true`
+
+* `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
+
+* `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
 
 ---
 

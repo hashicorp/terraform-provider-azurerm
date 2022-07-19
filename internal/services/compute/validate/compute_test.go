@@ -39,11 +39,11 @@ func TestSharedImageGalleryName(t *testing.T) {
 			ShouldError: true,
 		},
 		{
-			Input:       strings.Repeat("a", 79),
+			Input:       strings.Repeat("a", 80),
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 80),
+			Input:       strings.Repeat("a", 81),
 			ShouldError: true,
 		},
 	}
@@ -98,11 +98,11 @@ func TestSharedImageName(t *testing.T) {
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 79),
+			Input:       strings.Repeat("a", 80),
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 80),
+			Input:       strings.Repeat("a", 81),
 			ShouldError: true,
 		},
 	}
@@ -161,6 +161,116 @@ func TestSharedImageVersionName(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Input, func(t *testing.T) {
 			_, errors := SharedImageVersionName(tc.Input, "test")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.Input)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.Input, len(errors))
+			}
+		})
+	}
+}
+
+func TestGalleryApplicationName(t *testing.T) {
+	cases := []struct {
+		Input       string
+		ShouldError bool
+	}{
+		{
+			Input:       "",
+			ShouldError: true,
+		},
+		{
+			Input:       "hello",
+			ShouldError: false,
+		},
+		{
+			Input:       "hello123",
+			ShouldError: false,
+		},
+		{
+			Input:       "hello.123",
+			ShouldError: false,
+		},
+		{
+			Input:       "hello,123",
+			ShouldError: true,
+		},
+		{
+			Input:       "hello_123",
+			ShouldError: false,
+		},
+		{
+			Input:       "hello-123",
+			ShouldError: false,
+		},
+		{
+			Input:       strings.Repeat("a", 80),
+			ShouldError: false,
+		},
+		{
+			Input:       strings.Repeat("a", 81),
+			ShouldError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Input, func(t *testing.T) {
+			_, errors := GalleryApplicationName(tc.Input, "test")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.Input)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.Input, len(errors))
+			}
+		})
+	}
+}
+
+func TestGalleryApplicationVersionName(t *testing.T) {
+	cases := []struct {
+		Input       string
+		ShouldError bool
+	}{
+		{
+			Input:       "",
+			ShouldError: true,
+		},
+		{
+			Input:       "a.b.c",
+			ShouldError: true,
+		},
+		{
+			Input:       "1.2.3",
+			ShouldError: false,
+		},
+		{
+			Input:       "0.0.1",
+			ShouldError: false,
+		},
+		{
+			Input:       "hello",
+			ShouldError: true,
+		},
+		{
+			Input:       "1.2.3.4",
+			ShouldError: true,
+		},
+		{
+			Input:       "hell0-there",
+			ShouldError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Input, func(t *testing.T) {
+			_, errors := GalleryApplicationVersionName(tc.Input, "test")
 
 			hasErrors := len(errors) > 0
 			if !hasErrors && tc.ShouldError {

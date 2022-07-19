@@ -195,7 +195,7 @@ A `delivery_identity` supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`, `UserAssigned`.
 
-* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
+* `user_assigned_identity` - (Optional) The user identity associated with the resource.
 
 ---
 
@@ -219,7 +219,7 @@ A `dead_letter_identity` supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`, `UserAssigned`.
 
-* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
+* `user_assigned_identity` - (Optional) The user identity associated with the resource.
 
 ---
 

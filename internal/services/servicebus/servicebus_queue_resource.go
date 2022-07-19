@@ -2,14 +2,14 @@ package servicebus
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +25,7 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 		Delete: resourceServiceBusQueueDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.QueueID(id)
+			_, err := queues.ParseQueueID(id)
 			return err
 		}),
 
@@ -54,7 +54,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.NamespaceID,
+			ValidateFunc: namespaces.ValidateNamespaceID,
 		},
 
 		// Optional
@@ -163,16 +163,16 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"status": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(servicebus.EntityStatusActive),
+			Default:  string(queues.EntityStatusActive),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(servicebus.EntityStatusActive),
-				string(servicebus.EntityStatusCreating),
-				string(servicebus.EntityStatusDeleting),
-				string(servicebus.EntityStatusDisabled),
-				string(servicebus.EntityStatusReceiveDisabled),
-				string(servicebus.EntityStatusRenaming),
-				string(servicebus.EntityStatusSendDisabled),
-				string(servicebus.EntityStatusUnknown),
+				string(queues.EntityStatusActive),
+				string(queues.EntityStatusCreating),
+				string(queues.EntityStatusDeleting),
+				string(queues.EntityStatusDisabled),
+				string(queues.EntityStatusReceiveDisabled),
+				string(queues.EntityStatusRenaming),
+				string(queues.EntityStatusSendDisabled),
+				string(queues.EntityStatusUnknown),
 			}, false),
 		},
 	}
@@ -182,103 +182,120 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for ServiceBus Queue creation/update.")
 
-	var resourceId parse.QueueId
-	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
-		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
-		resourceId = parse.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, d.Get("name").(string))
+	namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
+	if err != nil {
+		return err
 	}
 
-	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
-	enableBatchedOperations := d.Get("enable_batched_operations").(bool)
-	enableExpress := d.Get("enable_express").(bool)
-	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
-	maxSizeInMegabytes := int32(d.Get("max_size_in_megabytes").(int))
-	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
-	requiresSession := d.Get("requires_session").(bool)
-	status := servicebus.EntityStatus(d.Get("status").(string))
+	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name)
+	isPartitioningEnabled := false
+	if d.HasChange("enable_partitioning") {
+		existingQueue, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
+			if !response.WasNotFound(existingQueue.HttpResponse) {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", resourceId.ID())
+		if model := existingQueue.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if model.Id != nil && props.EnablePartitioning != nil && *props.EnablePartitioning {
+					isPartitioningEnabled = true
+				}
+			}
 		}
 	}
 
-	parameters := servicebus.SBQueue{
-		Name: utils.String(resourceId.Name),
-		SBQueueProperties: &servicebus.SBQueueProperties{
-			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
-			EnableBatchedOperations:          &enableBatchedOperations,
-			EnableExpress:                    &enableExpress,
-			EnablePartitioning:               &enablePartitioning,
-			MaxDeliveryCount:                 &maxDeliveryCount,
-			MaxSizeInMegabytes:               &maxSizeInMegabytes,
-			RequiresDuplicateDetection:       &requiresDuplicateDetection,
-			RequiresSession:                  &requiresSession,
-			Status:                           status,
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+		}
+	}
+
+	status := queues.EntityStatus(d.Get("status").(string))
+	parameters := queues.SBQueue{
+		Name: utils.String(id.QueueName),
+		Properties: &queues.SBQueueProperties{
+			DeadLetteringOnMessageExpiration: utils.Bool(d.Get("dead_lettering_on_message_expiration").(bool)),
+			EnableBatchedOperations:          utils.Bool(d.Get("enable_batched_operations").(bool)),
+			EnableExpress:                    utils.Bool(d.Get("enable_express").(bool)),
+			EnablePartitioning:               utils.Bool(d.Get("enable_partitioning").(bool)),
+			MaxDeliveryCount:                 utils.Int64(int64(d.Get("max_delivery_count").(int))),
+			MaxSizeInMegabytes:               utils.Int64(int64(d.Get("max_size_in_megabytes").(int))),
+			RequiresDuplicateDetection:       utils.Bool(d.Get("requires_duplicate_detection").(bool)),
+			RequiresSession:                  utils.Bool(d.Get("requires_session").(bool)),
+			Status:                           &status,
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.SBQueueProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
+		parameters.Properties.AutoDeleteOnIdle = &autoDeleteOnIdle
 	}
 
 	if defaultMessageTTL := d.Get("default_message_ttl").(string); defaultMessageTTL != "" {
-		parameters.SBQueueProperties.DefaultMessageTimeToLive = &defaultMessageTTL
+		parameters.Properties.DefaultMessageTimeToLive = &defaultMessageTTL
 	}
 
 	if duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateDetectionHistoryTimeWindow != "" {
-		parameters.SBQueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateDetectionHistoryTimeWindow
+		parameters.Properties.DuplicateDetectionHistoryTimeWindow = &duplicateDetectionHistoryTimeWindow
 	}
 
 	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
-		parameters.SBQueueProperties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
+		parameters.Properties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
 	}
 
 	if forwardTo := d.Get("forward_to").(string); forwardTo != "" {
-		parameters.SBQueueProperties.ForwardTo = &forwardTo
+		parameters.Properties.ForwardTo = &forwardTo
 	}
 
 	if lockDuration := d.Get("lock_duration").(string); lockDuration != "" {
-		parameters.SBQueueProperties.LockDuration = &lockDuration
+		parameters.Properties.LockDuration = &lockDuration
 	}
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
 	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-	namespace, err := namespacesClient.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
+	namespace, err := namespacesClient.Get(ctx, *namespaceId)
 	if err != nil {
-		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceId.NamespaceName, resourceId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *namespaceId, err)
 	}
 
+	var sku namespaces.SkuName
+	if nsModel := namespace.Model; nsModel != nil {
+		sku = nsModel.Sku.Name
+	}
 	// Enforce Premium namespace to have Express Entities disabled in Terraform since they are not supported for
 	// Premium SKU.
-	if namespace.Sku.Name == servicebus.SkuNamePremium && d.Get("enable_express").(bool) {
-		return fmt.Errorf("ServiceBus Queue %q does not support Express Entities in Premium SKU and must be disabled", resourceId.Name)
+	if sku == namespaces.SkuNamePremium && d.Get("enable_express").(bool) {
+		return fmt.Errorf("%s does not support Express Entities in Premium SKU and must be disabled", id)
+	}
+
+	if sku == namespaces.SkuNamePremium && d.Get("enable_partitioning").(bool) && !isPartitioningEnabled {
+		return fmt.Errorf("partitioning Entities is not supported in Premium SKU and must be disabled")
 	}
 
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
 	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
-		if namespace.Sku.Name != servicebus.SkuNamePremium {
-			return fmt.Errorf("ServiceBus Queue %q does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", resourceId.Name, namespace.Sku.Name)
+		if sku != namespaces.SkuNamePremium {
+			return fmt.Errorf("%s does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", id, sku)
 		}
-		parameters.SBQueueProperties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+		parameters.Properties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceServiceBusQueueRead(d, meta)
 }
 
@@ -287,62 +304,65 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.QueueID(d.Id())
+	id, err := queues.ParseQueueID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
+	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 
-	if props := resp.SBQueueProperties; props != nil {
-		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
-		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
-		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
-		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-		d.Set("enable_batched_operations", props.EnableBatchedOperations)
-		d.Set("enable_express", props.EnableExpress)
-		d.Set("enable_partitioning", props.EnablePartitioning)
-		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-		d.Set("forward_to", props.ForwardTo)
-		d.Set("lock_duration", props.LockDuration)
-		d.Set("max_delivery_count", props.MaxDeliveryCount)
-		d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
-		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
-		d.Set("requires_session", props.RequiresSession)
-		d.Set("status", props.Status)
+	d.Set("name", id.QueueName)
+	d.Set("namespace_id", namespaceId.ID())
 
-		if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
-			maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
+			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
+			d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
+			d.Set("enable_batched_operations", props.EnableBatchedOperations)
+			d.Set("enable_express", props.EnableExpress)
+			d.Set("enable_partitioning", props.EnablePartitioning)
+			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
+			d.Set("forward_to", props.ForwardTo)
+			d.Set("lock_duration", props.LockDuration)
+			d.Set("max_delivery_count", props.MaxDeliveryCount)
+			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
+			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
+			d.Set("requires_session", props.RequiresSession)
+			d.Set("status", props.Status)
 
-			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
-			// then the max size returned by the API will be 16 times greater than the value set.
-			if *props.EnablePartitioning {
-				namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-				namespace, err := namespacesClient.Get(ctx, id.ResourceGroup, id.NamespaceName)
-				if err != nil {
-					return err
+			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
+				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
+
+				// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
+				// then the max size returned by the API will be 16 times greater than the value set.
+				if *props.EnablePartitioning {
+					namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+					namespace, err := namespacesClient.Get(ctx, namespaceId)
+					if err != nil {
+						return err
+					}
+
+					if nsModel := namespace.Model; nsModel != nil && nsModel.Sku.Name != namespaces.SkuNamePremium {
+						const partitionCount = 16
+						maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
+					}
 				}
 
-				if namespace.Sku.Name != servicebus.SkuNamePremium {
-					const partitionCount = 16
-					maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
-				}
+				d.Set("max_size_in_megabytes", maxSizeInMegabytes)
 			}
-
-			d.Set("max_size_in_megabytes", maxSizeInMegabytes)
 		}
 	}
-
 	return nil
 }
 
@@ -351,14 +371,14 @@ func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.QueueID(d.Id())
+	id, err := queues.ParseQueueID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}

@@ -53,6 +53,14 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 									"Https",
 								}, false),
 							},
+							"http_headers": {
+								Type:     pluginsdk.TypeMap,
+								Optional: true,
+								ForceNew: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
 						},
 					},
 				},

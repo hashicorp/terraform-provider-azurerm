@@ -42,11 +42,45 @@ resource "azurerm_postgresql_flexible_server_configuration" "example" {
 }
 ```
 
+## Example Usage - Azure Extensions
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_postgresql_flexible_server" "example" {
+  name                   = "example-psqlflexibleserver"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  version                = "12"
+  administrator_login    = "psqladmin"
+  administrator_password = "H@Sh1CoR3!"
+
+  storage_mb = 32768
+
+  sku_name = "GP_Standard_D4s_v3"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "example" {
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.example.id
+  value     = "CUBE,CITEXT,BTREE_GIST"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the PostgreSQL Configuration, which needs [to be a valid PostgreSQL configuration name](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIER). Changing this forces a new resource to be created.
+
+-> **Note:** PostgreSQL provides the ability to extend the functionality using azure extensions, with PostgreSQL azure extensions you should specify the `name` value as `azure.extensions` and the `value` you wish to allow in the [extensions list](https://docs.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-extensions?WT.mc_id=Portal-Microsoft_Azure_OSSDatabases#postgres-13-extensions).
 
 * `server_id` - (Required) The ID of the PostgreSQL Flexible Server where we want to change configuration. Changing this forces a new PostgreSQL Flexible Server Configuration resource.
 
