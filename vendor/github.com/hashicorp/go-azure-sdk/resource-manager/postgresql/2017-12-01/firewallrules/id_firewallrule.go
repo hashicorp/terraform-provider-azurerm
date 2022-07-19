@@ -105,7 +105,7 @@ func ValidateFirewallRuleID(input interface{}, key string) (warnings []string, e
 
 // ID returns the formatted Firewall Rule ID
 func (id FirewallRuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBForPostgreSQL/servers/%s/firewallRules/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/servers/%s/firewallRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.FirewallRuleName)
 }
 
@@ -117,7 +117,7 @@ func (id FirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ResourceProviderSegment("staticMicrosoftDBForPostgreSQL", "Microsoft.DBForPostgreSQL", "Microsoft.DBForPostgreSQL"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
 		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
 		resourceids.StaticSegment("staticFirewallRules", "firewallRules", "firewallRules"),
