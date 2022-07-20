@@ -1,4 +1,3 @@
-
 ---
 subcategory: "Messaging"
 layout: "azurerm"

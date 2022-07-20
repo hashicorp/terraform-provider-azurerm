@@ -1,4 +1,4 @@
-# github.com/Azure/azure-sdk-for-go v64.1.0+incompatible
+# github.com/Azure/azure-sdk-for-go v65.0.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
@@ -36,7 +36,6 @@ github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz
 github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance
-github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
 github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media
@@ -48,7 +47,7 @@ github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/o
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
-github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform
+github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation
 github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint
@@ -60,12 +59,10 @@ github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights
 github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement
-github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight
-github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql
@@ -175,7 +172,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.35.0
+# github.com/hashicorp/go-azure-helpers v0.37.0
 ## explicit; go 1.17
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates
@@ -195,7 +192,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20220711.1122120
+# github.com/hashicorp/go-azure-sdk v0.20220715.1071215
 ## explicit; go 1.18
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
@@ -206,6 +203,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attest
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2021-04-01-preview/workspaces
@@ -233,6 +232,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-
 github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests
 github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentity
+github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments
+github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationdefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts
 github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/creators
 github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource
@@ -259,8 +260,18 @@ github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queuesauthorizationrule
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/rules
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topicsauthorizationrule
 github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster
 github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype
+github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2021-04-01/objectreplicationpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints
