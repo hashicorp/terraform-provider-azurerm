@@ -153,6 +153,10 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `vm_group_name` - (Optional) Name of the virtual machine group. Changing this forces a new resource to be created.
+
+* `encrypt_data_disks` - (Optional) Whether encryption data disks is enabled. Changing this forces a new resource to be created. The default value is `false`.
+
 ---
 
 A `roles` block supports the following:
@@ -227,6 +231,10 @@ A `worker_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `vm_group_name` - (Optional) Name of the virtual machine group. Changing this forces a new resource to be created.
+
+* `encrypt_data_disks` - (Optional) Whether encryption data disks is enabled. Changing this forces a new resource to be created. The default value is `false`.
+
 * `autoscale` - (Optional) A `autoscale` block as defined below.
 
 ---
@@ -248,6 +256,10 @@ A `zookeeper_node` block supports the following:
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
+
+* `vm_group_name` - (Optional) Name of the virtual machine group. Changing this forces a new resource to be created.
+
+* `encrypt_data_disks` - (Optional) Whether encryption data disks is enabled. Changing this forces a new resource to be created. The default value is `false`.
 
 --- 
 

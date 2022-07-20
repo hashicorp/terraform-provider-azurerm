@@ -779,6 +779,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
+			Default:  false,
 		},
 	}
 
