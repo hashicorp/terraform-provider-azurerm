@@ -207,6 +207,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublick
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2021-04-01-preview/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupvaults
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/resourceguards
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/application
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup
