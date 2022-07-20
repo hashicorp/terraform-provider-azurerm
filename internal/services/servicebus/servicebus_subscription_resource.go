@@ -194,7 +194,7 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
 		topicId, _ := subscriptions.ParseTopicID(topicIdLit)
-		id = subscriptions.NewSubscriptions2ID(topicId.SubscriptionId, topicId.ResourceGroupName, topicId.NamespaceName, topicId.TopicName, d.Get("name").(string))
+		id = subscriptions.NewSubscriptions2ID(topicId.SubscriptionId, topicId.ResourceGroupName, topicId.NamespaceName, topicId.TopicName, name)
 	}
 
 	if d.IsNewResource() {
