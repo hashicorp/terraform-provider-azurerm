@@ -280,7 +280,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := videoanalyzer.NewResourceGroupID()
+id := videoanalyzer.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 read, err := client.VideoAnalyzersList(ctx, id)
 if err != nil {
@@ -296,7 +296,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := videoanalyzer.NewSubscriptionID()
+id := videoanalyzer.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.VideoAnalyzersListBySubscription(ctx, id)
 if err != nil {
