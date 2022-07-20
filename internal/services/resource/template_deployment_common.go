@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 
 	providers "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
@@ -182,6 +183,21 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 
 		log.Printf("[DEBUG] Deleting Nested Resource %q..", *nestedResource.ID)
 		future, err := resourcesClient.DeleteByID(ctx, *nestedResource.ID, resourceProviderApiVersion)
+
+		// NOTE: resourceProviderApiVersion is gotten from one of resource types of the provider.
+		// When the provider has multiple resource types, it may cause API version mismatched.
+		// For such error, try to get available API version from error code. Ugly but this seems sufficient for now
+		if err != nil && strings.Contains(err.Error(), `Code="NoRegisteredProviderFound"`) {
+			apiPat := regexp.MustCompile(`\d{4}-\d{2}-\d{2}(-preview)*`)
+			matches := apiPat.FindAllStringSubmatch(err.Error(), -1)
+			for _, match := range matches {
+				if resourceProviderApiVersion != match[0] {
+					future, err = resourcesClient.DeleteByID(ctx, *nestedResource.ID, match[0])
+					break
+				}
+			}
+		}
+
 		if err != nil {
 			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 				log.Printf("[DEBUG] Nested Resource %q has been deleted.. continuing..", *nestedResource.ID)
