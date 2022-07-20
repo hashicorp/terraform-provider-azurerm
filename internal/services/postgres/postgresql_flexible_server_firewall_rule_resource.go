@@ -5,15 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
@@ -31,7 +30,7 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FlexibleServerFirewallRuleID(id)
+			_, err := firewallrules.ParseFirewallRuleID(id)
 			return err
 		}),
 
@@ -47,7 +46,7 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: firewallrules.ValidateFlexibleServerID,
 			},
 
 			"end_ip_address": {
@@ -71,40 +70,34 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	serverId, err := parse.FlexibleServerID(d.Get("server_id").(string))
+	serverId, err := firewallrules.ParseFlexibleServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFlexibleServerFirewallRuleID(subscriptionId, serverId.ResourceGroup, serverId.Name, name)
+	id := firewallrules.NewFirewallRuleID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for present of existing %q: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_postgresql_flexible_server_firewall_rule", id.ID())
 		}
 	}
 
-	properties := postgresqlflexibleservers.FirewallRule{
-		FirewallRuleProperties: &postgresqlflexibleservers.FirewallRuleProperties{
-			EndIPAddress:   utils.String(d.Get("end_ip_address").(string)),
-			StartIPAddress: utils.String(d.Get("start_ip_address").(string)),
+	properties := firewallrules.FirewallRule{
+		Properties: firewallrules.FirewallRuleProperties{
+			EndIpAddress:   d.Get("end_ip_address").(string),
+			StartIpAddress: d.Get("start_ip_address").(string),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, properties)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation/ update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -117,14 +110,14 @@ func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerFirewallRuleID(d.Id())
+	id, err := firewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.FirewallRuleName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Postgresql Flexible Server Firewall Rule %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -132,10 +125,11 @@ func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	d.Set("name", id.FirewallRuleName)
-	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroup, id.FlexibleServerName).ID())
-	if props := resp.FirewallRuleProperties; props != nil {
-		d.Set("end_ip_address", props.EndIPAddress)
-		d.Set("start_ip_address", props.StartIPAddress)
+	d.Set("server_id", firewallrules.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
+
+	if model := resp.Model; model != nil {
+		d.Set("end_ip_address", model.Properties.EndIpAddress)
+		d.Set("start_ip_address", model.Properties.StartIpAddress)
 	}
 	return nil
 }
@@ -145,18 +139,14 @@ func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerFirewallRuleID(d.Id())
+	id, err := firewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.FlexibleServerName, id.FirewallRuleName)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the delete of %q: %+v", id, err)
-	}
 	return nil
 }
