@@ -2,6 +2,7 @@
 
 FEATURES: 
 
+* **New Resource**: `azurerm_application_insights_workbook` [GH-17368]
 * **New Resource**: `azurerm_monitor_data_collection_rule` [GH-17342]
 * **New Resource**: `azurerm_web_pubsub_private_link_resource` [GH-15550]
 
