@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationinsights.NewResourceGroupID()
+id := applicationinsights.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.WorkbooksListByResourceGroup(ctx, id, applicationinsights.DefaultWorkbooksListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.WorkbooksListByResourceGroupComplete(ctx, id, applicationinsights.DefaultWorkbooksListByResourceGroupOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applicationinsights.NewSubscriptionID()
+id := applicationinsights.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.WorkbooksListBySubscription(ctx, id, applicationinsights.DefaultWorkbooksListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.WorkbooksListBySubscriptionComplete(ctx, id, applicationinsights.DefaultWorkbooksListBySubscriptionOperationOptions())
