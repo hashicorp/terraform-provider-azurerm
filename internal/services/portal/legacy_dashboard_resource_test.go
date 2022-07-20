@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -44,17 +44,17 @@ func TestAccLegacyDashboard_complete(t *testing.T) {
 }
 
 func (LegacyDashboardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DashboardID(state.ID)
+	id, err := dashboard.ParseDashboardID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Portal.DashboardsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Portal.DashboardsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.DashboardProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LegacyDashboardResource) basic(data acceptance.TestData) string {

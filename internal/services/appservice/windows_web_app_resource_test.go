@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -29,6 +30,18 @@ func TestAccWindowsWebApp_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.windowsFreeSku(data),
+			ExpectError: regexp.MustCompile("always_on cannot be set to true when using Free, F1, D1 Sku"),
+		},
 	})
 }
 
@@ -910,6 +923,21 @@ func TestAccWindowsWebApp_withAutoHealRulesStatusCodeRange(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withAutoHealRulesSlowRequest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesSlowRequest(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebApp_stickySettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -920,9 +948,9 @@ func TestAccWindowsWebApp_stickySettings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -949,9 +977,9 @@ func TestAccWindowsWebApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -973,9 +1001,9 @@ func TestAccWindowsWebApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -1063,6 +1091,25 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) windowsFreeSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.windowsFreeSkuTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) withBackup(data acceptance.TestData) string {
@@ -2257,6 +2304,43 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r WindowsWebAppResource) autoHealRulesSlowRequest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    auto_heal_enabled = true
+
+    auto_heal_setting {
+      trigger {
+        slow_request {
+          count      = "10"
+          interval   = "00:10:00"
+          time_taken = "00:00:10"
+          path       = null
+        }
+      }
+
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 // Note - this test omits the features block as the referenced template is a complete test on Service Plan
 func (r WindowsWebAppResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -2460,9 +2544,10 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 
   app_settings = {
-    foo    = "bar"
-    secret = "sauce"
-    third  = "degree"
+    foo                                     = "bar"
+    secret                                  = "sauce"
+    third                                   = "degree"
+    "Special chars: !@#$%%^&*()_+-=' \";/?" = "Supported by the Azure portal"
   }
 
   connection_string {
@@ -2483,9 +2568,15 @@ resource "azurerm_windows_web_app" "test" {
     type  = "PostgreSQL"
   }
 
+  connection_string {
+    name  = "Special chars: !@#$%%^&*()_+-=' \";/?"
+    value = "characters-supported-by-the-Azure-portal"
+    type  = "Custom"
+  }
+
   sticky_settings {
-    app_setting_names       = ["foo", "secret"]
-    connection_string_names = ["First", "Third"]
+    app_setting_names       = ["foo", "secret", "Special chars: !@#$%%^&*()_+-=' \";/?"]
+    connection_string_names = ["First", "Third", "Special chars: !@#$%%^&*()_+-=' \";/?"]
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
@@ -2629,6 +2720,25 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Windows"
   sku_name            = "S1"
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WindowsWebAppResource) windowsFreeSkuTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "F1"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

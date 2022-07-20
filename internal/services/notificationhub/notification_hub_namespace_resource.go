@@ -7,15 +7,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +31,7 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 		Update: resourceNotificationHubNamespaceCreateUpdate,
 		Delete: resourceNotificationHubNamespaceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NamespaceID(id)
+			_, err := namespaces.ParseNamespaceID(id)
 			return err
 		}),
 
@@ -62,9 +62,9 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(notificationhubs.SkuNameBasic),
-					string(notificationhubs.SkuNameFree),
-					string(notificationhubs.SkuNameStandard),
+					string(namespaces.SkuNameBasic),
+					string(namespaces.SkuNameFree),
+					string(namespaces.SkuNameStandard),
 				}, false),
 			},
 
@@ -78,12 +78,12 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(notificationhubs.NamespaceTypeMessaging),
-					string(notificationhubs.NamespaceTypeNotificationHub),
+					string(namespaces.NamespaceTypeMessaging),
+					string(namespaces.NamespaceTypeNotificationHub),
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"servicebus_endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -99,34 +99,35 @@ func resourceNotificationHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
 		}
 	}
 
+	namespaceType := namespaces.NamespaceType(d.Get("namespace_type").(string))
 	location := location.Normalize(d.Get("location").(string))
-	parameters := notificationhubs.NamespaceCreateOrUpdateParameters{
-		Location: utils.String(location),
-		Sku: &notificationhubs.Sku{
-			Name: notificationhubs.SkuName(d.Get("sku_name").(string)),
+	parameters := namespaces.NamespaceCreateOrUpdateParameters{
+		Location: location,
+		Sku: &namespaces.Sku{
+			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		},
-		NamespaceProperties: &notificationhubs.NamespaceProperties{
+		Properties: &namespaces.NamespaceProperties{
 			Region:        utils.String(location),
-			NamespaceType: notificationhubs.NamespaceType(d.Get("namespace_type").(string)),
+			NamespaceType: &namespaceType,
 			Enabled:       utils.Bool(d.Get("enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -158,14 +159,14 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -174,22 +175,25 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	skuName := ""
-	if resp.Sku != nil {
-		skuName = string(resp.Sku.Name)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		skuName := ""
+		if v := model.Sku; v != nil {
+			skuName = string(v.Name)
+		}
+		d.Set("sku_name", skuName)
+		if props := model.Properties; props != nil {
+			d.Set("enabled", props.Enabled)
+			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-	d.Set("sku_name", skuName)
-
-	if props := resp.NamespaceProperties; props != nil {
-		d.Set("enabled", props.Enabled)
-		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -197,69 +201,38 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting Notification Hub Namespace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if !response.WasNotFound(future.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
-	// the future returned from the Delete method is broken 50% of the time - let's poll ourselves for now
-	// Related Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
-	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: notificationHubNamespaceDeleteStateRefreshFunc(ctx, client, *id),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Notification Hub %q (Resource Group %q) to be deleted: %s", id.Name, id.ResourceGroup, err)
+	if err := future.Poller.PollUntilDone(); err != nil {
+		if !response.WasNotFound(future.Poller.HttpResponse) {
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		}
 	}
 
 	return nil
 }
 
-func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, id parse.NamespaceId) pluginsdk.StateRefreshFunc {
+func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(resp.HttpResponse) {
 				return nil, "404", nil
 			}
 
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
-}
-
-func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, id parse.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-		}
-
-		// Note: this exists as the Delete API only seems to work some of the time
-		// in this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attepmpt
-		// Upstream Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
-		future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			log.Printf("re-issuing deletion request for %s: %+v", id, err)
-		}
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			log.Printf("waiting for re-issue deletion request for %s: %+v", id, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
+		return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
 	}
 }

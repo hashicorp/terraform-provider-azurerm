@@ -43,7 +43,7 @@ resource "azurerm_data_factory_linked_custom_service" "example" {
   description          = "test description"
   type_properties_json = <<JSON
 {
-  "connectionString":"${azurerm_storage_account.test.primary_connection_string}"
+  "connectionString":"${azurerm_storage_account.example.primary_connection_string}"
 }
 JSON
 

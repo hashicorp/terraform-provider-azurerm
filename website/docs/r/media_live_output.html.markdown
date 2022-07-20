@@ -64,7 +64,7 @@ resource "azurerm_media_live_event" "example" {
 resource "azurerm_media_live_event_output" "example" {
   name                         = "exampleoutput"
   live_event_id                = azurerm_media_live_event.example.id
-  archive_window_length        = "PT5M"
+  archive_window_duration      = "PT5M"
   asset_name                   = azurerm_media_asset.example.name
   description                  = "Test live output 1"
   manifest_name                = "testmanifest"
@@ -115,5 +115,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Live Outputs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1/liveoutputs/output1
+terraform import azurerm_media_live_event_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1/liveoutputs/output1
 ```

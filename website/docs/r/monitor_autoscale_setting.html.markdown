@@ -18,8 +18,50 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_virtual_network" "example" {
+  name                = "acctvn"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "acctsub"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_virtual_machine_scale_set" "example" {
-  # ...
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  upgrade_policy_mode = "Manual"
+
+  storage_profile_os_disk {
+    create_option = "FromImage"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.example.id
+    }
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm"
+    admin_username       = "myadmin"
+  }
+
+  sku {
+    name     = "Standard_F2"
+    capacity = 2
+  }
 }
 
 resource "azurerm_monitor_autoscale_setting" "example" {
@@ -102,8 +144,50 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_virtual_network" "example" {
+  name                = "acctvn"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "acctsub"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_virtual_machine_scale_set" "example" {
-  # ...
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  upgrade_policy_mode = "Manual"
+
+  storage_profile_os_disk {
+    create_option = "FromImage"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.example.id
+    }
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm"
+    admin_username       = "myadmin"
+  }
+
+  sku {
+    name     = "Standard_F2"
+    capacity = 2
+  }
 }
 
 resource "azurerm_monitor_autoscale_setting" "example" {
@@ -162,11 +246,10 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     }
 
     recurrence {
-      frequency = "Week"
-      timezone  = "Pacific Standard Time"
-      days      = ["Saturday", "Sunday"]
-      hours     = [12]
-      minutes   = [0]
+      timezone = "Pacific Standard Time"
+      days     = ["Saturday", "Sunday"]
+      hours    = [12]
+      minutes  = [0]
     }
   }
 
@@ -188,8 +271,50 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_virtual_network" "example" {
+  name                = "acctvn"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "acctsub"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_virtual_machine_scale_set" "example" {
-  # ...
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  upgrade_policy_mode = "Manual"
+
+  storage_profile_os_disk {
+    create_option = "FromImage"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.example.id
+    }
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm"
+    admin_username       = "myadmin"
+  }
+
+  sku {
+    name     = "Standard_F2"
+    capacity = 2
+  }
 }
 
 resource "azurerm_monitor_autoscale_setting" "example" {

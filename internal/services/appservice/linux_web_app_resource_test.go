@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -28,6 +29,18 @@ func TestAccLinuxWebApp_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.linuxFreeSku(data),
+			ExpectError: regexp.MustCompile("always_on cannot be set to true when using Free, F1, D1 Sku"),
+		},
 	})
 }
 
@@ -972,6 +985,21 @@ func TestAccLinuxWebApp_withAutoHealRulesStatusCodeRange(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withAutoHealRulesSlowRequest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesSlowRequest(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1086,6 +1114,52 @@ func TestAccLinuxWebApp_zipDeploy(t *testing.T) {
 	})
 }
 
+// Network tests
+
+func TestAccLinuxWebApp_vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebApp_vNetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegrationWebApp_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegrationWebApp_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists func
 
 func (r LinuxWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1126,6 +1200,25 @@ resource "azurerm_linux_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) linuxFreeSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.linuxFreeSkuTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) basicWithStorage(data acceptance.TestData) string {
@@ -2473,6 +2566,43 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r LinuxWebAppResource) autoHealRulesSlowRequest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    auto_heal_enabled = true
+
+    auto_heal_setting {
+      trigger {
+        slow_request {
+          count      = "10"
+          interval   = "00:10:00"
+          time_taken = "00:00:10"
+          path       = null
+        }
+      }
+
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 func (r LinuxWebAppResource) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2646,6 +2776,24 @@ resource "azurerm_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (LinuxWebAppResource) linuxFreeSkuTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "F1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (LinuxWebAppResource) standardPlanTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -2748,4 +2896,89 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.standardPlanTemplate(data), data.RandomInteger, data.RandomString)
+}
+
+func (r LinuxWebAppResource) vNetIntegrationWebApp_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) vNetIntegrationWebApp_withSubnetId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_web_app" "test" {
+  name                      = "acctestWA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 }

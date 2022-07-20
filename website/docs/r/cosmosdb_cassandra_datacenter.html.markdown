@@ -90,6 +90,14 @@ The following arguments are supported:
 
 ---
 
+* `backup_storage_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the backup Storage Account.
+
+* `base64_encoded_yaml_fragment` - (Optional) The fragment of the cassandra.yaml configuration file to be included in the cassandra.yaml for all nodes in this Cassandra Datacenter. The fragment should be Base64 encoded and only a subset of keys is allowed.
+
+* `disk_sku` - (Optional) The Disk SKU that is used for this Cassandra Datacenter. Defaults to `P30`.
+
+* `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
+
 * `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to `4`.
@@ -106,10 +114,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Cassandra Datacenter.
+* `create` - (Defaults to 60 minutes) Used when creating the Cassandra Datacenter.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Datacenter.
-* `update` - (Defaults to 30 minutes) Used when updating the Cassandra Datacenter.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Cassandra Datacenter.
+* `update` - (Defaults to 60 minutes) Used when updating the Cassandra Datacenter.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Cassandra Datacenter.
 
 ## Import
 

@@ -6,8 +6,9 @@ import (
 )
 
 type Client struct {
-	MonitorClient *logz.MonitorsClient
-	TagRuleClient *logz.TagRulesClient
+	MonitorClient    *logz.MonitorsClient
+	TagRuleClient    *logz.TagRulesClient
+	SubAccountClient *logz.SubAccountClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -17,8 +18,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	tagRuleClient := logz.NewTagRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&tagRuleClient.Client, o.ResourceManagerAuthorizer)
 
+	subAccountClient := logz.NewSubAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&subAccountClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		MonitorClient: &monitorClient,
-		TagRuleClient: &tagRuleClient,
+		MonitorClient:    &monitorClient,
+		TagRuleClient:    &tagRuleClient,
+		SubAccountClient: &subAccountClient,
 	}
 }

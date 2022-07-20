@@ -24,16 +24,15 @@ resource "azurerm_data_factory" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_data_factory_pipeline" "test" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+resource "azurerm_data_factory_pipeline" "example" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 }
 
-resource "azurerm_data_factory_trigger_schedule" "test" {
+resource "azurerm_data_factory_trigger_schedule" "example" {
   name            = "example"
-  data_factory_id = azurerm_data_factory.test.id
-  pipeline_name   = azurerm_data_factory_pipeline.test.name
+  data_factory_id = azurerm_data_factory.example.id
+  pipeline_name   = azurerm_data_factory_pipeline.example.name
 
   interval  = 5
   frequency = "Day"
@@ -122,5 +121,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Factory Schedule Trigger can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_schedule_trigger.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/triggers/example
+terraform import azurerm_data_factory_trigger_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/triggers/example
 ```
