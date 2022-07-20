@@ -647,7 +647,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_question_answering_search_service_id  = azurerm_search_service.test.id
   custom_question_answering_search_service_key = azurerm_search_service.test.primary_key
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "West US")
 }
 
 func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdUpdated(data acceptance.TestData) string {
@@ -684,7 +684,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_question_answering_search_service_id  = azurerm_search_service.test2.id
   custom_question_answering_search_service_key = azurerm_search_service.test2.primary_key
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "West US")
 }
 
 func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdRemoved(data acceptance.TestData) string {
@@ -719,7 +719,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "TextAnalytics"
   sku_name            = "F0"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "West US")
 }
 
 func (CognitiveAccountResource) cognitiveServices(data acceptance.TestData) string {
