@@ -1,5 +1,9 @@
 ## 3.14.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource**: `azurerm_monitor_data_collection_rule` [GH-17342]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20220715.1071215` of `github.com/hashicorp/go-azure-sdk` [GH-17645]

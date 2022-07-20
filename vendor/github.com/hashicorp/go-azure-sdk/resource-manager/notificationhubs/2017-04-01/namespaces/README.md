@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewSubscriptionID()
+id := namespaces.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 payload := namespaces.CheckAvailabilityParameters{
 	// ...
@@ -147,7 +147,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewResourceGroupID()
+id := namespaces.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -164,7 +164,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewSubscriptionID()
+id := namespaces.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListAll(ctx, id)` can be used to do batched pagination
 items, err := client.ListAllComplete(ctx, id)
