@@ -1172,7 +1172,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}))
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -1570,7 +1570,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -2322,7 +2322,7 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	v := input[0].(map[string]interface{})
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw, true)
+	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -2339,15 +2339,11 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	return &props
 }
 
-func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}, isupdate bool) *storage.DeleteRetentionPolicy {
+func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
 	result := storage.DeleteRetentionPolicy{
 		Enabled: utils.Bool(false),
 	}
-	if (len(input) == 0 || input[0] == nil) && !isupdate {
-		return nil
-	}
-
-	if (len(input) == 0 || input[0] == nil) && isupdate {
+	if len(input) == 0 || input[0] == nil {
 		return &result
 	}
 
@@ -2409,7 +2405,7 @@ func expandShareProperties(input []interface{}) storage.FileServiceProperties {
 
 	v := input[0].(map[string]interface{})
 
-	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}), false)
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}))
 
 	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
 
@@ -3006,10 +3002,6 @@ func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
 	flattenedSMB := make([]interface{}, 0)
 	if protocol := input.FileServicePropertiesProperties.ProtocolSettings; protocol != nil {
 		flattenedSMB = flattenedSharePropertiesSMB(protocol.Smb)
-	}
-
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedSMB) == 0 {
-		return []interface{}{}
 	}
 
 	return []interface{}{
