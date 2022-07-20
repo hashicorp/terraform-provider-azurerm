@@ -93,6 +93,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_route_filter":                              resourceRouteFilter(),
 		"azurerm_route_table":                               resourceRouteTable(),
 		"azurerm_route":                                     resourceRoute(),
+		"azurerm_route_server":                              resourceRouteServer(),
+		"azurerm_route_server_bgp_connection":               resourceRouteServerBgpConnection(),
 		"azurerm_virtual_hub_security_partner_provider":     resourceVirtualHubSecurityPartnerProvider(),
 		"azurerm_subnet_service_endpoint_storage_policy":    resourceSubnetServiceEndpointStoragePolicy(),
 		"azurerm_subnet_network_security_group_association": resourceSubnetNetworkSecurityGroupAssociation(),
