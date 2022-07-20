@@ -68,6 +68,10 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of this Shared Image.
 
+* `disk_types_not_allowed` - (Optional) One or more Disk Types not allowed for the Image. Possible values include `Standard_LRS` and `Premium_LRS`.
+
+* `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image.
+
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image. Changing this forces a new resource to be created.
 
 * `specialized` - (Optional) Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run). Defaults to `false`. Changing this forces a new resource to be created.
@@ -75,6 +79,14 @@ The following arguments are supported:
 !> **Note:** It's recommended to Generalize images where possible - Specialized Images reuse the same UUID internally within each Virtual Machine, which can have unintended side-effects.
 
 * `hyper_v_generation` - (Optional) The generation of HyperV that the Virtual Machine used to create the Shared Image is based on. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
+
+* `max_recommended_vcpu_count` - (Optional) Maximum count of vCPUs recommended for the Image.
+
+* `min_recommended_vcpu_count` - (Optional) Minimum count of vCPUs recommended for the Image.
+
+* `max_recommended_memory_in_gb` - (Optional) Maximum memory in GB recommended for the Image.
+
+* `min_recommended_memory_in_gb` - (Optional) Minimum memory in GB recommended for the Image.
 
 * `privacy_statement_uri` - (Optional) The URI containing the Privacy Statement associated with this Shared Image. Changing this forces a new resource to be created.
 

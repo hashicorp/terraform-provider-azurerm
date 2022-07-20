@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
-
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/policyinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -48,24 +47,20 @@ func TestAccAzureRMManagementGroupPolicyRemediation_complete(t *testing.T) {
 }
 
 func (r ManagementGroupPolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ResourcePolicyRemediationID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	id, err := policyinsights.ParseProviders2RemediationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Policy.RemediationsClient.GetAtManagementGroup(ctx, managementGroupId.Name, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	resp, err := client.Policy.PolicyInsightsClient.RemediationsGetAtManagementGroup(ctx, *id)
+	if err != nil || resp.Model == nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Remediation %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.RemediationProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r ManagementGroupPolicyRemediationResource) template(data acceptance.TestData) string {
