@@ -7,14 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -50,6 +49,7 @@ type LinuxWebAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                              `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                            `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential            `tfschema:"site_credential"`
+	VirtualNetworkSubnetID        string                              `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
@@ -131,13 +131,19 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"logs": helpers.LogsConfigSchema(),
@@ -277,6 +283,10 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webAppSlot.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webAppSlot.ClientCertMode),
 				},
+			}
+
+			if webAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webAppSlot.VirtualNetworkSubnetID)
 			}
 
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
@@ -441,6 +451,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
 				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
 			}
 
 			var healthCheckCount *int

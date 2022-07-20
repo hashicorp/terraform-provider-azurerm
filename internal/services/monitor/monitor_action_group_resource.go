@@ -7,11 +7,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
-	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -386,7 +385,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"event_hub_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: eventHubValidation.EventhubID,
+							ValidateFunc: eventhubs.ValidateEventhubID,
 						},
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
@@ -735,7 +734,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 
-		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
+		eventHubId, err := eventhubs.ParseEventhubID(*utils.String(val["event_hub_id"].(string)))
 		if err != nil {
 			return nil, err
 		}
@@ -743,7 +742,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		receiver := insights.EventHubReceiver{
 			Name:                 utils.String(val["name"].(string)),
 			EventHubNameSpace:    &eventHubId.NamespaceName,
-			EventHubName:         &eventHubId.Name,
+			EventHubName:         &eventHubId.EventHubName,
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		if v := val["tenant_id"].(string); v != "" {
@@ -1027,7 +1026,7 @@ func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *
 				event_hub_name := *receiver.EventHubName
 				subscription_id := *receiver.SubscriptionID
 
-				val["event_hub_id"] = eventHubParser.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
+				val["event_hub_id"] = eventhubs.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
 			}
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema

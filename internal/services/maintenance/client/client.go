@@ -8,6 +8,7 @@ import (
 type Client struct {
 	ConfigurationsClient           *maintenance.ConfigurationsClient
 	ConfigurationAssignmentsClient *maintenance.ConfigurationAssignmentsClient
+	PublicConfigurationsClient     *maintenance.PublicMaintenanceConfigurationsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -17,8 +18,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	configurationAssignmentsClient := maintenance.NewConfigurationAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	publicConfigurationsClient := maintenance.NewPublicMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&publicConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ConfigurationsClient:           &configurationsClient,
 		ConfigurationAssignmentsClient: &configurationAssignmentsClient,
+		PublicConfigurationsClient:     &publicConfigurationsClient,
 	}
 }
