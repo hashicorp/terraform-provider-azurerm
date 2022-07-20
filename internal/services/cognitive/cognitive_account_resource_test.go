@@ -193,21 +193,21 @@ func TestAccCognitiveAccount_customQuestionAnsweringSearchServiceId(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_question_answering_search_service_key"),
 		{
 			Config: r.customQuestionAnsweringSearchServiceIdUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_question_answering_search_service_key"),
 		{
 			Config: r.customQuestionAnsweringSearchServiceIdRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_question_answering_search_service_key"),
 	})
 }
 
@@ -639,12 +639,13 @@ resource "azurerm_search_service" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                                        = "acctestcogacc-%[1]d"
-  location                                    = azurerm_resource_group.test.location
-  resource_group_name                         = azurerm_resource_group.test.name
-  kind                                        = "TextAnalytics"
-  sku_name                                    = "F0"
-  custom_question_answering_search_service_id = azurerm_search_service.test.id
+  name                                         = "acctestcogacc-%[1]d"
+  location                                     = azurerm_resource_group.test.location
+  resource_group_name                          = azurerm_resource_group.test.name
+  kind                                         = "TextAnalytics"
+  sku_name                                     = "F0"
+  custom_question_answering_search_service_id  = azurerm_search_service.test.id
+  custom_question_answering_search_service_key = azurerm_search_service.test.primary_key
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -675,12 +676,13 @@ resource "azurerm_search_service" "test2" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                                        = "acctestcogacc-%[1]d"
-  location                                    = azurerm_resource_group.test.location
-  resource_group_name                         = azurerm_resource_group.test.name
-  kind                                        = "TextAnalytics"
-  sku_name                                    = "F0"
-  custom_question_answering_search_service_id = azurerm_search_service.test2.id
+  name                                         = "acctestcogacc-%[1]d"
+  location                                     = azurerm_resource_group.test.location
+  resource_group_name                          = azurerm_resource_group.test.name
+  kind                                         = "TextAnalytics"
+  sku_name                                     = "F0"
+  custom_question_answering_search_service_id  = azurerm_search_service.test2.id
+  custom_question_answering_search_service_key = azurerm_search_service.test2.primary_key
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
