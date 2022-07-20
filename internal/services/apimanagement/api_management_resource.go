@@ -36,7 +36,7 @@ var (
 	apimFrontendProtocolSsl3                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
 	apimFrontendProtocolTls10                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
 	apimFrontendProtocolTls11                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_3DES_EDE_CBC_SHA"
 	apimHttp2Protocol                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
 	apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
 	apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"

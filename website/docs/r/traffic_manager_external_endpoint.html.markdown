@@ -60,8 +60,7 @@ The following arguments are supported:
 
 * `target` - (Required) The FQDN DNS name of the target.
 
-* `weight` - (Required) Specifies how much traffic should be distributed to this
-  endpoint. Valid values are between `1` and `1000`.
+* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
 
 * `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint,
     this must be specified for Profiles using the `Performance` routing method.
