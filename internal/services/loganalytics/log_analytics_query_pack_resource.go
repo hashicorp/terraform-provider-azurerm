@@ -3,6 +3,7 @@ package loganalytics
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -88,8 +89,11 @@ func (r LogAnalyticsQueryPackResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			if _, err := client.QueryPacksCreateOrUpdate(ctx, id, *properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if resp, err := client.QueryPacksCreateOrUpdate(ctx, id, *properties); err != nil {
+				// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/19603 is fixed
+				if !response.WasStatusCode(resp.HttpResponse, http.StatusCreated) {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -128,8 +132,11 @@ func (r LogAnalyticsQueryPackResource) Update() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
-			if _, err := client.QueryPacksCreateOrUpdate(ctx, *id, *properties); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+			if resp, err := client.QueryPacksCreateOrUpdate(ctx, *id, *properties); err != nil {
+				// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/19603 is fixed
+				if !response.WasStatusCode(resp.HttpResponse, http.StatusCreated) {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
 			}
 
 			return nil
