@@ -767,6 +767,19 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceIDOrEmpty,
 		},
+
+		"vm_group_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"encrypt_data_disks": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 
 	if definition.CanSpecifyInstanceCount {
@@ -913,6 +926,8 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	password := v["password"].(string)
 	virtualNetworkId := v["virtual_network_id"].(string)
 	subnetId := v["subnet_id"].(string)
+	vmGroupName := v["vm_group_name"].(string)
+	encryptDataDisks := v["encrypt_data_disks"].(bool)
 
 	role := hdinsight.Role{
 		Name: utils.String(name),
@@ -924,6 +939,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 				Username: utils.String(username),
 			},
 		},
+		EncryptDataDisks: &encryptDataDisks,
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""
@@ -982,6 +998,10 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 				},
 			}
 		}
+	}
+
+	if vmGroupName != "" {
+		role.VMGroupName = utils.String(vmGroupName)
 	}
 
 	return &role, nil
@@ -1104,6 +1124,8 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		"ssh_keys":           pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 		"subnet_id":          "",
 		"virtual_network_id": "",
+		"vm_group_name":      "",
+		"encrypt_data_disks": "",
 	}
 
 	if profile := input.OsProfile; profile != nil {
@@ -1129,6 +1151,14 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		// we should be "safe" to try and pull it from the state instead, but clearly this isn't ideal
 		vmSize := existingV["vm_size"].(string)
 		output["vm_size"] = vmSize
+	}
+
+	if vmGroupName := input.VMGroupName; vmGroupName != nil && *vmGroupName != "" {
+		output["vm_group_name"] = *vmGroupName
+	}
+
+	if encryptDataDisks := input.EncryptDataDisks; encryptDataDisks != nil {
+		output["encrypt_data_disks"] = *encryptDataDisks
 	}
 
 	if profile := input.VirtualNetworkProfile; profile != nil {
