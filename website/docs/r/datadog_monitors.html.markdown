@@ -3,7 +3,7 @@ subcategory: "Datadog"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_datadog_monitor"
 description: |-
-  Manages a datadog Monitor.
+  Manages a Datadog Monitor.
 ---
 
 # azurerm_datadog_monitor
@@ -41,11 +41,11 @@ resource "azurerm_datadog_monitor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this datadog Monitor. Changing this forces a new datadog Monitor to be created.
+* `name` - (Required) The name of the user that will be associated with the Datadog Monitor. Changing this forces a new Datadog Monitor to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the datadog Monitor should exist. Changing this forces a new datadog Monitor to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Datadog Monitor should exist. Changing this forces a new Datadog Monitor to be created.
 
-* `location` - (Required) The Azure Region where the datadog Monitor should exist. Changing this forces a new datadog Monitor to be created.
+* `location` - (Required) The Azure Region where the Datadog Monitor should exist. Changing this forces a new Datadog Monitor to be created.
 
 * `sku_name` - (Required) The name which should be used for this sku.
 
@@ -55,40 +55,40 @@ The following arguments are supported:
 
 * `datadog_organization` - (Required) A `datadog_organization` block as defined below.
 
-* `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
+* `monitoring_enabled` - (Optional) Is monitoring enabled? Defaults to`true`.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the datadog Monitor.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Datadog Monitor.
 
 ---
 
 A `datadog_organization` block exports the following:
 
-* `api_key` - (Required) Api key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
+* `api_key` - (Required) Api key associated to the Datadog organization. Changing this forces a new Datadog Monitor to be created.
 
-* `application_key` - (Required) Application key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
+* `application_key` - (Required) Application key associated to the Datadog organization. Changing this forces a new Datadog Monitor to be created.
 
 * `enterprise_app_id` - (Optional) The ID of the enterprise_app.
 
-* `linking_auth_code` - (Optional) The auth code used to linking to an existing datadog organization.
+* `linking_auth_code` - (Optional) The auth code used to linking to an existing Datadog organization. Changing this forces a new Datadog Monitor to be created.
 
-* `linking_client_id` - (Optional) The ID of the linking_client.
+* `linking_client_id` - (Optional) The ID of the linking_client. Changing this forces a new Datadog Monitor to be created.
 
-* `redirect_uri` - (Optional) The redirect uri for linking.
+* `redirect_uri` - (Optional) The redirect uri for linking. Changing this forces a new Datadog Monitor to be created.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the datadog Monitor. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Datadog Monitor. At this time the only allowed value is `SystemAssigned`.
 
-> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the datadog Monitor has been created. More details are available below.
+> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Datadog Monitor has been created. More details are available below.
 ---
 
 An `user` block exports the following:
 
 * `name` - (Required) The name which should be used for this user_info.
 
-* `email` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new datadog Monitor to be created.
+* `email` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new Datadog Monitor to be created.
 
 * `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed.
 
@@ -96,11 +96,11 @@ An `user` block exports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the datadog Monitor.
+* `id` - The ID of the Datadog Monitor.
 
 * `identity` - A `identity` block as defined below.
 
-* `resource_category` - The catogory of resource logs flowing.
+* `resource_category` - The category of resource logs flowing.
 
 * `marketplace_subscription_status` - Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state.
 
@@ -108,9 +108,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this datadog Monitor.
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Datadog Monitor.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this datadog Monitor.
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Datadog Monitor.
 
 -> You can access the Principal ID via `${azurerm_datadog_monitor.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_datadog_monitor.example.identity.0.tenant_id}`
 
@@ -130,14 +130,14 @@ resource "azurerm_role_assignment" "example" {
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the datadog Monitor.
-* `read` - (Defaults to 5 minutes) Used when retrieving the datadog Monitor.
-* `update` - (Defaults to 30 minutes) Used when updating the datadog Monitor.
-* `delete` - (Defaults to 30 minutes) Used when deleting the datadog Monitor.
+* `create` - (Defaults to 30 minutes) Used when creating the Datadog Monitor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Datadog Monitor.
+* `update` - (Defaults to 30 minutes) Used when updating the Datadog Monitor.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Datadog Monitor.
 
 ## Import
 
-datadog Monitors can be imported using the `resource id`, e.g.
+Datadog Monitors can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_datadog_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Datadog/monitors/monitor1

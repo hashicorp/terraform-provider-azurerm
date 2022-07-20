@@ -250,15 +250,13 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("datadog_organization", flattenMonitorOrganizationProperties(props.DatadogOrganizationProperties, d)); err != nil {
 			return fmt.Errorf("setting `datadog_organization`: %+v", err)
 		}
-		if err := d.Set("user", flattenMonitorUserInfo(props.UserInfo, d)); err != nil {
-			return fmt.Errorf("setting `user`: %+v", err)
-		}
 		d.Set("monitoring_enabled", props.MonitoringStatus == datadog.MonitoringStatusEnabled)
 		d.Set("resource_category", props.LiftrResourceCategory)
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
-
-	d.Set("sku_name", *resp.Sku.Name)
+	if resp.Sku != nil {
+		d.Set("sku_name", *resp.Sku.Name)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -432,23 +430,6 @@ func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties,
 			"linking_client_id": utils.String(v["linking_client_id"].(string)),
 			"redirect_uri":      redirectUri,
 			"id":                id,
-		},
-	}
-}
-
-func flattenMonitorUserInfo(input *datadog.UserInfo, d *pluginsdk.ResourceData) []interface{} {
-
-	userInfo := d.Get("user").([]interface{})
-	if len(userInfo) == 0 {
-		return make([]interface{}, 0)
-	}
-
-	v := userInfo[0].(map[string]interface{})
-	return []interface{}{
-		map[string]interface{}{
-			"name":         utils.String(v["name"].(string)),
-			"email":        utils.String(v["email"].(string)),
-			"phone_number": utils.String(v["phone_number"].(string)),
 		},
 	}
 }
