@@ -1717,6 +1717,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 				"slow_request": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
@@ -1925,6 +1926,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 				"slow_request": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
@@ -2854,7 +2856,7 @@ func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, *string, error) {
+func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, *string, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil, nil
 	}
@@ -2868,6 +2870,16 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	winSiteConfig := siteConfig[0]
 
+	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if winSiteConfig.AlwaysOn == true {
+				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+			}
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+			}
+		}
+	}
 	expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -3010,7 +3022,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, error) {
+func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
@@ -3021,6 +3033,16 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	linuxSiteConfig := siteConfig[0]
 
+	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if linuxSiteConfig.AlwaysOn == true {
+				return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+			}
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+				return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+			}
+		}
+	}
 	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -3854,6 +3876,17 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 		}
 	}
 
+	if len(triggers.SlowRequests) == 1 {
+		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
+			TimeTaken:    utils.String(triggers.SlowRequests[0].TimeTaken),
+			TimeInterval: utils.String(triggers.SlowRequests[0].Interval),
+			Count:        utils.Int32(int32(triggers.SlowRequests[0].Count)),
+		}
+		if triggers.SlowRequests[0].Path != "" {
+			result.Triggers.SlowRequests.Path = utils.String(triggers.SlowRequests[0].Path)
+		}
+	}
+
 	if triggers.PrivateMemoryKB != 0 {
 		result.Triggers.PrivateBytesInKB = utils.Int32(int32(triggers.PrivateMemoryKB))
 	}
@@ -4028,6 +4061,17 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 		}
 	}
 
+	if len(triggers.SlowRequests) == 1 {
+		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
+			TimeTaken:    utils.String(triggers.SlowRequests[0].TimeTaken),
+			TimeInterval: utils.String(triggers.SlowRequests[0].Interval),
+			Count:        utils.Int32(int32(triggers.SlowRequests[0].Count)),
+		}
+		if triggers.SlowRequests[0].Path != "" {
+			result.Triggers.SlowRequests.Path = utils.String(triggers.SlowRequests[0].Path)
+		}
+	}
+
 	if len(triggers.StatusCodes) > 0 {
 		statusCodeTriggers := make([]web.StatusCodesBasedTrigger, 0)
 		statusCodeRangeTriggers := make([]web.StatusCodesRangeBasedTrigger, 0)
@@ -4186,4 +4230,19 @@ func DisabledLogsConfig() *web.SiteLogsConfig {
 			},
 		},
 	}
+}
+
+func isFreeOrSharedServicePlan(inputSKU string) bool {
+	result := false
+	for _, sku := range freeSkus {
+		if inputSKU == sku {
+			result = true
+		}
+	}
+	for _, sku := range sharedSkus {
+		if inputSKU == sku {
+			result = true
+		}
+	}
+	return result
 }

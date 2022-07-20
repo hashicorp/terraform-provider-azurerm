@@ -40,7 +40,7 @@ resource "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "example" {
   name                = "tfex-cosmos-cassandra-keyspace"
-  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
   account_name        = azurerm_cosmosdb_account.example.name
   throughput          = 400
 }

@@ -5,14 +5,14 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSshPublicKey() *pluginsdk.Resource {
@@ -40,7 +40,7 @@ func dataSourceSshPublicKey() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -51,11 +51,10 @@ func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSSHPublicKeyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := sshpublickeys.NewSshPublicKeyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on %s: %s", id, err)
@@ -63,17 +62,23 @@ func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.SshPublicKeyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	var publicKey *string
-	if props := resp.SSHPublicKeyResourceProperties; props.PublicKey != nil {
-		publicKey, err = NormalizeSSHKey(*props.PublicKey)
-		if err != nil {
-			return fmt.Errorf("normalising public key: %+v", err)
+	if model := resp.Model; model != nil {
+		var publicKey *string
+		if props := model.Properties; props.PublicKey != nil {
+			publicKey, err = NormalizeSSHKey(*props.PublicKey)
+			if err != nil {
+				return fmt.Errorf("normalising public key: %+v", err)
+			}
+		}
+		d.Set("public_key", publicKey)
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
-	d.Set("public_key", publicKey)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

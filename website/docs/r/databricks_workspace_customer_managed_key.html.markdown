@@ -74,20 +74,15 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "list",
-    "create",
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-    "delete",
-    "restore",
-    "recover",
-    "update",
-    "purge",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
 }
 
@@ -99,9 +94,15 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
 }
 ```
@@ -116,7 +117,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
 The following arguments are supported:
 
-* `workspace_id` - (Required) The ID of the Databricks workspace.
+* `workspace_id` - (Required) The ID of the Databricks Workspace..
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault.
 
@@ -125,22 +126,22 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Databricks Customer Managed Key.
+* `id` - The ID of the Databricks Workspace.
 
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Databricks Customer Managed Key.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Customer Managed Key.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Customer Managed Key.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Customer Managed Key.
+* `create` - (Defaults to 30 minutes) Used when creating the Customer Managed Key for this Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Customer Managed Key for this Databricks Workspace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Customer Managed Key for this Databricks Workspace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Customer Managed Key for this Databricks Workspace.
 
 ## Import
 
 Databricks Workspace Customer Managed Key can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databricks_workspace_customer_managed_key.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/customerManagedKey/workspace1
+terraform import azurerm_databricks_workspace_customer_managed_key.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
