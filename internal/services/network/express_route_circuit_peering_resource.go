@@ -171,7 +171,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 							Required: true,
 						},
 
-						"ipv6_enabled": {
+						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
@@ -441,7 +441,7 @@ func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*network.I
 		peeringConfig.SecondaryPeerAddressPrefix = utils.String(secondaryPeerAddressPrefix)
 	}
 
-	ipv6Enabled := v["ipv6_enabled"].(bool)
+	ipv6Enabled := v["enabled"].(bool)
 	if !ipv6Enabled {
 		peeringConfig.State = network.ExpressRouteCircuitPeeringStateDisabled
 	}
@@ -502,7 +502,7 @@ func flattenExpressRouteCircuitIpv6PeeringConfig(input *network.Ipv6ExpressRoute
 			"primary_peer_address_prefix":   primaryPeerAddressPrefix,
 			"secondary_peer_address_prefix": secondaryPeerAddressPrefix,
 			"route_filter_id":               routeFilterId,
-			"ipv6_enabled":                  input.State == network.ExpressRouteCircuitPeeringStateEnabled,
+			"enabled":                       input.State == network.ExpressRouteCircuitPeeringStateEnabled,
 		},
 	}
 }

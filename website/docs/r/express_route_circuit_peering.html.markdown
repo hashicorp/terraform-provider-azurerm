@@ -55,7 +55,7 @@ resource "azurerm_express_route_circuit_peering" "example" {
   ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
-    ipv6_enabled                  = true
+    enabled                       = true
 
     microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]
@@ -105,7 +105,7 @@ resource "azurerm_express_route_circuit_peering" "example" {
   ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
-    ipv6_enabled                  = true
+    enabled                       = true
   }
 }
 ```
@@ -158,7 +158,7 @@ A `ipv6` block contains:
 
 * `secondary_peer_address_prefix` - (Required) A subnet for the secondary link.
  
-* `ipv6_enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
+* `enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
 
 * `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below.  
 
