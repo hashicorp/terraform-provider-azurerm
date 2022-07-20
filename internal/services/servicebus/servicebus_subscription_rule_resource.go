@@ -288,12 +288,12 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("action", props.Action.SqlExpression)
 			}
 
-		if props.SqlFilter != nil {
-			d.Set("sql_filter", props.SqlFilter.SqlExpression)
-			if props.SqlFilter.CompatibilityLevel != nil {
-				d.Set("sql_filter_compatibility_level", props.SqlFilter.CompatibilityLevel)
+			if props.SqlFilter != nil {
+				d.Set("sql_filter", props.SqlFilter.SqlExpression)
+				if props.SqlFilter.CompatibilityLevel != nil {
+					d.Set("sql_filter_compatibility_level", props.SqlFilter.CompatibilityLevel)
+				}
 			}
-		}
 
 			if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(props.CorrelationFilter)); err != nil {
 				return fmt.Errorf("setting `correlation_filter`: %+v", err)
