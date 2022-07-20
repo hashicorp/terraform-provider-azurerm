@@ -245,7 +245,8 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 	if model.Id == nil {
 		return fmt.Errorf("reading Domain Service: ID was returned nil")
 	}
-	d.SetId(*model.Id)
+
+	d.SetId(idsdk.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
