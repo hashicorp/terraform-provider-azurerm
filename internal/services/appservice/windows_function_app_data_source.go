@@ -256,6 +256,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.Tags = tags.ToTypedObject(existing.Tags)
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
+			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {

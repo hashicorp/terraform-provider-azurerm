@@ -120,6 +120,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
+											"Microsoft.Network/dnsResolvers",
 											"Microsoft.Network/managedResolvers",
 											"Microsoft.PowerPlatform/vnetaccesslinks",
 											"Microsoft.ServiceFabricMesh/networks",

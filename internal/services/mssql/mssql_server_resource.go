@@ -137,7 +137,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				RequiredWith: []string{
-					"identity.0.identity_ids",
+					"identity",
 				},
 			},
 
