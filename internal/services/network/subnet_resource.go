@@ -250,36 +250,66 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	var privateLinkServiceNetworkPolicies network.VirtualNetworkPrivateLinkServiceNetworkPolicies
 
 	if features.FourPointOhBeta() {
-		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled")
-		privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled")
+		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
+		privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled").(bool)
 
-		privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw.(bool)))
-		privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw.(bool)))
+		privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+		privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw))
 	} else {
+		var enforceOk bool
+		var enforceServiceOk bool
+		var enableOk bool
+		var enableServiceOk bool
+		var enforcePrivateEndpointNetworkPoliciesRaw bool
+		var enforcePrivateLinkServiceNetworkPoliciesRaw bool
+		var privateEndpointNetworkPoliciesRaw bool
+		var privateLinkServiceNetworkPoliciesRaw bool
+
 		// Set the legacy default value since they are now computed optional
 		privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled
 		privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
 
-		// Legacy Values
-		enforcePrivateEndpointNetworkPoliciesRaw := d.Get("enforce_private_link_endpoint_network_policies").(bool)
-		enforcePrivateLinkServiceNetworkPoliciesRaw := d.Get("enforce_private_link_service_network_policies").(bool)
+		// This is the only way I was able to figure out if the fields are actually in the config or not,
+		// which is needed here because these are all now optional computed fields...
+		enforcePrivateEndpointNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["enforce_private_link_endpoint_network_policies"]
+		enforcePrivateLinkServiceNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["enforce_private_link_service_network_policies"]
+		privateEndpointNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["private_endpoint_network_policies_enabled"]
+		privateLinkServiceNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["private_link_service_network_policies_enabled"]
 
-		// New Values
-		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
-		privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled").(bool)
+		if !enforcePrivateEndpointNetworkPoliciesCty.IsNull() {
+			enforceOk = true
+			enforcePrivateEndpointNetworkPoliciesRaw = d.Get("enforce_private_link_endpoint_network_policies").(bool)
+		}
 
-		if enforcePrivateEndpointNetworkPoliciesRaw || privateEndpointNetworkPoliciesRaw {
-			if enforcePrivateEndpointNetworkPoliciesRaw {
+		if !enforcePrivateLinkServiceNetworkPoliciesCty.IsNull() {
+			enforceServiceOk = true
+			enforcePrivateLinkServiceNetworkPoliciesRaw = d.Get("enforce_private_link_service_network_policies").(bool)
+		}
+
+		if !privateEndpointNetworkPoliciesCty.IsNull() {
+			enableOk = true
+			privateEndpointNetworkPoliciesRaw = d.Get("private_endpoint_network_policies_enabled").(bool)
+		}
+
+		if !privateLinkServiceNetworkPoliciesCty.IsNull() {
+			enableServiceOk = true
+			privateLinkServiceNetworkPoliciesRaw = d.Get("private_link_service_network_policies_enabled").(bool)
+		}
+
+		// Only one of these values can be set since they conflict with each other
+		// if neither of them are set use the default values
+		if enforceOk || enableOk {
+			if enforceOk {
 				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
-			} else if privateEndpointNetworkPoliciesRaw {
+			} else if enableOk {
 				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
 			}
 		}
 
-		if enforcePrivateLinkServiceNetworkPoliciesRaw || privateLinkServiceNetworkPoliciesRaw {
-			if enforcePrivateLinkServiceNetworkPoliciesRaw {
+		if enforceServiceOk || enableServiceOk {
+			if enforceServiceOk {
 				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateLinkServiceNetworkPoliciesRaw))
-			} else if privateLinkServiceNetworkPoliciesRaw {
+			} else if enableServiceOk {
 				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw))
 			}
 		}
@@ -403,24 +433,38 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(v))
 		}
 	} else {
+		// This is the best case we can do in this state since they are computed optional fields now
+		// If you remove the fields from the config they will just persist as they are, if you change
+		// one it will update it to the value that was changed and in the read the other value will be
+		// updated as well to reflect the new value so it is safe to toggle between which field you want
+		// to use to define this behavior...
+		var privateEndpointNetworkPolicies network.VirtualNetworkPrivateEndpointNetworkPolicies
+		var privateLinkServiceNetworkPolicies network.VirtualNetworkPrivateLinkServiceNetworkPolicies
+
 		if d.HasChange("enforce_private_link_endpoint_network_policies") || d.HasChange("private_endpoint_network_policies_enabled") {
+			enforcePrivateEndpointNetworkPoliciesRaw := d.Get("enforce_private_link_endpoint_network_policies").(bool)
+			privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
+
 			if d.HasChange("enforce_private_link_endpoint_network_policies") {
-				v := d.Get("enforce_private_link_endpoint_network_policies").(bool)
-				props.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(v))
-			} else {
-				v := d.Get("private_endpoint_network_policies_enabled").(bool)
-				props.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(v))
+				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
+			} else if d.HasChange("private_endpoint_network_policies_enabled") {
+				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
 			}
+
+			props.PrivateEndpointNetworkPolicies = privateEndpointNetworkPolicies
 		}
 
 		if d.HasChange("enforce_private_link_service_network_policies") || d.HasChange("private_link_service_network_policies_enabled") {
+			enforcePrivateLinkServiceNetworkPoliciesRaw := d.Get("enforce_private_link_service_network_policies").(bool)
+			privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled").(bool)
+
 			if d.HasChange("enforce_private_link_service_network_policies") {
-				v := d.Get("enforce_private_link_service_network_policies").(bool)
-				props.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandEnforceSubnetNetworkPolicy(v))
-			} else {
-				v := d.Get("private_link_service_network_policies_enabled").(bool)
-				props.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(v))
+				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateLinkServiceNetworkPoliciesRaw))
+			} else if d.HasChange("private_link_service_network_policies_enabled") {
+				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw))
 			}
+
+			props.PrivateLinkServiceNetworkPolicies = privateLinkServiceNetworkPolicies
 		}
 	}
 
