@@ -10,10 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-<<<<<<< HEAD
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2021-10-01/signalr"
-=======
->>>>>>> upstream
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )

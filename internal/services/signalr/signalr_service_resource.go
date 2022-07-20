@@ -17,10 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
-<<<<<<< HEAD
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2021-10-01/signalr"
-=======
->>>>>>> upstream
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"

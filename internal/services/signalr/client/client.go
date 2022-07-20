@@ -4,10 +4,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-<<<<<<< HEAD
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2021-10-01/signalr"
-=======
->>>>>>> upstream
 )
 
 type Client struct {

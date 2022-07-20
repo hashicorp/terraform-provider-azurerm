@@ -10,10 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
-<<<<<<< HEAD
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2021-10-01/signalr"
-=======
->>>>>>> upstream
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
