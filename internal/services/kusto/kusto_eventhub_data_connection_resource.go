@@ -141,6 +141,17 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 					string(kusto.EventHubDataFormatTXT),
 				}, false),
 			},
+
+			"database_routing_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.DatabaseRoutingSingle),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.DatabaseRoutingSingle),
+					string(kusto.DatabaseRoutingMulti),
+				}, false),
+			},
 		},
 	}
 }
@@ -178,6 +189,10 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 		Name:                         &id.Name,
 		Location:                     &location,
 		EventHubConnectionProperties: eventHubDataConnectionProperties,
+	}
+
+	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
+		dataConnection1.DatabaseRouting = kusto.DatabaseRouting(databaseRouting.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection1)
@@ -229,6 +244,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
+			d.Set("database_routing_type", props.DatabaseRouting)
 			d.Set("compression", props.Compression)
 			d.Set("event_system_properties", props.EventSystemProperties)
 			d.Set("identity_id", props.ManagedIdentityResourceID)

@@ -8,14 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -29,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceContainerGroup() *pluginsdk.Resource {
@@ -1477,14 +1476,51 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 
 				httpGetScheme := containerinstance.Scheme(scheme)
 				probe.HttpGet = &containerinstance.ContainerHttpGet{
-					Path:   pointer.FromString(path),
-					Port:   int64(port),
-					Scheme: &httpGetScheme,
+					Path:        pointer.FromString(path),
+					Port:        int64(port),
+					Scheme:      &httpGetScheme,
+					HttpHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
 				}
 			}
 		}
 	}
 	return &probe
+}
+
+func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containerinstance.HttpHeader {
+	if len(input) == 0 {
+		return nil
+	}
+
+	headers := []containerinstance.HttpHeader{}
+	for k, v := range input {
+		header := containerinstance.HttpHeader{
+			Name:  pointer.FromString(k),
+			Value: pointer.FromString(v.(string)),
+		}
+		headers = append(headers, header)
+	}
+	return &headers
+}
+
+func flattenContainerProbeHttpHeaders(input *[]containerinstance.HttpHeader) map[string]interface{} {
+	if input == nil {
+		return nil
+	}
+
+	output := map[string]interface{}{}
+	for _, header := range *input {
+		name := ""
+		if header.Name != nil {
+			name = *header.Name
+		}
+		value := ""
+		if header.Value != nil {
+			value = *header.Value
+		}
+		output[name] = value
+	}
+	return output
 }
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
@@ -1786,6 +1822,7 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 		}
 		httpGet["port"] = get.Port
 		httpGet["scheme"] = get.Scheme
+		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HttpHeaders)
 		httpGets = append(httpGets, httpGet)
 	}
 	output["http_get"] = httpGets

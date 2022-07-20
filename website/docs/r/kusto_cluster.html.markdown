@@ -46,6 +46,10 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `allowed_fqdns` - (Optional) List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster.
+
+* `allowed_ip_ranges` - (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
+
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -59,6 +63,8 @@ The following arguments are supported:
 * `public_ip_type` - (Optional) Indicates what public IP type to create - IPv4 (default), or DualStack (both IPv4 and IPv6).
 
 * `public_network_access_enabled` - (Optional) Is the public network access enabled? Defaults to `true`.
+
+* `outbound_network_access_restricted` - (Optional) Whether to restrict outbound network access. Value is optional but if passed in, must be `true` or `false`, default is `false`.
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 

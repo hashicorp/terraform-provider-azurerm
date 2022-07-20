@@ -21,10 +21,12 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
+
 }
 
 resource "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                     = "example-rule-set"
+  name                     = "ExampleRuleSet"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 ```
