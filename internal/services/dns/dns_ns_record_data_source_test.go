@@ -21,10 +21,10 @@ func TestAccDataSourceDnsNsRecord_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("zone_name").Exists(),
-				check.That(data.ResourceName).Key("records").Exists(),
+				check.That(data.ResourceName).Key("records.#").HasValue("2"),
 				check.That(data.ResourceName).Key("ttl").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("tags").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 	})
