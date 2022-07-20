@@ -176,7 +176,7 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 	})
 }
 
@@ -484,16 +484,17 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 			Config: r.fixedScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_option").HasValue("Terminate"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 		{
 			Config: r.fixedScale_completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 	})
 }
 
@@ -634,15 +635,9 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) fixedScale_complete(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "testaccsa%s"
@@ -687,23 +682,21 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
+  network_configuration {
+    subnet_id = azurerm_subnet.testsubnet.id
+  }
+
   metadata = {
     tagName = "Example tag"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+`, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) fixedScale_completeUpdate(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "testaccsa%s"
@@ -745,11 +738,15 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
+  network_configuration {
+    subnet_id = azurerm_subnet.testsubnet.id
+  }
+
   metadata = {
     tagName = "Example tag"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+`, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) autoScale_complete(data acceptance.TestData) string {
@@ -1801,6 +1798,12 @@ func (BatchPoolResource) vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
@@ -1825,7 +1828,7 @@ resource "azurerm_batch_pool" "test" {
     public_address_provisioning_type = "BatchManaged"
   }
 }
-`, template, data.RandomString)
+`, template, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfiguration(data acceptance.TestData) string {
@@ -1974,11 +1977,5 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 }
-
-resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
