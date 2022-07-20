@@ -3,6 +3,7 @@
 FEATURES: 
 
 * **New Resource**: `azurerm_monitor_data_collection_rule` [GH-17342]
+* **New Resource**: `azurerm_web_pubsub_private_link_resource` [GH-15550]
 
 ENHANCEMENTS:
 
