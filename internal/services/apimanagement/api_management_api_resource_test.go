@@ -28,7 +28,6 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
-				check.That(data.ResourceName).Key("api_type").HasValue("http"),
 			),
 		},
 		data.ImportStep(),
