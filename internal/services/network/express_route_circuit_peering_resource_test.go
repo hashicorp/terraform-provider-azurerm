@@ -223,7 +223,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 100
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -241,7 +240,6 @@ resource "azurerm_express_route_circuit_peering" "import" {
   peer_asn                      = azurerm_express_route_circuit_peering.test.peer_asn
   primary_peer_address_prefix   = azurerm_express_route_circuit_peering.test.primary_peer_address_prefix
   secondary_peer_address_prefix = azurerm_express_route_circuit_peering.test.secondary_peer_address_prefix
-  ipv4_enabled                  = azurerm_express_route_circuit_peering.test.ipv4_enabled
   vlan_id                       = azurerm_express_route_circuit_peering.test.vlan_id
 }
 `, r.privatePeering(data))
@@ -284,7 +282,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 300
 
   microsoft_peering_config {
@@ -331,7 +328,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.7.0/30"
   secondary_peer_address_prefix = "192.168.8.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 300
 
   microsoft_peering_config {
@@ -388,7 +384,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.9.0/30"
   secondary_peer_address_prefix = "192.168.10.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 300
 
   microsoft_peering_config {
@@ -459,7 +454,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.11.0/30"
   secondary_peer_address_prefix = "192.168.12.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 300
   route_filter_id               = azurerm_route_filter.test.id
 
@@ -520,7 +514,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.3.0/30"
   secondary_peer_address_prefix = "192.168.4.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 300
 
   microsoft_peering_config {
@@ -571,7 +564,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 100
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -627,7 +619,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.5.0/30"
   secondary_peer_address_prefix = "192.168.6.0/30"
-  ipv4_enabled                  = true
   vlan_id                       = 300
   route_filter_id               = azurerm_route_filter.test.id
 
