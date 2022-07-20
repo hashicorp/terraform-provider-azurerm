@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -141,7 +141,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"logs": helpers.LogsConfigSchema(),
@@ -293,7 +293,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinux(webApp.SiteConfig, nil, metadata)
+			siteConfig, err := helpers.ExpandSiteConfigLinux(webApp.SiteConfig, nil, metadata, servicePlan)
 			if err != nil {
 				return err
 			}
@@ -586,6 +586,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
+			servicePlanClient := metadata.Client.AppService.ServicePlanClient
 
 			id, err := parse.WebAppID(metadata.ResourceData.Id())
 			if err != nil {
@@ -604,9 +605,26 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
+			var serviceFarmId string
+			servicePlanChange := false
+			if existing.SiteProperties.ServerFarmID != nil {
+				serviceFarmId = *existing.ServerFarmID
 			}
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				serviceFarmId = state.ServicePlanId
+				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
+				servicePlanChange = true
+			}
+			servicePlanId, err := parse.ServicePlanID(serviceFarmId)
+			if err != nil {
+				return err
+			}
+
+			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			if err != nil {
+				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
+			}
+
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
 			}
@@ -639,8 +657,8 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			if metadata.ResourceData.HasChange("site_config") {
-				siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig, existing.SiteConfig, metadata)
+			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
+				siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}

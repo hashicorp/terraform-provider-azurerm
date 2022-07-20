@@ -514,6 +514,13 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		update.Properties.EnablePurgeProtection = utils.Bool(newValue)
+
+		if newValue {
+			// When the KV was created with a version prior to v2.42 and the `soft_delete_enabled` is set to false, setting `purge_protection_enabled` to `true` would not work when updating KV with v2.42 or later of terraform provider.
+			// This is because the `purge_protection_enabled` only works when soft delete is enabled.
+			// Since version v2.42 of the Azure Provider and later force the value of `soft_delete_enabled` to be true, we should set `EnableSoftDelete` to true when `purge_protection_enabled` is enabled to make sure it works in this case.
+			update.Properties.EnableSoftDelete = utils.Bool(true)
+		}
 	}
 
 	if d.HasChange("sku_name") {

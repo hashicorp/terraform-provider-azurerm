@@ -98,15 +98,17 @@ The following arguments are supported:
   
 * `database_id` - (Required) The ID of the Kusto Database. Changing this forces a new Kusto Script to be created.
 
-* `sas_token` - (Required) The SAS token used to access the script.
-
-* `url` - (Required) The url to the KQL script blob file. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
-
 ---
 
 * `continue_on_errors_enabled` - (Optional) Flag that indicates whether to continue if one of the command fails.
 
 * `force_an_update_when_value_changed` - (Optional) A unique string. If changed the script will be applied again.
+
+* `script_content` - (Optional) The script content. This property should be used when the script is provide inline and not through file in a SA. Must not be used together with `url` and `sas_token` properties.
+
+* `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property.
+
+* `url` - (Optional) The url to the KQL script blob file.  Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
 
 ## Attributes Reference
 

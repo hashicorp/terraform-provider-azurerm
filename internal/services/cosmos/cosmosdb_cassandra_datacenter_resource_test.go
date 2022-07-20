@@ -36,14 +36,14 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 3),
+			Config: r.complete(data, 3),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, 5),
+			Config: r.update(data, 5),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,26 +66,254 @@ func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (CassandraDatacenterResource) basic(data acceptance.TestData, nodeCount int) string {
+func (r CassandraDatacenterResource) basic(data acceptance.TestData, nodeCount int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
+  name                           = "acctca-mi-dc-%d"
+  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  node_count                     = %d
+  disk_count                     = 4
+  sku_name                       = "Standard_DS14_v2"
+  availability_zones_enabled     = false
+}
+`, r.template(data), data.RandomInteger, nodeCount)
+}
+
+func (r CassandraDatacenterResource) complete(data acceptance.TestData, nodeCount int) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+}
+
+resource "azurerm_key_vault_access_policy" "current_user" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  tenant_id = azurerm_key_vault.test.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "WrapKey",
+    "UnwrapKey"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "system_identity" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  tenant_id = azurerm_key_vault.test.tenant_id
+  object_id = azurerm_cosmosdb_cassandra_cluster.test.identity.0.principal_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "WrapKey",
+    "UnwrapKey"
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkey-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.current_user,
+    azurerm_key_vault_access_policy.system_identity
+  ]
+}
+
+resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
+  name                            = "acctca-mi-dc-%d"
+  cassandra_cluster_id            = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                        = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id  = azurerm_subnet.test.id
+  node_count                      = %d
+  disk_count                      = 4
+  sku_name                        = "Standard_DS14_v2"
+  availability_zones_enabled      = false
+  disk_sku                        = "P30"
+  backup_storage_customer_key_uri = azurerm_key_vault_key.test.id
+  managed_disk_customer_key_uri   = azurerm_key_vault_key.test.id
+  base64_encoded_yaml_fragment    = "Y29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
+
+  depends_on = [
+    azurerm_key_vault_key.test
+  ]
+}
+`, r.template(data), data.RandomString, data.RandomString, data.RandomInteger, nodeCount)
+}
+
+func (r CassandraDatacenterResource) update(data acceptance.TestData, nodeCount int) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+}
+
+resource "azurerm_key_vault_access_policy" "current_user" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  tenant_id = azurerm_key_vault.test.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "WrapKey",
+    "UnwrapKey"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "system_identity" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  tenant_id = azurerm_key_vault.test.tenant_id
+  object_id = azurerm_cosmosdb_cassandra_cluster.test.identity.0.principal_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "WrapKey",
+    "UnwrapKey"
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkey-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.current_user,
+    azurerm_key_vault_access_policy.system_identity
+  ]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "acctestkey2-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_key.test]
+}
+
+resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
+  name                            = "acctca-mi-dc-%d"
+  cassandra_cluster_id            = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                        = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id  = azurerm_subnet.test.id
+  node_count                      = %d
+  disk_count                      = 4
+  sku_name                        = "Standard_DS14_v2"
+  availability_zones_enabled      = false
+  backup_storage_customer_key_uri = azurerm_key_vault_key.test2.id
+  managed_disk_customer_key_uri   = azurerm_key_vault_key.test2.id
+  base64_encoded_yaml_fragment    = "Z29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
+
+  depends_on = [
+    azurerm_key_vault_key.test,
+    azurerm_key_vault_key.test2
+  ]
+}
+`, r.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, nodeCount)
+}
+
+func (CassandraDatacenterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ca-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-ca-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
+  name                = "acctvn-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
+  name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -102,24 +330,17 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
-  name                           = "acctca-mi-cluster-%[1]d"
+  name                           = "acctca-mi-cluster-%d"
   resource_group_name            = azurerm_resource_group.test.name
   location                       = azurerm_resource_group.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
   default_admin_password         = "Password1234"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   depends_on = [azurerm_role_assignment.test]
 }
-
-resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
-  name                           = "acctca-mi-dc-%[1]d"
-  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
-  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
-  delegated_management_subnet_id = azurerm_subnet.test.id
-  node_count                     = %[3]d
-  disk_count                     = 4
-  sku_name                       = "Standard_DS14_v2"
-  availability_zones_enabled     = false
-}
-`, data.RandomInteger, data.Locations.Secondary, nodeCount)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

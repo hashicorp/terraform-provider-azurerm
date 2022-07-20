@@ -7,9 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/Azure/go-autorest/autorest"
-	az "github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2021-04-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/sdk/2021-04-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
@@ -33,7 +33,7 @@ type Client struct {
 	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
 	CloudEndpointsClient        *storagesync.CloudEndpointsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
-	Environment                 az.Environment
+	Environment                 azure.Environment
 	FileServicesClient          *storage.FileServicesClient
 	ObjectReplicationClient     *objectreplicationpolicies.ObjectReplicationPoliciesClient
 	SyncServiceClient           *storagesync.ServicesClient

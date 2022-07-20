@@ -27,6 +27,7 @@ resource "azurerm_service_plan" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "P1v2"
+  os_type             = "Windows"
 }
 
 resource "azurerm_windows_web_app" "example" {
@@ -418,6 +419,8 @@ A `scm_ip_restriction` block supports the following:
 A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
+
+~> **NOTE:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,7 +31,7 @@ func resourcePortalTenantConfiguration() *pluginsdk.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := tenantconfiguration.ParseConfigurationID(id)
+			_, err := parse.PortalTenantConfigurationID(id)
 			return err
 		}),
 
@@ -48,10 +49,11 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := tenantconfiguration.NewConfigurationID("default")
-
+	// NOTE: we're using a Terraform-internal Resource ID here since the Go SDK no longer exposes one
+	// since this is an operation on a Tenant (which doesn't expose any configurable values).
+	id := parse.NewPortalTenantConfigurationID("default")
 	if d.IsNewResource() {
-		existing, err := client.TenantConfigurationsGet(ctx, id)
+		existing, err := client.TenantConfigurationsGet(ctx)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -69,7 +71,7 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if _, err := client.TenantConfigurationsCreate(ctx, id, parameters); err != nil {
+	if _, err := client.TenantConfigurationsCreate(ctx, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -83,12 +85,12 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tenantconfiguration.ParseConfigurationID(d.Id())
+	id, err := parse.PortalTenantConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.TenantConfigurationsGet(ctx, *id)
+	resp, err := client.TenantConfigurationsGet(ctx)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state!", *id)
@@ -112,12 +114,12 @@ func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tenantconfiguration.ParseConfigurationID(d.Id())
+	id, err := parse.PortalTenantConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.TenantConfigurationsDelete(ctx, *id); err != nil {
+	if _, err := client.TenantConfigurationsDelete(ctx); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
