@@ -2,12 +2,18 @@
 
 FEATURES: 
 
+* **New Resource**: `azurerm_application_insights_workbook` [GH-17368]
 * **New Resource**: `azurerm_monitor_data_collection_rule` [GH-17342]
+* **New Resource**: `azurerm_route_server` [GH-16578]
+* **New Resource**: `azurerm_route_server_bgp_connection` [GH-16578]
+* **New Resource**: `azurerm_web_pubsub_private_link_resource` [GH-15550]
 
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20220715.1071215` of `github.com/hashicorp/go-azure-sdk` [GH-17645]
 * servicebus: refactoring to use `hashicorp/go-azure-sdk` [GH-17628]
+* `azurerm_kusto_cluster_resource` - support for the `allowed_fqdns`, `allowed_ip_ranges`, and `outbound_network_access_restricted` properties [GH-17581]
+* `azurerm_storage_account` - supports for the `change_feed_retention_in_days` property [GH-17130]
 
 ## 3.14.0 (July 14, 2022)
 
