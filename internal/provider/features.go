@@ -253,7 +253,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"no_downtime_resize": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
+						Default:  true,
 					},
 				},
 			},

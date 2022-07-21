@@ -1058,7 +1058,7 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				ManagedDisk: features.ManagedDiskFeatures{
-					NoDowntimeResize: false,
+					NoDowntimeResize: true,
 				},
 			},
 		},
