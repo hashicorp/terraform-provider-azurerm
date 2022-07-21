@@ -8,14 +8,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -103,7 +101,6 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			MinItems: 5,
 			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
-				//Schema: netAppVolumeGroupVolumeSchema(),
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Type:         pluginsdk.TypeString,
@@ -113,20 +110,17 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"capacity_pool_id": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     azure.ValidateResourceID,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
 					},
 
 					"proximity_placement_group_id": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     azure.ValidateResourceID,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
 					},
 
 					"volume_spec_name": {
@@ -159,30 +153,10 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: azure.ValidateResourceID,
 					},
 
-					"create_from_snapshot_resource_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ForceNew:     true,
-						ValidateFunc: snapshots.ValidateSnapshotID,
-					},
-
-					"network_features": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(volumegroups.NetworkFeaturesBasic),
-							string(volumegroups.NetworkFeaturesStandard),
-						}, false),
-					},
-
 					"protocols": {
 						Type:     pluginsdk.TypeSet,
 						ForceNew: true,
-						Optional: true,
-						Computed: true,
+						Required: true,
 						MaxItems: 2,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
@@ -196,9 +170,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"security_style": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Required: true,
 						ForceNew: true,
-						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
 							"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
@@ -213,13 +186,12 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"throughput_in_mibps": {
 						Type:     pluginsdk.TypeFloat,
-						Optional: true,
-						Computed: true,
+						Required: true,
 					},
 
 					"export_policy_rule": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:     pluginsdk.TypeSet,
+						Required: true,
 						MaxItems: 5,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -238,74 +210,64 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 
-								"protocols_enabled": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Computed: true,
-									MaxItems: 1,
-									MinItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"NFSv3",
-											"NFSv4.1",
-											"CIFS",
-										}, false),
-									},
+								"cifs_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+
+								"nfsv3_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+
+								"nfsv41_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
 								},
 
 								"unix_read_only": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"unix_read_write": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"root_access_enabled": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"kerberos5_read_only": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"kerberos5_read_write": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"kerberos5i_read_only": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"kerberos5i_read_write": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"kerberos5p_read_only": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 
 								"kerberos5p_read_write": {
 									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
+									Required: true,
 								},
 							},
 						},
@@ -313,70 +275,10 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"tags": commonschema.Tags(),
 
-					"mount_ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
 					"snapshot_directory_visible": {
 						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
-					},
-
-					"data_protection_replication": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Required: true,
 						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"endpoint_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "dst",
-									ValidateFunc: validation.StringInSlice([]string{
-										"dst",
-									}, false),
-								},
-
-								"remote_volume_location": azure.SchemaLocation(),
-
-								"remote_volume_resource_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
-								},
-
-								"replication_frequency": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"10minutes",
-										"daily",
-										"hourly",
-									}, false),
-								},
-							},
-						},
-					},
-
-					"data_protection_snapshot_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"snapshot_policy_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
-								},
-							},
-						},
 					},
 				},
 			},
@@ -390,7 +292,7 @@ func (r NetAppVolumeGroupResource) Attributes() map[string]*pluginsdk.Schema {
 			TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the
 			datasource that can be used as outputs or passed programmatically to other resources or data sources.
 
-			TODO (pmarques) - use this for first level attributes when Volume resource gets migrated to tfschema
+			NOTE: Not applicable for this resource type
 		*/
 	}
 }
@@ -497,7 +399,7 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 				model.ApplicationType = string(*props.GroupMetaData.ApplicationType)
 				model.DeploymentSpecId = state.DeploymentSpecId
 
-				volumes, err := flattenNetAppVolumeGroupVolumes(props.Volumes, state.Volumes)
+				volumes, err := flattenNetAppVolumeGroupVolumes(props.Volumes)
 				if err != nil {
 					return fmt.Errorf("setting `volume`: %+v", err)
 				}
