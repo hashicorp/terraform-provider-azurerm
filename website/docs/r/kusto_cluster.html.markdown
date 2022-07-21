@@ -82,7 +82,11 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
 
-* `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V2`.
+* `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V2`. Changing this forces a new Kusto Cluster to be created.
+
+~> **NOTE:** If you are migrating engine from `V2` to `V3` by adding a support ticket from this [document](https://docs.microsoft.com/en-us/azure/data-explorer/engine-v3), make sure to change `engine` to `V3` in terraform config files (*.tf). Running `terraform plan` after change is recommended. The expected behavior from plan is that "No change is needed". If the plan indicates that it will force to create a new cluster and delete the old one, running `terraform apply` will delete all data from the old cluster and create a new one.
+
+~> **NOTE:** In v4.0 and later version, default engine type will be `V3`. 
 
 ---
 
