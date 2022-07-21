@@ -438,6 +438,10 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for configuration of Sql Identity Control for %s: %+v", id, err)
 	}
 
+	if err := waitSynapseWorkspaceProvisioningState(ctx, client, &id); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 	return resourceSynapseWorkspaceRead(d, meta)
 }
@@ -601,6 +605,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
+
+		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("aad_admin") {
@@ -614,6 +622,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
+
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 		} else {
 			workspaceAadAdminsDeleteFuture, err := aadAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
@@ -622,6 +634,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 			if err = workspaceAadAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 			}
 		}
 	}
@@ -637,6 +653,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = workspaceSqlAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
+
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 		} else {
 			workspaceSqlAdminsDeleteFuture, err := sqlAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
@@ -645,6 +665,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 			if err = workspaceSqlAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 			}
 		}
 	}
@@ -657,6 +681,9 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for update workspace identity control for SQL pool of %q: %+v", id, err)
+		}
+		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
 	}
 
@@ -725,6 +752,40 @@ func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *syna
 			return res, *res.Encryption.Cmk.Status, nil
 		}
 		return res, "Succeeded", nil
+	}
+}
+
+func waitSynapseWorkspaceProvisioningState(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			"Provisioning",
+		},
+		Target: []string{
+			"Succeeded",
+		},
+		Refresh:                   synapseWorkspaceProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+	}
+	return nil
+}
+
+func synapseWorkspaceProvisioningStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		return res, *res.ProvisioningState, nil
 	}
 }
 
