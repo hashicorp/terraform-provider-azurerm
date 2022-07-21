@@ -309,16 +309,17 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("account_endpoint", props.AccountEndpoint)
-		accountID := ""
 		if autoStorage := props.AutoStorage; autoStorage != nil {
-			accountID = *autoStorage.StorageAccountID
+			d.Set("storage_account_id", *autoStorage.StorageAccountID)
 			d.Set("storage_account_authentication_mode", autoStorage.AuthenticationMode)
 
 			if autoStorage.NodeIdentityReference != nil {
 				d.Set("storage_account_node_identity", autoStorage.NodeIdentityReference.ResourceID)
 			}
+		} else {
+			d.Set("storage_account_authentication_mode", "")
+			d.Set("storage_account_id", "")
 		}
-		d.Set("storage_account_id", accountID)
 
 		if props.PublicNetworkAccess != "" {
 			d.Set("public_network_access_enabled", props.PublicNetworkAccess == batch.PublicNetworkAccessTypeEnabled)
