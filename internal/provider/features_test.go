@@ -42,6 +42,9 @@ func TestExpandFeatures(t *testing.T) {
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
 				},
+				ManagedDisk: features.ManagedDiskFeatures{
+					NoDowntimeResize: true,
+				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
 				},
