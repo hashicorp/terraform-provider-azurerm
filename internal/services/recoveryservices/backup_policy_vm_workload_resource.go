@@ -40,10 +40,10 @@ type ProtectionPolicy struct {
 }
 
 type Backup struct {
-	Frequency          *string        `tfschema:"frequency"`
-	FrequencyInMinutes *int32         `tfschema:"frequency_in_minutes"`
-	Time               string         `tfschema:"time"`
-	Weekdays           *pluginsdk.Set `tfschema:"weekdays"`
+	Frequency          string   `tfschema:"frequency"`
+	FrequencyInMinutes int32    `tfschema:"frequency_in_minutes"`
+	Time               string   `tfschema:"time"`
+	Weekdays           []string `tfschema:"weekdays"`
 }
 
 type RetentionDaily struct {
@@ -51,16 +51,16 @@ type RetentionDaily struct {
 }
 
 type RetentionWeekly struct {
-	Count    int32          `tfschema:"count"`
-	Weekdays *pluginsdk.Set `tfschema:"weekdays"`
+	Count    int32    `tfschema:"count"`
+	Weekdays []string `tfschema:"weekdays"`
 }
 
 type RetentionMonthly struct {
-	Count      int32          `tfschema:"count"`
-	FormatType string         `tfschema:"format_type"`
-	MonthDays  []MonthDay     `tfschema:"month_day"`
-	Weeks      *pluginsdk.Set `tfschema:"weeks"`
-	Weekdays   *pluginsdk.Set `tfschema:"weekdays"`
+	Count      int32      `tfschema:"count"`
+	FormatType string     `tfschema:"format_type"`
+	MonthDays  []MonthDay `tfschema:"month_day"`
+	Weeks      []string   `tfschema:"weeks"`
+	Weekdays   []string   `tfschema:"weekdays"`
 }
 
 type MonthDay struct {
@@ -69,12 +69,12 @@ type MonthDay struct {
 }
 
 type RetentionYearly struct {
-	Count      int32          `tfschema:"count"`
-	FormatType string         `tfschema:"format_type"`
-	Months     *pluginsdk.Set `tfschema:"months"`
-	MonthDays  []MonthDay     `tfschema:"month_day"`
-	Weeks      *pluginsdk.Set `tfschema:"weeks"`
-	Weekdays   *pluginsdk.Set `tfschema:"weekdays"`
+	Count      int32      `tfschema:"count"`
+	FormatType string     `tfschema:"format_type"`
+	Months     []string   `tfschema:"months"`
+	MonthDays  []MonthDay `tfschema:"month_day"`
+	Weeks      []string   `tfschema:"weeks"`
+	Weekdays   []string   `tfschema:"weekdays"`
 }
 
 type SimpleRetention struct {
@@ -82,9 +82,9 @@ type SimpleRetention struct {
 }
 
 type Settings struct {
-	CompressionEnabled    *bool   `tfschema:"compression_enabled"`
-	SqlCompressionEnabled *bool   `tfschema:"sql_compression_enabled"`
-	TimeZone              *string `tfschema:"time_zone"`
+	CompressionEnabled    bool   `tfschema:"compression_enabled"`
+	SqlCompressionEnabled bool   `tfschema:"sql_compression_enabled"`
+	TimeZone              string `tfschema:"time_zone"`
 }
 
 type BackupProtectionPolicyVMWorkloadResource struct{}
@@ -139,8 +139,8 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 					"backup": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Required: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"frequency": {
@@ -192,8 +192,8 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 					"retention_daily": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"count": {
@@ -233,8 +233,8 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 					"retention_monthly": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"count": {
@@ -253,7 +253,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 								},
 
 								"month_day": {
-									Type:     pluginsdk.TypeList,
+									Type:     pluginsdk.TypeSet,
 									Optional: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
@@ -304,8 +304,8 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 					"retention_yearly": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"count": {
@@ -335,7 +335,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 								},
 
 								"month_day": {
-									Type:     pluginsdk.TypeList,
+									Type:     pluginsdk.TypeSet,
 									Optional: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
@@ -608,19 +608,14 @@ func expandBackupProtectionPolicyVMWorkloadSettings(input []Settings) *backup.Se
 		return &backup.Settings{}
 	}
 
-	result := &backup.Settings{}
 	settings := input[0]
-
-	if settings.CompressionEnabled != nil {
-		result.IsCompression = settings.CompressionEnabled
+	result := &backup.Settings{
+		IsCompression:    &settings.CompressionEnabled,
+		Issqlcompression: &settings.SqlCompressionEnabled,
 	}
 
-	if settings.SqlCompressionEnabled != nil {
-		result.Issqlcompression = settings.SqlCompressionEnabled
-	}
-
-	if settings.TimeZone != nil {
-		result.TimeZone = settings.TimeZone
+	if settings.TimeZone != "" {
+		result.TimeZone = &settings.TimeZone
 	}
 
 	return result
@@ -634,9 +629,9 @@ func flattenBackupProtectionPolicyVMWorkloadSettings(input *backup.Settings) []S
 	result := make([]Settings, 0)
 
 	result = append(result, Settings{
-		CompressionEnabled:    input.IsCompression,
-		SqlCompressionEnabled: input.Issqlcompression,
-		TimeZone:              input.TimeZone,
+		CompressionEnabled:    *input.IsCompression,
+		SqlCompressionEnabled: *input.Issqlcompression,
+		TimeZone:              *input.TimeZone,
 	})
 
 	return result
@@ -652,19 +647,22 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 	for _, item := range input {
 		// getting this ready now because its shared between *everything*, time is... complicated for this resource
 		timeOfDay := item.Backup[0].Time
-		dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("2018-07-30T%s:00Z", timeOfDay))
-		if err != nil {
-			return nil, fmt.Errorf("generating time from %q for policy): %+v", timeOfDay, err)
+		times := make([]date.Time, 0)
+		if timeOfDay != "" {
+			dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("2018-07-30T%s:00Z", timeOfDay))
+			if err != nil {
+				return nil, fmt.Errorf("generating time from %q for policy): %+v", timeOfDay, err)
+			}
+			times = append(times, date.Time{Time: dateOfDay})
 		}
-		times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
 
-		switch *item.Backup[0].Frequency {
+		switch item.Backup[0].Frequency {
 		case string(backup.ScheduleRunTypeDaily):
 			if item.RetentionDaily == nil {
 				return nil, fmt.Errorf("`retention_daily` must be set when `backup.0.frequency` is `Daily`")
 			}
 
-			if item.Backup[0].Weekdays != nil {
+			if weekdays := item.Backup[0].Weekdays; weekdays != nil && len(weekdays) > 0 {
 				return nil, fmt.Errorf("`backup.0.weekdays` should be not set when `backup.0.frequency` is `Daily`")
 			}
 		case string(backup.ScheduleRunTypeWeekly):
@@ -698,15 +696,24 @@ func flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(input *[]backup.S
 			policyType = item.PolicyType
 		}
 
-		results = append(results, ProtectionPolicy{
-			PolicyType:       string(policyType),
-			Backup:           flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(item.SchedulePolicy, policyType),
-			RetentionDaily:   flattenBackupProtectionPolicyVMWorkloadRetentionDaily(item.RetentionPolicy),
-			RetentionWeekly:  flattenBackupProtectionPolicyVMWorkloadRetentionWeekly(item.RetentionPolicy),
-			RetentionMonthly: flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(item.RetentionPolicy),
-			RetentionYearly:  flattenBackupProtectionPolicyVMWorkloadRetentionYearly(item.RetentionPolicy),
-			SimpleRetention:  flattenBackupProtectionPolicyVMWorkloadSimpleRetention(item.RetentionPolicy),
-		})
+		result := ProtectionPolicy{
+			PolicyType: string(policyType),
+			Backup:     flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(item.SchedulePolicy, policyType),
+		}
+
+		if retentionPolicy := item.RetentionPolicy; retentionPolicy != nil {
+			if longTermRetentionPolicy, ok := retentionPolicy.AsLongTermRetentionPolicy(); ok {
+				result.RetentionDaily = flattenBackupProtectionPolicyVMWorkloadRetentionDaily(longTermRetentionPolicy.DailySchedule)
+				result.RetentionWeekly = flattenBackupProtectionPolicyVMWorkloadRetentionWeekly(longTermRetentionPolicy.WeeklySchedule)
+				result.RetentionMonthly = flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(longTermRetentionPolicy.MonthlySchedule)
+				result.RetentionYearly = flattenBackupProtectionPolicyVMWorkloadRetentionYearly(longTermRetentionPolicy.YearlySchedule)
+			} else {
+				simpleRetentionPolicy, _ := retentionPolicy.AsSimpleRetentionPolicy()
+				result.SimpleRetention = flattenBackupProtectionPolicyVMWorkloadSimpleRetention(simpleRetentionPolicy.RetentionDuration)
+			}
+		}
+
+		results = append(results, result)
 	}
 
 	return results
@@ -720,8 +727,8 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 
 		backupBlock := input.Backup[0]
 
-		if v := backupBlock.FrequencyInMinutes; v != nil {
-			schedule.ScheduleFrequencyInMins = v
+		if v := backupBlock.FrequencyInMinutes; v != 0 {
+			schedule.ScheduleFrequencyInMins = &v
 		}
 
 		result, _ := schedule.AsBasicSchedulePolicy()
@@ -732,18 +739,18 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 		}
 
 		backupBlock := input.Backup[0]
-		if backupBlock.Frequency != nil {
-			schedule.ScheduleRunFrequency = backup.ScheduleRunType(*backupBlock.Frequency)
+		if backupBlock.Frequency != "" {
+			schedule.ScheduleRunFrequency = backup.ScheduleRunType(backupBlock.Frequency)
 		}
 
-		if times != nil {
+		if times != nil && len(times) > 0 {
 			schedule.ScheduleRunTimes = &times
 		}
 
-		if v := backupBlock.Weekdays; v != nil {
+		if v := backupBlock.Weekdays; v != nil && len(v) > 0 {
 			days := make([]backup.DayOfWeek, 0)
-			for _, day := range v.List() {
-				days = append(days, backup.DayOfWeek(day.(string)))
+			for _, day := range v {
+				days = append(days, backup.DayOfWeek(day))
 			}
 			schedule.ScheduleRunDays = &days
 		}
@@ -766,23 +773,23 @@ func flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(input backup.BasicSch
 		logSchedulePolicy, _ := input.AsLogSchedulePolicy()
 
 		if v := logSchedulePolicy.ScheduleFrequencyInMins; v != nil {
-			backupBlock.FrequencyInMinutes = v
+			backupBlock.FrequencyInMinutes = *v
 		}
 	} else {
 		simpleSchedulePolicy, _ := input.AsSimpleSchedulePolicy()
 
-		backupBlock.Frequency = utils.String(string(simpleSchedulePolicy.ScheduleRunFrequency))
+		backupBlock.Frequency = string(simpleSchedulePolicy.ScheduleRunFrequency)
 
 		if times := simpleSchedulePolicy.ScheduleRunTimes; times != nil && len(*times) > 0 {
 			backupBlock.Time = (*times)[0].Format("15:04")
 		}
 
 		if days := simpleSchedulePolicy.ScheduleRunDays; days != nil {
-			weekdays := make([]interface{}, 0)
+			weekdays := make([]string, 0)
 			for _, d := range *days {
 				weekdays = append(weekdays, string(d))
 			}
-			backupBlock.Weekdays = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
+			backupBlock.Weekdays = weekdays
 		}
 	}
 
@@ -821,8 +828,8 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 
 				if v := retentionWeekly.Weekdays; v != nil {
 					days := make([]backup.DayOfWeek, 0)
-					for _, day := range v.List() {
-						days = append(days, backup.DayOfWeek(day.(string)))
+					for _, day := range v {
+						days = append(days, backup.DayOfWeek(day))
 					}
 					retentionPolicy.WeeklySchedule.DaysOfTheWeek = &days
 				}
@@ -859,8 +866,8 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 
 				if v := retentionYearly.Months; v != nil {
 					months := make([]backup.MonthOfYear, 0)
-					for _, month := range v.List() {
-						months = append(months, backup.MonthOfYear(month.(string)))
+					for _, month := range v {
+						months = append(months, backup.MonthOfYear(month))
 					}
 					retentionPolicy.YearlySchedule.MonthsOfYear = &months
 				}
@@ -889,134 +896,119 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 	return nil
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionDaily(input backup.BasicRetentionPolicy) []RetentionDaily {
+func flattenBackupProtectionPolicyVMWorkloadRetentionDaily(input *backup.DailyRetentionSchedule) []RetentionDaily {
 	if input == nil {
 		return nil
 	}
 
-	longTermRetentionPolicy, _ := input.AsLongTermRetentionPolicy()
 	retentionDailyBlock := RetentionDaily{}
 
-	if dailySchedule := longTermRetentionPolicy.DailySchedule; dailySchedule != nil {
-		if duration := dailySchedule.RetentionDuration; duration != nil {
-			if v := duration.Count; v != nil {
-				retentionDailyBlock.Count = *v
-			}
+	if duration := input.RetentionDuration; duration != nil {
+		if v := duration.Count; v != nil {
+			retentionDailyBlock.Count = *v
 		}
 	}
 
 	return []RetentionDaily{retentionDailyBlock}
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionWeekly(input backup.BasicRetentionPolicy) []RetentionWeekly {
+func flattenBackupProtectionPolicyVMWorkloadRetentionWeekly(input *backup.WeeklyRetentionSchedule) []RetentionWeekly {
 	if input == nil {
 		return nil
 	}
 
-	longTermRetentionPolicy, _ := input.AsLongTermRetentionPolicy()
 	retentionWeeklyBlock := RetentionWeekly{}
 
-	if weeklySchedule := longTermRetentionPolicy.WeeklySchedule; weeklySchedule != nil {
-		if duration := weeklySchedule.RetentionDuration; duration != nil {
-			if v := duration.Count; v != nil {
-				retentionWeeklyBlock.Count = *v
-			}
+	if duration := input.RetentionDuration; duration != nil {
+		if v := duration.Count; v != nil {
+			retentionWeeklyBlock.Count = *v
 		}
+	}
 
-		if days := weeklySchedule.DaysOfTheWeek; days != nil {
-			weekdays := make([]interface{}, 0)
-			for _, d := range *days {
-				weekdays = append(weekdays, string(d))
-			}
-			retentionWeeklyBlock.Weekdays = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
+	if days := input.DaysOfTheWeek; days != nil {
+		weekdays := make([]string, 0)
+		for _, d := range *days {
+			weekdays = append(weekdays, string(d))
 		}
+		retentionWeeklyBlock.Weekdays = weekdays
 	}
 
 	return []RetentionWeekly{retentionWeeklyBlock}
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(input backup.BasicRetentionPolicy) []RetentionMonthly {
+func flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(input *backup.MonthlyRetentionSchedule) []RetentionMonthly {
 	if input == nil {
 		return nil
 	}
 
-	longTermRetentionPolicy, _ := input.AsLongTermRetentionPolicy()
 	retentionMonthlyBlock := RetentionMonthly{}
 
-	if monthlySchedule := longTermRetentionPolicy.MonthlySchedule; monthlySchedule != nil {
-		if duration := monthlySchedule.RetentionDuration; duration != nil {
-			if v := duration.Count; v != nil {
-				retentionMonthlyBlock.Count = *v
-			}
+	if duration := input.RetentionDuration; duration != nil {
+		if v := duration.Count; v != nil {
+			retentionMonthlyBlock.Count = *v
 		}
+	}
 
-		if formatType := monthlySchedule.RetentionScheduleFormatType; formatType != "" {
-			retentionMonthlyBlock.FormatType = string(formatType)
-		}
+	if formatType := input.RetentionScheduleFormatType; formatType != "" {
+		retentionMonthlyBlock.FormatType = string(formatType)
+	}
 
-		if weekly := monthlySchedule.RetentionScheduleWeekly; weekly != nil {
-			retentionMonthlyBlock.Weekdays, retentionMonthlyBlock.Weeks = flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekly)
-		}
+	if weekly := input.RetentionScheduleWeekly; weekly != nil {
+		retentionMonthlyBlock.Weekdays, retentionMonthlyBlock.Weeks = flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekly)
+	}
 
-		if daily := monthlySchedule.RetentionScheduleDaily; daily != nil {
-			retentionMonthlyBlock.MonthDays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
-		}
+	if daily := input.RetentionScheduleDaily; daily != nil {
+		retentionMonthlyBlock.MonthDays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
 	}
 
 	return []RetentionMonthly{retentionMonthlyBlock}
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionYearly(input backup.BasicRetentionPolicy) []RetentionYearly {
+func flattenBackupProtectionPolicyVMWorkloadRetentionYearly(input *backup.YearlyRetentionSchedule) []RetentionYearly {
 	if input == nil {
 		return nil
 	}
 
-	longTermRetentionPolicy, _ := input.AsLongTermRetentionPolicy()
 	retentionYearlyBlock := RetentionYearly{}
 
-	if yearlySchedule := longTermRetentionPolicy.YearlySchedule; yearlySchedule != nil {
-		if duration := yearlySchedule.RetentionDuration; duration != nil {
-			if v := duration.Count; v != nil {
-				retentionYearlyBlock.Count = *v
-			}
+	if duration := input.RetentionDuration; duration != nil {
+		if v := duration.Count; v != nil {
+			retentionYearlyBlock.Count = *v
 		}
+	}
 
-		if formatType := yearlySchedule.RetentionScheduleFormatType; formatType != "" {
-			retentionYearlyBlock.FormatType = string(formatType)
-		}
+	if formatType := input.RetentionScheduleFormatType; formatType != "" {
+		retentionYearlyBlock.FormatType = string(formatType)
+	}
 
-		if weekly := yearlySchedule.RetentionScheduleWeekly; weekly != nil {
-			retentionYearlyBlock.Weekdays, retentionYearlyBlock.Weeks = flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekly)
-		}
+	if weekly := input.RetentionScheduleWeekly; weekly != nil {
+		retentionYearlyBlock.Weekdays, retentionYearlyBlock.Weeks = flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekly)
+	}
 
-		if months := yearlySchedule.MonthsOfYear; months != nil {
-			slice := make([]interface{}, 0)
-			for _, d := range *months {
-				slice = append(slice, string(d))
-			}
-			retentionYearlyBlock.Months = pluginsdk.NewSet(pluginsdk.HashString, slice)
+	if v := input.MonthsOfYear; v != nil {
+		months := make([]string, 0)
+		for _, d := range *v {
+			months = append(months, string(d))
 		}
+		retentionYearlyBlock.Months = months
+	}
 
-		if daily := yearlySchedule.RetentionScheduleDaily; daily != nil {
-			retentionYearlyBlock.MonthDays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
-		}
+	if daily := input.RetentionScheduleDaily; daily != nil {
+		retentionYearlyBlock.MonthDays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
 	}
 
 	return []RetentionYearly{retentionYearlyBlock}
 }
 
-func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input backup.BasicRetentionPolicy) []SimpleRetention {
+func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *backup.RetentionDuration) []SimpleRetention {
 	if input == nil {
 		return nil
 	}
 
-	simpleRetentionPolicy, _ := input.AsSimpleRetentionPolicy()
 	simpleRetentionBlock := SimpleRetention{}
 
-	if duration := simpleRetentionPolicy.RetentionDuration; duration != nil {
-		if v := duration.Count; v != nil {
-			simpleRetentionBlock.Count = *v
-		}
+	if v := input.Count; v != nil {
+		simpleRetentionBlock.Count = *v
 	}
 
 	return []SimpleRetention{simpleRetentionBlock}
@@ -1043,7 +1035,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(monthdays []Mont
 	return &daily
 }
 
-func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks *pluginsdk.Set) *backup.WeeklyRetentionFormat {
+func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks []string) *backup.WeeklyRetentionFormat {
 	if weekdays == nil || weeks == nil {
 		return nil
 	}
@@ -1052,16 +1044,16 @@ func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks
 
 	if v := weekdays; v != nil {
 		days := make([]backup.DayOfWeek, 0)
-		for _, day := range v.List() {
-			days = append(days, backup.DayOfWeek(day.(string)))
+		for _, day := range v {
+			days = append(days, backup.DayOfWeek(day))
 		}
 		weekly.DaysOfTheWeek = &days
 	}
 
 	if v := weeks; v != nil {
 		weeks := make([]backup.WeekOfMonth, 0)
-		for _, week := range v.List() {
-			weeks = append(weeks, backup.WeekOfMonth(week.(string)))
+		for _, week := range v {
+			weeks = append(weeks, backup.WeekOfMonth(week))
 		}
 		weekly.WeeksOfTheMonth = &weeks
 	}
@@ -1069,21 +1061,21 @@ func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks
 	return &weekly
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(input *backup.WeeklyRetentionFormat) (weekdays, weeks *pluginsdk.Set) {
-	if days := input.DaysOfTheWeek; days != nil {
-		slice := make([]interface{}, 0)
-		for _, d := range *days {
-			slice = append(slice, string(d))
+func flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(input *backup.WeeklyRetentionFormat) (weekdays, weeks []string) {
+	if v := input.DaysOfTheWeek; v != nil {
+		days := make([]string, 0)
+		for _, d := range *v {
+			days = append(days, string(d))
 		}
-		weekdays = pluginsdk.NewSet(pluginsdk.HashString, slice)
+		weekdays = days
 	}
 
-	if days := input.WeeksOfTheMonth; days != nil {
-		slice := make([]interface{}, 0)
-		for _, d := range *days {
-			slice = append(slice, string(d))
+	if v := input.WeeksOfTheMonth; v != nil {
+		days := make([]string, 0)
+		for _, d := range *v {
+			days = append(days, string(d))
 		}
-		weeks = pluginsdk.NewSet(pluginsdk.HashString, slice)
+		weeks = days
 	}
 
 	return weekdays, weeks
