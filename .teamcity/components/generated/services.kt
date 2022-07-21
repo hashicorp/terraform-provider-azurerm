@@ -43,6 +43,7 @@ var services = mapOf(
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "firewall" to "Firewall",
+        "fluidrelay" to "Fluid Relay",
         "frontdoor" to "FrontDoor",
         "hdinsight" to "HDInsight",
         "hpccache" to "HPC Cache",

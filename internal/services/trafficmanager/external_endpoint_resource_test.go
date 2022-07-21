@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -23,6 +23,21 @@ func TestAccExternalEndpoint_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccExternalEndpoint_priority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
+	r := ExternalEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.priority(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,6 +151,42 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
   profile_id = azurerm_traffic_manager_profile.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ExternalEndpointResource) priority(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-traffic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%[1]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Priority"
+
+  dns_config {
+    relative_name = "acctest-tmp-%[1]d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "HTTPS"
+    port     = 443
+    path     = "/"
+  }
+}
+
+resource "azurerm_traffic_manager_external_endpoint" "test" {
+  name       = "acctestend-azure%[1]d"
+  target     = "www.example.com"
+  profile_id = azurerm_traffic_manager_profile.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ExternalEndpointResource) requiresImport(data acceptance.TestData) string {

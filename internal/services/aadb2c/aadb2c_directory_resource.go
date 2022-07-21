@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -44,7 +44,7 @@ func (r AadB2cDirectoryResource) ModelObject() interface{} {
 }
 
 func (r AadB2cDirectoryResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.B2CDirectoryID
+	return tenants.ValidateB2CDirectoryID
 }
 
 func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
@@ -160,7 +160,7 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Domain name availability check for %s", id)
-			availabilityResult, err := client.CheckNameAvailability(ctx, tenants.NewSubscriptionID(subscriptionId), tenants.CheckNameAvailabilityRequest{
+			availabilityResult, err := client.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), tenants.CheckNameAvailabilityRequest{
 				Name:        &model.DomainName,
 				CountryCode: &model.CountryCode,
 			})

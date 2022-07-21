@@ -5,20 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -40,7 +37,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DedicatedHardwareSecurityModuleID(id)
+			_, err := dedicatedhsms.ParseDedicatedHSMID(id)
 			return err
 		}),
 
@@ -61,7 +58,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(hardwaresecuritymodules.SafeNetLunaNetworkHSMA790),
+					string(dedicatedhsms.SkuNameSafeNetLunaNetworkHSMASevenNineZero),
 				}, false),
 			},
 
@@ -103,7 +100,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -114,46 +111,42 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDedicatedHardwareSecurityModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.DedicatedHSMName)
+	id := dedicatedhsms.NewDedicatedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.DedicatedHsmGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
 	}
 
-	parameters := hardwaresecuritymodules.DedicatedHsm{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		DedicatedHsmProperties: &hardwaresecuritymodules.DedicatedHsmProperties{
+	skuName := dedicatedhsms.SkuName(d.Get("sku_name").(string))
+	parameters := dedicatedhsms.DedicatedHsm{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: dedicatedhsms.DedicatedHsmProperties{
 			NetworkProfile: expandDedicatedHsmNetworkProfile(d.Get("network_profile").([]interface{})),
 		},
-		Sku: &hardwaresecuritymodules.Sku{
-			Name: hardwaresecuritymodules.Name(d.Get("sku_name").(string)),
+		Sku: dedicatedhsms.Sku{
+			Name: &skuName,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("stamp_id"); ok {
-		parameters.DedicatedHsmProperties.StampID = utils.String(v.(string))
+		parameters.Properties.StampId = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		zones := zones.Expand(v.(*schema.Set).List())
+		zones := zones.Expand(v.(*pluginsdk.Set).List())
 		if len(zones) > 0 {
 			parameters.Zones = &zones
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DedicatedHSMName, parameters)
-	if err != nil {
+	if err := client.DedicatedHsmCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -165,39 +158,48 @@ func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DedicatedHardwareSecurityModuleID(d.Id())
+	id, err := dedicatedhsms.ParseDedicatedHSMID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DedicatedHSMName)
+	resp, err := client.DedicatedHsmGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Dedicated Hardware Security Module %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Dedicate Hardware Security Module %q (Resource Group %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.DedicatedHSMName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.DedicatedHsmProperties; props != nil {
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("zones", zones.Flatten(model.Zones))
+
+		props := model.Properties
+
 		if err := d.Set("network_profile", flattenDedicatedHsmNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting network_profile: %+v", err)
 		}
-		d.Set("stamp_id", props.StampID)
+		d.Set("stamp_id", props.StampId)
+
+		skuName := ""
+		if model.Sku.Name != nil {
+			skuName = string(*model.Sku.Name)
+		}
+		d.Set("sku_name", skuName)
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -205,23 +207,18 @@ func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DedicatedHardwareSecurityModuleID(d.Id())
+	id, err := dedicatedhsms.ParseDedicatedHSMID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := hardwaresecuritymodules.DedicatedHsmPatchParameters{}
+	parameters := dedicatedhsms.DedicatedHsmPatchParameters{}
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.DedicatedHSMName, parameters)
-	if err != nil {
-		return fmt.Errorf("updating Dedicate Hardware Security Module %q (Resource Group %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on updating future for Dedicate Hardware Security Module %q (Resource Group %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
+	if err := client.DedicatedHsmUpdateThenPoll(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
@@ -232,33 +229,28 @@ func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DedicatedHardwareSecurityModuleID(d.Id())
+	id, err := dedicatedhsms.ParseDedicatedHSMID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.DedicatedHSMName)
-	if err != nil {
-		return fmt.Errorf("deleting Dedicated Hardware Security Module %q (Resource Group %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Dedicated Hardware Security Module %q (Resource Group %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
+	if err := client.DedicatedHsmDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandDedicatedHsmNetworkProfile(input []interface{}) *hardwaresecuritymodules.NetworkProfile {
+func expandDedicatedHsmNetworkProfile(input []interface{}) *dedicatedhsms.NetworkProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	result := hardwaresecuritymodules.NetworkProfile{
-		Subnet: &hardwaresecuritymodules.APIEntityReference{
-			ID: utils.String(v["subnet_id"].(string)),
+	result := dedicatedhsms.NetworkProfile{
+		Subnet: &dedicatedhsms.ApiEntityReference{
+			Id: utils.String(v["subnet_id"].(string)),
 		},
 		NetworkInterfaces: expandDedicatedHsmNetworkInterfacePrivateIPAddresses(v["network_interface_private_ip_addresses"].(*pluginsdk.Set).List()),
 	}
@@ -266,30 +258,28 @@ func expandDedicatedHsmNetworkProfile(input []interface{}) *hardwaresecuritymodu
 	return &result
 }
 
-func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *[]hardwaresecuritymodules.NetworkInterface {
-	results := make([]hardwaresecuritymodules.NetworkInterface, 0)
+func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *[]dedicatedhsms.NetworkInterface {
+	results := make([]dedicatedhsms.NetworkInterface, 0)
 
 	for _, item := range input {
 		if item != nil {
-			result := hardwaresecuritymodules.NetworkInterface{
-				PrivateIPAddress: utils.String(item.(string)),
-			}
-
-			results = append(results, result)
+			results = append(results, dedicatedhsms.NetworkInterface{
+				PrivateIpAddress: utils.String(item.(string)),
+			})
 		}
 	}
 
 	return &results
 }
 
-func flattenDedicatedHsmNetworkProfile(input *hardwaresecuritymodules.NetworkProfile) []interface{} {
+func flattenDedicatedHsmNetworkProfile(input *dedicatedhsms.NetworkProfile) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
 	var subnetId string
-	if input.Subnet != nil && input.Subnet.ID != nil {
-		subnetId = *input.Subnet.ID
+	if input.Subnet != nil && input.Subnet.Id != nil {
+		subnetId = *input.Subnet.Id
 	}
 
 	return []interface{}{
@@ -300,15 +290,15 @@ func flattenDedicatedHsmNetworkProfile(input *hardwaresecuritymodules.NetworkPro
 	}
 }
 
-func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]hardwaresecuritymodules.NetworkInterface) []interface{} {
+func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]dedicatedhsms.NetworkInterface) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if item.PrivateIPAddress != nil {
-			results = append(results, *item.PrivateIPAddress)
+		if item.PrivateIpAddress != nil {
+			results = append(results, *item.PrivateIpAddress)
 		}
 	}
 
