@@ -1628,12 +1628,12 @@ func flattenRegistryTaskAgentProperties(input *containerregistry.AgentProperties
 	return []AgentConfig{{CPU: cpu}}
 }
 
-func patchRegistryTaskTriggerSourceTrigger(triggers []legacyacr.SourceTrigger, model ContainerRegistryTaskModel) *[]legacyacr.SourceTrigger {
+func patchRegistryTaskTriggerSourceTrigger(triggers []containerregistry.SourceTrigger, model ContainerRegistryTaskModel) *[]containerregistry.SourceTrigger {
 	if len(triggers) != len(model.SourceTrigger) {
 		return &triggers
 	}
 
-	result := make([]legacyacr.SourceTrigger, len(triggers))
+	result := make([]containerregistry.SourceTrigger, len(triggers))
 	for i, trigger := range model.SourceTrigger {
 		t := (triggers)[i]
 		if len(trigger.Auth) == 0 {
