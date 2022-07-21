@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	postgresParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	postgresValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -62,7 +62,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: postgresValidate.DatabaseID,
+				ValidateFunc: databases.ValidateDatabaseID,
 			},
 
 			"backup_policy_id": {
@@ -103,9 +103,9 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 		}
 	}
 
-	databaseId, _ := postgresParse.DatabaseID(d.Get("database_id").(string))
+	databaseId, _ := databases.ParseDatabaseID(d.Get("database_id").(string))
 	location := location.Normalize(d.Get("location").(string))
-	serverId := postgresParse.NewServerID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.ServerName)
+	serverId := servers.NewServerID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.ServerName)
 	policyId, _ := parse.BackupPolicyID(d.Get("backup_policy_id").(string))
 
 	parameters := dataprotection.BackupInstanceResource{
@@ -115,7 +115,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 				ObjectType:       utils.String("Datasource"),
 				ResourceID:       utils.String(databaseId.ID()),
 				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(databaseId.Name),
+				ResourceName:     utils.String(databaseId.DatabaseName),
 				ResourceType:     utils.String("Microsoft.DBforPostgreSQL/servers/databases"),
 				ResourceURI:      utils.String(""),
 			},
@@ -124,7 +124,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 				ObjectType:       utils.String("DatasourceSet"),
 				ResourceID:       utils.String(serverId.ID()),
 				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(serverId.Name),
+				ResourceName:     utils.String(serverId.ServerName),
 				ResourceType:     utils.String("Microsoft.DBForPostgreSQL/servers"),
 				ResourceURI:      utils.String(""),
 			},

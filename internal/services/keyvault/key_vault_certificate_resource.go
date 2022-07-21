@@ -461,8 +461,14 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
-		if _, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
-			return err
+		if resp, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(resp.Response) {
+				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
 		}
 	} else {
 		// Generate new
@@ -472,26 +478,8 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(resp.Response) {
-				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, *keyVaultBaseUrl, name)
-				if err != nil {
+				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return err
-				}
-				log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredCertificate.ID)
-				if certificate := recoveredCertificate.ID; certificate != nil {
-					stateConf := &pluginsdk.StateChangeConf{
-						Pending:                   []string{"pending"},
-						Target:                    []string{"available"},
-						Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
-						Delay:                     30 * time.Second,
-						PollInterval:              10 * time.Second,
-						ContinuousTargetOccurence: 10,
-						Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-					}
-
-					if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-						return fmt.Errorf("waiting for Key Vault Secret %q to become available: %s", name, err)
-					}
-					log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredCertificate.ID)
 				}
 			} else {
 				return err
@@ -527,6 +515,32 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	d.SetId(*resp.ID)
 
 	return resourceKeyVaultCertificateRead(d, meta)
+}
+
+func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, keyVaultBaseUrl string, name string) error {
+	client := meta.(*clients.Client).KeyVault.ManagementClient
+	recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
+	if err != nil {
+		return err
+	}
+	log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredCertificate.ID)
+	if certificate := recoveredCertificate.ID; certificate != nil {
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"pending"},
+			Target:                    []string{"available"},
+			Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
+			Delay:                     30 * time.Second,
+			PollInterval:              10 * time.Second,
+			ContinuousTargetOccurence: 10,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Key Vault Secret %q to become available: %s", name, err)
+		}
+		log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredCertificate.ID)
+	}
+	return nil
 }
 
 func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{}) error {

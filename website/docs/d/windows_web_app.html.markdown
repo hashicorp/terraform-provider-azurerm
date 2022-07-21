@@ -349,7 +349,7 @@ A `schedule` block exports the following:
 
 A `site_config` block exports the following:
 
-* `always_on` - Is this Linux Web App is Always On enabled.
+* `always_on` - Is this Windows Web App is Always On enabled.
 
 * `api_definition_url` - The ID of the APIM configuration for this Windows Web App.
 
@@ -457,9 +457,9 @@ A `status_code` block exports the following:
 
 A `sticky_settings` block exports the following:
 
-* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `app_setting_names` - A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
-* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `connection_string_names` - A list of `connection_string` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 

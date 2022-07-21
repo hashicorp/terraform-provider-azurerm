@@ -6,14 +6,14 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +28,7 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 		Delete: resourceSshPublicKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SSHPublicKeyID(id)
+			_, err := sshpublickeys.ParseSshPublicKeyID(id)
 			return err
 		}),
 
@@ -49,12 +49,10 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 					"Public SSH Key name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
 				),
 			},
-			// We have to ignore case due to incorrect capitalisation of resource group name in
-			// ID in the response we get from the API request.
-			// Related issue: https://github.com/Azure/azure-rest-api-specs/issues/13491
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": azure.SchemaLocation(),
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
 
 			"public_key": {
 				Type:         pluginsdk.TypeString,
@@ -63,7 +61,7 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 				ValidateFunc: validate.SSHKey,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -74,35 +72,28 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSSHPublicKeyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	public_key := d.Get("public_key").(string)
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := sshpublickeys.NewSshPublicKeyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(resp.Response) {
-		return tf.ImportAsExistsError("azurerm_ssh_public_key", *resp.ID)
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_ssh_public_key", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	t := d.Get("tags").(map[string]interface{})
-
-	params := compute.SSHPublicKeyResource{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
-		SSHPublicKeyResourceProperties: &compute.SSHPublicKeyResourceProperties{
-			PublicKey: utils.String(public_key),
+	payload := sshpublickeys.SshPublicKeyResource{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &sshpublickeys.SshPublicKeyResourceProperties{
+			PublicKey: utils.String(d.Get("public_key").(string)),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, params); err != nil {
-		return fmt.Errorf("creating SSH Public Key %s: %+v", id, err)
+	if _, err := client.Create(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -115,33 +106,38 @@ func resourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SSHPublicKeyID(d.Id())
+	id, err := sshpublickeys.ParseSshPublicKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] SSH Public Key %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving SSH Public Key %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	d.Set("name", id.SshPublicKeyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("public_key", props.PublicKey)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	if props := resp.SSHPublicKeyResourceProperties; props != nil {
-		d.Set("public_key", props.PublicKey)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -149,43 +145,34 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SSHPublicKeyID(d.Id())
+	id, err := sshpublickeys.ParseSshPublicKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving SSH Public Key %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
+		if response.WasNotFound(existing.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving SSH Public Key %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	props := compute.SSHPublicKeyResourceProperties{}
-
+	payload := sshpublickeys.SshPublicKeyUpdateResource{}
 	if d.HasChange("public_key") {
-		props.PublicKey = utils.String(d.Get("public_key").(string))
+		payload.Properties = &sshpublickeys.SshPublicKeyResourceProperties{
+			PublicKey: utils.String(d.Get("public_key").(string)),
+		}
 	}
-
-	update := compute.SSHPublicKeyUpdateResource{
-		SSHPublicKeyResourceProperties: &props,
-	}
-
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		update.Tags = tags.Expand(tagsRaw)
+		payload.Tags = tags.Expand(tagsRaw)
 	}
 
-	log.Printf("[DEBUG] Updating SSH Public Key %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
-		return fmt.Errorf("updating SSH Public Key %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
-
-	log.Printf("[DEBUG] Updated SSH Public Key %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return resourceSshPublicKeyRead(d, meta)
 }
@@ -195,31 +182,14 @@ func resourceSshPublicKeyDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SSHPublicKeyID(d.Id())
+	id, err := sshpublickeys.ParseSshPublicKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving SSH Public Key %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("retrieving SSH Public Key %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
-
-	log.Printf("[DEBUG] Deleting SSH Public Key %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
-		}
-		return fmt.Errorf("deleting SSH Public Key %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	log.Printf("[DEBUG] Deleted SSH Public Key %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
 }

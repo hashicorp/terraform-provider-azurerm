@@ -7,40 +7,42 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func expandAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]servicebus.AccessRights {
-	rights := make([]servicebus.AccessRights, 0)
+func expandAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]namespacesauthorizationrule.AccessRights {
+	rights := make([]namespacesauthorizationrule.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, servicebus.AccessRightsListen)
+		rights = append(rights, namespacesauthorizationrule.AccessRightsListen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, servicebus.AccessRightsSend)
+		rights = append(rights, namespacesauthorizationrule.AccessRightsSend)
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, servicebus.AccessRightsManage)
+		rights = append(rights, namespacesauthorizationrule.AccessRightsManage)
 	}
 
 	return &rights
 }
 
-func flattenAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, send, manage bool) {
+func flattenAuthorizationRuleRights(rights *[]namespacesauthorizationrule.AccessRights) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
 		for _, right := range *rights {
 			switch right {
-			case servicebus.AccessRightsListen:
+			case namespacesauthorizationrule.AccessRightsListen:
 				listen = true
-			case servicebus.AccessRightsSend:
+			case namespacesauthorizationrule.AccessRightsSend:
 				send = true
-			case servicebus.AccessRightsManage:
+			case namespacesauthorizationrule.AccessRightsManage:
 				manage = true
 			default:
 				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
@@ -116,45 +118,51 @@ func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDi
 	return nil
 }
 
-func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, resourceGroup, namespaceName string, timeout time.Duration) error {
+func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
 	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-	namespace, err := namespaceClient.Get(ctx, resourceGroup, namespaceName)
+	resp, err := namespaceClient.Get(ctx, id)
 
-	if !strings.EqualFold(string(namespace.Sku.Name), "Premium") {
-		return err
+	if model := resp.Model; model != nil {
+		if !strings.EqualFold(string(model.Sku.Name), "Premium") {
+			return err
+		}
 	}
 
 	disasterRecoveryClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
-	disasterRecoveryResponse, err := disasterRecoveryClient.List(ctx, resourceGroup, namespaceName)
-	if disasterRecoveryResponse.Values() == nil {
+	disasterRecoveryNamespaceId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	disasterRecoveryResponse, err := disasterRecoveryClient.List(ctx, disasterRecoveryNamespaceId)
+
+	if disasterRecoveryResponse.Model == nil {
 		return err
 	}
 
-	if len(disasterRecoveryResponse.Values()) != 1 {
+	if len(*disasterRecoveryResponse.Model) != 1 {
 		return err
 	}
 
-	aliasName := *disasterRecoveryResponse.Values()[0].Name
+	aliasName := (*disasterRecoveryResponse.Model)[0].Name
+
+	disasterRecoveryConfigId := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(disasterRecoveryNamespaceId.SubscriptionId, disasterRecoveryNamespaceId.ResourceGroupName, disasterRecoveryNamespaceId.NamespaceName, *aliasName)
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(servicebus.ProvisioningStateDRAccepted)},
-		Target:     []string{string(servicebus.ProvisioningStateDRSucceeded)},
+		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},
+		Target:     []string{string(disasterrecoveryconfigs.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    timeout,
 		Refresh: func() (interface{}, string, error) {
-			read, err := disasterRecoveryClient.Get(ctx, resourceGroup, namespaceName, aliasName)
+			resp, err := disasterRecoveryClient.Get(ctx, disasterRecoveryConfigId)
 			if err != nil {
-				return nil, "error", fmt.Errorf("wait read Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %v", aliasName, namespaceName, resourceGroup, err)
+				return nil, "error", fmt.Errorf("wait read for %s: %v", disasterRecoveryConfigId, err)
 			}
 
-			if props := read.ArmDisasterRecoveryProperties; props != nil {
-				if props.ProvisioningState == servicebus.ProvisioningStateDRFailed {
-					return read, "failed", fmt.Errorf("replication for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q) failed", aliasName, namespaceName, resourceGroup)
+			if model := resp.Model; model != nil {
+				if *model.Properties.ProvisioningState == disasterrecoveryconfigs.ProvisioningStateDRFailed {
+					return resp, "failed", fmt.Errorf("replication for %s failed", disasterRecoveryConfigId)
 				}
-				return read, string(props.ProvisioningState), nil
+				return resp, string(*model.Properties.ProvisioningState), nil
 			}
 
-			return read, "nil", fmt.Errorf("waiting for replication error Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): provisioning state is nil", aliasName, namespaceName, resourceGroup)
+			return resp, "nil", fmt.Errorf("waiting for replication error for %s: provisioning state is nil", disasterRecoveryConfigId)
 		},
 	}
 

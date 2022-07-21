@@ -308,6 +308,8 @@ The `http_get` block supports:
 
 * `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
 
+* `http_headers` - (Optional) A map of HTTP headers used to access on the container. Changing this forces a new resource to be created.
+
 ---
 
 The `dns_config` block supports:
