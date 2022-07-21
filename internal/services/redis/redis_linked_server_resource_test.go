@@ -79,8 +79,8 @@ resource "azurerm_redis_cache" "pri" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
+    maxmemory_reserved = 642
+    maxmemory_delta    = 642
     maxmemory_policy   = "allkeys-lru"
   }
 }
@@ -100,8 +100,8 @@ resource "azurerm_redis_cache" "sec" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
+    maxmemory_reserved = 642
+    maxmemory_delta    = 642
     maxmemory_policy   = "allkeys-lru"
   }
 }

@@ -212,7 +212,8 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 			if existing.Identity != nil {
 				update.Identity = &policy.Identity{
-					Type: existing.Identity.Type,
+					Type:                   existing.Identity.Type,
+					UserAssignedIdentities: existing.Identity.UserAssignedIdentities,
 				}
 			}
 
@@ -462,4 +463,16 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 	}
 
 	return &output
+}
+func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
+	notScopesRes := make([]string, 0)
+
+	for _, notScope := range input {
+		s, ok := notScope.(string)
+		if ok {
+			notScopesRes = append(notScopesRes, s)
+		}
+	}
+
+	return &notScopesRes
 }

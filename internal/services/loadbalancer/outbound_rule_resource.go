@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -49,8 +48,6 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
 				Type:         pluginsdk.TypeString,
@@ -102,9 +99,10 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 			},
 
 			"allocated_outbound_ports": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Default:  1024,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1024,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"idle_timeout_in_minutes": {
@@ -210,7 +208,6 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.Set("name", config.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := config.OutboundRulePropertiesFormat; props != nil {
 		allocatedOutboundPorts := 0
@@ -308,7 +305,8 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta i
 
 func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
 	properties := network.OutboundRulePropertiesFormat{
-		Protocol: network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
+		Protocol:               network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
+		AllocatedOutboundPorts: utils.Int32(int32(d.Get("allocated_outbound_ports").(int))),
 	}
 
 	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
@@ -342,10 +340,6 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *networ
 
 	if v, ok := d.GetOk("enable_tcp_reset"); ok {
 		properties.EnableTCPReset = utils.Bool(v.(bool))
-	}
-
-	if v, ok := d.GetOk("allocated_outbound_ports"); ok {
-		properties.AllocatedOutboundPorts = utils.Int32(int32(v.(int)))
 	}
 
 	return &network.OutboundRule{

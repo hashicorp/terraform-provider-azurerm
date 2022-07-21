@@ -19,6 +19,7 @@ CDN
 Cognitive Services
 Communication
 Compute
+Confidential Ledger
 Connections
 Consumption
 Container
@@ -28,7 +29,6 @@ Custom Providers
 DNS
 Data Explorer
 Data Factory
-Data Lake
 Data Share
 DataProtection
 Database
@@ -39,6 +39,8 @@ Desktop Virtualization
 Dev Test
 Digital Twins
 Disks
+Elastic
+Fluid Relay
 HDInsight
 Hardware Security Module
 Healthcare

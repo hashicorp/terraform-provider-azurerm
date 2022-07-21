@@ -152,13 +152,13 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "testaccsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  is_hns_enabled           = true
-  allow_blob_public_access = true
+  name                            = "testaccsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  is_hns_enabled                  = true
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {

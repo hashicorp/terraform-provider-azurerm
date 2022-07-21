@@ -150,6 +150,10 @@ func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *client
 	}
 
 	client, err := clients.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+	if client == nil {
+		// if the AppConfiguration is gone all the data will be too
+		return utils.Bool(false), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +220,7 @@ resource "azurerm_app_configuration_key" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   key                    = "/acctest/-ackey/-%d"
   content_type           = "test"
-  label                  = "acctest-ackeylabel-%d"
+  label                  = "/acctest/-ackeylabel/-%d"
   value                  = "a test"
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger)

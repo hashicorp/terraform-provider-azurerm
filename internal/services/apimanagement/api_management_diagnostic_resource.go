@@ -58,12 +58,6 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				ValidateFunc: validate.LoggerID,
 			},
 
-			"enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
-			},
-
 			"sampling_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,

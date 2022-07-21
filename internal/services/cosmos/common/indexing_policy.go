@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -250,11 +251,11 @@ func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPo
 	// Ensure includedPaths or excludedPaths are not set if indexingMode is "None".
 	if indexingPolicy.IndexingMode == documentdb.IndexingModeNone {
 		if indexingPolicy.IncludedPaths != nil {
-			return fmt.Errorf("included_path must not be set if indexing_mode is %q", strings.Title(string(documentdb.IndexingModeNone)))
+			return fmt.Errorf("included_path must not be set if indexing_mode is %q", azure.TitleCase(string(documentdb.IndexingModeNone)))
 		}
 
 		if indexingPolicy.ExcludedPaths != nil {
-			return fmt.Errorf("excluded_path must not be set if indexing_mode is %q", strings.Title(string(documentdb.IndexingModeNone)))
+			return fmt.Errorf("excluded_path must not be set if indexing_mode is %q", azure.TitleCase(string(documentdb.IndexingModeNone)))
 		}
 	}
 

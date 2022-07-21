@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -37,7 +36,7 @@ var (
 	apimFrontendProtocolSsl3                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
 	apimFrontendProtocolTls10                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
 	apimFrontendProtocolTls11                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_3DES_EDE_CBC_SHA"
 	apimHttp2Protocol                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
 	apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
 	apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
@@ -88,7 +87,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 }
 
 func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
@@ -194,13 +193,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(0, 12),
 					},
 
-					"zones": func() *schema.Schema {
-						if !features.ThreePointOhBeta() {
-							return azure.SchemaZones()
-						}
-
-						return commonschema.ZonesMultipleOptionalForceNew()
-					}(),
+					"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 					"gateway_regional_url": {
 						Type:     pluginsdk.TypeString,
@@ -344,13 +337,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"triple_des_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: !features.ThreePointOhBeta(),
-						ConflictsWith: func() []string {
-							if !features.ThreePointOhBeta() {
-								return []string{"security.0.enable_triple_des_ciphers"}
-							}
-							return []string{}
-						}(),
 					},
 
 					"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
@@ -531,13 +517,8 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"zones": func() *schema.Schema {
-			if !features.ThreePointOhBeta() {
-				return azure.SchemaZones()
-			}
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
-			return commonschema.ZonesMultipleOptionalForceNew()
-		}(),
 		"gateway_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -627,23 +608,12 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := out["security"].Elem.(*pluginsdk.Resource)
-		s.Schema["enable_triple_des_ciphers"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
-			Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
-		}
-	}
-	return out
 }
 
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	apiClient := meta.(*clients.Client).ApiManagement.ApiClient
+	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 	productsClient := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -684,6 +654,61 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	publicNetworkAccess := apimanagement.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = apimanagement.PublicNetworkAccessDisabled
+	}
+
+	if d.IsNewResource() {
+		// before creating check to see if the resource exists in the soft delete state
+		softDeleted, err := deletedServicesClient.GetByName(ctx, id.ServiceName, location)
+		if err != nil {
+			// If Terraform lacks permission to read at the Subscription we'll get 403, not 404
+			if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
+				return fmt.Errorf("checking for the presence of an existing Soft-Deleted API Management %q (Location %q): %+v", id.ServiceName, location, err)
+			}
+		}
+
+		// if so, does the user want us to recover it?
+		if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
+			if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
+				// this exists but the users opted out, so they must import this it out-of-band
+				return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
+			}
+
+			// First recover the deleted API Management, since all other properties are ignored during a restore operation
+			// (don't set the ID just yet to avoid tainting on failure)
+			params := apimanagement.ServiceResource{
+				Location: utils.String(location),
+				ServiceProperties: &apimanagement.ServiceProperties{
+					Restore: utils.Bool(true),
+				},
+			}
+
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
+			if err != nil {
+				return fmt.Errorf("recovering %s: %+v", id, err)
+			}
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for recovery of %q: %+v", id, err)
+			}
+
+			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+			log.Printf("[DEBUG] Waiting for %s to become ready", id)
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Deleted", "Activating", "Updating", "Unknown"},
+				Target:                    []string{"Succeeded", "Ready"},
+				Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
+				MinTimeout:                1 * time.Minute,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+			}
+		}
 	}
 
 	properties := apimanagement.ServiceResource{
@@ -764,29 +789,16 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if features.ThreePointOhBeta() {
-		if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
-			if sku.Name != apimanagement.SkuTypePremium {
-				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
-			}
-
-			if publicIpAddressId == "" {
-				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
-			}
-			zones := zones.Expand(v)
-			properties.Zones = &zones
+	if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
+		if sku.Name != apimanagement.SkuTypePremium {
+			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
 		}
-	} else {
-		if v := d.Get("zones").([]interface{}); len(v) > 0 {
-			if sku.Name != apimanagement.SkuTypePremium {
-				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
-			}
 
-			if publicIpAddressId == "" {
-				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
-			}
-			properties.Zones = azure.ExpandZones(v)
+		if publicIpAddressId == "" {
+			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
 		}
+		zones := zones.Expand(v)
+		properties.Zones = &zones
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, properties)
@@ -801,7 +813,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	d.SetId(id.ID())
 
 	// Remove sample products and APIs after creating (v3.0 behaviour)
-	if features.ThreePointOhBeta() && d.IsNewResource() {
+	if d.IsNewResource() {
 		apis := make([]apimanagement.APIContract, 0)
 
 		for apisIter, err := apiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apisIter.NotDone(); err = apisIter.NextWithContext(ctx) {
@@ -1070,6 +1082,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1093,7 +1106,6 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	// Purge the soft deleted Api Management permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
 		log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
-		deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
 		if err != nil {
 			return err
@@ -1249,11 +1261,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["host_name"] = *config.HostName
 		}
 
-		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
-		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
-			continue
-		}
-
 		if config.NegotiateClientCertificate != nil {
 			output["negotiate_client_certificate"] = *config.NegotiateClientCertificate
 		}
@@ -1402,13 +1409,9 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
-		if features.ThreePointOhBeta() {
-			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-			if len(zones) > 0 {
-				additionalLocation.Zones = &zones
-			}
-		} else {
-			additionalLocation.Zones = azure.ExpandZones(config["zones"].([]interface{}))
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			additionalLocation.Zones = &zones
 		}
 
 		additionalLocations = append(additionalLocations, additionalLocation)
@@ -1562,12 +1565,6 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 
-		if !features.ThreePointOhBeta() {
-			if v, exists := v["enable_triple_des_ciphers"]; exists {
-				tripleDesCiphers = v.(bool)
-			}
-		}
-
 		if v, exists := v["triple_des_ciphers_enabled"]; exists {
 			tripleDesCiphers = v.(bool)
 		}
@@ -1693,9 +1690,6 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
 		output["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
 		output["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
-		if !features.ThreePointOhBeta() {
-			output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"]
-		}
 	}
 
 	return []interface{}{output}
@@ -1934,6 +1928,7 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 
 	if input.SecondaryKey != nil {
 		result["secondary_key"] = *input.SecondaryKey
+
 	}
 
 	return []interface{}{result}
@@ -1978,4 +1973,21 @@ func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apima
 		outputs = append(outputs, output)
 	}
 	return outputs
+}
+
+func optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(name, location string) string {
+	message := `
+An existing soft-deleted API Management exists with the Name %q in the location %q, however
+automatically recovering this API Management has been disabled via the "features" block.
+
+Terraform can automatically recover the soft-deleted API Management when this behaviour is
+enabled within the "features" block (located within the "provider" block) - more
+information can be found here:
+
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+
+Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
+this into Terraform via "terraform import", or pick a different name/location.
+`
+	return fmt.Sprintf(message, name, location)
 }

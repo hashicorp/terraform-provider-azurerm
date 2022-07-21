@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -46,57 +45,7 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.LogAnalyticsStorageInsightsName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"workspace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.LogAnalyticsWorkspaceID,
-			},
-
-			"storage_account_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
-			},
-
-			"storage_account_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: azValidate.Base64EncodedString,
-			},
-
-			"blob_container_names": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.NoZeroValues,
-				},
-			},
-
-			"table_names": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.NoZeroValues,
-				},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceLogAnalyticsStorageInsightsSchema(),
 	}
 }
 
@@ -133,7 +82,6 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 		StorageInsightProperties: &operationalinsights.StorageInsightProperties{
 			StorageAccount: expandStorageInsightConfigStorageAccount(storageAccountId, storageAccountKey),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, ok := d.GetOk("table_names"); ok {
@@ -186,7 +134,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 		d.Set("table_names", utils.FlattenStringSlice(props.Tables))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -209,5 +157,57 @@ func expandStorageInsightConfigStorageAccount(id string, key string) *operationa
 	return &operationalinsights.StorageAccount{
 		ID:  utils.String(id),
 		Key: utils.String(key),
+	}
+}
+
+func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.LogAnalyticsStorageInsightsName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"workspace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.LogAnalyticsWorkspaceID,
+		},
+
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: storageValidate.StorageAccountID,
+		},
+
+		"storage_account_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			Sensitive:    true,
+			ValidateFunc: azValidate.Base64EncodedString,
+		},
+
+		"blob_container_names": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.NoZeroValues,
+			},
+		},
+
+		"table_names": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.NoZeroValues,
+			},
+		},
 	}
 }

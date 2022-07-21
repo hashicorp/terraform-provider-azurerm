@@ -59,10 +59,6 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as documented below.
 
-* `features` - (Optional) A `features` block as documented below.
-
-~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode` instead.
-
 * `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
 * `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
@@ -73,6 +69,8 @@ The following arguments are supported:
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
+* `live_trace` - (Optional) A `live_trace` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -80,14 +78,6 @@ The following arguments are supported:
 A `cors` block supports the following:
 
 * `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
-
----
-
-A `features` block supports the following:
-
-* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, `EnableLiveTrace` and `ServiceMode`.
-
-* `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
 ---
 
@@ -103,9 +93,21 @@ An `upstream_endpoint` block supports the following:
 
 ---
 
+A `live_trace` block supports the following:
+
+* `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
+
+* `messaging_logs_enabled` - (Optional) Whether the log category `MessagingLogs` is enabled? Defaults to `true`
+
+* `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
+
+* `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
+
+---
+
 A `sku` block supports the following:
 
-* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
+* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1`, `Standard_S1` and `Premium_P1`.
 
 * `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 

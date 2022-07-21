@@ -6,13 +6,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -58,7 +57,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.TrafficManagerProfileID,
+				ValidateFunc: profiles.ValidateTrafficManagerProfileID,
 			},
 
 			"target_resource_id": {
@@ -69,7 +68,8 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 
 			"weight": {
 				Type:         pluginsdk.TypeInt,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -168,12 +168,12 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.TrafficManagerProfileID(d.Get("profile_id").(string))
+	profileId, err := profiles.ParseTrafficManagerProfileID(d.Get("profile_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `profile_id`: %+v", err)
 	}
 
-	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.Name, endpoints.EndpointTypeNestedEndpoints, d.Get("name").(string))
+	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, endpoints.EndpointTypeNestedEndpoints, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -197,24 +197,16 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Name: utils.String(id.EndpointName),
 		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeNestedEndpoints)),
 		Properties: &endpoints.EndpointProperties{
-			TargetResourceId:  utils.String(d.Get("target_resource_id").(string)),
+			CustomHeaders:     expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus:    &status,
-			Weight:            utils.Int64(int64(d.Get("weight").(int))),
 			MinChildEndpoints: utils.Int64(int64(d.Get("minimum_child_endpoints").(int))),
+			TargetResourceId:  utils.String(d.Get("target_resource_id").(string)),
+			Subnets:           expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
 	}
 
-	headerSlice := make([]endpoints.EndpointPropertiesCustomHeadersInlined, 0)
-	for _, header := range d.Get("custom_header").([]interface{}) {
-		headerBlock := header.(map[string]interface{})
-		headerSlice = append(headerSlice, endpoints.EndpointPropertiesCustomHeadersInlined{
-			Name:  utils.String(headerBlock["name"].(string)),
-			Value: utils.String(headerBlock["value"].(string)),
-		})
-	}
-
-	if len(headerSlice) > 0 {
-		params.Properties.CustomHeaders = &headerSlice
+	if weight := d.Get("weight").(int); weight != 0 {
+		params.Properties.Weight = utils.Int64(int64(weight))
 	}
 
 	minChildEndpointsIPv4 := d.Get("minimum_required_child_endpoints_ipv4").(int)
@@ -242,25 +234,6 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 	if len(geoMappings) > 0 {
 		params.Properties.GeoMapping = &geoMappings
-	}
-
-	subnetSlice := make([]endpoints.EndpointPropertiesSubnetsInlined, 0)
-	for _, subnet := range d.Get("subnet").([]interface{}) {
-		subnetBlock := subnet.(map[string]interface{})
-		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
-			subnetSlice = append(subnetSlice, endpoints.EndpointPropertiesSubnetsInlined{
-				First: utils.String(subnetBlock["first"].(string)),
-				Last:  utils.String(subnetBlock["last"].(string)),
-			})
-		} else {
-			subnetSlice = append(subnetSlice, endpoints.EndpointPropertiesSubnetsInlined{
-				First: utils.String(subnetBlock["first"].(string)),
-				Scope: utils.Int64(int64(subnetBlock["scope"].(int))),
-			})
-		}
-	}
-	if len(subnetSlice) > 0 {
-		params.Properties.Subnets = &subnetSlice
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
@@ -291,7 +264,7 @@ func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("profile_id", parse.NewTrafficManagerProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+	d.Set("profile_id", profiles.NewTrafficManagerProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

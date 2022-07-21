@@ -32,8 +32,8 @@ resource "azurerm_data_factory_linked_service_snowflake" "example" {
 
 resource "azurerm_data_factory_dataset_snowflake" "example" {
   name                = "example"
-  data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
+  data_factory_id     = azurerm_data_factory.example.id
+  linked_service_name = azurerm_data_factory_linked_service_snowflake.example.name
 
   schema_name = "foo_schema"
   table_name  = "foo_table"
@@ -44,7 +44,7 @@ resource "azurerm_data_factory_dataset_snowflake" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Dataset Snowflake. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Dataset Snowflake. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
@@ -68,19 +68,7 @@ The following arguments are supported:
 
 ---
 
-~> **NOTE:** This block has been deprecated in favour of the `schema_column`.
-
-A `structure_column` block supports the following (Conflicts with `schema_column`):
-
-* `name` - (Required) The name of the column.
-
-* `type` - (Optional) Type of the column. Valid values are `Byte`, `Byte[]`, `Boolean`, `Date`, `DateTime`,`DateTimeOffset`, `Decimal`, `Double`, `Guid`, `Int16`, `Int32`, `Int64`, `Single`, `String`, `TimeSpan`. Please note these values are case sensitive.
-
-* `description` - (Optional) The description of the column.
-
----
-
-A `schema_column` block supports the following (Conflicts with `structure_column`):
+A `schema_column` block supports the following:
 
 * `name` - (Required) The name of the column.
 

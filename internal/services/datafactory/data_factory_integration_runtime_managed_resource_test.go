@@ -154,7 +154,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_data_factory" "test" {
@@ -318,16 +318,12 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "my-s3cret-p4ssword!"
 }
 
-data "azuread_service_principal" "test" {
-  display_name = azurerm_data_factory.test.name
-}
-
 resource "azurerm_sql_active_directory_administrator" "test" {
   server_name         = azurerm_sql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
   login               = azurerm_data_factory.test.name
   tenant_id           = azurerm_data_factory.test.identity.0.tenant_id
-  object_id           = data.azuread_service_principal.test.application_id
+  object_id           = azurerm_data_factory.test.identity.0.principal_id
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "test" {

@@ -28,7 +28,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 
 resource "azurerm_log_analytics_saved_search" "example" {
   name                       = "exampleSavedSearch"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 
   category     = "exampleCategory"
   display_name = "exampleDisplayName"

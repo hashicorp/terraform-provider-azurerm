@@ -36,7 +36,7 @@ The following arguments are supported:
 
 The following Attributes are exported: 
 
-* `id` - The ID of the App Service Source Github Token.
+* `id` - The ID of the App Service Source GitHub Token.
 
 * `token` - The GitHub Token value.
 

@@ -62,6 +62,28 @@ resource "azurerm_resource_group" "test" {
   name     = "testaccRG-batch-%d"
   location = "%s"
 }
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  domain_name_label   = "acctest-publicip-%d"
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "testaccsa%s"
@@ -146,6 +168,12 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 
+  network_configuration {
+    public_address_provisioning_type = "UserManaged"
+    public_ips                       = [azurerm_public_ip.test.id]
+    subnet_id                        = azurerm_subnet.test.id
+  }
+
   metadata = {
     tagName = "Example tag"
   }
@@ -156,5 +184,5 @@ data "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_pool.test.account_name
   resource_group_name = azurerm_batch_pool.test.resource_group_name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }

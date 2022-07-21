@@ -42,7 +42,7 @@ The following attributes are exported:
 
 * `fqdn` - The Fully Qualified DNS Name.
 
-* `https_only` - Is only https allowed?
+* `https_only` - Is only HTTPS allowed?
 
 * `identity` - An `identity` block as defined below.
 

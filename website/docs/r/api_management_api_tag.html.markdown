@@ -13,6 +13,10 @@ Manages the Assignment of an API Management API Tag to an API.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -26,7 +30,7 @@ data "azurerm_api_management" "example" {
 resource "azurerm_api_management_api" "example" {
   name                = "example-api"
   resource_group_name = azurerm_resource_group.example.name
-  api_management_name = azurerm_api_management.example.name
+  api_management_name = data.azurerm_api_management.example.name
   revision            = "1"
 }
 

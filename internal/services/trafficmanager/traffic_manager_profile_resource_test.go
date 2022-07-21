@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -429,11 +429,10 @@ resource "azurerm_traffic_manager_profile" "test" {
 func (r TrafficManagerProfileResource) endpointResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_traffic_manager_external_endpoint" "test" {
-  name                = "acctestend-external%d"
-  resource_group_name = azurerm_resource_group.test.name
-  profile_name        = azurerm_traffic_manager_profile.test.name
-  target              = "pluginsdk.io"
-  weight              = 100
+  name       = "acctestend-external%d"
+  profile_id = azurerm_traffic_manager_profile.test.id
+  target     = "pluginsdk.io"
+  weight     = 100
 }
 `, data.RandomInteger)
 }

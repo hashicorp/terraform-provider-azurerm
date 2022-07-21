@@ -167,7 +167,7 @@ A `radius` block supports the following:
 
 * `client_root_certificate` - (Optional) One or more `client_root_certificate` blocks as defined above.
 
-* `server_root_certificate` - (Required) One or more `server_root_certificate` blocks as defined below.
+* `server_root_certificate` - (Optional) One or more `server_root_certificate` blocks as defined below.
 
 ---
 

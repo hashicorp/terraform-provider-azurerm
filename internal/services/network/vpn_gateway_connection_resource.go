@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -78,17 +78,6 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validate.HubRouteTableID,
 						},
-						"propagated_route_tables": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.HubRouteTableID,
-							},
-							ExactlyOneOf: []string{"routing.0.propagated_route_tables", "routing.0.propagated_route_table"},
-							Deprecated:   "Deprecated in favour of `propagated_route_table`",
-						},
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -115,7 +104,6 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 									},
 								},
 							},
-							ExactlyOneOf: []string{"routing.0.propagated_route_tables", "routing.0.propagated_route_table"},
 						},
 					},
 				},
@@ -329,6 +317,26 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+
+						"custom_bgp_address": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"ip_address": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsIPv4Address,
+									},
+
+									"ip_configuration_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -540,6 +548,7 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]ne
 				EnableRateLimiting:             utils.Bool(e["ratelimit_enabled"].(bool)),
 				UseLocalAzureIPAddress:         utils.Bool(e["local_azure_ip_address_enabled"].(bool)),
 				UsePolicyBasedTrafficSelectors: utils.Bool(e["policy_based_traffic_selector_enabled"].(bool)),
+				VpnGatewayCustomBgpAddresses:   expandVpnGatewayConnectionCustomBgpAddresses(e["custom_bgp_address"].(*pluginsdk.Set).List()),
 			},
 		}
 
@@ -629,6 +638,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSiteL
 			"ratelimit_enabled":                     rateLimitEnabled,
 			"local_azure_ip_address_enabled":        useLocalAzureIpAddress,
 			"policy_based_traffic_selector_enabled": usePolicyBased,
+			"custom_bgp_address":                    flattenVpnGatewayConnectionCustomBgpAddresses(e.VpnGatewayCustomBgpAddresses),
 		}
 
 		output = append(output, v)
@@ -706,12 +716,6 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *networ
 		AssociatedRouteTable: &network.SubResource{ID: utils.String(raw["associated_route_table"].(string))},
 	}
 
-	if v := raw["propagated_route_tables"].([]interface{}); len(v) != 0 {
-		output.PropagatedRouteTables = &network.PropagatedRouteTable{
-			Ids: expandNetworkSubResourceID(v),
-		}
-	}
-
 	if v := raw["propagated_route_table"].([]interface{}); len(v) != 0 {
 		output.PropagatedRouteTables = expandVpnGatewayConnectionPropagatedRouteTable(v)
 	}
@@ -729,22 +733,33 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 		associateRouteTable = *input.AssociatedRouteTable.ID
 	}
 
-	propagatedRouteTables := []interface{}{}
-	if input.PropagatedRouteTables != nil && input.PropagatedRouteTables.Ids != nil {
-		for _, routeTableId := range *input.PropagatedRouteTables.Ids {
-			id := ""
-			if routeTableId.ID != nil {
-				id = *routeTableId.ID
-			}
-			propagatedRouteTables = append(propagatedRouteTables, id)
-		}
+	return []interface{}{
+		map[string]interface{}{
+			"propagated_route_table": flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"associated_route_table": associateRouteTable,
+		},
+	}
+}
+
+func flattenVpnGatewayConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	labels := make([]interface{}, 0)
+	if input.Labels != nil {
+		labels = utils.FlattenStringSlice(input.Labels)
+	}
+
+	routeTableIds := make([]interface{}, 0)
+	if input.Ids != nil {
+		routeTableIds = flattenSubResourcesToIDs(input.Ids)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"associated_route_table":  associateRouteTable,
-			"propagated_route_tables": propagatedRouteTables,
-			"propagated_route_table":  flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"labels":          labels,
+			"route_table_ids": routeTableIds,
 		},
 	}
 }
@@ -798,29 +813,6 @@ func expandVpnGatewayConnectionPropagatedRouteTable(input []interface{}) *networ
 	return &result
 }
 
-func flattenVpnGatewayConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	labels := make([]interface{}, 0)
-	if input.Labels != nil {
-		labels = utils.FlattenStringSlice(input.Labels)
-	}
-
-	routeTableIds := make([]interface{}, 0)
-	if input.Ids != nil {
-		routeTableIds = flattenSubResourcesToIDs(input.Ids)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"labels":          labels,
-			"route_table_ids": routeTableIds,
-		},
-	}
-}
-
 func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]network.SubResource {
 	results := make([]network.SubResource, 0)
 
@@ -846,6 +838,47 @@ func flattenVpnGatewayConnectionNatRuleIds(input *[]network.SubResource) []inter
 		}
 
 		results = append(results, id)
+	}
+
+	return results
+}
+
+func expandVpnGatewayConnectionCustomBgpAddresses(input []interface{}) *[]network.GatewayCustomBgpIPAddressIPConfiguration {
+	results := make([]network.GatewayCustomBgpIPAddressIPConfiguration, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.GatewayCustomBgpIPAddressIPConfiguration{
+			CustomBgpIPAddress: utils.String(v["ip_address"].(string)),
+			IPConfigurationID:  utils.String(v["ip_configuration_id"].(string)),
+		})
+	}
+
+	return &results
+}
+
+func flattenVpnGatewayConnectionCustomBgpAddresses(input *[]network.GatewayCustomBgpIPAddressIPConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var customBgpIpAddress string
+		if item.CustomBgpIPAddress != nil {
+			customBgpIpAddress = *item.CustomBgpIPAddress
+		}
+
+		var ipConfigurationId string
+		if item.IPConfigurationID != nil {
+			ipConfigurationId = *item.IPConfigurationID
+		}
+
+		results = append(results, map[string]interface{}{
+			"ip_address":          customBgpIpAddress,
+			"ip_configuration_id": ipConfigurationId,
+		})
 	}
 
 	return results

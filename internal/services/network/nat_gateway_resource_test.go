@@ -39,8 +39,6 @@ func TestAccNatGateway_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
@@ -65,8 +63,6 @@ func TestAccNatGateway_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -243,7 +243,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 	props := streamanalytics.Input{
 		Name: utils.String(name),
 		Properties: &streamanalytics.ReferenceInputProperties{
-			Type: streamanalytics.TypeReference,
+			Type: streamanalytics.TypeBasicInputPropertiesTypeReference,
 			Datasource: &streamanalytics.BlobReferenceInputDataSource{
 				Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob,
 				BlobReferenceInputDataSourceProperties: &streamanalytics.BlobReferenceInputDataSourceProperties{

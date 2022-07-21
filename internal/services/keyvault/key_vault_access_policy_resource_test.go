@@ -6,11 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -122,27 +122,23 @@ func TestAccKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 		{
 			Config:             r.nonExistentVault(data),
 			ExpectNonEmptyPlan: true,
-			ExpectError:        regexp.MustCompile(`retrieving Key Vault`),
+			ExpectError:        regexp.MustCompile(`retrieving parent`),
 		},
 	})
 }
 
 func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AccessPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	objectId := id.Path["objectId"]
-	applicationId := id.Path["applicationId"]
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, resGroup, vaultName)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId().ResourceGroup, id.KeyVaultId().Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
 
-	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId) != nil), nil
+	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId()) != nil), nil
 }
 
 func (r KeyVaultAccessPolicyResource) basic(data acceptance.TestData) string {
