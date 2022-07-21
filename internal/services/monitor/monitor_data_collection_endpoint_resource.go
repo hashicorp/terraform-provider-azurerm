@@ -21,7 +21,7 @@ type DataCollectionEndpoint struct {
 	Kind                      string                 `tfschema:"kind"`
 	Name                      string                 `tfschema:"name"`
 	Location                  string                 `tfschema:"location"`
-	EnablePublicNetworkAccess bool                   `tfschema:"enable_public_network_access"`
+	EnablePublicNetworkAccess bool                   `tfschema:"public_network_access_enabled"`
 	ResourceGroupName         string                 `tfschema:"resource_group_name"`
 	Tags                      map[string]interface{} `tfschema:"tags"`
 }
@@ -42,7 +42,7 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 
 		"location": commonschema.Location(),
 
-		"enable_public_network_access": {
+		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,

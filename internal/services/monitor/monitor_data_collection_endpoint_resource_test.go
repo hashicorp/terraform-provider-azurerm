@@ -121,12 +121,12 @@ func (r MonitorDataCollectionEndpointResource) complete(data acceptance.TestData
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_monitor_data_collection_endpoint" "test" {
-  name                         = "acctestmdce-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  kind                         = "Windows"
-  enable_public_network_access = false
-  description                  = "acc test monitor_data_collection_endpoint complete"
+  name                          = "acctestmdce-%[2]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  kind                          = "Windows"
+  public_network_access_enabled = false
+  description                   = "acc test monitor_data_collection_endpoint complete"
   tags = {
     ENV = "test"
   }

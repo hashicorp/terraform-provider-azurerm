@@ -22,12 +22,12 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 resource "azurerm_monitor_data_collection_endpoint" "example" {
-  name                         = "example-mdce"
-  resource_group_name          = azurerm_resource_group.example.name
-  location                     = azurerm_resource_group.example.location
-  kind                         = "Windows"
-  enable_public_network_access = true
-  description                  = "monitor_data_collection_endpoint example"
+  name                          = "example-mdce"
+  resource_group_name           = azurerm_resource_group.example.name
+  location                      = azurerm_resource_group.example.location
+  kind                          = "Windows"
+  public_network_access_enabled = true
+  description                   = "monitor_data_collection_endpoint example"
   tags = {
     foo = "bar"
   }
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the Data Collection Endpoint. Possible values are `Linux` and `Windows`.
 
-* `enable_public_network_access` - (Optional) Whether network access from public internet to the Data Collection Endpoint are allowed. Possible values are `true` and `false`. Default to `true`.
+* `public_network_access_enabled` - (Optional) Whether network access from public internet to the Data Collection Endpoint are allowed. Possible values are `true` and `false`. Default to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Data Collection Endpoint.
 
