@@ -676,8 +676,8 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 
 		results = append(results, backup.SubProtectionPolicy{
 			PolicyType:      backup.PolicyType(item.PolicyType),
-			RetentionPolicy: expandBackupProtectionPolicyVMWorkloadRetentionPolicy(item, times),
 			SchedulePolicy:  expandBackupProtectionPolicyVMWorkloadSchedulePolicy(item, times),
+			RetentionPolicy: expandBackupProtectionPolicyVMWorkloadRetentionPolicy(item, times),
 		})
 	}
 
@@ -725,9 +725,7 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 			SchedulePolicyType: backup.SchedulePolicyTypeLogSchedulePolicy,
 		}
 
-		backupBlock := input.Backup[0]
-
-		if v := backupBlock.FrequencyInMinutes; v != 0 {
+		if v := input.Backup[0].FrequencyInMinutes; v != 0 {
 			schedule.ScheduleFrequencyInMins = &v
 		}
 
@@ -798,99 +796,96 @@ func flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(input backup.BasicSch
 
 func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolicy, times []date.Time) backup.BasicRetentionPolicy {
 	if input.PolicyType == string(backup.PolicyTypeFull) {
-		if input.RetentionDaily != nil {
-			retentionPolicy := backup.LongTermRetentionPolicy{
-				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
-			}
-
-			if len(input.RetentionDaily) > 0 {
-				retentionDaily := input.RetentionDaily[0]
-
-				retentionPolicy.DailySchedule = &backup.DailyRetentionSchedule{
-					RetentionTimes: &times,
-					RetentionDuration: &backup.RetentionDuration{
-						Count:        utils.Int32(retentionDaily.Count),
-						DurationType: backup.RetentionDurationTypeDays,
-					},
-				}
-			}
-
-			if len(input.RetentionWeekly) > 0 {
-				retentionWeekly := input.RetentionWeekly[0]
-
-				retentionPolicy.WeeklySchedule = &backup.WeeklyRetentionSchedule{
-					RetentionTimes: &times,
-					RetentionDuration: &backup.RetentionDuration{
-						Count:        utils.Int32(retentionWeekly.Count),
-						DurationType: backup.RetentionDurationTypeWeeks,
-					},
-				}
-
-				if v := retentionWeekly.Weekdays; v != nil {
-					days := make([]backup.DayOfWeek, 0)
-					for _, day := range v {
-						days = append(days, backup.DayOfWeek(day))
-					}
-					retentionPolicy.WeeklySchedule.DaysOfTheWeek = &days
-				}
-			}
-
-			if len(input.RetentionMonthly) > 0 {
-				retentionMonthly := input.RetentionMonthly[0]
-
-				retentionPolicy.MonthlySchedule = &backup.MonthlyRetentionSchedule{
-					RetentionScheduleFormatType: backup.RetentionScheduleFormat(retentionMonthly.FormatType),
-					RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionMonthly.MonthDays),
-					RetentionScheduleWeekly:     expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(retentionMonthly.Weekdays, retentionMonthly.Weeks),
-					RetentionTimes:              &times,
-					RetentionDuration: &backup.RetentionDuration{
-						Count:        utils.Int32(retentionMonthly.Count),
-						DurationType: backup.RetentionDurationTypeMonths,
-					},
-				}
-			}
-
-			if len(input.RetentionYearly) > 0 {
-				retentionYearly := input.RetentionYearly[0]
-
-				retentionPolicy.YearlySchedule = &backup.YearlyRetentionSchedule{
-					RetentionScheduleFormatType: backup.RetentionScheduleFormat(retentionYearly.FormatType),
-					RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionYearly.MonthDays),
-					RetentionScheduleWeekly:     expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(retentionYearly.Weekdays, retentionYearly.Weeks),
-					RetentionTimes:              &times,
-					RetentionDuration: &backup.RetentionDuration{
-						Count:        utils.Int32(retentionYearly.Count),
-						DurationType: backup.RetentionDurationTypeYears,
-					},
-				}
-
-				if v := retentionYearly.Months; v != nil {
-					months := make([]backup.MonthOfYear, 0)
-					for _, month := range v {
-						months = append(months, backup.MonthOfYear(month))
-					}
-					retentionPolicy.YearlySchedule.MonthsOfYear = &months
-				}
-			}
-
-			return retentionPolicy
+		retentionPolicy := backup.LongTermRetentionPolicy{
+			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 		}
-	} else {
-		if input.SimpleRetention != nil {
-			retentionPolicy := backup.SimpleRetentionPolicy{
-				RetentionPolicyType: backup.RetentionPolicyTypeSimpleRetentionPolicy,
-			}
 
-			if len(input.SimpleRetention) > 0 {
-				simpleRetention := input.SimpleRetention[0]
-				retentionPolicy.RetentionDuration = &backup.RetentionDuration{
-					Count:        utils.Int32(simpleRetention.Count),
+		if input.RetentionDaily != nil && len(input.RetentionDaily) > 0 {
+			retentionDaily := input.RetentionDaily[0]
+
+			retentionPolicy.DailySchedule = &backup.DailyRetentionSchedule{
+				RetentionTimes: &times,
+				RetentionDuration: &backup.RetentionDuration{
+					Count:        utils.Int32(retentionDaily.Count),
 					DurationType: backup.RetentionDurationTypeDays,
-				}
+				},
+			}
+		}
+
+		if input.RetentionWeekly != nil && len(input.RetentionWeekly) > 0 {
+			retentionWeekly := input.RetentionWeekly[0]
+
+			retentionPolicy.WeeklySchedule = &backup.WeeklyRetentionSchedule{
+				RetentionTimes: &times,
+				RetentionDuration: &backup.RetentionDuration{
+					Count:        utils.Int32(retentionWeekly.Count),
+					DurationType: backup.RetentionDurationTypeWeeks,
+				},
 			}
 
-			return retentionPolicy
+			if v := retentionWeekly.Weekdays; v != nil {
+				days := make([]backup.DayOfWeek, 0)
+				for _, day := range v {
+					days = append(days, backup.DayOfWeek(day))
+				}
+				retentionPolicy.WeeklySchedule.DaysOfTheWeek = &days
+			}
 		}
+
+		if input.RetentionMonthly != nil && len(input.RetentionMonthly) > 0 {
+			retentionMonthly := input.RetentionMonthly[0]
+
+			retentionPolicy.MonthlySchedule = &backup.MonthlyRetentionSchedule{
+				RetentionScheduleFormatType: backup.RetentionScheduleFormat(retentionMonthly.FormatType),
+				RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionMonthly.MonthDays),
+				RetentionScheduleWeekly:     expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(retentionMonthly.Weekdays, retentionMonthly.Weeks),
+				RetentionTimes:              &times,
+				RetentionDuration: &backup.RetentionDuration{
+					Count:        utils.Int32(retentionMonthly.Count),
+					DurationType: backup.RetentionDurationTypeMonths,
+				},
+			}
+		}
+
+		if input.RetentionYearly != nil && len(input.RetentionYearly) > 0 {
+			retentionYearly := input.RetentionYearly[0]
+
+			retentionPolicy.YearlySchedule = &backup.YearlyRetentionSchedule{
+				RetentionScheduleFormatType: backup.RetentionScheduleFormat(retentionYearly.FormatType),
+				RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionYearly.MonthDays),
+				RetentionScheduleWeekly:     expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(retentionYearly.Weekdays, retentionYearly.Weeks),
+				RetentionTimes:              &times,
+				RetentionDuration: &backup.RetentionDuration{
+					Count:        utils.Int32(retentionYearly.Count),
+					DurationType: backup.RetentionDurationTypeYears,
+				},
+			}
+
+			if v := retentionYearly.Months; v != nil {
+				months := make([]backup.MonthOfYear, 0)
+				for _, month := range v {
+					months = append(months, backup.MonthOfYear(month))
+				}
+				retentionPolicy.YearlySchedule.MonthsOfYear = &months
+			}
+		}
+
+		return retentionPolicy
+	} else {
+		retentionPolicy := backup.SimpleRetentionPolicy{
+			RetentionPolicyType: backup.RetentionPolicyTypeSimpleRetentionPolicy,
+		}
+
+		if input.SimpleRetention != nil && len(input.SimpleRetention) > 0 {
+			simpleRetention := input.SimpleRetention[0]
+
+			retentionPolicy.RetentionDuration = &backup.RetentionDuration{
+				Count:        utils.Int32(simpleRetention.Count),
+				DurationType: backup.RetentionDurationTypeDays,
+			}
+		}
+
+		return retentionPolicy
 	}
 
 	return nil
@@ -1014,48 +1009,42 @@ func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *backup.Retent
 	return []SimpleRetention{simpleRetentionBlock}
 }
 
-func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(monthdays []MonthDay) *backup.DailyRetentionFormat {
-	if monthdays == nil {
+func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []MonthDay) *backup.DailyRetentionFormat {
+	if input == nil {
 		return nil
 	}
 
 	daily := backup.DailyRetentionFormat{}
 
-	if v := monthdays; v != nil {
-		days := make([]backup.Day, 0)
-		for _, day := range v {
-			days = append(days, backup.Day{
-				Date:   &day.Date,
-				IsLast: &day.IsLast,
-			})
-		}
-		daily.DaysOfTheMonth = &days
+	days := make([]backup.Day, 0)
+	for _, day := range input {
+		days = append(days, backup.Day{
+			Date:   &day.Date,
+			IsLast: &day.IsLast,
+		})
 	}
+	daily.DaysOfTheMonth = &days
 
 	return &daily
 }
 
 func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks []string) *backup.WeeklyRetentionFormat {
-	if weekdays == nil || weeks == nil {
-		return nil
-	}
-
 	weekly := backup.WeeklyRetentionFormat{}
 
-	if v := weekdays; v != nil {
-		days := make([]backup.DayOfWeek, 0)
-		for _, day := range v {
-			days = append(days, backup.DayOfWeek(day))
+	if weekdays != nil {
+		weekdaysBlock := make([]backup.DayOfWeek, 0)
+		for _, day := range weekdays {
+			weekdaysBlock = append(weekdaysBlock, backup.DayOfWeek(day))
 		}
-		weekly.DaysOfTheWeek = &days
+		weekly.DaysOfTheWeek = &weekdaysBlock
 	}
 
-	if v := weeks; v != nil {
-		weeks := make([]backup.WeekOfMonth, 0)
-		for _, week := range v {
-			weeks = append(weeks, backup.WeekOfMonth(week))
+	if weeks != nil {
+		weeksBlock := make([]backup.WeekOfMonth, 0)
+		for _, week := range weeks {
+			weeksBlock = append(weeksBlock, backup.WeekOfMonth(week))
 		}
-		weekly.WeeksOfTheMonth = &weeks
+		weekly.WeeksOfTheMonth = &weeksBlock
 	}
 
 	return &weekly
@@ -1082,15 +1071,16 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(input *backup.
 }
 
 func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *backup.DailyRetentionFormat) []MonthDay {
-	monthdays := make([]MonthDay, 0)
+	result := make([]MonthDay, 0)
+
 	if days := input.DaysOfTheMonth; days != nil {
 		for _, d := range *days {
-			monthdays = append(monthdays, MonthDay{
+			result = append(result, MonthDay{
 				Date:   *d.Date,
 				IsLast: *d.IsLast,
 			})
 		}
 	}
 
-	return monthdays
+	return result
 }

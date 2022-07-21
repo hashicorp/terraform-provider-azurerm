@@ -51,9 +51,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_backup_policy_vm_workload" "test" {
-  name                  = "acctest-bpvmw-test01"
-  resource_group_name   = "acctestRG-bpvmw-test01"
-  recovery_vault_name   = "acctest-rsv-test01"
+  name                = "acctest-bpvmw-test01"
+  resource_group_name = "acctestRG-bpvmw-test01"
+  recovery_vault_name = "acctest-rsv-test01"
 
   workload_type = "SAPHanaDatabase"
 
