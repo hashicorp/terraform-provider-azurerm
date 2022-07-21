@@ -122,7 +122,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 		},
 
 		"protection_policy": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

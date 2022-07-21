@@ -27,6 +27,13 @@ func TestAccBackupProtectionPolicyVMWorkload_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -69,6 +76,53 @@ resource "azurerm_backup_policy_vm_workload" "test" {
     backup {
       frequency = "Daily"
       time      = "23:00"
+    }
+
+    retention_daily {
+      count = 7
+    }
+  }
+
+  protection_policy {
+    policy_type = "Log"
+
+    backup {
+      frequency_in_minutes = 15
+    }
+
+    simple_retention {
+      count = 7
+    }
+  }
+}
+`)
+}
+
+func (r BackupProtectionPolicyVMWorkloadResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_backup_policy_vm_workload" "test" {
+  name                = "acctest-bpvmw-test01"
+  resource_group_name = "acctestRG-bpvmw-test01"
+  recovery_vault_name = "acctest-rsv-test01"
+
+  workload_type = "SAPHanaDatabase"
+
+  settings {
+    time_zone               = "UTC"
+    compression_enabled     = false
+    sql_compression_enabled = false
+  }
+
+  protection_policy {
+    policy_type = "Full"
+
+    backup {
+      frequency = "Daily"
+      time      = "14:00"
     }
 
     retention_daily {
