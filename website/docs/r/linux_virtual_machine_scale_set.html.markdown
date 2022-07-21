@@ -196,9 +196,7 @@ The following arguments are supported:
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
-* `scale_in_policy` - (Optional) The scale-in policy rule that decides which virtual machines are chosen for removal when a Virtual Machine Scale Set is scaled in. Possible values for the scale-in policy rules are `Default`, `NewestVM` and `OldestVM`, defaults to `Default`. For more information about scale in policy, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).
-
-* `scale_in_policy_force_deletion_enabled` - (Optional) Should the virtual machines chosen for removal be force deleted when the virtual machine scale set is being scaled-in? Possible values are `true` or `false`. Defaults to `false`.
+* `scale_in` - (Optional) A `scale_in` block as defined below.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
@@ -485,6 +483,14 @@ A `plan` block supports the following:
 * `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
 
 * `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
+
+---
+
+A `scale_in` block supports the following:
+
+* `rule` - (Optional) The scale-in policy rule that decides which virtual machines are chosen for removal when a Virtual Machine Scale Set is scaled in. Possible values for the scale-in policy rules are `Default`, `NewestVM` and `OldestVM`, defaults to `Default`. For more information about scale in policy, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).
+
+* `force_deletion_enabled` - (Optional) Should the virtual machines chosen for removal be force deleted when the virtual machine scale set is being scaled-in? Possible values are `true` or `false`. Defaults to `false`.
 
 ---
 

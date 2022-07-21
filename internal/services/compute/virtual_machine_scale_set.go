@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -271,6 +272,105 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 			},
+		},
+	}
+}
+
+func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"scale_in_policy"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"rule": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+							string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+							string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+						}, false),
+					},
+
+					"force_deletion_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+	}
+
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"rule": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+						string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+						string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+					}, false),
+				},
+
+				"force_deletion_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetScaleInPolicy(input []interface{}) *compute.ScaleInPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	rule := input[0].(map[string]interface{})["rule"].(string)
+	forceDeletion := input[0].(map[string]interface{})["force_deletion_enabled"].(bool)
+
+	return &compute.ScaleInPolicy{
+		Rules:         &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(rule)},
+		ForceDeletion: utils.Bool(forceDeletion),
+	}
+}
+
+func FlattenVirtualMachineScaleSetScaleInPolicy(input *compute.ScaleInPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{
+			map[string]interface{}{
+				"rule":                   string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+				"force_deletion_enabled": false,
+			},
+		}
+	}
+
+	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
+	var forceDeletion bool
+	if rules := input.Rules; rules != nil && len(*rules) > 0 {
+		rule = string((*rules)[0])
+	}
+
+	if input.ForceDeletion != nil {
+		forceDeletion = *input.ForceDeletion
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"rule":                   rule,
+			"force_deletion_enabled": forceDeletion,
 		},
 	}
 }

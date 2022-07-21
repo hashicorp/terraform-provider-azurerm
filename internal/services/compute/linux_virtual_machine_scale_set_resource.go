@@ -323,9 +323,24 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
+	scaleInPolicy := &compute.ScaleInPolicy{
+		Rules:         &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(string(compute.VirtualMachineScaleSetScaleInRulesDefault))},
+		ForceDeletion: utils.Bool(false),
+	}
+
 	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("scale_in_policy"); ok {
+			scaleInPolicy.Rules = &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(v.(string))}
+		}
+
 		if v, ok := d.GetOk("terminate_notification"); ok {
 			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+		}
+	}
+
+	if v, ok := d.GetOk("scale_in"); ok {
+		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
+			scaleInPolicy = v
 		}
 	}
 
@@ -333,8 +348,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	scaleInPolicy := d.Get("scale_in_policy").(string)
-	scaleInPolicyForceDeletion := d.Get("scale_in_policy_force_deletion_enabled").(bool)
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
@@ -363,10 +376,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
 			OrchestrationMode: compute.OrchestrationModeUniform,
-			ScaleInPolicy: &compute.ScaleInPolicy{
-				Rules:         &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
-				ForceDeletion: utils.Bool(scaleInPolicyForceDeletion),
-			},
+			ScaleInPolicy:     scaleInPolicy,
 		},
 	}
 
@@ -637,23 +647,24 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.Overprovision = utils.Bool(v)
 	}
 
-	if d.HasChange("scale_in_policy") || d.HasChange("scale_in_policy_force_deletion_enabled") {
-		updateScaleInPolicy := &compute.ScaleInPolicy{}
-
-		if d.HasChange("scale_in_policy") {
-			scaleInPolicy := d.Get("scale_in_policy").(string)
-			updateScaleInPolicy.Rules = &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)}
+	if d.HasChange("scale_in") {
+		if updateScaleInPolicy := ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]interface{})); updateScaleInPolicy != nil {
+			updateProps.ScaleInPolicy = updateScaleInPolicy
 		}
-
-		if d.HasChange("scale_in_policy_force_deletion_enabled") {
-			forceDeletion := d.Get("scale_in_policy_force_deletion_enabled").(bool)
-			updateScaleInPolicy.ForceDeletion = utils.Bool(forceDeletion)
-		}
-
-		updateProps.ScaleInPolicy = updateScaleInPolicy
 	}
 
 	if !features.FourPointOhBeta() {
+		if d.HasChange("scale_in_policy") {
+			updateScaleInPolicy := &compute.ScaleInPolicy{}
+
+			if d.HasChange("scale_in_policy") {
+				scaleInPolicy := d.Get("scale_in_policy").(string)
+				updateScaleInPolicy.Rules = &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)}
+			}
+
+			updateProps.ScaleInPolicy = updateScaleInPolicy
+		}
+
 		if d.HasChange("terminate_notification") {
 			notificationRaw := d.Get("terminate_notification").([]interface{})
 			updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -832,19 +843,19 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	d.Set("single_placement_group", props.SinglePlacementGroup)
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
+	d.Set("scale_in", FlattenVirtualMachineScaleSetScaleInPolicy(props.ScaleInPolicy))
 
-	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
-	var forceDeletion bool
-	if props.ScaleInPolicy != nil {
-		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
-			rule = string((*rules)[0])
+	if !features.FourPointOhBeta() {
+		rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
+
+		if props.ScaleInPolicy != nil {
+			if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
+				rule = string((*rules)[0])
+			}
 		}
-		if props.ScaleInPolicy.ForceDeletion != nil {
-			forceDeletion = *props.ScaleInPolicy.ForceDeletion
-		}
+
+		d.Set("scale_in_policy", rule)
 	}
-	d.Set("scale_in_policy", rule)
-	d.Set("scale_in_policy_force_deletion_enabled", forceDeletion)
 
 	if props.SpotRestorePolicy != nil {
 		d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
@@ -1071,7 +1082,7 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	resourceSchema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1320,22 +1331,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"scale_in_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
-				string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
-			}, false),
-		},
-
-		"scale_in_policy_force_deletion_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
+		"scale_in": VirtualMachineScaleSetScaleInPolicySchema(),
 
 		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
 
@@ -1351,9 +1347,21 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
-		out["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
+		resourceSchema["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
 
+		resourceSchema["scale_in_policy"] = &schema.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+				string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+			}, false),
+			Deprecated:    "`scale_in_policy` will be removed in favour of the `scale_in` code block in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"scale_in"},
+		}
 	}
 
-	return out
+	return resourceSchema
 }
