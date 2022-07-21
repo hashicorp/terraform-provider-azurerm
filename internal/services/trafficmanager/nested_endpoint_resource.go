@@ -68,7 +68,8 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 
 			"weight": {
 				Type:         pluginsdk.TypeInt,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -201,8 +202,11 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			MinChildEndpoints: utils.Int64(int64(d.Get("minimum_child_endpoints").(int))),
 			TargetResourceId:  utils.String(d.Get("target_resource_id").(string)),
 			Subnets:           expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
-			Weight:            utils.Int64(int64(d.Get("weight").(int))),
 		},
+	}
+
+	if weight := d.Get("weight").(int); weight != 0 {
+		params.Properties.Weight = utils.Int64(int64(weight))
 	}
 
 	minChildEndpointsIPv4 := d.Get("minimum_required_child_endpoints_ipv4").(int)

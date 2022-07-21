@@ -601,6 +601,8 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 			Config: r.blobPropertiesUpdated2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("blob_properties.0.container_delete_retention_policy.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -981,6 +983,14 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 			Config: r.shareSoftDelete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.shareNoSoftDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("share_properties.0.retention_policy.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -2213,10 +2223,11 @@ resource "azurerm_storage_account" "test" {
       days = 300
     }
 
-    default_service_version  = "2019-07-07"
-    versioning_enabled       = true
-    change_feed_enabled      = true
-    last_access_time_enabled = true
+    default_service_version       = "2019-07-07"
+    versioning_enabled            = true
+    change_feed_enabled           = true
+    change_feed_retention_in_days = 1
+    last_access_time_enabled      = true
     container_delete_retention_policy {
       days = 7
     }
@@ -3164,6 +3175,30 @@ resource "azurerm_storage_account" "test" {
       days = 3
     }
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) shareNoSoftDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  share_properties {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
