@@ -45,8 +45,6 @@ github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network
 github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
-github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
-github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization
@@ -199,6 +197,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/ten
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/applicationinsights
+github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights
 github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts
@@ -249,6 +248,20 @@ github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/n
 github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/policyinsights
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/replicas
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets
