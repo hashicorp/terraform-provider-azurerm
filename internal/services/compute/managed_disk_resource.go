@@ -984,6 +984,10 @@ func shutDownOnResize(disk compute.Disk, oldSizeGB, newSizeGB int) bool {
 	if disk.OsType != "" {
 		return true
 	}
+	// Standard HDD disks can't be expanded without downtime
+	if disk.Sku.Name == compute.DiskStorageAccountTypesStandardLRS {
+		return true
+	}
 	// Disks smaller than 4 TiB can't be expanded to 4 TiB or larger without downtime.
 	if oldSizeGB < 4096 && newSizeGB >= 4096 {
 		return true
