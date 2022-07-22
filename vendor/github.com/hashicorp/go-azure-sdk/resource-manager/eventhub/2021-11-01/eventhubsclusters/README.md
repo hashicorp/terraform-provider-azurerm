@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventhubsclusters.NewSubscriptionID()
+id := eventhubsclusters.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ClustersListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ClustersListBySubscriptionComplete(ctx, id)
