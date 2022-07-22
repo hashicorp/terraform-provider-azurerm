@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -26,7 +26,7 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 		Delete: resourceServiceBusSubscriptionRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubscriptionRuleID(id)
+			_, err := rules.ParseRuleID(id)
 			return err
 		}),
 
@@ -55,7 +55,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			ValidateFunc:     validate.SubscriptionID,
+			ValidateFunc:     subscriptions.ValidateSubscriptions2ID,
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
@@ -63,8 +63,8 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(servicebus.FilterTypeSQLFilter),
-				string(servicebus.FilterTypeCorrelationFilter),
+				string(subscriptions.FilterTypeSqlFilter),
+				string(subscriptions.FilterTypeCorrelationFilter),
 			}, false),
 		},
 
@@ -178,108 +178,117 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 
 func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
+	subscriptionClient := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
 
 	filterType := d.Get("filter_type").(string)
 
-	var resourceId parse.SubscriptionRuleId
+	var id subscriptions.RuleId
 	if subscriptionIdLit := d.Get("subscription_id").(string); subscriptionIdLit != "" {
-		subscriptionId, _ := parse.SubscriptionID(subscriptionIdLit)
-		resourceId = parse.NewSubscriptionRuleID(subscriptionId.SubscriptionId,
-			subscriptionId.ResourceGroup,
+		subscriptionId, _ := rules.ParseSubscriptions2ID(subscriptionIdLit)
+		id = subscriptions.NewRuleID(subscriptionId.SubscriptionId,
+			subscriptionId.ResourceGroupName,
 			subscriptionId.NamespaceName,
 			subscriptionId.TopicName,
-			subscriptionId.Name,
+			subscriptionId.SubscriptionName,
 			d.Get("name").(string),
 		)
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName)
+		existing, err := subscriptionClient.RulesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", id.ID())
 		}
 	}
 
-	rule := servicebus.Rule{
-		Ruleproperties: &servicebus.Ruleproperties{
-			FilterType: servicebus.FilterType(filterType),
+	filter := rules.FilterType(filterType)
+	rule := rules.Rule{
+		Properties: &rules.Ruleproperties{
+			FilterType: &filter,
 		},
 	}
 
 	if action := d.Get("action").(string); action != "" {
-		rule.Ruleproperties.Action = &servicebus.Action{
-			SQLExpression: &action,
+		rule.Properties.Action = &rules.Action{
+			SqlExpression: &action,
 		}
 	}
 
-	if rule.Ruleproperties.FilterType == servicebus.FilterTypeCorrelationFilter {
+	if *rule.Properties.FilterType == rules.FilterTypeCorrelationFilter {
 		correlationFilter, err := expandAzureRmServiceBusCorrelationFilter(d)
 		if err != nil {
 			return fmt.Errorf("expanding `correlation_filter`: %+v", err)
 		}
 
-		rule.Ruleproperties.CorrelationFilter = correlationFilter
+		rule.Properties.CorrelationFilter = correlationFilter
 	}
 
-	if rule.Ruleproperties.FilterType == servicebus.FilterTypeSQLFilter {
+	if *rule.Properties.FilterType == rules.FilterTypeSqlFilter {
 		sqlFilter := d.Get("sql_filter").(string)
-		rule.Ruleproperties.SQLFilter = &servicebus.SQLFilter{
-			SQLExpression: &sqlFilter,
+		rule.Properties.SqlFilter = &rules.SqlFilter{
+			SqlExpression: &sqlFilter,
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName, rule); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
+	// switch this around so that the rule id from subscription is generated for the get method
+	ruleId, err := rules.ParseRuleID(id.ID())
+	if err != nil {
+		return err
+	}
+	if _, err := client.CreateOrUpdate(ctx, *ruleId, rule); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 
 func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
+	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionRuleID(d.Id())
+	id, err := subscriptions.ParseRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName, id.RuleName)
+	resp, err := client.RulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("subscription_id", parse.NewSubscriptionID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName).ID())
+	d.Set("subscription_id", subscriptions.NewSubscriptions2ID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName, id.SubscriptionName).ID())
 	d.Set("name", id.RuleName)
 
-	if properties := resp.Ruleproperties; properties != nil {
-		d.Set("filter_type", properties.FilterType)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("filter_type", props.FilterType)
 
-		if properties.Action != nil {
-			d.Set("action", properties.Action.SQLExpression)
-		}
+			if props.Action != nil {
+				d.Set("action", props.Action.SqlExpression)
+			}
 
-		if properties.SQLFilter != nil {
-			d.Set("sql_filter", properties.SQLFilter.SQLExpression)
-		}
+			if props.SqlFilter != nil {
+				d.Set("sql_filter", props.SqlFilter.SqlExpression)
+			}
 
-		if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(properties.CorrelationFilter)); err != nil {
-			return fmt.Errorf("setting `correlation_filter`: %+v", err)
+			if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(props.CorrelationFilter)); err != nil {
+				return fmt.Errorf("setting `correlation_filter`: %+v", err)
+			}
 		}
 	}
 
@@ -291,14 +300,14 @@ func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionRuleID(d.Id())
+	id, err := rules.ParseRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName, id.RuleName)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
@@ -306,7 +315,7 @@ func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*servicebus.CorrelationFilter, error) {
+func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules.CorrelationFilter, error) {
 	configs := d.Get("correlation_filter").([]interface{})
 	if len(configs) == 0 {
 		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
@@ -322,20 +331,21 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*servi
 	replyToSessionID := config["reply_to_session_id"].(string)
 	sessionID := config["session_id"].(string)
 	to := config["to"].(string)
-	properties := utils.ExpandMapStringPtrString(config["properties"].(map[string]interface{}))
 
-	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" && len(properties) == 0 {
-		return nil, fmt.Errorf("At least one property must be set in the `correlation_filter` block")
+	properties := expandProperties(config["properties"].(map[string]interface{}))
+
+	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" && len(*properties) == 0 {
+		return nil, fmt.Errorf("at least one property must be set in the `correlation_filter` block")
 	}
 
-	correlationFilter := servicebus.CorrelationFilter{}
+	correlationFilter := rules.CorrelationFilter{}
 
 	if correlationID != "" {
-		correlationFilter.CorrelationID = utils.String(correlationID)
+		correlationFilter.CorrelationId = utils.String(correlationID)
 	}
 
 	if messageID != "" {
-		correlationFilter.MessageID = utils.String(messageID)
+		correlationFilter.MessageId = utils.String(messageID)
 	}
 
 	if to != "" {
@@ -351,37 +361,37 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*servi
 	}
 
 	if sessionID != "" {
-		correlationFilter.SessionID = utils.String(sessionID)
+		correlationFilter.SessionId = utils.String(sessionID)
 	}
 
 	if replyToSessionID != "" {
-		correlationFilter.ReplyToSessionID = utils.String(replyToSessionID)
+		correlationFilter.ReplyToSessionId = utils.String(replyToSessionID)
 	}
 
 	if contentType != "" {
 		correlationFilter.ContentType = utils.String(contentType)
 	}
 
-	if len(properties) > 0 {
+	if len(*properties) > 0 {
 		correlationFilter.Properties = properties
 	}
 
 	return &correlationFilter, nil
 }
 
-func flattenAzureRmServiceBusCorrelationFilter(input *servicebus.CorrelationFilter) []interface{} {
+func flattenAzureRmServiceBusCorrelationFilter(input *subscriptions.CorrelationFilter) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	filter := make(map[string]interface{})
 
-	if input.CorrelationID != nil {
-		filter["correlation_id"] = *input.CorrelationID
+	if input.CorrelationId != nil {
+		filter["correlation_id"] = *input.CorrelationId
 	}
 
-	if input.MessageID != nil {
-		filter["message_id"] = *input.MessageID
+	if input.MessageId != nil {
+		filter["message_id"] = *input.MessageId
 	}
 
 	if input.To != nil {
@@ -396,12 +406,12 @@ func flattenAzureRmServiceBusCorrelationFilter(input *servicebus.CorrelationFilt
 		filter["label"] = *input.Label
 	}
 
-	if input.SessionID != nil {
-		filter["session_id"] = *input.SessionID
+	if input.SessionId != nil {
+		filter["session_id"] = *input.SessionId
 	}
 
-	if input.ReplyToSessionID != nil {
-		filter["reply_to_session_id"] = *input.ReplyToSessionID
+	if input.ReplyToSessionId != nil {
+		filter["reply_to_session_id"] = *input.ReplyToSessionId
 	}
 
 	if input.ContentType != nil {
@@ -409,8 +419,28 @@ func flattenAzureRmServiceBusCorrelationFilter(input *servicebus.CorrelationFilt
 	}
 
 	if input.Properties != nil {
-		filter["properties"] = utils.FlattenMapStringPtrString(input.Properties)
+		filter["properties"] = flattenProperties(input.Properties)
 	}
 
 	return []interface{}{filter}
+}
+
+func expandProperties(input map[string]interface{}) *map[string]string {
+	output := make(map[string]string)
+	for k, v := range input {
+		output[k] = v.(string)
+	}
+	return &output
+}
+
+func flattenProperties(input *map[string]string) map[string]*string {
+	output := make(map[string]*string)
+
+	if input != nil {
+		for k, v := range *input {
+			output[k] = utils.String(v)
+		}
+	}
+
+	return output
 }

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -316,7 +316,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 						"event_hub_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: eventHubValidation.EventhubID,
+							ValidateFunc: eventhubs.ValidateEventhubID,
 						},
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,

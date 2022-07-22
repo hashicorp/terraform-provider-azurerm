@@ -67,7 +67,8 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 
 			"weight": {
 				Type:         pluginsdk.TypeInt,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -174,12 +175,15 @@ func resourceAzureEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			EndpointStatus:   &status,
 			TargetResourceId: utils.String(d.Get("target_resource_id").(string)),
 			Subnets:          expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
-			Weight:           utils.Int64(int64(d.Get("weight").(int))),
 		},
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
 		params.Properties.Priority = utils.Int64(int64(priority))
+	}
+
+	if weight := d.Get("weight").(int); weight != 0 {
+		params.Properties.Weight = utils.Int64(int64(weight))
 	}
 
 	inputMappings := d.Get("geo_mappings").([]interface{})

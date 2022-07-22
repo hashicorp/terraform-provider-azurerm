@@ -109,6 +109,14 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 				},
 			},
 
+			"inbound_nat_rules": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"load_balancing_rules": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -311,6 +319,19 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 		}
 		if err := d.Set("outbound_rules", outboundRules); err != nil {
 			return fmt.Errorf("setting `outbound_rules`: %v", err)
+		}
+
+		var inboundNATRules []string
+		if rules := props.InboundNatRules; rules != nil {
+			for _, rule := range *rules {
+				if rule.ID == nil {
+					continue
+				}
+				inboundNATRules = append(inboundNATRules, *rule.ID)
+			}
+		}
+		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
+			return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
 		}
 	}
 

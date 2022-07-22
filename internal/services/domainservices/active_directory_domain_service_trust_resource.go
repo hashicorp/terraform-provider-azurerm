@@ -6,7 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
@@ -98,16 +99,23 @@ func (r DomainServiceTrustResource) Create() sdk.ResourceFunc {
 			}
 
 			id := parse.NewDomainServiceTrustID(dsid.SubscriptionId, dsid.ResourceGroup, dsid.Name, plan.Name)
+			idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
 
 			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
 			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+			existing, err := client.Get(ctx, idsdk)
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			existingTrusts := []aad.ForestTrust{}
-			if props := existing.DomainServiceProperties; props != nil {
+
+			model := existing.Model
+			if model == nil {
+				return fmt.Errorf("reading %s: returned with null model", idsdk)
+			}
+
+			existingTrusts := []domainservices.ForestTrust{}
+			if props := model.Properties; props != nil {
 				if fsettings := props.ResourceForestSettings; fsettings != nil {
 					if settings := fsettings.Settings; settings != nil {
 						existingTrusts = *settings
@@ -120,27 +128,23 @@ func (r DomainServiceTrustResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			existingTrusts = append(existingTrusts, aad.ForestTrust{
+			existingTrusts = append(existingTrusts, domainservices.ForestTrust{
 				TrustedDomainFqdn: utils.String(plan.TrustedDomainFqdn),
 				TrustDirection:    utils.String("Inbound"),
 				FriendlyName:      utils.String(id.TrustName),
-				RemoteDNSIps:      utils.String(strings.Join(plan.TrustedDomainDnsIPs, ",")),
+				RemoteDnsIps:      utils.String(strings.Join(plan.TrustedDomainDnsIPs, ",")),
 				TrustPassword:     utils.String(plan.Password),
 			})
-			params := aad.DomainService{
-				DomainServiceProperties: &aad.DomainServiceProperties{
-					ResourceForestSettings: &aad.ResourceForestSettings{
+			params := domainservices.DomainService{
+				Properties: &domainservices.DomainServiceProperties{
+					ResourceForestSettings: &domainservices.ResourceForestSettings{
 						Settings: &existingTrusts,
 					},
 				},
 			}
 
-			future, err := client.Update(ctx, id.ResourceGroup, id.DomainServiceName, params)
-			if err != nil {
+			if err := client.UpdateThenPoll(ctx, idsdk, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -160,22 +164,27 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resourceErrorName := fmt.Sprintf("Domain Service (Name: %q, Resource Group: %q)", id.DomainServiceName, id.ResourceGroup)
+			idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+			existing, err := client.Get(ctx, idsdk)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", resourceErrorName, err)
+				return fmt.Errorf("retrieving %s: %+v", idsdk, err)
 			}
 
-			props := existing.DomainServiceProperties
+			model := existing.Model
+			if model == nil {
+				return fmt.Errorf("reading %s: returned with null model", idsdk)
+			}
+
+			props := model.Properties
 			if props == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
+				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", idsdk)
 			}
 
-			existingTrusts := []aad.ForestTrust{}
+			existingTrusts := []domainservices.ForestTrust{}
 			if props != nil {
 				if fsettings := props.ResourceForestSettings; fsettings != nil {
 					if settings := fsettings.Settings; settings != nil {
@@ -183,7 +192,7 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 					}
 				}
 			}
-			var trust *aad.ForestTrust
+			var trust *domainservices.ForestTrust
 			for _, setting := range existingTrusts {
 				existingTrust := setting
 				if setting.FriendlyName != nil && *setting.FriendlyName == id.TrustName {
@@ -197,17 +206,17 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 			// Retrieve the initial replica set id to construct the domain service id.
 			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
 			if len(replicaSets) == 0 {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
+				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", idsdk)
 			}
 			initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
-			dsid := parse.NewDomainServiceID(client.SubscriptionID, id.ResourceGroup, id.DomainServiceName, initialReplicaSetId)
+			dsid := parse.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName, initialReplicaSetId)
 
 			var state DomainServiceTrustModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			model := DomainServiceTrustModel{
+			data := DomainServiceTrustModel{
 				DomainServiceId: dsid.ID(),
 				Name:            id.TrustName,
 				// Setting the password from state as it is not returned by API.
@@ -215,14 +224,14 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 			}
 
 			if trust.TrustedDomainFqdn != nil {
-				model.TrustedDomainFqdn = *trust.TrustedDomainFqdn
+				data.TrustedDomainFqdn = *trust.TrustedDomainFqdn
 			}
 
-			if trust.RemoteDNSIps != nil {
-				model.TrustedDomainDnsIPs = strings.Split(*trust.RemoteDNSIps, ",")
+			if trust.RemoteDnsIps != nil {
+				data.TrustedDomainDnsIPs = strings.Split(*trust.RemoteDnsIps, ",")
 			}
 
-			return metadata.Encode(&model)
+			return metadata.Encode(&data)
 		},
 	}
 }
@@ -238,20 +247,25 @@ func (r DomainServiceTrustResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			resourceErrorName := fmt.Sprintf("Domain Service (Name: %q, Resource Group: %q)", id.DomainServiceName, id.ResourceGroup)
+			idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
 
 			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
 			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+			existing, err := client.Get(ctx, idsdk)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", resourceErrorName, err)
+				return fmt.Errorf("retrieving %s: %+v", idsdk, err)
 			}
-			existingTrusts := []aad.ForestTrust{}
-			if props := existing.DomainServiceProperties; props != nil {
+
+			model := existing.Model
+			if model == nil {
+				return fmt.Errorf("reading %s: returned with null model", idsdk)
+			}
+			existingTrusts := []domainservices.ForestTrust{}
+			if props := model.Properties; props != nil {
 				if fsettings := props.ResourceForestSettings; fsettings != nil {
 					if settings := fsettings.Settings; settings != nil {
 						existingTrusts = *settings
@@ -259,7 +273,7 @@ func (r DomainServiceTrustResource) Delete() sdk.ResourceFunc {
 				}
 			}
 			var found bool
-			newTrusts := []aad.ForestTrust{}
+			newTrusts := []domainservices.ForestTrust{}
 			for _, trust := range existingTrusts {
 				if trust.FriendlyName != nil && *trust.FriendlyName == id.TrustName {
 					found = true
@@ -272,20 +286,16 @@ func (r DomainServiceTrustResource) Delete() sdk.ResourceFunc {
 				return metadata.MarkAsGone(id)
 			}
 
-			params := aad.DomainService{
-				DomainServiceProperties: &aad.DomainServiceProperties{
-					ResourceForestSettings: &aad.ResourceForestSettings{
+			params := domainservices.DomainService{
+				Properties: &domainservices.DomainServiceProperties{
+					ResourceForestSettings: &domainservices.ResourceForestSettings{
 						Settings: &newTrusts,
 					},
 				},
 			}
 
-			future, err := client.Update(ctx, id.ResourceGroup, id.DomainServiceName, params)
-			if err != nil {
+			if err := client.UpdateThenPoll(ctx, idsdk, params); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for removal of %s: %+v", id, err)
 			}
 
 			return nil
@@ -304,17 +314,23 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			resourceErrorName := fmt.Sprintf("Domain Service (Name: %q, Resource Group: %q)", id.DomainServiceName, id.ResourceGroup)
+			idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
 
 			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
 			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+			existing, err := client.Get(ctx, idsdk)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", resourceErrorName, err)
+				return fmt.Errorf("retrieving %s: %+v", idsdk, err)
 			}
-			existingTrusts := []aad.ForestTrust{}
-			if props := existing.DomainServiceProperties; props != nil {
+
+			model := existing.Model
+			if model == nil {
+				return fmt.Errorf("reading %s: returned with null model", idsdk)
+			}
+
+			existingTrusts := []domainservices.ForestTrust{}
+			if props := model.Properties; props != nil {
 				if fsettings := props.ResourceForestSettings; fsettings != nil {
 					if settings := fsettings.Settings; settings != nil {
 						existingTrusts = *settings
@@ -328,7 +344,7 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 			}
 
 			var found bool
-			newTrusts := []aad.ForestTrust{}
+			newTrusts := []domainservices.ForestTrust{}
 			for _, trust := range existingTrusts {
 				if trust.FriendlyName != nil && *trust.FriendlyName == id.TrustName {
 					found = true
@@ -336,7 +352,7 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 						trust.TrustedDomainFqdn = utils.String(plan.TrustedDomainFqdn)
 					}
 					if metadata.ResourceData.HasChange("trusted_domain_dns_ips") {
-						trust.RemoteDNSIps = utils.String(strings.Join(plan.TrustedDomainDnsIPs, ","))
+						trust.RemoteDnsIps = utils.String(strings.Join(plan.TrustedDomainDnsIPs, ","))
 					}
 					trust.TrustPassword = utils.String(plan.Password)
 				}
@@ -346,20 +362,16 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("%s not exists: %+v", id, err)
 			}
 
-			params := aad.DomainService{
-				DomainServiceProperties: &aad.DomainServiceProperties{
-					ResourceForestSettings: &aad.ResourceForestSettings{
+			params := domainservices.DomainService{
+				Properties: &domainservices.DomainServiceProperties{
+					ResourceForestSettings: &domainservices.ResourceForestSettings{
 						Settings: &newTrusts,
 					},
 				},
 			}
 
-			future, err := client.Update(ctx, id.ResourceGroup, id.DomainServiceName, params)
-			if err != nil {
+			if err := client.UpdateThenPoll(ctx, idsdk, params); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
 			}
 			return nil
 		},
