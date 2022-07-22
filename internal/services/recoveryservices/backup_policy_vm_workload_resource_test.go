@@ -55,12 +55,12 @@ resource "azurerm_backup_policy_vm_workload" "test" {
   resource_group_name   = "acctestRG-bpvmw-test01"
   recovery_vault_name   = "acctest-rsv-test01"
 
-  workload_type = "SAPHanaDatabase"
+  workload_type = "SQLDataBase"
 
   settings {
     time_zone               = "UTC"
-    compression_enabled     = false
-    sql_compression_enabled = false
+    compression_enabled     = true
+    sql_compression_enabled = true
   }
 
   protection_policy {
@@ -83,39 +83,17 @@ resource "azurerm_backup_policy_vm_workload" "test" {
       weeks       = ["Third"]
       weekdays    = ["Monday"]
     }
-
-    retention_yearly {
-      format_type = "Weekly"
-      count       = 5
-      months      = ["June", "February"]
-      weeks       = ["Third", "Second"]
-      weekdays    = ["Tuesday"]
-    }
-  }
-
-  protection_policy {
-    policy_type = "Differential"
-
-    backup {
-      frequency = "Weekly"
-      weekdays  = ["Thursday", "Friday"]
-      time      = "14:00"
-    }
-
-    simple_retention {
-      count = 7
-    }
   }
 
   protection_policy {
     policy_type = "Log"
 
     backup {
-      frequency_in_minutes = 15
+      frequency_in_minutes = 30
     }
 
     simple_retention {
-      count = 7
+      count = 8
     }
   }
 }
