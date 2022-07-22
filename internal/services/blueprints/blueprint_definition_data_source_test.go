@@ -29,6 +29,21 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccBlueprintDefinitionDataSource_blueprintVersions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
+	r := BlueprintDefinitionDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.versions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
+				check.That(data.ResourceName).Key("versions.#").HasValue("0"),
+			),
+		},
+	})
+}
+
 //lintignore:AT001
 func TestAccBlueprintDefinitionDataSource_basicAtRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
@@ -76,6 +91,23 @@ data "azurerm_subscription" "current" {}
 
 data "azurerm_blueprint_definition" "test" {
   name     = "testAcc_basicSubscription"
+  scope_id = data.azurerm_subscription.current.id
+}
+`, subscription)
+}
+
+func (BlueprintDefinitionDataSource) versions(data acceptance.TestData) string {
+	subscription := data.Client().SubscriptionID
+	return fmt.Sprintf(`
+provider "azurerm" {
+subscription_id = "%s"
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+data "azurerm_blueprint_definition" "test" {
+  name     = "testAcc_basicSubscriptions"
   scope_id = data.azurerm_subscription.current.id
 }
 `, subscription)

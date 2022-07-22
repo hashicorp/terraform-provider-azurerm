@@ -119,10 +119,6 @@ func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("listing blue print versions for %s error: %+v", *resp.ID, err)
 	}
 
-	if versions.Values() == nil {
-		return fmt.Errorf("no version is published for this blue print definition")
-	}
-
 	for _, version := range versions.Values() {
 		if version.PublishedBlueprintProperties == nil || version.Name == nil {
 			continue
