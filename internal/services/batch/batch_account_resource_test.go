@@ -471,10 +471,6 @@ resource "azurerm_batch_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
 
   pool_allocation_mode = "UserSubscription"
-  allowed_authentication_modes = [
-    "AAD",
-    "TaskAuthenticationToken"
-  ]
 
   key_vault_reference {
     id  = "${azurerm_key_vault.test.id}"

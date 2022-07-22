@@ -83,6 +83,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"allowed_authentication_modes": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -525,7 +526,7 @@ func expandEncryption(e []interface{}) *batch.EncryptionProperties {
 
 func expandAllowedAuthenticationModes(input []interface{}) *[]batch.AuthenticationMode {
 	if len(input) == 0 {
-		return &[]batch.AuthenticationMode{}
+		return nil
 	}
 
 	allowedAuthModes := make([]batch.AuthenticationMode, 0)
