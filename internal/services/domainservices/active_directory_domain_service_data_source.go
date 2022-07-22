@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
@@ -167,7 +167,7 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.Tags(),
 
 			"tenant_id": {
 				Type:     pluginsdk.TypeString,
@@ -220,32 +220,43 @@ func dataSourceActiveDirectoryDomainServiceReplicaSetSchema() map[string]*plugin
 
 func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
+	subscrptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	idsdk := domainservices.NewDomainServiceID(subscrptionId, resourceGroup, name)
+
+	resp, err := client.Get(ctx, idsdk)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 		return err
 	}
 
-	if resp.ID == nil {
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("reading Domain Service: model was returned nil")
+	}
+
+	if model.Id == nil {
 		return fmt.Errorf("reading Domain Service: ID was returned nil")
 	}
-	d.SetId(*resp.ID)
+
+	d.SetId(idsdk.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("location", location.NormalizeNilable(model.Location))
+	if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		return err
+	}
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if props := resp.DomainServiceProperties; props != nil {
-		d.Set("deployment_id", props.DeploymentID)
+	if props := model.Properties; props != nil {
+		d.Set("deployment_id", props.DeploymentId)
 
 		domainConfigType := ""
 		if v := props.DomainConfigurationType; v != nil {
@@ -256,14 +267,14 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 		d.Set("domain_name", props.DomainName)
 
 		d.Set("filtered_sync_enabled", false)
-		if props.FilteredSync == aad.FilteredSyncEnabled {
+		if props.FilteredSync != nil && *props.FilteredSync == domainservices.FilteredSyncEnabled {
 			d.Set("filtered_sync_enabled", true)
 		}
 
-		d.Set("resource_id", resp.ID)
+		d.Set("resource_id", model.Id)
 		d.Set("sku", props.Sku)
 		d.Set("sync_owner", props.SyncOwner)
-		d.Set("tenant_id", props.TenantID)
+		d.Set("tenant_id", props.TenantId)
 		d.Set("version", props.Version)
 
 		if err := d.Set("notifications", flattenDomainServiceNotifications(props.NotificationSettings)); err != nil {
@@ -284,5 +295,5 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
