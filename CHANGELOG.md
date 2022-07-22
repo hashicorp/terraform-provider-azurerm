@@ -1,7 +1,10 @@
 ## 3.15.0 (Unreleased)
 
 FEATURES: 
-
+* **New Data Source**: `azurerm_cdn_frontdoor_origin_group` [GH-17089]
+* **New Data Source**: `azurerm_cdn_frontdoor_origin` [GH-17089]
+* **New Resource**: `azurerm_cdn_frontdoor_origin_group` [GH-17089]
+* **New Resource**: `azurerm_cdn_frontdoor_origin` [GH-17089]
 * **New Resource**: `azurerm_application_insights_workbook` [GH-17368]
 * **New Resource**: `azurerm_monitor_data_collection_rule` [GH-17342]
 * **New Resource**: `azurerm_route_server` [GH-16578]
