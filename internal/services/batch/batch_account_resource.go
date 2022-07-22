@@ -233,6 +233,15 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		parameters.KeyVaultReference = keyVaultReference
+
+		if v, ok := d.GetOk("allowed_authentication_modes"); ok {
+			authModes := v.(*pluginsdk.Set).List()
+			for _, mode := range authModes {
+				if batch.AuthenticationMode(mode.(string)) == batch.AuthenticationModeSharedKey {
+					return fmt.Errorf("creating %s: When setting pool allocation mode to UserSubscription, `allowed_authentication_modes=[StorageKeys]` is not allowed. ", id)
+				}
+			}
+		}
 	}
 
 	authMode := d.Get("storage_account_authentication_mode").(string)
