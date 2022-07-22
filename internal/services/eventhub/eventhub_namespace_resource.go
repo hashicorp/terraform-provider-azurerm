@@ -190,7 +190,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				},
 			},
 
-			"local_auth_enabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -298,7 +298,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
-			DisableLocalAuth:     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DisableLocalAuth:     utils.Bool(!d.Get("local_authentication_enabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -379,7 +379,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
-			DisableLocalAuth:     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DisableLocalAuth:     utils.Bool(!d.Get("local_authentication_enabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -482,7 +482,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 			if props.DisableLocalAuth != nil {
 				localAuthEnable := *props.DisableLocalAuth
-				d.Set("local_auth_enabled", !localAuthEnable)
+				d.Set("local_authentication_enabled", !localAuthEnable)
 			}
 		}
 
