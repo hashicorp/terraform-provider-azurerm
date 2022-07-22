@@ -514,22 +514,22 @@ func (r BackupProtectionPolicyVMWorkloadResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if props := existing.Properties; props != nil {
-				vmWorkload, _ := props.AsAzureVMWorkloadProtectionPolicy()
+			props, _ := existing.Properties.AsAzureVMWorkloadProtectionPolicy()
 
-				if metadata.ResourceData.HasChange("settings") {
-					vmWorkload.Settings = expandBackupProtectionPolicyVMWorkloadSettings(model.Settings)
-				}
-
-				if metadata.ResourceData.HasChange("protection_policy") {
-					protectionPolicy, err := expandBackupProtectionPolicyVMWorkloadProtectionPolicies(model.ProtectionPolicies)
-					if err != nil {
-						return err
-					}
-
-					vmWorkload.SubProtectionPolicy = protectionPolicy
-				}
+			if metadata.ResourceData.HasChange("settings") {
+				props.Settings = expandBackupProtectionPolicyVMWorkloadSettings(model.Settings)
 			}
+
+			if metadata.ResourceData.HasChange("protection_policy") {
+				protectionPolicy, err := expandBackupProtectionPolicyVMWorkloadProtectionPolicies(model.ProtectionPolicies)
+				if err != nil {
+					return err
+				}
+
+				props.SubProtectionPolicy = protectionPolicy
+			}
+
+			existing.Properties = props
 
 			if _, err := client.CreateOrUpdate(ctx, id.VaultName, id.ResourceGroup, id.Name, existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -610,12 +610,12 @@ func expandBackupProtectionPolicyVMWorkloadSettings(input []Settings) *backup.Se
 
 	settings := input[0]
 	result := &backup.Settings{
-		IsCompression:    &settings.CompressionEnabled,
-		Issqlcompression: &settings.SqlCompressionEnabled,
+		IsCompression:    utils.Bool(settings.CompressionEnabled),
+		Issqlcompression: utils.Bool(settings.SqlCompressionEnabled),
 	}
 
 	if settings.TimeZone != "" {
-		result.TimeZone = &settings.TimeZone
+		result.TimeZone = utils.String(settings.TimeZone)
 	}
 
 	return result
@@ -658,7 +658,7 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 
 		switch item.Backup[0].Frequency {
 		case string(backup.ScheduleRunTypeDaily):
-			if item.RetentionDaily == nil {
+			if item.RetentionDaily == nil || len(item.RetentionDaily) == 0 {
 				return nil, fmt.Errorf("`retention_daily` must be set when `backup.0.frequency` is `Daily`")
 			}
 
@@ -666,11 +666,12 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 				return nil, fmt.Errorf("`backup.0.weekdays` should be not set when `backup.0.frequency` is `Daily`")
 			}
 		case string(backup.ScheduleRunTypeWeekly):
-			if item.RetentionDaily != nil {
+			if item.RetentionDaily != nil && len(item.RetentionDaily) > 0 {
 				return nil, fmt.Errorf("`retention_daily` must be not set when `backup.0.frequency` is `Weekly`")
 			}
-			if item.RetentionWeekly == nil {
-				return nil, fmt.Errorf("`retention_weekly` must be set when `backup.0.frequency` is `Weekly`")
+
+			if item.PolicyType == string(backup.PolicyTypeFull) && (item.RetentionWeekly == nil || len(item.RetentionWeekly) == 0) {
+				return nil, fmt.Errorf("`retention_weekly` must be set when `policy_type` is `Full` and `backup.0.frequency` is `Weekly`")
 			}
 		}
 
@@ -726,7 +727,7 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 		}
 
 		if v := input.Backup[0].FrequencyInMinutes; v != 0 {
-			schedule.ScheduleFrequencyInMins = &v
+			schedule.ScheduleFrequencyInMins = utils.Int32(v)
 		}
 
 		result, _ := schedule.AsBasicSchedulePolicy()
@@ -1010,17 +1011,17 @@ func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *backup.Retent
 }
 
 func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []MonthDay) *backup.DailyRetentionFormat {
-	if input == nil {
+	if input == nil || len(input) == 0 {
 		return nil
 	}
 
 	daily := backup.DailyRetentionFormat{}
 
 	days := make([]backup.Day, 0)
-	for _, day := range input {
+	for _, item := range input {
 		days = append(days, backup.Day{
-			Date:   &day.Date,
-			IsLast: &day.IsLast,
+			Date:   utils.Int32(item.Date),
+			IsLast: utils.Bool(item.IsLast),
 		})
 	}
 	daily.DaysOfTheMonth = &days
@@ -1029,9 +1030,13 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []MonthDay
 }
 
 func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks []string) *backup.WeeklyRetentionFormat {
+	if (weekdays == nil && weeks == nil) || (len(weekdays) == 0 && len(weeks) == 0) {
+		return nil
+	}
+
 	weekly := backup.WeeklyRetentionFormat{}
 
-	if weekdays != nil {
+	if weekdays != nil && len(weekdays) > 0 {
 		weekdaysBlock := make([]backup.DayOfWeek, 0)
 		for _, day := range weekdays {
 			weekdaysBlock = append(weekdaysBlock, backup.DayOfWeek(day))
@@ -1039,7 +1044,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks
 		weekly.DaysOfTheWeek = &weekdaysBlock
 	}
 
-	if weeks != nil {
+	if weeks != nil && len(weeks) > 0 {
 		weeksBlock := make([]backup.WeekOfMonth, 0)
 		for _, week := range weeks {
 			weeksBlock = append(weeksBlock, backup.WeekOfMonth(week))

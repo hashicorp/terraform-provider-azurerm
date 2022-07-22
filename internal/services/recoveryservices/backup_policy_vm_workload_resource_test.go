@@ -27,13 +27,6 @@ func TestAccBackupProtectionPolicyVMWorkload_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -58,9 +51,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_backup_policy_vm_workload" "test" {
-  name                = "acctest-bpvmw-test01"
-  resource_group_name = "acctestRG-bpvmw-test01"
-  recovery_vault_name = "acctest-rsv-test01"
+  name                  = "acctest-bpvmw-test01"
+  resource_group_name   = "acctestRG-bpvmw-test01"
+  recovery_vault_name   = "acctest-rsv-test01"
 
   workload_type = "SAPHanaDatabase"
 
@@ -74,58 +67,42 @@ resource "azurerm_backup_policy_vm_workload" "test" {
     policy_type = "Full"
 
     backup {
-      frequency = "Daily"
-      time      = "23:00"
+      frequency = "Weekly"
+      time      = "14:00"
+      weekdays  = ["Monday", "Tuesday"]
     }
 
-    retention_daily {
-      count = 7
+    retention_weekly {
+      weekdays = ["Monday", "Tuesday"]
+      count    = 3
+    }
+
+    retention_monthly {
+      format_type = "Weekly"
+      count       = 6
+      weeks       = ["Third"]
+      weekdays    = ["Monday"]
+    }
+
+    retention_yearly {
+      format_type = "Weekly"
+      count       = 5
+      months      = ["June", "February"]
+      weeks       = ["Third", "Second"]
+      weekdays    = ["Tuesday"]
     }
   }
 
   protection_policy {
-    policy_type = "Log"
+    policy_type = "Differential"
 
     backup {
-      frequency_in_minutes = 15
-    }
-
-    simple_retention {
-      count = 7
-    }
-  }
-}
-`)
-}
-
-func (r BackupProtectionPolicyVMWorkloadResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_backup_policy_vm_workload" "test" {
-  name                = "acctest-bpvmw-test01"
-  resource_group_name = "acctestRG-bpvmw-test01"
-  recovery_vault_name = "acctest-rsv-test01"
-
-  workload_type = "SAPHanaDatabase"
-
-  settings {
-    time_zone               = "UTC"
-    compression_enabled     = false
-    sql_compression_enabled = false
-  }
-
-  protection_policy {
-    policy_type = "Full"
-
-    backup {
-      frequency = "Daily"
+      frequency = "Weekly"
+      weekdays  = ["Thursday", "Friday"]
       time      = "14:00"
     }
 
-    retention_daily {
+    simple_retention {
       count = 7
     }
   }
