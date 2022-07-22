@@ -1862,7 +1862,7 @@ resource "azurerm_batch_pool" "test" {
     public_address_provisioning_type = "UserManaged"
     public_ips                       = [azurerm_public_ip.test.id]
     subnet_id                        = azurerm_subnet.test.id
-    # dynamic_vnet_assignment_scope    = "job"
+    dynamic_vnet_assignment_scope    = "job"
 
     endpoint_configuration {
       name                = "SSH"
