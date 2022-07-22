@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type CdnFrontDoorRuleSetDataSource struct{}
+type CdnFrontDoorOriginGroupDataSource struct{}
 
-func TestAccCdnFrontDoorRuleSetDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_rule_set", "test")
-	d := CdnFrontDoorRuleSetDataSource{}
+func TestAccCdnFrontDoorOriginGroupDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_origin_group", "test")
+	d := CdnFrontDoorOriginGroupDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -24,14 +24,14 @@ func TestAccCdnFrontDoorRuleSetDataSource_basic(t *testing.T) {
 	})
 }
 
-func (CdnFrontDoorRuleSetDataSource) basic(data acceptance.TestData) string {
+func (CdnFrontDoorOriginGroupDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                = azurerm_cdn_frontdoor_rule_set.test.name
+data "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                = azurerm_cdn_frontdoor_origin_group.test.name
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorRuleSetResource{}.complete(data))
+`, CdnFrontDoorOriginGroupResource{}.complete(data))
 }
