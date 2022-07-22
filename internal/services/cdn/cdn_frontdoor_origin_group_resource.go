@@ -99,7 +99,8 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 
 						"request_type": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(cdn.HealthProbeRequestTypeHEAD),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.HealthProbeRequestTypeGET),
 								string(cdn.HealthProbeRequestTypeHEAD),
@@ -108,8 +109,7 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      100,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(5, 31536000),
 						},
 

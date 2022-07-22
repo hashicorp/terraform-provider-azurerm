@@ -65,13 +65,12 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 			"certificate_name_check_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Required: true,
-				// TODO: should this default to `true`?
 			},
 
 			"health_probes_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"http_port": {

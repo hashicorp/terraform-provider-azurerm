@@ -110,15 +110,13 @@ The following arguments are supported:
 
 * `host_name` - (Required) The IPv4 address, IPv6 address or Domain name of the Origin.
 
--> **Note:** This must be unique across all CDN FrontDoor Origins within a CDN FrontDoor Endpoint.
-
----
+!> **IMPORTANT:** This must be unique across all CDN FrontDoor Origins within a CDN FrontDoor Endpoint.
 
 * `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
-* `health_probes_enabled` - (Optional) Specifies whether health probes enabled against origins defined under the origin group? Defaults to `true`. 
+* `health_probes_enabled` - (Optional) Should the health probes be enabled against the origins defined within the origin group? Possible values are `true` or `false`. Defaults to `true`. 
 
--> **Note:** Health probes can only be disabled if there is a single enabled origin in single enabled origin group
+-> **NOTE:** Health probes can only be disabled if there is a single enabled origin in single enabled origin group
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
@@ -132,7 +130,7 @@ The following arguments are supported:
 
 * `private_link` - (Optional) A `private_link` block as defined below.
 
--> **Note:** Private Link requires that the CDN FrontDoor Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
+-> **NOTE:** Private Link requires that the CDN FrontDoor Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
 
 * `weight` - (Optional) The weight of the origin in a given origin group for load balancing. Must be between `1` and `1000`. Defaults to `500`.
 
@@ -140,19 +138,19 @@ The following arguments are supported:
 
 A `private_link` block supports the following:
 
--> **Note:** At this time the Private Link Endpoint **must be approved manually** - for more information please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
+~> **NOTE:** At this time the Private Link Endpoint **must be approved manually** - for more information and region availability please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
 
--> **Note:** To associate a Load Balancer with a CDN FrontDoor Origin via Private LInk you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the CDN FrontDoor Service. 
+!> **IMPORTANT:** Origin support for direct private end point connectivity is limited to `Storage (Azure Blobs)`, `App Services` and `internal load balancers`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
+
+!> **IMPORTANT:** To associate a Load Balancer with a CDN FrontDoor Origin via Private LInk you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the CDN FrontDoor Service. 
 
 * `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for CDN Frontdoor Private Link Origin`.
 
 * `target_type` - (Optional) Specifies the type of target for this Private Link Endpoint. Possible values are `blob`, `blob_secondary`, `web` and `sites`.
 
--> **Note:** `target_type` cannot be specified when using a Load Balancer as an Origin.
+-> **NOTE:** `target_type` cannot be specified when using a Load Balancer as an Origin.
 
 * `location` - (Required) Specifies the location where the Private Link resource should exist.
-
-~> **Note:** For performance reasons this value should match the location of the `private_link_target_id` resource.
 
 * `private_link_target_id` - (Required) The ID of the Azure Resource to connect to via the Private Link.
 
