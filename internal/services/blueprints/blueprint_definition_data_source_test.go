@@ -100,14 +100,14 @@ func (BlueprintDefinitionDataSource) versions(data acceptance.TestData) string {
 	subscription := data.Client().SubscriptionID
 	return fmt.Sprintf(`
 provider "azurerm" {
-subscription_id = "%s"
+  subscription_id = "%s"
   features {}
 }
 
 data "azurerm_subscription" "current" {}
 
 data "azurerm_blueprint_definition" "test" {
-  name     = "testAcc_basicSubscriptions"
+  name     = "testAcc_basicSubscription"
   scope_id = data.azurerm_subscription.current.id
 }
 `, subscription)
