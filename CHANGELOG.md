@@ -16,7 +16,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20220715.1071215` of `github.com/hashicorp/go-azure-sdk` [GH-17645]
 * domainservice: to use `hashicorp/go-azure-sdk` [GH-17595]
 * servicebus: refactoring to use `hashicorp/go-azure-sdk` [GH-17628]
-* `postgres` - refactoring to use `hashicorp/go-azure-sdk` [GH-17625]
+* postgres: refactoring to use `hashicorp/go-azure-sdk` [GH-17625]
 * `azurerm_kusto_cluster_resource` - support for the `allowed_fqdns`, `allowed_ip_ranges`, and `outbound_network_access_restricted` properties [GH-17581]
 * `azurerm_storage_account` - supports for the `change_feed_retention_in_days` property [GH-17130]
 
