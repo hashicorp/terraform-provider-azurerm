@@ -21,24 +21,10 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
 				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
+				check.That(data.ResourceName).Key("versions.#").HasValue("0"),
 				check.That(data.ResourceName).Key("last_modified").Exists(),
 				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
 				check.That(data.ResourceName).Key("time_created").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccBlueprintDefinitionDataSource_blueprintVersions(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
-	r := BlueprintDefinitionDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.versions(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
-				check.That(data.ResourceName).Key("versions.#").HasValue("0"),
 			),
 		},
 	})
@@ -81,23 +67,6 @@ func TestAccBlueprintDefinitionDataSource_basicAtChildManagementGroup(t *testing
 
 func (BlueprintDefinitionDataSource) basic(data acceptance.TestData) string {
 	subscription := data.Client().SubscriptionIDAlt
-	return fmt.Sprintf(`
-provider "azurerm" {
-  subscription_id = "%s"
-  features {}
-}
-
-data "azurerm_subscription" "current" {}
-
-data "azurerm_blueprint_definition" "test" {
-  name     = "testAcc_basicSubscription"
-  scope_id = data.azurerm_subscription.current.id
-}
-`, subscription)
-}
-
-func (BlueprintDefinitionDataSource) versions(data acceptance.TestData) string {
-	subscription := data.Client().SubscriptionID
 	return fmt.Sprintf(`
 provider "azurerm" {
   subscription_id = "%s"
