@@ -80,7 +80,7 @@ resource "azurerm_netapp_volume_group" "test" {
     
     export_policy_rule {
       rule_index            = 1
-      allowed_clients       = ["0.0.0.0/0"]
+      allowed_clients       = "0.0.0.0/0"
       cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
@@ -117,7 +117,7 @@ resource "azurerm_netapp_volume_group" "test" {
     
     export_policy_rule {
       rule_index            = 1
-      allowed_clients       = ["0.0.0.0/0"]
+      allowed_clients       = "0.0.0.0/0"
       cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
@@ -154,7 +154,7 @@ resource "azurerm_netapp_volume_group" "test" {
     
     export_policy_rule {
       rule_index            = 1
-      allowed_clients       = ["0.0.0.0/0"]
+      allowed_clients       = "0.0.0.0/0"
       cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
@@ -191,7 +191,7 @@ resource "azurerm_netapp_volume_group" "test" {
     
     export_policy_rule {
       rule_index            = 1
-      allowed_clients       = ["0.0.0.0/0"]
+      allowed_clients       = "0.0.0.0/0"
       cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
@@ -228,7 +228,7 @@ resource "azurerm_netapp_volume_group" "test" {
     
     export_policy_rule {
       rule_index            = 1
-      allowed_clients       = ["0.0.0.0/0"]
+      allowed_clients       = "0.0.0.0/0"
       cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false

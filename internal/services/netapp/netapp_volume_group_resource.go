@@ -1,6 +1,7 @@
 package netapp
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -202,12 +202,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"allowed_clients": {
-									Type:     pluginsdk.TypeSet,
+									Type:     pluginsdk.TypeString,
 									Required: true,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validate.CIDR,
-									},
 								},
 
 								"cifs_enabled": {
@@ -282,8 +278,93 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+			Set: resourceVolumeGroupVolumeListHash,
 		},
 	}
+}
+
+func resourceVolumeGroupVolumeListHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["proximity_placement_group_id"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["volume_spec_name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["volume_path"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["service_level"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["subnet_id"].(string)))
+
+		if protocols, ok := m["protocols"].([]interface{}); ok {
+			for _, item := range protocols {
+				v := item.(string)
+				buf.WriteString(fmt.Sprintf("%s-", v))
+			}
+		}
+
+		buf.WriteString(fmt.Sprintf("%s-", m["security_style"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["storage_quota_in_gb"].(int)))
+		buf.WriteString(fmt.Sprintf("%f-", m["throughput_in_mibps"].(float64)))
+		buf.WriteString(fmt.Sprintf("%t-", m["snapshot_directory_visible"].(bool)))
+
+		if exportPolicies, ok := m["export_policy_rule"].([]interface{}); ok {
+			for _, item := range exportPolicies {
+				v := item.(map[string]interface{})
+				if ruleIndex, ok := v["rule_index"].(int); ok {
+					buf.WriteString(fmt.Sprintf("%d-", ruleIndex))
+				}
+				if allowedClients, ok := v["allowed_clients"].(string); ok {
+					buf.WriteString(fmt.Sprintf("%s-", allowedClients))
+				}
+				if cifsEnabled, ok := v["cifs_enabled"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", cifsEnabled))
+				}
+				if nfsv3Enabled, ok := v["nfsv3_enabled"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", nfsv3Enabled))
+				}
+				if nfsv41Enabled, ok := v["nfsv41_enabled"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", nfsv41Enabled))
+				}
+				if unixReadOnly, ok := v["unix_read_only"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", unixReadOnly))
+				}
+				if unixReadWrite, ok := v["unix_read_write"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", unixReadWrite))
+				}
+				if rootAccessEnabled, ok := v["root_access_enabled"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", rootAccessEnabled))
+				}
+				if kerberos5ReadOnly, ok := v["kerberos5_read_only"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", kerberos5ReadOnly))
+				}
+				if kerberos5ReadWrite, ok := v["kerberos5_read_write"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", kerberos5ReadWrite))
+				}
+				if kerberos5iReadOnly, ok := v["kerberos5i_read_only"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", kerberos5iReadOnly))
+				}
+				if kerberos5iReadWrite, ok := v["kerberos5i_read_write"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", kerberos5iReadWrite))
+				}
+				if kerberos5pReadOnly, ok := v["kerberos5p_read_only"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", kerberos5pReadOnly))
+				}
+				if kerberos5pReadWrite, ok := v["kerberos5p_read_write"].(bool); ok {
+					buf.WriteString(fmt.Sprintf("%t-", kerberos5pReadWrite))
+				}
+			}
+		}
+
+		if tags, ok := m["tags"].([]interface{}); ok {
+			for _, item := range tags {
+				i := item.(map[string]interface{})
+				for k, v := range i {
+					buf.WriteString(fmt.Sprintf("%s-%s-", k, v))
+				}
+			}
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
 }
 
 func (r NetAppVolumeGroupResource) Attributes() map[string]*pluginsdk.Schema {

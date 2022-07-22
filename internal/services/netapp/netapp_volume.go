@@ -26,20 +26,20 @@ type NetAppVolumeGroupVolume struct {
 }
 
 type ExportPolicyRule struct {
-	RuleIndex           int      `tfschema:"rule_index"`
-	AllowedClients      []string `tfschema:"allowed_clients"`
-	CifsEnabled         bool     `tfschema:"cifs_enabled"`
-	Nfsv3Enabled        bool     `tfschema:"nfsv3_enabled"`
-	Nfsv41Enabled       bool     `tfschema:"nfsv41_enabled"`
-	UnixReadOnly        bool     `tfschema:"unix_read_only"`
-	UnixReadWrite       bool     `tfschema:"unix_read_write"`
-	RootAccessEnabled   bool     `tfschema:"root_access_enabled"`
-	Kerberos5ReadOnly   bool     `tfschema:"kerberos5_read_only"`
-	Kerberos5ReadWrite  bool     `tfschema:"kerberos5_read_write"`
-	Kerberos5iReadOnly  bool     `tfschema:"kerberos5i_read_only"`
-	Kerberos5iReadWrite bool     `tfschema:"kerberos5i_read_write"`
-	Kerberos5pReadOnly  bool     `tfschema:"kerberos5p_read_only"`
-	Kerberos5pReadWrite bool     `tfschema:"kerberos5p_read_write"`
+	RuleIndex           int    `tfschema:"rule_index"`
+	AllowedClients      string `tfschema:"allowed_clients"`
+	CifsEnabled         bool   `tfschema:"cifs_enabled"`
+	Nfsv3Enabled        bool   `tfschema:"nfsv3_enabled"`
+	Nfsv41Enabled       bool   `tfschema:"nfsv41_enabled"`
+	UnixReadOnly        bool   `tfschema:"unix_read_only"`
+	UnixReadWrite       bool   `tfschema:"unix_read_write"`
+	RootAccessEnabled   bool   `tfschema:"root_access_enabled"`
+	Kerberos5ReadOnly   bool   `tfschema:"kerberos5_read_only"`
+	Kerberos5ReadWrite  bool   `tfschema:"kerberos5_read_write"`
+	Kerberos5iReadOnly  bool   `tfschema:"kerberos5i_read_only"`
+	Kerberos5iReadWrite bool   `tfschema:"kerberos5i_read_write"`
+	Kerberos5pReadOnly  bool   `tfschema:"kerberos5p_read_only"`
+	Kerberos5pReadWrite bool   `tfschema:"kerberos5p_read_write"`
 }
 
 type DataProtectionReplication struct {
@@ -63,7 +63,7 @@ func expandNetAppVolumeGroupExportPolicyRule(input []ExportPolicyRule) *volumegr
 
 	for _, item := range input {
 		result := volumegroups.ExportPolicyRule{
-			AllowedClients:      utils.String(strings.Join(item.AllowedClients, ",")),
+			AllowedClients:      utils.String(item.AllowedClients),
 			Cifs:                utils.Bool(item.CifsEnabled),
 			Nfsv3:               utils.Bool(item.Nfsv3Enabled),
 			Nfsv41:              utils.Bool(item.Nfsv41Enabled),
@@ -225,7 +225,7 @@ func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportP
 		rule := ExportPolicyRule{}
 
 		rule.RuleIndex = int(*item.RuleIndex)
-		rule.AllowedClients = strings.Split(*item.AllowedClients, ",")
+		rule.AllowedClients = *item.AllowedClients
 		rule.CifsEnabled = *item.Cifs
 		rule.Nfsv3Enabled = *item.Nfsv3
 		rule.Nfsv41Enabled = *item.Nfsv41
