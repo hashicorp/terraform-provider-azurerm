@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `enable_accelerated_networking` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.
 
--> **Note:** Only certain Virtual Machine sizes are supported for Accelerated Networking - [more information can be found in this document](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli).
+-> **Note:** Only certain Virtual Machine sizes are supported for Accelerated Networking - [more information can be found in this document](https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli).
 
 -> **Note:** To use Accelerated Networking in an Availability Set, the Availability Set must be deployed onto an Accelerated Networking enabled cluster.
 
@@ -84,7 +84,7 @@ The `ip_configuration` block supports the following:
 
 * `name` - (Required) A name used for this IP Configuration.
 
-* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway Sku Load Balancer.
+* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 
 * `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 

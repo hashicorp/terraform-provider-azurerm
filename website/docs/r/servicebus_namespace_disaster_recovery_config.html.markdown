@@ -10,7 +10,7 @@ description: |-
 
 Manages a Disaster Recovery Config for a Service Bus Namespace.
 
-~> **NOTE:** Disaster Recovery Config is a Premium Sku only capability. 
+~> **NOTE:** Disaster Recovery Config is a Premium SKU only capability. 
 
 ## Example Usage
 
@@ -30,7 +30,7 @@ resource "azurerm_servicebus_namespace" "primary" {
 
 resource "azurerm_servicebus_namespace" "secondary" {
   name                = "servicebus-secondary"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Premium"
   capacity            = "1"

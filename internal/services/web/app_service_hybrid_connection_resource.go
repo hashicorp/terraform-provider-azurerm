@@ -8,15 +8,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/hybridconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
-	relayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +35,7 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_app_service_hybrid_connection` resource has been superseded by the `azurerm_function_app_hybrid_connection` and `azurerm_web_app_hybrid_connection` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+		DeprecationMessage: "The `azurerm_app_service_hybrid_connection` resource has been superseded by the `azurerm_function_app_hybrid_connection` and `azurerm_web_app_hybrid_connection` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -60,7 +58,7 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: relayValidate.HybridConnectionID,
+				ValidateFunc: hybridconnections.ValidateHybridConnectionID,
 			},
 
 			"hostname": {
@@ -118,7 +116,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 	defer cancel()
 
 	relayArmURI := d.Get("relay_id").(string)
-	relayId, err := relayParse.HybridConnectionID(relayArmURI)
+	relayId, err := hybridconnections.ParseHybridConnectionID(relayArmURI)
 	if err != nil {
 		return fmt.Errorf("parsing relay ID %q: %s", relayArmURI, err)
 	}
@@ -241,7 +239,7 @@ func resourceAppServiceHybridConnectionDelete(d *pluginsdk.ResourceData, meta in
 }
 
 func findRelayNamespace(ctx context.Context, client *namespaces.NamespacesClient, subscriptionId, name string) (*string, error) {
-	subId := namespaces.NewSubscriptionID(subscriptionId)
+	subId := commonids.NewSubscriptionID(subscriptionId)
 	relayNSIterator, err := client.ListComplete(ctx, subId)
 	if err != nil {
 		return nil, fmt.Errorf("listing Relay Namespaces: %+v", err)

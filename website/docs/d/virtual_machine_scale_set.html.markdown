@@ -55,19 +55,15 @@ An `identity` block exports the following:
 
 ---
 
-`network_profile` exports the following:
+`network_interface` exports the following:
 
 * `name` - The name of the network interface configuration.
 * `primary` - Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - An ip_configuration block as documented below.
-* `accelerated_networking` - Whether to enable accelerated networking or not.
-* `dns_settings` - A dns_settings block as documented below.
-* `ip_forwarding` - Whether IP forwarding is enabled on this NIC.
+* `ip_configuration` - An `ip_configuration` block as documented below.
+* `enable_accelerated_networking` - Whether to enable accelerated networking or not.
+* `dns_servers` - An array of the DNS servers in use.
+* `enable_ip_forwarding` - Whether IP forwarding is enabled on this NIC.
 * `network_security_group_id` - The identifier for the network security group.
-
-`dns_settings` exports the following:
-
-* `dns_servers` - The dns servers in use.
 
 `ip_configuration` exports the following:
 
@@ -78,13 +74,20 @@ An `identity` block exports the following:
 * `load_balancer_inbound_nat_rules_ids` - An array of references to inbound NAT pools for load balancers.
 * `primary` -  If this ip_configuration is the primary one.
 * `application_security_group_ids` -  The application security group IDs to use.
-* `public_ip_address_configuration` - The virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address_configuration` is documented below.
+* `public_ip_address` - The virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address` is documented below.
 
-`public_ip_address_configuration` exports the following:
+`public_ip_address` exports the following:
 
-* `name` - The name of the public ip address configuration
-* `idle_timeout` - The idle timeout in minutes.
-* `domain_name_label` - The domain name label for the dns settings.
+* `name` - The name of the public IP address configuration
+* `idle_timeout_in_minutes` - The idle timeout in minutes.
+* `domain_name_label` - The domain name label for the DNS settings.
+* `ip_tag` - A list of `ip_tag` blocks as defined below.
+* `public_ip_prefix_id` - The ID of the public IP prefix.
+
+`ip_tag` exports the following:
+
+* `tag` - The IP Tag associated with the Public IP.
+* `type` - The Type of IP Tag.
 
 
 ## Timeouts

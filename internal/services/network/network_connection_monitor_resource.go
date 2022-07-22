@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -45,7 +44,7 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 }
 
 func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -429,18 +428,6 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := out["endpoint"].Elem.(*pluginsdk.Resource)
-		s.Schema["virtual_machine_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: computeValidate.VirtualMachineID,
-			Deprecated:   "This property has been renamed to `target_resource_id` and will be removed in v3.0 of the provider.",
-		}
-	}
-
-	return out
 }
 
 func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -590,12 +577,6 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		if !features.ThreePointOhBeta() {
-			if v["target_resource_id"] != nil && v["target_resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
-				return nil, fmt.Errorf("`target_resource_id` and `virtual_machine_id` cannot be set together")
-			}
-		}
-
 		result := network.ConnectionMonitorEndpoint{
 			Name:   utils.String(v["name"].(string)),
 			Filter: expandNetworkConnectionMonitorEndpointFilter(v["filter"].([]interface{})),
@@ -641,12 +622,6 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 
 		if endpointType := v["target_resource_type"]; endpointType != "" {
 			result.Type = network.EndpointType(endpointType.(string))
-		}
-
-		if !features.ThreePointOhBeta() {
-			if vmId := v["virtual_machine_id"]; vmId != "" {
-				result.ResourceID = utils.String(vmId.(string))
-			}
 		}
 
 		results = append(results, result)

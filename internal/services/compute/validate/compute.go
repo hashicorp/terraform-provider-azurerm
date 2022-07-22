@@ -17,7 +17,7 @@ func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors 
 	}
 
 	length := len(value)
-	if length >= 80 {
+	if length > 80 {
 		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d.", k, length))
 	}
 
@@ -33,7 +33,7 @@ func SharedImageName(v interface{}, k string) (warnings []string, errors []error
 	}
 
 	length := len(value)
-	if length >= 80 {
+	if length > 80 {
 		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d.", k, length))
 	}
 
@@ -41,6 +41,31 @@ func SharedImageName(v interface{}, k string) (warnings []string, errors []error
 }
 
 func SharedImageVersionName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`).MatchString(value) && value != "latest" && value != "recent" {
+		errors = append(errors, fmt.Errorf("Expected %s to be in the format `1.2.3`, `latest`, or `recent` but got %q.", k, value))
+	}
+
+	return warnings, errors
+}
+
+func GalleryApplicationName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%s can only contain alphanumeric, full stops, dashes and underscores. Got %q.", k, value))
+	}
+
+	length := len(value)
+	if length > 80 {
+		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d.", k, length))
+	}
+
+	return warnings, errors
+}
+
+func GalleryApplicationVersionName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`).MatchString(value) && value != "latest" && value != "recent" {

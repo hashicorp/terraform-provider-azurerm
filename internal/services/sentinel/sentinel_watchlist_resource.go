@@ -28,6 +28,7 @@ type WatchlistModel struct {
 	Description             string   `tfschema:"description"`
 	Labels                  []string `tfschema:"labels"`
 	DefaultDuration         string   `tfschema:"default_duration"`
+	ItemSearchKey           string   `tfschema:"item_search_key"`
 }
 
 func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
@@ -45,6 +46,12 @@ func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 		},
 		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"item_search_key": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -124,10 +131,11 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 					// The only supported provider for now is "Microsoft"
 					Provider: utils.String("Microsoft"),
 
-					// The "source" and "contentType" represent the source file name which contains the watchlist items and its content type.
+					// The "source" represent the source file name which contains the watchlist items.
 					// Setting them here is merely to make the API happy.
-					Source:      securityinsight.Source("a.csv"),
-					ContentType: utils.String("Text/Csv"),
+					Source: securityinsight.Source("a.csv"),
+
+					ItemsSearchKey: utils.String(model.ItemSearchKey),
 				},
 			}
 
@@ -188,6 +196,9 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 				}
 				if props.DefaultDuration != nil {
 					model.DefaultDuration = *props.DefaultDuration
+				}
+				if props.ItemsSearchKey != nil {
+					model.ItemSearchKey = *props.ItemsSearchKey
 				}
 			}
 

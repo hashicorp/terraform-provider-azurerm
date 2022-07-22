@@ -22,10 +22,10 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_mysql_flexible_server" "test" {
+resource "azurerm_mysql_flexible_server" "example" {
   name                   = "example-mysql-flexible-server"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
   administrator_login    = "mysqladminun"
   administrator_password = "H@Sh1CoR3!"
   sku_name               = "B_Standard_B1s"

@@ -19,7 +19,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_server" "example" {
-  # ...
+  name                    = "example-postgre-server"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  sku_name                = "GP_Gen5_2"
+  version                 = "11"
+  ssl_enforcement_enabled = true
 }
 
 resource "azurerm_postgresql_firewall_rule" "example" {
@@ -67,7 +72,7 @@ The following arguments are supported:
 
 * `end_ip_address` - (Required) Specifies the End IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
 
--> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate)).
+-> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/rest/api/sql/firewallrules/createorupdate)).
 
 
 ## Attributes Reference

@@ -51,12 +51,12 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-resource "azurerm_storage_account_network_rules" "test" {
-  storage_account_id = azurerm_storage_account.test.id
+resource "azurerm_storage_account_network_rules" "example" {
+  storage_account_id = azurerm_storage_account.example.id
 
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.1"]
-  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  virtual_network_subnet_ids = [azurerm_subnet.example.id]
   bypass                     = ["Metrics"]
 }
 ```
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `bypass` to empty slice (`[]`) to remove it.
 
-* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 
 -> **NOTE** Small address ranges using "/31" or "/32" prefix sizes are not supported. These ranges should be configured using individual IP address rules without prefix specified.
 

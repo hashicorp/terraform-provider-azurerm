@@ -18,7 +18,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	DomainsClient := eventgrid.NewDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	DomainTopicsClient := eventgrid.NewDomainTopicsClient(o.SubscriptionId)
+	DomainTopicsClient := eventgrid.NewDomainTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DomainTopicsClient.Client, o.ResourceManagerAuthorizer)
 
 	EventSubscriptionsClient := eventgrid.NewEventSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

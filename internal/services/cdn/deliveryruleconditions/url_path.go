@@ -25,6 +25,8 @@ func URLPath() *pluginsdk.Resource {
 					string(cdn.URLPathOperatorGreaterThanOrEqual),
 					string(cdn.URLPathOperatorLessThan),
 					string(cdn.URLPathOperatorLessThanOrEqual),
+					string(cdn.URLPathOperatorRegEx),
+					string(cdn.URLPathOperatorWildcard),
 				}, false),
 			},
 

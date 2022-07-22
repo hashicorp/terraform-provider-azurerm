@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `storage_profile` - A `storage_profile` block as defined below.
 
-* `administrator_login` - The Administrator Login for the MariaDB Server.
+* `administrator_login` - The Administrator login for the MariaDB Server.
 
 * `version` - The version of MariaDB being used.
 

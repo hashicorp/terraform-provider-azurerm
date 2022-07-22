@@ -38,8 +38,6 @@ resource "azurerm_nat_gateway" "example" {
   name                    = "nat-Gateway"
   location                = azurerm_resource_group.example.location
   resource_group_name     = azurerm_resource_group.example.name
-  public_ip_address_ids   = [azurerm_public_ip.example.id]
-  public_ip_prefix_ids    = [azurerm_public_ip_prefix.example.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
   zones                   = ["1"]
@@ -58,9 +56,9 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `public_ip_address_ids` - (Optional / **Deprecated in favour of `azurerm_nat_gateway_public_ip_association`**) A list of Public IP Address ID's which should be associated with the NAT Gateway resource.
+* `public_ip_address_ids` - (Optional / **Deprecated in favour of `azurerm_nat_gateway_public_ip_association`**) A list of Public IP Address IDs which should be associated with the NAT Gateway resource.
 
-* `public_ip_prefix_ids` - (Optional) / **Deprecated in favour of `azurerm_nat_gateway_public_ip_prefix_association`**) A list of Public IP Prefix ID's which should be associated with the NAT Gateway resource.
+* `public_ip_prefix_ids` - (Optional) / **Deprecated in favour of `azurerm_nat_gateway_public_ip_prefix_association`**) A list of Public IP Prefix IDs which should be associated with the NAT Gateway resource.
 
 * `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
 

@@ -7,14 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -192,15 +189,9 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"termination_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
+			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
 
-			"zones": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaZones()
-				}
-
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": tags.Schema(),
 
@@ -252,13 +243,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		},
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			props.Zones = &zones
-		}
-	} else {
-		props.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		props.Zones = &zones
 	}
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{

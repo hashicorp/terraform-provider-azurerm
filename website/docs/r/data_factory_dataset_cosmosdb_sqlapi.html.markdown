@@ -32,8 +32,7 @@ resource "azurerm_data_factory" "example" {
 resource "azurerm_data_factory_linked_service_cosmosdb" "example" {
   name             = "example"
   data_factory_id  = azurerm_data_factory.example.id
-  account_endpoint = azurerm_cosmosdb_account.example.endpoint
-  account_key      = data.azurerm_cosmosdb_account.example.primary_access_key
+  account_endpoint = data.azurerm_cosmosdb_account.example.endpoint
   database         = "foo"
 }
 
@@ -50,7 +49,7 @@ resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "example" {
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 
-* `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 

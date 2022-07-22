@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceContainerGroup() *pluginsdk.Resource {
@@ -44,22 +44,22 @@ func dataSourceContainerGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.GroupsClient
+	client := meta.(*clients.Client).Containers.ContainerInstanceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := containerinstance.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.ContainerGroupsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -67,16 +67,20 @@ func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.ContainerGroupName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ContainerGroupProperties; props != nil {
-		if address := props.IPAddress; address != nil {
-			d.Set("ip_address", address.IP)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+		props := model.Properties
+		if address := props.IpAddress; address != nil {
+			d.Set("ip_address", address.Ip)
 			d.Set("fqdn", address.Fqdn)
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

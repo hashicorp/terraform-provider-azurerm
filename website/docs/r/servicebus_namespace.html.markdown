@@ -46,13 +46,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Defines which tier to use. Options are basic, standard or premium. Changing this forces a new resource to be created.
+* `sku` - (Required) Defines which tier to use. Options are `Basic`, `Standard` or `Premium`. Please note that setting this field to `Premium` will force the creation of a new resource.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium`, capacity can be `1`, `2`, `4`, `8` or `16`. When `sku` is `Basic` or `Standard`, capacity can be `0` only.
 
 * `customer_managed_key` - (Optional) An `customer_managed_key` block as defined below.
+
+* `local_auth_enabled` - (Optional) Whether or not SAS authentication is enabled for the Service Bus namespace. Defaults to `true`.
 
 * `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`.
 

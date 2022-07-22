@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the PostgreSQL Flexible Server exists.
 
-* `administrator_login` - The Administrator Login for the PostgreSQL Flexible Server.
+* `administrator_login` - The Administrator login for the PostgreSQL Flexible Server.
 
 * `backup_retention_days` -  The backup retention days for the PostgreSQL Flexible Server.
 

@@ -97,14 +97,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   name                = "example-Workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_connection_monitor" "example" {
-  name                 = "example-Monitor"
-  network_watcher_name = azurerm_network_watcher.example.name
-  resource_group_name  = azurerm_resource_group.example.name
-  location             = azurerm_network_watcher.example.location
+  name               = "example-Monitor"
+  network_watcher_id = azurerm_network_watcher.example.id
+  location           = azurerm_network_watcher.example.location
 
   endpoint {
     name               = "source"
@@ -140,7 +139,6 @@ resource "azurerm_network_connection_monitor" "example" {
     destination_endpoints    = ["destination"]
     source_endpoints         = ["source"]
     test_configuration_names = ["tcpName"]
-    disable                  = false
   }
 
   notes = "examplenote"
@@ -273,11 +271,11 @@ A `success_threshold` block supports the following:
 
 A `tcp_configuration` block supports the following:
 
-* `port` - (Required) The port for the Tcp connection.
+* `port` - (Required) The port for the TCP connection.
 
 * `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
-* `destination_port_behavior` - (Optional) The destination port behavior for the Tcp connection. Possible values are `None` and `ListenIfAvailable`.
+* `destination_port_behavior` - (Optional) The destination port behavior for the TCP connection. Possible values are `None` and `ListenIfAvailable`.
 
 ---
 

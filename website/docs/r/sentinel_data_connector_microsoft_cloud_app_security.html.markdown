@@ -64,6 +64,8 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
 
+-> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

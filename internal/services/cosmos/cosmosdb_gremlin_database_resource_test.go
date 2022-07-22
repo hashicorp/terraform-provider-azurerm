@@ -105,6 +105,21 @@ func TestAccCosmosGremlinDatabase_autoscale(t *testing.T) {
 	})
 }
 
+func TestAccCosmosGremlinDatabase_serverless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
+	r := CosmosGremlinDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serverless(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosGremlinDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.GremlinDatabaseID(state.ID)
 	if err != nil {
@@ -169,4 +184,16 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   }
 }
 `, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
+}
+
+func (CosmosGremlinDatabaseResource) serverless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_gremlin_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin", "EnableServerless"}), data.RandomInteger)
 }
