@@ -100,8 +100,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `resource_category` - The category of resource logs flowing.
-
 * `marketplace_subscription_status` - Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state.
 
 ---

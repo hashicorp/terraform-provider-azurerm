@@ -153,11 +153,6 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"resource_category": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"marketplace_subscription_status": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -251,7 +246,6 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `datadog_organization`: %+v", err)
 		}
 		d.Set("monitoring_enabled", props.MonitoringStatus == datadog.MonitoringStatusEnabled)
-		d.Set("resource_category", props.LiftrResourceCategory)
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
 	if resp.Sku != nil {
