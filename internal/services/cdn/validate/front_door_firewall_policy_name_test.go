@@ -64,7 +64,7 @@ func TestFrontDoorFirewallPolicyName(t *testing.T) {
 		{
 			// Start With Letter, End With Number
 			Input: "A1",
-			Valid: false,
+			Valid: true,
 		},
 
 		{
@@ -80,7 +80,7 @@ func TestFrontDoorFirewallPolicyName(t *testing.T) {
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
-			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
+			t.Fatalf("Testing value %q, Expected %t but got %t", tc.Input, tc.Valid, valid)
 		}
 	}
 }
