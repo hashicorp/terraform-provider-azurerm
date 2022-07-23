@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestFrontdoorSecurityPolicyID(t *testing.T) {
+func TestFrontDoorCustomDomainID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,32 +53,32 @@ func TestFrontdoorSecurityPolicyID(t *testing.T) {
 		},
 
 		{
-			// missing SecurityPolicyName
+			// missing CustomDomainName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for SecurityPolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
+			// missing value for CustomDomainName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/SECURITYPOLICIES/SECURITYPOLICY1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOMDOMAIN1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := FrontdoorSecurityPolicyID(tc.Input, "test")
+		_, errors := FrontDoorCustomDomainID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

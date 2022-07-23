@@ -9,45 +9,45 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type FrontdoorSecurityPolicyId struct {
-	SubscriptionId     string
-	ResourceGroup      string
-	ProfileName        string
-	SecurityPolicyName string
+type FrontDoorCustomDomainId struct {
+	SubscriptionId   string
+	ResourceGroup    string
+	ProfileName      string
+	CustomDomainName string
 }
 
-func NewFrontdoorSecurityPolicyID(subscriptionId, resourceGroup, profileName, securityPolicyName string) FrontdoorSecurityPolicyId {
-	return FrontdoorSecurityPolicyId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroup:      resourceGroup,
-		ProfileName:        profileName,
-		SecurityPolicyName: securityPolicyName,
+func NewFrontDoorCustomDomainID(subscriptionId, resourceGroup, profileName, customDomainName string) FrontDoorCustomDomainId {
+	return FrontDoorCustomDomainId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		ProfileName:      profileName,
+		CustomDomainName: customDomainName,
 	}
 }
 
-func (id FrontdoorSecurityPolicyId) String() string {
+func (id FrontDoorCustomDomainId) String() string {
 	segments := []string{
-		fmt.Sprintf("Security Policy Name %q", id.SecurityPolicyName),
+		fmt.Sprintf("Custom Domain Name %q", id.CustomDomainName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Frontdoor Security Policy", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Front Door Custom Domain", segmentsStr)
 }
 
-func (id FrontdoorSecurityPolicyId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/securityPolicies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
+func (id FrontDoorCustomDomainId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/customDomains/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 }
 
-// FrontdoorSecurityPolicyID parses a FrontdoorSecurityPolicy ID into an FrontdoorSecurityPolicyId struct
-func FrontdoorSecurityPolicyID(input string) (*FrontdoorSecurityPolicyId, error) {
+// FrontDoorCustomDomainID parses a FrontDoorCustomDomain ID into an FrontDoorCustomDomainId struct
+func FrontDoorCustomDomainID(input string) (*FrontDoorCustomDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorSecurityPolicyId{
+	resourceId := FrontDoorCustomDomainId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +63,7 @@ func FrontdoorSecurityPolicyID(input string) (*FrontdoorSecurityPolicyId, error)
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}
-	if resourceId.SecurityPolicyName, err = id.PopSegment("securityPolicies"); err != nil {
+	if resourceId.CustomDomainName, err = id.PopSegment("customDomains"); err != nil {
 		return nil, err
 	}
 
@@ -74,19 +74,19 @@ func FrontdoorSecurityPolicyID(input string) (*FrontdoorSecurityPolicyId, error)
 	return &resourceId, nil
 }
 
-// FrontdoorSecurityPolicyIDInsensitively parses an FrontdoorSecurityPolicy ID into an FrontdoorSecurityPolicyId struct, insensitively
-// This should only be used to parse an ID for rewriting, the FrontdoorSecurityPolicyID
+// FrontDoorCustomDomainIDInsensitively parses an FrontDoorCustomDomain ID into an FrontDoorCustomDomainId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontDoorCustomDomainID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func FrontdoorSecurityPolicyIDInsensitively(input string) (*FrontdoorSecurityPolicyId, error) {
+func FrontDoorCustomDomainIDInsensitively(input string) (*FrontDoorCustomDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorSecurityPolicyId{
+	resourceId := FrontDoorCustomDomainId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -111,15 +111,15 @@ func FrontdoorSecurityPolicyIDInsensitively(input string) (*FrontdoorSecurityPol
 		return nil, err
 	}
 
-	// find the correct casing for the 'securityPolicies' segment
-	securityPoliciesKey := "securityPolicies"
+	// find the correct casing for the 'customDomains' segment
+	customDomainsKey := "customDomains"
 	for key := range id.Path {
-		if strings.EqualFold(key, securityPoliciesKey) {
-			securityPoliciesKey = key
+		if strings.EqualFold(key, customDomainsKey) {
+			customDomainsKey = key
 			break
 		}
 	}
-	if resourceId.SecurityPolicyName, err = id.PopSegment(securityPoliciesKey); err != nil {
+	if resourceId.CustomDomainName, err = id.PopSegment(customDomainsKey); err != nil {
 		return nil, err
 	}
 

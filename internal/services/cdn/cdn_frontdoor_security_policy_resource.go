@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
+func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorSecurityPolicyCreate,
 		Read:   resourceCdnFrontdoorSecurityPolicyRead,
@@ -30,7 +30,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorSecurityPolicyID(id)
+			_, err := parse.FrontDoorSecurityPolicyID(id)
 			return err
 		}),
 
@@ -75,7 +75,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 										ForceNew: true,
 										// TODO: validation for the ID type
 										// WS: Fixed
-										ValidateFunc: validate.FrontdoorPolicyID,
+										ValidateFunc: validate.FrontDoorFirewallPolicyID,
 									},
 
 									"association": {
@@ -103,7 +103,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 																Type:         pluginsdk.TypeString,
 																Required:     true,
 																ForceNew:     true,
-																ValidateFunc: validate.CdnFrontdoorDomainID,
+																ValidateFunc: validate.FrontDoorSecurityPolicyDomainID,
 															},
 
 															"active": {
@@ -156,7 +156,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	securityPolicyName := d.Get("name").(string)
-	id := parse.NewFrontdoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
+	id := parse.NewFrontDoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
@@ -215,7 +215,7 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorSecurityPolicyID(d.Id())
+	id, err := parse.FrontDoorSecurityPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorSecurityPolicyID(d.Id())
+	id, err := parse.FrontDoorSecurityPolicyID(d.Id())
 	if err != nil {
 		return err
 	}

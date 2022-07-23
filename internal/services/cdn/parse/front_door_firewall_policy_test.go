@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = FrontdoorPolicyId{}
+var _ resourceids.Id = FrontDoorFirewallPolicyId{}
 
-func TestFrontdoorPolicyIDFormatter(t *testing.T) {
-	actual := NewFrontdoorPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "policy1").ID()
+func TestFrontDoorFirewallPolicyIDFormatter(t *testing.T) {
+	actual := NewFrontDoorFirewallPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "policy1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/policy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFrontdoorPolicyID(t *testing.T) {
+func TestFrontDoorFirewallPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorPolicyId
+		Expected *FrontDoorFirewallPolicyId
 	}{
 
 		{
@@ -70,7 +70,7 @@ func TestFrontdoorPolicyID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/policy1",
-			Expected: &FrontdoorPolicyId{
+			Expected: &FrontDoorFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				FrontDoorWebApplicationFirewallPolicyName: "policy1",
@@ -87,7 +87,7 @@ func TestFrontdoorPolicyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorPolicyID(v.Input)
+		actual, err := FrontDoorFirewallPolicyID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -111,11 +111,11 @@ func TestFrontdoorPolicyID(t *testing.T) {
 	}
 }
 
-func TestFrontdoorPolicyIDInsensitively(t *testing.T) {
+func TestFrontDoorFirewallPolicyIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorPolicyId
+		Expected *FrontDoorFirewallPolicyId
 	}{
 
 		{
@@ -163,7 +163,7 @@ func TestFrontdoorPolicyIDInsensitively(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/policy1",
-			Expected: &FrontdoorPolicyId{
+			Expected: &FrontDoorFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				FrontDoorWebApplicationFirewallPolicyName: "policy1",
@@ -173,7 +173,7 @@ func TestFrontdoorPolicyIDInsensitively(t *testing.T) {
 		{
 			// lower-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoorwebapplicationfirewallpolicies/policy1",
-			Expected: &FrontdoorPolicyId{
+			Expected: &FrontDoorFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				FrontDoorWebApplicationFirewallPolicyName: "policy1",
@@ -183,7 +183,7 @@ func TestFrontdoorPolicyIDInsensitively(t *testing.T) {
 		{
 			// upper-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FRONTDOORWEBAPPLICATIONFIREWALLPOLICIES/policy1",
-			Expected: &FrontdoorPolicyId{
+			Expected: &FrontDoorFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				FrontDoorWebApplicationFirewallPolicyName: "policy1",
@@ -193,7 +193,7 @@ func TestFrontdoorPolicyIDInsensitively(t *testing.T) {
 		{
 			// mixed-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrOnTdOoRwEbApPlIcAtIoNfIrEwAlLpOlIcIeS/policy1",
-			Expected: &FrontdoorPolicyId{
+			Expected: &FrontDoorFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				FrontDoorWebApplicationFirewallPolicyName: "policy1",
@@ -204,7 +204,7 @@ func TestFrontdoorPolicyIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorPolicyIDInsensitively(v.Input)
+		actual, err := FrontDoorFirewallPolicyIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

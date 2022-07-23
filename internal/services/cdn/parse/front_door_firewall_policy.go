@@ -9,42 +9,42 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type FrontdoorPolicyId struct {
+type FrontDoorFirewallPolicyId struct {
 	SubscriptionId                            string
 	ResourceGroup                             string
 	FrontDoorWebApplicationFirewallPolicyName string
 }
 
-func NewFrontdoorPolicyID(subscriptionId, resourceGroup, frontDoorWebApplicationFirewallPolicyName string) FrontdoorPolicyId {
-	return FrontdoorPolicyId{
+func NewFrontDoorFirewallPolicyID(subscriptionId, resourceGroup, frontDoorWebApplicationFirewallPolicyName string) FrontDoorFirewallPolicyId {
+	return FrontDoorFirewallPolicyId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		FrontDoorWebApplicationFirewallPolicyName: frontDoorWebApplicationFirewallPolicyName,
 	}
 }
 
-func (id FrontdoorPolicyId) String() string {
+func (id FrontDoorFirewallPolicyId) String() string {
 	segments := []string{
 		fmt.Sprintf("Front Door Web Application Firewall Policy Name %q", id.FrontDoorWebApplicationFirewallPolicyName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Frontdoor Policy", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Front Door Firewall Policy", segmentsStr)
 }
 
-func (id FrontdoorPolicyId) ID() string {
+func (id FrontDoorFirewallPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 }
 
-// FrontdoorPolicyID parses a FrontdoorPolicy ID into an FrontdoorPolicyId struct
-func FrontdoorPolicyID(input string) (*FrontdoorPolicyId, error) {
+// FrontDoorFirewallPolicyID parses a FrontDoorFirewallPolicy ID into an FrontDoorFirewallPolicyId struct
+func FrontDoorFirewallPolicyID(input string) (*FrontDoorFirewallPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorPolicyId{
+	resourceId := FrontDoorFirewallPolicyId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -68,19 +68,19 @@ func FrontdoorPolicyID(input string) (*FrontdoorPolicyId, error) {
 	return &resourceId, nil
 }
 
-// FrontdoorPolicyIDInsensitively parses an FrontdoorPolicy ID into an FrontdoorPolicyId struct, insensitively
-// This should only be used to parse an ID for rewriting, the FrontdoorPolicyID
+// FrontDoorFirewallPolicyIDInsensitively parses an FrontDoorFirewallPolicy ID into an FrontDoorFirewallPolicyId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontDoorFirewallPolicyID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func FrontdoorPolicyIDInsensitively(input string) (*FrontdoorPolicyId, error) {
+func FrontDoorFirewallPolicyIDInsensitively(input string) (*FrontDoorFirewallPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorPolicyId{
+	resourceId := FrontDoorFirewallPolicyId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

@@ -8,39 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 )
 
-func CdnFrontdoorEndpointName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `^[\da-zA-Z][-\da-zA-Z]{0,44}[\da-zA-Z]$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 46 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens, got %q`, k, i))
-	}
-
-	return nil, nil
-}
-
-func CdnFrontdoorName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `^[\da-zA-Z][-\da-zA-Z]{0,88}[\da-zA-Z]$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 90 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens, got %q`, k, i))
-	}
-
-	return nil, nil
-}
-
-func CdnFrontdoorOriginGroupName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `^[\da-zA-Z][-\da-zA-Z]{0,88}[\da-zA-Z]$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 90 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens, got %q`, k, i))
-	}
-
-	return nil, nil
-}
-
-func CdnFrontdoorOriginName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `^[\da-zA-Z][-\da-zA-Z]{0,88}[\da-zA-Z]$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 90 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens, got %q`, k, i))
-	}
-
-	return nil, nil
-}
-
-func CdnFrontdoorRouteName(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorRouteName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `^[\da-zA-Z][-\da-zA-Z]{0,88}[\da-zA-Z]$`); !m {
 		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 90 characters begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens, got %q`, k, i))
 	}
@@ -48,7 +16,7 @@ func CdnFrontdoorRouteName(i interface{}, k string) (_ []string, errors []error)
 	return nil, nil
 }
 
-func CdnFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -69,7 +37,7 @@ func CdnFrontdoorCacheDuration(i interface{}, k string) (_ []string, errors []er
 	return nil, nil
 }
 
-func CdnFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -82,7 +50,7 @@ func CdnFrontdoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string
 	return nil, nil
 }
 
-func CdnFrontdoorCustomDomainName(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorCustomDomainName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -95,7 +63,7 @@ func CdnFrontdoorCustomDomainName(i interface{}, k string) (_ []string, errors [
 	return nil, nil
 }
 
-func CdnFrontdoorSecretName(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -103,14 +71,6 @@ func CdnFrontdoorSecretName(i interface{}, k string) (_ []string, errors []error
 
 	if m, _ := validate.RegExHelper(i, k, `^[a-zA-Z0-9][a-zA-Z0-9-]{0,258}[a-zA-Z0-9]$`); !m {
 		return nil, []error{fmt.Errorf(`%q must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number and contain only letters, numbers and hyphens, got %q`, k, v)}
-	}
-
-	return nil, nil
-}
-
-func LegacyFrontdoorWAFName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{0,127})$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 128 characters in length, must begin with a letter and may only contain letters and numbers`, k))
 	}
 
 	return nil, nil
@@ -124,7 +84,7 @@ func LegacyCustomBlockResponseBody(i interface{}, k string) (_ []string, errors 
 	return nil, nil
 }
 
-func CdnFrontdoorActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
+func CdnFrontDoorActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
 	routeConfigurationOverride := false
 	responseHeader := false
 	requestHeader := false
@@ -160,7 +120,7 @@ func CdnFrontdoorActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
 	return nil
 }
 
-func CdnFrontdoorRuleName(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorRuleName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -173,20 +133,7 @@ func CdnFrontdoorRuleName(i interface{}, k string) (_ []string, errors []error) 
 	return nil, nil
 }
 
-func CdnFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if m, _ := validate.RegExHelper(i, k, `^[a-zA-Z][\da-zA-Z]{0,59}$`); !m {
-		return nil, []error{fmt.Errorf(`%q must be between 1 and 60 characters in length, begin with a letter and may contain only letters and numbers, got %q`, k, v)}
-	}
-
-	return nil, nil
-}
-
-func CdnFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
@@ -208,15 +155,12 @@ func CdnFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (_ []stri
 	return nil, nil
 }
 
-func CdnFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontDoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
 	}
 
-	// TODO: we don't mention the below in the error, but we probably should?
-	// WS: It is mentioned in the documentation, but I can add here as well if you would like.
-	// Path cannot be empty and must begin with /. Leave empty to use the incoming path as destination path.
 	if v != "" {
 		if !strings.HasPrefix(v, "/") {
 			return nil, []error{fmt.Errorf("%q is invalid: %q must begin with a %q, got %q. If you are trying to preserve the incoming path leave the %q value empty", "url_redirect_action", k, "/", v, "destination_path")}
@@ -224,23 +168,4 @@ func CdnFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []
 	}
 
 	return nil, nil
-}
-
-func CdnFrontdoorDomainID(i interface{}, k string) (_ []string, errors []error) {
-	_, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "domain", k)}
-	}
-
-	var err []error
-
-	if _, err = FrontdoorCustomDomainID(i, k); err == nil {
-		return nil, nil
-	}
-
-	if _, err = FrontDoorEndpointID(i, k); err == nil {
-		return nil, nil
-	}
-
-	return nil, []error{fmt.Errorf("%q is invalid: the %q needs to be a valid Frontdoor Custom Domain ID or a Frontdoor Endpoint ID: %+v", "domain", k, err)}
 }

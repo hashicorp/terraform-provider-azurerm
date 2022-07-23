@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = FrontdoorSecurityPolicyId{}
+var _ resourceids.Id = FrontDoorSecurityPolicyId{}
 
-func TestFrontdoorSecurityPolicyIDFormatter(t *testing.T) {
-	actual := NewFrontdoorSecurityPolicyID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1", "securityPolicy1").ID()
+func TestFrontDoorSecurityPolicyIDFormatter(t *testing.T) {
+	actual := NewFrontDoorSecurityPolicyID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1", "securityPolicy1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFrontdoorSecurityPolicyID(t *testing.T) {
+func TestFrontDoorSecurityPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorSecurityPolicyId
+		Expected *FrontDoorSecurityPolicyId
 	}{
 
 		{
@@ -82,7 +82,7 @@ func TestFrontdoorSecurityPolicyID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
-			Expected: &FrontdoorSecurityPolicyId{
+			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:      "resourceGroup1",
 				ProfileName:        "profile1",
@@ -100,7 +100,7 @@ func TestFrontdoorSecurityPolicyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorSecurityPolicyID(v.Input)
+		actual, err := FrontDoorSecurityPolicyID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -127,11 +127,11 @@ func TestFrontdoorSecurityPolicyID(t *testing.T) {
 	}
 }
 
-func TestFrontdoorSecurityPolicyIDInsensitively(t *testing.T) {
+func TestFrontDoorSecurityPolicyIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorSecurityPolicyId
+		Expected *FrontDoorSecurityPolicyId
 	}{
 
 		{
@@ -191,7 +191,7 @@ func TestFrontdoorSecurityPolicyIDInsensitively(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
-			Expected: &FrontdoorSecurityPolicyId{
+			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:      "resourceGroup1",
 				ProfileName:        "profile1",
@@ -202,7 +202,7 @@ func TestFrontdoorSecurityPolicyIDInsensitively(t *testing.T) {
 		{
 			// lower-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securitypolicies/securityPolicy1",
-			Expected: &FrontdoorSecurityPolicyId{
+			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:      "resourceGroup1",
 				ProfileName:        "profile1",
@@ -213,7 +213,7 @@ func TestFrontdoorSecurityPolicyIDInsensitively(t *testing.T) {
 		{
 			// upper-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PROFILES/profile1/SECURITYPOLICIES/securityPolicy1",
-			Expected: &FrontdoorSecurityPolicyId{
+			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:      "resourceGroup1",
 				ProfileName:        "profile1",
@@ -224,7 +224,7 @@ func TestFrontdoorSecurityPolicyIDInsensitively(t *testing.T) {
 		{
 			// mixed-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/SeCuRiTyPoLiCiEs/securityPolicy1",
-			Expected: &FrontdoorSecurityPolicyId{
+			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:      "resourceGroup1",
 				ProfileName:        "profile1",
@@ -236,7 +236,7 @@ func TestFrontdoorSecurityPolicyIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorSecurityPolicyIDInsensitively(v.Input)
+		actual, err := FrontDoorSecurityPolicyIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

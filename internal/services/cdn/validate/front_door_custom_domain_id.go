@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 )
 
-func FrontdoorSecurityPolicyID(input interface{}, key string) (warnings []string, errors []error) {
+func FrontDoorCustomDomainID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.FrontdoorSecurityPolicyID(v); err != nil {
+	if _, err := parse.FrontDoorCustomDomainID(v); err != nil {
 		errors = append(errors, err)
 	}
 
