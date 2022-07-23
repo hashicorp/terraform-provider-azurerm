@@ -1720,6 +1720,7 @@ resource "azurerm_app_service_plan" "test" {
 func (LogicAppStandardResource) vNetIntegration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1747,51 +1748,52 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-	name                = "vnet-%[1]d"
-	address_space       = ["10.0.0.0/16"]
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "vnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-	resource "azurerm_subnet" "test1" {
-	name                 = "subnet1"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.0.1.0/24"]
-	delegation {
-		name = "delegation"
-		service_delegation {
-		name    = "Microsoft.Web/serverFarms"
-		actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-		}
-	}
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
-	resource "azurerm_subnet" "test2" {
-	name                 = "subnet2"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.0.2.0/24"]
-	delegation {
-		name = "delegation"
-		service_delegation {
-		name    = "Microsoft.Web/serverFarms"
-		actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-		}
-	}
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 
 resource "azurerm_logic_app_standard" "test" {
-	name                       = "acctest-%[1]d-func"
-	location                   = azurerm_resource_group.test.location
-	resource_group_name        = azurerm_resource_group.test.name
-	app_service_plan_id        = azurerm_app_service_plan.test.id
-	storage_account_name       = azurerm_storage_account.test.name
-	storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  
-	site_config {
-	  app_scale_limit = 1
-	}
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    app_scale_limit = 1
   }
+}
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1799,6 +1801,7 @@ resource "azurerm_logic_app_standard" "test" {
 func (LogicAppStandardResource) vNetIntegration_subnet1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1826,52 +1829,53 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-	name                = "vnet-%[1]d"
-	address_space       = ["10.0.0.0/16"]
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "vnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-	resource "azurerm_subnet" "test1" {
-	name                 = "subnet1"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.0.1.0/24"]
-	delegation {
-		name = "delegation"
-		service_delegation {
-		name    = "Microsoft.Web/serverFarms"
-		actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-		}
-	}
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
-	resource "azurerm_subnet" "test2" {
-	name                 = "subnet2"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.0.2.0/24"]
-	delegation {
-		name = "delegation"
-		service_delegation {
-		name    = "Microsoft.Web/serverFarms"
-		actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-		}
-	}
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 
 resource "azurerm_logic_app_standard" "test" {
-	name                       = "acctest-%[1]d-func"
-	location                   = azurerm_resource_group.test.location
-	resource_group_name        = azurerm_resource_group.test.name
-	app_service_plan_id        = azurerm_app_service_plan.test.id
-	storage_account_name       = azurerm_storage_account.test.name
-	storage_account_access_key = azurerm_storage_account.test.primary_access_key
-	virtual_network_subnet_id  = azurerm_subnet.test1.id
-  
-	site_config {
-	  app_scale_limit = 1
-	}
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  virtual_network_subnet_id  = azurerm_subnet.test1.id
+
+  site_config {
+    app_scale_limit = 1
   }
+}
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1879,6 +1883,7 @@ resource "azurerm_logic_app_standard" "test" {
 func (LogicAppStandardResource) vNetIntegration_subnet2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1906,52 +1911,53 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-	name                = "vnet-%[1]d"
-	address_space       = ["10.0.0.0/16"]
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "vnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-	resource "azurerm_subnet" "test1" {
-	name                 = "subnet1"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.0.1.0/24"]
-	delegation {
-		name = "delegation"
-		service_delegation {
-		name    = "Microsoft.Web/serverFarms"
-		actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-		}
-	}
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
-	resource "azurerm_subnet" "test2" {
-	name                 = "subnet2"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.0.2.0/24"]
-	delegation {
-		name = "delegation"
-		service_delegation {
-		name    = "Microsoft.Web/serverFarms"
-		actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-		}
-	}
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 
 resource "azurerm_logic_app_standard" "test" {
-	name                       = "acctest-%[1]d-func"
-	location                   = azurerm_resource_group.test.location
-	resource_group_name        = azurerm_resource_group.test.name
-	app_service_plan_id        = azurerm_app_service_plan.test.id
-	storage_account_name       = azurerm_storage_account.test.name
-	storage_account_access_key = azurerm_storage_account.test.primary_access_key
-	virtual_network_subnet_id  = azurerm_subnet.test2.id
-  
-	site_config {
-	  app_scale_limit = 1
-	}
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  virtual_network_subnet_id  = azurerm_subnet.test2.id
+
+  site_config {
+    app_scale_limit = 1
   }
+}
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
