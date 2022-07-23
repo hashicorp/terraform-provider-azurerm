@@ -312,6 +312,8 @@ A `default_node_pool` block supports the following:
 
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`. Changing this forces a new resource to be created.
 
+* `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
+
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets`.
@@ -351,8 +353,6 @@ A `default_node_pool` block supports the following:
 * `os_sku` - (Optional) OsSKU to be used to specify Linux OSType. Not applicable to Windows OSType. Possible values include: `Ubuntu`, `CBLMariner`. Defaults to `Ubuntu`. Changing this forces a new resource to be created.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 

@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"

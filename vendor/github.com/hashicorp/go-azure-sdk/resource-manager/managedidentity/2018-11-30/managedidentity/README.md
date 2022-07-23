@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-
 ```go
 client := managedidentity.NewManagedIdentityClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -27,7 +24,8 @@ if err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentity.NewScopeID()
+id := managedidentity.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+
 read, err := client.SystemAssignedIdentitiesGetByScope(ctx, id)
 if err != nil {
 	// handle the error
@@ -42,11 +40,12 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentity.NewUserAssignedIdentityID()
+id := managedidentity.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
 
 payload := managedidentity.Identity{
 	// ...
 }
+
 
 read, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -62,7 +61,8 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentity.NewUserAssignedIdentityID()
+id := managedidentity.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+
 read, err := client.UserAssignedIdentitiesDelete(ctx, id)
 if err != nil {
 	// handle the error
@@ -77,7 +77,8 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentity.NewUserAssignedIdentityID()
+id := managedidentity.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+
 read, err := client.UserAssignedIdentitiesGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -92,7 +93,8 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentity.NewResourceGroupID()
+id := managedidentity.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+
 // alternatively `client.UserAssignedIdentitiesListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.UserAssignedIdentitiesListByResourceGroupComplete(ctx, id)
 if err != nil {
@@ -108,7 +110,8 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedidentity.NewSubscriptionID()
+id := managedidentity.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
 // alternatively `client.UserAssignedIdentitiesListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.UserAssignedIdentitiesListBySubscriptionComplete(ctx, id)
 if err != nil {
@@ -124,11 +127,12 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedidentity.NewUserAssignedIdentityID()
+id := managedidentity.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
 
 payload := managedidentity.IdentityUpdate{
 	// ...
 }
+
 
 read, err := client.UserAssignedIdentitiesUpdate(ctx, id, payload)
 if err != nil {

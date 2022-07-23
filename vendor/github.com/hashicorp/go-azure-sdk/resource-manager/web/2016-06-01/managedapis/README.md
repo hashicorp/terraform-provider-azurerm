@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/manage
 ```go
 client := managedapis.NewManagedAPIsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -28,6 +25,7 @@ if err != nil {
 ```go
 ctx := context.TODO()
 id := managedapis.NewManagedApiID("12345678-1234-9876-4563-123456789012", "locationValue", "apiValue")
+
 read, err := client.ManagedApisGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -43,6 +41,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := managedapis.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+
 read, err := client.ManagedApisList(ctx, id)
 if err != nil {
 	// handle the error

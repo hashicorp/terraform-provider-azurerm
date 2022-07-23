@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -572,6 +571,11 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			currentStack := ""
+			stateConfig := state.SiteConfig[0]
+			if len(stateConfig.ApplicationStack) == 1 {
+				currentStack = stateConfig.ApplicationStack[0].CurrentStack
+			}
+
 			if metadata.ResourceData.HasChange("site_config") {
 				siteConfig, stack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata)
 				if err != nil {

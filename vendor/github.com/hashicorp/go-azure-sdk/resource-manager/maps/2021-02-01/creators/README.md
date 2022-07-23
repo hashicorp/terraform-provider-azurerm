@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/creat
 ```go
 client := creators.NewCreatorsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := creators.NewCreatorID("12345678-1234-9876-4563-123456789012", "example-res
 payload := creators.Creator{
 	// ...
 }
+
 
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := creators.NewCreatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "creatorValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := creators.NewCreatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "creatorValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := creators.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
 // alternatively `client.ListByAccount(ctx, id)` can be used to do batched pagination
 items, err := client.ListByAccountComplete(ctx, id)
 if err != nil {
@@ -98,6 +99,7 @@ id := creators.NewCreatorID("12345678-1234-9876-4563-123456789012", "example-res
 payload := creators.CreatorUpdateParameters{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {

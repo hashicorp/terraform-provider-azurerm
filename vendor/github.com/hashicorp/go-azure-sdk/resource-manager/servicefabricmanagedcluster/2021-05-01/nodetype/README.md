@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedc
 ```go
 client := nodetype.NewNodeTypeClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -33,11 +30,8 @@ payload := nodetype.NodeType{
 	// ...
 }
 
-future, err := client.CreateOrUpdate(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -48,11 +42,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "nodeTypeValue")
-future, err := client.Delete(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -68,11 +59,8 @@ payload := nodetype.NodeTypeActionParameters{
 	// ...
 }
 
-future, err := client.DeleteNode(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteNodeThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -83,6 +71,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "nodeTypeValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -98,6 +87,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := nodetype.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+
 // alternatively `client.ListByManagedClusters(ctx, id)` can be used to do batched pagination
 items, err := client.ListByManagedClustersComplete(ctx, id)
 if err != nil {
@@ -119,11 +109,8 @@ payload := nodetype.NodeTypeActionParameters{
 	// ...
 }
 
-future, err := client.Reimage(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ReimageThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -139,11 +126,8 @@ payload := nodetype.NodeTypeActionParameters{
 	// ...
 }
 
-future, err := client.Restart(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.RestartThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -158,6 +142,7 @@ id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-re
 payload := nodetype.NodeTypeUpdateParameters{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {
