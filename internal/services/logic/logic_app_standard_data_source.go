@@ -236,7 +236,6 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
-		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
@@ -246,6 +245,10 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	appSettings := flattenLogicAppStandardDataSourceAppSettings(appSettingsResp.Properties)
+
+	if err = d.Set("virtual_network_subnet_id", resp.SiteProperties.VirtualNetworkSubnetID); err != nil {
+		return err
+	}
 
 	if err = d.Set("connection_string", flattenLogicAppStandardDataSourceConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
