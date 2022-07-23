@@ -156,6 +156,11 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"virtual_network_subnet_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"site_credential": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -231,6 +236,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
