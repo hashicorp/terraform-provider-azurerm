@@ -7,6 +7,10 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
+		AppConfiguration: AppConfigurationFeatures{
+			PurgeSoftDeleteOnDestroy: true,
+			RecoverSoftDeleted:       true,
+		},
 		ApplicationInsights: ApplicationInsightFeatures{
 			DisableGeneratedRule: false,
 		},

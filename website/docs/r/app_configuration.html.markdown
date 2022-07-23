@@ -42,7 +42,25 @@ The following arguments are supported:
 
 ~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
 
+* `encrption` - (Optional) An `encryption` block as defined below.
+
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. 
+
+* `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to `true`.
+
+* `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_vault_key_identifier` - (Optional) Specifies the URI of the key vault key used to encrypt data.
+
+* `identity_client_id` - (Optional) Specifies the client id of the identity which will be used to access key vault.
 
 ---
 

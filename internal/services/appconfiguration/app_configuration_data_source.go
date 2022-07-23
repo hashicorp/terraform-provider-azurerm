@@ -34,8 +34,49 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_identifier": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"identity_client_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"purge_protection_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"soft_delete_retention_days": {
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
@@ -177,6 +218,22 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
+			d.Set("public_network_access_enabled", flattenAppConfigurationPublicNetworkAccess(props.PublicNetworkAccess))
+			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !(*props.DisableLocalAuth)
+			}
+
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			purgeProtectionEnabled := false
+			if props.EnablePurgeProtection != nil {
+				purgeProtectionEnabled = *props.EnablePurgeProtection
+			}
+			d.Set("purge_protection_enabled", purgeProtectionEnabled)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)

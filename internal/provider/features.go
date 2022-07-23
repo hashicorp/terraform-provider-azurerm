@@ -34,6 +34,27 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"app_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"purge_soft_delete_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"recover_soft_deleted": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+
 		"application_insights": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -287,6 +308,19 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := apimRaw["recover_soft_deleted"]; ok {
 				featuresMap.ApiManagement.RecoverSoftDeleted = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["app_configuration"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			appConfRaw := items[0].(map[string]interface{})
+			if v, ok := appConfRaw["purge_soft_delete_on_destroy"]; ok {
+				featuresMap.AppConfiguration.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
+			if v, ok := appConfRaw["recover_soft_deleted"]; ok {
+				featuresMap.AppConfiguration.RecoverSoftDeleted = v.(bool)
 			}
 		}
 	}

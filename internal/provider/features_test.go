@@ -22,6 +22,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
 				},
+				AppConfiguration: features.AppConfigurationFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+					RecoverSoftDeleted:       true,
+				},
 				ApplicationInsights: features.ApplicationInsightFeatures{
 					DisableGeneratedRule: false,
 				},
@@ -65,6 +69,12 @@ func TestExpandFeatures(t *testing.T) {
 			Input: []interface{}{
 				map[string]interface{}{
 					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+							"recover_soft_deleted":         true,
+						},
+					},
+					"app_configuration": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
 							"recover_soft_deleted":         true,
@@ -134,6 +144,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
 				},
+				AppConfiguration: features.AppConfigurationFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+					RecoverSoftDeleted:       true,
+				},
 				ApplicationInsights: features.ApplicationInsightFeatures{
 					DisableGeneratedRule: true,
 				},
@@ -177,6 +191,12 @@ func TestExpandFeatures(t *testing.T) {
 			Input: []interface{}{
 				map[string]interface{}{
 					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+							"recover_soft_deleted":         false,
+						},
+					},
+					"app_configuration": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
 							"recover_soft_deleted":         false,
@@ -243,6 +263,10 @@ func TestExpandFeatures(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+					RecoverSoftDeleted:       false,
+				},
+				AppConfiguration: features.AppConfigurationFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 					RecoverSoftDeleted:       false,
 				},
@@ -361,6 +385,76 @@ func TestExpandFeaturesApiManagement(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ApiManagement, testCase.Expected.ApiManagement) {
 			t.Fatalf("Expected %+v but got %+v", result.ApiManagement, testCase.Expected.ApiManagement)
+		}
+	}
+}
+
+func TestExpandFeaturesAppConfiguration(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"app_configuration": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				AppConfiguration: features.AppConfigurationFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+					RecoverSoftDeleted:       true,
+				},
+			},
+		},
+		{
+			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted App Configuration Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"app_configuration": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+							"recover_soft_deleted":         true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				AppConfiguration: features.AppConfigurationFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+					RecoverSoftDeleted:       true,
+				},
+			},
+		},
+		{
+			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted App Configuration Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"app_configuration": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+							"recover_soft_deleted":         false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				AppConfiguration: features.AppConfigurationFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+					RecoverSoftDeleted:       false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.AppConfiguration, testCase.Expected.AppConfiguration) {
+			t.Fatalf("Expected %+v but got %+v", result.AppConfiguration, testCase.Expected.AppConfiguration)
 		}
 	}
 }
