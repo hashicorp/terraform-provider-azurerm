@@ -523,10 +523,6 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	// if subnetId := utils.NormalizeNilableString(resp.VirtualNetworkSubnetID); subnetId != "" {
-	// 	d.Set("virtual_network_subnet_id", resp.VirtualNetworkSubnetID)
-	// }
-
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("enabled", props.Enabled)
