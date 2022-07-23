@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorFirewallPolicyResource struct{}
+type CdnFrontDoorFirewallPolicyResource struct{}
 
-func TestAccCdnFrontdoorFirewallPolicy_basic(t *testing.T) {
+func TestAccCdnFrontDoorFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontdoorFirewallPolicyResource{}
+	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccCdnFrontdoorFirewallPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorFirewallPolicy_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontdoorFirewallPolicyResource{}
+	r := CdnFrontDoorFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,9 +44,9 @@ func TestAccCdnFrontdoorFirewallPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorFirewallPolicy_update(t *testing.T) {
+func TestAccCdnFrontDoorFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontdoorFirewallPolicyResource{}
+	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.update(data),
@@ -70,9 +70,9 @@ func TestAccCdnFrontdoorFirewallPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorFirewallPolicy_complete(t *testing.T) {
+func TestAccCdnFrontDoorFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontdoorFirewallPolicyResource{}
+	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -84,7 +84,7 @@ func TestAccCdnFrontdoorFirewallPolicy_complete(t *testing.T) {
 	})
 }
 
-func (CdnFrontdoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorFirewallPolicyIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (CdnFrontdoorFirewallPolicyResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(true), nil
 }
 
-func (CdnFrontdoorFirewallPolicyResource) template(data acceptance.TestData) string {
+func (CdnFrontDoorFirewallPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontdoorFirewallPolicyResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) basic(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -132,7 +132,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, tmp, data.RandomInteger)
 }
 
-func (r CdnFrontdoorFirewallPolicyResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -143,7 +143,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
 `, r.basic(data))
 }
 
-func (r CdnFrontdoorFirewallPolicyResource) update(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) update(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -199,7 +199,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, tmp, data.RandomInteger)
 }
 
-func (r CdnFrontdoorFirewallPolicyResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) complete(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s

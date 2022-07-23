@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorSecurityPolicyResource struct{}
+type CdnFrontDoorSecurityPolicyResource struct{}
 
-func TestAccCdnFrontdoorSecurityPolicy_basic(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_basic(t *testing.T) {
 	t.Skip("@WodansSon: Skipping test until Cdn FrontDoor Custom Domain resource is implemented")
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -33,9 +33,9 @@ func TestAccCdnFrontdoorSecurityPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecurityPolicy_basicEndpoint(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_basicEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEndpoint(data),
@@ -47,11 +47,11 @@ func TestAccCdnFrontdoorSecurityPolicy_basicEndpoint(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecurityPolicy_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_requiresImport(t *testing.T) {
 	t.Skip("@WodansSon: Skipping test until Cdn FrontDoor Custom Domain resource is implemented")
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -63,9 +63,9 @@ func TestAccCdnFrontdoorSecurityPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecurityPolicy_requiresImportEndpoint(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_requiresImportEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEndpoint(data),
@@ -77,11 +77,11 @@ func TestAccCdnFrontdoorSecurityPolicy_requiresImportEndpoint(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecurityPolicy_complete(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_complete(t *testing.T) {
 	t.Skip("@WodansSon: Skipping test until Cdn FrontDoor Custom Domain resource is implemented")
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -95,9 +95,9 @@ func TestAccCdnFrontdoorSecurityPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecurityPolicy_completeEndpoint(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_completeEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeEndpoint(data),
@@ -111,7 +111,7 @@ func TestAccCdnFrontdoorSecurityPolicy_completeEndpoint(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontDoorSecurityPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorSecurityPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (r CdnFrontdoorSecurityPolicyResource) Exists(ctx context.Context, clients 
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -210,7 +210,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) templateEndpoint(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) templateEndpoint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -283,7 +283,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -313,7 +313,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) basicEndpoint(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) basicEndpoint(data acceptance.TestData) string {
 	template := r.templateEndpoint(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -343,7 +343,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -369,7 +369,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
 `, config, data.RandomInteger)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) requiresImportEndpoint(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) requiresImportEndpoint(data acceptance.TestData) string {
 	config := r.basicEndpoint(data)
 	return fmt.Sprintf(`
 %s
@@ -395,7 +395,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
 `, config, data.RandomInteger)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -425,7 +425,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) completeEndpoint(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) completeEndpoint(data acceptance.TestData) string {
 	template := r.templateEndpoint(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
