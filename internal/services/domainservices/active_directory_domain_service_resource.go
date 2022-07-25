@@ -7,18 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,9 +53,9 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty, // TODO: proper validation
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"domain_name": {
 				Type:         pluginsdk.TypeString,
@@ -254,7 +253,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"deployment_id": {
 				Type:     pluginsdk.TypeString,
@@ -286,6 +285,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 
 func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -300,18 +300,24 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	// know the ID of the first replica set.
 	var id *parse.DomainServiceId
 
+	idsdk := domainservices.NewDomainServiceID(subscriptionId, resourceGroup, name)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, idsdk)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", resourceErrorName, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			// Parse the replica sets and assume the first one returned to be the initial replica set
 			// This is a best effort and the user can choose any replica set if they structure their config accordingly
-			props := existing.DomainServiceProperties
+			model := existing.Model
+			if model == nil {
+				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing model", resourceErrorName)
+			}
+			props := model.Properties
 			if props == nil {
 				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
 			}
@@ -320,7 +326,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
 			}
 			initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
-			id := parse.NewDomainServiceID(client.SubscriptionID, resourceGroup, name, initialReplicaSetId)
+			id := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
 
 			return tf.ImportAsExistsError(DomainServiceResourceName, id.ID())
 		}
@@ -336,16 +342,16 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	loc := location.Normalize(d.Get("location").(string))
-	filteredSync := aad.FilteredSyncDisabled
+	filteredSync := domainservices.FilteredSyncDisabled
 	if d.Get("filtered_sync_enabled").(bool) {
-		filteredSync = aad.FilteredSyncDisabled
+		filteredSync = domainservices.FilteredSyncDisabled
 	}
 
-	domainService := aad.DomainService{
-		DomainServiceProperties: &aad.DomainServiceProperties{
+	domainService := domainservices.DomainService{
+		Properties: &domainservices.DomainServiceProperties{
 			DomainName:             utils.String(d.Get("domain_name").(string)),
 			DomainSecuritySettings: expandDomainServiceSecurity(d.Get("security").([]interface{})),
-			FilteredSync:           filteredSync,
+			FilteredSync:           &filteredSync,
 			LdapsSettings:          expandDomainServiceLdaps(d.Get("secure_ldap").([]interface{})),
 			NotificationSettings:   expandDomainServiceNotifications(d.Get("notifications").([]interface{})),
 			Sku:                    utils.String(d.Get("sku").(string)),
@@ -355,36 +361,36 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if v := d.Get("domain_configuration_type").(string); v != "" {
-		domainService.DomainServiceProperties.DomainConfigurationType = &v
+		domainService.Properties.DomainConfigurationType = &v
 	}
 
 	if d.IsNewResource() {
 		// On resource creation, specify the initial replica set.
 		// No provision is made for changing the initial replica set, it should remain intact for the resource to function properly
-		replicaSets := []aad.ReplicaSet{
+		replicaSets := []domainservices.ReplicaSet{
 			{
 				Location: utils.String(loc),
-				SubnetID: utils.String(d.Get("initial_replica_set.0.subnet_id").(string)),
+				SubnetId: utils.String(d.Get("initial_replica_set.0.subnet_id").(string)),
 			},
 		}
-		domainService.DomainServiceProperties.ReplicaSets = &replicaSets
+		domainService.Properties.ReplicaSets = &replicaSets
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, domainService)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, idsdk, domainService); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", resourceErrorName, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s: %+v", resourceErrorName, err)
 	}
 
 	// Retrieve the domain service to discover the unique ID for the initial replica set, which should not subsequently change
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, idsdk)
 		if err != nil {
 			return fmt.Errorf("retrieving %s after creating: %+v", resourceErrorName, err)
 		}
-		props := resp.DomainServiceProperties
+		model := resp.Model
+		if model == nil {
+			return fmt.Errorf("%s returned with no model", resourceErrorName)
+		}
+		props := model.Properties
 		if props == nil {
 			return fmt.Errorf("%s returned with no properties", resourceErrorName)
 		}
@@ -399,7 +405,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 
 		// Once we know the initial replica set ID, we can build a resource ID
 		initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
-		newId := parse.NewDomainServiceID(client.SubscriptionID, resourceGroup, name, initialReplicaSetId)
+		newId := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
 		id = &newId
 		d.SetId(id.ID())
 
@@ -441,9 +447,11 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.Name)
+
+	resp, err := client.Get(ctx, idsdk)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -452,59 +460,64 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("resource_id", resp.ID)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if props := resp.DomainServiceProperties; props != nil {
-		d.Set("deployment_id", props.DeploymentID)
-		d.Set("domain_name", props.DomainName)
-		d.Set("sync_owner", props.SyncOwner)
-		d.Set("tenant_id", props.TenantID)
-		d.Set("version", props.Version)
-		d.Set("domain_configuration_type", props.DomainConfigurationType)
-
-		d.Set("filtered_sync_enabled", false)
-		if props.FilteredSync == aad.FilteredSyncEnabled {
-			d.Set("filtered_sync_enabled", true)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("resource_id", model.Id)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 
-		d.Set("sku", props.Sku)
+		if props := model.Properties; props != nil {
+			d.Set("deployment_id", props.DeploymentId)
+			d.Set("domain_name", props.DomainName)
+			d.Set("sync_owner", props.SyncOwner)
+			d.Set("tenant_id", props.TenantId)
+			d.Set("version", props.Version)
+			d.Set("domain_configuration_type", props.DomainConfigurationType)
 
-		if err := d.Set("notifications", flattenDomainServiceNotifications(props.NotificationSettings)); err != nil {
-			return fmt.Errorf("setting `notifications`: %+v", err)
-		}
-
-		var initialReplicaSet interface{}
-		replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
-
-		// Determine the initial replica set. This is why we need to include InitialReplicaSetId in the resource ID,
-		// without it we would not be able to reliably support importing.
-		for _, replicaSetRaw := range replicaSets {
-			replicaSet := replicaSetRaw.(map[string]interface{})
-			if replicaSet["id"].(string) == id.InitialReplicaSetIdName {
-				initialReplicaSet = replicaSetRaw
-				break
+			d.Set("filtered_sync_enabled", false)
+			if props.FilteredSync != nil && *props.FilteredSync == domainservices.FilteredSyncEnabled {
+				d.Set("filtered_sync_enabled", true)
 			}
-		}
-		if initialReplicaSet == nil {
-			// It's safest to error out here, since we don't want to wipe the initial replica set from state if it was deleted manually
-			return fmt.Errorf("reading %s: could not determine initial replica set from API response", id)
-		}
-		if err := d.Set("initial_replica_set", []interface{}{initialReplicaSet}); err != nil {
-			return fmt.Errorf("setting `initial_replica_set`: %+v", err)
-		}
 
-		if err := d.Set("secure_ldap", flattenDomainServiceLdaps(d, props.LdapsSettings, false)); err != nil {
-			return fmt.Errorf("setting `secure_ldap`: %+v", err)
-		}
+			d.Set("sku", props.Sku)
 
-		if err := d.Set("security", flattenDomainServiceSecurity(props.DomainSecuritySettings)); err != nil {
-			return fmt.Errorf("setting `security`: %+v", err)
+			if err := d.Set("notifications", flattenDomainServiceNotifications(props.NotificationSettings)); err != nil {
+				return fmt.Errorf("setting `notifications`: %+v", err)
+			}
+
+			var initialReplicaSet interface{}
+			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
+
+			// Determine the initial replica set. This is why we need to include InitialReplicaSetId in the resource ID,
+			// without it we would not be able to reliably support importing.
+			for _, replicaSetRaw := range replicaSets {
+				replicaSet := replicaSetRaw.(map[string]interface{})
+				if replicaSet["id"].(string) == id.InitialReplicaSetIdName {
+					initialReplicaSet = replicaSetRaw
+					break
+				}
+			}
+			if initialReplicaSet == nil {
+				// It's safest to error out here, since we don't want to wipe the initial replica set from state if it was deleted manually
+				return fmt.Errorf("reading %s: could not determine initial replica set from API response", id)
+			}
+			if err := d.Set("initial_replica_set", []interface{}{initialReplicaSet}); err != nil {
+				return fmt.Errorf("setting `initial_replica_set`: %+v", err)
+			}
+
+			if err := d.Set("secure_ldap", flattenDomainServiceLdaps(d, props.LdapsSettings, false)); err != nil {
+				return fmt.Errorf("setting `secure_ldap`: %+v", err)
+			}
+
+			if err := d.Set("security", flattenDomainServiceSecurity(props.DomainSecuritySettings)); err != nil {
+				return fmt.Errorf("setting `security`: %+v", err)
+			}
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceActiveDirectoryDomainServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -517,32 +530,28 @@ func resourceActiveDirectoryDomainServiceDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
+	idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
-		}
+	if err := client.DeleteThenPoll(ctx, idsdk); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func domainServiceControllerRefreshFunc(ctx context.Context, client *aad.DomainServicesClient, id parse.DomainServiceId, deleting bool) pluginsdk.StateRefreshFunc {
+func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservices.DomainServicesClient, id parse.DomainServiceId, deleting bool) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Waiting for domain controllers to deploy...")
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, idsdk)
 		if err != nil {
 			return nil, "error", err
 		}
-		if resp.DomainServiceProperties == nil || resp.DomainServiceProperties.ReplicaSets == nil || len(*resp.DomainServiceProperties.ReplicaSets) == 0 {
+		if model := resp.Model; model == nil || model.Properties == nil || model.Properties.ReplicaSets == nil || len(*model.Properties.ReplicaSets) == 0 {
 			return nil, "error", fmt.Errorf("API error: `replicaSets` was not returned")
 		}
 		// Loop through all replica sets and ensure they are running and each have two available domain controllers
-		for _, repl := range *resp.DomainServiceProperties.ReplicaSets {
+		for _, repl := range *resp.Model.Properties.ReplicaSets {
 			if repl.ServiceStatus == nil {
 				return resp, "pending", nil
 			}
@@ -556,7 +565,7 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *aad.DomainS
 			case !strings.EqualFold(*repl.ServiceStatus, "Running"):
 				// If it's not yet running, it isn't ready
 				return resp, "pending", nil
-			case repl.DomainControllerIPAddress == nil || len(*repl.DomainControllerIPAddress) < 2:
+			case repl.DomainControllerIpAddress == nil || len(*repl.DomainControllerIpAddress) < 2:
 				// When a domain controller is online, its IP address will be returned. We're looking for 2 active domain controllers.
 				return resp, "pending", nil
 			}
@@ -565,29 +574,30 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *aad.DomainS
 	}
 }
 
-func expandDomainServiceLdaps(input []interface{}) (ldaps *aad.LdapsSettings) {
-	ldaps = &aad.LdapsSettings{
-		Ldaps: aad.LdapsDisabled,
+func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsSettings) {
+	state := domainservices.LdapsDisabled
+	ldaps = &domainservices.LdapsSettings{
+		Ldaps: &state,
 	}
 
 	if len(input) > 0 {
 		v := input[0].(map[string]interface{})
 		if v["enabled"].(bool) {
-			ldaps.Ldaps = aad.LdapsEnabled
+			*ldaps.Ldaps = domainservices.LdapsEnabled
 		}
 		ldaps.PfxCertificate = utils.String(v["pfx_certificate"].(string))
 		ldaps.PfxCertificatePassword = utils.String(v["pfx_certificate_password"].(string))
+		access := domainservices.ExternalAccessDisabled
 		if v["external_access_enabled"].(bool) {
-			ldaps.ExternalAccess = aad.Enabled
-		} else {
-			ldaps.ExternalAccess = aad.Disabled
+			access = domainservices.ExternalAccessEnabled
 		}
+		ldaps.ExternalAccess = &access
 	}
 
 	return
 }
 
-func expandDomainServiceNotifications(input []interface{}) *aad.NotificationSettings {
+func expandDomainServiceNotifications(input []interface{}) *domainservices.NotificationSettings {
 	if len(input) == 0 {
 		return nil
 	}
@@ -601,61 +611,61 @@ func expandDomainServiceNotifications(input []interface{}) *aad.NotificationSett
 		}
 	}
 
-	notifyDcAdmins := aad.NotifyDcAdminsDisabled
+	notifyDcAdmins := domainservices.NotifyDcAdminsDisabled
 	if n, ok := v["notify_dc_admins"]; ok && n.(bool) {
-		notifyDcAdmins = aad.NotifyDcAdminsEnabled
+		notifyDcAdmins = domainservices.NotifyDcAdminsEnabled
 	}
 
-	notifyGlobalAdmins := aad.NotifyGlobalAdminsDisabled
+	notifyGlobalAdmins := domainservices.NotifyGlobalAdminsDisabled
 	if n, ok := v["notify_global_admins"]; ok && n.(bool) {
-		notifyGlobalAdmins = aad.NotifyGlobalAdminsEnabled
+		notifyGlobalAdmins = domainservices.NotifyGlobalAdminsEnabled
 	}
 
-	return &aad.NotificationSettings{
+	return &domainservices.NotificationSettings{
 		AdditionalRecipients: &additionalRecipients,
-		NotifyDcAdmins:       notifyDcAdmins,
-		NotifyGlobalAdmins:   notifyGlobalAdmins,
+		NotifyDcAdmins:       &notifyDcAdmins,
+		NotifyGlobalAdmins:   &notifyGlobalAdmins,
 	}
 }
 
-func expandDomainServiceSecurity(input []interface{}) *aad.DomainSecuritySettings {
+func expandDomainServiceSecurity(input []interface{}) *domainservices.DomainSecuritySettings {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 
-	ntlmV1 := aad.NtlmV1Disabled
-	syncKerberosPasswords := aad.SyncKerberosPasswordsDisabled
-	syncNtlmPasswords := aad.SyncNtlmPasswordsDisabled
-	syncOnPremPasswords := aad.SyncOnPremPasswordsDisabled
-	tlsV1 := aad.TLSV1Disabled
+	ntlmV1 := domainservices.NtlmV1Disabled
+	syncKerberosPasswords := domainservices.SyncKerberosPasswordsDisabled
+	syncNtlmPasswords := domainservices.SyncNtlmPasswordsDisabled
+	syncOnPremPasswords := domainservices.SyncOnPremPasswordsDisabled
+	tlsV1 := domainservices.TlsV1Disabled
 
 	if v["ntlm_v1_enabled"].(bool) {
-		ntlmV1 = aad.NtlmV1Enabled
+		ntlmV1 = domainservices.NtlmV1Enabled
 	}
 	if v["sync_kerberos_passwords"].(bool) {
-		syncKerberosPasswords = aad.SyncKerberosPasswordsEnabled
+		syncKerberosPasswords = domainservices.SyncKerberosPasswordsEnabled
 	}
 	if v["sync_ntlm_passwords"].(bool) {
-		syncNtlmPasswords = aad.SyncNtlmPasswordsEnabled
+		syncNtlmPasswords = domainservices.SyncNtlmPasswordsEnabled
 	}
 	if v["sync_on_prem_passwords"].(bool) {
-		syncOnPremPasswords = aad.SyncOnPremPasswordsEnabled
+		syncOnPremPasswords = domainservices.SyncOnPremPasswordsEnabled
 	}
 	if v["tls_v1_enabled"].(bool) {
-		tlsV1 = aad.TLSV1Enabled
+		tlsV1 = domainservices.TlsV1Enabled
 	}
 
-	return &aad.DomainSecuritySettings{
-		NtlmV1:                ntlmV1,
-		SyncKerberosPasswords: syncKerberosPasswords,
-		SyncNtlmPasswords:     syncNtlmPasswords,
-		SyncOnPremPasswords:   syncOnPremPasswords,
-		TLSV1:                 tlsV1,
+	return &domainservices.DomainSecuritySettings{
+		NtlmV1:                &ntlmV1,
+		SyncKerberosPasswords: &syncKerberosPasswords,
+		SyncNtlmPasswords:     &syncNtlmPasswords,
+		SyncOnPremPasswords:   &syncOnPremPasswords,
+		TlsV1:                 &tlsV1,
 	}
 }
 
-func flattenDomainServiceLdaps(d *pluginsdk.ResourceData, input *aad.LdapsSettings, dataSource bool) []interface{} {
+func flattenDomainServiceLdaps(d *pluginsdk.ResourceData, input *domainservices.LdapsSettings, dataSource bool) []interface{} {
 	result := map[string]interface{}{
 		"enabled":                 false,
 		"external_access_enabled": false,
@@ -677,14 +687,14 @@ func flattenDomainServiceLdaps(d *pluginsdk.ResourceData, input *aad.LdapsSettin
 	}
 
 	if input != nil {
-		if input.ExternalAccess == aad.Enabled {
+		if input.ExternalAccess != nil && *input.ExternalAccess == domainservices.ExternalAccessEnabled {
 			result["external_access_enabled"] = true
 		}
-		if input.Ldaps == aad.LdapsEnabled {
+		if input.Ldaps != nil && *input.Ldaps == domainservices.LdapsEnabled {
 			result["enabled"] = true
 		}
 		if v := input.CertificateNotAfter; v != nil {
-			result["certificate_expiry"] = v.Format(time.RFC3339)
+			result["certificate_expiry"] = *v
 		}
 		if v := input.CertificateThumbprint; v != nil {
 			result["certificate_thumbprint"] = *v
@@ -697,7 +707,7 @@ func flattenDomainServiceLdaps(d *pluginsdk.ResourceData, input *aad.LdapsSettin
 	return []interface{}{result}
 }
 
-func flattenDomainServiceNotifications(input *aad.NotificationSettings) []interface{} {
+func flattenDomainServiceNotifications(input *domainservices.NotificationSettings) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -710,17 +720,17 @@ func flattenDomainServiceNotifications(input *aad.NotificationSettings) []interf
 	if input.AdditionalRecipients != nil {
 		result["additional_recipients"] = *input.AdditionalRecipients
 	}
-	if input.NotifyDcAdmins == aad.NotifyDcAdminsEnabled {
+	if input.NotifyDcAdmins != nil && *input.NotifyDcAdmins == domainservices.NotifyDcAdminsEnabled {
 		result["notify_dc_admins"] = true
 	}
-	if input.NotifyGlobalAdmins == aad.NotifyGlobalAdminsEnabled {
+	if input.NotifyGlobalAdmins != nil && *input.NotifyGlobalAdmins == domainservices.NotifyGlobalAdminsEnabled {
 		result["notify_global_admins"] = true
 	}
 
 	return []interface{}{result}
 }
 
-func flattenDomainServiceReplicaSets(input *[]aad.ReplicaSet) (ret []interface{}) {
+func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []interface{}) {
 	if input == nil {
 		return
 	}
@@ -734,20 +744,20 @@ func flattenDomainServiceReplicaSets(input *[]aad.ReplicaSet) (ret []interface{}
 			"service_status":                 "",
 			"subnet_id":                      "",
 		}
-		if in.DomainControllerIPAddress != nil {
-			repl["domain_controller_ip_addresses"] = *in.DomainControllerIPAddress
+		if in.DomainControllerIpAddress != nil {
+			repl["domain_controller_ip_addresses"] = *in.DomainControllerIpAddress
 		}
-		if in.ExternalAccessIPAddress != nil {
-			repl["external_access_ip_address"] = *in.ExternalAccessIPAddress
+		if in.ExternalAccessIpAddress != nil {
+			repl["external_access_ip_address"] = *in.ExternalAccessIpAddress
 		}
-		if in.ReplicaSetID != nil {
-			repl["id"] = *in.ReplicaSetID
+		if in.ReplicaSetId != nil {
+			repl["id"] = *in.ReplicaSetId
 		}
 		if in.ServiceStatus != nil {
 			repl["service_status"] = *in.ServiceStatus
 		}
-		if in.SubnetID != nil {
-			repl["subnet_id"] = *in.SubnetID
+		if in.SubnetId != nil {
+			repl["subnet_id"] = *in.SubnetId
 		}
 		ret = append(ret, repl)
 	}
@@ -755,7 +765,7 @@ func flattenDomainServiceReplicaSets(input *[]aad.ReplicaSet) (ret []interface{}
 	return
 }
 
-func flattenDomainServiceSecurity(input *aad.DomainSecuritySettings) []interface{} {
+func flattenDomainServiceSecurity(input *domainservices.DomainSecuritySettings) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -767,19 +777,19 @@ func flattenDomainServiceSecurity(input *aad.DomainSecuritySettings) []interface
 		"sync_on_prem_passwords":  false,
 		"tls_v1_enabled":          false,
 	}
-	if input.NtlmV1 == aad.NtlmV1Enabled {
+	if input.NtlmV1 != nil && *input.NtlmV1 == domainservices.NtlmV1Enabled {
 		result["ntlm_v1_enabled"] = true
 	}
-	if input.SyncKerberosPasswords == aad.SyncKerberosPasswordsEnabled {
+	if input.SyncKerberosPasswords != nil && *input.SyncKerberosPasswords == domainservices.SyncKerberosPasswordsEnabled {
 		result["sync_kerberos_passwords"] = true
 	}
-	if input.SyncNtlmPasswords == aad.SyncNtlmPasswordsEnabled {
+	if input.SyncNtlmPasswords != nil && *input.SyncNtlmPasswords == domainservices.SyncNtlmPasswordsEnabled {
 		result["sync_ntlm_passwords"] = true
 	}
-	if input.SyncOnPremPasswords == aad.SyncOnPremPasswordsEnabled {
+	if input.SyncOnPremPasswords != nil && *input.SyncOnPremPasswords == domainservices.SyncOnPremPasswordsEnabled {
 		result["sync_on_prem_passwords"] = true
 	}
-	if input.TLSV1 == aad.TLSV1Enabled {
+	if input.TlsV1 != nil && *input.TlsV1 == domainservices.TlsV1Enabled {
 		result["tls_v1_enabled"] = true
 	}
 
