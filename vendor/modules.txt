@@ -274,7 +274,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/SharedPrivateLinkResources
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/sharedprivatelinkresources
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule

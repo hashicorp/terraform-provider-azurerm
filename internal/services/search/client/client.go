@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/SharedPrivateLinkResources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/sharedprivatelinkresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
