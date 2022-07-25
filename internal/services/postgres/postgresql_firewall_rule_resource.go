@@ -91,8 +91,8 @@ func resourcePostgreSQLFirewallRuleCreate(d *pluginsdk.ResourceData, meta interf
 
 	properties := firewallrules.FirewallRule{
 		Properties: firewallrules.FirewallRuleProperties{
-			StartIpAddress: d.Get("start_ip_address").(string),
-			EndIpAddress:   d.Get("end_ip_address").(string),
+			StartIPAddress: d.Get("start_ip_address").(string),
+			EndIPAddress:   d.Get("end_ip_address").(string),
 		},
 	}
 
@@ -130,8 +130,8 @@ func resourcePostgreSQLFirewallRuleRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("server_name", id.ServerName)
 
 	if model := resp.Model; model != nil {
-		d.Set("start_ip_address", resp.Model.Properties.StartIpAddress)
-		d.Set("end_ip_address", resp.Model.Properties.EndIpAddress)
+		d.Set("start_ip_address", resp.Model.Properties.StartIPAddress)
+		d.Set("end_ip_address", resp.Model.Properties.EndIPAddress)
 	}
 
 	return nil

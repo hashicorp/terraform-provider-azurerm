@@ -8,13 +8,13 @@ type WorkspaceCustomParameters struct {
 	CustomPrivateSubnetName         *WorkspaceCustomStringParameter  `json:"customPrivateSubnetName,omitempty"`
 	CustomPublicSubnetName          *WorkspaceCustomStringParameter  `json:"customPublicSubnetName,omitempty"`
 	CustomVirtualNetworkId          *WorkspaceCustomStringParameter  `json:"customVirtualNetworkId,omitempty"`
-	EnableNoPublicIp                *WorkspaceCustomBooleanParameter `json:"enableNoPublicIp,omitempty"`
+	EnableNoPublicIP                *WorkspaceCustomBooleanParameter `json:"enableNoPublicIp,omitempty"`
 	Encryption                      *WorkspaceEncryptionParameter    `json:"encryption,omitempty"`
 	LoadBalancerBackendPoolName     *WorkspaceCustomStringParameter  `json:"loadBalancerBackendPoolName,omitempty"`
 	LoadBalancerId                  *WorkspaceCustomStringParameter  `json:"loadBalancerId,omitempty"`
 	NatGatewayName                  *WorkspaceCustomStringParameter  `json:"natGatewayName,omitempty"`
 	PrepareEncryption               *WorkspaceCustomBooleanParameter `json:"prepareEncryption,omitempty"`
-	PublicIpName                    *WorkspaceCustomStringParameter  `json:"publicIpName,omitempty"`
+	PublicIPName                    *WorkspaceCustomStringParameter  `json:"publicIpName,omitempty"`
 	RequireInfrastructureEncryption *WorkspaceCustomBooleanParameter `json:"requireInfrastructureEncryption,omitempty"`
 	ResourceTags                    *WorkspaceCustomObjectParameter  `json:"resourceTags,omitempty"`
 	StorageAccountName              *WorkspaceCustomStringParameter  `json:"storageAccountName,omitempty"`
