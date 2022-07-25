@@ -2,8 +2,8 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20220722.1091911` of `github.com/hashicorp/go-azure-sdk` [GH-17726]
-* dependencies: Service `eventhub` consolidated onto single API Version 2021-11-01 [GH-17719]
+* dependencies: updating to `v0.20220725.1131927` of `github.com/hashicorp/go-azure-sdk` [GH-17749]
+* `eventhub`: updating all data sources/resources onto single API Version `2021-11-01` [GH-17719]
 
 ## 3.15.0 (July 21, 2022)
 
