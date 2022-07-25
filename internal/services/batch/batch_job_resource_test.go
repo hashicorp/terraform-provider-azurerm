@@ -183,11 +183,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {

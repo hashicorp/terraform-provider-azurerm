@@ -508,11 +508,6 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode                = "BatchService"
   storage_account_id                  = azurerm_storage_account.test.id
   storage_account_authentication_mode = "StorageKeys"
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 
   tags = {
     env = "test"
@@ -633,11 +628,6 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode                = "BatchService"
   storage_account_id                  = azurerm_storage_account.test.id
   storage_account_authentication_mode = "StorageKeys"
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 
   tags = {
     env = "test"
@@ -691,11 +681,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -740,11 +725,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -812,11 +792,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -877,11 +852,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -942,11 +912,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -1005,11 +970,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -1072,11 +1032,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -1139,11 +1094,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -1206,11 +1156,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -1272,11 +1217,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_certificate" "testcer" {
@@ -1353,11 +1293,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {
@@ -1539,11 +1474,6 @@ resource "azurerm_batch_account" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 
   tags = {
     env = "test"
@@ -1604,11 +1534,6 @@ resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%[3]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_pool" "test" {

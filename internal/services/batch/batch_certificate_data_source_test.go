@@ -44,11 +44,6 @@ resource "azurerm_batch_account" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
-  allowed_authentication_modes = [
-    "AAD",
-    "SharedKey",
-    "TaskAuthenticationToken"
-  ]
 }
 
 resource "azurerm_batch_certificate" "test" {
