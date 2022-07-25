@@ -3,41 +3,43 @@ package search
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/SharedPrivateLinkResources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
-type SearchSharedPrivateLinkServiceResource struct{}
+type SharedPrivateLinkServiceResource struct{}
 
 var (
-	_ sdk.Resource           = SearchSharedPrivateLinkServiceResource{}
-	_ sdk.ResourceWithUpdate = SearchSharedPrivateLinkServiceResource{}
+	_ sdk.Resource           = SharedPrivateLinkServiceResource{}
+	_ sdk.ResourceWithUpdate = SharedPrivateLinkServiceResource{}
 )
 
-type SearchSharedPrivateLinkServiceModel struct {
+type SharedPrivateLinkServiceModel struct {
 	Name             string `tfschema:"name"`
 	SearchServiceId  string `tfschema:"search_service_id"`
 	SubResourceName  string `tfschema:"subresource_name"`
 	TargetResourceId string `tfschema:"target_resource_id"`
 	RequestMessage   string `tfschema:"request_message"`
 	Status           string `tfschema:"status"`
+	ResourceRegion   string `tfschema:"resource_region"`
 }
 
-func (r SearchSharedPrivateLinkServiceResource) Arguments() map[string]*pluginsdk.Schema {
+func (r SharedPrivateLinkServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsEmpty,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"search_service_id": {
@@ -67,6 +69,16 @@ func (r SearchSharedPrivateLinkServiceResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"resource_region": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+	}
+}
+
+func (r SharedPrivateLinkServiceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"status": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -74,26 +86,22 @@ func (r SearchSharedPrivateLinkServiceResource) Arguments() map[string]*pluginsd
 	}
 }
 
-func (r SearchSharedPrivateLinkServiceResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+func (r SharedPrivateLinkServiceResource) ResourceType() string {
+	return "azurerm_search_shared_private_link_service"
 }
 
-func (r SearchSharedPrivateLinkServiceResource) ResourceType() string {
-	return "azurerm_search_shared_private_link_resource"
+func (r SharedPrivateLinkServiceResource) ModelObject() interface{} {
+	return &SharedPrivateLinkServiceModel{}
 }
 
-func (r SearchSharedPrivateLinkServiceResource) ModelObject() interface{} {
-	return &SearchSharedPrivateLinkServiceModel{}
-}
-
-func (r SearchSharedPrivateLinkServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r SharedPrivateLinkServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return sharedprivatelinkresources.ValidateSharedPrivateLinkResourceID
 }
 
-func (r SearchSharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
+func (r SharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model SearchSharedPrivateLinkServiceModel
+			var model SharedPrivateLinkServiceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -127,6 +135,10 @@ func (r SearchSharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 				parameters.Properties.RequestMessage = utils.String(model.RequestMessage)
 			}
 
+			if model.ResourceRegion != "" {
+				parameters.Properties.ResourceRegion = utils.String(model.ResourceRegion)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("creating/ updating %s: %+v", id, err)
 			}
@@ -134,11 +146,11 @@ func (r SearchSharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 	}
 }
 
-func (r SearchSharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
+func (r SharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Search.SearchSharedPrivateLinkResourceClient
@@ -157,9 +169,9 @@ func (r SearchSharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := &SearchSharedPrivateLinkServiceModel{
+			state := &SharedPrivateLinkServiceModel{
 				Name:            id.SharedPrivateLinkResourceName,
-				SearchServiceId: id.SearchServiceName,
+				SearchServiceId: services.NewSearchServiceID(id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -179,6 +191,10 @@ func (r SearchSharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
 					if props.Status != nil {
 						state.Status = string(*props.Status)
 					}
+
+					if props.ResourceRegion != nil {
+						state.ResourceRegion = *props.ResourceRegion
+					}
 				}
 			}
 
@@ -188,7 +204,38 @@ func (r SearchSharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r SearchSharedPrivateLinkServiceResource) Delete() sdk.ResourceFunc {
+func (r SharedPrivateLinkServiceResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := sharedprivatelinkresources.ParseSharedPrivateLinkResourceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state SharedPrivateLinkServiceModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			client := metadata.Client.Search.SearchSharedPrivateLinkResourceClient
+
+			if metadata.ResourceData.HasChange("request_message") {
+				props := sharedprivatelinkresources.SharedPrivateLinkResource{
+					Properties: &sharedprivatelinkresources.SharedPrivateLinkResourceProperties{
+						RequestMessage: utils.String(state.RequestMessage),
+					},
+				}
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, props, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
+			}
+			return nil
+		},
+		Timeout: 60 * time.Minute,
+	}
+}
+
+func (r SharedPrivateLinkServiceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Search.SearchSharedPrivateLinkResourceClient
@@ -202,6 +249,6 @@ func (r SearchSharedPrivateLinkServiceResource) Delete() sdk.ResourceFunc {
 			}
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 	}
 }

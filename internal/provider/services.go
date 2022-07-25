@@ -136,6 +136,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		sentinel.Registration{},
 		servicefabricmanaged.Registration{},
 		streamanalytics.Registration{},
+		search.Registration{},
 		web.Registration{},
 	}
 }

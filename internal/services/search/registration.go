@@ -7,7 +7,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistration                   = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/search"
@@ -16,6 +19,16 @@ func (r Registration) AssociatedGitHubLabel() string {
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Search"
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		SharedPrivateLinkServiceResource{},
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
