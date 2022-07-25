@@ -385,7 +385,7 @@ A `site_config` block exports the following:
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
 
-* `remote_debugging` - Is Remote Debugging enabled.
+* `remote_debugging_enabled` - Is Remote Debugging enabled.
 
 * `remote_debugging_version` - The Remote Debugging Version.
 

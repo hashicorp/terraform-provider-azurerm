@@ -1,20 +1,30 @@
-## 3.15.0 (Unreleased)
-
-FEATURES: 
-
-* **New Resource**: `azurerm_application_insights_workbook` [GH-17368]
-* **New Resource**: `azurerm_monitor_data_collection_rule` [GH-17342]
-* **New Resource**: `azurerm_route_server` [GH-16578]
-* **New Resource**: `azurerm_route_server_bgp_connection` [GH-16578]
-* **New Resource**: `azurerm_web_pubsub_private_link_resource` [GH-15550]
+## 3.16.0 (Unreleased)
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20220715.1071215` of `github.com/hashicorp/go-azure-sdk` [GH-17645]
-* servicebus: refactoring to use `hashicorp/go-azure-sdk` [GH-17628]
-* `postgres` - refactoring to use `hashicorp/go-azure-sdk` [GH-17625]
-* `azurerm_kusto_cluster_resource` - support for the `allowed_fqdns`, `allowed_ip_ranges`, and `outbound_network_access_restricted` properties [GH-17581]
-* `azurerm_storage_account` - supports for the `change_feed_retention_in_days` property [GH-17130]
+* dependencies: updating to `v0.20220722.1091911` of `github.com/hashicorp/go-azure-sdk` [GH-17726]
+
+## 3.15.0 (July 21, 2022)
+
+FEATURES: 
+* **New Data Source**: `azurerm_cdn_frontdoor_origin_group` ([#17089](https://github.com/hashicorp/terraform-provider-azurerm/issues/17089))
+* **New Data Source**: `azurerm_cdn_frontdoor_origin` ([#17089](https://github.com/hashicorp/terraform-provider-azurerm/issues/17089))
+* **New Resource**: `azurerm_cdn_frontdoor_origin_group` ([#17089](https://github.com/hashicorp/terraform-provider-azurerm/issues/17089))
+* **New Resource**: `azurerm_cdn_frontdoor_origin` ([#17089](https://github.com/hashicorp/terraform-provider-azurerm/issues/17089))
+* **New Resource**: `azurerm_application_insights_workbook` ([#17368](https://github.com/hashicorp/terraform-provider-azurerm/issues/17368))
+* **New Resource**: `azurerm_monitor_data_collection_rule` ([#17342](https://github.com/hashicorp/terraform-provider-azurerm/issues/17342))
+* **New Resource**: `azurerm_route_server` ([#16578](https://github.com/hashicorp/terraform-provider-azurerm/issues/16578))
+* **New Resource**: `azurerm_route_server_bgp_connection` ([#16578](https://github.com/hashicorp/terraform-provider-azurerm/issues/16578))
+* **New Resource**: `azurerm_web_pubsub_private_link_resource` ([#15550](https://github.com/hashicorp/terraform-provider-azurerm/issues/15550))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20220715.1071215` of `github.com/hashicorp/go-azure-sdk` ([#17645](https://github.com/hashicorp/terraform-provider-azurerm/issues/17645))
+* domainservice: to use `hashicorp/go-azure-sdk` ([#17595](https://github.com/hashicorp/terraform-provider-azurerm/issues/17595))
+* servicebus: refactoring to use `hashicorp/go-azure-sdk` ([#17628](https://github.com/hashicorp/terraform-provider-azurerm/issues/17628))
+* postgres: refactoring to use `hashicorp/go-azure-sdk` ([#17625](https://github.com/hashicorp/terraform-provider-azurerm/issues/17625))
+* `azurerm_kusto_cluster_resource` - support for the `allowed_fqdns`, `allowed_ip_ranges`, and `outbound_network_access_restricted` properties ([#17581](https://github.com/hashicorp/terraform-provider-azurerm/issues/17581))
+* `azurerm_storage_account` - supports for the `change_feed_retention_in_days` property ([#17130](https://github.com/hashicorp/terraform-provider-azurerm/issues/17130))
 
 ## 3.14.0 (July 14, 2022)
 
