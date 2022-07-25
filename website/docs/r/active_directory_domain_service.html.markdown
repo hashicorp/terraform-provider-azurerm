@@ -220,6 +220,10 @@ An `initial_replica_set` block supports the following:
 
 A `security` block supports the following:
 
+* `kerberos_armoring_enabled` - (Optional) Whether to enable Kerberos Armoring. Defaults to `false`.
+
+* `kerberos_rc4_encryption_enabled` - (Optional) Whether to enable Kerberos RC4 Encryption. Defaults to `false`.
+
 * `ntlm_v1_enabled` - (Optional) Whether to enable legacy NTLM v1 support. Defaults to `false`.
 
 * `sync_kerberos_passwords` - (Optional) Whether to synchronize Kerberos password hashes to the managed domain. Defaults to `false`.
