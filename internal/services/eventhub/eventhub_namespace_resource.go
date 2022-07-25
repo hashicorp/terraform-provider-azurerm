@@ -625,11 +625,11 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 
 	if v, ok := block["ip_rule"].([]interface{}); ok {
 		if len(v) > 0 {
-			var rules []networkrulesets.NWRuleSetIpRules
+			var rules []networkrulesets.NWRuleSetIPRules
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
-				rules = append(rules, networkrulesets.NWRuleSetIpRules{
-					IpMask: utils.String(rblock["ip_mask"].(string)),
+				rules = append(rules, networkrulesets.NWRuleSetIPRules{
+					IPMask: utils.String(rblock["ip_mask"].(string)),
 					Action: func() *networkrulesets.NetworkRuleIPAction {
 						v := networkrulesets.NetworkRuleIPAction(rblock["action"].(string))
 						return &v
@@ -637,7 +637,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 				})
 			}
 
-			ruleset.IpRules = &rules
+			ruleset.IPRules = &rules
 		}
 	}
 
@@ -668,7 +668,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 		}
 	}
 	ipBlocks := make([]interface{}, 0)
-	if ipRules := ruleset.Model.Properties.IpRules; ipRules != nil {
+	if ipRules := ruleset.Model.Properties.IPRules; ipRules != nil {
 		for _, ipRule := range *ipRules {
 			block := make(map[string]interface{})
 
@@ -679,7 +679,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 			block["action"] = action
 
-			if v := ipRule.IpMask; v != nil {
+			if v := ipRule.IPMask; v != nil {
 				block["ip_mask"] = *v
 			}
 

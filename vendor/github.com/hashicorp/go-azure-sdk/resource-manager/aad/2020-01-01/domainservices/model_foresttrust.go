@@ -5,7 +5,7 @@ package domainservices
 
 type ForestTrust struct {
 	FriendlyName      *string `json:"friendlyName,omitempty"`
-	RemoteDnsIps      *string `json:"remoteDnsIps,omitempty"`
+	RemoteDnsIPs      *string `json:"remoteDnsIps,omitempty"`
 	TrustDirection    *string `json:"trustDirection,omitempty"`
 	TrustPassword     *string `json:"trustPassword,omitempty"`
 	TrustedDomainFqdn *string `json:"trustedDomainFqdn,omitempty"`
