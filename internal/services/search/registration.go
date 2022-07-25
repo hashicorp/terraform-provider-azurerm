@@ -7,7 +7,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistration                   = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/search"
@@ -23,6 +26,16 @@ func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Search",
 	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		SharedPrivateLinkServiceResource{},
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
