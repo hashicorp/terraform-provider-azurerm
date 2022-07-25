@@ -2,9 +2,9 @@
 
 BUG FIXES: 
 
-* `data.azurerm_servicebus_queue` - Fix regression around `namespace_id` [GH-17755]
-* `azurerm_postgresql_aad_administrator`: Fix state migration [GH-17732]
-* `azurerm_postgresql_server` - Fix regression around `id` [GH-17755]
+* `data.azurerm_servicebus_queue` - fix a regression around `namespace_id` [GH-17755]
+* `azurerm_postgresql_aad_administrator`: fix the state migration [GH-17732]
+* `azurerm_postgresql_server` - fix a regression around `id` [GH-17755]
 
 ## 3.15.0 (July 21, 2022)
 
