@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/networkrulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -312,25 +312,19 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
 	if hasRuleSets {
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name == namespaces.SkuNameBasic {
+			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+		}
+
 		rulesets := networkrulesets.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
 
-		// cannot use network rulesets with the basic SKU
-		if parameters.Sku.Name != namespaces.SkuNameBasic {
-			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
-			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
-				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
-			}
-		} else if rulesets.Properties != nil {
-			props := rulesets.Properties
-			// so if the user has specified the non default rule sets throw a validation error
-			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
-				(props.IpRules != nil && len(*props.IpRules) > 0) ||
-				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
-				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
-			}
+		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+		namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
+			return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 		}
 	}
 
@@ -397,30 +391,35 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.HasChange("network_rulesets") {
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name == namespaces.SkuNameBasic {
+			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+		}
 
-	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
-	if hasRuleSets {
+		ruleSets := d.Get("network_rulesets")
 		rulesets := networkrulesets.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
 
-		// cannot use network rulesets with the basic SKU
-		if parameters.Sku.Name != namespaces.SkuNameBasic {
-			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
-			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
-				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
-			}
-		} else if rulesets.Properties != nil {
-			props := rulesets.Properties
-			// so if the user has specified the non default rule sets throw a validation error
-			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
-				(props.IpRules != nil && len(*props.IpRules) > 0) ||
-				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
-				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
-			}
+		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+		namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
+			return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 		}
+	}
+
+	deadline, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:      []string{"Activating", "ActivatingIdentity", "Updating", "Pending"},
+		Target:       []string{"Succeeded"},
+		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(deadline),
+		PollInterval: 10 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be updated: %+v", id, err)
 	}
 
 	return resourceEventHubNamespaceRead(d, meta)
@@ -565,6 +564,26 @@ func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *na
 		}
 
 		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+	}
+}
+
+func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+
+		provisioningState := "Pending"
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
+			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = *res.Model.Properties.ProvisioningState
+		}
+
+		return res, provisioningState, nil
 	}
 }
 
