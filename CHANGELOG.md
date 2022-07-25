@@ -1,10 +1,10 @@
-## 3.15.1 (Unreleased)
+## 3.15.1 (July 25, 2022)
 
 BUG FIXES: 
 
-* `data.azurerm_servicebus_queue` - fix a regression around `namespace_id` [GH-17755]
-* `azurerm_postgresql_aad_administrator`: fix the state migration [GH-17732]
-* `azurerm_postgresql_server` - fix a regression around `id` [GH-17755]
+* `data.azurerm_servicebus_queue` - fix a regression around `namespace_id` ([#17755](https://github.com/hashicorp/terraform-provider-azurerm/issues/17755))
+* `azurerm_postgresql_aad_administrator`: fix the state migration ([#17732](https://github.com/hashicorp/terraform-provider-azurerm/issues/17732))
+* `azurerm_postgresql_server` - fix a regression around `id` ([#17755](https://github.com/hashicorp/terraform-provider-azurerm/issues/17755))
 
 ## 3.15.0 (July 21, 2022)
 
