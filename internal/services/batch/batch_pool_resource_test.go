@@ -21,26 +21,31 @@ type BatchPoolResource struct{}
 func TestAccBatchPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
-	if !features.FourPointOhBeta() {
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-					check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
-					check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-					check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-					check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
-					check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
-					check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
-					check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
-					check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
-				),
-			},
-			data.ImportStep("stop_pending_resize_operation"),
-		})
-	} else {
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
+				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
+				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
+				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+
+}
+
+func TestAccBatchPool_fourPointOBeta(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+	if features.FourPointOhBeta() {
 		data.ResourceTest(t, r, []acceptance.TestStep{
 			{
 				Config: r.deploymentConfigurationBasic(data),
