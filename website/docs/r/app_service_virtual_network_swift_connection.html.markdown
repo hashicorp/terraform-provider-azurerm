@@ -15,15 +15,15 @@ This resource can be used for both `azurerm_app_service` and `azurerm_function_a
 
 ~> **Note:** The following resources support associating the vNet for Regional vNet Integration directly on the resource and via the `azurerm_app_service_virtual_network_swift_connection` resource. You can't use both simultaneously.
 
- - [azurerm_windows_web_app](windows_web_app.html)
- - [azurerm_windows_web_app_slot](windows_web_app_slot.html)
- - [azurerm_windows_function_app](windows_function_app.html)
- - [azurerm_windows_function_app_slot](windows_function_app_slot.html)
- - [azurerm_linux_web_app](linux_web_app.html)
- - [azurerm_linux_web_app_slot](linux_web_app_slot.html)
  - [azurerm_linux_function_app](linux_function_app.html)
  - [azurerm_linux_function_app_slot](linux_function_app_slot.html)
+ - [azurerm_linux_web_app](linux_web_app.html)
+ - [azurerm_linux_web_app_slot](linux_web_app_slot.html)
  - [azurerm_logic_app_standard](logic_app_standard.html)
+ - [azurerm_windows_function_app](windows_function_app.html)
+ - [azurerm_windows_function_app_slot](windows_function_app_slot.html)
+ - [azurerm_windows_web_app](windows_web_app.html)
+ - [azurerm_windows_web_app_slot](windows_web_app_slot.html)
 
 This resource requires the `Microsoft.Network/virtualNetworks/subnets/write` permission scope on the subnet.  
 
