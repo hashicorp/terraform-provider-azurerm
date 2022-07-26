@@ -89,9 +89,10 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"deployment_spec_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
+			Default:      "20542149-bfca-5618-1879-9863dc6767f1",
 		},
 
 		"volume": {
@@ -276,6 +277,66 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Required: true,
 						ForceNew: true,
 					},
+
+					"mount_ip_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"data_protection_replication": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"endpoint_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "dst",
+									ValidateFunc: validation.StringInSlice([]string{
+										"dst",
+									}, false),
+								},
+
+								"remote_volume_location": azure.SchemaLocation(),
+
+								"remote_volume_resource_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+
+								"replication_frequency": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										"10minutes",
+										"daily",
+										"hourly",
+									}, false),
+								},
+							},
+						},
+					},
+
+					"data_protection_snapshot_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"snapshot_policy_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
+					},
 				},
 			},
 			Set: resourceVolumeGroupVolumeListHash,
@@ -284,6 +345,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func resourceVolumeGroupVolumeListHash(v interface{}) int {
+	// Computed = true items must be out of this
+
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -292,7 +355,6 @@ func resourceVolumeGroupVolumeListHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["volume_spec_name"].(string)))
 		buf.WriteString(fmt.Sprintf("%s-", m["volume_path"].(string)))
 		buf.WriteString(fmt.Sprintf("%s-", m["service_level"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["subnet_id"].(string)))
 
 		if protocols, ok := m["protocols"].([]interface{}); ok {
 			for _, item := range protocols {
@@ -359,6 +421,33 @@ func resourceVolumeGroupVolumeListHash(v interface{}) int {
 				i := item.(map[string]interface{})
 				for k, v := range i {
 					buf.WriteString(fmt.Sprintf("%s-%s-", k, v))
+				}
+			}
+		}
+
+		if dpReplication, ok := m["data_protection_replication"].([]interface{}); ok {
+			for _, item := range dpReplication {
+				v := item.(map[string]interface{})
+				if endpointType, ok := v["endpoint_type"].(string); ok {
+					buf.WriteString(fmt.Sprintf("%s-", endpointType))
+				}
+				if remoteVolumeLocation, ok := v["remote_volume_location"].(string); ok {
+					buf.WriteString(fmt.Sprintf("%s-", remoteVolumeLocation))
+				}
+				if remoteVolumeResourceId, ok := v["remote_volume_resource_id"].(string); ok {
+					buf.WriteString(fmt.Sprintf("%s-", remoteVolumeResourceId))
+				}
+				if replicationFrequency, ok := v["replication_frequency"].(string); ok {
+					buf.WriteString(fmt.Sprintf("%s-", replicationFrequency))
+				}
+			}
+		}
+
+		if dpSnapshotPolicy, ok := m["data_protection_snapshot_policy"].([]interface{}); ok {
+			for _, item := range dpSnapshotPolicy {
+				v := item.(map[string]interface{})
+				if snapshotPolicyId, ok := v["snapshot_policy_id"].(string); ok {
+					buf.WriteString(fmt.Sprintf("%s-", snapshotPolicyId))
 				}
 			}
 		}
@@ -478,7 +567,17 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 				model.ApplicationIdentifier = utils.NormalizeNilableString(props.GroupMetaData.ApplicationIdentifier)
 				model.DeploymentSpecId = utils.NormalizeNilableString(props.GroupMetaData.DeploymentSpecId)
 				model.ApplicationType = string(*props.GroupMetaData.ApplicationType)
-				model.DeploymentSpecId = state.DeploymentSpecId
+
+				if state.DeploymentSpecId != "" {
+					model.DeploymentSpecId = state.DeploymentSpecId
+				} else {
+					// Setting a default value here to overcome issue with SDK
+					// not returning this value back from Azure
+					// This is the only supported value for the time being and
+					// will be fixed by ANF team if it introduces a new SpecId
+					// option.
+					model.DeploymentSpecId = "20542149-bfca-5618-1879-9863dc6767f1"
+				}
 
 				volumes, err := flattenNetAppVolumeGroupVolumes(props.Volumes)
 				if err != nil {
@@ -495,9 +594,40 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 
 func (r NetAppVolumeGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Delete Func
+
+			client := metadata.Client.NetApp.VolumeGroupClient
+
+			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.VolumeGroupsGet(ctx, *id)
+			if err != nil {
+				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %v", id, err)
+			}
+
+			// Removing volumes before deleting volume group
+			if props := existing.Model.Properties; props != nil {
+				if volumeList := props.Volumes; volumeList != nil {
+					for _, volume := range *volumeList {
+						if err := deleteVolume(ctx, metadata, *volume.Id); err != nil {
+							return fmt.Errorf("deleting `volume`: %+v", err)
+						}
+					}
+				}
+			}
+
+			// Removing Volume Group
+			if err = client.VolumeGroupsDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
 			return nil
 		},
 	}

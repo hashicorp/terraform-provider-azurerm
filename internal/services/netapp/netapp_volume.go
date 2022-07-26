@@ -1,28 +1,40 @@
 package netapp
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumesreplication"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeGroupVolume struct {
-	Name                      string             `tfschema:"name"`
-	VolumePath                string             `tfschema:"volume_path"`
-	ServiceLevel              string             `tfschema:"service_level"`
-	SubnetId                  string             `tfschema:"subnet_id"`
-	Protocols                 []string           `tfschema:"protocols"`
-	SecurityStyle             string             `tfschema:"security_style"`
-	StorageQuotaInGB          int64              `tfschema:"storage_quota_in_gb"`
-	ThroughputInMibps         float64            `tfschema:"throughput_in_mibps"`
-	Tags                      map[string]string  `tfschema:"tags"`
-	SnapshotDirectoryVisible  bool               `tfschema:"snapshot_directory_visible"`
-	CapacityPoolId            string             `tfschema:"capacity_pool_id"`
-	ProximityPlacementGroupId string             `tfschema:"proximity_placement_group_id"`
-	VolumeSpecName            string             `tfschema:"volume_spec_name"`
-	ExportPolicy              []ExportPolicyRule `tfschema:"export_policy_rule"`
+	Name                         string                         `tfschema:"name"`
+	VolumePath                   string                         `tfschema:"volume_path"`
+	ServiceLevel                 string                         `tfschema:"service_level"`
+	SubnetId                     string                         `tfschema:"subnet_id"`
+	Protocols                    []string                       `tfschema:"protocols"`
+	SecurityStyle                string                         `tfschema:"security_style"`
+	StorageQuotaInGB             int64                          `tfschema:"storage_quota_in_gb"`
+	ThroughputInMibps            float64                        `tfschema:"throughput_in_mibps"`
+	Tags                         map[string]string              `tfschema:"tags"`
+	SnapshotDirectoryVisible     bool                           `tfschema:"snapshot_directory_visible"`
+	CapacityPoolId               string                         `tfschema:"capacity_pool_id"`
+	ProximityPlacementGroupId    string                         `tfschema:"proximity_placement_group_id"`
+	VolumeSpecName               string                         `tfschema:"volume_spec_name"`
+	ExportPolicy                 []ExportPolicyRule             `tfschema:"export_policy_rule"`
+	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
+	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
+	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
 }
 
 type ExportPolicyRule struct {
@@ -50,7 +62,7 @@ type DataProtectionReplication struct {
 }
 
 type DataProtectionSnapshotPolicy struct {
-	DataProtectionSnapshotPolicy string `tfschema:"data_protection_snapshot_policy"`
+	DataProtectionSnapshotPolicy string `tfschema:"snapshot_policy_id"`
 }
 
 func expandNetAppVolumeGroupExportPolicyRule(input []ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
@@ -136,6 +148,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 		subnetID := item.SubnetId
 		capacityPoolID := item.CapacityPoolId
 		protocols := item.Protocols
+		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
 
 		// Handling security style property
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
@@ -149,21 +162,28 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 
 		storageQuotaInGB := int64(item.StorageQuotaInGB * 1073741824)
 		exportPolicyRule := expandNetAppVolumeGroupExportPolicyRule(item.ExportPolicy)
+		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
+		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
 
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
 			Name: utils.String(name),
 			Properties: volumegroups.VolumeProperties{
-				CapacityPoolResourceId:  utils.String(capacityPoolID),
-				CreationToken:           volumePath,
-				ServiceLevel:            &serviceLevel,
-				SubnetId:                subnetID,
-				ProtocolTypes:           &protocols,
-				SecurityStyle:           &securityStyle,
-				UsageThreshold:          storageQuotaInGB,
-				ExportPolicy:            exportPolicyRule,
-				ThroughputMibps:         utils.Float(float64(item.ThroughputInMibps)),
-				ProximityPlacementGroup: utils.String(item.ProximityPlacementGroupId),
-				VolumeSpecName:          utils.String(item.VolumeSpecName),
+				CapacityPoolResourceId:   utils.String(capacityPoolID),
+				CreationToken:            volumePath,
+				ServiceLevel:             &serviceLevel,
+				SubnetId:                 subnetID,
+				ProtocolTypes:            &protocols,
+				SecurityStyle:            &securityStyle,
+				UsageThreshold:           storageQuotaInGB,
+				ExportPolicy:             exportPolicyRule,
+				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+				ThroughputMibps:          utils.Float(float64(item.ThroughputInMibps)),
+				ProximityPlacementGroup:  utils.String(item.ProximityPlacementGroupId),
+				VolumeSpecName:           utils.String(item.VolumeSpecName),
+				DataProtection: &volumegroups.VolumePropertiesDataProtection{
+					Replication: dataProtectionReplication.Replication,
+					Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
+				},
 			},
 			Tags: &item.Tags,
 		}
@@ -186,7 +206,7 @@ func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProp
 
 		props := item.Properties
 
-		volumeGroupVolume.Name = string(*item.Name)
+		volumeGroupVolume.Name = getResourceNameString(item.Name)
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(*props.ServiceLevel)
 		volumeGroupVolume.SubnetId = props.SubnetId
@@ -206,6 +226,18 @@ func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProp
 
 		if props.ExportPolicy != nil && len(*props.ExportPolicy.Rules) > 0 {
 			volumeGroupVolume.ExportPolicy = flattenNetAppVolumeGroupVolumesExportPolicies(props.ExportPolicy.Rules)
+		}
+
+		if props.MountTargets != nil && len(*props.MountTargets) > 0 {
+			volumeGroupVolume.MountIpAddresses = flattenNetAppVolumeGroupVolumesMountIpAddresses(props.MountTargets)
+		}
+
+		if props.DataProtection != nil && props.DataProtection.Replication != nil {
+			volumeGroupVolume.DataProtectionReplication = flattenNetAppVolumeGroupVolumesDPReplication(props.DataProtection.Replication)
+		}
+
+		if props.DataProtection != nil && props.DataProtection.Snapshot != nil {
+			volumeGroupVolume.DataProtectionSnapshotPolicy = flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(props.DataProtection.Snapshot)
 		}
 
 		results = append(results, volumeGroupVolume)
@@ -317,4 +349,213 @@ func getVolumeIndexbyName(input []NetAppVolumeGroupVolume, volumeName string) in
 	}
 
 	return -1
+}
+
+func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId string) error {
+	client := metadata.Client.NetApp.VolumeClient
+
+	id, err := volumes.ParseVolumeID(volumeId)
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		if existing.HttpResponse.StatusCode == http.StatusNotFound {
+			return metadata.MarkAsGone(id)
+		}
+		return fmt.Errorf("retrieving %s: %v", id, err)
+	}
+
+	// Removing replication if present
+	dataProtectionReplication := existing.Model.Properties.DataProtection
+
+	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+		replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
+		if err != nil {
+			return err
+		}
+		if dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
+			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
+			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
+			if err != nil {
+				return err
+			}
+		}
+
+		replicationClient := metadata.Client.NetApp.VolumeReplicationClient
+		// Checking replication status before deletion, it need to be broken before proceeding with deletion
+		if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
+			// Wait for replication state = "mirrored"
+			if model := res.Model; model != nil {
+				if model.MirrorState != nil && strings.ToLower(string(*model.MirrorState)) == "uninitialized" {
+					if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "mirrored"); err != nil {
+						return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", *replicaVolumeId, err)
+					}
+				}
+			}
+
+			// Breaking replication
+			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
+				ForceBreakReplication: utils.Bool(true),
+			}); err != nil {
+				return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
+			}
+
+			// Waiting for replication be in broken state
+			metadata.Logger.Infof("waiting for the replication of %s to be in broken state", *replicaVolumeId)
+			if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "broken"); err != nil {
+				return fmt.Errorf("waiting for the breaking of replication for %s: %+v", *replicaVolumeId, err)
+			}
+		}
+
+		// Deleting replication and waiting for it to fully complete the operation
+		if err = replicationClient.VolumesDeleteReplicationThenPoll(ctx, *replicaVolumeId); err != nil {
+			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
+		}
+
+		if err := waitForReplicationDeletion(ctx, replicationClient, *replicaVolumeId); err != nil {
+			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
+		}
+	}
+
+	// Deleting volume and waiting for it fo fully complete the operation
+	if err = client.DeleteThenPoll(ctx, *id, volumes.DeleteOperationOptions{
+		ForceDelete: utils.Bool(true),
+	}); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err = waitForVolumeDeletion(ctx, client, *id); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func waitForReplMirrorState(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200"}, // 200 means mirror state is still Mirrored
+		Target:                    []string{"204"}, // 204 means mirror state is <> than Mirrored
+		Refresh:                   netappVolumeReplicationMirrorStateRefreshFunc(ctx, client, id, desiredState),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be in the state %q: %+v", id, desiredState, err)
+	}
+
+	return nil
+}
+
+func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) pluginsdk.StateRefreshFunc {
+	validStates := []string{"mirrored", "broken", "uninitialized"}
+
+	return func() (interface{}, string, error) {
+		// Possible Mirror States to be used as desiredStates:
+		// mirrored, broken or uninitialized
+		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
+			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
+		}
+
+		res, err := client.VolumesReplicationStatus(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving replication status information from %s: %s", id, err)
+			}
+		}
+
+		// TODO: fix this refresh function to use strings instead of fake status codes
+		// Setting 200 as default response
+		response := 200
+		if res.Model != nil && res.Model.MirrorState != nil && strings.EqualFold(string(*res.Model.MirrorState), desiredState) {
+			// return 204 if state matches desired state
+			response = 204
+		}
+
+		return res, strconv.Itoa(response), nil
+	}
+}
+
+func waitForReplicationDeletion(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202", "400"}, // TODO: Remove 400 when bug is fixed on RP side, where replicationStatus returns 400 while it is in "Deleting" state
+		Target:                    []string{"404"},
+		Refresh:                   netappVolumeReplicationStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Replication of %s to be deleted: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.VolumesReplicationStatus(ctx, id)
+		if err != nil {
+			if httpResponse := res.HttpResponse; httpResponse != nil {
+				if httpResponse.StatusCode == 400 && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
+					// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
+					// TODO: remove this workaround when above bug is fixed
+				} else if !response.WasNotFound(httpResponse) {
+					return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
+				}
+			}
+		}
+
+		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+	}
+}
+
+func waitForVolumeDeletion(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+	}
 }
