@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,7 +15,7 @@ import (
 )
 
 func dataSourceBatchPool() *pluginsdk.Resource {
-	result := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceBatchPoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -103,7 +102,118 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"container_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"container_image_names": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"container_registries": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							// ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Elem: &pluginsdk.Resource{
+								Schema: batchPoolDataContainerRegistry(),
+							},
+						},
+					},
+				},
+			},
+			"data_disks": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"lun": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"caching": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"disk_size_gb": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"storage_account_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"disk_encryption_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"disk_encryption_target": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"extensions": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"publisher": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"type_handler_version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"auto_upgrade_minor_version": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"settings": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"protected_settings": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"provision_after_extensions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
 			"inter_node_communication": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -315,6 +425,75 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"node_agent_sku_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"node_placement_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"policy": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"os_disk": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ephemeral_os_disk_settings": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"placement": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"storage_image_reference": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"publisher": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"offer": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"sku": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -413,310 +592,20 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"windows_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enable_automatic_updates": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
-	if !features.FourPointOhBeta() {
-		result.Schema["container_configuration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"container_image_names": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-					"container_registries": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"registry_server": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"user_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"password": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-		result.Schema["storage_image_reference"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"publisher": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"offer": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"sku": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"version": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			}}
-		result.Schema["node_agent_sku_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-	} else {
-		result.Schema["deployment_configuration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"cloud_service_configuration": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"os_family": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"os_version": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"virtual_machine_configuration": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"container_configuration": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"type": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"container_image_names": {
-												Type:     pluginsdk.TypeList,
-												Computed: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-											},
-											"container_registries": {
-												Type:     pluginsdk.TypeList,
-												Computed: true,
-												// ConfigMode: pluginsdk.SchemaConfigModeAttr,
-												Elem: &pluginsdk.Resource{
-													Schema: batchPoolDataContainerRegistry(),
-												},
-											},
-										},
-									},
-								},
-								"data_disks": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"lun": {
-												Type:     pluginsdk.TypeInt,
-												Computed: true,
-											},
-											"caching": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"disk_size_gb": {
-												Type:     pluginsdk.TypeInt,
-												Computed: true,
-											},
-											"storage_account_type": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
-								},
-								"disk_encryption_configuration": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"disk_encryption_target": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
-								},
-								"extensions": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"name": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"publisher": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"type": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"type_handler_version": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"auto_upgrade_minor_version": {
-												Type:     pluginsdk.TypeBool,
-												Computed: true,
-											},
-											"settings": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"protected_settings": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"provision_after_extensions": {
-												Type:     pluginsdk.TypeList,
-												Computed: true,
-												Elem: &pluginsdk.Schema{
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-								},
-								"image_reference": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"id": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-
-											"publisher": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-
-											"offer": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-
-											"sku": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-
-											"version": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
-								},
-								"license_type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"node_agent_sku_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"node_placement_configuration": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"policy": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
-								},
-								"os_disk": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"ephemeral_os_disk_settings": {
-												Type:     pluginsdk.TypeList,
-												Computed: true,
-												Elem: &pluginsdk.Resource{
-													Schema: map[string]*pluginsdk.Schema{
-														"placement": {
-															Type:     pluginsdk.TypeString,
-															Computed: true,
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-								"windows_configuration": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"enable_automatic_updates": {
-												Type:     pluginsdk.TypeBool,
-												Computed: true,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-	return result
 }
 
 func batchPoolDataIdentityReference() map[string]*pluginsdk.Schema {
@@ -944,38 +833,9 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		if !features.FourPointOhBeta() {
-			if props.DeploymentConfiguration != nil &&
-				props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-				props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-				imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
-
-				d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
-				d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
-			}
-
-			if dcfg := props.DeploymentConfiguration; dcfg != nil {
-				if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
-				}
-			}
-		} else {
-			if props.DeploymentConfiguration != nil {
-				deploymentConfigMap := make(map[string]interface{}, 0)
-				if props.DeploymentConfiguration.CloudServiceConfiguration != nil {
-					deploymentConfigMap["cloud_service_configuration"] = []interface{}{
-						flattenBatchPoolCloudServiceConfiguration(props.DeploymentConfiguration.CloudServiceConfiguration),
-					}
-				}
-				if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
-					deploymentConfigMap["virtual_machine_configuration"] = []interface{}{
-						flattenBatchPoolVirtualMachineConfiguration(d, props.DeploymentConfiguration.VirtualMachineConfiguration),
-					}
-				}
-				deploymentConfigList := []interface{}{
-					deploymentConfigMap,
-				}
-				d.Set("deployment_configuration", deploymentConfigList)
+		if props.DeploymentConfiguration != nil {
+			if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+				flattenBatchPoolVirtualMachineConfiguration(d, props.DeploymentConfiguration.VirtualMachineConfiguration)
 			}
 		}
 

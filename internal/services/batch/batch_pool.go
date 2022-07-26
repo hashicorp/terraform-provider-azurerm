@@ -194,10 +194,9 @@ func flattenBatchPoolCloudServiceConfiguration(config *batch.CloudServiceConfigu
 	return result
 }
 
-func flattenBatchPoolVirtualMachineConfiguration(oldConfig *pluginsdk.ResourceData, config *batch.VirtualMachineConfiguration) interface{} {
-	result := make(map[string]interface{}, 0)
+func flattenBatchPoolVirtualMachineConfiguration(d *pluginsdk.ResourceData, config *batch.VirtualMachineConfiguration) {
 	if config.ContainerConfiguration != nil {
-		result["container_configuration"] = flattenBatchPoolContainerConfiguration(oldConfig, config.ContainerConfiguration)
+		d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 	}
 	if config.DataDisks != nil {
 		dataDisks := make([]interface{}, 0)
@@ -209,7 +208,7 @@ func flattenBatchPoolVirtualMachineConfiguration(oldConfig *pluginsdk.ResourceDa
 			dataDisk["storage_account_type"] = string(item.StorageAccountType)
 			dataDisks = append(dataDisks, dataDisk)
 		}
-		result["data_disks"] = dataDisks
+		d.Set("data_disks", dataDisks)
 	}
 	if config.DiskEncryptionConfiguration != nil {
 		diskEncryptionConfiguration := make([]interface{}, 0)
@@ -220,7 +219,7 @@ func flattenBatchPoolVirtualMachineConfiguration(oldConfig *pluginsdk.ResourceDa
 				diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 			}
 		}
-		result["disk_encryption_configuration"] = diskEncryptionConfiguration
+		d.Set("disk_encryption_configuration", diskEncryptionConfiguration)
 	}
 	if config.Extensions != nil {
 		extensions := make([]interface{}, 0)
@@ -246,30 +245,30 @@ func flattenBatchPoolVirtualMachineConfiguration(oldConfig *pluginsdk.ResourceDa
 			}
 			extensions = append(extensions, extension)
 		}
-		result["extensions"] = extensions
+		d.Set("extensions", extensions)
 	}
 	if config.ImageReference != nil {
-		result["image_reference"] = flattenBatchPoolImageReference(config.ImageReference)
+		d.Set("storage_image_reference", flattenBatchPoolImageReference(config.ImageReference))
 	}
 	if config.LicenseType != nil {
-		result["license_type"] = *config.LicenseType
+		d.Set("license_type", *config.LicenseType)
 	}
 	if config.NodeAgentSkuID != nil {
-		result["node_agent_sku_id"] = *config.NodeAgentSkuID
+		d.Set("node_agent_sku_id", *config.NodeAgentSkuID)
 	}
 	if config.NodePlacementConfiguration != nil {
 		nodePlacementConfiguration := make([]interface{}, 0)
 		nodePlacementConfig := make(map[string]interface{})
 		nodePlacementConfig["policy"] = string(config.NodePlacementConfiguration.Policy)
 		nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
-		result["node_placement_configuration"] = nodePlacementConfiguration
+		d.Set("node_placement_configuration", nodePlacementConfiguration)
 	}
 	if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
 		osDisk := make(map[string]interface{})
 		osDisk["ephemeral_os_disk_settings"] = map[string]interface{}{
 			"placement": string(config.OsDisk.EphemeralOSDiskSettings.Placement),
 		}
-		result["os_disk"] = osDisk
+		d.Set("os_disk", osDisk)
 	}
 	if config.WindowsConfiguration != nil {
 		windowsConfig := []interface{}{
@@ -277,9 +276,8 @@ func flattenBatchPoolVirtualMachineConfiguration(oldConfig *pluginsdk.ResourceDa
 				"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
 			},
 		}
-		result["windows_configuration"] = windowsConfig
+		d.Set("windows_configuration", windowsConfig)
 	}
-	return result
 }
 
 // flattenBatchPoolImageReference flattens the Batch pool image reference
@@ -842,78 +840,67 @@ func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*batch.Task
 	return nil, fmt.Errorf("task_scheduling_policy either is empty or contains parsing errors")
 }
 
-func ExpandBatchPoolDeploymentConfiguration(d *pluginsdk.ResourceData) (*batch.DeploymentConfiguration, error) {
-	var result batch.DeploymentConfiguration
-
-	if deploymentConfig, ok := d.GetOk("deployment_configuration"); ok {
-		//Although in schema this is a list, actually deployment_configuration has only one element
-		deploymentConfigMap := deploymentConfig.(map[string]interface{})
-		cloudServiceConfig, cloudServiceErr := expandBatchPoolCloudServiceConfig(deploymentConfigMap)
-		virtualMachineConfig, virtualMachineErr := expandBatchPoolVirtualMachineConfig(deploymentConfigMap)
-		if cloudServiceErr == nil || virtualMachineErr == nil {
-			result.CloudServiceConfiguration = cloudServiceConfig
-			result.VirtualMachineConfiguration = virtualMachineConfig
-			return &result, nil
-		}
-	}
-	return nil, fmt.Errorf("deployment_configuration either is empty or contains parsing errors")
-}
-
-func expandBatchPoolCloudServiceConfig(configMap map[string]interface{}) (*batch.CloudServiceConfiguration, error) {
-	if cloudConfig, ok := configMap["virtual_machine_configuration"]; ok {
-		cloudConfigSet := cloudConfig.(map[string]interface{})
-		var result batch.CloudServiceConfiguration
-		if osFamily, ok := cloudConfigSet["os_family"]; ok {
-			result.OsFamily = utils.String(osFamily.(string))
-		}
-		if osVersion, ok := cloudConfigSet["os_version"]; ok {
-			result.OsVersion = utils.String(osVersion.(string))
-		}
-		return &result, nil
-	}
-	return nil, fmt.Errorf("cloud_service_configuration either is empty or contains parsing errors")
-}
-
-func expandBatchPoolVirtualMachineConfig(configMap map[string]interface{}) (*batch.VirtualMachineConfiguration, error) {
+func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*batch.VirtualMachineConfiguration, error) {
 	var result batch.VirtualMachineConfiguration
 
-	if vmConfig, ok := configMap["virtual_machine_configuration"]; ok {
-		vmConfigSet := vmConfig.(map[string]interface{})
-		if imageReference, iRErr := ExpandBatchPoolImageReference(vmConfigSet["image_reference"].([]interface{})); iRErr == nil {
-			result.ImageReference = imageReference
-		} else {
-			return nil, iRErr
-		}
-		if nodeAgentSkuID, ok := vmConfigSet["node_agent_sku_id"]; ok {
-			result.NodeAgentSkuID = utils.String(nodeAgentSkuID.(string))
-		}
-		if containerConfig, cCfgErr := ExpandBatchPoolContainerConfiguration(vmConfigSet["container_configuration"].([]interface{})); cCfgErr == nil {
-			result.ContainerConfiguration = containerConfig
-		}
-		if dataDisk, diskErr := expandBatchPoolDataDisks(vmConfigSet["data_disks"].([]interface{})); diskErr == nil {
-			result.DataDisks = dataDisk
-		}
-		if diskEncryptionConfig, diskEncryptionErr := expandBatchPoolDiskEncryptionConfiguration(vmConfigSet["disk_encryption_configuration"].([]interface{})); diskEncryptionErr == nil {
-			result.DiskEncryptionConfiguration = diskEncryptionConfig
-		}
-		if extensions, extErr := expandBatchPoolExtensions(vmConfigSet["disk_encryption_configuration"].([]interface{})); extErr == nil {
-			result.Extensions = extensions
-		}
-		if licenseType, ok := vmConfigSet["license_type"]; ok {
-			result.LicenseType = utils.String(licenseType.(string))
-		}
-		if nodeReplacementConfig, nodeRepCfgErr := expandBatchPoolNodeReplacementConfig(vmConfigSet["node_placement_configuration"].([]interface{})); nodeRepCfgErr == nil {
-			result.NodePlacementConfiguration = nodeReplacementConfig
-		}
-		if osDisk, osDiskErr := expandBatchPoolOSDisk(vmConfigSet["os_disk"].(map[string]interface{})); osDiskErr == nil {
-			result.OsDisk = osDisk
-		}
-		if windowsConfiguration, windowsConfigErr := expandBatchPoolWindowsConfiguration(vmConfigSet["windows_configuration"].([]interface{})); windowsConfigErr == nil {
-			result.WindowsConfiguration = windowsConfiguration
-		}
-		return &result, nil
+	result.NodeAgentSkuID = utils.String(d.Get("node_agent_sku_id").(string))
+
+	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+	if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
+		result.ImageReference = imageReference
+	} else {
+		return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
 	}
-	return nil, fmt.Errorf("virtual_machine_configuration either is empty or contains parsing errors")
+
+	if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{})); err == nil {
+		result.ContainerConfiguration = containerConfiguration
+	} else {
+		return nil, fmt.Errorf("container_configuration either is empty or contains parsing errors")
+	}
+
+	if dataDisk, diskErr := expandBatchPoolDataDisks(d.Get("data_disks").([]interface{})); diskErr == nil {
+		result.DataDisks = dataDisk
+	} else {
+		return nil, fmt.Errorf("data_disks either is empty or contains parsing errors")
+	}
+
+	if diskEncryptionConfig, diskEncryptionErr := expandBatchPoolDiskEncryptionConfiguration(d.Get("disk_encryption_configuration").([]interface{})); diskEncryptionErr == nil {
+		result.DiskEncryptionConfiguration = diskEncryptionConfig
+	} else {
+		return nil, fmt.Errorf("disk_encryption_configuration either is empty or contains parsing errors")
+	}
+
+	if extensions, extErr := expandBatchPoolExtensions(d.Get("disk_encryption_configuration").([]interface{})); extErr == nil {
+		result.Extensions = extensions
+	} else {
+		return nil, fmt.Errorf("disk_encryption_configuration either is empty or contains parsing errors")
+	}
+
+	if licenseType, ok := d.GetOk("license_type"); ok {
+		result.LicenseType = utils.String(licenseType.(string))
+	} else {
+		return nil, fmt.Errorf("license_type either is empty or contains parsing errors")
+	}
+
+	if nodeReplacementConfig, nodeRepCfgErr := expandBatchPoolNodeReplacementConfig(d.Get("node_placement_configuration").([]interface{})); nodeRepCfgErr == nil {
+		result.NodePlacementConfiguration = nodeReplacementConfig
+	} else {
+		return nil, fmt.Errorf("node_placement_configuration either is empty or contains parsing errors")
+	}
+
+	if osDisk, osDiskErr := expandBatchPoolOSDisk(d.Get("os_disk").(map[string]interface{})); osDiskErr == nil {
+		result.OsDisk = osDisk
+	} else {
+		return nil, fmt.Errorf("os_disk either is empty or contains parsing errors")
+	}
+
+	if windowsConfiguration, windowsConfigErr := expandBatchPoolWindowsConfiguration(d.Get("windows_configuration").([]interface{})); windowsConfigErr == nil {
+		result.WindowsConfiguration = windowsConfiguration
+	} else {
+		return nil, fmt.Errorf("windows_configuration either is empty or contains parsing errors")
+	}
+
+	return &result, nil
 }
 
 func expandBatchPoolOSDisk(ref map[string]interface{}) (*batch.OSDisk, error) {
