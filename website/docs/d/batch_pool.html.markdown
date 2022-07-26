@@ -33,22 +33,25 @@ The following arguments are supported:
 
 * `node_agent_sku_id` - (Required) Specifies the SKU of the node agents that will be created in the Batch pool.
 
--> **NOTE:** `node_agent_sku_id` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.node_agent_sku_id` in version 4.0 of the AzureRM Provider.
-
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool.
 
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
 
--> **NOTE:** `storage_image_reference` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.image_reference` in version 4.0 of the AzureRM Provider.
-
 * `application_packages` - (Optional) The list of application packages to be installed on each compute node in the pool.
   Changes to application package references affect all new compute nodes joining the pool, but do not affect compute nodes that are already in the pool until they are rebooted or reimaged. There is a maximum of 10 application package references on any given pool.
 
+* `container_configuration` - (Optional) The container configuration used in the pool's VMs.
+
+* `data_disks` - (Optional) A `data_disks` block as defined below.
+
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
-* `deployment_configuration` - (Optional) A `deployment_configuration` block as defined below.
+* `disk_encryption_configuration` - (Optional) A `disk_encryption_configuration` block as defined below.
 
--> **NOTE:** `deployment_configuration` will only be available for 4.0 and later version.
+* `extensions` - (Optional) An `extensions` block as defined below.
+
+* `license_type` - (Optional) The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: Windows_Server - The on-premises license is for Windows Server. Windows_Client - The on-premises license is for Windows Client.
+
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -57,6 +60,10 @@ The following arguments are supported:
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
 * `mount_configuration` - (Optional) A `mount_configuration` block defined as below.
+
+* `node_placement_configuration` - (Optional)  A `node_placement_configuration` block as defined below.
+
+* `os_disk` - (Optional) An `os_disk` block as defined below.
 
 * `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
 
@@ -70,7 +77,7 @@ The following arguments are supported:
 
 * `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
 
-* `container_configuration` - (Optional) The container configuration used in the pool's VMs.
+* `windows_configuration` - (Optional) A `windows_configuration` block as defined below.
 
 -> **NOTE:** `container_configuration` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.container_configuration` in version 4.0 of the AzureRM Provider.
 
@@ -81,55 +88,6 @@ The following arguments are supported:
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
-
----
-
-An `deployment_configuration` block supports `cloud_service_configuration` block and `virtual_machine_configuration` block:
-
-This property describes how the pool nodes will be deployed - using Cloud Services or Virtual Machines.
-Using `cloud_service_configuration` specifies that the nodes should be creating using Azure Cloud Services (PaaS), while `virtual_machine_configuration` uses Azure Virtual Machines (IaaS).
-
-Property `cloud_service_configuration` and `virtual_machine_configuration` are mutually exclusive and one of the properties must be specified.
-
-Property `cloud_service_configuration` can not be specified if `azurerm_batch_account` was created with its `pool_allocation_mode` property set to 'UserSubscription'.
-
-* `cloud_service_configuration` - (Optional) An `cloud_service_configuration` block as defined below.
-
-* `virtual_machine_configuration` - (Optional) An `virtual_machine_configuration` block as defined below.
-
----
-
-An `cloud_service_configuration` block supports the following:
-
-* `os_family` - (Required) The Azure Guest OS family to be installed on the virtual machines in the pool.
-  Possible values are: 2 - OS Family 2, equivalent to Windows Server 2008 R2 SP1. 3 - OS Family 3, equivalent to Windows Server 2012. 4 - OS Family 4, equivalent to Windows Server 2012 R2. 5 - OS Family 5, equivalent to Windows Server 2016. 6 - OS Family 6, equivalent to Windows Server 2019. For more information, see Azure Guest OS Releases (https://azure.microsoft.com/documentation/articles/cloud-services-guestos-update-matrix/#releases).
-
-* `os_version` - (Optional) The Azure Guest OS version to be installed on the virtual machines in the pool.
-  The default value is * which specifies the latest operating system version for the specified OS family.
-
----
-
-A `virtual_machine_configuration` block supports the following:
-
-* `image_reference` - (Required) An `image_reference` block as defined below.
-
-* `node_agent_sku_id` - (Required) The SKU of the Batch node agent to be provisioned on compute nodes in the pool. The Batch node agent is a program that runs on each node in the pool, and provides the command-and-control interface between the node and the Batch service. There are different implementations of the node agent, known as SKUs, for different operating systems. You must specify a node agent SKU which matches the selected image reference. To get the list of supported node agent SKUs along with their list of verified image references, see the 'List supported node agent SKUs' operation.
-
-* `container_configuration` - (Optional) A `container_configuration` block as defined below.
-
-* `data_disks` - (Optional) A `data_disks` block as defined below.
-
-* `disk_encryption_configuration` - (Optional) A `disk_encryption_configuration` block as defined below.
-
-* `extensions` - (Optional) An `extensions` block as defined below.
-
-* `license_type` - (Optional) The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: Windows_Server - The on-premises license is for Windows Server. Windows_Client - The on-premises license is for Windows Client.
-
-* `node_placement_configuration` - (Optional)  A `node_placement_configuration` block as defined below.
-
-* `os_disk` - (Optional) An `os_disk` block as defined below.
-
-* `windows_configuration` - (Optional) A `windows_configuration` block as defined below.
 
 ---
 
