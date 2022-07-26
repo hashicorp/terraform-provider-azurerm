@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -196,6 +196,23 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(namespaces.TlsVersionOnePointTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(namespaces.TlsVersionOnePointZero),
+					string(namespaces.TlsVersionOnePointOne),
+					string(namespaces.TlsVersionOnePointTwo),
+				}, false),
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"default_primary_connection_string_alias": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -284,6 +301,13 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+	}
+
+	miniTlsVersion := namespaces.TlsVersion(d.Get("minimum_tls_version").(string))
+
 	parameters := namespaces.EHNamespace{
 		Location: &location,
 		Sku: &namespaces.Sku{
@@ -299,6 +323,8 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
 			DisableLocalAuth:     utils.Bool(!d.Get("local_authentication_enabled").(bool)),
+			PublicNetworkAccess:  &publicNetworkEnabled,
+			MinimumTlsVersion:    &miniTlsVersion,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -353,6 +379,11 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 	zoneRedundant := d.Get("zone_redundant").(bool)
+	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+	}
+	miniTlsVersion := namespaces.TlsVersion(d.Get("minimum_tls_version").(string))
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -374,6 +405,8 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
 			DisableLocalAuth:     utils.Bool(!d.Get("local_authentication_enabled").(bool)),
+			PublicNetworkAccess:  &publicNetworkEnabled,
+			MinimumTlsVersion:    &miniTlsVersion,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -482,6 +515,12 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if props.DisableLocalAuth != nil {
 				localAuthEnable := *props.DisableLocalAuth
 				d.Set("local_authentication_enabled", !localAuthEnable)
+			}
+			if props.PublicNetworkAccess != nil {
+				d.Set("public_network_access_enabled", *props.PublicNetworkAccess == namespaces.PublicNetworkAccessEnabled)
+			}
+			if props.MinimumTlsVersion != nil {
+				d.Set("minimum_tls_version", *props.MinimumTlsVersion)
 			}
 		}
 

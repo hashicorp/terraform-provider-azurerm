@@ -224,8 +224,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/consumerg
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/disasterrecoveryconfigs
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters
-github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets
+github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers
 github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules

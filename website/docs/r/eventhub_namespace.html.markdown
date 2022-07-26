@@ -61,6 +61,10 @@ The following arguments are supported:
 
 * `local_authentication_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace?
 
+* `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. The default minimum TLS version is `1.2`.
+
 ---
 
 A `identity` block supports the following:
