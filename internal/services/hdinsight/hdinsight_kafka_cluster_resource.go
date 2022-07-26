@@ -84,6 +84,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
 
+			"network": SchemaHDInsightsNetwork(),
+
 			"component_version": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -212,6 +214,9 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
+
 	kafkaRoles := hdInsightRoleDefinition{
 		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
 		WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
@@ -244,6 +249,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Kafka"),
 				ComponentVersion: componentVersions,
@@ -399,6 +405,12 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 
 		if props.EncryptionInTransitProperties != nil {
 			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
+		}
+
+		if props.NetworkProperties != nil {
+			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flatten `network`: %+v", err)
+			}
 		}
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)

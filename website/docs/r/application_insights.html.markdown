@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource
+* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource. Changing this forces a new resource to be created.
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 

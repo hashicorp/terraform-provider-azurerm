@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,7 +31,7 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubscriptionID(id)
+			_, err := subscriptions.ParseSubscriptions2ID(id)
 			return err
 		}),
 
@@ -59,7 +60,7 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.TopicID,
+			ValidateFunc: topics.ValidateTopicID,
 		},
 
 		"auto_delete_on_idle": {
@@ -122,11 +123,11 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 		"status": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(servicebus.EntityStatusActive),
+			Default:  string(subscriptions.EntityStatusActive),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(servicebus.EntityStatusActive),
-				string(servicebus.EntityStatusDisabled),
-				string(servicebus.EntityStatusReceiveDisabled),
+				string(subscriptions.EntityStatusActive),
+				string(subscriptions.EntityStatusDisabled),
+				string(subscriptions.EntityStatusReceiveDisabled),
 			}, false),
 		},
 	}
@@ -138,61 +139,62 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
-	var resourceId parse.SubscriptionId
+	var id subscriptions.Subscriptions2Id
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
-		topicId, _ := parse.TopicID(topicIdLit)
-		resourceId = parse.NewSubscriptionID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
+		topicId, _ := subscriptions.ParseTopicID(topicIdLit)
+		id = subscriptions.NewSubscriptions2ID(topicId.SubscriptionId, topicId.ResourceGroupName, topicId.NamespaceName, topicId.TopicName, d.Get("name").(string))
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription", id.ID())
 		}
 	}
 
-	parameters := servicebus.SBSubscription{
-		SBSubscriptionProperties: &servicebus.SBSubscriptionProperties{
+	status := subscriptions.EntityStatus(d.Get("status").(string))
+	parameters := subscriptions.SBSubscription{
+		Properties: &subscriptions.SBSubscriptionProperties{
 			DeadLetteringOnMessageExpiration:          utils.Bool(d.Get("dead_lettering_on_message_expiration").(bool)),
 			DeadLetteringOnFilterEvaluationExceptions: utils.Bool(d.Get("dead_lettering_on_filter_evaluation_error").(bool)),
 			EnableBatchedOperations:                   utils.Bool(d.Get("enable_batched_operations").(bool)),
-			MaxDeliveryCount:                          utils.Int32(int32(d.Get("max_delivery_count").(int))),
+			MaxDeliveryCount:                          utils.Int64(int64(d.Get("max_delivery_count").(int))),
 			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
-			Status:                                    servicebus.EntityStatus(d.Get("status").(string)),
+			Status:                                    &status,
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.SBSubscriptionProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
+		parameters.Properties.AutoDeleteOnIdle = &autoDeleteOnIdle
 	}
 
 	if lockDuration := d.Get("lock_duration").(string); lockDuration != "" {
-		parameters.SBSubscriptionProperties.LockDuration = &lockDuration
+		parameters.Properties.LockDuration = &lockDuration
 	}
 
 	if forwardTo := d.Get("forward_to").(string); forwardTo != "" {
-		parameters.SBSubscriptionProperties.ForwardTo = &forwardTo
+		parameters.Properties.ForwardTo = &forwardTo
 	}
 
 	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
-		parameters.SBSubscriptionProperties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
+		parameters.Properties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
 	}
 
 	if defaultMessageTtl := d.Get("default_message_ttl").(string); defaultMessageTtl != "" {
-		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
+		parameters.Properties.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.Name, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %v", resourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceServiceBusSubscriptionRead(d, meta)
 }
 
@@ -201,37 +203,39 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionID(d.Id())
+	id, err := subscriptions.ParseSubscriptions2ID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
+	d.Set("name", id.SubscriptionName)
+	d.Set("topic_id", subscriptions.NewTopicID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName).ID())
 
-	if props := resp.SBSubscriptionProperties; props != nil {
-		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
-		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
-		d.Set("lock_duration", props.LockDuration)
-		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
-		d.Set("dead_lettering_on_filter_evaluation_error", props.DeadLetteringOnFilterEvaluationExceptions)
-		d.Set("enable_batched_operations", props.EnableBatchedOperations)
-		d.Set("requires_session", props.RequiresSession)
-		d.Set("forward_to", props.ForwardTo)
-		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-		d.Set("status", utils.String(string(props.Status)))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
+			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
+			d.Set("lock_duration", props.LockDuration)
+			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+			d.Set("dead_lettering_on_filter_evaluation_error", props.DeadLetteringOnFilterEvaluationExceptions)
+			d.Set("enable_batched_operations", props.EnableBatchedOperations)
+			d.Set("requires_session", props.RequiresSession)
+			d.Set("forward_to", props.ForwardTo)
+			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
+			d.Set("status", utils.String(string(*props.Status)))
 
-		if count := props.MaxDeliveryCount; count != nil {
-			d.Set("max_delivery_count", int(*count))
+			if count := props.MaxDeliveryCount; count != nil {
+				d.Set("max_delivery_count", int(*count))
+			}
 		}
 	}
 
@@ -243,12 +247,12 @@ func resourceServiceBusSubscriptionDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionID(d.Id())
+	id, err := subscriptions.ParseSubscriptions2ID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

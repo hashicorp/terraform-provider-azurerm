@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,18 +51,6 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				ValidateFunc: validate.DatabaseID,
 			},
 
-			"url": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"sas_token": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"continue_on_errors_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -73,6 +61,32 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"url": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"url", "script_content"},
+				RequiredWith: []string{"sas_token"},
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"sas_token": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"url"},
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"script_content": {
+				Type:         pluginsdk.TypeString,
+				ExactlyOneOf: []string{"url", "script_content"},
+				Optional:     true,
+				ForceNew:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -109,12 +123,23 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := kusto.Script{
 		ScriptProperties: &kusto.ScriptProperties{
-			ContinueOnErrors:  utils.Bool(d.Get("continue_on_errors_enabled").(bool)),
-			ForceUpdateTag:    utils.String(forceUpdateTag),
-			ScriptURL:         utils.String(d.Get("url").(string)),
-			ScriptURLSasToken: utils.String(d.Get("sas_token").(string)),
+			ContinueOnErrors: utils.Bool(d.Get("continue_on_errors_enabled").(bool)),
+			ForceUpdateTag:   utils.String(forceUpdateTag),
 		},
 	}
+
+	if scriptURL, ok := d.GetOk("url"); ok {
+		parameters.ScriptURL = utils.String(scriptURL.(string))
+	}
+
+	if scriptURLSasToken, ok := d.GetOk("sas_token"); ok {
+		parameters.ScriptURLSasToken = utils.String(scriptURLSasToken.(string))
+	}
+
+	if scriptContent, ok := d.GetOk("script_content"); ok {
+		parameters.ScriptContent = utils.String(scriptContent.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
