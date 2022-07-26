@@ -45,13 +45,13 @@ func TestAccServiceBusSubscription_complete(t *testing.T) {
 	})
 }
 
-func TestAccServiceBusSubscription_clientAffineEnabled(t *testing.T) {
+func TestAccServiceBusSubscription_clientScopedEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.clientAffineSubscriptionEnabled(data),
+			Config: r.clientScopedSubscriptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -385,7 +385,7 @@ func (ServiceBusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExcep
 		"dead_lettering_on_filter_evaluation_error = false\n")
 }
 
-func (ServiceBusSubscriptionResource) clientAffineSubscriptionEnabled(data acceptance.TestData) string {
+func (ServiceBusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
