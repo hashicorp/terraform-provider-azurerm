@@ -56,25 +56,20 @@ type RetentionWeekly struct {
 }
 
 type RetentionMonthly struct {
-	Count      int32      `tfschema:"count"`
-	FormatType string     `tfschema:"format_type"`
-	MonthDays  []MonthDay `tfschema:"month_day"`
-	Weeks      []string   `tfschema:"weeks"`
-	Weekdays   []string   `tfschema:"weekdays"`
-}
-
-type MonthDay struct {
-	Date   int32 `tfschema:"date"`
-	IsLast bool  `tfschema:"is_last"`
+	Count      int32    `tfschema:"count"`
+	FormatType string   `tfschema:"format_type"`
+	MonthDays  []int32  `tfschema:"monthdays"`
+	Weeks      []string `tfschema:"weeks"`
+	Weekdays   []string `tfschema:"weekdays"`
 }
 
 type RetentionYearly struct {
-	Count      int32      `tfschema:"count"`
-	FormatType string     `tfschema:"format_type"`
-	Months     []string   `tfschema:"months"`
-	MonthDays  []MonthDay `tfschema:"month_day"`
-	Weeks      []string   `tfschema:"weeks"`
-	Weekdays   []string   `tfschema:"weekdays"`
+	Count      int32    `tfschema:"count"`
+	FormatType string   `tfschema:"format_type"`
+	Months     []string `tfschema:"months"`
+	MonthDays  []int32  `tfschema:"monthdays"`
+	Weeks      []string `tfschema:"weeks"`
+	Weekdays   []string `tfschema:"weekdays"`
 }
 
 type SimpleRetention struct {
@@ -82,9 +77,8 @@ type SimpleRetention struct {
 }
 
 type Settings struct {
-	CompressionEnabled    bool   `tfschema:"compression_enabled"`
-	SqlCompressionEnabled bool   `tfschema:"sql_compression_enabled"`
-	TimeZone              string `tfschema:"time_zone"`
+	CompressionEnabled bool   `tfschema:"compression_enabled"`
+	TimeZone           string `tfschema:"time_zone"`
 }
 
 type BackupProtectionPolicyVMWorkloadResource struct{}
@@ -167,11 +161,11 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 									}),
 								},
 
-								"time": { // applies to all backup schedules & retention times (they all must be the same)
+								"time": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+										regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"),
 										"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
 									),
 								},
@@ -252,23 +246,12 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 									}, false),
 								},
 
-								"month_day": {
+								"monthdays": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"date": {
-												Type:         pluginsdk.TypeInt,
-												Required:     true,
-												ValidateFunc: validation.IntBetween(0, 28),
-											},
-
-											"is_last": {
-												Type:     pluginsdk.TypeBool,
-												Optional: true,
-												Default:  false,
-											},
-										},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntBetween(0, 28),
 									},
 								},
 
@@ -334,23 +317,12 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 									},
 								},
 
-								"month_day": {
+								"monthdays": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"date": {
-												Type:         pluginsdk.TypeInt,
-												Required:     true,
-												ValidateFunc: validation.IntBetween(0, 28),
-											},
-
-											"is_last": {
-												Type:     pluginsdk.TypeBool,
-												Optional: true,
-												Default:  false,
-											},
-										},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntBetween(0, 28),
 									},
 								},
 
@@ -415,12 +387,6 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 					},
 
 					"compression_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"sql_compression_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -610,8 +576,7 @@ func expandBackupProtectionPolicyVMWorkloadSettings(input []Settings) *backup.Se
 
 	settings := input[0]
 	result := &backup.Settings{
-		IsCompression:    utils.Bool(settings.CompressionEnabled),
-		Issqlcompression: utils.Bool(settings.SqlCompressionEnabled),
+		IsCompression: utils.Bool(settings.CompressionEnabled),
 	}
 
 	if settings.TimeZone != "" {
@@ -629,9 +594,8 @@ func flattenBackupProtectionPolicyVMWorkloadSettings(input *backup.Settings) []S
 	result := make([]Settings, 0)
 
 	result = append(result, Settings{
-		CompressionEnabled:    *input.IsCompression,
-		SqlCompressionEnabled: *input.Issqlcompression,
-		TimeZone:              *input.TimeZone,
+		CompressionEnabled: *input.IsCompression,
+		TimeZone:           *input.TimeZone,
 	})
 
 	return result
@@ -858,7 +822,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 			}
 
 			if retentionMonthly.FormatType == string(backup.RetentionScheduleFormatDaily) && (retentionMonthly.MonthDays == nil || len(retentionMonthly.MonthDays) == 0) {
-				return nil, fmt.Errorf("`retention_monthly.month_day` must be set when `retention_monthly.format_type` is `Daily`")
+				return nil, fmt.Errorf("`retention_monthly.monthdays` must be set when `retention_monthly.format_type` is `Daily`")
 			}
 
 			if retentionMonthly.FormatType == string(backup.RetentionScheduleFormatWeekly) && ((retentionMonthly.Weeks == nil || len(retentionMonthly.Weeks) == 0) || (retentionMonthly.Weekdays == nil || len(retentionMonthly.Weekdays) == 0)) {
@@ -885,7 +849,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 			}
 
 			if retentionYearly.FormatType == string(backup.RetentionScheduleFormatDaily) && (retentionYearly.MonthDays == nil || len(retentionYearly.MonthDays) == 0) {
-				return nil, fmt.Errorf("`retention_yearly.month_day` must be set when `retention_yearly.format_type` is `Daily`")
+				return nil, fmt.Errorf("`retention_yearly.monthdays` must be set when `retention_yearly.format_type` is `Daily`")
 			}
 
 			if retentionYearly.FormatType == string(backup.RetentionScheduleFormatWeekly) && ((retentionYearly.Weeks == nil || len(retentionYearly.Weeks) == 0) || (retentionYearly.Weekdays == nil || len(retentionYearly.Weekdays) == 0)) {
@@ -1051,7 +1015,7 @@ func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *backup.Retent
 	return []SimpleRetention{simpleRetentionBlock}
 }
 
-func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []MonthDay) *backup.DailyRetentionFormat {
+func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int32) *backup.DailyRetentionFormat {
 	if input == nil || len(input) == 0 {
 		return nil
 	}
@@ -1060,10 +1024,18 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []MonthDay
 
 	days := make([]backup.Day, 0)
 	for _, item := range input {
-		days = append(days, backup.Day{
-			Date:   utils.Int32(item.Date),
-			IsLast: utils.Bool(item.IsLast),
-		})
+		day := backup.Day{
+			Date: utils.Int32(item),
+		}
+
+		// `IsLast` points to `0` and it's always `0`
+		if item == 0 {
+			day.IsLast = utils.Bool(true)
+		} else {
+			day.IsLast = utils.Bool(false)
+		}
+
+		days = append(days, day)
 	}
 	daily.DaysOfTheMonth = &days
 
@@ -1116,15 +1088,12 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(input *backup.
 	return weekdays, weeks
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *backup.DailyRetentionFormat) []MonthDay {
-	result := make([]MonthDay, 0)
+func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *backup.DailyRetentionFormat) []int32 {
+	result := make([]int32, 0)
 
 	if days := input.DaysOfTheMonth; days != nil {
 		for _, d := range *days {
-			result = append(result, MonthDay{
-				Date:   *d.Date,
-				IsLast: *d.IsLast,
-			})
+			result = append(result, *d.Date)
 		}
 	}
 
