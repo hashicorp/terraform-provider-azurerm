@@ -366,9 +366,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"dynamic_vnet_assignment_scope": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(batch.DynamicVNetAssignmentScopeNone),
 								string(batch.DynamicVNetAssignmentScopeJob),

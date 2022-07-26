@@ -317,6 +317,21 @@ func TestAccBatchPool_startTask_userIdentity(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_startTask_resource(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.startTask_resource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_certificates(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -465,8 +480,7 @@ func TestAccBatchPool_networkConfiguration(t *testing.T) {
 				check.That(data.ResourceName).Key("network_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_configuration.0.public_ips.#").HasValue("1"),
-				// skip this check due to service REST API bug.
-				// check.That(data.ResourceName).Key("network_configuration.0.dynamic_vnet_assignment_scope").HasValue("job"),
+				check.That(data.ResourceName).Key("network_configuration.0.dynamic_vnet_assignment_scope").HasValue("None"),
 				check.That(data.ResourceName).Key("network_configuration.0.endpoint_configuration.0.network_security_group_rules.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_configuration.0.endpoint_configuration.0.network_security_group_rules.0.source_port_ranges.0").HasValue("*"),
 			),
@@ -1250,13 +1264,99 @@ resource "azurerm_batch_pool" "test" {
     resource_file {
       storage_container_url = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/README.md"
       file_path             = "README.md"
+    }
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) startTask_resource(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "my-awesome-content.cer"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source                 = "testdata/batch_certificate.cer"
+}
+
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "testui%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+
+  start_task {
+    command_line       = "echo 'Hello World from $env'"
+    wait_for_success   = true
+    task_retry_maximum = 5
+
+    common_environment_properties = {
+      env = "TEST"
+      bu  = "Research&Dev"
+    }
+
+    user_identity {
+      user_name = "adminuser"
+    }
+
+    resource_file {
+      auto_storage_container_name = azurerm_storage_container.test.name
+      file_path             = "README.md"
       identity_reference {
         identity_id = azurerm_user_assigned_identity.test.id
       }
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) validateResourceFileWithoutSource(data acceptance.TestData) string {
@@ -1805,33 +1905,17 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) networkConfiguration(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%[1]d-batchpool"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
+%s
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctestpublicip-%[1]d"
+  name                = "acctestpublicip-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  domain_name_label   = "acctest-publicip-%[1]d"
+  domain_name_label   = "acctest-publicip-%[2]d"
 }
 
 resource "azurerm_batch_account" "test" {
@@ -1861,8 +1945,8 @@ resource "azurerm_batch_pool" "test" {
   network_configuration {
     public_address_provisioning_type = "UserManaged"
     public_ips                       = [azurerm_public_ip.test.id]
-    subnet_id                        = azurerm_subnet.test.id
-    dynamic_vnet_assignment_scope    = "job"
+    subnet_id                        = azurerm_subnet.testsubnet.id
+    dynamic_vnet_assignment_scope    = "none"
 
     endpoint_configuration {
       name                = "SSH"
@@ -1879,7 +1963,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (BatchPoolResource) vnet(data acceptance.TestData) string {
@@ -2030,7 +2114,7 @@ resource "azurerm_batch_pool" "test" {
 `, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (t BatchPoolResource) mountConfigurationCIFS(data acceptance.TestData) string {
+func (BatchPoolResource) mountConfigurationCIFS(data acceptance.TestData) string {
 	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s

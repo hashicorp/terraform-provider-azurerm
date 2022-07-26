@@ -1409,6 +1409,10 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = utils.ExpandStringSlice(publicIPsRaw)
 	}
 
+	if v, ok := networkConfigValue["dynamic_vnet_assignment_scope"]; ok {
+		networkConfiguration.DynamicVNetAssignmentScope = batch.DynamicVNetAssignmentScope(v.(string))
+	}
+
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
 		endpoint, err := expandPoolEndpointConfiguration(v.([]interface{}))
 		if err != nil {
@@ -1578,6 +1582,7 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 
 	return []interface{}{
 		map[string]interface{}{
+			"dynamic_vnet_assignment_scope":    string(input.DynamicVNetAssignmentScope),
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
 			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),
