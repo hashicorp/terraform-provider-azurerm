@@ -5,9 +5,13 @@ ENHANCEMENTS:
 * dependencies: updating to version `v0.20220725.1163004` of `github.com/hashicorp/go-azure-sdk` [GH-17753]
 * `eventhub`: updating all data sources/resources onto single API Version `2021-11-01` [GH-17719]
 
+## 3.15.1 (July 25, 2022)
+
 BUG FIXES: 
 
-* `azurerm_postgresql_aad_administrator`: Fix state migration [GH-17732]
+* `data.azurerm_servicebus_queue` - fix a regression around `namespace_id` ([#17755](https://github.com/hashicorp/terraform-provider-azurerm/issues/17755))
+* `azurerm_postgresql_aad_administrator`: fix the state migration ([#17732](https://github.com/hashicorp/terraform-provider-azurerm/issues/17732))
+* `azurerm_postgresql_server` - fix a regression around `id` ([#17755](https://github.com/hashicorp/terraform-provider-azurerm/issues/17755))
 
 ## 3.15.0 (July 21, 2022)
 
