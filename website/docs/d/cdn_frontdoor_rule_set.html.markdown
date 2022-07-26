@@ -24,7 +24,6 @@ data "azurerm_cdn_frontdoor_rule_set" "example" {
 
 The following arguments are supported:
 
-
 * `name` - (Required) Specifies the name of the CDN FrontDoor Rule Set to retrieve.
 
 * `profile_name` - (Required) Specifies the name of the CDN FrontDoor Profile where this CDN FrontDoor Rule Set exists.
