@@ -319,6 +319,11 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
 	if hasRuleSets {
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name == namespaces.SkuNameBasic {
+			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+		}
+
 		rulesets := networkrulesets.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
