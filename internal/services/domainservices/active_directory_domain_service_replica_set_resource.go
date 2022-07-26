@@ -231,8 +231,8 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 	}
 
 	var (
-		domainControllerIpAddresses []string
-		externalAccessIpAddress     string
+		domainControllerIPAddresses []string
+		externalAccessIPAddress     string
 		loc                         string
 		serviceStatus               string
 		subnetId                    string
@@ -247,11 +247,11 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 
 		// ReplicaSetName in the ID struct is really the replica set ID
 		if *r.ReplicaSetId == id.ReplicaSetName {
-			if r.DomainControllerIpAddress != nil {
-				domainControllerIpAddresses = *r.DomainControllerIpAddress
+			if r.DomainControllerIPAddress != nil {
+				domainControllerIPAddresses = *r.DomainControllerIPAddress
 			}
-			if r.ExternalAccessIpAddress != nil {
-				externalAccessIpAddress = *r.ExternalAccessIpAddress
+			if r.ExternalAccessIPAddress != nil {
+				externalAccessIPAddress = *r.ExternalAccessIPAddress
 			}
 			if r.Location != nil {
 				loc = location.NormalizeNilable(r.Location)
@@ -265,8 +265,8 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 		}
 	}
 
-	d.Set("domain_controller_ip_addresses", domainControllerIpAddresses)
-	d.Set("external_access_ip_address", externalAccessIpAddress)
+	d.Set("domain_controller_ip_addresses", domainControllerIPAddresses)
+	d.Set("external_access_ip_address", externalAccessIPAddress)
 	d.Set("location", loc)
 	d.Set("service_status", serviceStatus)
 	d.Set("subnet_id", subnetId)

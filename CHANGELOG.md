@@ -1,3 +1,14 @@
+## 3.16.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20220725.1131927` of `github.com/hashicorp/go-azure-sdk` [GH-17749]
+* `eventhub`: updating all data sources/resources onto single API Version `2021-11-01` [GH-17719]
+
+BUG FIXES: 
+
+* `azurerm_postgresql_aad_administrator`: Fix state migration [GH-17732]
+
 ## 3.15.0 (July 21, 2022)
 
 FEATURES: 
