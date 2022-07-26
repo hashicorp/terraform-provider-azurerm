@@ -178,8 +178,8 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	clientId := ""
 	var isSubShared bool
-	isClintAffineEnabled := d.Get("client_scoped_subscription_enabled").(bool)
-	if isClintAffineEnabled {
+	isClintScopedEnabled := d.Get("client_scoped_subscription_enabled").(bool)
+	if isClintScopedEnabled {
 		clientScopedSubsRawData := d.Get("client_scoped_subscription").([]interface{})
 		if len(clientScopedSubsRawData) > 0 {
 			clientScopedSubsProps := clientScopedSubsRawData[0].(map[string]interface{})
@@ -219,12 +219,12 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 			MaxDeliveryCount:                          utils.Int64(int64(d.Get("max_delivery_count").(int))),
 			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
 			Status:                                    &status,
-			IsClientAffine:                            utils.Bool(isClintAffineEnabled),
+			IsClientAffine:                            utils.Bool(isClintScopedEnabled),
 			ClientAffineProperties:                    &subscriptions.SBClientAffineProperties{},
 		},
 	}
 
-	if isClintAffineEnabled {
+	if isClintScopedEnabled {
 		parameters.Properties.ClientAffineProperties.IsShared = &isSubShared
 		parameters.Properties.ClientAffineProperties.ClientId = &clientId
 	}
@@ -278,7 +278,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("topic_id", subscriptions.NewTopicID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName).ID())
 
-	clientAffineEnabled := false
+	clientScopedEnabled := false
 	userAssignedName := id.SubscriptionName
 	clientId := ""
 
@@ -303,14 +303,14 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 				if props.ClientAffineProperties.ClientId != nil {
 					clientId = *props.ClientAffineProperties.ClientId
 				}
-				clientAffineEnabled = true
+				clientScopedEnabled = true
 			}
 			d.Set("client_scoped_subscription", flattenServiceBusNamespaceClientScopedSubscription(props.ClientAffineProperties))
 
 		}
 	}
 
-	if clientAffineEnabled {
+	if clientScopedEnabled {
 		suffix := "$" + clientId + "$D"
 		userAssignedName = strings.TrimSuffix(userAssignedName, suffix)
 	}
