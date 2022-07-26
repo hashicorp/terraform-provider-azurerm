@@ -18,5 +18,5 @@ type SqlVirtualMachineProperties struct {
 	StorageConfigurationSettings           *StorageConfigurationSettings           `json:"storageConfigurationSettings,omitempty"`
 	VirtualMachineResourceId               *string                                 `json:"virtualMachineResourceId,omitempty"`
 	WsfcDomainCredentials                  *WsfcDomainCredentials                  `json:"wsfcDomainCredentials,omitempty"`
-	WsfcStaticIp                           *string                                 `json:"wsfcStaticIp,omitempty"`
+	WsfcStaticIP                           *string                                 `json:"wsfcStaticIp,omitempty"`
 }

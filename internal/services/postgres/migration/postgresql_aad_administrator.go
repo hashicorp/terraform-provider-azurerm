@@ -62,7 +62,7 @@ func (PostgresqlAADAdministratorV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFun
 
 		newId := serveradministrators.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
-		rawState["id"] = newId
+		rawState["id"] = newId.ID()
 
 		return rawState, nil
 	}
