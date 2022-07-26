@@ -2,7 +2,7 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20220725.1131927` of `github.com/hashicorp/go-azure-sdk` [GH-17749]
+* dependencies: updating to version `v0.20220725.1163004` of `github.com/hashicorp/go-azure-sdk` [GH-17753]
 * `eventhub`: updating all data sources/resources onto single API Version `2021-11-01` [GH-17719]
 
 BUG FIXES: 
