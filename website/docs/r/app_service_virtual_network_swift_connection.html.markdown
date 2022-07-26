@@ -11,7 +11,7 @@ description: |-
 
 Manages an App Service Virtual Network Association for [Regional VNet Integration](https://docs.microsoft.com/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration).
 
-This resource can be used for both `azurerm_app_service` and `azurerm_function_app`.
+This resource can be used for both App Services and Function Apps.
 
 ~> **Note:** The following resources support associating the vNet for Regional vNet Integration directly on the resource and via the `azurerm_app_service_virtual_network_swift_connection` resource. You can't use both simultaneously.
 
