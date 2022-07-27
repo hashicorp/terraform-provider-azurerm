@@ -58,7 +58,7 @@ type RetentionWeekly struct {
 type RetentionMonthly struct {
 	Count      int32    `tfschema:"count"`
 	FormatType string   `tfschema:"format_type"`
-	MonthDays  []int32  `tfschema:"monthdays"`
+	Monthdays  []int    `tfschema:"monthdays"`
 	Weeks      []string `tfschema:"weeks"`
 	Weekdays   []string `tfschema:"weekdays"`
 }
@@ -67,7 +67,7 @@ type RetentionYearly struct {
 	Count      int32    `tfschema:"count"`
 	FormatType string   `tfschema:"format_type"`
 	Months     []string `tfschema:"months"`
-	MonthDays  []int32  `tfschema:"monthdays"`
+	Monthdays  []int    `tfschema:"monthdays"`
 	Weeks      []string `tfschema:"weeks"`
 	Weekdays   []string `tfschema:"weekdays"`
 }
@@ -821,7 +821,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 				return nil, fmt.Errorf("`retention_monthly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
 			}
 
-			if retentionMonthly.FormatType == string(backup.RetentionScheduleFormatDaily) && (retentionMonthly.MonthDays == nil || len(retentionMonthly.MonthDays) == 0) {
+			if retentionMonthly.FormatType == string(backup.RetentionScheduleFormatDaily) && (retentionMonthly.Monthdays == nil || len(retentionMonthly.Monthdays) == 0) {
 				return nil, fmt.Errorf("`retention_monthly.monthdays` must be set when `retention_monthly.format_type` is `Daily`")
 			}
 
@@ -831,7 +831,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 
 			retentionPolicy.MonthlySchedule = &backup.MonthlyRetentionSchedule{
 				RetentionScheduleFormatType: backup.RetentionScheduleFormat(retentionMonthly.FormatType),
-				RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionMonthly.MonthDays),
+				RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionMonthly.Monthdays),
 				RetentionScheduleWeekly:     expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(retentionMonthly.Weekdays, retentionMonthly.Weeks),
 				RetentionTimes:              &times,
 				RetentionDuration: &backup.RetentionDuration{
@@ -848,7 +848,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 				return nil, fmt.Errorf("`retention_yearly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
 			}
 
-			if retentionYearly.FormatType == string(backup.RetentionScheduleFormatDaily) && (retentionYearly.MonthDays == nil || len(retentionYearly.MonthDays) == 0) {
+			if retentionYearly.FormatType == string(backup.RetentionScheduleFormatDaily) && (retentionYearly.Monthdays == nil || len(retentionYearly.Monthdays) == 0) {
 				return nil, fmt.Errorf("`retention_yearly.monthdays` must be set when `retention_yearly.format_type` is `Daily`")
 			}
 
@@ -858,7 +858,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 
 			retentionPolicy.YearlySchedule = &backup.YearlyRetentionSchedule{
 				RetentionScheduleFormatType: backup.RetentionScheduleFormat(retentionYearly.FormatType),
-				RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionYearly.MonthDays),
+				RetentionScheduleDaily:      expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(retentionYearly.Monthdays),
 				RetentionScheduleWeekly:     expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(retentionYearly.Weekdays, retentionYearly.Weeks),
 				RetentionTimes:              &times,
 				RetentionDuration: &backup.RetentionDuration{
@@ -959,7 +959,7 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(input *backup.Month
 	}
 
 	if daily := input.RetentionScheduleDaily; daily != nil {
-		retentionMonthlyBlock.MonthDays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
+		retentionMonthlyBlock.Monthdays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
 	}
 
 	return []RetentionMonthly{retentionMonthlyBlock}
@@ -995,7 +995,7 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionYearly(input *backup.Yearly
 	}
 
 	if daily := input.RetentionScheduleDaily; daily != nil {
-		retentionYearlyBlock.MonthDays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
+		retentionYearlyBlock.Monthdays = flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(daily)
 	}
 
 	return []RetentionYearly{retentionYearlyBlock}
@@ -1015,7 +1015,7 @@ func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *backup.Retent
 	return []SimpleRetention{simpleRetentionBlock}
 }
 
-func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int32) *backup.DailyRetentionFormat {
+func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int) *backup.DailyRetentionFormat {
 	if input == nil || len(input) == 0 {
 		return nil
 	}
@@ -1025,10 +1025,9 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int32) *
 	days := make([]backup.Day, 0)
 	for _, item := range input {
 		day := backup.Day{
-			Date: utils.Int32(item),
+			Date: utils.Int32(int32((item))),
 		}
 
-		// `IsLast` points to `0` and it's always `0`
 		if item == 0 {
 			day.IsLast = utils.Bool(true)
 		} else {
@@ -1088,12 +1087,12 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(input *backup.
 	return weekdays, weeks
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *backup.DailyRetentionFormat) []int32 {
-	result := make([]int32, 0)
+func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *backup.DailyRetentionFormat) []int {
+	result := make([]int, 0)
 
 	if days := input.DaysOfTheMonth; days != nil {
 		for _, d := range *days {
-			result = append(result, *d.Date)
+			result = append(result, int(*d.Date))
 		}
 	}
 

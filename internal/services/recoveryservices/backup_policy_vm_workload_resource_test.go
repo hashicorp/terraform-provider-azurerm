@@ -108,6 +108,19 @@ resource "azurerm_backup_policy_vm_workload" "test" {
     retention_daily {
       count = 8
     }
+
+    retention_monthly {
+      format_type = "Daily"
+      count       = 10
+      monthdays   = [27, 28]
+    }
+
+    retention_yearly {
+      format_type = "Daily"
+      count       = 10
+      months      = ["February"]
+      monthdays   = [27, 28]
+    }
   }
 
   protection_policy {
