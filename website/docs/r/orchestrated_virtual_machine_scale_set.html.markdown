@@ -279,7 +279,15 @@ An `extension` block supports the following:
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
 
+* `protected_settings_from_key_vault` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) that are passed by reference, and consumed from key vault for the Extension.
+
 -> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information. 
+
+!> **IMPORTANT:** The `extension` block may contain either a `protected_settings` field or a `protected_settings_from_key_vault` field but not both.
+
+* `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`. Defaults to `false`.
+
+-> **NOTE:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
 
 ---
 

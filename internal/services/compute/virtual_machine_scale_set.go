@@ -275,6 +275,40 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 	}
 }
 
+func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 100,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"package_reference_id": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+				},
+
+				"configuration_reference": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "",
+				},
+
+				"order": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  0,
+				},
+
+				"tags": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "",
+				},
+			},
+		},
+	}
+}
+
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 	if !features.FourPointOhBeta() {
 		return &pluginsdk.Schema{

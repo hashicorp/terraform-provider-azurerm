@@ -1201,6 +1201,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
+		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
+
 		"hardware_profile": VirtualMachineScaleSetHardwareProfileSchema(),
 
 		"health_probe_id": {

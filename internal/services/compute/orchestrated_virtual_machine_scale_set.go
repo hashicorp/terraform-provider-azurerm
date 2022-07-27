@@ -199,12 +199,26 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					Default:  true,
 				},
 
+				// Only supported in Orchestrated mode
+				"failure_suppression_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
 				"force_extension_execution_on_change": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 
 				"protected_settings": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsJSON,
+				},
+
+				// Only supported in Orchestrated mode
+				"protected_settings_from_key_vault": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
@@ -1318,6 +1332,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 			hasHealthExtension = true
 		}
 
+		if val, ok := extensionRaw["failure_suppression_enabled"]; ok {
+			extensionProps.SuppressFailures = utils.Bool(val.(bool))
+		}
+
 		if forceUpdateTag := extensionRaw["force_extension_execution_on_change"]; forceUpdateTag != nil {
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
@@ -1330,12 +1348,28 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 			extensionProps.Settings = settings
 		}
 
+		var hasProtectedSettings bool
+		var hasProtectedKeyVaultSettings bool
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON for `protected_settings`: %+v", err)
 			}
+			hasProtectedSettings = true
 			extensionProps.ProtectedSettings = protectedSettings
+		}
+
+		if val, ok := extensionRaw["protected_settings_from_key_vault"]; ok && val.(string) != "" {
+			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
+			if err != nil {
+				return nil, false, fmt.Errorf("failed to parse JSON for `protected_settings_from_key_vault`: %+v", err)
+			}
+			hasProtectedKeyVaultSettings = true
+			extensionProps.ProtectedSettings = protectedSettings
+		}
+
+		if hasProtectedSettings && hasProtectedKeyVaultSettings {
+			return nil, false, fmt.Errorf("the `extension` block may contain either a `protected_settings` field or a `protected_settings_from_key_vault` field but not both")
 		}
 
 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
@@ -1393,11 +1427,13 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 		}
 
 		autoUpgradeMinorVersion := false
+		suppressFailures := false
 		// Automatic Upgrade is not yet supported in VMSS Flex
 		// enableAutomaticUpgrade := false
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
+		protectedSettingsFromKeyVault := ""
 		extPublisher := ""
 		extSettings := ""
 		extType := ""
@@ -1428,6 +1464,10 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 				forceUpdateTag = *props.ForceUpdateTag
 			}
 
+			if props.SuppressFailures != nil {
+				suppressFailures = *props.SuppressFailures
+			}
+
 			if props.ProvisionAfterExtensions != nil {
 				provisionAfterExtension = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
 			}
@@ -1449,13 +1489,24 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 			}
 		}
 
+		// protected_settings_from_key_vault isn't returned, so we attempt to get it from state otherwise set to empty string
+		if ext, ok := extensionsFromState[name]; ok {
+			if protectedSettingsFromState, ok := ext["protected_settings_from_key_vault"]; ok {
+				if protectedSettingsFromState.(string) != "" && protectedSettingsFromState.(string) != "{}" {
+					protectedSettingsFromKeyVault = protectedSettingsFromState.(string)
+				}
+			}
+		}
+
 		result = append(result, map[string]interface{}{
 			"name":                               name,
 			"auto_upgrade_minor_version_enabled": autoUpgradeMinorVersion,
 			// "automatic_upgrade_enabled":  enableAutomaticUpgrade,
 			"force_extension_execution_on_change":       forceUpdateTag,
+			"failure_suppression_enabled":               suppressFailures,
 			"extensions_to_provision_after_vm_creation": provisionAfterExtension,
 			"protected_settings":                        protectedSettings,
+			"protected_settings_from_key_vault":         protectedSettingsFromKeyVault,
 			"publisher":                                 extPublisher,
 			"settings":                                  extSettings,
 			"type":                                      extType,
