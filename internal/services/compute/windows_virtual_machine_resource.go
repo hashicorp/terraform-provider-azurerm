@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -109,18 +109,31 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.AvailabilitySetID,
-				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
+				// the Compute/VM API is broken and returns the Availability Set name in UPPERCASE :shrug:
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
-				// TODO: raise a GH issue for the broken API
-				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
+					"capacity_reservation_group_id",
 					"virtual_machine_scale_set_id",
 					"zone",
 				},
 			},
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
+
+			"capacity_reservation_group_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     computeValidate.CapacityReservationGroupID,
+				ConflictsWith: []string{
+					"availability_set_id",
+					"proximity_placement_group_id",
+				},
+			},
 
 			"computer_name": {
 				Type:     pluginsdk.TypeString,
@@ -140,13 +153,11 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
-				// same for `dedicated_host_group_id`
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
 				ConflictsWith: []string{
 					"dedicated_host_group_id",
 				},
-				// TODO: raise a GH issue for the broken API
-				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
 			},
 
 			"dedicated_host_group_id": {
@@ -154,6 +165,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: computeValidate.DedicatedHostGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
 				ConflictsWith: []string{
 					"dedicated_host_id",
@@ -261,7 +273,11 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"capacity_reservation_group_id",
+				},
 			},
 
 			"secret": windowsSecretSchema(),
@@ -292,6 +308,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
@@ -428,7 +445,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+	if err != nil {
+		return fmt.Errorf("expanding `os_disk`: %+v", err)
+	}
+	securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
@@ -537,6 +558,14 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+		params.CapacityReservation = &compute.CapacityReservationProfile{
+			CapacityReservationGroup: &compute.SubResource{
+				ID: utils.String(v.(string)),
+			},
+		}
+	}
+
 	if v, ok := d.GetOk("custom_data"); ok {
 		params.OsProfile.CustomData = utils.String(v.(string))
 	}
@@ -554,43 +583,60 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		if encryptionAtHostEnabled.(bool) {
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			}
+		}
+
 		if params.SecurityProfile == nil {
 			params.SecurityProfile = &compute.SecurityProfile{}
 		}
 		params.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
 	}
 
-	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
-		if params.SecurityProfile == nil {
-			params.SecurityProfile = &compute.SecurityProfile{}
+	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
+	vtpmEnabled := d.Get("vtpm_enabled").(bool)
+	if securityEncryptionType != "" {
+		if !secureBootEnabled {
+			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		}
+		if !vtpmEnabled {
+			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
 		}
 
-		if params.SecurityProfile.UefiSettings == nil {
-			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesConfidentialVM
+
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(true)
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(true)
+	} else {
+		if secureBootEnabled {
+			if params.VirtualMachineProperties.SecurityProfile == nil {
+				params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+			}
+			if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+			}
+			params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
 		}
 
-		secureboot := d.Get("secure_boot_enabled").(bool)
-		if secureboot {
-			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		if vtpmEnabled {
+			if params.VirtualMachineProperties.SecurityProfile == nil {
+				params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+			}
+			if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+			}
+			params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 		}
-
-		params.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
-	}
-
-	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
-		if params.SecurityProfile == nil {
-			params.SecurityProfile = &compute.SecurityProfile{}
-		}
-
-		if params.SecurityProfile.UefiSettings == nil {
-			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
-		}
-		vtpm := d.Get("vtpm_enabled").(bool)
-		if vtpm {
-			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
-		}
-
-		params.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
@@ -720,6 +766,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		availabilitySetId = *props.AvailabilitySet.ID
 	}
 	d.Set("availability_set_id", availabilitySetId)
+
+	capacityReservationGroupId := ""
+	if props.CapacityReservation != nil && props.CapacityReservation.CapacityReservationGroup != nil && props.CapacityReservation.CapacityReservationGroup.ID != nil {
+		capacityReservationGroupId = *props.CapacityReservation.CapacityReservationGroup.ID
+	}
+	d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
 	if err := d.Set("boot_diagnostics", flattenBootDiagnostics(props.DiagnosticsProfile)); err != nil {
 		return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
@@ -1016,6 +1068,23 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.Identity = identity
 	}
 
+	if d.HasChange("capacity_reservation_group_id") {
+		shouldUpdate = true
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+			update.CapacityReservation = &compute.CapacityReservationProfile{
+				CapacityReservationGroup: &compute.SubResource{
+					ID: utils.String(v.(string)),
+				},
+			}
+		} else {
+			update.CapacityReservation = &compute.CapacityReservationProfile{
+				CapacityReservationGroup: &compute.SubResource{},
+			}
+		}
+	}
+
 	if d.HasChange("dedicated_host_id") {
 		shouldUpdate = true
 
@@ -1094,7 +1163,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+		if err != nil {
+			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
 		}
@@ -1186,6 +1259,14 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
+		if d.Get("encryption_at_host_enabled").(bool) {
+			osDiskRaw := d.Get("os_disk").([]interface{})
+			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			}
+		}
+
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
 		if update.SecurityProfile == nil {
@@ -1356,7 +1437,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
-	if shouldTurnBackOn && shouldShutDown {
+	if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
 		log.Printf("[DEBUG] Starting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 		if err != nil {

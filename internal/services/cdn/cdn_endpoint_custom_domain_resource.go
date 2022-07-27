@@ -89,6 +89,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.MinimumTLSVersionTLS10),
 								string(cdn.MinimumTLSVersionTLS12),
+								string(cdn.MinimumTLSVersionNone),
 							}, false),
 							Default: string(cdn.MinimumTLSVersionTLS12),
 						},
@@ -115,6 +116,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.MinimumTLSVersionTLS10),
 								string(cdn.MinimumTLSVersionTLS12),
+								string(cdn.MinimumTLSVersionNone),
 							}, false),
 							Default: string(cdn.MinimumTLSVersionTLS12),
 						},
@@ -166,6 +168,8 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// Enable https if specified
 	var params cdn.BasicCustomDomainHTTPSParameters
 	if v, ok := d.GetOk("user_managed_https"); ok {
@@ -177,7 +181,12 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("retrieving Cdn Profile %q (Resource Group %q): %+v",
 				id.ResourceGroup, id.ProfileName, err)
 		}
-		if cdnEndpointResp.Sku != nil && (cdnEndpointResp.Sku.Name != cdn.SkuNameStandardMicrosoft && cdnEndpointResp.Sku.Name != cdn.SkuNameStandardVerizon) {
+		supportedSku := map[cdn.SkuName]bool{
+			cdn.SkuNamePremiumVerizon:    true,
+			cdn.SkuNameStandardVerizon:   true,
+			cdn.SkuNameStandardMicrosoft: true,
+		}
+		if cdnEndpointResp.Sku != nil && !supportedSku[cdnEndpointResp.Sku.Name] {
 			return fmt.Errorf("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
 		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]interface{}), meta.(*clients.Client))
@@ -193,8 +202,6 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 			return err
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmCdnEndpointCustomDomainRead(d, meta)
 }

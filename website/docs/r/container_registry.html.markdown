@@ -98,6 +98,7 @@ resource "azurerm_container_registry" "example" {
   name                = "containerRegistry1"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+  sku                 = "Premium"
 }
 
 resource "azurerm_kubernetes_cluster" "example" {
@@ -187,6 +188,8 @@ The following arguments are supported:
 * `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? Defaults to `false`.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
+
+  ~> **NOTE:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
 

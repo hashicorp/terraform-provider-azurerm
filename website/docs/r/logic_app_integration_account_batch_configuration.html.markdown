@@ -26,7 +26,7 @@ resource "azurerm_logic_app_integration_account" "example" {
 }
 
 resource "azurerm_logic_app_integration_account_batch_configuration" "example" {
-  name                     = "example-iabc"
+  name                     = "exampleiabc"
   resource_group_name      = azurerm_resource_group.example.name
   integration_account_name = azurerm_logic_app_integration_account.example.name
   batch_group_name         = "TestBatchGroup"

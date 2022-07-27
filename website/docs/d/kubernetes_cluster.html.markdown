@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/azure/firewall/public-preview)
 
 * `aci_connector_linux` - An `aci_connector_linux` block as documented below.
 
@@ -127,6 +127,10 @@ A `agent_pool_profile` block exports the following:
 * `enable_auto_scaling` - If the auto-scaler is enabled.
 
 * `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
+
+* `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
 
 * `min_count` - Minimum number of nodes for auto-scaling
 
@@ -322,6 +326,8 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
+
+-> **NOTE:** Currently only one User Assigned Identity is supported.
 
 ---
 

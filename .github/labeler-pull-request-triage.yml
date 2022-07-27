@@ -108,6 +108,9 @@ service/dns:
 service/domain-services:
   - internal/services/domainservices/**/*
 
+service/elastic:
+  - internal/services/elastic/**/*
+
 service/event-grid:
   - internal/services/eventgrid/**/*
 

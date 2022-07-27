@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -120,6 +120,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
+											"Microsoft.Network/dnsResolvers",
 											"Microsoft.Network/managedResolvers",
 											"Microsoft.PowerPlatform/vnetaccesslinks",
 											"Microsoft.ServiceFabricMesh/networks",

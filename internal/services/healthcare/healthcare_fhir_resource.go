@@ -31,9 +31,9 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 		Delete: resourceHealthcareApisFhirServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -92,10 +92,12 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
 						"audience": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
+
 						"smart_proxy_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -107,7 +109,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
-			"acr_login_servers": {
+			"container_registry_login_server_url": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -116,7 +118,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"cors_configuration": {
+			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -124,16 +126,17 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Required: true,
 							MaxItems: 64,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
+
 						"allowed_headers": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Required: true,
 							MaxItems: 64,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -143,7 +146,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 
 						"allowed_methods": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Required: true,
 							MaxItems: 64,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
@@ -158,12 +161,14 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 								}, false),
 							},
 						},
+
 						"max_age_in_seconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 2000000000),
 						},
-						"allow_credentials": {
+
+						"credentials_allowed": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -172,11 +177,12 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"export_storage_account_name": {
+			"configuration_export_storage_account_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -204,7 +210,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_healthcareapis_fhir_service", fhirServiceId.ID())
+			return tf.ImportAsExistsError("azurerm_healthcare_fhir_service", fhirServiceId.ID())
 		}
 	}
 
@@ -220,7 +226,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		FhirServiceProperties: &healthcareapis.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
-			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors_configuration").([]interface{})),
+			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]interface{})),
 		},
 	}
 
@@ -229,14 +235,14 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		parameters.FhirServiceProperties.AccessPolicies = expandAccessPolicy(accessPolicyObjectIds.(*pluginsdk.Set).List())
 	}
 
-	storageAcc, hasValues := d.GetOk("export_storage_account_name")
+	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
 	if hasValues {
 		parameters.FhirServiceProperties.ExportConfiguration = &healthcareapis.FhirServiceExportConfiguration{
 			StorageAccountName: utils.String(storageAcc.(string)),
 		}
 	}
 
-	acrConfig, hasValues := d.GetOk("acr_login_servers")
+	acrConfig, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
 		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
 		parameters.FhirServiceProperties.AcrConfiguration = result
@@ -248,9 +254,8 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", fhirServiceId, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", fhirServiceId, err)
 	}
-
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 12,
 		Delay:                     60 * time.Second,
@@ -304,10 +309,10 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 	if props := resp.FhirServiceProperties; props != nil {
 		d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
 		d.Set("authentication", flattenFhirAuthentication(props.AuthenticationConfiguration))
-		d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
-		d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
+		d.Set("cors", flattenFhirCorsConfiguration(props.CorsConfiguration))
+		d.Set("container_registry_login_server_url", flattenFhirAcrLoginServer(props.AcrConfiguration))
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
-			d.Set("export_storage_account_name", props.ExportConfiguration.StorageAccountName)
+			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 		}
 
 		if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
@@ -341,19 +346,19 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		FhirServiceProperties: &healthcareapis.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
-			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors_configuration").([]interface{})),
+			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]interface{})),
 			AccessPolicies:              expandAccessPolicy(d.Get("access_policy_object_ids").(*pluginsdk.Set).List()),
 		},
 	}
 
-	storageAcc, hasValues := d.GetOk("export_storage_account_name")
+	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
 	if hasValues {
 		parameters.FhirServiceProperties.ExportConfiguration = &healthcareapis.FhirServiceExportConfiguration{
 			StorageAccountName: utils.String(storageAcc.(string)),
 		}
 	}
 
-	acrConfig, hasValues := d.GetOk("acr_login_servers")
+	acrConfig, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
 		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
 		parameters.FhirServiceProperties.AcrConfiguration = result
@@ -498,7 +503,7 @@ func expandFhirCorsConfiguration(input []interface{}) *healthcareapis.FhirServic
 	allowedOrigins := *utils.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
 	allowedHeaders := *utils.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
 	allowedMethods := *utils.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
-	allowCredentials := block["allow_credentials"].(bool)
+	allowCredentials := block["credentials_allowed"].(bool)
 
 	cors := &healthcareapis.FhirServiceCorsConfiguration{
 		Origins:          &allowedOrigins,
@@ -583,11 +588,11 @@ func flattenFhirCorsConfiguration(corsConfig *healthcareapis.FhirServiceCorsConf
 
 	return []interface{}{
 		map[string]interface{}{
-			"allow_credentials":  allowCredentials,
-			"allowed_headers":    utils.FlattenStringSlice(corsConfig.Headers),
-			"allowed_methods":    utils.FlattenStringSlice(corsConfig.Methods),
-			"allowed_origins":    utils.FlattenStringSlice(corsConfig.Origins),
-			"max_age_in_seconds": maxAge,
+			"credentials_allowed": allowCredentials,
+			"allowed_headers":     utils.FlattenStringSlice(corsConfig.Headers),
+			"allowed_methods":     utils.FlattenStringSlice(corsConfig.Methods),
+			"allowed_origins":     utils.FlattenStringSlice(corsConfig.Origins),
+			"max_age_in_seconds":  maxAge,
 		},
 	}
 }

@@ -15,13 +15,29 @@ import (
 
 type BackupProtectionPolicyVMResource struct{}
 
+func TestAccBackupProtectionPolicyVM_policyTypeDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.policyTypeDefault(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("policy_type").HasValue("V1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 	r := BackupProtectionPolicyVMResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDaily(data),
+			Config: r.basicDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
@@ -39,21 +55,14 @@ func TestAccBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdate(t *t
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDaily(data),
+			Config: r.basicDailyWithInstantRestoreRetentionRange(data, 1, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicDailyWithInstantRestoreRetentionRange(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicDaily(data),
+			Config: r.basicDailyWithInstantRestoreRetentionRange(data, 5, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -68,7 +77,7 @@ func TestAccBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDaily(data),
+			Config: r.basicDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -83,7 +92,7 @@ func TestAccBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWeekly(data),
+			Config: r.basicWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -98,7 +107,7 @@ func TestAccBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeDaily(data),
+			Config: r.completeDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -113,7 +122,7 @@ func TestAccBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeWeekly(data),
+			Config: r.completeWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Weekly"),
@@ -140,13 +149,13 @@ func TestAccBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDaily(data),
+			Config: r.basicDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.completeDaily(data),
+			Config: r.completeDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
@@ -173,13 +182,13 @@ func TestAccBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWeekly(data),
+			Config: r.basicWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.completeWeekly(data),
+			Config: r.completeWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Weekly"),
@@ -206,14 +215,14 @@ func TestAccBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDaily(data),
+			Config: r.basicDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWeekly(data),
+			Config: r.basicWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -228,14 +237,14 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWeekly(data),
+			Config: r.basicWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicDaily(data),
+			Config: r.basicDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -250,14 +259,269 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeWeekly(data),
+			Config: r.completeWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeWeeklyPartial(data),
+			Config: r.completeWeeklyPartial(data, "V1"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_basicHourlyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicHourly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_basicDailyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdateV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDailyWithInstantRestoreRetentionRange(data, 1, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicDailyWithInstantRestoreRetentionRange(data, 30, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_basicWeeklyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWeekly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_completeHourlyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeHourly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_completeDailyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDaily(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_completeWeeklyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeWeekly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_updateHourlyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicHourly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeHourly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_updateDailyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeDaily(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_updateWeeklyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWeekly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeWeekly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_updateHourlyAndWeeklyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicHourly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWeekly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicHourly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_updateDailyAndWeeklyV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWeekly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicDaily(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_updateWeeklyToPartialV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeWeekly(data, "V2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeWeeklyPartial(data, "V2"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -302,7 +566,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMResource) basicDaily(data acceptance.TestData) string {
+func (r BackupProtectionPolicyVMResource) policyTypeDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -321,6 +585,54 @@ resource "azurerm_backup_policy_vm" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMResource) basicHourly(data acceptance.TestData, policyType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency     = "Hourly"
+    time          = "23:00"
+    hour_interval = 4
+    hour_duration = 4
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  policy_type = "%s"
+}
+`, r.template(data), data.RandomInteger, policyType)
+}
+
+func (r BackupProtectionPolicyVMResource) basicDaily(data acceptance.TestData, policyType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  policy_type = "%s"
+}
+`, r.template(data), data.RandomInteger, policyType)
 }
 
 func (r BackupProtectionPolicyVMResource) requiresImport(data acceptance.TestData) string {
@@ -341,10 +653,10 @@ resource "azurerm_backup_policy_vm" "import" {
     count = 10
   }
 }
-`, r.basicDaily(data))
+`, r.basicDaily(data, "V1"))
 }
 
-func (r BackupProtectionPolicyVMResource) basicWeekly(data acceptance.TestData) string {
+func (r BackupProtectionPolicyVMResource) basicWeekly(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -363,11 +675,57 @@ resource "azurerm_backup_policy_vm" "test" {
     count    = 42
     weekdays = ["Sunday", "Wednesday"]
   }
+
+  policy_type = "%s"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) completeDaily(data acceptance.TestData) string {
+func (r BackupProtectionPolicyVMResource) completeHourly(data acceptance.TestData, policyType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  timezone            = "UTC"
+
+  backup {
+    frequency     = "Hourly"
+    time          = "23:00"
+    hour_interval = 12
+    hour_duration = 24
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_weekly {
+    count    = 42
+    weekdays = ["Sunday", "Wednesday"]
+  }
+
+  retention_monthly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+  }
+
+  retention_yearly {
+    count    = 77
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+    months   = ["January", "July"]
+  }
+
+  policy_type = "%s"
+}
+`, r.template(data), data.RandomInteger, policyType)
+}
+
+func (r BackupProtectionPolicyVMResource) completeDaily(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -402,11 +760,13 @@ resource "azurerm_backup_policy_vm" "test" {
     weeks    = ["First", "Last"]
     months   = ["January", "July"]
   }
+
+  policy_type = "%s"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) completeWeekly(data acceptance.TestData) string {
+func (r BackupProtectionPolicyVMResource) completeWeekly(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -438,11 +798,13 @@ resource "azurerm_backup_policy_vm" "test" {
     weeks    = ["First", "Last"]
     months   = ["January", "July"]
   }
+
+  policy_type = "%s"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) completeWeeklyPartial(data acceptance.TestData) string {
+func (r BackupProtectionPolicyVMResource) completeWeeklyPartial(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -474,11 +836,13 @@ resource "azurerm_backup_policy_vm" "test" {
     weeks    = ["Last"]
     months   = ["January"]
   }
+
+  policy_type = "%s"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) basicDailyWithInstantRestoreRetentionRange(data acceptance.TestData) string {
+func (r BackupProtectionPolicyVMResource) basicDailyWithInstantRestoreRetentionRange(data acceptance.TestData, retentionRange int, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -486,15 +850,17 @@ resource "azurerm_backup_policy_vm" "test" {
   name                           = "acctest-BPVM-%d"
   resource_group_name            = azurerm_resource_group.test.name
   recovery_vault_name            = azurerm_recovery_services_vault.test.name
-  instant_restore_retention_days = 5
+  instant_restore_retention_days = %d
   backup {
     frequency = "Daily"
     time      = "23:00"
   }
 
   retention_daily {
-    count = 10
+    count = 31
   }
+
+  policy_type = "%s"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, retentionRange, policyType)
 }

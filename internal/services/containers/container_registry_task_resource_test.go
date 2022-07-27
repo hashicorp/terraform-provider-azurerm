@@ -218,6 +218,21 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 			"source_trigger.0.authentication.0.token",
 		),
 		{
+			Config: r.dockerStepSourceTriggerUpdateDockerStep(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"docker_step.0.context_access_token",
+			"source_trigger.0.authentication.#",
+			"source_trigger.0.authentication.0.%",
+			"source_trigger.0.authentication.0.expire_in_seconds",
+			"source_trigger.0.authentication.0.refresh_token",
+			"source_trigger.0.authentication.0.scope",
+			"source_trigger.0.authentication.0.token",
+		),
+		{
 			Config: r.dockerStepSourceTriggerUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -360,7 +375,22 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 		},
 		data.ImportStep("file_step.0.context_access_token"),
 		{
-			Config: r.fileTaskStepRegistryCredential(data),
+			Config: r.fileTaskStepRegistryCredentialPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
+		{
+			Config: r.fileTaskStepRegistryCredentialIdentity(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -691,6 +721,38 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
 }
 
+func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdateDockerStep(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform {
+    os = "Linux"
+  }
+  docker_step {
+    dockerfile_path      = "Dockerfile"
+    context_path         = "%s"
+    context_access_token = "%s"
+    image_names          = ["helloworld2:{{.Run.ID}}"]
+  }
+  source_trigger {
+    name           = "default"
+    events         = ["commit"]
+    source_type    = "Github"
+    repository_url = "%s"
+    branch         = "main"
+    authentication {
+      token_type = "PAT"
+      token      = "%s"
+    }
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
+}
+
 func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -865,7 +927,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
-func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredential(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialPassword(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -900,6 +962,45 @@ resource "azurerm_container_registry_task" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
+}
+
+func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry" "test2" {
+  name                = "testacccrtask2%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+}
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  identity {
+    type = "SystemAssigned"
+  }
+  platform {
+    os = "Linux"
+  }
+  file_step {
+    task_file_path       = "taskmulti-multiregistry.yaml"
+    context_path         = "%s"
+    context_access_token = "%s"
+    values = {
+      regDate = azurerm_container_registry.test2.login_server
+    }
+  }
+  registry_credential {
+    custom {
+      login_server = azurerm_container_registry.test2.login_server
+      identity     = "[system]"
+    }
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
 func (r ContainerRegistryTaskResource) systemTask(data acceptance.TestData) string {
