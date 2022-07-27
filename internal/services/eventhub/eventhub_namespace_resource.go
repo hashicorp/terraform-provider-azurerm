@@ -199,7 +199,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(namespaces.TlsVersionOnePointTwo),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointZero),
 					string(namespaces.TlsVersionOnePointOne),
@@ -251,22 +251,26 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			oldSku, newSku := d.GetChange("sku")
-			if d.HasChange("sku") {
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
-					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
-					d.ForceNew("sku")
-				}
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
-					zoneRedundant := d.Get("zone_redundant").(bool)
-					if !zoneRedundant {
-						return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				oldSku, newSku := d.GetChange("sku")
+				if d.HasChange("sku") {
+					if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
+						log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
+						d.ForceNew("sku")
+					}
+					if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
+						zoneRedundant := d.Get("zone_redundant").(bool)
+						if !zoneRedundant {
+							return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
+						}
 					}
 				}
-			}
-			return nil
-		}),
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
+		),
 	}
 }
 
@@ -306,7 +310,10 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	miniTlsVersion := namespaces.TlsVersion(d.Get("minimum_tls_version").(string))
+	disableLocalAuth := false
+	if !d.Get("local_authentication_enabled").(bool) {
+		disableLocalAuth = true
+	}
 
 	parameters := namespaces.EHNamespace{
 		Location: &location,
@@ -322,15 +329,19 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
-			DisableLocalAuth:     utils.Bool(!d.Get("local_authentication_enabled").(bool)),
+			DisableLocalAuth:     utils.Bool(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
-			MinimumTlsVersion:    &miniTlsVersion,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
 		parameters.Properties.ClusterArmId = utils.String(v)
+	}
+
+	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
+		minimumTls := namespaces.TlsVersion(tlsValue)
+		parameters.Properties.MinimumTlsVersion = &minimumTls
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
@@ -379,11 +390,16 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 	zoneRedundant := d.Get("zone_redundant").(bool)
+
 	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
-	miniTlsVersion := namespaces.TlsVersion(d.Get("minimum_tls_version").(string))
+
+	disableLocalAuth := false
+	if !d.Get("local_authentication_enabled").(bool) {
+		disableLocalAuth = true
+	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -404,15 +420,19 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
-			DisableLocalAuth:     utils.Bool(!d.Get("local_authentication_enabled").(bool)),
+			DisableLocalAuth:     utils.Bool(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
-			MinimumTlsVersion:    &miniTlsVersion,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
 		parameters.Properties.ClusterArmId = utils.String(v)
+	}
+
+	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
+		minimumTls := namespaces.TlsVersion(tlsValue)
+		parameters.Properties.MinimumTlsVersion = &minimumTls
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
@@ -512,13 +532,19 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
+
+			localAuthDisabled := false
 			if props.DisableLocalAuth != nil {
-				localAuthEnable := *props.DisableLocalAuth
-				d.Set("local_authentication_enabled", !localAuthEnable)
+				localAuthDisabled = *props.DisableLocalAuth
 			}
-			if props.PublicNetworkAccess != nil {
-				d.Set("public_network_access_enabled", *props.PublicNetworkAccess == namespaces.PublicNetworkAccessEnabled)
+			d.Set("local_authentication_enabled", !localAuthDisabled)
+
+			publicNetworkAccess := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
+				publicNetworkAccess = false
 			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+
 			if props.MinimumTlsVersion != nil {
 				d.Set("minimum_tls_version", *props.MinimumTlsVersion)
 			}
@@ -762,4 +788,12 @@ func resourceVnetRuleHash(v interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
+}
+
+func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+	old, new := d.GetChange("minimum_tls_version")
+	if old != "" && new == "" {
+		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
+	}
+	return
 }

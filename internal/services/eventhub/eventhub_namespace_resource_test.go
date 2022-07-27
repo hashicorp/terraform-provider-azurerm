@@ -335,6 +335,7 @@ func TestAccEventHubNamespace_BasicWithLocalAuthProperty(t *testing.T) {
 			Config: r.localAuthProperty(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 			),
 		},
 	})
