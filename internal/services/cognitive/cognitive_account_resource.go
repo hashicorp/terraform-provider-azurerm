@@ -636,10 +636,10 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
 
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
-	ipRules := make([]cognitiveservicesaccounts.IpRule, 0)
+	ipRules := make([]cognitiveservicesaccounts.IPRule, 0)
 
 	for _, v := range ipRulesRaw.List() {
-		rule := cognitiveservicesaccounts.IpRule{
+		rule := cognitiveservicesaccounts.IPRule{
 			Value: v.(string),
 		}
 		ipRules = append(ipRules, rule)
@@ -660,7 +660,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
 		DefaultAction:       &defaultAction,
-		IpRules:             &ipRules,
+		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 	return &ruleSet, subnetIds
@@ -735,8 +735,8 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}
 
 	ipRules := make([]interface{}, 0)
-	if input.IpRules != nil {
-		for _, v := range *input.IpRules {
+	if input.IPRules != nil {
+		for _, v := range *input.IPRules {
 			ipRules = append(ipRules, v.Value)
 		}
 	}

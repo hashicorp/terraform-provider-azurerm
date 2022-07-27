@@ -76,8 +76,8 @@ func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 		props := model.Properties
-		if address := props.IpAddress; address != nil {
-			d.Set("ip_address", address.Ip)
+		if address := props.IPAddress; address != nil {
+			d.Set("ip_address", address.IP)
 			d.Set("fqdn", address.Fqdn)
 		}
 	}

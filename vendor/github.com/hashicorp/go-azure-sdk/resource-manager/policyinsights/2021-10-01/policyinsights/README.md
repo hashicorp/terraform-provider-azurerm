@@ -385,7 +385,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := policyinsights.NewScopeID()
+id := policyinsights.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.RemediationsListForResource(ctx, id, policyinsights.DefaultRemediationsListForResourceOperationOptions())` can be used to do batched pagination
 items, err := client.RemediationsListForResourceComplete(ctx, id, policyinsights.DefaultRemediationsListForResourceOperationOptions())
@@ -402,7 +402,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := policyinsights.NewResourceGroupID()
+id := policyinsights.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.RemediationsListForResourceGroup(ctx, id, policyinsights.DefaultRemediationsListForResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.RemediationsListForResourceGroupComplete(ctx, id, policyinsights.DefaultRemediationsListForResourceGroupOperationOptions())
@@ -419,7 +419,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := policyinsights.NewSubscriptionID()
+id := policyinsights.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.RemediationsListForSubscription(ctx, id, policyinsights.DefaultRemediationsListForSubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.RemediationsListForSubscriptionComplete(ctx, id, policyinsights.DefaultRemediationsListForSubscriptionOperationOptions())

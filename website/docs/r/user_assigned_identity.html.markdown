@@ -67,5 +67,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 User Assigned Identities can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_user_assigned_identity.exampleIdentity /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/acceptanceTestResourceGroup1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/testIdentity
+terraform import azurerm_user_assigned_identity.exampleIdentity /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/testIdentity
 ```

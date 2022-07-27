@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -48,17 +48,17 @@ func TestAccPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 }
 
 func (t PostgreSQLFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallRuleID(state.ID)
+	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := clients.Postgres.FirewallRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql Firewall Rule (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PostgreSQLFirewallRuleResource) basic(data acceptance.TestData) string {

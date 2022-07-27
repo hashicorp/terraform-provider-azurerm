@@ -31,7 +31,7 @@ resource "azurerm_dns_ns_record" "example" {
   resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
 
-  records = ["ns1.contoso.com", "ns2.contoso.com"]
+  records = ["ns1.contoso.com.", "ns2.contoso.com."]
 
   tags = {
     Environment = "Production"

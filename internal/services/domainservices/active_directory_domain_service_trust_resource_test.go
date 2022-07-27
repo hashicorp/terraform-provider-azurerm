@@ -6,7 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -116,15 +117,23 @@ func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+	idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
+
+	resp, err := client.Get(ctx, idsdk)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, err
 	}
-	existingTrusts := []aad.ForestTrust{}
-	if props := resp.DomainServiceProperties; props != nil {
+
+	model := resp.Model
+	if model == nil {
+		return nil, fmt.Errorf("reading %s: returned with null model", idsdk)
+	}
+
+	existingTrusts := []domainservices.ForestTrust{}
+	if props := model.Properties; props != nil {
 		if fsettings := props.ResourceForestSettings; fsettings != nil {
 			if settings := fsettings.Settings; settings != nil {
 				existingTrusts = *settings
