@@ -738,8 +738,6 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 		result, _ := schedule.AsBasicSchedulePolicy()
 		return result
 	}
-
-	return nil
 }
 
 func flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(input backup.BasicSchedulePolicy, policyType backup.PolicyType) []Backup {
@@ -893,8 +891,6 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 
 		return retentionPolicy, nil
 	}
-
-	return nil, nil
 }
 
 func flattenBackupProtectionPolicyVMWorkloadRetentionDaily(input *backup.DailyRetentionSchedule) []RetentionDaily {
