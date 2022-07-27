@@ -751,9 +751,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                          = "testaccbatch%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
   public_network_access_enabled = false
 }
 
@@ -985,9 +985,9 @@ resource "azurerm_batch_pool" "test" {
   vm_size             = "Standard_A1"
 
   data_disks {
-    lun = 20
-    caching = "None"
-    disk_size_gb = 1
+    lun                  = 20
+    caching              = "None"
+    disk_size_gb         = 1
     storage_account_type = "Standard_LRS"
   }
 
@@ -1184,9 +1184,9 @@ func (BatchPoolResource) startTask_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                          = "testaccbatch%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
   public_network_access_enabled = false
 }
 
@@ -1226,10 +1226,10 @@ resource "azurerm_batch_pool" "test" {
   }
 
   start_task {
-    command_line       = "echo 'Hello World from $env'"
+    command_line = "echo 'Hello World from $env'"
     container_settings {
       container_run_options = "cat /proc/cpuinfo"
-      image_name = "centos7"
+      image_name            = "centos7"
       registry {
         registry_server = "myContainerRegistry.azurecr.io"
         user_name       = "myUserName"
@@ -1332,7 +1332,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   identity {
-    type = "UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
@@ -1398,8 +1398,8 @@ resource "azurerm_batch_pool" "test" {
 
     resource_file {
       auto_storage_container_name = azurerm_storage_container.test.name
-      file_path             = "README.md"
-      identity_id = azurerm_user_assigned_identity.test.id
+      file_path                   = "README.md"
+      identity_id                 = azurerm_user_assigned_identity.test.id
     }
   }
 }
@@ -2098,8 +2098,8 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
-    subnet_id = azurerm_subnet.testsubnet.id
-    dynamic_vnet_assignment_scope = "none"
+    subnet_id                        = azurerm_subnet.testsubnet.id
+    dynamic_vnet_assignment_scope    = "none"
     public_address_provisioning_type = "BatchManaged"
   }
 }
@@ -2140,9 +2140,9 @@ resource "azurerm_batch_pool" "test" {
 
   mount_configuration {
     azure_blob_file_system_configuration {
-      account_name = azurerm_storage_account.test.name
-      container_name = azurerm_storage_container.test.name
-      account_key = azurerm_storage_account.test.primary_access_key
+      account_name        = azurerm_storage_account.test.name
+      container_name      = azurerm_storage_container.test.name
+      account_key         = azurerm_storage_account.test.primary_access_key
       relative_mount_path = "/mnt/"
     }
   }
@@ -2195,9 +2195,9 @@ resource "azurerm_batch_pool" "test" {
 
   mount_configuration {
     azure_file_share_configuration {
-      account_name = azurerm_storage_account.test.name
-      account_key = azurerm_storage_account.test.primary_access_key
-      azure_file_url = "https://testaccount.file.core.windows.net/"
+      account_name        = azurerm_storage_account.test.name
+      account_key         = azurerm_storage_account.test.primary_access_key
+      azure_file_url      = "https://testaccount.file.core.windows.net/"
       relative_mount_path = "/mnt/"
     }
   }
@@ -2236,11 +2236,11 @@ resource "azurerm_batch_pool" "test" {
 
   mount_configuration {
     cifs_mount_configuration {
-      user_name = "myUserName"
-      password = "myPassword"
-      source = "https://testaccount.file.core.windows.net/"
+      user_name           = "myUserName"
+      password            = "myPassword"
+      source              = "https://testaccount.file.core.windows.net/"
       relative_mount_path = "/mnt/"
-      mount_options ="sampleops"
+      mount_options       = "sampleops"
     }
   }
 
@@ -2278,9 +2278,9 @@ resource "azurerm_batch_pool" "test" {
 
   mount_configuration {
     nfs_mount_configuration {
-      source = "https://testaccount.file.core.windows.net/"
+      source              = "https://testaccount.file.core.windows.net/"
       relative_mount_path = "/mnt/"
-      mount_options ="sampleops"
+      mount_options       = "sampleops"
     }
   }
 
@@ -2328,13 +2328,13 @@ resource "azurerm_batch_pool" "test" {
   }
 
   user_accounts {
-    name             = "username1"
-    password         = "<ExamplePassword>"
-    elevation_level   = "Admin"
+    name            = "username1"
+    password        = "<ExamplePassword>"
+    elevation_level = "Admin"
     linux_user_configuration {
-       ssh_private_key = "sshprivatekeyvalue"
-       uid           = 1234
-       gid           = 4567
+      ssh_private_key = "sshprivatekeyvalue"
+      uid             = 1234
+      gid             = 4567
     }
   }
 }
@@ -2379,17 +2379,17 @@ resource "azurerm_batch_pool" "test" {
   disk_encryption_configuration {
     disk_encryption_target = "TemporaryDisk"
   }
-  
+
   windows_configuration {
     enable_automatic_updates = true
   }
 
   user_accounts {
-    name             = "username1"
-    password         = "<ExamplePassword>"
-    elevation_level   = "Admin"
+    name            = "username1"
+    password        = "<ExamplePassword>"
+    elevation_level = "Admin"
     windows_user_configuration {
-       login_mode = "Interactive"
+      login_mode = "Interactive"
     }
   }
 }
@@ -2415,13 +2415,13 @@ resource "azurerm_batch_pool" "test" {
   vm_size             = "Standard_A1"
 
   extensions {
-    name = "KeyVaultForLinux"
-    publisher = "Microsoft.Azure.KeyVault"
-    type = "KeyVaultForLinux"
-    type_handler_version = "2.0"
+    name                       = "KeyVaultForLinux"
+    publisher                  = "Microsoft.Azure.KeyVault"
+    type                       = "KeyVaultForLinux"
+    type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    settings = "{}"
-    protected_settings = "sensitive"
+    settings                   = "{}"
+    protected_settings         = "sensitive"
     provision_after_extensions = ["newProv1"]
   }
 
