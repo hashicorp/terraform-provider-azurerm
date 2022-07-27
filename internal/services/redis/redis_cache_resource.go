@@ -340,11 +340,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
 				// downgrade the SKU is not supported, recreate the resource
 				if old.(string) != "" && new.(string) != "" {
-					if skuWeight[old.(string)] > skuWeight[new.(string)] {
-						return true
-					}
+					return skuWeight[old.(string)] > skuWeight[new.(string)]
 				}
-
 				return false
 			}),
 		),
