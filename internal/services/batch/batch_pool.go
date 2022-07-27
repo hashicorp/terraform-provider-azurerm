@@ -129,7 +129,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountC
 		azureBlobFileSysConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system_configuration", d)
 		azureBlobFileSysConfig["sas_key"] = findSensitiveInfoForMountConfig("sas_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system_configuration", d)
 		if config.AzureBlobFileSystemConfiguration.IdentityReference != nil {
-			azureBlobFileSysConfig["identity_reference"] = flattenBatchPoolIdentityReference(config.AzureBlobFileSystemConfiguration.IdentityReference)
+			azureBlobFileSysConfig["identity_id"] = flattenBatchPoolIdentityReferenceToIdentityID(config.AzureBlobFileSystemConfiguration.IdentityReference)
 		}
 		if config.AzureBlobFileSystemConfiguration.BlobfuseOptions != nil {
 			azureBlobFileSysConfig["blobfuse_options"] = *config.AzureBlobFileSystemConfiguration.BlobfuseOptions
@@ -183,15 +183,6 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountC
 	}
 
 	return mountConfig
-}
-
-func flattenBatchPoolCloudServiceConfiguration(config *batch.CloudServiceConfiguration) interface{} {
-	result := make(map[string]interface{}, 0)
-	result["os_family"] = *config.OsFamily
-	if config.OsVersion != nil {
-		result["os_version"] = *config.OsVersion
-	}
-	return result
 }
 
 func flattenBatchPoolVirtualMachineConfiguration(d *pluginsdk.ResourceData, config *batch.VirtualMachineConfiguration) {
@@ -264,11 +255,7 @@ func flattenBatchPoolVirtualMachineConfiguration(d *pluginsdk.ResourceData, conf
 		d.Set("node_placement_configuration", nodePlacementConfiguration)
 	}
 	if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
-		osDisk := make(map[string]interface{})
-		osDisk["ephemeral_os_disk_settings"] = map[string]interface{}{
-			"placement": string(config.OsDisk.EphemeralOSDiskSettings.Placement),
-		}
-		d.Set("os_disk", osDisk)
+		d.Set("os_disk_placement_setting", string(config.OsDisk.EphemeralOSDiskSettings.Placement))
 	}
 	if config.WindowsConfiguration != nil {
 		windowsConfig := []interface{}{
@@ -398,7 +385,7 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *bat
 				resourceFile["file_mode"] = *armResourceFile.FileMode
 			}
 			if armResourceFile.IdentityReference != nil {
-				resourceFile["identity_reference"] = flattenBatchPoolIdentityReference(armResourceFile.IdentityReference)
+				resourceFile["identity_id"] = flattenBatchPoolIdentityReferenceToIdentityID(armResourceFile.IdentityReference)
 			}
 			resourceFiles = append(resourceFiles, resourceFile)
 		}
@@ -418,14 +405,11 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *bat
 	return append(results, result)
 }
 
-func flattenBatchPoolIdentityReference(ref *batch.ComputeNodeIdentityReference) interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if ref.ResourceID != nil {
-		result["identity_id"] = ref.ResourceID
+func flattenBatchPoolIdentityReferenceToIdentityID(ref *batch.ComputeNodeIdentityReference) string {
+	if ref != nil && ref.ResourceID != nil {
+		return *ref.ResourceID
 	}
-	return append(results, result)
+	return ""
 }
 
 func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error) {
@@ -527,11 +511,11 @@ func flattenBatchPoolContainerRegistry(oldConfig *pluginsdk.ResourceData, armCon
 	if userName := armContainerRegistry.UserName; userName != nil {
 		result["user_name"] = *userName
 	} else if identityRef := armContainerRegistry.IdentityReference; identityRef != nil {
-		result["identity_reference"] = flattenBatchPoolIdentityReference(armContainerRegistry.IdentityReference)
+		result["identity_id"] = flattenBatchPoolIdentityReferenceToIdentityID(armContainerRegistry.IdentityReference)
 	}
 
 	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
-	if v, ok := result["identity_reference"]; ok && len(v.([]interface{})) > 0 {
+	if _, ok := result["identity_id"]; ok {
 		return result
 	}
 
@@ -766,11 +750,10 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*batch
 		result.AccountKey = utils.String(accountKey.(string))
 	} else if sasKey, ok := configMap["sas_key"]; ok {
 		result.SasKey = utils.String(sasKey.(string))
-	} else if identityRef, ok := configMap["sas_key"]; ok {
-		if computedIDRef, err := expandBatchPoolIdentityReference(identityRef.(map[string]interface{})); err == nil {
-			result.IdentityReference = computedIDRef
-		}
+	} else if computedIDRef, err := expandBatchPoolIdentityReference(configMap); err == nil {
+		result.IdentityReference = computedIDRef
 	}
+
 	if blobfuseOptions, ok := configMap["blobfuse_options"]; ok {
 		result.BlobfuseOptions = utils.String(blobfuseOptions.(string))
 	}
@@ -854,60 +837,44 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*batch.Virt
 
 	if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{})); err == nil {
 		result.ContainerConfiguration = containerConfiguration
-	} else {
-		return nil, fmt.Errorf("container_configuration either is empty or contains parsing errors")
 	}
 
 	if dataDisk, diskErr := expandBatchPoolDataDisks(d.Get("data_disks").([]interface{})); diskErr == nil {
 		result.DataDisks = dataDisk
-	} else {
-		return nil, fmt.Errorf("data_disks either is empty or contains parsing errors")
 	}
 
 	if diskEncryptionConfig, diskEncryptionErr := expandBatchPoolDiskEncryptionConfiguration(d.Get("disk_encryption_configuration").([]interface{})); diskEncryptionErr == nil {
 		result.DiskEncryptionConfiguration = diskEncryptionConfig
-	} else {
-		return nil, fmt.Errorf("disk_encryption_configuration either is empty or contains parsing errors")
 	}
 
-	if extensions, extErr := expandBatchPoolExtensions(d.Get("disk_encryption_configuration").([]interface{})); extErr == nil {
+	if extensions, extErr := expandBatchPoolExtensions(d.Get("extensions").([]interface{})); extErr == nil {
 		result.Extensions = extensions
-	} else {
-		return nil, fmt.Errorf("disk_encryption_configuration either is empty or contains parsing errors")
 	}
 
 	if licenseType, ok := d.GetOk("license_type"); ok {
 		result.LicenseType = utils.String(licenseType.(string))
-	} else {
-		return nil, fmt.Errorf("license_type either is empty or contains parsing errors")
 	}
 
 	if nodeReplacementConfig, nodeRepCfgErr := expandBatchPoolNodeReplacementConfig(d.Get("node_placement_configuration").([]interface{})); nodeRepCfgErr == nil {
 		result.NodePlacementConfiguration = nodeReplacementConfig
-	} else {
-		return nil, fmt.Errorf("node_placement_configuration either is empty or contains parsing errors")
 	}
 
-	if osDisk, osDiskErr := expandBatchPoolOSDisk(d.Get("os_disk").(map[string]interface{})); osDiskErr == nil {
+	if osDisk, osDiskErr := expandBatchPoolOSDisk(d.Get("os_disk_placement_setting").(interface{})); osDiskErr == nil {
 		result.OsDisk = osDisk
-	} else {
-		return nil, fmt.Errorf("os_disk either is empty or contains parsing errors")
 	}
 
 	if windowsConfiguration, windowsConfigErr := expandBatchPoolWindowsConfiguration(d.Get("windows_configuration").([]interface{})); windowsConfigErr == nil {
 		result.WindowsConfiguration = windowsConfiguration
-	} else {
-		return nil, fmt.Errorf("windows_configuration either is empty or contains parsing errors")
 	}
 
 	return &result, nil
 }
 
-func expandBatchPoolOSDisk(ref map[string]interface{}) (*batch.OSDisk, error) {
+func expandBatchPoolOSDisk(ref interface{}) (*batch.OSDisk, error) {
 	if ref == nil {
-		return nil, fmt.Errorf("os_disk is empty")
+		return nil, fmt.Errorf("os_disk_placement_setting is empty")
 	}
-	item := ref["ephemeral_os_disk_settings"].(map[string]interface{})["placement"].(string)
+	item := ref.(string)
 	result := batch.OSDisk{
 		EphemeralOSDiskSettings: &batch.DiffDiskSettings{
 			Placement: batch.DiffDiskPlacement(item),
@@ -925,7 +892,6 @@ func expandBatchPoolNodeReplacementConfig(list []interface{}) (*batch.NodePlacem
 		Policy: batch.NodePlacementPolicyType(item),
 	}
 	return &result, nil
-	// return nil, fmt.Errorf("node_placement_configuration either is empty or contains parsing errors")
 }
 
 func expandBatchPoolWindowsConfiguration(list []interface{}) (*batch.WindowsConfiguration, error) {
@@ -948,7 +914,7 @@ func expandBatchPoolExtensions(list []interface{}) (*[]batch.VMExtension, error)
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
 		if batchPoolExtension, err := expandBatchPoolExtension(item); err == nil {
-			result = append(result, batchPoolExtension)
+			result = append(result, *batchPoolExtension)
 		} else {
 			return nil, fmt.Errorf("cloud_service_configuration either is empty or contains parsing errors")
 		}
@@ -957,7 +923,10 @@ func expandBatchPoolExtensions(list []interface{}) (*[]batch.VMExtension, error)
 	return &result, nil
 }
 
-func expandBatchPoolExtension(ref map[string]interface{}) (batch.VMExtension, error) {
+func expandBatchPoolExtension(ref map[string]interface{}) (*batch.VMExtension, error) {
+	if ref == nil || len(ref) == 0 {
+		return nil, fmt.Errorf("extension is empty")
+	}
 	result := batch.VMExtension{
 		Name:      utils.String(ref["name"].(string)),
 		Publisher: utils.String(ref["publisher"].(string)),
@@ -979,7 +948,7 @@ func expandBatchPoolExtension(ref map[string]interface{}) (batch.VMExtension, er
 		provisionAfterExtensionsList := tmpItem.([]string)
 		result.ProvisionAfterExtensions = &provisionAfterExtensionsList
 	}
-	return result, nil
+	return &result, nil
 }
 
 func expandBatchPoolDiskEncryptionConfiguration(list []interface{}) (*batch.DiskEncryptionConfiguration, error) {
@@ -1021,10 +990,10 @@ func expandBatchPoolDataDisks(list []interface{}) (*[]batch.DataDisk, error) {
 
 func expandBatchPoolDataDisk(ref map[string]interface{}) (*batch.DataDisk, error) {
 	result := batch.DataDisk{
-		Lun:                utils.Int32(ref["lun"].(int32)),
+		Lun:                utils.Int32(int32(ref["lun"].(int))),
 		Caching:            batch.CachingType(ref["caching"].(string)),
-		DiskSizeGB:         utils.Int32(ref["disk_size_gb"].(int32)),
-		StorageAccountType: batch.StorageAccountType(ref["storage_account_type"].(int32)),
+		DiskSizeGB:         utils.Int32(int32(ref["disk_size_gb"].(int))),
+		StorageAccountType: batch.StorageAccountType(ref["storage_account_type"].(string)),
 	}
 	return &result, nil
 }
@@ -1124,13 +1093,12 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 		UserName:       utils.String(ref["user_name"].(string)),
 		Password:       utils.String(ref["password"].(string)),
 	}
-	if ref["identity_reference"] != nil && len(ref["identity_reference"].([]interface{})) > 0 {
-		if idRef, err := expandBatchPoolIdentityReference(ref["identity_reference"].([]interface{})[0].(map[string]interface{})); err == nil {
-			containerRegistryRef.IdentityReference = idRef
-		} else {
-			return nil, err
-		}
+	if idRef, err := expandBatchPoolIdentityReference(ref); err == nil {
+		containerRegistryRef.IdentityReference = idRef
+	} else {
+		return nil, err
 	}
+
 	return &containerRegistryRef, nil
 }
 
@@ -1138,8 +1106,9 @@ func expandBatchPoolIdentityReference(ref map[string]interface{}) (*batch.Comput
 	var result batch.ComputeNodeIdentityReference
 	if iid, ok := ref["identity_id"]; ok {
 		result.ResourceID = utils.String(iid.(string))
+		return &result, nil
 	}
-	return nil, fmt.Errorf("identity_id is required in building identity_reference")
+	return nil, fmt.Errorf("identity_id is empty")
 }
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
@@ -1272,14 +1241,10 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				resourceFile.FileMode = &fileMode
 			}
 		}
-		if v, ok := resourceFileValue["identity_reference"]; ok {
-			idRefList := v.([]interface{})
-			if idRefList != nil && len(idRefList) > 0 {
-				if idRef, err := expandBatchPoolIdentityReference(idRefList[0].(map[string]interface{})); err == nil {
-					resourceFile.IdentityReference = idRef
-				}
-			}
+		if idRef, err := expandBatchPoolIdentityReference(resourceFileValue); err == nil {
+			resourceFile.IdentityReference = idRef
 		}
+
 		resourceFiles = append(resourceFiles, resourceFile)
 	}
 

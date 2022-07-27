@@ -216,7 +216,8 @@ A `virtual_machine_configuration` block supports the following:
 
 * `node_placement_configuration` - (Optional)  A `node_placement_configuration` block as defined below.
 
-* `os_disk` - (Optional) An `os_disk` block as defined below.
+* `os_disk_placement_setting` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool.
+  This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements. Valid value is "CacheDisk"
 
 * `windows_configuration` - (Optional) A `windows_configuration` block as defined below.
 
@@ -380,12 +381,6 @@ A `node_placement_configuration` block supports the following:
 Node placement Policy type on Batch Pools. Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy.
 
 * `policy` - (Required) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing.
-
----
-
-An `os_disk` block supports the following:
-
-* `ephemeral_os_disk_settings` - (Required) An `ephemeral_os_disk_settings` block defined as follows.
 
 ---
 

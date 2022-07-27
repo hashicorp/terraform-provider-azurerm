@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -279,7 +279,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Sensitive: true,
 						},
 						"provision_after_extensions": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -294,29 +294,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"os_disk": {
-				Type:     pluginsdk.TypeList,
+			"os_disk_placement_setting": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"ephemeral_os_disk_settings": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"placement": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												string(batch.DiffDiskPlacementCacheDisk),
-											}, false),
-									},
-								},
-							},
-						},
-					},
-				},
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						string(batch.DiffDiskPlacementCacheDisk),
+					}, false),
 			},
 			"fixed_scale": {
 				Type:     pluginsdk.TypeList,
@@ -410,12 +394,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"identity_reference": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: identityReference(),
-										},
+									"identity_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 									},
 									"blobfuse_options": {
 										Type:         pluginsdk.TypeString,
@@ -896,7 +878,9 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
 	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d); deploymentErr == nil {
-		parameters.PoolProperties.DeploymentConfiguration.VirtualMachineConfiguration = vmDeploymentConfiguration
+		parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+			VirtualMachineConfiguration: vmDeploymentConfiguration,
+		}
 	}
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	parameters.PoolProperties.MountConfiguration = mountConfiguration
@@ -1288,16 +1272,6 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	return nil
 }
 
-func identityReference() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"identity_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-		},
-	}
-}
-
 func containerRegistry() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"user_name": {
@@ -1320,12 +1294,10 @@ func containerRegistry() map[string]*pluginsdk.Schema {
 			Default:      utils.String("docker.io"),
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"identity_reference": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: identityReference(),
-			},
+		"identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 	}
 }
@@ -1459,12 +1431,10 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					"identity_reference": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: identityReference(),
-						},
+					"identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 					"storage_container_url": {
 						Type:     pluginsdk.TypeString,

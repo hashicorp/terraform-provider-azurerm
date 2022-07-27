@@ -199,11 +199,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"provision_after_extensions": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -247,12 +246,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
-									"identity_reference": {
-										Type:     pluginsdk.TypeList,
+									"identity_id": {
+										Type:     pluginsdk.TypeString,
 										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: batchPoolDataIdentityReference(),
-										},
 									},
 									"blobfuse_options": {
 										Type:     pluginsdk.TypeString,
@@ -441,25 +437,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"os_disk": {
-				Type:     pluginsdk.TypeList,
+			"os_disk_placement_setting": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"ephemeral_os_disk_settings": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"placement": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeList,
@@ -608,15 +588,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 	}
 }
 
-func batchPoolDataIdentityReference() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"identity_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
-}
-
 func batchPoolDataContainerRegistry() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"username": {
@@ -631,12 +602,9 @@ func batchPoolDataContainerRegistry() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"identity_reference": {
-			Type:     pluginsdk.TypeList,
+		"identity_id": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: batchPoolDataIdentityReference(),
-			},
 		},
 	}
 }
