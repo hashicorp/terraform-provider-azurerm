@@ -86,9 +86,9 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_backup_policy_vm_workload" "test" {
-  name                  = "acctest-bpvmw-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
+  name                = "acctest-bpvmw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   workload_type = "SQLDataBase"
 
@@ -158,9 +158,9 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_backup_policy_vm_workload" "test" {
-  name                  = "acctest-bpvmw-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
+  name                = "acctest-bpvmw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   workload_type = "SAPHanaDatabase"
 
@@ -248,9 +248,9 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_backup_policy_vm_workload" "test" {
-  name                  = "acctest-bpvmw-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
+  name                = "acctest-bpvmw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   workload_type = "SAPHanaDatabase"
 

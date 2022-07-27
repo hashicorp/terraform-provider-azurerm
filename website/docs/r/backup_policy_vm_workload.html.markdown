@@ -27,9 +27,9 @@ resource "azurerm_recovery_services_vault" "example" {
 }
 
 resource "azurerm_backup_policy_vm_workload" "example" {
-  name                  = "example-bpvmw"
-  resource_group_name   = azurerm_resource_group.example.name
-  recovery_vault_name   = azurerm_recovery_services_vault.example.name
+  name                = "example-bpvmw"
+  resource_group_name = azurerm_resource_group.example.name
+  recovery_vault_name = azurerm_recovery_services_vault.example.name
 
   workload_type = "SQLDataBase"
 
