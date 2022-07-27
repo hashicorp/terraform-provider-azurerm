@@ -49,10 +49,10 @@ func TestAccBatchPool_extensions(t *testing.T) {
 			Config: r.extensions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("extensions.0.name").HasValue("myVMExtension"),
-				check.That(data.ResourceName).Key("extensions.0.publisher").HasValue("myself"),
-				check.That(data.ResourceName).Key("extensions.0.type").HasValue("myType"),
-				check.That(data.ResourceName).Key("extensions.0.type_handler_version").HasValue("v0.1"),
+				check.That(data.ResourceName).Key("extensions.0.name").HasValue("KeyVaultForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.publisher").HasValue("Microsoft.Azure.KeyVault"),
+				check.That(data.ResourceName).Key("extensions.0.type").HasValue("KeyVaultForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.type_handler_version").HasValue("2.0"),
 				check.That(data.ResourceName).Key("extensions.0.auto_upgrade_minor_version").HasValue("true"),
 				check.That(data.ResourceName).Key("extensions.0.settings").HasValue("{}"),
 				check.That(data.ResourceName).Key("extensions.0.protected_settings").HasValue("sensitive"),
@@ -2415,10 +2415,10 @@ resource "azurerm_batch_pool" "test" {
   vm_size             = "Standard_A1"
 
   extensions {
-    name = "myVMExtension"
-    publisher = "myself"
-    type = "myType"
-    type_handler_version = "v0.1"
+    name = "KeyVaultForLinux"
+    publisher = "Microsoft.Azure.KeyVault"
+    type = "KeyVaultForLinux"
+    type_handler_version = "2.0"
     auto_upgrade_minor_version = true
     settings = "{}"
     protected_settings = "sensitive"

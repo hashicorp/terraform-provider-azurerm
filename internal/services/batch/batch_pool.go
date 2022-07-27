@@ -214,6 +214,7 @@ func flattenBatchPoolVirtualMachineConfiguration(d *pluginsdk.ResourceData, conf
 	}
 	if config.Extensions != nil {
 		extensions := make([]interface{}, 0)
+		n := len(*config.Extensions)
 		for _, item := range *config.Extensions {
 			extension := make(map[string]interface{})
 			extension["name"] = *item.Name
@@ -228,9 +229,14 @@ func flattenBatchPoolVirtualMachineConfiguration(d *pluginsdk.ResourceData, conf
 			if item.Settings != nil {
 				extension["settings"] = item.Settings
 			}
-			if item.ProtectedSettings != nil {
-				extension["protected_settings"] = item.ProtectedSettings
+
+			for i := 0; i < n; i++ {
+				if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == *item.Name {
+					extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
+					break
+				}
 			}
+
 			if item.ProvisionAfterExtensions != nil {
 				extension["provision_after_extensions"] = *item.ProvisionAfterExtensions
 			}
@@ -939,14 +945,13 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*batch.VMExtension, e
 		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
 	}
 	if settings, ok := ref["settings"]; ok {
-		result.TypeHandlerVersion = utils.String(settings.(string))
+		result.Settings = utils.String(settings.(string))
 	}
 	if protectedSettings, ok := ref["protected_settings"]; ok {
-		result.TypeHandlerVersion = utils.String(protectedSettings.(string))
+		result.ProtectedSettings = utils.String(protectedSettings.(string))
 	}
 	if tmpItem, ok := ref["provision_after_extensions"]; ok {
-		provisionAfterExtensionsList := tmpItem.([]string)
-		result.ProvisionAfterExtensions = &provisionAfterExtensionsList
+		result.ProvisionAfterExtensions = utils.ExpandStringSlice(tmpItem.(*pluginsdk.Set).List())
 	}
 	return &result, nil
 }
