@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"regexp"
 	"strconv"
 	"strings"
@@ -216,7 +217,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.ProximityPlacementGroupID,
+						ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 					},
 					"only_critical_addons_enabled": {
 						Type:     pluginsdk.TypeBool,
