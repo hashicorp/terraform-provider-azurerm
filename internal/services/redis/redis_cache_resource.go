@@ -33,6 +33,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var skuWeight = map[string]int8{
+	"Basic":    1,
+	"Standard": 2,
+	"Premium":  3,
+}
+
 func resourceRedisCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceRedisCacheCreate,
@@ -330,6 +336,18 @@ func resourceRedisCache() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
+				// downgrade the SKU is not supported, recreate the resource
+				if old.(string) != "" && new.(string) != "" {
+					if skuWeight[old.(string)] > skuWeight[new.(string)] {
+						return true
+					}
+				}
+
+				return false
+			}),
+		),
 	}
 }
 
