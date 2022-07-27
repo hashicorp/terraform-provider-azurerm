@@ -25,12 +25,12 @@ var (
 type BackendAddressPoolAddressResource struct{}
 
 type BackendAddressPoolAddressModel struct {
-	Name                    string `tfschema:"name"`
-	BackendAddressPoolId    string `tfschema:"backend_address_pool_id"`
-	VirtualNetworkId        string `tfschema:"virtual_network_id"`
-	IPAddress               string `tfschema:"ip_address"`
-	FrontendIPConfiguration string `tfschema:"backend_address_ip_config_id"`
-	PortMapping          []inboundNATRulePortMapping `tfschema:"inbound_nat_rule_port_mapping"`
+	Name                    string                      `tfschema:"name"`
+	BackendAddressPoolId    string                      `tfschema:"backend_address_pool_id"`
+	VirtualNetworkId        string                      `tfschema:"virtual_network_id"`
+	IPAddress               string                      `tfschema:"ip_address"`
+	FrontendIPConfiguration string                      `tfschema:"backend_address_ip_config_id"`
+	PortMapping             []inboundNATRulePortMapping `tfschema:"inbound_nat_rule_port_mapping"`
 }
 
 type inboundNATRulePortMapping struct {
@@ -214,6 +214,7 @@ func (r BackendAddressPoolAddressResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LoadBalancers.LoadBalancerBackendAddressPoolsClient
+			lbClient := metadata.Client.LoadBalancers.LoadBalancersClient
 			id, err := parse.BackendAddressPoolAddressID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -442,7 +443,8 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 			lbStatus := &pluginsdk.StateChangeConf{
 				Pending:                   []string{string(network.ProvisioningStateUpdating)},
 				Target:                    []string{string(network.ProvisioningStateSucceeded)},
-				MinTimeout:                5 * time.Minute,
+				Delay:                     30 * time.Second,
+				PollInterval:              10 * time.Second,
 				Refresh:                   loadbalacnerProvisioningStatusRefreshFunc(ctx, lbClient, *id),
 				ContinuousTargetOccurence: 10,
 				Timeout:                   time.Until(timeout),

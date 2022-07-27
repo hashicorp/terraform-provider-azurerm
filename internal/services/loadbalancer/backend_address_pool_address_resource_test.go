@@ -221,10 +221,6 @@ func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(exp
 func (t BackendAddressPoolAddressResourceTests) basic(data acceptance.TestData) string {
 	template := t.templateRegionalLB(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_lb_backend_address_pool_address" "test" {
@@ -254,10 +250,6 @@ resource "azurerm_lb_backend_address_pool_address" "import" {
 func (t BackendAddressPoolAddressResourceTests) update(data acceptance.TestData) string {
 	template := t.templateRegionalLB(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_lb_backend_address_pool_address" "test" {
@@ -273,10 +265,6 @@ resource "azurerm_lb_backend_address_pool_address" "test" {
 func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancer(data acceptance.TestData) string {
 	template := t.templateGlobalLB(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 resource "azurerm_lb_backend_address_pool_address" "test1" {
   name                         = "address1"
@@ -295,10 +283,6 @@ resource "azurerm_lb_backend_address_pool_address" "test2" {
 func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancerUpdate(data acceptance.TestData) string {
 	template := t.templateGlobalLB(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 resource "azurerm_lb_backend_address_pool_address" "test1" {
   name                         = "address1"
@@ -317,10 +301,6 @@ resource "azurerm_lb_backend_address_pool_address" "test2" {
 func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancerRemoval(data acceptance.TestData) string {
 	template := t.templateGlobalLB(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 resource "azurerm_lb_backend_address_pool_address" "test1" {
   name                         = "address1"
@@ -333,6 +313,13 @@ resource "azurerm_lb_backend_address_pool_address" "test1" {
 
 func (BackendAddressPoolAddressResourceTests) templateGlobalLB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -444,6 +431,14 @@ resource "azurerm_lb_backend_address_pool" "backend-pool-cr" {
 
 func (BackendAddressPoolAddressResourceTests) templateRegionalLB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
