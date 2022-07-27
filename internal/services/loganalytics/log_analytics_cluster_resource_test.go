@@ -3,6 +3,7 @@ package loganalytics_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -19,6 +20,11 @@ func TestAccLogAnalyticsCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	r := LogAnalyticsClusterResource{}
 
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -33,6 +39,11 @@ func TestAccLogAnalyticsCluster_basic(t *testing.T) {
 func TestAccLogAnalyticsCluster_resize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	r := LogAnalyticsClusterResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,6 +66,11 @@ func TestAccLogAnalyticsCluster_resize(t *testing.T) {
 func TestAccLogAnalyticsCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	r := LogAnalyticsClusterResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
