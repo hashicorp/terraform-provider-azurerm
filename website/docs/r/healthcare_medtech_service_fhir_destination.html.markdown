@@ -18,11 +18,31 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   destination_fhir_service_id          = "fhir_service_id"
   destination_identity_resolution_type = "Create"
 
-  destination_fhir_mapping = <<JSON
+  destination_fhir_mapping_json = <<JSON
   {
-    "content": {
-              "templateType": "CollectionFhirTemplate",
-              "template": []
+            "templateType": "CollectionFhirTemplate",
+            "template": [
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "codes": [
+                    {
+                      "code": "8867-4",
+                      "system": "http://loinc.org",
+                      "display": "Heart rate"
+                    }
+                  ],
+                  "periodInterval": 60,
+                  "typeName": "heartrate",
+                  "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "count/min",
+                    "valueName": "hr",
+                    "valueType": "SampledData"
+                  }
+                }
+              }
+            ]
   }
   JSON
 }
@@ -40,7 +60,7 @@ The following arguments are supported:
 
 * `destination_identity_resolution_type` - (Required) Specifies the destination identity resolution type where the Healthcare Med Tech Service Fhir Destination should be created. Possible values are `Create`, `Lookup`. Defaults to `Create`.
 
-* `destination_fhir_mapping` - (Required) Specifies the destination Fhir mappings of the Med Tech Service Fhir Destination.
+* `destination_fhir_mapping_json` - (Required) Specifies the destination Fhir mappings of the Med Tech Service Fhir Destination.
 
 ## Attributes Reference
 

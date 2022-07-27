@@ -6,10 +6,10 @@ import (
 )
 
 type Client struct {
-	HealthcareServiceClient               *healthcareapis.ServicesClient
-	HealthcareWorkspaceClient             *healthcareapis.WorkspacesClient
-	HealthcareWorkspaceDicomServiceClient *healthcareapis.DicomServicesClient
-	HealthcareWorkspaceFhirServiceClient  *healthcareapis.FhirServicesClient
+	HealthcareServiceClient                                *healthcareapis.ServicesClient
+	HealthcareWorkspaceClient                              *healthcareapis.WorkspacesClient
+	HealthcareWorkspaceDicomServiceClient                  *healthcareapis.DicomServicesClient
+	HealthcareWorkspaceFhirServiceClient                   *healthcareapis.FhirServicesClient
 	HealthcareWorkspaceMedTechServiceClient                *healthcareapis.IotConnectorsClient
 	HealthcareWorkspaceMedTechServiceFhirDestinationClient *healthcareapis.IotConnectorFhirDestinationClient
 }

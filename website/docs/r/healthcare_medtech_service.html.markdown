@@ -26,10 +26,27 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = "tfex-eventhub.name"
   eventhub_consumer_group_name = "tfex-eventhub-consumer-group.name"
 
-  device_mapping = <<JSON
+  device_mapping_json = <<JSON
 {
-"templateType": "CollectionContent",
-"template": []
+    "templateType": "CollectionContent",
+    "template": [
+                {
+                  "templateType": "JsonPathContent",
+                  "template": {
+                    "typeName": "heartrate",
+                    "typeMatchExpression": "$..[?(@heartrate)]",
+                    "deviceIdExpression": "$.deviceid",
+                    "timestampExpression": "$.measurementdatetime",
+                    "values": [
+                      {
+                        "required": "true",
+                        "valueExpression": "$.heartrate",
+                        "valueName": "hr"
+                      }
+                    ]
+                  }
+                }
+              ]
 }
 JSON
 }
@@ -53,7 +70,7 @@ The following arguments are supported:
 
 * `eventhub_consumer_group_name` - (Required) Specifies the Consumer Group of the Event Hub to connect to.
 
-* `device_mapping` - (Required) Specifies the Device Mappings of the Med Tech Service.
+* `device_mapping_json` - (Required) Specifies the Device Mappings of the Med Tech Service.
 
 ---
 A `identity` block supports the following:

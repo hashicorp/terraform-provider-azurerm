@@ -134,7 +134,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping = <<JSON
+  device_mapping_json = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
@@ -160,7 +160,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping = <<JSON
+  device_mapping_json = <<JSON
 {
             "templateType": "CollectionContent",
             "template": [
@@ -199,7 +199,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test1.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping = <<JSON
+  device_mapping_json = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
@@ -222,7 +222,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test1.name
 
-  device_mapping = <<JSON
+  device_mapping_json = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
@@ -245,7 +245,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping = <<JSON
+  device_mapping_json = <<JSON
 {
    "templateType": "CollectionContent",
             "template": [
@@ -299,7 +299,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub" "test1" {
-  name                = "acctest-eh-%d"
+  name                = "acctest-eh1-%d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 1
@@ -314,9 +314,9 @@ resource "azurerm_eventhub_consumer_group" "test" {
 }
 
 resource "azurerm_eventhub_consumer_group" "test1" {
-  name                = "acctestCG-%d"
+  name                = "acctestCG1-%d"
   namespace_name      = azurerm_eventhub_namespace.test.name
-  eventhub_name       = azurerm_eventhub.test.name
+  eventhub_name       = azurerm_eventhub.test1.name
   resource_group_name = azurerm_resource_group.test.name
 }
 

@@ -33,10 +33,10 @@ func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
 		Delete: resourceHealthcareApisMedTechServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -81,7 +81,7 @@ func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
 				ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
 			},
 
-			"device_mapping": {
+			"device_mapping_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				StateFunc:        utils.NormalizeJson,
@@ -137,7 +137,7 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	deviceContentMap := healthcareapis.IotMappingProperties{}
-	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping").(string))
+	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping_json").(string))
 	if err := json.Unmarshal([]byte(deviceMappingJson), &deviceContentMap); err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 				}
 				mapContent = string(contents)
 			}
-			d.Set("device_mapping", mapContent)
+			d.Set("device_mapping_json", mapContent)
 		}
 
 		if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
@@ -274,7 +274,7 @@ func resourceHealthcareApisMedTechServiceUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	deviceContentMap := healthcareapis.IotMappingProperties{}
-	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping").(string))
+	deviceMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("device_mapping_json").(string))
 	if err := json.Unmarshal([]byte(deviceMappingJson), &deviceContentMap); err != nil {
 		return err
 	}
