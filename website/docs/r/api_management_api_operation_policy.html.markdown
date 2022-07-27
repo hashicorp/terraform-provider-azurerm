@@ -71,7 +71,7 @@ XML
 
 The following arguments are supported:
 
-* `api_name` - (Required) The ID of the API Management API Operation within the API Management Service. Changing this forces a new resource to be created.
+* `api_name` - (Required) The name of the API within the API Management Service where the Operation exists. Changing this forces a new resource to be created.
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
