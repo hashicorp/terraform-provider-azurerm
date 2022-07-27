@@ -194,7 +194,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 	return &results, nil
 }
 
-func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProperties) ([]NetAppVolumeGroupVolume, error) {
+func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]NetAppVolumeGroupVolume, error) {
 	results := make([]NetAppVolumeGroupVolume, 0)
 
 	if len(*input) == 0 || input == nil {
@@ -232,12 +232,25 @@ func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProp
 			volumeGroupVolume.MountIpAddresses = flattenNetAppVolumeGroupVolumesMountIpAddresses(props.MountTargets)
 		}
 
-		if props.DataProtection != nil && props.DataProtection.Replication != nil {
-			volumeGroupVolume.DataProtectionReplication = flattenNetAppVolumeGroupVolumesDPReplication(props.DataProtection.Replication)
+		// Getting volume resource directly from standalone volime
+		// since VolumeGroup Volumes don't return DataProtection information
+		volumeClient := metadata.Client.NetApp.VolumeClient
+		id, err := volumes.ParseVolumeID(*item.Id)
+		if err != nil {
+			return []NetAppVolumeGroupVolume{}, err
 		}
 
-		if props.DataProtection != nil && props.DataProtection.Snapshot != nil {
-			volumeGroupVolume.DataProtectionSnapshotPolicy = flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(props.DataProtection.Snapshot)
+		standaloneVol, err := volumeClient.Get(ctx, *id)
+		if err != nil {
+			return []NetAppVolumeGroupVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
+		}
+
+		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Replication != nil {
+			volumeGroupVolume.DataProtectionReplication = flattenNetAppVolumeGroupVolumesDPReplication(standaloneVol.Model.Properties.DataProtection.Replication)
+		}
+
+		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Snapshot != nil {
+			volumeGroupVolume.DataProtectionSnapshotPolicy = flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(standaloneVol.Model.Properties.DataProtection.Snapshot)
 		}
 
 		results = append(results, volumeGroupVolume)
@@ -293,7 +306,7 @@ func flattenNetAppVolumeGroupVolumesMountIpAddresses(input *[]volumegroups.Mount
 	return results
 }
 
-func flattenNetAppVolumeGroupVolumesDPReplication(input *volumegroups.ReplicationObject) []DataProtectionReplication {
+func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObject) []DataProtectionReplication {
 	if input == nil {
 		return []DataProtectionReplication{}
 	}
@@ -312,14 +325,14 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumegroups.Replicatio
 	}
 }
 
-func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumegroups.VolumeSnapshotProperties) []DataProtectionSnapshotPolicy {
+func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumes.VolumeSnapshotProperties) []DataProtectionSnapshotPolicy {
 	if input == nil {
 		return []DataProtectionSnapshotPolicy{}
 	}
 
 	return []DataProtectionSnapshotPolicy{
 		{
-			DataProtectionSnapshotPolicy: *input.SnapshotPolicyId,
+			DataProtectionSnapshotPolicy: string(*input.SnapshotPolicyId),
 		},
 	}
 }

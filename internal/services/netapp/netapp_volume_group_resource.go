@@ -579,7 +579,7 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 					model.DeploymentSpecId = "20542149-bfca-5618-1879-9863dc6767f1"
 				}
 
-				volumes, err := flattenNetAppVolumeGroupVolumes(props.Volumes)
+				volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
 				if err != nil {
 					return fmt.Errorf("setting `volume`: %+v", err)
 				}
