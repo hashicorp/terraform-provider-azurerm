@@ -34,10 +34,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceFhirDestinationClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		HealthcareServiceClient:               &HealthcareServiceClient,
-		HealthcareWorkspaceClient:             &HealthcareWorkspaceClient,
-		HealthcareWorkspaceDicomServiceClient: &HealthcareWorkspaceDicomServiceClient,
-		HealthcareWorkspaceFhirServiceClient:  &HealthcareWorkspaceFhirServiceClient,
+		HealthcareServiceClient:                                &HealthcareServiceClient,
+		HealthcareWorkspaceClient:                              &HealthcareWorkspaceClient,
+		HealthcareWorkspaceDicomServiceClient:                  &HealthcareWorkspaceDicomServiceClient,
+		HealthcareWorkspaceFhirServiceClient:                   &HealthcareWorkspaceFhirServiceClient,
 		HealthcareWorkspaceMedTechServiceClient:                &HealthcareWorkspaceMedTechServiceClient,
 		HealthcareWorkspaceMedTechServiceFhirDestinationClient: &HealthcareWorkspaceMedTechServiceFhirDestinationClient,
 	}
