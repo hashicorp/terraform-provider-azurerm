@@ -134,7 +134,7 @@ The following arguments are supported:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
 
-~> **NOTE:** `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
+-> **NOTE:** `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
 
 ~> **NOTE:** `single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified
 

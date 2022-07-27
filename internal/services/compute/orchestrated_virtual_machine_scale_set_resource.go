@@ -92,6 +92,16 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
+			"capacity_reservation_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: computeValidate.CapacityReservationGroupID,
+				ConflictsWith: []string{
+					"proximity_placement_group_id",
+				},
+			},
+
 			"data_disk": OrchestratedVirtualMachineScaleSetDataDiskSchema(),
 
 			// Optional
@@ -176,6 +186,9 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"capacity_reservation_group_id",
+				},
 			},
 
 			// removing single_placement_group since it has been retired as of version 2019-12-01 for Flex VMSS
@@ -280,6 +293,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			return fmt.Errorf("expanding 'sku_name': %+v", err)
 		}
 		props.Sku = sku
+	}
+
+	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+		virtualMachineProfile.CapacityReservation = &compute.CapacityReservationProfile{
+			CapacityReservationGroup: &compute.SubResource{
+				ID: utils.String(v.(string)),
+			},
+		}
 	}
 
 	// hasHealthExtension is currently not needed but I added the plumming because we will need it
@@ -1030,6 +1051,12 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
 			return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 		}
+
+		capacityReservationGroupId := ""
+		if profile.CapacityReservation != nil && profile.CapacityReservation.CapacityReservationGroup != nil && profile.CapacityReservation.CapacityReservationGroup.ID != nil {
+			capacityReservationGroupId = *profile.CapacityReservation.CapacityReservationGroup.ID
+		}
+		d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
 		// defaulted since BillingProfile isn't returned if it's unset
 		maxBidPrice := float64(-1.0)
