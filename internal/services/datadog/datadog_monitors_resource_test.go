@@ -17,6 +17,10 @@ import (
 type DatadogMonitorResource struct{}
 
 func TestAccDatadogMonitor_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
 	r := DatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -43,6 +47,10 @@ func TestAccDatadogMonitor_basic(t *testing.T) {
 }
 
 func TestAccDatadogMonitor_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
 	r := DatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -57,6 +65,10 @@ func TestAccDatadogMonitor_requiresImport(t *testing.T) {
 }
 
 func TestAccDatadogMonitor_complete(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
 	r := DatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -83,6 +95,10 @@ func TestAccDatadogMonitor_complete(t *testing.T) {
 }
 
 func TestAccDatadogMonitor_update(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
 	r := DatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
