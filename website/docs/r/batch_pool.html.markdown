@@ -182,11 +182,11 @@ An `azure_blob_file_system_configuration` block supports the following:
 
 * `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
 
-* `account_key` - (Optional) The Azure Storage Account key. This property is mutually exclusive with both `sas_key` and `identity_reference`; exactly one must be specified.
+* `account_key` - (Optional) The Azure Storage Account key. This property is mutually exclusive with both `sas_key` and `identity_id`; exactly one must be specified.
 
-* `sas_key` - (Optional) The Azure Storage SAS token. This property is mutually exclusive with both `account_key` and `identity_reference`; exactly one must be specified.
+* `sas_key` - (Optional) The Azure Storage SAS token. This property is mutually exclusive with both `account_key` and `identity_id`; exactly one must be specified.
 
-* `identity_reference` - (Optional) An `identity_reference` block defined as below. This property is mutually exclusive with both `account_key` and `sas_key`; exactly one must be specified.
+* `identity_id` - (Optional) The ARM resource id of the user assigned identity. This property is mutually exclusive with both `account_key` and `sas_key`; exactly one must be specified.
 
 * `blobfuse_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
 
@@ -227,12 +227,6 @@ A `nfs_mount_configuration` block supports the following:
 * `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
 
 * `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
-
----
-
-An `identity_reference` block supports the following:
-
-* `identity_id` - (Required) The ARM resource id of the user assigned identity.
 
 ---
 
@@ -490,7 +484,7 @@ A `resource_file` block supports the following:
 
 * `storage_container_url` - (Optional) The URL of the blob container within Azure Blob Storage. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
 
-* `identity_reference` - (Optional) The reference `identity_reference` which is used to use to access Azure Blob Storage specified by storageContainerUrl or httpUrl. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
+* `identity_id` - (Optional) The ARM resource id of the user assigned identity which is used to use to access Azure Blob Storage specified by storageContainerUrl or httpUrl. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
 
 ~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
@@ -498,7 +492,7 @@ A `resource_file` block supports the following:
 
 A `container_registries` block supports the following:
 
-* `identity_reference` - (Optional) The reference to the `identity_reference` block which is used to access an Azure Container Registry instead of username and password. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
+* `identity_id` - (Optional) The ARM resource id of the user assigned identity. which is used to access an Azure Container Registry instead of username and password. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
 
 * `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
 
@@ -512,7 +506,7 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
-* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `none`, `job`.
+* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `None`, `Job`.
 
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
