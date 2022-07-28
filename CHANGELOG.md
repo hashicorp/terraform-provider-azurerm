@@ -3,22 +3,24 @@
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220725.1163004` of `github.com/hashicorp/go-azure-sdk` [GH-17753]
+* Data Source: `azurerm_linux_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17494]
+* Data Source: `azurerm_windows_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
+* Data Source: `azurerm_windows_web_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
 * `eventhub`: updating all data sources/resources onto single API Version `2021-11-01` [GH-17719]
 * `azurerm_linux_web_app`  - `virtual_network_subnet_id` is no longer `ForceNew` [GH-17584]
 * `azurerm_linux_web_app_slot` - `virtual_network_subnet_id` is no longer `ForceNew` [GH-17584]
-* Data Source: `azurerm_linux_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17494]
 * `azurerm_linux_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17494]
 * `azurerm_linux_function_app_slot` support `virtual_network_subnet_id` property for for vNet integration [GH-17494]
-* Data Source: `azurerm_windows_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
 * `azurerm_windows_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
 * `azurerm_windows_function_app_slot` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
-* Data Source: `azurerm_windows_web_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
 * `azurerm_windows_web_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
 * `azurerm_windows_web_app_slot` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
 
 
 BUG FIXES:
 
+* `azurerm_linux_function_app` - fix casing bug with the `linux_fx_string` property for Node apps [GH-17789]
+* `azurerm_linux_function_app_slot` - fix casing bug with the `linux_fx_string` property for Node apps [GH-17789]
 * `azurerm_resource_group_template_deployment` - fixing a bug where the same Resource Provider defined in different casings would cause the API Version to not be identified [GH-17707]
 
 ## 3.15.1 (July 25, 2022)
@@ -26,7 +28,7 @@ BUG FIXES:
 BUG FIXES: 
 
 * `data.azurerm_servicebus_queue` - fix a regression around `namespace_id` ([#17755](https://github.com/hashicorp/terraform-provider-azurerm/issues/17755))
-* `azurerm_postgresql_aad_administrator`: fix the state migration ([#17732](https://github.com/hashicorp/terraform-provider-azurerm/issues/17732))
+* `azurerm_postgresql_aad_administrator` - fix the state migration ([#17732](https://github.com/hashicorp/terraform-provider-azurerm/issues/17732))
 * `azurerm_postgresql_server` - fix a regression around `id` ([#17755](https://github.com/hashicorp/terraform-provider-azurerm/issues/17755))
 
 ## 3.15.0 (July 21, 2022)
