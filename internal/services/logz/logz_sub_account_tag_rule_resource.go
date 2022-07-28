@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceLogzTagRule() *pluginsdk.Resource {
+func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogzTagRuleCreateUpdate,
-		Read:   resourceLogzTagRuleRead,
-		Update: resourceLogzTagRuleCreateUpdate,
-		Delete: resourceLogzTagRuleDelete,
+		Create: resourceLogzSubAccountTagRuleCreateUpdate,
+		Read:   resourceLogzSubAccountTagRuleRead,
+		Update: resourceLogzSubAccountTagRuleCreateUpdate,
+		Delete: resourceLogzSubAccountTagRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -30,16 +30,16 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LogzTagRuleID(id)
+			_, err := parse.LogzSubAccountTagRuleID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"logz_monitor_id": {
+			"logz_sub_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogzMonitorID,
+				ValidateFunc: validate.LogzSubAccountID,
 			},
 
 			"tag_filter": schemaTagFilter(),
@@ -64,28 +64,27 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 		},
 	}
 }
-
-func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.TagRuleClient
+func resourceLogzSubAccountTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logz.SubAccountTagRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	monitorId, err := parse.LogzMonitorID(d.Get("logz_monitor_id").(string))
+	subAccountId, err := parse.LogzSubAccountID(d.Get("logz_sub_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLogzTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, TagRuleName)
+	id := parse.NewLogzSubAccountTagRuleID(subAccountId.SubscriptionId, subAccountId.ResourceGroup, subAccountId.MonitorName, subAccountId.AccountName, TagRuleName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_logz_tag_rule", id.ID())
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_logz_sub_account_tag_rule", *existing.ID)
 		}
 	}
 
@@ -95,25 +94,25 @@ func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &props); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName, &props); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	return resourceLogzTagRuleRead(d, meta)
+	return resourceLogzSubAccountTagRuleRead(d, meta)
 }
 
-func resourceLogzTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.TagRuleClient
+func resourceLogzSubAccountTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logz.SubAccountTagRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogzTagRuleID(d.Id())
+	id, err := parse.LogzSubAccountTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] logz %q does not exist - removing from state", d.Id())
@@ -123,11 +122,12 @@ func resourceLogzTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("logz_monitor_id", parse.NewLogzMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
+	d.Set("logz_sub_account_id", parse.NewLogzSubAccountID(id.SubscriptionId, id.ResourceGroup, id.MonitorName, id.AccountName).ID())
 	if props := resp.Properties; props != nil && props.LogRules != nil {
 		d.Set("send_aad_logs", props.LogRules.SendAadLogs)
 		d.Set("send_activity_logs", props.LogRules.SendActivityLogs)
 		d.Set("send_subscription_logs", props.LogRules.SendSubscriptionLogs)
+
 		if err := d.Set("tag_filter", flattenTagRuleFilteringTagArray(props.LogRules.FilteringTags)); err != nil {
 			return fmt.Errorf("setting `tag_filter`: %+v", err)
 		}
@@ -136,71 +136,19 @@ func resourceLogzTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceLogzTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.TagRuleClient
+func resourceLogzSubAccountTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logz.SubAccountTagRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogzTagRuleID(d.Id())
+	id, err := parse.LogzSubAccountTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func expandTagRuleLogRules(d *pluginsdk.ResourceData) *logz.LogRules {
-	return &logz.LogRules{
-		SendAadLogs:          utils.Bool(d.Get("send_aad_logs").(bool)),
-		SendSubscriptionLogs: utils.Bool(d.Get("send_subscription_logs").(bool)),
-		SendActivityLogs:     utils.Bool(d.Get("send_activity_logs").(bool)),
-		FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
-	}
-}
-
-func expandTagRuleFilteringTagArray(input []interface{}) *[]logz.FilteringTag {
-	results := make([]logz.FilteringTag, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		results = append(results, logz.FilteringTag{
-			Name:   utils.String(v["name"].(string)),
-			Value:  utils.String(v["value"].(string)),
-			Action: logz.TagAction(v["action"].(string)),
-		})
-	}
-
-	return &results
-}
-
-func flattenTagRuleFilteringTagArray(input *[]logz.FilteringTag) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-		var action logz.TagAction
-		if item.Action != "" {
-			action = item.Action
-		}
-		var value string
-		if item.Value != nil {
-			value = *item.Value
-		}
-		results = append(results, map[string]interface{}{
-			"name":   name,
-			"action": action,
-			"value":  value,
-		})
-	}
-
-	return results
 }
