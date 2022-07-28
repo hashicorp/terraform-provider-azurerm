@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `luis_key` - (Optional) The LUIS key to associate with this Azure Bot Service.
 
+* `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to this Azure Bot Service.
 
 ## Attributes Reference
