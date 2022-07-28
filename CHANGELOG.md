@@ -9,6 +9,9 @@ ENHANCEMENTS:
 * Data Source: `azurerm_windows_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
 * `azurerm_windows_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
 * `azurerm_windows_function_app_slot` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
+* Data Source: `azurerm_windows_web_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
+* `azurerm_windows_web_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
+* `azurerm_windows_web_app_slot` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
 
 
 BUG FIXES:
