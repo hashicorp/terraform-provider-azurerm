@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource**: `azurerm_datadog_monitor` [GH-16131]
 * **New Resource**: `azurerm_log_analytics_query_pack` [GH-17685]
+* **New Resource**: `azurerm_logz_sub_account_tag_rule` [GH-17557]
 
 ENHANCEMENTS:
 
