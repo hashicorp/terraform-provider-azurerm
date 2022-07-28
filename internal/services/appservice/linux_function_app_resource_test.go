@@ -885,6 +885,7 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|12"),
 			),
 		},
 		data.ImportStep(),
@@ -893,6 +894,7 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|16"),
 			),
 		},
 		data.ImportStep(),
@@ -901,6 +903,16 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|14"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appStackNodeUpdateTags(data, SkuBasicPlan, "14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|14"),
 			),
 		},
 		data.ImportStep(),
@@ -1996,6 +2008,36 @@ resource "azurerm_linux_function_app" "test" {
     application_stack {
       node_version = "%s"
     }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, nodeVersion)
+}
+
+func (r LinuxFunctionAppResource) appStackNodeUpdateTags(data acceptance.TestData, planSku string, nodeVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      node_version = "%s"
+    }
+  }
+
+  tags = {
+    foo = "bar"
   }
 }
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
