@@ -20,7 +20,7 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app_slot` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
 * `azurerm_windows_web_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
 * `azurerm_windows_web_app_slot` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
-
+* `azure_stream_analytics_stream_input_eventhub` - support for the `authentication_mode` property [GH-17739]
 
 BUG FIXES:
 
