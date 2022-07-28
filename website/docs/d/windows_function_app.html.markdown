@@ -97,6 +97,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Windows Function App.
 
+* `virtual_network_subnet_id` - The subnet id which the Windows Function App is vNet Integrated with.
+
 ---
 
 A `active_directory` block exports the following:
