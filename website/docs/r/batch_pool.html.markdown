@@ -3,7 +3,7 @@ subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_pool"
 description: |-
-Manages an Azure Batch pool.
+  Manages an Azure Batch pool.
 
 ---
 
