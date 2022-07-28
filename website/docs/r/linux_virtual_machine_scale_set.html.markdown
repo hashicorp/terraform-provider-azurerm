@@ -428,11 +428,15 @@ A `network_interface` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
 
+* `delete_option` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
+
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
 * `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
 
 * `enable_ip_forwarding` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
+
+* `fpga_enabled` - (Optional) Is this network interface FPGA networking-enabled? Possible values include `true` or `false`. Defaults to `false`.
 
 * `network_security_group_id` - (Optional) The ID of a Network Security Group which should be assigned to this Network Interface.
 
@@ -498,6 +502,8 @@ A `public_ip_address` block supports the following:
 
 * `name` - (Required) The Name of the Public IP Address Configuration.
 
+* `delete_option` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
+
 * `domain_name_label` - (Optional) The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance. Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine.
 
 * `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values are in the range `4` to `32`.
@@ -507,6 +513,8 @@ A `public_ip_address` block supports the following:
 * `public_ip_prefix_id` - (Optional) The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated. Changing this forces a new resource to be created.
 
 -> **NOTE:** This functionality is in Preview and must be opted into via `az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress` and then `az provider register -n Microsoft.Network`.
+
+* `version` - (Optional) The Internet Protocol Version which should be used for this public IP address. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`.
 
 ---
 

@@ -240,6 +240,16 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
+				"delete_option": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.DeleteOptionsDelete),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.DeleteOptionsDelete),
+						string(compute.DeleteOptionsDetach),
+					}, false),
+				},
+
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -256,6 +266,11 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				},
 				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_ip_forwarding": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+				"fpga_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -664,6 +679,15 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 				},
 
 				// Optional
+				"delete_option": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.DeleteOptionsDelete),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.DeleteOptionsDelete),
+						string(compute.DeleteOptionsDetach),
+					}, false),
+				},
 				"domain_name_label": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -696,6 +720,15 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 							},
 						},
 					},
+				},
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.IPVersionIPv4),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.IPVersionIPv4),
+						string(compute.IPVersionIPv6),
+					}, false),
 				},
 				// TODO: preview feature
 				// $ az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress
@@ -781,11 +814,13 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compu
 		config := compute.VirtualMachineScaleSetNetworkConfiguration{
 			Name: utils.String(raw["name"].(string)),
 			VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
+				DeleteOption: compute.DeleteOptions(raw["delete_option"].(string)),
 				DNSSettings: &compute.VirtualMachineScaleSetNetworkConfigurationDNSSettings{
 					DNSServers: dnsServers,
 				},
 				EnableAcceleratedNetworking: utils.Bool(raw["enable_accelerated_networking"].(bool)),
 				EnableIPForwarding:          utils.Bool(raw["enable_ip_forwarding"].(bool)),
+				EnableFpga:                  utils.Bool(raw["fpga_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     utils.Bool(raw["primary"].(bool)),
 			},
@@ -851,6 +886,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 }
 
 func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *compute.VirtualMachineScaleSetPublicIPAddressConfiguration {
+	version := compute.IPVersion(raw["version"].(string))
 	ipTagsRaw := raw["ip_tag"].([]interface{})
 	ipTags := make([]compute.VirtualMachineScaleSetIPTag, 0)
 	for _, ipTagV := range ipTagsRaw {
@@ -864,8 +900,13 @@ func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *co
 	publicIPAddressConfig := compute.VirtualMachineScaleSetPublicIPAddressConfiguration{
 		Name: utils.String(raw["name"].(string)),
 		VirtualMachineScaleSetPublicIPAddressConfigurationProperties: &compute.VirtualMachineScaleSetPublicIPAddressConfigurationProperties{
-			IPTags: &ipTags,
+			IPTags:                 &ipTags,
+			PublicIPAddressVersion: version,
 		},
+	}
+
+	if deleteOption := raw["delete_option"].(string); deleteOption != "" {
+		publicIPAddressConfig.DeleteOption = compute.DeleteOptions(deleteOption)
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
@@ -1008,15 +1049,17 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		var name, networkSecurityGroupId string
+		var name, networkSecurityGroupId, deleteOption string
 		if v.Name != nil {
 			name = *v.Name
 		}
 		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
 			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
 		}
-
-		var enableAcceleratedNetworking, enableIPForwarding, primary bool
+		if v.DeleteOption != "" {
+			deleteOption = string(v.DeleteOption)
+		}
+		var enableAcceleratedNetworking, enableIPForwarding, primary, fpgaEnabled bool
 		if v.EnableAcceleratedNetworking != nil {
 			enableAcceleratedNetworking = *v.EnableAcceleratedNetworking
 		}
@@ -1025,6 +1068,9 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 		}
 		if v.Primary != nil {
 			primary = *v.Primary
+		}
+		if v.EnableFpga != nil {
+			fpgaEnabled = *v.EnableFpga
 		}
 
 		var dnsServers []interface{}
@@ -1042,9 +1088,11 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 
 		results = append(results, map[string]interface{}{
 			"name":                          name,
+			"delete_option":                 deleteOption,
 			"dns_servers":                   dnsServers,
 			"enable_accelerated_networking": enableAcceleratedNetworking,
 			"enable_ip_forwarding":          enableIPForwarding,
+			"fpga_enabled":                  fpgaEnabled,
 			"ip_configuration":              ipConfigurations,
 			"network_security_group_id":     networkSecurityGroupId,
 			"primary":                       primary,
@@ -1112,15 +1160,25 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 		}
 	}
 
-	var domainNameLabel, name, publicIPPrefixId string
+	var domainNameLabel, name, publicIPPrefixId, version, deleteOption string
 	if input.DNSSettings != nil && input.DNSSettings.DomainNameLabel != nil {
 		domainNameLabel = *input.DNSSettings.DomainNameLabel
 	}
+
 	if input.Name != nil {
 		name = *input.Name
 	}
+
 	if input.PublicIPPrefix != nil && input.PublicIPPrefix.ID != nil {
 		publicIPPrefixId = *input.PublicIPPrefix.ID
+	}
+
+	if input.PublicIPAddressVersion != "" {
+		version = string(input.PublicIPAddressVersion)
+	}
+
+	if input.DeleteOption != "" {
+		deleteOption = string(input.DeleteOption)
 	}
 
 	var idleTimeoutInMinutes int
@@ -1130,10 +1188,12 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 
 	return map[string]interface{}{
 		"name":                    name,
+		"delete_option":           deleteOption,
 		"domain_name_label":       domainNameLabel,
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
 		"ip_tag":                  ipTags,
 		"public_ip_prefix_id":     publicIPPrefixId,
+		"version":                 version,
 	}
 }
 

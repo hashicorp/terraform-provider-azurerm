@@ -1234,3 +1234,27 @@ func flattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, 
 
 	return nil, fmt.Errorf("sku struct 'name' is nil")
 }
+
+func expandOrchestratedVirtualMachineScaleSetPublicIPSku(input string) *compute.PublicIPAddressSku {
+	skuParts := strings.Split(input, "_")
+
+	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
+		return &compute.PublicIPAddressSku{}
+	}
+
+	return &compute.PublicIPAddressSku{
+		Name: compute.PublicIPAddressSkuName(skuParts[0]),
+		Tier: compute.PublicIPAddressSkuTier(skuParts[1]),
+	}
+}
+
+func flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input *compute.PublicIPAddressSku) string {
+	var skuName string
+	if input != nil {
+		if string(input.Name) != "" && string(input.Tier) != "" {
+			skuName = fmt.Sprintf("%s_%s", string(input.Name), string(input.Tier))
+		}
+	}
+
+	return skuName
+}

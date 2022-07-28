@@ -283,6 +283,12 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					Default:  false,
 				},
 
+				"fpga_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -418,6 +424,23 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				},
+
+				"sku_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      fmt.Sprintf("%s_%s", string(compute.PublicIPAddressSkuNameBasic), string(compute.PublicIPAddressSkuTierRegional)),
+					ValidateFunc: validate.OrchestratedVirtualMachineScaleSetPublicIPSku,
+				},
+
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.IPVersionIPv4),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.IPVersionIPv4),
+						string(compute.IPVersionIPv6),
+					}, false),
 				},
 			},
 		},
@@ -963,6 +986,8 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 			ipConfigurations = append(ipConfigurations, *ipConfiguration)
 		}
 
+		fpgaEnabled := raw["fpga_enabled"].(bool)
+
 		config := compute.VirtualMachineScaleSetNetworkConfiguration{
 			Name: utils.String(raw["name"].(string)),
 			VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
@@ -970,6 +995,7 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 					DNSServers: dnsServers,
 				},
 				EnableAcceleratedNetworking: utils.Bool(raw["enable_accelerated_networking"].(bool)),
+				EnableFpga:                  utils.Bool(fpgaEnabled),
 				EnableIPForwarding:          utils.Bool(raw["enable_ip_forwarding"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     utils.Bool(raw["primary"].(bool)),
@@ -1067,6 +1093,15 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPAddress(raw map[string]inte
 		}
 	}
 
+	if sku := raw["sku_name"].(string); sku != "" {
+		v := expandOrchestratedVirtualMachineScaleSetPublicIPSku(sku)
+		publicIPAddressConfig.Sku = v
+	}
+
+	if version := raw["version"].(string); version != "" {
+		publicIPAddressConfig.PublicIPAddressVersion = compute.IPVersion(version)
+	}
+
 	return &publicIPAddressConfig
 }
 
@@ -1098,6 +1133,7 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 				},
 				EnableAcceleratedNetworking: utils.Bool(raw["enable_accelerated_networking"].(bool)),
 				EnableIPForwarding:          utils.Bool(raw["enable_ip_forwarding"].(bool)),
+				EnableFpga:                  utils.Bool(raw["fpga_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     utils.Bool(raw["primary"].(bool)),
 			},
@@ -1589,12 +1625,24 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input compute.Virt
 		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
 	}
 
+	var version string
+	if input.PublicIPAddressVersion != "" {
+		version = string(input.PublicIPAddressVersion)
+	}
+
+	var sku string
+	if input.Sku.Name != "" && input.Sku.Tier != "" {
+		sku = flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input.Sku)
+	}
+
 	return map[string]interface{}{
 		"name":                    name,
 		"domain_name_label":       domainNameLabel,
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
 		"ip_tag":                  ipTags,
 		"public_ip_prefix_id":     publicIPPrefixId,
+		"sku_name":                sku,
+		"version":                 version,
 	}
 }
 
@@ -1754,11 +1802,17 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]compute.
 			}
 		}
 
+		var fpgaEnabled bool
+		if v.EnableFpga != nil {
+			fpgaEnabled = *v.EnableFpga
+		}
+
 		results = append(results, map[string]interface{}{
 			"name":                          name,
 			"dns_servers":                   dnsServers,
 			"enable_accelerated_networking": enableAcceleratedNetworking,
 			"enable_ip_forwarding":          enableIPForwarding,
+			"fpga_enabled":                  fpgaEnabled,
 			"ip_configuration":              ipConfigurations,
 			"network_security_group_id":     networkSecurityGroupId,
 			"primary":                       primary,
