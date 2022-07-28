@@ -23,7 +23,8 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 		Read: dataSourceKeyVaultCertificateRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
+			Read: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
