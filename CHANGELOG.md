@@ -1,5 +1,9 @@
 ## 3.16.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource**: `azurerm_log_analytics_query_pack` [GH-17685]
+
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220725.1163004` of `github.com/hashicorp/go-azure-sdk` [GH-17753]
@@ -34,6 +38,7 @@ BUG FIXES:
 ## 3.15.0 (July 21, 2022)
 
 FEATURES: 
+
 * **New Data Source**: `azurerm_cdn_frontdoor_origin_group` ([#17089](https://github.com/hashicorp/terraform-provider-azurerm/issues/17089))
 * **New Data Source**: `azurerm_cdn_frontdoor_origin` ([#17089](https://github.com/hashicorp/terraform-provider-azurerm/issues/17089))
 * **New Resource**: `azurerm_cdn_frontdoor_origin_group` ([#17089](https://github.com/hashicorp/terraform-provider-azurerm/issues/17089))
