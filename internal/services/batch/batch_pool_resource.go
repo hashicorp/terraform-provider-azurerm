@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -270,26 +270,15 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"license_type": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			"os_disk_placement_setting": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(batch.DiffDiskPlacementCacheDisk),
-					}, false),
-			},
 			"fixed_scale": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						//This is a writeOnly option by service team and not able to perform GET only applicable when PUT
+						// Property `node_deallocation_option` is set to be a writeOnly property by service team
+						// It can only perform on PUT operation and is not able to perform GET operation
+						// Here we treat `node_deallocation_option` the same as a secret value.
 						"node_deallocation_option": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -319,6 +308,19 @@ func resourceBatchPool() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+			"license_type": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"os_disk_placement_setting": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						string(batch.DiffDiskPlacementCacheDisk),
+					}, false),
 			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
@@ -482,6 +484,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"max_tasks_per_node": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ForceNew:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 			"network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -636,31 +645,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 					Schema: startTaskSchema(),
 				},
 			},
-			"task_scheduling_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"node_fill_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.ComputeNodeFillTypeSpread),
-								string(batch.ComputeNodeFillTypePack),
-							}, false),
-						},
-					},
-				},
-			},
-			"max_tasks_per_node": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
 			"stop_pending_resize_operation": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -712,6 +696,24 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+						},
+					},
+				},
+			},
+			"task_scheduling_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"node_fill_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeFillTypeSpread),
+								string(batch.ComputeNodeFillTypePack),
+							}, false),
 						},
 					},
 				},
@@ -858,6 +860,9 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "mount_configuration": %v`, err)
+	}
 	parameters.PoolProperties.MountConfiguration = mountConfiguration
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {

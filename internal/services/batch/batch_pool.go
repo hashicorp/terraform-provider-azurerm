@@ -120,7 +120,8 @@ func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourc
 func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountConfiguration) map[string]interface{} {
 	mountConfig := make(map[string]interface{})
 
-	if config.AzureBlobFileSystemConfiguration != nil {
+	switch {
+	case config.AzureBlobFileSystemConfiguration != nil:
 		azureBlobFileSysConfigList := make([]interface{}, 0)
 		azureBlobFileSysConfig := make(map[string]interface{})
 		azureBlobFileSysConfig["account_name"] = *config.AzureBlobFileSystemConfiguration.AccountName
@@ -136,7 +137,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountC
 		}
 		azureBlobFileSysConfigList = append(azureBlobFileSysConfigList, azureBlobFileSysConfig)
 		mountConfig["azure_blob_file_system_configuration"] = azureBlobFileSysConfigList
-	} else if config.AzureFileShareConfiguration != nil {
+	case config.AzureFileShareConfiguration != nil:
 		azureFileShareConfigList := make([]interface{}, 0)
 		azureFileShareConfig := make(map[string]interface{})
 		azureFileShareConfig["account_name"] = *config.AzureFileShareConfiguration.AccountName
@@ -150,7 +151,8 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountC
 
 		azureFileShareConfigList = append(azureFileShareConfigList, azureFileShareConfig)
 		mountConfig["azure_file_share_configuration"] = azureFileShareConfigList
-	} else if config.CifsMountConfiguration != nil {
+
+	case config.CifsMountConfiguration != nil:
 		cifsMountConfigList := make([]interface{}, 0)
 		cifsMountConfig := make(map[string]interface{})
 
@@ -165,7 +167,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountC
 
 		cifsMountConfigList = append(cifsMountConfigList, cifsMountConfig)
 		mountConfig["cifs_mount_configuration"] = cifsMountConfigList
-	} else if config.NfsMountConfiguration != nil {
+	case config.NfsMountConfiguration != nil:
 		nfsMountConfigList := make([]interface{}, 0)
 		nfsMountConfig := make(map[string]interface{})
 
@@ -178,7 +180,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountC
 
 		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
 		mountConfig["nfs_mount_configuration"] = nfsMountConfigList
-	} else {
+	default:
 		return nil
 	}
 
@@ -604,18 +606,6 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 	return scaleSettings, nil
 }
 
-func expendApplicationPackages(ref map[string]interface{}) (*batch.ApplicationPackageReference, error) {
-	if len(ref) == 0 {
-		return nil, fmt.Errorf("error: application_package reference should be defined")
-	}
-
-	applicationPackage := batch.ApplicationPackageReference{
-		ID:      utils.String(ref["id"].(string)),
-		Version: utils.String(ref["version"].(string)),
-	}
-	return &applicationPackage, nil
-}
-
 func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
 	expanded, err := identity.ExpandUserAssignedMap(input)
 	if err != nil {
@@ -847,7 +837,7 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*batch.Virt
 		result.NodePlacementConfiguration = nodeReplacementConfig
 	}
 
-	if osDisk, osDiskErr := expandBatchPoolOSDisk(d.Get("os_disk_placement_setting").(interface{})); osDiskErr == nil {
+	if osDisk, osDiskErr := expandBatchPoolOSDisk(d.Get("os_disk_placement_setting")); osDiskErr == nil {
 		result.OsDisk = osDisk
 	}
 
