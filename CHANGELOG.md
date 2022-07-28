@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220725.1163004` of `github.com/hashicorp/go-azure-sdk` [GH-17753]
 * `eventhub`: updating all data sources/resources onto single API Version `2021-11-01` [GH-17719]
+* `azurerm_linux_web_app`  - `virtual_network_subnet_id` is no longer `ForceNew` [GH-17584]
+* `azurerm_linux_web_app_slot` - `virtual_network_subnet_id` is no longer `ForceNew` [GH-17584]
 
 BUG FIXES:
 
