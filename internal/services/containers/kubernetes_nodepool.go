@@ -2,10 +2,11 @@ package containers
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
