@@ -59,7 +59,7 @@ func resourceLogAnalyticsCluster() *pluginsdk.Resource {
 			"size_gb": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Default:  500,
+				Default:  1000,
 				ValidateFunc: validation.All(
 					validation.IntAtLeast(500),
 					validation.IntDivisibleBy(100),
