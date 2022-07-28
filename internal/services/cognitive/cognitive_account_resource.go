@@ -236,6 +236,12 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				ValidateFunc: search.ValidateSearchServiceID,
 			},
 
+			"custom_question_answering_search_service_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -696,6 +702,13 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			props.QnaAzureSearchEndpointId = utils.String(v.(string))
 		} else {
 			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
+		}
+	}
+	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
+		if kind == "TextAnalytics" {
+			props.QnaAzureSearchEndpointKey = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
