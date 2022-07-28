@@ -87,6 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
 
+* `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
+
 ---
 
 A `action` block exports the following:
