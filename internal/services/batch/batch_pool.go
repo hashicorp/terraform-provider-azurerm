@@ -551,24 +551,6 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 	return ""
 }
 
-func ExpendBatchPoolApplicationPackages(d *pluginsdk.ResourceData) (*[]batch.ApplicationPackageReference, error) {
-	var result []batch.ApplicationPackageReference
-
-	if applicationPackageList, ok := d.GetOk("application_packages"); ok {
-		applicationPackages := applicationPackageList.([]interface{})
-		for _, tempItem := range applicationPackages {
-			item := tempItem.(map[string]interface{})
-			applicationPackage, err := expendApplicationPackages(item)
-			if err != nil {
-				return nil, err
-			}
-			result = append(result, *applicationPackage)
-		}
-		return &result, nil
-	}
-	return nil, nil
-}
-
 func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettings, error) {
 	scaleSettings := &batch.ScaleSettings{}
 

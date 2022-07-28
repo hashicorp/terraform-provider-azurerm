@@ -86,22 +86,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"application_packages": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 			"container_configuration": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -754,19 +738,6 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("vm_size", props.VMSize)
 		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 		d.Set("inter_node_communication", string(props.InterNodeCommunication))
-
-		if props.ApplicationPackages != nil {
-			applicationPackages := make([]interface{}, len(*props.ApplicationPackages))
-			for _, pkg := range *props.ApplicationPackages {
-				appPkg := make(map[string]interface{}, 1)
-				appPkg["id"] = *pkg.ID
-				if pkg.Version != nil {
-					appPkg["version"] = *pkg.Version
-				}
-				applicationPackages = append(applicationPackages, appPkg)
-			}
-			d.Set("application_packages", applicationPackages)
-		}
 
 		if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
 			taskSchedulingPolicy := make([]interface{}, 0)

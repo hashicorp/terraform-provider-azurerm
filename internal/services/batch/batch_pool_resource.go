@@ -83,25 +83,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"application_packages": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 10,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.ApplicationID,
-						},
-						"version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
 			"certificate": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -847,12 +828,6 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 	}
 
-	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
-	}
-	parameters.PoolProperties.ApplicationPackages = applicationPackages
-
 	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
@@ -987,12 +962,6 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Identity = identity
 
-	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
-	}
-	parameters.PoolProperties.ApplicationPackages = applicationPackages
-
 	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
@@ -1107,19 +1076,6 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("vm_size", props.VMSize)
 		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 		d.Set("inter_node_communication", string(props.InterNodeCommunication))
-
-		if props.ApplicationPackages != nil {
-			applicationPackages := make([]interface{}, 0)
-			for _, pkg := range *props.ApplicationPackages {
-				appPkg := make(map[string]interface{})
-				appPkg["id"] = *pkg.ID
-				if pkg.Version != nil {
-					appPkg["version"] = *pkg.Version
-				}
-				applicationPackages = append(applicationPackages, appPkg)
-			}
-			d.Set("application_packages", applicationPackages)
-		}
 
 		if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
 			taskSchedulingPolicy := make([]interface{}, 0)
