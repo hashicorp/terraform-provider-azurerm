@@ -33,7 +33,7 @@ resource "azurerm_route_table" "example" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   tags = {

@@ -47,6 +47,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                      map[string]string                    `tfschema:"tags"`
+	VirtualNetworkSubnetID    string                               `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -219,6 +220,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -295,16 +301,18 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxFunctionAppDataSourceModel{
-				Name:                 id.SiteName,
-				ResourceGroup:        id.ResourceGroup,
-				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
-				Location:             location.NormalizeNilable(functionApp.Location),
-				Enabled:              utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:       string(functionApp.ClientCertMode),
-				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				StickySettings:       helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
-				Tags:                 tags.ToTypedObject(functionApp.Tags),
-				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
+				Name:                       id.SiteName,
+				ResourceGroup:              id.ResourceGroup,
+				ServicePlanId:              utils.NormalizeNilableString(props.ServerFarmID),
+				Location:                   location.NormalizeNilable(functionApp.Location),
+				Enabled:                    utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:             string(functionApp.ClientCertMode),
+				DailyMemoryTimeQuota:       int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				StickySettings:             helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+				Tags:                       tags.ToTypedObject(functionApp.Tags),
+				Kind:                       utils.NormalizeNilableString(functionApp.Kind),
+				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -332,6 +340,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+			state.VirtualNetworkSubnetID = utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID)
 
 			metadata.SetID(id)
 

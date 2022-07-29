@@ -72,17 +72,19 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) The name of the Storage Account.
 
-* `storage_account_key` - (Required) The Access Key which should be used to connect to this Storage Account.
-
 * `storage_container_name` - (Required) The name of the Container within the Storage Account.
 
 * `time_format` - (Required) The time format. Wherever `{time}` appears in `path_pattern`, the value of this property is used as the time format instead.
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 * `batch_max_wait_time` - (Optional) The maximum wait time per batch in `hh:mm:ss` e.g. `00:02:00` for two minutes.
 
 * `batch_min_rows` - (Optional) The minimum number of rows per batch (must be between `0` and `10000`).
+
+* `storage_account_key` - (Optional) The Access Key which should be used to connect to this Storage Account.
 
 ---
 

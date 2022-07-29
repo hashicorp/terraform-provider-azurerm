@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -106,9 +107,10 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	resourceType := signalr.SignalRResource{
 		Location: utils.String(location),
 		Properties: &signalr.SignalRProperties{
-			Cors:     expandSignalRCors(cors),
-			Features: &expandedFeatures,
-			Upstream: expandUpstreamSettings(upstreamSettings),
+			Cors:                   expandSignalRCors(cors),
+			Features:               &expandedFeatures,
+			Upstream:               expandUpstreamSettings(upstreamSettings),
+			LiveTraceConfiguration: expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
 		},
 		Sku:  expandSignalRServiceSku(sku),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -195,6 +197,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `upstream_endpoint`: %+v", err)
 			}
 
+			if err := d.Set("live_trace", flattenSignalRLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
 			}
@@ -223,12 +229,16 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceType := signalr.SignalRResource{}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
+	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
 			corsRaw := d.Get("cors").([]interface{})
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
+		}
+
+		if d.HasChange("live_trace") {
+			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
 		}
 
 		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
@@ -457,6 +467,101 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 	}
 }
 
+func expandSignalRLiveTraceConfig(input []interface{}) *signalr.LiveTraceConfiguration {
+	resourceCategories := make([]signalr.LiveTraceCategory, 0)
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	enabled := "false"
+	if v["enabled"].(bool) {
+		enabled = "true"
+	}
+
+	messageLogEnabled := "false"
+	if v["messaging_logs_enabled"].(bool) {
+		messageLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
+		Name:    utils.String("MessagingLogs"),
+		Enabled: utils.String(messageLogEnabled),
+	})
+
+	connectivityLogEnabled := "false"
+	if v["connectivity_logs_enabled"].(bool) {
+		connectivityLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
+		Name:    utils.String("ConnectivityLogs"),
+		Enabled: utils.String(connectivityLogEnabled),
+	})
+
+	httpLogEnabled := "false"
+	if v["http_request_logs_enabled"].(bool) {
+		httpLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
+		Name:    utils.String("HttpRequestLogs"),
+		Enabled: utils.String(httpLogEnabled),
+	})
+
+	return &signalr.LiveTraceConfiguration{
+		Enabled:    &enabled,
+		Categories: &resourceCategories,
+	}
+}
+
+func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = strings.EqualFold(*input.Enabled, "true")
+	}
+
+	var (
+		messagingLogEnabled    bool
+		connectivityLogEnabled bool
+		httpLogsEnabled        bool
+	)
+
+	if input.Categories != nil {
+		for _, item := range *input.Categories {
+			name := ""
+			if item.Name != nil {
+				name = *item.Name
+			}
+
+			var cateEnabled string
+			if item.Enabled != nil {
+				cateEnabled = *item.Enabled
+			}
+
+			switch name {
+			case "MessagingLogs":
+				messagingLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "ConnectivityLogs":
+				connectivityLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "HttpRequestLogs":
+				httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
+			default:
+				continue
+			}
+		}
+	}
+	return []interface{}{map[string]interface{}{
+		"enabled":                   enabled,
+		"messaging_logs_enabled":    messagingLogEnabled,
+		"connectivity_logs_enabled": connectivityLogEnabled,
+		"http_request_logs_enabled": httpLogsEnabled,
+	}}
+}
+
 func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -508,9 +613,43 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"live_trace_enabled": {
-			Type:     pluginsdk.TypeBool,
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`live_trace_enabled` has been deprecated in favor of `live_trace` and will be removed in 4.0.",
+		},
+
+		"live_trace": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Default:  false,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"connectivity_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+
+					"messaging_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+
+					"http_request_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+				},
+			},
 		},
 
 		"service_mode": {

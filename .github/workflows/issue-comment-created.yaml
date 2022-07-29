@@ -13,6 +13,18 @@ jobs:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           labels: stale
       - uses: actions-ecosystem/action-remove-labels@v1
+        if: ${{ !github.event.issue.pull_request }}
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           labels: waiting-response
+      - uses: actions-ecosystem/action-remove-labels@v1
+        if: (github.event.issue.pull_request && github.actor == github.event.issue.user.login)
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: waiting-response
+      - name: "Add waiting-response"
+        if: "contains(github.event.comment.body, ' /wr')"
+        shell: bash
+        run: |
+          curl -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos${{ github.owner }}/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels" -d '{"labels":["waiting-response"]}'
+

@@ -385,7 +385,7 @@ A `site_config` block exports the following:
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
 
-* `remote_debugging` - Is Remote Debugging enabled.
+* `remote_debugging_enabled` - Is Remote Debugging enabled.
 
 * `remote_debugging_version` - The Remote Debugging Version.
 
@@ -398,6 +398,8 @@ A `site_config` block exports the following:
 * `scm_use_main_ip_restriction` - Is the Linux Web App `ip_restriction` configuration used for the SCM also.
 
 * `use_32_bit_worker` - Does the Linux Web App use a 32-bit worker.
+
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are Web Sockets enabled?
 
