@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of Redis to use. Possible values are `Basic`, `Standard` and `Premium`.
 
-~> **Note** Downgrade the SKU will recreate the redis cache.
+~> **Note** Downgrade the SKU forces a new resource to be created.
 
 ---
 
