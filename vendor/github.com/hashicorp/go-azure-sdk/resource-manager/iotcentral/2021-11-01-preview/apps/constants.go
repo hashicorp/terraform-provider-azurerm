@@ -64,28 +64,28 @@ func parseAppState(input string) (*AppState, error) {
 	return &out, nil
 }
 
-type IpRuleAction string
+type IPRuleAction string
 
 const (
-	IpRuleActionAllow IpRuleAction = "Allow"
+	IPRuleActionAllow IPRuleAction = "Allow"
 )
 
-func PossibleValuesForIpRuleAction() []string {
+func PossibleValuesForIPRuleAction() []string {
 	return []string{
-		string(IpRuleActionAllow),
+		string(IPRuleActionAllow),
 	}
 }
 
-func parseIpRuleAction(input string) (*IpRuleAction, error) {
-	vals := map[string]IpRuleAction{
-		"allow": IpRuleActionAllow,
+func parseIPRuleAction(input string) (*IPRuleAction, error) {
+	vals := map[string]IPRuleAction{
+		"allow": IPRuleActionAllow,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := IpRuleAction(input)
+	out := IPRuleAction(input)
 	return &out, nil
 }
 

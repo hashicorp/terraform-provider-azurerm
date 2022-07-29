@@ -951,6 +951,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
+
 	expanded := &web.SiteConfig{}
 	if existing != nil {
 		expanded = existing
@@ -1029,92 +1030,91 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.AppCommandLine = utils.String(linuxSlotSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(linuxSlotSiteConfig.ApplicationStack) > 0 {
-		if len(linuxSlotSiteConfig.ApplicationStack) > 0 {
-			linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
-			if linuxAppStack.DotNetVersion != "" {
-				if linuxAppStack.DotNetIsolated {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet-isolated"),
-					})
-					linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion)
-				} else {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet"),
-					})
-					linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
-				}
-			}
-
-			if linuxAppStack.NodeVersion != "" {
+	if len(linuxSlotSiteConfig.ApplicationStack) > 0 {
+		linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
+		if linuxAppStack.DotNetVersion != "" {
+			if linuxAppStack.DotNetIsolated {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("node"),
+					Value: utils.String("dotnet-isolated"),
 				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-					Value: utils.String(linuxAppStack.NodeVersion),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
-			}
-
-			if linuxAppStack.PythonVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+			} else {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("python"),
+					Value: utils.String("dotnet"),
 				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion)
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
 			}
+		}
 
-			if linuxAppStack.JavaVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("java"),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
-			}
-
-			if linuxAppStack.PowerShellCoreVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("powershell"),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion)
-			}
-
-			if linuxAppStack.CustomHandler {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("custom"),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = "" // Custom needs an explicit empty string here
-			}
-
-			if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
-				dockerConfig := linuxAppStack.Docker[0]
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
-					Value: utils.String(dockerConfig.RegistryURL),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
-					Value: utils.String(dockerConfig.RegistryUsername),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
-					Value: utils.String(dockerConfig.RegistryPassword),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag)
-			}
-		} else {
+		if linuxAppStack.NodeVersion != "" {
 			appSettings = append(appSettings, web.NameValuePair{
 				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String(""),
+				Value: utils.String("node"),
 			})
-			linuxSlotSiteConfig.LinuxFxVersion = ""
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
+				Value: utils.String(linuxAppStack.NodeVersion),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
+
+		if linuxAppStack.PythonVersion != "" {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("python"),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
+		}
+
+		if linuxAppStack.JavaVersion != "" {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("java"),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
+		}
+
+		if linuxAppStack.PowerShellCoreVersion != "" {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("powershell"),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
+		}
+
+		if linuxAppStack.CustomHandler {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("custom"),
+			})
+			expanded.LinuxFxVersion = utils.String("") // Custom needs an explicit empty string here
+		}
+
+		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+			dockerConfig := linuxAppStack.Docker[0]
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
+				Value: utils.String(dockerConfig.RegistryURL),
+			})
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
+				Value: utils.String(dockerConfig.RegistryUsername),
+			})
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
+				Value: utils.String(dockerConfig.RegistryPassword),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
+		}
+
+	} else {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+			Value: utils.String(""),
+		})
+		expanded.LinuxFxVersion = utils.String("")
 	}
 
 	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSlotSiteConfig.UseManagedIdentityACR)

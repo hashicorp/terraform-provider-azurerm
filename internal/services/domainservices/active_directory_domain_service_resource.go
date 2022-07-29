@@ -565,7 +565,7 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 			case !strings.EqualFold(*repl.ServiceStatus, "Running"):
 				// If it's not yet running, it isn't ready
 				return resp, "pending", nil
-			case repl.DomainControllerIpAddress == nil || len(*repl.DomainControllerIpAddress) < 2:
+			case repl.DomainControllerIPAddress == nil || len(*repl.DomainControllerIPAddress) < 2:
 				// When a domain controller is online, its IP address will be returned. We're looking for 2 active domain controllers.
 				return resp, "pending", nil
 			}
@@ -744,11 +744,11 @@ func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []
 			"service_status":                 "",
 			"subnet_id":                      "",
 		}
-		if in.DomainControllerIpAddress != nil {
-			repl["domain_controller_ip_addresses"] = *in.DomainControllerIpAddress
+		if in.DomainControllerIPAddress != nil {
+			repl["domain_controller_ip_addresses"] = *in.DomainControllerIPAddress
 		}
-		if in.ExternalAccessIpAddress != nil {
-			repl["external_access_ip_address"] = *in.ExternalAccessIpAddress
+		if in.ExternalAccessIPAddress != nil {
+			repl["external_access_ip_address"] = *in.ExternalAccessIPAddress
 		}
 		if in.ReplicaSetId != nil {
 			repl["id"] = *in.ReplicaSetId

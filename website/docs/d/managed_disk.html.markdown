@@ -59,6 +59,32 @@ output "id" {
 
 * `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
 
+* `encryption_settings` - A `encryption_settings` block as defined below.
+
+---
+
+The `encryption_settings` block supports:
+
+* `disk_encryption_key` - A `disk_encryption_key` block as defined above.
+
+* `key_encryption_key` - A `key_encryption_key` block as defined below.
+
+---
+
+The `disk_encryption_key` block supports:
+
+* `secret_url` - The URL to the Key Vault Secret used as the Disk Encryption Key.
+
+* `source_vault_id` - The ID of the source Key Vault.
+
+---
+
+The `key_encryption_key` block supports:
+
+* `key_url` - The URL to the Key Vault Key used as the Key Encryption Key.
+
+* `source_vault_id` - The ID of the source Key Vault.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

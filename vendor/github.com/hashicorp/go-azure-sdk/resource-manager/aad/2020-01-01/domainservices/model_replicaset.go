@@ -4,8 +4,8 @@ package domainservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ReplicaSet struct {
-	DomainControllerIpAddress *[]string        `json:"domainControllerIpAddress,omitempty"`
-	ExternalAccessIpAddress   *string          `json:"externalAccessIpAddress,omitempty"`
+	DomainControllerIPAddress *[]string        `json:"domainControllerIpAddress,omitempty"`
+	ExternalAccessIPAddress   *string          `json:"externalAccessIpAddress,omitempty"`
 	HealthAlerts              *[]HealthAlert   `json:"healthAlerts,omitempty"`
 	HealthLastEvaluated       *string          `json:"healthLastEvaluated,omitempty"`
 	HealthMonitors            *[]HealthMonitor `json:"healthMonitors,omitempty"`
