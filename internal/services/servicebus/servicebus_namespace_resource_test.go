@@ -615,10 +615,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  name                          = "acctestservicebusnamespace-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "Basic"
   public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
