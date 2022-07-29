@@ -2,7 +2,7 @@
 
 Firstly all contributions are welcome!
 
-There is no change to small for us to accept and minor formatting, consistency and documentation PRs are very welcome! However, before making any large or structural changes it is recommended to seek feedback (preferably by reaching out in our community slack) to prevent wasted time and effort. We may already be working on a solution, or have a different direction we would like to take.
+There is no change too small for us to accept and minor formatting, consistency and documentation PRs are very welcome! However, before making any large or structural changes it is recommended to seek feedback (preferably by reaching out in our community slack) to prevent wasted time and effort. We may already be working on a solution, or have a different direction we would like to take.
 
 If you are ever unsure please just reach out, we are more than happy to guide you in the right direction!
 

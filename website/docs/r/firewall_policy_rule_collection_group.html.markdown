@@ -43,7 +43,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "example" {
         port = 443
       }
       source_addresses  = ["10.0.0.1"]
-      destination_fqdns = [".microsoft.com"]
+      destination_fqdns = ["*.microsoft.com"]
     }
   }
 
