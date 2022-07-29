@@ -74,6 +74,9 @@ service/cost-management:
 service/custom-resource-provider:
   - internal/services/customproviders/**/*
 
+service/dashboard:
+  - internal/services/dashboard/**/*
+
 service/data-factory:
   - internal/services/datafactory/**/*
 
