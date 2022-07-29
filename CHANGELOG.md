@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `eventhub`: updating all data sources/resources onto single API Version `2021-11-01` [GH-17719]
 * `azurerm_bot_service_azure_bot` - support for the `streaming_endpoint_enabled` property [GH-17423]
 * `azurerm_cognitive_account` - support for the `custom_question_answering_search_service_key` property [GH-17683]
+* `asurerm_iothub_dps_certificate` - support for the `is_verified` property [GH-17106]
 * `azurerm_linux_web_app`  - `virtual_network_subnet_id` is no longer `ForceNew` [GH-17584]
 * `azurerm_linux_web_app_slot` - `virtual_network_subnet_id` is no longer `ForceNew` [GH-17584]
 * `azurerm_linux_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17494]
