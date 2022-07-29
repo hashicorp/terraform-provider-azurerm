@@ -10,6 +10,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220725.1163004` of `github.com/hashicorp/go-azure-sdk` [GH-17753]
+* automationaccount: to use `hashicorp/go-azure-sdk` [GH-17347]
 * Data Source: `azurerm_linux_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17494]
 * Data Source: `azurerm_windows_function_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17572]
 * Data Source: `azurerm_windows_web_app` support `virtual_network_subnet_id` property for for vNet integration [GH-17576]
