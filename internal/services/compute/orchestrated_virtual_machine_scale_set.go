@@ -82,6 +82,16 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					ForceNew: true,
 				},
 
+				"patch_assessment_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
+						string(compute.WindowsPatchAssessmentModeImageDefault),
+					}, false),
+				},
+
 				"patch_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -144,6 +154,16 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 					Optional: true,
 					Default:  true,
 					ForceNew: true,
+				},
+
+				"patch_assessment_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
+						string(compute.LinuxPatchAssessmentModeImageDefault),
+					}, false),
 				},
 
 				"patch_mode": {
@@ -888,6 +908,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 		winConfig.WinRM = expandWinRMListener(winRmListenersRaw)
 
 		// Automatic VM Guest Patching and Hotpatching settings
+		patchSettings.AssessmentMode = compute.WindowsPatchAssessmentMode(input["patch_assessment_mode"].(string))
 		patchSettings.PatchMode = compute.WindowsVMGuestPatchMode(input["patch_mode"].(string))
 		patchSettings.EnableHotpatching = utils.Bool(input["hotpatching_enabled"].(bool))
 		winConfig.PatchSettings = &patchSettings
@@ -937,6 +958,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 		linConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
 
 		// Automatic VM Guest Patching
+		patchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(input["patch_assessment_mode"].(string))
 		patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(input["patch_mode"].(string))
 		linConfig.PatchSettings = &patchSettings
 	}
@@ -1697,10 +1719,12 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 	}
 
 	output["patch_mode"] = string(compute.WindowsVMGuestPatchModeAutomaticByOS)
+	output["patch_assessment_mode"] = string(compute.WindowsPatchAssessmentModeAutomaticByPlatform)
 	output["hotpatching_enabled"] = false
 
 	if patchSettings != nil {
 		output["patch_mode"] = string(patchSettings.PatchMode)
+		output["patch_assessment_mode"] = string(patchSettings.AssessmentMode)
 
 		if v := patchSettings.EnableHotpatching; v != nil {
 			output["hotpatching_enabled"] = *v
@@ -1750,6 +1774,7 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.
 
 	if v := linConfig.PatchSettings; v != nil {
 		output["patch_mode"] = v.PatchMode
+		output["patch_assessment_mode"] = v.AssessmentMode
 	}
 
 	if v := linConfig.ProvisionVMAgent; v != nil {

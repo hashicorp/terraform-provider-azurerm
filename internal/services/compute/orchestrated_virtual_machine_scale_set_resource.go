@@ -365,7 +365,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		if len(winConfigRaw) > 0 {
 			winConfig := winConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
-
+			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
@@ -376,6 +376,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 				}
 				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
+			}
+
+			if patchAssessmentMode == string(compute.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+				return fmt.Errorf("when the %q field is set to %q the %q must always be set to %q", "patch_assessment_mode", compute.WindowsPatchAssessmentModeAutomaticByPlatform, "provision_vm_agent", "true")
 			}
 
 			// Validate patch mode and hotpatching configuration
@@ -421,6 +425,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		if len(linConfigRaw) > 0 {
 			osType = compute.OperatingSystemTypesLinux
 			linConfig := linConfigRaw[0].(map[string]interface{})
+			provisionVMAgent := linConfig["provision_vm_agent"].(bool)
+			patchAssessmentMode := linConfig["patch_assessment_mode"].(string)
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(linConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
@@ -434,13 +440,16 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
 			}
 
-			// Validate Automatic VM Guest Patching Settings
-			provisionVmAgent := *vmssOsProfile.LinuxConfiguration.ProvisionVMAgent
-			patchMode := vmssOsProfile.LinuxConfiguration.PatchSettings.PatchMode
+			if patchAssessmentMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+				return fmt.Errorf("when the %q field is set to %q the %q must always be set to %q", "patch_assessment_mode", compute.LinuxPatchAssessmentModeAutomaticByPlatform, "provision_vm_agent", "true")
+			}
 
-			if patchMode == compute.LinuxVMGuestPatchModeAutomaticByPlatform {
-				if !provisionVmAgent {
-					return fmt.Errorf("when the %q field is set to %q the %q field must always be set to %q, got %q", "patch_mode", patchMode, "provision_vm_agent", "true", strconv.FormatBool(provisionVmAgent))
+			// Validate Automatic VM Guest Patching Settings
+			patchMode := linConfig["patch_mode"].(string)
+
+			if patchMode == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) {
+				if !provisionVMAgent {
+					return fmt.Errorf("when the %q field is set to %q the %q field must always be set to %q, got %q", "patch_mode", patchMode, "provision_vm_agent", "true", strconv.FormatBool(provisionVMAgent))
 				}
 
 				if !hasHealthExtension {
@@ -697,6 +706,9 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 			if len(winConfigRaw) > 0 {
 				winConfig := winConfigRaw[0].(map[string]interface{})
+				provisionVMAgent := winConfig["provision_vm_agent"].(bool)
+				patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
+				patchMode := winConfig["patch_mode"].(string)
 
 				// If the image allows hotpatching the patch mode can only ever be AutomaticByPlatform.
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
@@ -716,15 +728,20 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
-					provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 					if isHotpatchEnabledImage && !provisionVMAgent {
 						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "provision_vm_agent", "true", strconv.FormatBool(provisionVMAgent))
 					}
 					windowsConfig.ProvisionVMAgent = utils.Bool(provisionVMAgent)
 				}
 
+				if d.HasChange("os_profile.0.windows_configuration.0.patch_assessment_mode") {
+					if !provisionVMAgent && (patchAssessmentMode == string(compute.WindowsPatchAssessmentModeAutomaticByPlatform)) {
+						return fmt.Errorf("when the %q field is set to %q the %q must always be set to %q", "patch_assessment_mode", compute.WindowsPatchAssessmentModeAutomaticByPlatform, "provision_vm_agent", "true")
+					}
+					windowsConfig.PatchSettings.AssessmentMode = compute.WindowsPatchAssessmentMode(patchAssessmentMode)
+				}
+
 				if d.HasChange("os_profile.0.windows_configuration.0.patch_mode") {
-					patchMode := winConfig["patch_mode"].(string)
 					if isHotpatchEnabledImage && (patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform)) {
 						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "patch_mode", compute.WindowsVMGuestPatchModeAutomaticByPlatform, patchMode)
 					}
@@ -762,6 +779,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				osType = compute.OperatingSystemTypesLinux
 				linConfig := linConfigRaw[0].(map[string]interface{})
 				provisionVMAgent := linConfig["provision_vm_agent"].(bool)
+				patchAssessmentMode := linConfig["patch_assessment_mode"].(string)
 				patchMode := linConfig["patch_mode"].(string)
 
 				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") ||
@@ -784,6 +802,13 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 						linuxConfig.SSH = &compute.SSHConfiguration{}
 					}
 					linuxConfig.SSH.PublicKeys = &sshPublicKeys
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.patch_assessment_mode") {
+					if !provisionVMAgent && (patchAssessmentMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform)) {
+						return fmt.Errorf("when the %q field is set to %q the %q must always be set to %q", "patch_assessment_mode", compute.LinuxPatchAssessmentModeAutomaticByPlatform, "provision_vm_agent", "true")
+					}
+					linuxConfig.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(patchAssessmentMode)
 				}
 
 				if d.HasChange("os_profile.0.linux_configuration.0.patch_mode") {
