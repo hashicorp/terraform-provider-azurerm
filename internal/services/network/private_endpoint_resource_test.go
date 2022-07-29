@@ -773,7 +773,7 @@ func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, cou
 %s
 
 resource "azurerm_private_endpoint" "test" {
-  count				  = %d
+  count               = %d
   name                = "acctest-privatelink-%d-${count.index}"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
