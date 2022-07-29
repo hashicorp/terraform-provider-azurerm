@@ -218,6 +218,14 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
+		_, extensionsExists := d.GetOk("extension")
+		if v && !extensionsExists {
+			return fmt.Errorf("%q can not be set to %q if the %q field does not contain any extensions", "extension_operations_enabled", "true", "extension")
+		}
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+	}
+
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
 		if virtualMachineProfile.ExtensionProfile == nil {
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
@@ -918,6 +926,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			d.Set("admin_username", osProfile.AdminUsername)
 			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
 
+			if osProfile.AllowExtensionOperations != nil {
+				d.Set("extension_operations_enabled", *osProfile.AllowExtensionOperations)
+			}
+
 			if linux := osProfile.LinuxConfiguration; linux != nil {
 				d.Set("disable_password_authentication", linux.DisablePasswordAuthentication)
 				d.Set("provision_vm_agent", linux.ProvisionVMAgent)
@@ -1194,6 +1206,13 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 				string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
 				string(compute.VirtualMachineEvictionPolicyTypesDelete),
 			}, false),
+		},
+
+		"extension_operations_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
 		},
 
 		"extension": VirtualMachineScaleSetExtensionsSchema(),

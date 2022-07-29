@@ -216,6 +216,14 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
+	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
+		_, extensionsExists := d.GetOk("extension")
+		if v && !extensionsExists {
+			return fmt.Errorf("%q can not be set to %q if the %q field does not contain any extensions", "extension_operations_enabled", "true", "extension")
+		}
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+	}
+
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
 		if virtualMachineProfile.ExtensionProfile == nil {
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
@@ -943,6 +951,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			d.Set("admin_username", osProfile.AdminUsername)
 			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
 
+			if osProfile.AllowExtensionOperations != nil {
+				d.Set("extension_operations_enabled", *osProfile.AllowExtensionOperations)
+			}
+
 			if err := d.Set("secret", flattenWindowsSecrets(osProfile.Secrets)); err != nil {
 				return fmt.Errorf("setting `secret`: %+v", err)
 			}
@@ -1218,6 +1230,13 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 				string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
 				string(compute.VirtualMachineEvictionPolicyTypesDelete),
 			}, false),
+		},
+
+		"extension_operations_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
 		},
 
 		"extension": VirtualMachineScaleSetExtensionsSchema(),

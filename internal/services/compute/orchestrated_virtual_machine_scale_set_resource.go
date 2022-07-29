@@ -123,6 +123,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"extension_operations_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			// Due to bug in RP extensions cannot curretntly be supported in Terraform ETA for full support is mid Jan 2022
 			"extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
 
@@ -331,6 +338,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if hasHealthExtension {
 		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", id.Name, id.ResourceGroup)
+	}
+
+	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
+		_, extensionsExists := d.GetOk("extension")
+		if v && !extensionsExists {
+			return fmt.Errorf("%q can not be set to %q if the %q field does not contain any extensions", "extension_operations_enabled", "true", "extension")
+		}
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -1148,6 +1163,10 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		if osProfile := profile.OsProfile; osProfile != nil {
 			if err := d.Set("os_profile", FlattenOrchestratedVirtualMachineScaleSetOSProfile(osProfile, d)); err != nil {
 				return fmt.Errorf("setting `os_profile`: %+v", err)
+			}
+
+			if osProfile.AllowExtensionOperations != nil {
+				d.Set("extension_operations_enabled", *osProfile.AllowExtensionOperations)
 			}
 		}
 
