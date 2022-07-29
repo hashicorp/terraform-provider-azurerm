@@ -90,8 +90,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 ## Argument Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name of the Linux Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure location where the Linux Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
@@ -136,7 +134,7 @@ The following arguments are supported:
 
 -> **NOTE:** `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
 
-~> **NOTE:** `single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified
+~> **NOTE:** `single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified.
 
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 

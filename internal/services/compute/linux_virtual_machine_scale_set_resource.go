@@ -522,7 +522,11 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("single_placement_group") {
-		updateProps.SinglePlacementGroup = utils.Bool(d.Get("single_placement_group").(bool))
+		singlePlacementGroup := d.Get("single_placement_group").(bool)
+		if singlePlacementGroup {
+			return fmt.Errorf("%q can not be set to %q once it has been set to %q", "single_placement_group", "true", "false")
+		}
+		updateProps.SinglePlacementGroup = utils.Bool(singlePlacementGroup)
 	}
 
 	if d.HasChange("admin_ssh_key") || d.HasChange("custom_data") || d.HasChange("disable_password_authentication") || d.HasChange("provision_vm_agent") || d.HasChange("secret") {

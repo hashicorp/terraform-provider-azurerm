@@ -191,7 +191,17 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: This may have changed, adding it back in just in case, but settomg default
+			// value to match the previously hardcoded value of false...
+
+			// NOTE: Checking with service team to see if this is still the case:
 			// removing single_placement_group since it has been retired as of version 2019-12-01 for Flex VMSS
+			"single_placement_group": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"source_image_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -253,7 +263,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		Tags:     tags.Expand(t),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			PlatformFaultDomainCount: utils.Int32(int32(d.Get("platform_fault_domain_count").(int))),
-			SinglePlacementGroup:     utils.Bool(false),
+			SinglePlacementGroup:     utils.Bool(d.Get("single_placement_group").(bool)),
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
@@ -296,6 +306,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+		if d.Get("single_placement_group").(bool) {
+			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+		}
+
 		virtualMachineProfile.CapacityReservation = &compute.CapacityReservationProfile{
 			CapacityReservationGroup: &compute.SubResource{
 				ID: utils.String(v.(string)),
@@ -643,6 +657,15 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		}
 
 		priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
+
+		if d.HasChange("single_placement_group") {
+			singlePlacementGroup := d.Get("single_placement_group").(bool)
+			if singlePlacementGroup {
+				return fmt.Errorf("%q can not be set to %q once it has been set to %q", "single_placement_group", "true", "false")
+			}
+			updateProps.SinglePlacementGroup = utils.Bool(singlePlacementGroup)
+		}
+
 		if d.HasChange("max_bid_price") {
 			if priority != compute.VirtualMachinePriorityTypesSpot {
 				return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
@@ -1044,6 +1067,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID
 	}
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
+	d.Set("single_placement_group", props.SinglePlacementGroup)
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
 
