@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -20,7 +21,7 @@ import (
 )
 
 func resourceApiManagementApi() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceApiManagementApiCreateUpdate,
 		Read:   resourceApiManagementApiRead,
 		Update: resourceApiManagementApiCreateUpdate,
@@ -67,6 +68,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(apimanagement.ProtocolHTTP),
 						string(apimanagement.ProtocolHTTPS),
+						string(apimanagement.ProtocolWs),
+						string(apimanagement.ProtocolWss),
 					}, false),
 				},
 			},
@@ -85,6 +88,18 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			},
 
 			// Optional
+			"api_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.APITypeGraphql),
+					string(apimanagement.APITypeHTTP),
+					string(apimanagement.APITypeSoap),
+					string(apimanagement.APITypeWebsocket),
+				}, false),
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -176,12 +191,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"soap_pass_through": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"source_api_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -264,6 +273,20 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["api_type"].ConflictsWith = []string{"soap_pass_through"}
+
+		resource.Schema["soap_pass_through"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`soap_pass_through` will be removed in favour of the property `api_type` in version 4.0 of the AzureRM Provider",
+			ConflictsWith: []string{"api_type"},
+		}
+	}
+
+	return resource
 }
 
 func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -305,17 +328,22 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	var apiType apimanagement.APIType
-	var soapApiType apimanagement.SoapAPIType
-
-	soapPassThrough := d.Get("soap_pass_through").(bool)
-	if soapPassThrough {
-		apiType = apimanagement.APITypeSoap
-		soapApiType = apimanagement.SoapAPITypeSoapPassThrough
-	} else {
-		apiType = apimanagement.APITypeHTTP
-		soapApiType = apimanagement.SoapAPITypeSoapToRest
+	apiType := apimanagement.APITypeHTTP
+	if v, ok := d.GetOk("api_type"); ok {
+		apiType = apimanagement.APIType(v.(string))
 	}
+	if !features.FourPointOhBeta() {
+		if d.Get("soap_pass_through").(bool) {
+			apiType = apimanagement.APITypeSoap
+		}
+	}
+
+	soapApiType := map[apimanagement.APIType]apimanagement.SoapAPIType{
+		apimanagement.APITypeGraphql:   apimanagement.SoapAPITypeGraphQL,
+		apimanagement.APITypeHTTP:      apimanagement.SoapAPITypeSoapToRest,
+		apimanagement.APITypeSoap:      apimanagement.SoapAPITypeSoapPassThrough,
+		apimanagement.APITypeWebsocket: apimanagement.SoapAPITypeWebSocket,
+	}[apiType]
 
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
@@ -460,6 +488,11 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.APIContractProperties; props != nil {
+		apiType := string(props.APIType)
+		if len(apiType) == 0 {
+			apiType = string(apimanagement.APITypeHTTP)
+		}
+		d.Set("api_type", apiType)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("is_current", props.IsCurrent)
@@ -467,7 +500,9 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("path", props.Path)
 		d.Set("service_url", props.ServiceURL)
 		d.Set("revision", props.APIRevision)
-		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapAPITypeSoapPassThrough))
+		if !features.FourPointOhBeta() {
+			d.Set("soap_pass_through", apiType == string(apimanagement.SoapAPITypeSoapPassThrough))
+		}
 		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
