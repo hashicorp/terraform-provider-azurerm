@@ -16,8 +16,8 @@ type TenantConfigurationsDeleteOperationResponse struct {
 }
 
 // TenantConfigurationsDelete ...
-func (c TenantConfigurationClient) TenantConfigurationsDelete(ctx context.Context, id ConfigurationId) (result TenantConfigurationsDeleteOperationResponse, err error) {
-	req, err := c.preparerForTenantConfigurationsDelete(ctx, id)
+func (c TenantConfigurationClient) TenantConfigurationsDelete(ctx context.Context) (result TenantConfigurationsDeleteOperationResponse, err error) {
+	req, err := c.preparerForTenantConfigurationsDelete(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "tenantconfiguration.TenantConfigurationClient", "TenantConfigurationsDelete", nil, "Failure preparing request")
 		return
@@ -39,7 +39,7 @@ func (c TenantConfigurationClient) TenantConfigurationsDelete(ctx context.Contex
 }
 
 // preparerForTenantConfigurationsDelete prepares the TenantConfigurationsDelete request.
-func (c TenantConfigurationClient) preparerForTenantConfigurationsDelete(ctx context.Context, id ConfigurationId) (*http.Request, error) {
+func (c TenantConfigurationClient) preparerForTenantConfigurationsDelete(ctx context.Context) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -48,7 +48,7 @@ func (c TenantConfigurationClient) preparerForTenantConfigurationsDelete(ctx con
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsDelete(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(id.ID()),
+		autorest.WithPath("/providers/Microsoft.Portal/tenantConfigurations/default"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

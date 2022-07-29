@@ -72,6 +72,7 @@ func (c ConfidentialLedgerClient) senderForLedgerDelete(ctx context.Context, req
 	if err != nil {
 		return
 	}
-	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
+
+	future.Poller, err = polling.NewPollerFromResponse(ctx, resp, c.Client, req.Method)
 	return
 }

@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -109,32 +109,27 @@ func TestAccPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 }
 
 func (r PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkRuleID(state.ID)
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := clients.Postgres.VirtualNetworkRulesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r PostgreSQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkRuleID(state.ID)
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Postgres.VirtualNetworkRulesClient.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("deleting Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Postgres.VirtualNetworkRulesClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
+	if err := client.Postgres.VirtualNetworkRulesClient.DeleteThenPoll(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil

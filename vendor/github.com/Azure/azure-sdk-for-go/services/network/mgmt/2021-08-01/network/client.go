@@ -1,4 +1,4 @@
-// Package network implements the Azure ARM Network service API version .
+// Package network implements the Azure ARM Network service API version 2021-08-01.
 //
 // Network Client
 package network

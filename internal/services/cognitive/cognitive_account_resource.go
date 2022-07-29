@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts"
+	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -20,9 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/services"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -233,7 +233,13 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"custom_question_answering_search_service_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: services.ValidateSearchServiceID,
+				ValidateFunc: search.ValidateSearchServiceID,
+			},
+
+			"custom_question_answering_search_service_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage": {
@@ -256,7 +262,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -346,7 +352,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -429,7 +435,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
@@ -544,7 +550,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("local_auth_enabled", localAuthEnabled)
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
 }
@@ -636,10 +642,10 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
 
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
-	ipRules := make([]cognitiveservicesaccounts.IpRule, 0)
+	ipRules := make([]cognitiveservicesaccounts.IPRule, 0)
 
 	for _, v := range ipRulesRaw.List() {
-		rule := cognitiveservicesaccounts.IpRule{
+		rule := cognitiveservicesaccounts.IPRule{
 			Value: v.(string),
 		}
 		ipRules = append(ipRules, rule)
@@ -660,7 +666,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
 		DefaultAction:       &defaultAction,
-		IpRules:             &ipRules,
+		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 	return &ruleSet, subnetIds
@@ -696,6 +702,13 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			props.QnaAzureSearchEndpointId = utils.String(v.(string))
 		} else {
 			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
+		}
+	}
+	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
+		if kind == "TextAnalytics" {
+			props.QnaAzureSearchEndpointKey = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
@@ -735,8 +748,8 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}
 
 	ipRules := make([]interface{}, 0)
-	if input.IpRules != nil {
-		for _, v := range *input.IpRules {
+	if input.IPRules != nil {
+		for _, v := range *input.IPRules {
 			ipRules = append(ipRules, v.Value)
 		}
 	}

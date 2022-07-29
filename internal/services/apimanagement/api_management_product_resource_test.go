@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -156,10 +155,6 @@ func TestAccApiManagementProduct_approvalRequiredError(t *testing.T) {
 }
 
 func TestAccApiManagementProduct_subscriptionRequiredDefault(t *testing.T) {
-	if !features.ThreePointOh() {
-		t.Skip("Skipping since 3.0 mode is disabled")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 	r := ApiManagementProductResource{}
 
