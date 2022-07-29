@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -172,13 +173,24 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("state", resp.State)
 	}
 
-	contentresp, err := client.GetContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	// unmarshal json always fail for literal string, so err of client.GetContent is always not nil
+	// read from response body is not working too, for response.body has been closed by autorest already
+	req, err := client.GetContentPreparer(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration content %q: %+v", id.Name, err)
+		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "GetContent", nil, "Failure preparing request")
+		return err
 	}
 
+	contentResp, err := client.GetContentSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "GetContent", contentResp, "Failure sending request")
+		return err
+	}
+	defer func() {
+		_ = contentResp.Body.Close()
+	}()
 	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(contentresp.Body); err != nil {
+	if _, err := buf.ReadFrom(contentResp.Body); err != nil {
 		return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", id.Name, err)
 	}
 	content := buf.String()
