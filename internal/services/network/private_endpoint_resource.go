@@ -290,6 +290,9 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		//goland:noinspection GoDeferInLoop
 		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
 	}
+	locks.ByName(subnetId, "azurerm_private_endpoint")
+	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
+
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 		if err != nil {
@@ -309,7 +312,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return &resource.RetryError{
 				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
-				Retryable: strings.Contains(strings.ToLower(err.Error()), "retryable"),
+				Retryable: strings.Contains(strings.ToLower(err.Error()), "Resource is in Updating state and the last operation that updated/is updating the resource is PutSubnetOperation"),
 			}
 		}
 		return nil
@@ -394,6 +397,9 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	locks.ByName(subnetId, "azurerm_private_endpoint")
+	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
@@ -563,6 +569,7 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 
+	subnetId := d.Get("subnet_id").(string)
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	parameters := network.PrivateEndpoint{
 		PrivateEndpointProperties: &network.PrivateEndpointProperties{
@@ -576,6 +583,8 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		//goland:noinspection GoDeferInLoop
 		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
 	}
+	locks.ByName(subnetId, "azurerm_private_endpoint")
+	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
 	log.Printf("[DEBUG] Deleting the Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
@@ -679,7 +688,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -741,7 +750,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
