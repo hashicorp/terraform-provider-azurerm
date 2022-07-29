@@ -74,6 +74,26 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"log_progress": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"hash_algorithm": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			"hash_value": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			"source_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -120,10 +140,16 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 	parameters := automation.DscConfigurationCreateOrUpdateParameters{
 		DscConfigurationCreateOrUpdateProperties: &automation.DscConfigurationCreateOrUpdateProperties{
 			LogVerbose:  utils.Bool(logVerbose),
+			LogProgress: utils.Bool(d.Get("log_progress").(bool)),
 			Description: utils.String(description),
 			Source: &automation.ContentSource{
 				Type:  automation.ContentSourceTypeEmbeddedContent,
 				Value: utils.String(contentEmbedded),
+				Hash: &automation.ContentHash{
+					Algorithm: utils.String(d.Get("hash_algorithm").(string)),
+					Value:     utils.String(d.Get("hash_value").(string)),
+				},
+				Version: utils.String(d.Get("source_version").(string)),
 			},
 		},
 		Location: utils.String(location),
@@ -169,8 +195,16 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 
 	if props := resp.DscConfigurationProperties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)
+		// api did not return log_progress in response
 		d.Set("description", props.Description)
 		d.Set("state", resp.State)
+		if source := props.Source; source != nil {
+			d.Set("source_version", source.Version)
+			if hash := source.Hash; hash != nil {
+				d.Set("hash_algorithm", hash.Algorithm)
+				d.Set("hash_value", hash.Value)
+			}
+		}
 	}
 
 	// unmarshal json always fail for literal string, so err of client.GetContent is always not nil

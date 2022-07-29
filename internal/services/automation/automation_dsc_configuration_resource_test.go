@@ -61,7 +61,7 @@ func TestAccAutomationDscConfiguration_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("log_progress", "hash", "source_version"),
 	})
 }
 
@@ -154,6 +154,10 @@ resource "azurerm_automation_dsc_configuration" "test" {
   content_embedded        = "configuration acctest {}"
   description             = "test"
   log_verbose             = "true"
+  log_progress            = "true"
+  source_version          = "1.0.0"
+  hash_algorithm          = "algm"
+  hash_value              = "hash"
   tags = {
     ENV = "prod"
   }
