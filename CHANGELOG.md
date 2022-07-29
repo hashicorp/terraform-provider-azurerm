@@ -3,6 +3,7 @@
 FEATURES: 
 
 * **New Resource**: `azurerm_datadog_monitor` [GH-16131]
+* **New Resource**: `azurerm_kusto_cluster_managed_private_endpoint` [GH-17667]
 * **New Resource**: `azurerm_log_analytics_query_pack` [GH-17685]
 * **New Resource**: `azurerm_logz_sub_account_tag_rule` [GH-17557]
 * **New Resource**: `azurerm_signalr_shared_private_link_resource` [GH-16187]
