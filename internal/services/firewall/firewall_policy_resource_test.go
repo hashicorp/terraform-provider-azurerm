@@ -287,11 +287,14 @@ resource "azurerm_firewall_policy" "test" {
       state = "Alert"
       id    = "1"
     }
+    private_ranges = ["172.111.111.111"]
     traffic_bypass {
-      name              = "Name bypass traffic settings"
-      description       = "Description bypass traffic settings"
-      protocol          = "ANY"
-      destination_ports = ["*"]
+      name                  = "Name bypass traffic settings"
+      description           = "Description bypass traffic settings"
+      destination_addresses = []
+      source_addresses      = []
+      protocol              = "Any"
+      destination_ports     = ["*"]
       source_ip_groups = [
         azurerm_ip_group.test_source.id,
       ]
@@ -300,6 +303,7 @@ resource "azurerm_firewall_policy" "test" {
       ]
     }
   }
+  allow_sql_redirect = true
   identity {
     type = "UserAssigned"
     identity_ids = [

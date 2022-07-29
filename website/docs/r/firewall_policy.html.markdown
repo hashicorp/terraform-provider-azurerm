@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `tls_certificate` - (Optional) A `tls_certificate` block as defined below.
 
+* `allow_sql_redirect` - (Optional) Whether SQL Redirect traffic filtering is enabled. Turning on the flag requires no rule using port 11000-11999.
+
 ---
 
 A `dns` block supports the following:
@@ -96,6 +98,8 @@ A `intrusion_detection` block supports the following:
 * `signature_overrides` - (Optional) One or more `signature_overrides` blocks as defined below.
 
 * `traffic_bypass` - (Optional) One or more `traffic_bypass` blocks as defined below.
+
+* `private_ranges` - (Optional) A list of Private IP address ranges to identify traffic direction. By default, only ranges defined by IANA RFC 1918 are considered private IP addresses.
 
 ---
 
