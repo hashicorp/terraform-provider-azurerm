@@ -267,7 +267,33 @@ A `install_script_action` block supports the following:
 
 * `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
 
---- 
+* `parameters` - (Optional) The parameters for the script.
+
+---
+
+A `https_endpints` block supports the following:
+
+* `access_modes` - (Optional) A list of access modes for the application.
+
+* `destination_port` - (Optional) The destination port to connect to.
+
+* `disable_gateway_auth` - (Optional) The value indicates whether the gateway authentication is enabled or not.
+
+* `private_ip_address` - (Optional) The private ip address of the endpoint.
+
+* `sub_domain_suffix` - (Optional) The application's subdomain suffix.
+
+---
+
+A `uninstall_script_actions` block supports the following:
+
+* `name` - (Required) The name of the uninstall script action. Changing this forces a new resource to be created.
+
+* `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
+
+* `parameters` - (Optional) The parameters for the script.
+
+---
 
 A `metastores` block supports the following:
 
