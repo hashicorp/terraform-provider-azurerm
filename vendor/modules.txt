@@ -200,6 +200,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/c
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/applicationinsights
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights
 github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice

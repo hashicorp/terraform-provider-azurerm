@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -47,21 +48,23 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	iclient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	client := meta.(*clients.Client).Automation.AccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAutomationAccountID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := automationaccount.NewAutomationAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retreiving %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
 
-	iresp, err := iclient.Get(ctx, id.ResourceGroup, id.Name)
+	iresp, err := iclient.Get(ctx, id.ResourceGroupName, id.AutomationAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iresp.Response) {
 			return fmt.Errorf("%q Account Registration Information was not found", id)
