@@ -53,15 +53,15 @@ func resourceLogAnalyticsCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
-			// Per the documentation cluster capacity must start at 1000 GB and can go above 3000 GB with an exception by Microsoft
+			// Per the documentation cluster capacity must start at 500 GB and can go above 3000 GB with an exception by Microsoft
 			// so I am not limiting the upperbound here by design
-			// https://docs.microsoft.com/en-us/azure/azure-monitor/platform/manage-cost-storage#log-analytics-dedicated-clusters
+			// https://docs.microsoft.com/en-us/azure/azure-monitor/logs/logs-dedicated-clusters
 			"size_gb": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  1000,
 				ValidateFunc: validation.All(
-					validation.IntAtLeast(1000),
+					validation.IntAtLeast(500),
 					validation.IntDivisibleBy(100),
 				),
 			},
