@@ -682,6 +682,16 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 				},
+				"file_share_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+				},
+				"sas_key": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+				},
 			},
 		},
 	}
@@ -718,6 +728,16 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 				},
+				"file_share_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+				},
+				"sas_key": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+				},
 			},
 		},
 	}
@@ -736,6 +756,8 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		storageAccountKey := v["storage_account_key"].(string)
 		storageContainerID := v["storage_container_id"].(string)
 		storageResourceID := v["storage_resource_id"].(string)
+		fileShareName := v["file_share_name"].(string)
+		sasKey := v["sas_key"].(string)
 		isDefault := v["is_default"].(bool)
 
 		uri, err := url.Parse(storageContainerID)
@@ -749,6 +771,8 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 			Container:  utils.String(strings.TrimPrefix(uri.Path, "/")),
 			Key:        utils.String(storageAccountKey),
 			IsDefault:  utils.Bool(isDefault),
+			Fileshare:  utils.String(fileShareName),
+			Saskey:     utils.String(sasKey),
 		}
 		results = append(results, result)
 	}
@@ -759,6 +783,8 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		fileSystemID := v["filesystem_id"].(string)
 		storageResourceID := v["storage_resource_id"].(string)
 		managedIdentityResourceID := v["managed_identity_resource_id"].(string)
+		fileShareName := v["file_share_name"].(string)
+		sasKey := v["sas_key"].(string)
 
 		isDefault := v["is_default"].(bool)
 
@@ -783,6 +809,8 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 			FileSystem:    utils.String(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
 			MsiResourceID: utils.String(managedIdentityResourceID),
 			IsDefault:     utils.Bool(isDefault),
+			Fileshare:     utils.String(fileShareName),
+			Saskey:        utils.String(sasKey),
 		}
 		results = append(results, result)
 	}
