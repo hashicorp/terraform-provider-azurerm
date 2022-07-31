@@ -1,5 +1,10 @@
 ## 3.17.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* Data Source: `azurerm_proximity_placement_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-17776]
+* `azurerm_proximity_placement_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-17776]
+
 BUG FIXES:
 
 * Data Source: `azurerm_private_dns_zone` - returning the correct Resource ID when not specifying the `resource_group_name` [GH-17729]
