@@ -1,3 +1,9 @@
+## 3.17.0 (Unreleased)
+
+BUG FIXES:
+
+* Data Source: `azurerm_private_dns_zone` - returning the correct Resource ID when not specifying the `resource_group_name` [GH-17729]
+
 ## 3.16.0 (July 28, 2022)
 
 FEATURES: 
