@@ -197,7 +197,7 @@ func TestAccFirewall_withZones(t *testing.T) {
 	})
 }
 
-func TestAccFirewall_skuTier(t *testing.T) {
+func TestAccFirewall_skuTierUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 	skuTier := string(standard)
