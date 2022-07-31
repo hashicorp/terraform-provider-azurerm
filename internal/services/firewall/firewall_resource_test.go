@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +15,9 @@ import (
 )
 
 type FirewallResource struct{}
+
+const premium = "Premium"
+const standard = "Standard"
 
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
@@ -198,8 +200,8 @@ func TestAccFirewall_withZones(t *testing.T) {
 func TestAccFirewall_skuTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
-	skuTier := string(network.AzureFirewallSkuTierStandard)
-	skuTierUpdate := string(network.AzureFirewallSkuTierPremium)
+	skuTier := string(standard)
+	skuTierUpdate := string(premium)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
