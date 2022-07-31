@@ -114,6 +114,12 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+
 ---
 
 an `auth_settings` block supports the following:
@@ -256,7 +262,7 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
@@ -525,5 +531,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A Linux Function App Slot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import linux_function_app_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
+terraform import azurerm_linux_function_app_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 ```

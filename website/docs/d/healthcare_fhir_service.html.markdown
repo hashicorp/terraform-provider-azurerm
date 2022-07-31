@@ -14,8 +14,8 @@ Use this data source to access information about an existing Healthcare FHIR Ser
 
 ```hcl
 data "azurerm_healthcare_fhir_service" "example" {
-  name         = "example-healthcare_fhir_service"
-  workspace_id = "example-workspace"
+  name         = "example-healthcare"
+  workspace_id = data.azurerm_healthcare_fhir_service.example.workspace_id
 }
 
 output "healthcare_fhir_service_id" {

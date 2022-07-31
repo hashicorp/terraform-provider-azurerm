@@ -26,7 +26,7 @@ resource "azurerm_confidential_ledger" "ledger" {
   location            = azurerm_resource_group.example.location
   ledger_type         = "Private"
 
-  aad_based_security_principals {
+  azuread_based_service_principal {
     principal_id     = data.azurerm_client_config.current.object_id
     tenant_id        = data.azurerm_client_config.current.tenant_id
     ledger_role_name = "Administrator"

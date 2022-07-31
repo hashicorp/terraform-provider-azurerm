@@ -19,7 +19,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_server" "example" {
-  # ...
+  name                    = "example"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  version                 = "5.7"
+  sku_name                = "GP_Gen5_2"
+  ssl_enforcement_enabled = true
 }
 
 resource "azurerm_mysql_firewall_rule" "example" {

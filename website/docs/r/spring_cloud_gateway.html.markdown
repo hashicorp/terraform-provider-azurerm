@@ -29,9 +29,9 @@ resource "azurerm_spring_cloud_service" "example" {
   sku_name            = "E0"
 }
 
-resource "azurerm_spring_cloud_gateway" "test" {
+resource "azurerm_spring_cloud_gateway" "example" {
   name                    = "default"
-  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  spring_cloud_service_id = azurerm_spring_cloud_service.example.id
 
   https_only                    = false
   public_network_access_enabled = true

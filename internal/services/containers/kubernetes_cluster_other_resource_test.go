@@ -464,6 +464,21 @@ func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_capacityReservationGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.capacityReservationGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_completeMaintenanceConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1729,6 +1744,70 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) capacityReservationGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_capacity_reservation_group" "test" {
+  name                = "acctest-ccrg-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[1]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+
+  sku {
+    name     = "Standard_D2s_v3"
+    capacity = 2
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_capacity_reservation_group.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Owner"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+  default_node_pool {
+    name                          = "default"
+    node_count                    = 1
+    vm_size                       = "Standard_D2s_v3"
+    capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test,
+    azurerm_role_assignment.test
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfig(data acceptance.TestData) string {

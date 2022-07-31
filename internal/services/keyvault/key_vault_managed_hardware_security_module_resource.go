@@ -208,6 +208,16 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return err
 	}
 
+	// We need to grab the keyvault hsm to see if purge protection is enabled prior to deletion
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil || resp.Location == nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
@@ -221,5 +231,23 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 				"waiting for deletion of API Management Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
+
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedHSMsOnDestroy
+	if shouldPurge && resp.Properties != nil && utils.NormaliseNilableBool(resp.Properties.EnablePurgeProtection) {
+		return fmt.Errorf("cannot purge %s because purge protection is enabled", id)
+	}
+
+	purgeFuture, err := client.PurgeDeleted(ctx, id.Name, *resp.Location)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	if err = purgeFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf(
+				"waiting for purge of %s: %+v", id, err)
+		}
+	}
+
 	return nil
 }

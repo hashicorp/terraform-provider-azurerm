@@ -47,8 +47,8 @@ resource "azurerm_key_vault" "example" {
   purge_protection_enabled = true
 
   access_policy {
-    tenant_id = azurerm_cognitive_account.test.identity.0.tenant_id
-    object_id = azurerm_cognitive_account.test.identity.0.principal_id
+    tenant_id = azurerm_cognitive_account.example.identity.0.tenant_id
+    object_id = azurerm_cognitive_account.example.identity.0.principal_id
     key_permissions = [
       "Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
     ]
@@ -69,8 +69,8 @@ resource "azurerm_key_vault" "example" {
   }
 
   access_policy {
-    tenant_id = azurerm_user_assigned_identity.test.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
+    tenant_id = azurerm_user_assigned_identity.example.tenant_id
+    object_id = azurerm_user_assigned_identity.example.principal_id
     key_permissions = [
       "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
     ]

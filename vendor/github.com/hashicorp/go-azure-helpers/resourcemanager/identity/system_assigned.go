@@ -54,3 +54,35 @@ func FlattenSystemAssigned(input *SystemAssigned) []interface{} {
 		},
 	}
 }
+
+func ExpandSystemAssignedFromModel(input []ModelSystemAssigned) (*SystemAssigned, error) {
+	if len(input) == 0 {
+		return &SystemAssigned{
+			Type: TypeNone,
+		}, nil
+	}
+
+	return &SystemAssigned{
+		Type: TypeSystemAssigned,
+	}, nil
+}
+
+func FlattenSystemAssignedToModel(input *SystemAssigned) []ModelSystemAssigned {
+	if input == nil {
+		return []ModelSystemAssigned{}
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type == TypeNone {
+		return []ModelSystemAssigned{}
+	}
+
+	return []ModelSystemAssigned{
+		{
+			Type:        input.Type,
+			PrincipalId: input.PrincipalId,
+			TenantId:    input.TenantId,
+		},
+	}
+}

@@ -15,21 +15,62 @@ Manages an Azure SQL Managed Instance Failover Group.
 -> **Note:** For a more complete example, see the [`./examples/sql-azure/managed_instance_failover_group` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/managed_instance_failover_group) within the GitHub Repository.
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_security_group" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "example" {
+  subnet_id                 = azurerm_subnet.example.id
+  network_security_group_id = azurerm_network_security_group.example.id
+}
+
+resource "azurerm_route_table" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet_route_table_association" "example" {
+  subnet_id      = azurerm_subnet.example.id
+  route_table_id = azurerm_route_table.example.id
+}
+
 resource "azurerm_mssql_managed_instance" "primary" {
   name                         = "example-primary"
-  resource_group_name          = azurerm_resource_group.primary.name
-  location                     = azurerm_resource_group.primary.location
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
   license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.primary.id
+  subnet_id                    = azurerm_subnet.example.id
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
 
   depends_on = [
-    azurerm_subnet_network_security_group_association.primary,
-    azurerm_subnet_route_table_association.primary,
+    azurerm_subnet_network_security_group_association.example,
+    azurerm_subnet_route_table_association.example,
   ]
 
   tags = {
@@ -39,19 +80,19 @@ resource "azurerm_mssql_managed_instance" "primary" {
 
 resource "azurerm_mssql_managed_instance" "secondary" {
   name                         = "example-secondary"
-  resource_group_name          = azurerm_resource_group.secondary.name
-  location                     = azurerm_resource_group.secondary.location
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
   license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.secondary.id
+  subnet_id                    = azurerm_subnet.example.id
   sku_name                     = "GP_Gen5"
   vcores                       = 4
   storage_size_in_gb           = 32
 
   depends_on = [
-    azurerm_subnet_network_security_group_association.secondary,
-    azurerm_subnet_route_table_association.secondary,
+    azurerm_subnet_network_security_group_association.example,
+    azurerm_subnet_route_table_association.example,
   ]
 
   tags = {
@@ -61,7 +102,6 @@ resource "azurerm_mssql_managed_instance" "secondary" {
 
 resource "azurerm_mssql_managed_instance_failover_group" "example" {
   name                        = "example-failover-group"
-  resource_group_name         = azurerm_resource_group.primary.name
   location                    = azurerm_mssql_managed_instance.primary.location
   managed_instance_id         = azurerm_mssql_managed_instance.primary.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -78,8 +118,6 @@ resource "azurerm_mssql_managed_instance_failover_group" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Managed Instance Failover Group. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Managed Instance Failover Group should exist. Changing this forces a new resource to be created.
 
 * `location` - The Azure Region where the Managed Instance Failover Group should exist. Changing this forces a new resource to be created.
 

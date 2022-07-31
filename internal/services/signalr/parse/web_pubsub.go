@@ -33,7 +33,7 @@ func (id WebPubsubId) String() string {
 }
 
 func (id WebPubsubId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/WebPubSub/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/webPubSub/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WebPubSubName)
 }
 
@@ -57,7 +57,7 @@ func WebPubsubID(input string) (*WebPubsubId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.WebPubSubName, err = id.PopSegment("WebPubSub"); err != nil {
+	if resourceId.WebPubSubName, err = id.PopSegment("webPubSub"); err != nil {
 		return nil, err
 	}
 

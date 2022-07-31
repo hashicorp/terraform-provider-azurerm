@@ -36,6 +36,7 @@ resource "azurerm_storage_account" "sa" {
 resource "azurerm_storage_share" "example" {
   name                 = "example-share"
   storage_account_name = azurerm_storage_account.sa.name
+  quota                = 1
 }
 
 resource "azurerm_backup_container_storage_account" "protection-container" {
