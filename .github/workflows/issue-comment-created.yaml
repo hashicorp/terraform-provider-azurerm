@@ -23,7 +23,7 @@ jobs:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           labels: waiting-response
       - uses: actions-ecosystem/action-add-labels@v1
-        if: ${{ endsWith(github.event.comment.body, ' /wr') }}
+        if: ${{ endsWith(github.event.comment.body, '/wr') }}
         with:
           labels: waiting-response
 
