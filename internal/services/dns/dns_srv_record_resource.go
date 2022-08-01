@@ -3,18 +3,16 @@ package dns
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDnsSrvRecord() *pluginsdk.Resource {
@@ -31,8 +29,14 @@ func resourceDnsSrvRecord() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SrvRecordID(id)
-			return err
+			parsed, err := recordsets.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if parsed.RecordType != recordsets.RecordTypeSRV {
+				return fmt.Errorf("this resource only supports 'SRV' records")
+			}
+			return nil
 		}),
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -41,11 +45,12 @@ func resourceDnsSrvRecord() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"zone_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"record": {
@@ -87,13 +92,13 @@ func resourceDnsSrvRecord() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
@@ -102,103 +107,129 @@ func resourceDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	resourceId := parse.NewSrvRecordID(subscriptionId, resGroup, zoneName, name)
-
+	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeSRV, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.SRV)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_dns_srv_record", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dns_srv_record", id.ID())
 		}
 	}
 
 	ttl := int64(d.Get("ttl").(int))
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := dns.RecordSet{
+	parameters := recordsets.RecordSet{
 		Name: &name,
-		RecordSetProperties: &dns.RecordSetProperties{
+		Properties: &recordsets.RecordSetProperties{
 			Metadata:   tags.Expand(t),
 			TTL:        &ttl,
-			SrvRecords: expandAzureRmDnsSrvRecords(d),
+			SRVRecords: expandAzureRmDnsSrvRecords(d),
 		},
 	}
 
-	eTag := ""
-	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
 	return resourceDnsSrvRecordRead(d, meta)
 }
 
 func resourceDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SrvRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading DNS SRV record %s: %v", id.SRVName, err)
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.SRVName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.DnszoneName)
-	d.Set("ttl", resp.TTL)
-	d.Set("fqdn", resp.Fqdn)
+	d.Set("name", id.RelativeRecordSetName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("zone_name", id.ZoneName)
 
-	if err := d.Set("record", flattenAzureRmDnsSrvRecords(resp.SrvRecords)); err != nil {
-		return err
-	}
-	return tags.FlattenAndSet(d, resp.Metadata)
-}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("ttl", props.TTL)
+			d.Set("fqdn", props.Fqdn)
 
-func resourceDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.RecordSetsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.SrvRecordID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV, "")
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("deleting DNS SRV Record %s: %+v", id.SRVName, err)
+			if err := d.Set("record", flattenAzureRmDnsSrvRecords(props.SRVRecords)); err != nil {
+				return err
+			}
+			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
 }
 
-func flattenAzureRmDnsSrvRecords(records *[]dns.SrvRecord) []map[string]interface{} {
+func resourceDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Dns.RecordSets
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := recordsets.ParseRecordTypeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, *id, recordsets.DefaultDeleteOperationOptions()); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func flattenAzureRmDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {
+			port := int64(0)
+			if record.Port != nil {
+				port = *record.Port
+			}
+
+			priority := int64(0)
+			if record.Priority != nil {
+				priority = *record.Priority
+			}
+
+			target := ""
+			if record.Target != nil {
+				target = *record.Target
+			}
+
+			weight := int64(0)
+			if record.Weight != nil {
+				weight = *record.Weight
+			}
+
 			results = append(results, map[string]interface{}{
-				"priority": *record.Priority,
-				"weight":   *record.Weight,
-				"port":     *record.Port,
-				"target":   *record.Target,
+				"port":     port,
+				"priority": priority,
+				"target":   target,
+				"weight":   weight,
 			})
 		}
 	}
@@ -206,25 +237,23 @@ func flattenAzureRmDnsSrvRecords(records *[]dns.SrvRecord) []map[string]interfac
 	return results
 }
 
-func expandAzureRmDnsSrvRecords(d *pluginsdk.ResourceData) *[]dns.SrvRecord {
+func expandAzureRmDnsSrvRecords(d *pluginsdk.ResourceData) *[]recordsets.SrvRecord {
 	recordStrings := d.Get("record").(*pluginsdk.Set).List()
-	records := make([]dns.SrvRecord, len(recordStrings))
+	records := make([]recordsets.SrvRecord, 0)
 
-	for i, v := range recordStrings {
+	for _, v := range recordStrings {
 		record := v.(map[string]interface{})
-		priority := int32(record["priority"].(int))
-		weight := int32(record["weight"].(int))
-		port := int32(record["port"].(int))
+		priority := int64(record["priority"].(int))
+		weight := int64(record["weight"].(int))
+		port := int64(record["port"].(int))
 		target := record["target"].(string)
 
-		srvRecord := dns.SrvRecord{
+		records = append(records, recordsets.SrvRecord{
 			Priority: &priority,
 			Weight:   &weight,
 			Port:     &port,
 			Target:   &target,
-		}
-
-		records[i] = srvRecord
+		})
 	}
 
 	return &records
