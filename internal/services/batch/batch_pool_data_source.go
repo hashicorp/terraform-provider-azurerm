@@ -96,7 +96,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"container_image_names": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
