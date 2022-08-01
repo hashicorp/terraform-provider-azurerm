@@ -508,6 +508,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ForceNew:         true,
+							Default:          string(batch.DynamicVNetAssignmentScopeNone),
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(batch.DynamicVNetAssignmentScopeNone),

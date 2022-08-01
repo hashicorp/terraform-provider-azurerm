@@ -574,7 +574,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 
 func batchPoolDataContainerRegistry() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"username": {
+		"user_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
