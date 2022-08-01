@@ -2,6 +2,7 @@ package servicebus
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -33,6 +34,11 @@ func resourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ServicebusNamespaceAuthRuleV0ToV1{},
+		}),
 
 		// function takes a schema map and adds the authorization rule properties to it
 		Schema: resourceServiceBusNamespaceAuthorizationRuleSchema(),
