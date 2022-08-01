@@ -918,6 +918,12 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			if storageProfile.ImageReference != nil && storageProfile.ImageReference.ID != nil {
 				storageImageId = *storageProfile.ImageReference.ID
 			}
+			if storageProfile.ImageReference != nil && storageProfile.ImageReference.CommunityGalleryImageID != nil {
+				storageImageId = *storageProfile.ImageReference.CommunityGalleryImageID
+			}
+			if storageProfile.ImageReference != nil && storageProfile.ImageReference.SharedGalleryImageID != nil {
+				storageImageId = *storageProfile.ImageReference.SharedGalleryImageID
+			}
 			d.Set("source_image_id", storageImageId)
 		}
 
@@ -1318,6 +1324,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 				validate.ImageID,
 				validate.SharedImageID,
 				validate.SharedImageVersionID,
+				validate.CommunityGalleryImageID,
+				validate.SharedGalleryImageID,
 			),
 		},
 
