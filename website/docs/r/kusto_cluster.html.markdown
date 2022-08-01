@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V2`. Changing this forces a new Kusto Cluster to be created.
 
-~> **NOTE:** In v4.0 and later version of the AzureRM Provider, default engine type will be changed to `V3`. 
+~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, default engine type will be changed to `V3`. 
 
 ---
 
