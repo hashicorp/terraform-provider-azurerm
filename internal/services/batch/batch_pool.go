@@ -1073,7 +1073,7 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 	if idRef, err := expandBatchPoolIdentityReference(ref); err == nil {
 		containerRegistryRef.IdentityReference = idRef
 	} else {
-		return nil, err
+		log.Printf("Error expanding identity reference %s", err)
 	}
 
 	return &containerRegistryRef, nil
@@ -1081,7 +1081,7 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 
 func expandBatchPoolIdentityReference(ref map[string]interface{}) (*batch.ComputeNodeIdentityReference, error) {
 	var result batch.ComputeNodeIdentityReference
-	if iid, ok := ref["identity_id"]; ok {
+	if iid, ok := ref["identity_id"]; ok && iid != "" {
 		result.ResourceID = utils.String(iid.(string))
 		return &result, nil
 	}

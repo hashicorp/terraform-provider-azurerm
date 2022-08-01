@@ -250,7 +250,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 		{
 			Config: r.autoScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -267,7 +267,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 	})
 }
 
