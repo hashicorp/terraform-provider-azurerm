@@ -45,19 +45,17 @@ The following attributes are exported:
 
 * `display_name` - Specifies the display name of the Batch pool.
 
-* `disk_encryption_configuration` - A `disk_encryption_configuration` block describes the
+* `disk_encryption_configuration` - A `disk_encryption_configuration` block describes the disk encryption configuration applied on compute nodes in the pool.
 
 * `extensions` - An `extensions` block describes the extension settings.
 
 * `fixed_scale` - A `fixed_scale` block that describes the scale settings when using fixed scale.
 
-* `license_type` - The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: Windows_Server - The on-premises license is for Windows Server. Windows_Client - The on-premises license is for Windows Client.
-
-* `os_disk_placement_setting` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
-
 * `identity` - An `identity` block describes the identity settings.
 
 * `inter_node_communication` - Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to "Disabled". Value is "Disabled" or "Enabled".
+
+* `license_type` - The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: Windows_Server - The on-premises license is for Windows Server. Windows_Client - The on-premises license is for Windows Client.
 
 * `max_tasks_per_node` - Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
@@ -67,7 +65,9 @@ The following attributes are exported:
 
 * `node_agent_sku_id` - The SKU of the node agents in the Batch pool.
 
-* `node_placement_configuration` 
+* `node_placement_configuration` - A `node_placement_configuration` block that describes the placement policy for allocating nodes in the pool.
+
+* `os_disk_placement_setting` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
 
 * `start_task` - A `start_task` block that describes the start task settings for the Batch pool.
 
@@ -297,6 +297,12 @@ A `network_security_group_rules` block exports the following:
 * `source_address_prefix` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
 
 * `source_port_ranges` - The source port ranges to match for the rule. Valid values are '*' (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. 100-200). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be *.
+
+---
+
+A `node_placement_configuration` block exports the following:
+
+* `policy` - The placement policy for allocating nodes in the pool.
 
 ---
 
