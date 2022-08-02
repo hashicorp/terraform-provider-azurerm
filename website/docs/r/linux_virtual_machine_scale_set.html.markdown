@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `admin_username` - (Required) The username of the local administrator on each Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
 
-* `instances` - (Required) The number of Virtual Machines in the Scale Set.
+* `instances` - (Optional) The number of Virtual Machines in the Scale Set. Defaults to `0`.
 
 -> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
