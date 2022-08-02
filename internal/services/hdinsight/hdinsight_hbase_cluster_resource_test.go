@@ -1775,10 +1775,10 @@ func (r HDInsightHBaseClusterResource) azureMonitor(data acceptance.TestData) st
 %s
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name = "acctestLAW-%s-%d"
-  location = azurerm_resource_group.test.location
+  name                = "acctestLAW-%s-%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku = "PerGB2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_hdinsight_hbase_cluster" "test" {

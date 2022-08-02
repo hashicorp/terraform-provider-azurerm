@@ -1851,10 +1851,10 @@ func (r HDInsightInteractiveQueryClusterResource) azureMonitor(data acceptance.T
 %s
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name = "acctestLAW-%s-%d"
-  location = azurerm_resource_group.test.location
+  name                = "acctestLAW-%s-%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku = "PerGB2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
@@ -1901,8 +1901,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   extension {
-	log_analytics_workspace_id = azurerm_log_analytics_workspace.test.workspace_id
-	primary_key = azurerm_log_analytics_workspace.test.primary_shared_key
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.test.workspace_id
+    primary_key                = azurerm_log_analytics_workspace.test.primary_shared_key
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
