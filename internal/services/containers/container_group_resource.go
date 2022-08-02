@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -73,10 +73,18 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"network_profile_id": {
+				Deprecated:    "This is deprecated in favor of `subnet_id`, and will be removed in v4.0",
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ForceNew:      true,
+				Computed:      true,
 				ValidateFunc:  networkValidate.NetworkProfileID,
+				ConflictsWith: []string{"dns_name_label"},
+			},
+
+			"subnet_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  networkValidate.SubnetID,
 				ConflictsWith: []string{"dns_name_label"},
 			},
 
@@ -655,7 +663,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Name:     pointer.FromString(id.ContainerGroupName),
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-		Properties: containerinstance.ContainerGroupProperties{
+		Properties: containerinstance.ContainerGroupPropertiesProperties{
 			InitContainers:           initContainers,
 			Containers:               containers,
 			Diagnostics:              diagnostics,
@@ -688,21 +696,20 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
-	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
-	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
-		id, _ := networkParse.NetworkProfileID(networkProfileID)
-		networkProfileIDNorm := id.ID()
-		// Avoid parallel provisioning if "network_profile_id" is given.
-		// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
-		locks.ByID(networkProfileIDNorm)
-		defer locks.UnlockByID(networkProfileIDNorm)
+	if subnetId := d.Get("subnet_id").(string); subnetId != "" {
+		id, _ := networkParse.SubnetID(subnetId)
+		subnetIdNrom := id.ID()
+		// Avoid parallel provisioning if "subnet_id" is given.
+		locks.ByID(subnetIdNrom)
+		defer locks.UnlockByID(subnetIdNrom)
 
 		if strings.ToLower(OSType) != "linux" {
 			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
 		}
-		containerGroup.Properties.NetworkProfile = &containerinstance.ContainerGroupNetworkProfile{
-			Id: networkProfileIDNorm,
+		containerGroup.Properties.SubnetIds = &[]containerinstance.ContainerGroupSubnetId{
+			{
+				Id: subnetIdNrom,
+			},
 		}
 	}
 
@@ -825,6 +832,15 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `diagnostics`: %+v", err)
 		}
 
+		if subnetIds := props.SubnetIds; subnetIds != nil && len(*subnetIds) != 0 {
+			subnetIdStr := (*subnetIds)[0].Id
+			subnetId, err := networkParse.SubnetID(subnetIdStr)
+			if err != nil {
+				return fmt.Errorf(`parsing subnet id %q: %v`, subnetIdStr, err)
+			}
+			d.Set("subnet_id", subnetId.ID())
+		}
+
 		if kvProps := props.EncryptionProperties; kvProps != nil {
 			var keyVaultUri, keyName, keyVersion string
 			if kvProps.VaultBaseUrl != "" {
@@ -900,17 +916,16 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := existing.Model; model != nil {
 		props := model.Properties
-		if profile := props.NetworkProfile; profile != nil {
-			id, err := networkParse.NetworkProfileID(profile.Id)
+		if subnetIds := props.SubnetIds; subnetIds != nil && len(*subnetIds) != 0 {
+			subnetIdStr := (*subnetIds)[0].Id
+			subnetId, err := networkParse.SubnetID(subnetIdStr)
 			if err != nil {
-				return err
+				return fmt.Errorf(`parsing subnet id %q: %v`, subnetIdStr, err)
 			}
-			networkProfileId = id.ID()
 
-			// Avoid parallel deletion if "network_profile_id" is given. (not sure whether this is necessary)
-			// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
-			locks.ByID(networkProfileId)
-			defer locks.UnlockByID(networkProfileId)
+			// Avoid parallel deletion if "subnet_id" is given.
+			locks.ByID(subnetId.ID())
+			defer locks.UnlockByID(subnetId.ID())
 		}
 	}
 
@@ -1309,7 +1324,7 @@ func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]conta
 		output = append(output, containerinstance.ImageRegistryCredential{
 			Server:   credConfig["server"].(string),
 			Password: pointer.FromString(credConfig["password"].(string)),
-			Username: credConfig["username"].(string),
+			Username: pointer.FromString(credConfig["username"].(string)),
 		})
 	}
 

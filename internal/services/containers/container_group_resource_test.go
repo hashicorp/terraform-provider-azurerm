@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -107,7 +107,7 @@ func TestAccContainerGroup_UserAssignedIdentityWithVirtualNetwork(t *testing.T) 
 		{
 			Config: r.UserAssignedIdentityWithVirtualNetwork(data),
 		},
-		data.ImportStep("network_profile_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -413,15 +413,15 @@ func TestAccContainerGroup_virtualNetwork(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "identity"),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "identity.#"),
 				check.That(data.ResourceName).Key("container.#").HasValue("1"),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 				check.That(data.ResourceName).Key("ip_address_type").HasValue("Private"),
-				check.That(data.ResourceName).Key("network_profile_id").Exists(),
 				check.That(data.ResourceName).Key("dns_config.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -452,19 +452,17 @@ func TestAccContainerGroup_SystemAssignedIdentityVirtualNetwork(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "identity"),
 				check.That(data.ResourceName).Key("container.#").HasValue("1"),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 				check.That(data.ResourceName).Key("ip_address_type").HasValue("Private"),
-				check.That(data.ResourceName).Key("network_profile_id").Exists(),
 				check.That(data.ResourceName).Key("dns_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
-		data.ImportStep("identity.0.principal_id", "network_profile_id"),
+		data.ImportStep("identity.0.principal_id"),
 	})
 }
 
@@ -918,21 +916,6 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -946,7 +929,7 @@ resource "azurerm_container_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
   os_type             = "Linux"
-  network_profile_id  = azurerm_network_profile.test.id
+  subnet_id           = azurerm_subnet.test.id
   container {
     name   = "hw"
     image  = "ubuntu:20.04"
@@ -1452,27 +1435,12 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.test.id
+  subnet_id           = azurerm_subnet.test.id
   os_type             = "Linux"
 
   container {
@@ -1531,28 +1499,13 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "test" {
   count               = %d
   name                = "acctestcontainergroup-${count.index}-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.test.id
+  subnet_id           = azurerm_subnet.test.id
   os_type             = "Linux"
 
   container {
@@ -1602,27 +1555,12 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.test.id
+  subnet_id           = azurerm_subnet.test.id
   os_type             = "Linux"
 
   container {

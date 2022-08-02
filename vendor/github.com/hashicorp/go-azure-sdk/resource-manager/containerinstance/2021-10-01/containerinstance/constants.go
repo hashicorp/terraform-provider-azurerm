@@ -148,6 +148,43 @@ func parseContainerNetworkProtocol(input string) (*ContainerNetworkProtocol, err
 	return &out, nil
 }
 
+type DnsNameLabelReusePolicy string
+
+const (
+	DnsNameLabelReusePolicyNoreuse            DnsNameLabelReusePolicy = "Noreuse"
+	DnsNameLabelReusePolicyResourceGroupReuse DnsNameLabelReusePolicy = "ResourceGroupReuse"
+	DnsNameLabelReusePolicySubscriptionReuse  DnsNameLabelReusePolicy = "SubscriptionReuse"
+	DnsNameLabelReusePolicyTenantReuse        DnsNameLabelReusePolicy = "TenantReuse"
+	DnsNameLabelReusePolicyUnsecure           DnsNameLabelReusePolicy = "Unsecure"
+)
+
+func PossibleValuesForDnsNameLabelReusePolicy() []string {
+	return []string{
+		string(DnsNameLabelReusePolicyNoreuse),
+		string(DnsNameLabelReusePolicyResourceGroupReuse),
+		string(DnsNameLabelReusePolicySubscriptionReuse),
+		string(DnsNameLabelReusePolicyTenantReuse),
+		string(DnsNameLabelReusePolicyUnsecure),
+	}
+}
+
+func parseDnsNameLabelReusePolicy(input string) (*DnsNameLabelReusePolicy, error) {
+	vals := map[string]DnsNameLabelReusePolicy{
+		"noreuse":            DnsNameLabelReusePolicyNoreuse,
+		"resourcegroupreuse": DnsNameLabelReusePolicyResourceGroupReuse,
+		"subscriptionreuse":  DnsNameLabelReusePolicySubscriptionReuse,
+		"tenantreuse":        DnsNameLabelReusePolicyTenantReuse,
+		"unsecure":           DnsNameLabelReusePolicyUnsecure,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DnsNameLabelReusePolicy(input)
+	return &out, nil
+}
+
 type GpuSku string
 
 const (

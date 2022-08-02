@@ -8,5 +8,5 @@ type LogAnalytics struct {
 	Metadata            *map[string]string   `json:"metadata,omitempty"`
 	WorkspaceId         string               `json:"workspaceId"`
 	WorkspaceKey        string               `json:"workspaceKey"`
-	WorkspaceResourceId *map[string]string   `json:"workspaceResourceId,omitempty"`
+	WorkspaceResourceId *string              `json:"workspaceResourceId,omitempty"`
 }
