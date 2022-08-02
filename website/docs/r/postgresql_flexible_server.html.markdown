@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 * 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12` and `13`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13` and `14`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 

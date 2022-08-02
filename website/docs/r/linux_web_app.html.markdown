@@ -87,11 +87,11 @@ The following arguments are supported:
 
 * `sticky_settings` - A `sticky_settings` block as defined below.
 
-* `virtual_network_subnet_id` - (Optional) The subnet id which the web app will be vNet Integrated with. Changing this forces a new Linux Function App to be created.
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **NOTE on virtual network integration:** Terraform currently provides virtual network integration both a standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html), and allows for virtual network integration to be defined in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
 
-~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permisions)
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
 
@@ -416,6 +416,8 @@ A `scm_ip_restriction` block supports the following:
 A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `true`.
+
+~> **NOTE:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
 
 * `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
 

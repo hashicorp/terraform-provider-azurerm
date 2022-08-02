@@ -219,7 +219,7 @@ resource "azurerm_subnet" "isesubnet1" {
   name                 = "isesubnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/26"]
+  address_prefixes     = ["10.0.1.0/27"]
 
   delegation {
     name = "integrationServiceEnvironments"
@@ -234,21 +234,21 @@ resource "azurerm_subnet" "isesubnet2" {
   name                 = "isesubnet2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.64/26"]
+  address_prefixes     = ["10.0.1.32/27"]
 }
 
 resource "azurerm_subnet" "isesubnet3" {
   name                 = "isesubnet3"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.128/26"]
+  address_prefixes     = ["10.0.1.64/27"]
 }
 
 resource "azurerm_subnet" "isesubnet4" {
   name                 = "isesubnet4"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.192/26"]
+  address_prefixes     = ["10.0.1.96/27"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

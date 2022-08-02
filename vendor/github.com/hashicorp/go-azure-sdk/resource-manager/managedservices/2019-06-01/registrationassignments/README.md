@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := registrationassignments.NewScopeID()
+id := registrationassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.List(ctx, id, registrationassignments.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, registrationassignments.DefaultListOperationOptions())
