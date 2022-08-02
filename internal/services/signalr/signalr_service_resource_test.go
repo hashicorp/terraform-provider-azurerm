@@ -611,7 +611,7 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  service_mode              = "%s"
+  service_mode              = "%[3]s"
   connectivity_logs_enabled = false
   messaging_logs_enabled    = false
 }
