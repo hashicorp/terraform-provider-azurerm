@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `instances` - (Required) The number of Virtual Machines in the Scale Set.
 
--> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
+-> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
 * `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
 
@@ -548,7 +548,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Windows Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when reading the Windows Virtual Machine Scale Set.

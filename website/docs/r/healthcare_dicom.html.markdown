@@ -75,7 +75,7 @@ An `authentication` supports the following:
 * `audience` - The intended audience to receive authentication tokens for the service. The default value is https://dicom.azurehealthcareapis.azure.com
 
 ## Timeouts
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare DICOM Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Healthcare DICOM Service.
