@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - the property `instances` is now Optional and defaults to `0` [GH-17836]
 * `azurerm_log_analytics_cluster` - updated validation for the `size_gb` property [GH-17780]
 * `azurerm_proximity_placement_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-17776]
+* `azurerm_shared_image` - improved validation for the `publisher`, `offer` and `sku` properties in the `identifier` block [GH-17547]
 
 BUG FIXES:
 
