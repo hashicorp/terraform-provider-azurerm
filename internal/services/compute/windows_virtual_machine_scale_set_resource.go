@@ -191,6 +191,12 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
+	if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
+			GalleryApplications: galleryApplications,
+		}
+	}
+
 	// NOTE: Hardware Profile is currently only supported in Uniform
 	hardwareProfileRaw := d.Get("hardware_profile").([]interface{})
 	if hardwareProfile := ExpandVirtualMachineScaleSetHardwareProfile(hardwareProfileRaw); hardwareProfile != nil {
@@ -918,6 +924,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("eviction_policy", string(profile.EvictionPolicy))
 		d.Set("license_type", profile.LicenseType)
 
+		if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
+			d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+		}
+
 		// the service just return empty when this is not assigned when provisioned
 		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
 		priority := compute.VirtualMachinePriorityTypesRegular
@@ -1253,6 +1263,8 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Default:      "PT1H30M",
 			ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
+
+		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
 
 		"hardware_profile": VirtualMachineScaleSetHardwareProfileSchema(),
 

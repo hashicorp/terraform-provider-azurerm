@@ -193,6 +193,12 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
+	if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
+			GalleryApplications: galleryApplications,
+		}
+	}
+
 	// NOTE: Hardware Profile is currently only supported in Uniform
 	hardwareProfileRaw := d.Get("hardware_profile").([]interface{})
 	if hardwareProfile := ExpandVirtualMachineScaleSetHardwareProfile(hardwareProfileRaw); hardwareProfile != nil {
@@ -892,6 +898,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		d.Set("max_bid_price", maxBidPrice)
 
 		d.Set("eviction_policy", string(profile.EvictionPolicy))
+
+		if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
+			d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+		}
 
 		// the service just return empty when this is not assigned when provisioned
 		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971

@@ -168,6 +168,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
+* `gallery_applications` - (Optional) A `gallery_applications` block as defined below.
+
 * `hardware_profile` - (Optional) A `hardware_profile` block as defined below.
 
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
@@ -359,6 +361,20 @@ A `extension` block supports the following:
 -> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
 
 -> **NOTE:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
+
+---
+
+A `gallery_applications` block supports the following:
+
+* `package_reference_id` - (Required) Specifies the Gallery Application Version resource ID. Changing this forces a new resource to be created.
+
+-> **NOTE:** The `package_reference_id` should be in the form of `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/{mygroup1}/providers/Microsoft.Compute/galleries/{gallery1}/applications/{application1}/versions/{version1}`.
+
+* `configuration_reference` - (Opptional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resource to be created.
+
+* `order` - (Opptional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`. Changing this forces a new resource to be created.
+
+* `tag` - (Opptional) Specifies a passthrough value for more generic context. This field can be any valid `string` value. Changing this forces a new resource to be created.
 
 ---
 

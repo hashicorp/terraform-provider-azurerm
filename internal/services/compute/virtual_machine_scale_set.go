@@ -298,30 +298,104 @@ func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"package_reference_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.GalleryApplicationID,
 				},
 
+				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
 				"configuration_reference": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
 				"order": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  0,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 2147483647),
 				},
 
-				"tags": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "",
+				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
+				"tag": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
 	}
+}
+
+func expandVirtualMachineScaleSetGalleryApplications(input []interface{}) *[]compute.VMGalleryApplication {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]compute.VMGalleryApplication, 0)
+
+	for _, v := range input {
+		packageReferenceId := v.(map[string]interface{})["package_reference_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_reference"].(string)
+		order := v.(map[string]interface{})["order"].(int)
+		tag := v.(map[string]interface{})["tag"].(string)
+
+		app := &compute.VMGalleryApplication{
+			PackageReferenceID:     utils.String(packageReferenceId),
+			ConfigurationReference: utils.String(configurationReference),
+			Order:                  utils.Int32(int32(order)),
+			Tags:                   utils.String(tag),
+		}
+
+		out = append(out, *app)
+	}
+
+	return &out
+}
+
+func flattenVirtualMachineScaleSetGalleryApplications(input *[]compute.VMGalleryApplication) []interface{} {
+	if len(*input) == 0 {
+		return nil
+	}
+
+	out := make([]map[string]interface{}, 0)
+
+	for _, v := range *input {
+		var packageReferenceId, configurationReference, tag string
+		var order int
+
+		if v.PackageReferenceID != nil {
+			packageReferenceId = *v.PackageReferenceID
+		}
+
+		if v.ConfigurationReference != nil {
+			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.Order != nil {
+			order = int(*v.Order)
+		}
+
+		if v.Tags != nil {
+			tag = *v.Tags
+		}
+
+		app := map[string]interface{}{
+			"package_reference_id":    packageReferenceId,
+			"configuration_reference": configurationReference,
+			"order":                   order,
+			"tag":                     tag,
+		}
+
+		out = append(out, app)
+	}
+
+	return []interface{}{out}
 }
 
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
