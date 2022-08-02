@@ -2,6 +2,7 @@ package hdinsight
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"net/url"
 	"regexp"
 	"strings"
@@ -187,6 +188,32 @@ func SchemaHDInsightsMonitor() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					// Azure doesn't return the key
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsExtension() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"log_analytics_workspace_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
+				"primary_key": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
 					},
 				},
