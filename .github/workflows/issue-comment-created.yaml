@@ -26,4 +26,5 @@ jobs:
         if: ${{ endsWith(github.event.comment.body, '/wr') }}
         with:
           labels: waiting-response
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
 
