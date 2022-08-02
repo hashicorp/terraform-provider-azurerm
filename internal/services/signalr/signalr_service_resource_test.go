@@ -615,7 +615,7 @@ resource "azurerm_signalr_service" "test" {
   connectivity_logs_enabled = false
   messaging_logs_enabled    = false
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, serviceMode)
 }
 
 func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
