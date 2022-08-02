@@ -53,8 +53,7 @@ The following attributes are exported:
 
 * `license_type` - The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: Windows_Server - The on-premises license is for Windows Server. Windows_Client - The on-premises license is for Windows Client.
 
-* `os_disk_placement_setting` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool.
-  This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
+* `os_disk_placement_setting` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
 
 * `identity` - An `identity` block describes the identity settings.
 
@@ -78,7 +77,7 @@ The following attributes are exported:
 
 * `user_accounts` - A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
 
-* `windows_configuration`
+* `windows_configuration` - A `windows_configuration` block that describes the Windows configuration in the pool.
 
 ---
 
@@ -123,6 +122,8 @@ A `container_registries` block exports the following:
 * `user_name` - The user name to log into the registry server.
 
 * `password` - The password to log into the registry server.
+
+* `identity_id` - The ARM resource id of the user assigned identity.
 
 ---
 
@@ -170,6 +171,8 @@ If specified, the extensions mentioned in this configuration will be installed o
 ---
 
 A `fixed_scale` block exports the following:
+
+* `node_deallocation_option` - Determines what to do with a node and its running task(s) after it has been selected for deallocation.
 
 * `target_dedicated_nodes` - The number of nodes in the Batch pool.
 
@@ -301,7 +304,9 @@ A `start_task` block exports the following:
 
 * `command_line` - The command line executed by the start task.
 
-* `task_retry_maximum` - The number of retry count
+* `container_settings` - The settings for the container under which the start task runs.
+  
+* `task_retry_maximum` - The number of retry count.
 
 * `wait_for_success` - A flag that indicates if the Batch pool should wait for the start task to be completed.
 
@@ -310,6 +315,18 @@ A `start_task` block exports the following:
 * `user_identity` - A `user_identity` block that describes the user identity under which the start task runs.
 
 * `resource_file` - One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
+---
+
+A `container_settings` block exports the following:
+
+* `image_name` - The image to use to create the container in which the task will run. 
+
+* `container_run_options` - Additional options to the container create command. 
+
+* `registry` - The same reference as `container_registry` block defined as follows.
+
+* `working_directory` - A flag to indicate where the container task working directory is.
 
 ---
 
@@ -343,6 +360,8 @@ A `resource_file` block exports the following:
 
 * `storage_container_url` - The URL of the blob container within Azure Blob Storage.
 
+* `identity_id` - The reference to the user assigned identity to use to access Azure Blob Storage.
+
 ---
 
 A `network_configuration` block exports the following:
@@ -374,6 +393,42 @@ A `network_security_group_rules` block exports the following:
 * `priority` - The priority for this rule.
 
 * `source_address_prefix` - The source address prefix or tag to match for the rule.
+
+---
+
+A `task_scheduling_policy` block exports the following:
+
+* `node_fill_type` - Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
+
+---
+
+A `user_accounts` block supports the following:
+
+* `name` - The name of the user account.
+
+* `password` - The password for the user account.
+
+* `elevation_level` - The elevation level of the user account. "NonAdmin" - The auto user is a standard user without elevated access. "Admin" - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin.
+
+* `linux_user_configuration` - The `linux_user_configuration` block defined below is a linux-specific user configuration for the user account. This property is ignored if specified on a Windows pool. If not specified, the user is created with the default options.
+
+* `windows_user_configuration` - The `windows_user_configuration` block defined below is a windows-specific user configuration for the user account. This property can only be specified if the user is on a Windows pool. If not specified and on a Windows pool, the user is created with the default options.
+
+---
+
+A `linux_user_configuration` block supports the following:
+
+* `uid` - The group ID for the user account. 
+
+* `gid` - The user ID of the user account. 
+
+* `ssh_private_key` - The SSH private key for the user account. 
+
+---
+
+A `windows_user_configuration` block supports the following:
+
+* `login_mode` - Specifies login mode for the user. 
 
 ## Timeouts
 
