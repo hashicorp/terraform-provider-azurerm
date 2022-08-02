@@ -132,6 +132,8 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
+											"NGINX.NGINXPLUS/nginxDeployments",
+											"PaloAltoNetworks.Cloudngfw/firewalls",
 										}, false),
 									},
 

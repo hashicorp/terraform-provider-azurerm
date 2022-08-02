@@ -1,0 +1,16 @@
+---
+name: "Pull Request Reviewed"
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  add-waiting-response:
+    if: github.event.review.state != 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: waiting-response
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
