@@ -200,8 +200,8 @@ func TestAccFirewall_withZones(t *testing.T) {
 func TestAccFirewall_skuTierUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
-	skuTier := string(standard)
-	skuTierUpdate := string(premium)
+	skuTier := standard
+	skuTierUpdate := premium
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -831,7 +831,7 @@ resource "azurerm_firewall" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "AZFW_VNet"
-  sku_tier            = %s
+  sku_tier            = "%s"
 
   ip_configuration {
     name                 = "configuration"
