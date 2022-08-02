@@ -235,12 +235,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
 					d.ForceNew("sku")
 				}
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
-					zoneRedundant := d.Get("zone_redundant").(bool)
-					if !zoneRedundant {
-						return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
-					}
-				}
 			}
 			return nil
 		}),
