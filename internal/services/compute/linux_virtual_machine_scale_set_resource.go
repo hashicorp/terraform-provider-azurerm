@@ -1059,7 +1059,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"instances": {
 			Type:         pluginsdk.TypeInt,
-			Required:     true,
+			Optional:     true,
+			Default:      0,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
