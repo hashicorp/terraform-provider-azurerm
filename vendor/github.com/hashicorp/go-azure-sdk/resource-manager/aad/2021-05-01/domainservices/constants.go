@@ -61,6 +61,62 @@ func parseFilteredSync(input string) (*FilteredSync, error) {
 	return &out, nil
 }
 
+type KerberosArmoring string
+
+const (
+	KerberosArmoringDisabled KerberosArmoring = "Disabled"
+	KerberosArmoringEnabled  KerberosArmoring = "Enabled"
+)
+
+func PossibleValuesForKerberosArmoring() []string {
+	return []string{
+		string(KerberosArmoringDisabled),
+		string(KerberosArmoringEnabled),
+	}
+}
+
+func parseKerberosArmoring(input string) (*KerberosArmoring, error) {
+	vals := map[string]KerberosArmoring{
+		"disabled": KerberosArmoringDisabled,
+		"enabled":  KerberosArmoringEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KerberosArmoring(input)
+	return &out, nil
+}
+
+type KerberosRc4Encryption string
+
+const (
+	KerberosRc4EncryptionDisabled KerberosRc4Encryption = "Disabled"
+	KerberosRc4EncryptionEnabled  KerberosRc4Encryption = "Enabled"
+)
+
+func PossibleValuesForKerberosRc4Encryption() []string {
+	return []string{
+		string(KerberosRc4EncryptionDisabled),
+		string(KerberosRc4EncryptionEnabled),
+	}
+}
+
+func parseKerberosRc4Encryption(input string) (*KerberosRc4Encryption, error) {
+	vals := map[string]KerberosRc4Encryption{
+		"disabled": KerberosRc4EncryptionDisabled,
+		"enabled":  KerberosRc4EncryptionEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KerberosRc4Encryption(input)
+	return &out, nil
+}
+
 type Ldaps string
 
 const (
@@ -170,6 +226,46 @@ func parseNtlmV1(input string) (*NtlmV1, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := NtlmV1(input)
+	return &out, nil
+}
+
+type Status string
+
+const (
+	StatusFailure Status = "Failure"
+	StatusNone    Status = "None"
+	StatusOK      Status = "OK"
+	StatusRunning Status = "Running"
+	StatusSkipped Status = "Skipped"
+	StatusWarning Status = "Warning"
+)
+
+func PossibleValuesForStatus() []string {
+	return []string{
+		string(StatusFailure),
+		string(StatusNone),
+		string(StatusOK),
+		string(StatusRunning),
+		string(StatusSkipped),
+		string(StatusWarning),
+	}
+}
+
+func parseStatus(input string) (*Status, error) {
+	vals := map[string]Status{
+		"failure": StatusFailure,
+		"none":    StatusNone,
+		"ok":      StatusOK,
+		"running": StatusRunning,
+		"skipped": StatusSkipped,
+		"warning": StatusWarning,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Status(input)
 	return &out, nil
 }
 

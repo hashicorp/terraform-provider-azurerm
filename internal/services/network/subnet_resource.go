@@ -132,6 +132,8 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
 											"Microsoft.Orbital/orbitalGateway",
+											"NGINX.NGINXPLUS/nginxDeployments",
+											"PaloAltoNetworks.Cloudngfw/firewalls",
 										}, false),
 									},
 

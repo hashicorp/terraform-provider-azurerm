@@ -4,6 +4,7 @@ package domainservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DomainServiceProperties struct {
+	ConfigDiagnostics       *ConfigDiagnostics      `json:"configDiagnostics,omitempty"`
 	DeploymentId            *string                 `json:"deploymentId,omitempty"`
 	DomainConfigurationType *string                 `json:"domainConfigurationType,omitempty"`
 	DomainName              *string                 `json:"domainName,omitempty"`
