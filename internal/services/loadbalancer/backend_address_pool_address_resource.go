@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -29,7 +28,7 @@ type BackendAddressPoolAddressModel struct {
 	BackendAddressPoolId    string                      `tfschema:"backend_address_pool_id"`
 	VirtualNetworkId        string                      `tfschema:"virtual_network_id"`
 	IPAddress               string                      `tfschema:"ip_address"`
-	FrontendIPConfiguration string                      `tfschema:"backend_address_ip_config_id"`
+	FrontendIPConfiguration string                      `tfschema:"backend_address_ip_configuration_id"`
 	PortMapping             []inboundNATRulePortMapping `tfschema:"inbound_nat_rule_port_mapping"`
 }
 
@@ -79,21 +78,27 @@ func (r BackendAddressPoolAddressResource) Arguments() map[string]*pluginsdk.Sch
 		},
 
 		"virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: networkValidate.VirtualNetworkID,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			RequiredWith:  []string{"ip_address"},
+			ConflictsWith: []string{"backend_address_ip_configuration_id"},
+			ValidateFunc:  networkValidate.VirtualNetworkID,
+			Description:   "For regional load balancer, user needs to specify `virtual_network_id` and `ip_address`",
 		},
 
 		"ip_address": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			RequiredWith: []string{"virtual_network_id"},
 			ValidateFunc: validation.IsIPAddress,
 		},
 
-		"backend_address_ip_config_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+		"backend_address_ip_configuration_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ConflictsWith: []string{"virtual_network_id"},
+			ValidateFunc:  validate.LoadBalancerFrontendIpConfigurationID,
+			Description:   "For global load balancer, user needs to specify the `backend_address_ip_configuration_id` of the added regional load balancers",
 		},
 	}
 }
@@ -143,8 +148,10 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 			if isBasicSku {
 				return fmt.Errorf("Backend Addresses are not supported on Basic SKU Load Balancers")
 			}
-			if lb.Sku != nil && lb.Sku.Tier != network.LoadBalancerSkuTierGlobal && model.FrontendIPConfiguration != "" {
-				return fmt.Errorf("Regional Backend Address Pool Addresses can only be set under the Global SKU tier")
+			if lb.Sku != nil && lb.Sku.Tier == network.LoadBalancerSkuTierGlobal {
+				if model.FrontendIPConfiguration == "" {
+					return fmt.Errorf("Please set a Regional Backend Address Pool Addresses for the Global load balancer")
+				}
 			}
 
 			id := parse.NewBackendAddressPoolAddressID(subscriptionId, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName, model.Name)
@@ -443,7 +450,7 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 			lbStatus := &pluginsdk.StateChangeConf{
 				Pending:                   []string{string(network.ProvisioningStateUpdating)},
 				Target:                    []string{string(network.ProvisioningStateSucceeded)},
-				Delay:                     30 * time.Second,
+				MinTimeout:                5 * time.Minute,
 				PollInterval:              10 * time.Second,
 				Refresh:                   loadbalacnerProvisioningStatusRefreshFunc(ctx, lbClient, *id),
 				ContinuousTargetOccurence: 10,

@@ -19,7 +19,7 @@ var _ types.TestResourceVerifyingRemoved = BackendAddressPoolAddressResourceTest
 
 type BackendAddressPoolAddressResourceTests struct{}
 
-func TestAccRegionalBackendAddressPoolAddressBasic(t *testing.T) {
+func TestAccBackendAddressPoolAddress_regionalLbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -33,7 +33,7 @@ func TestAccRegionalBackendAddressPoolAddressBasic(t *testing.T) {
 	})
 }
 
-func TestAccRegionalBackendAddressPoolAddressRequiresImport(t *testing.T) {
+func TestAccBackendAddressPoolAddress_regionalLbRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,7 +47,7 @@ func TestAccRegionalBackendAddressPoolAddressRequiresImport(t *testing.T) {
 	})
 }
 
-func TestAccRegionalBackendAddressPoolAddressDisappears(t *testing.T) {
+func TestAccBackendAddressPoolAddress_regionalLbDisappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -58,7 +58,7 @@ func TestAccRegionalBackendAddressPoolAddressDisappears(t *testing.T) {
 	})
 }
 
-func TestAccRegionalBackendAddressPoolAddressUpdate(t *testing.T) {
+func TestAccBackendAddressPoolAddress_regionalLbUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -79,7 +79,7 @@ func TestAccRegionalBackendAddressPoolAddressUpdate(t *testing.T) {
 	})
 }
 
-func TestAccGlobalBackendAddressPoolAddress_crossRegionUpdate(t *testing.T) {
+func TestAccBackendAddressPoolAddress_globalLbUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test1")
 	r := BackendAddressPoolAddressResourceTests{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -100,7 +100,7 @@ func TestAccGlobalBackendAddressPoolAddress_crossRegionUpdate(t *testing.T) {
 	})
 }
 
-func TestAccGlobalBackendAddressPoolAddress_crossRegionRemoval(t *testing.T) {
+func TestAccBackendAddressPoolAddress_globalLbRemoval(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test1")
 	r := BackendAddressPoolAddressResourceTests{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -269,13 +269,13 @@ func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancer(data acc
 resource "azurerm_lb_backend_address_pool_address" "test1" {
   name                         = "address1"
   backend_address_pool_id      = azurerm_lb_backend_address_pool.backend-pool-cr.id
-  backend_address_ip_config_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[0].id
+  backend_address_ip_configuration_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[0].id
 }
 
 resource "azurerm_lb_backend_address_pool_address" "test2" {
   name                         = "address2"
   backend_address_pool_id      = azurerm_lb_backend_address_pool.backend-pool-cr.id
-  backend_address_ip_config_id = azurerm_lb.backend-lb-R2.frontend_ip_configuration[0].id
+  backend_address_ip_configuration_id = azurerm_lb.backend-lb-R2.frontend_ip_configuration[0].id
 }
 `, template)
 }
@@ -287,13 +287,13 @@ func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancerUpdate(da
 resource "azurerm_lb_backend_address_pool_address" "test1" {
   name                         = "address1"
   backend_address_pool_id      = azurerm_lb_backend_address_pool.backend-pool-cr.id
-  backend_address_ip_config_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[1].id
+  backend_address_ip_configuration_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[1].id
 }
 
 resource "azurerm_lb_backend_address_pool_address" "test2" {
   name                         = "address2"
   backend_address_pool_id      = azurerm_lb_backend_address_pool.backend-pool-cr.id
-  backend_address_ip_config_id = azurerm_lb.backend-lb-R2.frontend_ip_configuration[0].id
+  backend_address_ip_configuration_id = azurerm_lb.backend-lb-R2.frontend_ip_configuration[0].id
 }
 `, template)
 }
@@ -305,7 +305,7 @@ func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancerRemoval(d
 resource "azurerm_lb_backend_address_pool_address" "test1" {
   name                         = "address1"
   backend_address_pool_id      = azurerm_lb_backend_address_pool.backend-pool-cr.id
-  backend_address_ip_config_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[1].id
+  backend_address_ip_configuration_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[1].id
 }
 
 `, template)
