@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `azurerm_log_analytics_cluster` - updated validation for the `size_gb` property [GH-17780]
 * `azurerm_proximity_placement_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-17776]
 * `azurerm_shared_image` - improved validation for the `publisher`, `offer` and `sku` properties in the `identifier` block [GH-17547]
+* `azurerm_subnet` - support for the service delegation `Microsoft.Orbital/orbitalGateway` [GH-17854]
 
 BUG FIXES:
 
