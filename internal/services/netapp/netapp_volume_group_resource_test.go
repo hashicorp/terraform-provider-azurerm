@@ -46,6 +46,44 @@ func TestAccNetAppVolumeGroup_snapshotPolicy(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolumeGroup_volumeUpdates(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group", "test")
+	r := NetAppVolumeGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateVolumes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolumeGroup_crossRegionReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group", "test_secondary")
+	r := NetAppVolumeGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossRegionReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("volume.0.data_protection_replication.0.endpoint_type").HasValue("dst"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppVolumeGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := volumegroups.ParseVolumeGroupID(state.ID)
 	if err != nil {
@@ -96,18 +134,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
   
     tags = {
@@ -133,18 +164,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
   
     tags = {
@@ -170,18 +194,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
   
     tags = {
@@ -207,18 +224,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
   
     tags = {
@@ -244,18 +254,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
   
     tags = {
@@ -324,18 +327,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
 
     data_protection_snapshot_policy {
@@ -365,18 +361,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
 
     data_protection_snapshot_policy {
@@ -406,18 +395,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
 
     data_protection_snapshot_policy {
@@ -447,18 +429,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
 
     data_protection_snapshot_policy {
@@ -488,18 +463,11 @@ resource "azurerm_netapp_volume_group" "test" {
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      cifs_enabled          = false
       nfsv3_enabled         = true
       nfsv41_enabled        = false
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
-      kerberos5_read_only   = false
-			kerberos5_read_write  = false
-			kerberos5i_read_only  = false
-			kerberos5i_read_write = false
-			kerberos5p_read_only  = false
-			kerberos5p_read_write = false
     }
 
     data_protection_snapshot_policy {
@@ -518,6 +486,719 @@ resource "azurerm_netapp_volume_group" "test" {
   ]
 }
 `, template, data.RandomInteger)
+}
+
+func (NetAppVolumeGroupResource) updateVolumes(data acceptance.TestData) string {
+	template := NetAppVolumeGroupResource{}.templatePPG(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume_group" "test" {
+  name                   = "acctest-NetAppVolumeGroup-%[2]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  account_name           = azurerm_netapp_account.test.name
+  group_description      = "Test volume group"
+  application_type       = "SAP-HANA"
+  application_identifier = "TST"
+  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
+  
+  volume {
+    name                         = "acctest-NetAppVolume-1-%[2]d"
+    volume_path                  = "my-unique-file-path-1-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "data"
+    storage_quota_in_gb          = 1200
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-2-%[2]d"
+    volume_path                  = "my-unique-file-path-2-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "log"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "10.0.0.0/8"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-3-%[2]d"
+    volume_path                  = "my-unique-file-path-3-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-27T12:00:00Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-4-%[2]d"
+    volume_path                  = "my-unique-file-path-4-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "data-backup"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-5-%[2]d"
+    volume_path                  = "my-unique-file-path-5-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "log-backup"
+    storage_quota_in_gb          = 1200
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "192.168.0.0/24"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-28T11:00:00Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  depends_on = [
+    azurerm_linux_virtual_machine.test,
+    azurerm_proximity_placement_group.test
+  ]
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeGroupResource) crossRegionReplication(data acceptance.TestData) string {
+	template := NetAppVolumeGroupResource{}.templateForAvgCrossRegionReplication(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume_group" "test_primary" {
+  name                   = "acctest-NetAppVolumeGroup-Primary-%[2]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  account_name           = azurerm_netapp_account.test.name
+  group_description      = "Test volume group"
+  application_type       = "SAP-HANA"
+  application_identifier = "TST"
+  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
+  
+  volume {
+    name                         = "acctest-NetAppVolume-1-Primary-%[2]d"
+    volume_path                  = "my-unique-file-path-1-Primary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "data"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-2-Primary-%[2]d"
+    volume_path                  = "my-unique-file-path-2-Primary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "log"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-3-Primary-%[2]d"
+    volume_path                  = "my-unique-file-path-3-Primary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-4-Primary-%[2]d"
+    volume_path                  = "my-unique-file-path-4-Primary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "data-backup"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-5-Primary-%[2]d"
+    volume_path                  = "my-unique-file-path-5-Primary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "log-backup"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  depends_on = [
+    azurerm_linux_virtual_machine.test,
+    azurerm_proximity_placement_group.test
+  ]
+}
+
+resource "azurerm_netapp_volume_group" "test_secondary" {
+  name                   = "acctest-NetAppVolumeGroup-Secondary-%[2]d"
+  location               = %[3]s
+  resource_group_name    = azurerm_resource_group.test.name
+  account_name           = azurerm_netapp_account.test_secondary.name
+  group_description      = "Test volume group"
+  application_type       = "SAP-HANA"
+  application_identifier = "TST"
+  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
+  
+  volume {
+    name                         = "acctest-NetAppVolume-1-Secondary-%[2]d"
+    volume_path                  = "my-unique-file-path-1-Secondary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
+    subnet_id                    = azurerm_subnet.test_secondary.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
+    volume_spec_name             = "data"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_resource_group.test.location
+      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[0].id
+      replication_frequency     = "10minutes"
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-2-Secondary-%[2]d"
+    volume_path                  = "my-unique-file-path-2-Secondary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
+    subnet_id                    = azurerm_subnet.test_secondary.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
+    volume_spec_name             = "log"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_resource_group.test.location
+      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[1].id
+      replication_frequency     = "10minutes"
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-3-Secondary-%[2]d"
+    volume_path                  = "my-unique-file-path-3-Secondary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
+    subnet_id                    = azurerm_subnet.test_secondary.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+  
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_resource_group.test.location
+      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[2].id
+      replication_frequency     = "10minutes"
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-4-Secondary-%[2]d"
+    volume_path                  = "my-unique-file-path-4-Secondary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
+    subnet_id                    = azurerm_subnet.test_secondary.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
+    volume_spec_name             = "data-backup"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_resource_group.test.location
+      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[3].id
+      replication_frequency     = "10minutes"
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-5-Secondary-%[2]d"
+    volume_path                  = "my-unique-file-path-5-Secondary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
+    subnet_id                    = azurerm_subnet.test_secondary.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
+    volume_spec_name             = "log-backup"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv3"]
+    security_style               = "Unix"
+    snapshot_directory_visible   = false
+    
+    export_policy_rule {
+      rule_index            = 1
+      allowed_clients       = "0.0.0.0/0"
+      nfsv3_enabled         = true
+      nfsv41_enabled        = false
+      unix_read_only        = false
+      unix_read_write       = true
+      root_access_enabled   = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_resource_group.test.location
+      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[4].id
+      replication_frequency     = "10minutes"
+    }
+  
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  depends_on = [
+    azurerm_linux_virtual_machine.test_secondary,
+    azurerm_proximity_placement_group.test_secondary,
+
+  ]
+}
+
+`, template, data.RandomInteger, "eastus2")
+}
+
+func (r NetAppVolumeGroupResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
+	template := NetAppVolumeGroupResource{}.templatePPG(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test_secondary" {
+  name                = "acctest-NSG-Secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_virtual_network" "test_secondary" {
+  name                = "acctest-VirtualNetwork-Secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test_secondary" {
+  name                 = "acctest-DelegatedSubnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test_secondary.name
+  address_prefixes     = ["10.6.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test1_secondary" {
+  name                      = "acctest-HostsSubnet-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test_secondary.name
+  address_prefixes          = ["10.6.1.0/24"]
+}
+
+resource "azurerm_subnet_network_security_group_association" "test_secondary" {
+  subnet_id                 = azurerm_subnet.test1_secondary.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_proximity_placement_group" "test_secondary" {
+  name                = "acctest-PPG-Secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_availability_set" "test_secondary" {
+  name                = "acctest-avset-Secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
+  
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_network_interface" "test_secondary" {
+  name                = "acctest-nic-Secondary-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test1_secondary.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test_secondary" {
+  name                            = "acctest-vm-secondary-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = "%[3]s"
+  size                            = "Standard_M8ms"
+  admin_username                  = local.admin_username
+  admin_password                  = local.admin_password
+  disable_password_authentication = false
+  proximity_placement_group_id    = azurerm_proximity_placement_group.test_secondary.id
+  availability_set_id             = azurerm_availability_set.test_secondary.id
+  network_interface_ids = [
+    azurerm_network_interface.test_secondary.id
+  ]
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  tags = {
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "CreatedOnDate"                                                            = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack"                                                         = "true",
+    "Owner"                                                                    = "pmarques"
+  }
+}
+
+resource "azurerm_netapp_account" "test_secondary" {
+  name                = "acctest-NetAppAccount-Secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [
+    azurerm_subnet.test_secondary,
+    azurerm_subnet.test1_secondary
+  ]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test_secondary" {
+  name                = "acctest-NetAppPool-Secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test_secondary.name
+  service_level       = "Standard"
+  size_in_tb          = 8
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, "eastus2")
 }
 
 func (NetAppVolumeGroupResource) templatePPG(data acceptance.TestData) string {
@@ -703,5 +1384,5 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, "westus")
+`, data.RandomInteger, "westus2")
 }

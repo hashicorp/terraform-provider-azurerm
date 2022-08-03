@@ -4,12 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -88,21 +93,27 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"deployment_spec_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsUUID,
-			Default:      "20542149-bfca-5618-1879-9863dc6767f1",
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "20542149-bfca-5618-1879-9863dc6767f1",
+			ValidateFunc: validation.StringInSlice([]string{
+				"20542149-bfca-5618-1879-9863dc6767f1",
+			}, false),
 		},
 
 		"volume": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
-			ForceNew: true,
 			MinItems: 5,
 			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -127,6 +138,13 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					"volume_spec_name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"data",
+							"data-backup",
+							"log",
+							"log-backup",
+							"shared",
+						}, false),
 					},
 
 					"volume_path": {
@@ -158,13 +176,12 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeSet,
 						ForceNew: true,
 						Required: true,
-						MaxItems: 2,
+						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
 								"NFSv3",
 								"NFSv4.1",
-								"CIFS",
 							}, false),
 						},
 					},
@@ -207,11 +224,6 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 								},
 
-								"cifs_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
 								"nfsv3_enabled": {
 									Type:     pluginsdk.TypeBool,
 									Required: true,
@@ -233,36 +245,6 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"root_access_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
-								"kerberos5_read_only": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
-								"kerberos5_read_write": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
-								"kerberos5i_read_only": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
-								"kerberos5i_read_write": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
-								"kerberos5p_read_only": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
-								"kerberos5p_read_write": {
 									Type:     pluginsdk.TypeBool,
 									Required: true,
 								},
@@ -377,9 +359,6 @@ func resourceVolumeGroupVolumeListHash(v interface{}) int {
 				if allowedClients, ok := v["allowed_clients"].(string); ok {
 					buf.WriteString(fmt.Sprintf("%s-", allowedClients))
 				}
-				if cifsEnabled, ok := v["cifs_enabled"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", cifsEnabled))
-				}
 				if nfsv3Enabled, ok := v["nfsv3_enabled"].(bool); ok {
 					buf.WriteString(fmt.Sprintf("%t-", nfsv3Enabled))
 				}
@@ -394,24 +373,6 @@ func resourceVolumeGroupVolumeListHash(v interface{}) int {
 				}
 				if rootAccessEnabled, ok := v["root_access_enabled"].(bool); ok {
 					buf.WriteString(fmt.Sprintf("%t-", rootAccessEnabled))
-				}
-				if kerberos5ReadOnly, ok := v["kerberos5_read_only"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", kerberos5ReadOnly))
-				}
-				if kerberos5ReadWrite, ok := v["kerberos5_read_write"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", kerberos5ReadWrite))
-				}
-				if kerberos5iReadOnly, ok := v["kerberos5i_read_only"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", kerberos5iReadOnly))
-				}
-				if kerberos5iReadWrite, ok := v["kerberos5i_read_write"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", kerberos5iReadWrite))
-				}
-				if kerberos5pReadOnly, ok := v["kerberos5p_read_only"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", kerberos5pReadOnly))
-				}
-				if kerberos5pReadWrite, ok := v["kerberos5p_read_write"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", kerberos5pReadWrite))
 				}
 			}
 		}
@@ -472,6 +433,8 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
+			replicationClient := metadata.Client.NetApp.VolumeReplicationClient
+
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model NetAppVolumeGroupModel
@@ -498,6 +461,18 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// Parse volume list to set secondary volumes for CRR
+			for i, volumeCrr := range *volumeList {
+				if volumeCrr.Properties.DataProtection != nil &&
+					volumeCrr.Properties.DataProtection.Replication != nil &&
+					*volumeCrr.Properties.DataProtection.Replication.EndpointType == volumegroups.EndpointTypeDst {
+
+					// Modify volumeType as data protection type on main volumeList
+					// so it gets created correctly as data protection volume
+					(*volumeList)[i].Properties.VolumeType = utils.String("DataProtection")
+				}
+			}
+
 			parameters := volumegroups.VolumeGroupDetails{
 				Location: utils.String(location.Normalize(model.Location)),
 				Properties: &volumegroups.VolumeGroupProperties{
@@ -522,7 +497,129 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 			// 	return err
 			// }
 
+			// CRR - Authorizing secondaries from primary volumes
+			for _, volumeCrr := range *volumeList {
+				if volumeCrr.Properties.DataProtection != nil &&
+					volumeCrr.Properties.DataProtection.Replication != nil &&
+					*volumeCrr.Properties.DataProtection.Replication.EndpointType == volumegroups.EndpointTypeDst {
+
+					// Getting secondary volume resource id
+					secondaryId := volumes.NewVolumeID(subscriptionId,
+						model.ResourceGroupName,
+						model.AccountName,
+						getResourceNameString(volumeCrr.Properties.CapacityPoolResourceId),
+						getResourceNameString(volumeCrr.Name),
+					)
+
+					// Getting primary resource id
+					primaryId, err := volumesreplication.ParseVolumeID(volumeCrr.Properties.DataProtection.Replication.RemoteVolumeResourceId)
+					if err != nil {
+						return err
+					}
+
+					// Authorizing
+					if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, *primaryId, volumesreplication.AuthorizeRequest{
+						RemoteVolumeResourceId: utils.String(secondaryId.ID()),
+					},
+					); err != nil {
+						return fmt.Errorf("cannot authorize volume replication: %v", err)
+					}
+
+					// Wait for volume replication authorization to complete
+					log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", id)
+					if err := waitForReplAuthorization(ctx, replicationClient, *primaryId); err != nil {
+						return err
+					}
+				}
+			}
+
 			metadata.SetID(id)
+
+			return nil
+		},
+	}
+}
+
+func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 120 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			volumeClient := metadata.Client.NetApp.VolumeClient
+
+			id, err := volumes.ParseVolumeID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			metadata.Logger.Infof("Decoding state for %s", id)
+			var state NetAppVolumeGroupModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			metadata.Logger.Infof("Updating %s", id)
+
+			if metadata.ResourceData.HasChange("volume") {
+
+				// Iterating over each volume and performing individual patch
+				for i := 0; i < metadata.ResourceData.Get("volume.#").(int); i++ {
+
+					// Checking if individual volume has a change
+					volumeItem := fmt.Sprintf("volume.%v", i)
+
+					if metadata.ResourceData.HasChange(volumeItem) {
+
+						update := volumes.VolumePatch{
+							Properties: &volumes.VolumePatchProperties{},
+						}
+
+						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.storage_quota_in_gb", volumeItem)) {
+							storageQuotaInBytes := int64(metadata.ResourceData.Get(fmt.Sprintf("%v.storage_quota_in_gb", volumeItem)).(int) * 1073741824)
+							update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
+						}
+
+						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.export_policy_rule", volumeItem)) {
+							exportPolicyRuleRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.export_policy_rule", volumeItem)).([]interface{})
+							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+							update.Properties.ExportPolicy = exportPolicyRule
+						}
+
+						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)) {
+							// Validating that snapshot policies are not being created in a data protection volume
+							dataProtectionReplicationRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_replication", volumeItem)).([]interface{})
+							dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+
+							if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) == "dst" {
+								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
+							}
+
+							dataProtectionSnapshotPolicyRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)).([]interface{})
+							dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
+							update.Properties.DataProtection = dataProtectionSnapshotPolicy
+						}
+
+						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.throughput_in_mibps", volumeItem)) {
+							throughputMibps := metadata.ResourceData.Get(fmt.Sprintf("%v.throughput_in_mibps", volumeItem))
+							update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+						}
+
+						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.tags", volumeItem)) {
+							tagsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.tags", volumeItem)).(map[string]interface{})
+							update.Tags = tags.Expand(tagsRaw)
+						}
+
+						if err = volumeClient.UpdateThenPoll(ctx, *id, update); err != nil {
+							return fmt.Errorf("updating %s: %+v", id, err)
+						}
+
+						// Wait for volume to complete update
+						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, *id); err != nil {
+							return err
+						}
+
+					}
+				}
+			}
 
 			return nil
 		},
