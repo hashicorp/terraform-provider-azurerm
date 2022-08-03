@@ -13,15 +13,12 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{
-		GroundStationDataSource{},
-	}
+	return []sdk.DataSource{}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		SpacecraftResource{},
-		ContactProfileResource{},
 	}
 }
 

@@ -23,6 +23,7 @@ resource "azurerm_spacecraft" "example" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "westeurope"
   norad_id            = "12345"
+
   links {
     bandwidth_mhz        = 100
     center_frequency_mhz = 101
@@ -30,9 +31,11 @@ resource "azurerm_spacecraft" "example" {
     polarization         = "LHCP"
     name                 = "examplename"
   }
+
   tle_line_1 = "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
   tle_line_2 = "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
   title_line = "AQUA"
+
   tags = {
     aks-managed-cluster-name = "9a57225d-a405-4d40-aa46-f13d2342abef"
   }
@@ -67,27 +70,31 @@ The following arguments are supported:
 
 ---
 
-* `tle_line_1` - (Optional) The name of the field in output events used to specify the primary key which insert or update operations are based on.
+* `tle_line_1` - (Optional) Line 1 of the two line elements(TLE).
+
+* `tle_line_2` - (Optional) Line 2 of the two line elements(TLE).
+
+* `title_line` - (Optional) Title of the two line elements(TLE).
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Stream Analytics Output for CosmosDB.
+* `id` - The ID of the Spacecraft.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output for CosmosDB.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output for CosmosDB.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output for CosmosDB.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Output for CosmosDB.
+* `create` - (Defaults to 30 minutes) Used when creating the Spacecraft.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Spacecraft.
+* `update` - (Defaults to 30 minutes) Used when updating the Spacecraft.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Spacecraft.
 
 ## Import
 
-Stream Analytics Outputs for CosmosDB can be imported using the `resource id`, e.g.
+Spacecraft can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_cosmosdb.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_spacecraft.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Orbital/spacecrafts/spacecraft1
 ```

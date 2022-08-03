@@ -93,6 +93,7 @@ resource "azurerm_spacecraft" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "westus"
   norad_id            = "12345"
+
   links {
     bandwidth_mhz        = 100
     center_frequency_mhz = 101
@@ -100,6 +101,7 @@ resource "azurerm_spacecraft" "test" {
     polarization         = "LHCP"
     name                 = "linkname"
   }
+
   tle_line_1 = "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
   tle_line_2 = "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
   title_line = "AQUA"
@@ -117,6 +119,7 @@ resource "azurerm_spacecraft" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "eastus"
   norad_id            = "23456"
+
   links {
     bandwidth_mhz        = 100
     center_frequency_mhz = 101
@@ -124,6 +127,7 @@ resource "azurerm_spacecraft" "test" {
     polarization         = "LHCP"
     name                 = "linkname"
   }
+
   tle_line_1 = "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
   tle_line_2 = "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
   title_line = "AQUB"
@@ -141,6 +145,7 @@ resource "azurerm_spacecraft" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "eastus"
   norad_id            = "12345"
+
   links {
     bandwidth_mhz        = 100
     center_frequency_mhz = 101
@@ -148,9 +153,11 @@ resource "azurerm_spacecraft" "test" {
     polarization         = "LHCP"
     name                 = "linkname"
   }
+
   tle_line_1 = "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
   tle_line_2 = "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
   title_line = "AQUA"
+
   tags = {
     aks-managed-cluster-name = "9a57225d-a405-4d40-aa46-f13d2342abef"
   }
