@@ -16,6 +16,7 @@ Manages a Container Registry Task Schedule.
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
   location = "West Europe"
