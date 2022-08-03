@@ -351,15 +351,18 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	d.SetId(id.ID())
 
-	if skuName := d.Get("sku_name").(string); skuName == "E0" && gitProperty != nil {
+	skuName := d.Get("sku_name").(string)
+	if skuName == "E0" && gitProperty != nil {
 		return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 	}
 
-	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
-	if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
-		return err
+	if skuName != "E0" {
+		log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
+		if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	}
-	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 
 	log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 	monitorSettings := appplatform.MonitoringSettingResource{
@@ -443,15 +446,17 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
-		if skuName := d.Get("sku_name").(string); skuName == "E0" && gitProperty != nil {
+		skuName := d.Get("sku_name").(string)
+		if skuName == "E0" && gitProperty != nil {
 			return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 		}
-
-		log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
-		if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
-			return err
+		if skuName != "E0" {
+			log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
+			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
+				return err
+			}
+			log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
 		}
-		log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
 	}
 
 	if d.HasChange("trace") {
@@ -636,9 +641,6 @@ func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigServersClient, id parse.SpringCloudServiceId, gitProperty *appplatform.ConfigServerGitProperty) error {
-	if gitProperty == nil {
-		return nil
-	}
 	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
 	configServer := appplatform.ConfigServerResource{
 		Properties: &appplatform.ConfigServerProperties{
