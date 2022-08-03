@@ -300,6 +300,28 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_updateServiceDelegation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateServiceDelegation(data, "NGINX.NGINXPLUS/nginxDeployments"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateServiceDelegation(data, "PaloAltoNetworks.Cloudngfw/firewalls"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubnetID(state.ID)
 	if err != nil {
@@ -661,6 +683,31 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.3.0/24"]
 }
 `, r.template(data))
+}
+
+func (r SubnetResource) updateServiceDelegation(data acceptance.TestData, serviceName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "first"
+
+    service_delegation {
+      name = "%s"
+
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+`, r.template(data), serviceName)
 }
 
 func (SubnetResource) template(data acceptance.TestData) string {
