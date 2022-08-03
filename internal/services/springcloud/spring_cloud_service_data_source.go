@@ -174,7 +174,9 @@ func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 	configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
-		return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
+		if !utils.ResponseWasBadRequest(configServer.Response) {
+			return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
