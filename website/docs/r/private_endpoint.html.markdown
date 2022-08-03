@@ -144,6 +144,8 @@ The following arguments are supported:
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
+* `ip_configuration` - (Optional) An `ip_configuration` block as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet. At most one IP configuration is allowed. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -188,6 +190,16 @@ A `private_service_connection` supports the following:
 See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
+
+---
+
+An `ip_configuration` supports the following:
+
+* `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created.
+
+* `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created.
+
+* `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id` and in this context is also used for `member_name`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -236,6 +248,16 @@ A `private_dns_zone_configs` block exports:
 A `private_service_connection` block exports:
 
 * `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+
+---
+
+An `ip_configuration` block exports:
+
+* `name` - The Name of the IP Configuration.
+
+* `private_ip_address` - The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
+
+* `subresource_name` - The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 
