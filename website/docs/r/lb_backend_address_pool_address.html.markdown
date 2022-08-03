@@ -43,14 +43,14 @@ data "azurerm_lb_backend_address_pool" "backend-pool-cr" {
 }
 
 resource "azurerm_lb_backend_address_pool_address" "example-1" {
-  name                         = "address1"
-  backend_address_pool_id      = data.azurerm_lb_backend_address_pool.backend-pool-cr.id
+  name                                = "address1"
+  backend_address_pool_id             = data.azurerm_lb_backend_address_pool.backend-pool-cr.id
   backend_address_ip_configuration_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[0].id
 }
 
 resource "azurerm_lb_backend_address_pool_address" "example-2" {
-  name                         = "address2"
-  backend_address_pool_id      = data.azurerm_lb_backend_address_pool.backend-pool-cr.id
+  name                                = "address2"
+  backend_address_pool_id             = data.azurerm_lb_backend_address_pool.backend-pool-cr.id
   backend_address_ip_configuration_id = azurerm_lb.backend-lb-R2.frontend_ip_configuration[0].id
 }
 ```
