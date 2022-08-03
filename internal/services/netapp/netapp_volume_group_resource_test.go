@@ -869,7 +869,7 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
     data_protection_replication {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_resource_group.test.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[0].id
+      remote_volume_resource_id = tolist(azurerm_netapp_volume_group.test_primary.volume)[0].id
       replication_frequency     = "10minutes"
     }
 
@@ -906,7 +906,7 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
     data_protection_replication {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_resource_group.test.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[1].id
+      remote_volume_resource_id = tolist(azurerm_netapp_volume_group.test_primary.volume)[1].id
       replication_frequency     = "10minutes"
     }
   
@@ -943,7 +943,7 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
     data_protection_replication {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_resource_group.test.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[2].id
+      remote_volume_resource_id = tolist(azurerm_netapp_volume_group.test_primary.volume)[2].id
       replication_frequency     = "10minutes"
     }
 
@@ -980,7 +980,7 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
     data_protection_replication {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_resource_group.test.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[3].id
+      remote_volume_resource_id = tolist(azurerm_netapp_volume_group.test_primary.volume)[3].id
       replication_frequency     = "10minutes"
     }
   
@@ -1017,7 +1017,7 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
     data_protection_replication {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_resource_group.test.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume.[4].id
+      remote_volume_resource_id = tolist(azurerm_netapp_volume_group.test_primary.volume)[4].id
       replication_frequency     = "10minutes"
     }
   
