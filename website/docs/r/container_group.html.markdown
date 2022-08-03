@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Optional) The subnet ID that deploys this Container Group into.
+* `subnet_id` - (Optional) The subnet ID that deploys this Container Group into. Changing this forces a new resource to be created.
 
 * `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 

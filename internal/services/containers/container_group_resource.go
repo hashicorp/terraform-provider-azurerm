@@ -84,6 +84,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"subnet_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				ForceNew:      true,
 				ValidateFunc:  networkValidate.SubnetID,
 				ConflictsWith: []string{"dns_name_label"},
 			},
