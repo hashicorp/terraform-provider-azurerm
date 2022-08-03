@@ -35,6 +35,7 @@ import (
 	datamigration "github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/client"
 	databoxedge "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/client"
 	databricks "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
+	datadog "github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/client"
 	datafactory "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
@@ -147,6 +148,7 @@ type Client struct {
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
+	Datadog               *datadog.Client
 	DataFactory           *datafactory.Client
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
@@ -261,6 +263,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataboxEdge = databoxedge.NewClient(o)
+	client.Datadog = datadog.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
