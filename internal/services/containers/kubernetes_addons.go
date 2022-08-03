@@ -292,10 +292,10 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		addonProfiles[aciConnectorKey] = &disabled
 	}
 
-	if ok := d.HasChange("azure_policy_enabled"); ok {
-		v := input["azure_policy_enabled"].(bool)
+	azurePolicyEnabled := input["azure_policy_enabled"].(bool)
+	if ok := d.HasChange("azure_policy_enabled"); ok || azurePolicyEnabled {
 		props := &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(v),
+			Enabled: utils.Bool(azurePolicyEnabled),
 			Config: map[string]*string{
 				"version": utils.String("v2"),
 			},
@@ -332,9 +332,10 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		addonProfiles[ingressApplicationGatewayKey] = &disabled
 	}
 
-	if ok := d.HasChange("open_service_mesh_enabled"); ok {
+	openServiceMeshEnabled := input["open_service_mesh_enabled"].(bool)
+	if ok := d.HasChange("open_service_mesh_enabled"); ok || openServiceMeshEnabled {
 		addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(input["open_service_mesh_enabled"].(bool)),
+			Enabled: utils.Bool(openServiceMeshEnabled),
 			Config:  nil,
 		}
 	}
