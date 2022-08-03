@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -33,6 +35,11 @@ func resourcePostgreSQLDatabase() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.PostgresqlDatabaseV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
