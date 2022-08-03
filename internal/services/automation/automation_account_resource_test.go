@@ -80,7 +80,7 @@ func TestAccAutomationAccount_encryption(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
-				check.That(data.ResourceName).Key("disable_local_auth").HasValue("true"),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -384,7 +384,7 @@ resource "azurerm_automation_account" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
-  disable_local_auth = true
+  local_auth_enabled = false
   encryption {
     key_source       = "Microsoft.Keyvault"
     user_identity_id = azurerm_user_assigned_identity.test.id

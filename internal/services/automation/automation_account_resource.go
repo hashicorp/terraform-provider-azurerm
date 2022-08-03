@@ -71,6 +71,11 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
+						"key_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 						"key_source": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -80,7 +85,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 								false,
 							),
 						},
-						"key_name": {
+						"key_vault_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -90,18 +95,14 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"key_vault_uri": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 					},
 				},
 			},
 
-			"disable_local_auth": {
+			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"tags": tags.Schema(),
@@ -157,9 +158,12 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
 			},
 			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
-			DisableLocalAuth:    utils.Bool(d.Get("disable_local_auth").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
+	}
+
+	if localAuth := d.Get("local_auth_enabled").(bool); localAuth == false {
+		parameters.Properties.DisableLocalAuth = utils.Bool(true)
 	}
 	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
 		enc, err := expandEncryption(encryption[0].(map[string]interface{}))
@@ -203,10 +207,13 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
 			},
 			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
-			DisableLocalAuth:    utils.Bool(d.Get("disable_local_auth").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
+	}
+
+	if localAuth := d.Get("local_auth_enabled").(bool); localAuth == false {
+		parameters.Properties.DisableLocalAuth = utils.Bool(true)
 	}
 
 	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
@@ -280,9 +287,11 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	d.Set("sku_name", skuName)
 
-	if prop.DisableLocalAuth != nil {
-		d.Set("disable_local_auth", *prop.DisableLocalAuth)
+	var localAuthEnabled bool = true
+	if val := prop.DisableLocalAuth; val != nil {
+		localAuthEnabled = *val
 	}
+	d.Set("local_auth_enabled", localAuthEnabled)
 
 	if encryption, err := flattenEncryption(prop.Encryption); err != nil {
 		return fmt.Errorf("flattening `encryption`: %+v", err)
