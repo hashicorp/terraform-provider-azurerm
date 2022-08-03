@@ -68,15 +68,11 @@ An `identity` block supports the following:
 
 An `encryption` block supports the following:
 
-* `user_identity_id` - (Optional) The user identity used for CMK. It will be an ARM resource id.
+* `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
 
 * `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`.
 
-* `key_name` - (Optional) The name of the key used to encrypt data.
-
-* `key_version` - (Optional) The version of the key used to encrypt data.
-
-* `key_vault_uri` - (Optional) The URI of the Key Vault key used to encrypt data.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
 
 ---
 

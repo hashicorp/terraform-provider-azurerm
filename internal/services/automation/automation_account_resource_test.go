@@ -351,13 +351,8 @@ data "azurerm_key_vault" "test" {
   resource_group_name = azurerm_key_vault.test.resource_group_name
 }
 
-data "azurerm_key_vault_key" "test" {
-  name         = azurerm_key_vault_key.test.name
-  key_vault_id = azurerm_key_vault.test.id
-}
-
 resource "azurerm_key_vault_key" "test" {
-  name         = "key-%[1]d"
+  name         = "acckvkey-%[1]d"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -386,11 +381,9 @@ resource "azurerm_automation_account" "test" {
   }
   local_auth_enabled = false
   encryption {
-    key_source       = "Microsoft.Keyvault"
-    user_identity_id = azurerm_user_assigned_identity.test.id
-    key_vault_uri    = azurerm_key_vault.test.vault_uri
-    key_name         = azurerm_key_vault_key.test.name
-    key_version      = azurerm_key_vault_key.test.version
+    key_source                = "Microsoft.Keyvault"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    key_vault_key_id          = azurerm_key_vault_key.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
