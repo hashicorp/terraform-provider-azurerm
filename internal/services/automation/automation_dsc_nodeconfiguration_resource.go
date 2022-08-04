@@ -228,14 +228,3 @@ func expandContentHash(input []interface{}) *automation.ContentHash {
 	hash.Value = utils.String(meta["value"].(string))
 	return &hash
 }
-
-func flattenContentHash(input *automation.ContentHash) (res []interface{}) {
-	if input == nil {
-		return
-	}
-	res = append(res, map[string]interface{}{
-		"algorithm": utils.NormalizeNilableString(input.Algorithm),
-		"value":     utils.NormalizeNilableString(input.Value),
-	})
-	return res
-}
