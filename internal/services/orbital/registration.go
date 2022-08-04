@@ -5,7 +5,9 @@ import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 type Registration struct{}
 
 func (r Registration) WebsiteCategories() []string {
-	return []string{}
+	return []string{
+		"Orbital",
+	}
 }
 
 func (r Registration) Name() string {
