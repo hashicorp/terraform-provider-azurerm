@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `azurerm_proximity_placement_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-17776]
 * `azurerm_shared_image` - improved validation for the `publisher`, `offer` and `sku` properties in the `identifier` block [GH-17547]
 * `azurerm_subnet` - support for the service delegation `Microsoft.Orbital/orbitalGateway` [GH-17854]
+* `azurerm_eventhub_namespace` - support for `local_authentication_enabled`, `public_network_access_enabled` and `minimum_tls_version` [GH-17194]
 
 BUG FIXES:
 
