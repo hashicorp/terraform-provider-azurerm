@@ -78,7 +78,9 @@ The following arguments are supported:
 
 * `custom_question_answering_search_service_id` - If `kind` is `TextAnalytics` this specifies the ID of the Search service.
 
--> **NOTE:** `custom_question_answering_search_service_id` is used for [Custom Question Answering, the renamed version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/custom-question-answering), while `qna_runtime_endpoint` is used for [the old version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/overview/overview)
+* `custom_question_answering_search_service_key` - If `kind` is `TextAnalytics` this specifies the key of the Search service.
+
+-> **NOTE:** `custom_question_answering_search_service_id` and `custom_question_answering_search_service_key` are used for [Custom Question Answering, the renamed version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/custom-question-answering), while `qna_runtime_endpoint` is used for [the old version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/overview/overview)
 
 * `storage` - (Optional) A `storage` block as defined below.
 
@@ -142,7 +144,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account.
 * `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account.

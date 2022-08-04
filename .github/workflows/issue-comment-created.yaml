@@ -22,3 +22,11 @@ jobs:
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           labels: waiting-response
+      - uses: actions-ecosystem/action-add-labels@v1.1.0
+        if: ${{ endsWith(github.event.comment.body, '/wr') }}
+        with:
+          labels: waiting-response
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          number: ${{ github.event.pull_request.number }}
+          repo: ${{ github.repository }}
+
