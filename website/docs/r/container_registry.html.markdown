@@ -145,6 +145,8 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
+* `azuread_authentication_as_arm_policy_enabled` - (Optional)  Boolean value that indicates whether the policy for using ARM audience token for a container registry is enabled. Defaults to `true`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `georeplications` - (Optional) A `georeplications` block as documented below.
@@ -160,6 +162,8 @@ The following arguments are supported:
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled. Defaults to `false`.
 
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
+
+* `soft_delete_policy` - (Optional) A `soft_delete_policy` block as documented below.
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
@@ -224,6 +228,14 @@ The following arguments are supported:
 `retention_policy` supports the following:
 
 * `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
+
+* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
+
+---
+
+`soft_delete_policy` supports the following:
+
+* `retention_days` - (Optional) The number of days after which a soft-deleted item is permanently deleted. Default is `7`.
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 

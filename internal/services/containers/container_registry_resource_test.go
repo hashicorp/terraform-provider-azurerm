@@ -359,6 +359,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.policies(data, 20),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -372,6 +373,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.policies_downgradeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -891,18 +893,24 @@ resource "azurerm_container_registry" "test" {
     enabled = true
   }
 
+  soft_delete_policy {
+    retention_days = %d
+    enabled        = true
+  }
+
   trust_policy {
     enabled = true
   }
 
-  export_policy_enabled         = false
-  public_network_access_enabled = false
+  export_policy_enabled                        = false
+  azuread_authentication_as_arm_policy_enabled = false
+  public_network_access_enabled                = false
 
   tags = {
     Environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, days)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, days, days)
 }
 
 func (ContainerRegistryResource) policies_downgradeUpdate(data acceptance.TestData) string {
@@ -926,6 +934,7 @@ resource "azurerm_container_registry" "test" {
 
   retention_policy {}
   trust_policy {}
+  soft_delete_policy {}
 
   tags = {
     Environment = "Production"

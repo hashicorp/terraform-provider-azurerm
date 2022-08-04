@@ -187,10 +187,15 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	retentionPolicyRaw := d.Get("retention_policy").([]interface{})
 	retentionPolicy := expandRetentionPolicy(retentionPolicyRaw)
 
+	softDeletePolicyRaw := d.Get("soft_delete_policy").([]interface{})
+	softDeletePolicy := expandSoftDeletePolicy(softDeletePolicyRaw)
+
 	trustPolicyRaw := d.Get("trust_policy").([]interface{})
 	trustPolicy := expandTrustPolicy(trustPolicyRaw)
 
 	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
+
+	aadAuthAsArmPolicy := expandAadAuthAsArmPolicy(d.Get("azuread_authentication_as_arm_policy_enabled").(bool))
 
 	encryptionRaw := d.Get("encryption").([]interface{})
 	encryption := expandEncryption(encryptionRaw)
@@ -222,10 +227,12 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			Encryption:       encryption,
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &containerregistry.Policies{
-				QuarantinePolicy: quarantinePolicy,
-				RetentionPolicy:  retentionPolicy,
-				TrustPolicy:      trustPolicy,
-				ExportPolicy:     exportPolicy,
+				AzureADAuthenticationAsArmPolicy: aadAuthAsArmPolicy,
+				SoftDeletePolicy:                 softDeletePolicy,
+				QuarantinePolicy:                 quarantinePolicy,
+				RetentionPolicy:                  retentionPolicy,
+				TrustPolicy:                      trustPolicy,
+				ExportPolicy:                     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			ZoneRedundancy:           zoneRedundancy,
@@ -300,7 +307,9 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	quarantinePolicy := expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool))
+	aadAuthAsArmPolicy := expandAadAuthAsArmPolicy(d.Get("azuread_authentication_as_arm_policy_enabled").(bool))
 	retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
+	softDeletePolicy := expandSoftDeletePolicy(d.Get("soft_delete_policy").([]interface{}))
 	trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
 	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
 
@@ -322,10 +331,12 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &containerregistry.Policies{
-				QuarantinePolicy: quarantinePolicy,
-				RetentionPolicy:  retentionPolicy,
-				TrustPolicy:      trustPolicy,
-				ExportPolicy:     exportPolicy,
+				AzureADAuthenticationAsArmPolicy: aadAuthAsArmPolicy,
+				SoftDeletePolicy:                 softDeletePolicy,
+				QuarantinePolicy:                 quarantinePolicy,
+				RetentionPolicy:                  retentionPolicy,
+				TrustPolicy:                      trustPolicy,
+				ExportPolicy:                     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			Encryption:               encryption,
@@ -607,7 +618,11 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := d.Set("trust_policy", flattenTrustPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("setting `trust_policy`: %+v", err)
 		}
+		if err := d.Set("soft_delete_policy", flattenSoftDeletePolicy(properties.Policies)); err != nil {
+			return fmt.Errorf("setting `soft_delete_policy`: %+v", err)
+		}
 		d.Set("export_policy_enabled", flattenExportPolicy(properties.Policies))
+		d.Set("azuread_authentication_as_arm_policy_enabled", flattenAadAuthAsArmPolicy(properties.Policies))
 		if err := d.Set("encryption", flattenEncryption(properties.Encryption)); err != nil {
 			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
@@ -746,6 +761,24 @@ func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
 	return &retentionPolicy
 }
 
+func expandSoftDeletePolicy(p []interface{}) *containerregistry.SoftDeletePolicy {
+	policy := containerregistry.SoftDeletePolicy{
+		Status: containerregistry.PolicyStatusDisabled,
+	}
+
+	if len(p) > 0 {
+		v := p[0].(map[string]interface{})
+		days := int32(v["retention_days"].(int))
+		enabled := v["enabled"].(bool)
+		if enabled {
+			policy.Status = containerregistry.PolicyStatusEnabled
+		}
+		policy.RetentionDays = utils.Int32(days)
+	}
+
+	return &policy
+}
+
 func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 	trustPolicy := containerregistry.TrustPolicy{
 		Status: containerregistry.PolicyStatusDisabled,
@@ -773,6 +806,18 @@ func expandExportPolicy(enabled bool) *containerregistry.ExportPolicy {
 	}
 
 	return &exportPolicy
+}
+
+func expandAadAuthAsArmPolicy(enabled bool) *containerregistry.AzureADAuthenticationAsArmPolicy {
+	policy := containerregistry.AzureADAuthenticationAsArmPolicy{
+		Status: containerregistry.AzureADAuthenticationAsArmPolicyStatusDisabled,
+	}
+
+	if enabled {
+		policy.Status = containerregistry.AzureADAuthenticationAsArmPolicyStatusEnabled
+	}
+
+	return &policy
 }
 
 func expandReplicationsFromLocations(p []interface{}) []containerregistry.Replication {
@@ -942,6 +987,24 @@ func flattenRetentionPolicy(p *containerregistry.Policies) []interface{} {
 	return []interface{}{retentionPolicy}
 }
 
+func flattenSoftDeletePolicy(p *containerregistry.Policies) []interface{} {
+	if p == nil || p.SoftDeletePolicy == nil {
+		return nil
+	}
+
+	r := *p.SoftDeletePolicy
+	days := 0
+	if r.RetentionDays != nil {
+		days = int(*r.RetentionDays)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"retention_days": days,
+			"enabled":        strings.EqualFold(string(r.Status), string(containerregistry.PolicyStatusEnabled)),
+		},
+	}
+}
+
 func flattenTrustPolicy(p *containerregistry.Policies) []interface{} {
 	if p == nil || p.TrustPolicy == nil {
 		return nil
@@ -960,6 +1023,14 @@ func flattenExportPolicy(p *containerregistry.Policies) bool {
 	}
 
 	return p.ExportPolicy.Status == containerregistry.ExportPolicyStatusEnabled
+}
+
+func flattenAadAuthAsArmPolicy(p *containerregistry.Policies) bool {
+	if p == nil || p.AzureADAuthenticationAsArmPolicy == nil {
+		return false
+	}
+
+	return p.AzureADAuthenticationAsArmPolicy.Status == containerregistry.AzureADAuthenticationAsArmPolicyStatusEnabled
 }
 
 func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
@@ -1154,6 +1225,34 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"soft_delete_policy": {
+			Type:       pluginsdk.TypeList,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"retention_days": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  7,
+					},
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"azuread_authentication_as_arm_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"export_policy_enabled": {
