@@ -356,7 +356,7 @@ A `gallery_applications` block supports the following:
 
 * `package_reference_id` - (Required) Specifies the Gallery Application Version resource ID. Changing this forces a new resource to be created.
 
--> **NOTE:** The `package_reference_id` should be in the form of `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/{mygroup1}/providers/Microsoft.Compute/galleries/{gallery1}/applications/{application1}/versions/{version1}`.
+-> **NOTE:** The `package_reference_id` should be in the form of `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/applications/application1/versions/version1`.
 
 * `configuration_reference` - (Opptional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resource to be created.
 
