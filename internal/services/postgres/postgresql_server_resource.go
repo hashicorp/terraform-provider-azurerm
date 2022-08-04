@@ -220,7 +220,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 
 			"ssl_enforcement_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  false,
 			},
 
 			"threat_detection_policy": {
