@@ -240,13 +240,17 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			V1LegacyMode:                    utils.ToPtr(d.Get("v1_legacy_mode").(bool)),
-			Encryption:                      expandedEncryption,
-			StorageAccount:                  utils.String(d.Get("storage_account_id").(string)),
-			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
-			KeyVault:                        utils.String(d.Get("key_vault_id").(string)),
-			AllowPublicAccessWhenBehindVnet: utils.Bool(networkAccessBehindVnetEnabled),
+			V1LegacyMode:        utils.ToPtr(d.Get("v1_legacy_mode").(bool)),
+			Encryption:          expandedEncryption,
+			StorageAccount:      utils.String(d.Get("storage_account_id").(string)),
+			ApplicationInsights: utils.String(d.Get("application_insights_id").(string)),
+			KeyVault:            utils.String(d.Get("key_vault_id").(string)),
+			PublicNetworkAccess: utils.ToPtr(workspaces.PublicNetworkAccessDisabled),
 		},
+	}
+
+	if networkAccessBehindVnetEnabled {
+		workspace.Properties.PublicNetworkAccess = utils.ToPtr(workspaces.PublicNetworkAccessEnabled)
 	}
 
 	if v, ok := d.GetOk("description"); ok {
