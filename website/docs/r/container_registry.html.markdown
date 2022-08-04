@@ -201,8 +201,6 @@ The following arguments are supported:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-* `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
-
 ~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
@@ -214,14 +212,6 @@ The following arguments are supported:
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
-
----
-
-`virtual_network` supports the following:
-
-* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
-
-* `subnet_id` - (Required) The subnet id from which requests will match the rule.
 
 ---
 

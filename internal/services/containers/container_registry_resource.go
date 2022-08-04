@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2022-02-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -709,21 +709,9 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 		ipRules = append(ipRules, newIpRule)
 	}
 
-	networkRuleConfigs := profile["virtual_network"].(*pluginsdk.Set).List()
-	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
-	for _, networkRuleInterface := range networkRuleConfigs {
-		config := networkRuleInterface.(map[string]interface{})
-		newVirtualNetworkRule := containerregistry.VirtualNetworkRule{
-			Action:                   containerregistry.Action(config["action"].(string)),
-			VirtualNetworkResourceID: utils.String(config["subnet_id"].(string)),
-		}
-		virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
-	}
-
 	networkRuleSet := containerregistry.NetworkRuleSet{
-		DefaultAction:       containerregistry.DefaultAction(profile["default_action"].(string)),
-		IPRules:             &ipRules,
-		VirtualNetworkRules: &virtualNetworkRules,
+		DefaultAction: containerregistry.DefaultAction(profile["default_action"].(string)),
+		IPRules:       &ipRules,
 	}
 	return &networkRuleSet
 }
@@ -930,20 +918,6 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 
 	values["ip_rule"] = ipRules
 
-	virtualNetworkRules := make([]interface{}, 0)
-
-	if networkRuleSet.VirtualNetworkRules != nil {
-		for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
-			value := make(map[string]interface{})
-			value["action"] = string(virtualNetworkRule.Action)
-
-			value["subnet_id"] = virtualNetworkRule.VirtualNetworkResourceID
-			virtualNetworkRules = append(virtualNetworkRules, value)
-		}
-	}
-
-	values["virtual_network"] = virtualNetworkRules
-
 	return []interface{}{values}
 }
 
@@ -1129,28 +1103,6 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validate.CIDR,
-								},
-							},
-						},
-					},
-
-					"virtual_network": {
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(containerregistry.ActionAllow),
-									}, false),
-								},
-								"subnet_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
 								},
 							},
 						},
