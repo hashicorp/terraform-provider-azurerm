@@ -65,30 +65,19 @@ func dataSourceSubnet() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+			"private_endpoint_network_policies_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"private_link_service_network_policies_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 
-	if features.FourPointOhBeta() {
-		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-
-		resource.Schema["private_link_service_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	} else {
-		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-
-		resource.Schema["private_link_service_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-
+	if !features.FourPointOhBeta() {
 		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Computed: true,

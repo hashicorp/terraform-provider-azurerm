@@ -274,27 +274,22 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		// This is the only way I was able to figure out if the fields are actually in the config or not,
 		// which is needed here because these are all now optional computed fields...
-		enforcePrivateEndpointNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["enforce_private_link_endpoint_network_policies"]
-		enforcePrivateLinkServiceNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["enforce_private_link_service_network_policies"]
-		privateEndpointNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["private_endpoint_network_policies_enabled"]
-		privateLinkServiceNetworkPoliciesCty := d.GetRawConfig().AsValueMap()["private_link_service_network_policies_enabled"]
-
-		if !enforcePrivateEndpointNetworkPoliciesCty.IsNull() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enforce_private_link_endpoint_network_policies") {
 			enforceOk = true
 			enforcePrivateEndpointNetworkPoliciesRaw = d.Get("enforce_private_link_endpoint_network_policies").(bool)
 		}
 
-		if !enforcePrivateLinkServiceNetworkPoliciesCty.IsNull() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enforce_private_link_service_network_policies") {
 			enforceServiceOk = true
 			enforcePrivateLinkServiceNetworkPoliciesRaw = d.Get("enforce_private_link_service_network_policies").(bool)
 		}
 
-		if !privateEndpointNetworkPoliciesCty.IsNull() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "private_endpoint_network_policies_enabled") {
 			enableOk = true
 			privateEndpointNetworkPoliciesRaw = d.Get("private_endpoint_network_policies_enabled").(bool)
 		}
 
-		if !privateLinkServiceNetworkPoliciesCty.IsNull() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "private_link_service_network_policies_enabled") {
 			enableServiceOk = true
 			privateLinkServiceNetworkPoliciesRaw = d.Get("private_link_service_network_policies_enabled").(bool)
 		}
