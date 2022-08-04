@@ -159,36 +159,36 @@ func resourceSubnet() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"private_endpoint_network_policies_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default: func() bool {
+					return !features.FourPointOh()
+				}(),
+				ConflictsWith: func() []string {
+					if !features.FourPointOh() {
+						return []string{"enforce_private_link_endpoint_network_policies"}
+					}
+					return []string{}
+				}(),
+			},
+
+			"private_link_service_network_policies_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ConflictsWith: func() []string {
+					if !features.FourPointOh() {
+						return []string{"enforce_private_link_service_network_policies"}
+					}
+					return []string{}
+				}(),
+			},
 		},
 	}
 
-	if features.FourPointOhBeta() {
-		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		}
-
-		resource.Schema["private_link_service_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-	} else {
-		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Computed:      true,
-			Optional:      true,
-			ConflictsWith: []string{"enforce_private_link_endpoint_network_policies"},
-		}
-
-		resource.Schema["private_link_service_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Computed:      true,
-			Optional:      true,
-			ConflictsWith: []string{"enforce_private_link_service_network_policies"},
-		}
-
+	if !features.FourPointOhBeta() {
 		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Computed:      true,
