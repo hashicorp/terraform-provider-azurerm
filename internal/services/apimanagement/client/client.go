@@ -14,6 +14,7 @@ type Client struct {
 	ApiReleasesClient                *apimanagement.APIReleaseClient
 	ApiSchemasClient                 *apimanagement.APISchemaClient
 	ApiVersionSetClient              *apimanagement.APIVersionSetClient
+	ApiTagDescriptionClient          *apimanagement.APITagDescriptionClient
 	AuthorizationServersClient       *apimanagement.AuthorizationServerClient
 	BackendClient                    *apimanagement.BackendClient
 	CacheClient                      *apimanagement.CacheClient
@@ -69,6 +70,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiVersionSetClient.Client, o.ResourceManagerAuthorizer)
+
+	apiTagDescriptionClient := apimanagement.NewAPITagDescriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiTagDescriptionClient.Client, o.ResourceManagerAuthorizer)
 
 	authorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&authorizationServersClient.Client, o.ResourceManagerAuthorizer)
@@ -166,6 +170,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApiReleasesClient:                &apiReleasesClient,
 		ApiSchemasClient:                 &apiSchemasClient,
 		ApiVersionSetClient:              &apiVersionSetClient,
+		ApiTagDescriptionClient:          &apiTagDescriptionClient,
 		AuthorizationServersClient:       &authorizationServersClient,
 		BackendClient:                    &backendClient,
 		CacheClient:                      &cacheClient,
