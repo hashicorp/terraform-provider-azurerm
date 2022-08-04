@@ -70,6 +70,21 @@ func TestAccIotHubDPSCertificate_update(t *testing.T) {
 	})
 }
 
+func TestAccIotHubDPSCertificate_isVerified(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
+	r := IotHubDPSCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.isVerified(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("certificate_content"),
+	})
+}
+
 func (t IotHubDPSCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DpsCertificateID(state.ID)
 	if err != nil {
@@ -165,6 +180,39 @@ resource "azurerm_iothub_dps_certificate" "test" {
   iot_dps_name        = azurerm_iothub_dps.test.name
 
   certificate_content = filebase64("testdata/application_gateway_test.cer")
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (IotHubDPSCertificateResource) isVerified(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub_dps" "test" {
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+}
+
+resource "azurerm_iothub_dps_certificate" "test" {
+  name                = "acctestIoTDPSCertificate-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  iot_dps_name        = azurerm_iothub_dps.test.name
+  is_verified         = true
+
+  certificate_content = filebase64("testdata/batch_certificate.cer")
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

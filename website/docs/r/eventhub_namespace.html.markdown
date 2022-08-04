@@ -71,7 +71,7 @@ A `identity` block supports the following:
 
 A `network_rulesets` block supports the following:
 
-* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
 
 * `trusted_service_access_enabled` - (Optional) Whether Trusted Microsoft Services are allowed to bypass firewall.
 
@@ -134,7 +134,7 @@ An `identity` block exports the following:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace.
 * `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace.
