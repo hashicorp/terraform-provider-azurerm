@@ -7,6 +7,8 @@ package cdn
 
 // CDN FrontDoor
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorEndpoint -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1 -rewrite=true
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorOriginGroup -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1 -rewrite=true
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorOrigin -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1/origins/origin1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorProfile -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorRuleSet -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/rule1 -rewrite=true

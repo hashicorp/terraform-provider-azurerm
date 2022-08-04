@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Optional) List of IPv4 Addresses. Conflicts with `target_resource_id`.
 
@@ -97,7 +97,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS A Record.
 * `update` - (Defaults to 30 minutes) Used when updating the DNS A Record.
