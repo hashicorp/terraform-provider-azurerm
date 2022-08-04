@@ -78,6 +78,22 @@ The following arguments are supported:
 
 * `content_embedded` - (Required) The PowerShell DSC Node Configuration (mof content).
 
+* `content_version` - (Optional) The version of the content.
+
+* `content_hash` - (Optional) A `content_hash` block as defined below.
+ 
+* `increment_build_enabled` - (Optional) Whether a new build version of NodeConfiguration is required
+
+* `tags` - (Optional) A mapping of tags assigned to the resource.
+
+---
+
+A `content_hash` block supports the following:
+
+* `algorithm` - (Required) The algorithm used to hash the content.
+
+* `value` - (Required) The expected hash value of the content.
+
 ## Attributes Reference
 
 The following attributes are exported:

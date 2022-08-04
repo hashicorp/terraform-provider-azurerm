@@ -27,7 +27,7 @@ func TestAccAutomationDscNodeConfiguration_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("configuration_name").HasValue("acctest"),
 			),
 		},
-		data.ImportStep("content_embedded"),
+		data.ImportStep("content_embedded", "content_hash", "tags", "content_version", "increment_build_enabled"),
 	})
 }
 
@@ -91,6 +91,15 @@ resource "azurerm_automation_dsc_nodeconfiguration" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   depends_on              = [azurerm_automation_dsc_configuration.test]
+  content_hash {
+    algorithm = "sha256"
+    value     = "c10eef522ab9759496831c26087ad4b83cac47f3fc6ac4355d55fe8fdd518514"
+  }
+  content_version = "1.1.1"
+  tags = {
+    foo = "bar"
+  }
+  increment_build_enabled = true
 
   content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref

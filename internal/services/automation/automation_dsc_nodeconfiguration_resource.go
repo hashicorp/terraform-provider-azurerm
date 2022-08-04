@@ -7,11 +7,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -60,10 +63,43 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"content_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"content_hash": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"algorithm": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"value": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"configuration_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"increment_build_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -91,22 +127,29 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	content := d.Get("content_embedded").(string)
+	contentVersion := d.Get("content_version").(string)
 
 	// configuration name is always the first part of the dsc node configuration
 	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 
 	configurationName := strings.Split(id.Name, ".")[0]
 
+	tagsVal := tags.Expand(d.Get("tags").(map[string]interface{}))
+
 	parameters := automation.DscNodeConfigurationCreateOrUpdateParameters{
 		DscNodeConfigurationCreateOrUpdateParametersProperties: &automation.DscNodeConfigurationCreateOrUpdateParametersProperties{
 			Source: &automation.ContentSource{
-				Type:  automation.ContentSourceTypeEmbeddedContent,
-				Value: utils.String(content),
+				Type:    automation.ContentSourceTypeEmbeddedContent,
+				Value:   utils.String(content),
+				Version: utils.String(contentVersion),
+				Hash:    expandContentHash(d.Get("content_hash").([]interface{})),
 			},
 			Configuration: &automation.DscConfigurationAssociationProperty{
 				Name: utils.String(configurationName),
 			},
+			IncrementNodeConfigurationBuild: utils.Bool(d.Get("increment_build_enabled").(bool)),
 		},
+		Tags: tagsVal,
 		Name: utils.String(id.Name),
 	}
 
@@ -148,7 +191,7 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 	d.Set("automation_account_name", id.AutomationAccountName)
 	d.Set("configuration_name", resp.Configuration.Name)
 
-	// cannot read back content_embedded as not part of body nor exposed through method
+	// cannot read back content_embedded, tags, content_version, increment_build_enabled, hash_xx as not part of body nor exposed through method
 
 	return nil
 }
@@ -173,4 +216,26 @@ func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, met
 	}
 
 	return nil
+}
+
+func expandContentHash(input []interface{}) *automation.ContentHash {
+	if len(input) == 0 {
+		return nil
+	}
+	meta := input[0].(map[string]interface{})
+	var hash automation.ContentHash
+	hash.Algorithm = utils.String(meta["algorithm"].(string))
+	hash.Value = utils.String(meta["value"].(string))
+	return &hash
+}
+
+func flattenContentHash(input *automation.ContentHash) (res []interface{}) {
+	if input == nil {
+		return
+	}
+	res = append(res, map[string]interface{}{
+		"algorithm": utils.NormalizeNilableString(input.Algorithm),
+		"value":     utils.NormalizeNilableString(input.Value),
+	})
+	return res
 }
