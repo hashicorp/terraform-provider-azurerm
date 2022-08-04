@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * domainservice: updating to use API Version `2021-05-01` [GH-17737]
 * Data Source: `azurerm_proximity_placement_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-17776]
+* `azurerm_api_management` - update the `sku_name` property validation to accept newer Premium SKUs [GH-17887]
 * `azurerm_firewall` - the property `sku_tier` is now updateable [GH-17577]
 * `azurerm_linux_virtual_machine_scale_set` - the property `instances` is now Optional and defaults to `0` [GH-17836]
 * `azurerm_log_analytics_cluster` - updated validation for the `size_gb` property [GH-17780]
