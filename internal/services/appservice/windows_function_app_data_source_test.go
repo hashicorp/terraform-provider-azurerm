@@ -32,17 +32,6 @@ func TestAccWindowsFunctionAppDataSource_complete(t *testing.T) {
 	})
 }
 
-func (WindowsFunctionAppDataSource) basic(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_windows_function_app" "test" {
-  name                = azurerm_windows_function_app.test.name
-  resource_group_name = azurerm_windows_function_app.test.resource_group_name
-}
-`, WindowsFunctionAppResource{}.basic(data, planSku))
-}
-
 func (WindowsFunctionAppDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

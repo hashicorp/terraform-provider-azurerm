@@ -32,17 +32,6 @@ func TestAccLinuxFunctionAppDataSource_standardComplete(t *testing.T) {
 	})
 }
 
-func (LinuxFunctionAppDataSource) basic(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_linux_function_app" "test" {
-  name                = azurerm_linux_function_app.test.name
-  resource_group_name = azurerm_linux_function_app.test.resource_group_name
-}
-`, LinuxFunctionAppResource{}.basic(data, planSku))
-}
-
 func (LinuxFunctionAppDataSource) standardComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
