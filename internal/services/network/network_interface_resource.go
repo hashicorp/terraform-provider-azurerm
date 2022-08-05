@@ -66,8 +66,9 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						},
 
 						"subnet_id": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							// Casing issue is tracked by https://github.com/Azure/azure-rest-api-specs/issues/20131
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     azure.ValidateResourceID,
 						},

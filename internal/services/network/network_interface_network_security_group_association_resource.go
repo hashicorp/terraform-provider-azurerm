@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -53,10 +54,12 @@ func resourceNetworkInterfaceSecurityGroupAssociation() *pluginsdk.Resource {
 			},
 
 			"network_security_group_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				// Casing issue is tracked by https://github.com/Azure/azure-rest-api-specs/issues/20131
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 		},
 	}
