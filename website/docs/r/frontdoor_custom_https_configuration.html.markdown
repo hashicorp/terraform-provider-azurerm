@@ -30,9 +30,8 @@ data "azurerm_key_vault" "vault" {
 }
 
 resource "azurerm_frontdoor" "example" {
-  name                                         = "example-FrontDoor"
-  resource_group_name                          = azurerm_resource_group.example.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "example-FrontDoor"
+  resource_group_name = azurerm_resource_group.example.name
 
   routing_rule {
     name               = "exampleRoutingRule1"
@@ -133,7 +132,7 @@ The `custom_https_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating a Custom HTTPS Configuration.
 * `update` - (Defaults to 6 hours) Used when updating a Custom HTTPS Configuration.

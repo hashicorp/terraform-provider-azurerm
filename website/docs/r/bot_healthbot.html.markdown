@@ -22,9 +22,7 @@ resource "azurerm_healthbot" "example" {
   name                = "example-bot"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku {
-    name = "F0"
-  }
+  sku_name            = "F0"
 }
 ```
 
@@ -58,7 +56,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating a Healthbot Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving a Healthbot Service.

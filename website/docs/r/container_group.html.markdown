@@ -3,7 +3,7 @@ subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_group"
 description: |-
-  Create as an Azure Container Group instance.
+  Manages an Azure Container Group instance.
 ---
 
 # azurerm_container_group
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `diagnostics` - (Optional) A `diagnostics` block as documented below.
 
-* `dns_name_label` - (Optional) The DNS label/name for the container groups IP. Changing this forces a new resource to be created.
+* `dns_name_label` - (Optional) The DNS label/name for the container group's IP. Changing this forces a new resource to be created.
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
@@ -92,9 +92,9 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
 
-* `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
+* `network_profile_id` - (Optional) Network profile ID for deploying to a virtual network.
 
-* `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
+* `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
@@ -106,12 +106,13 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Group. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
+~> **NOTE:** When `type` is set to `SystemAssigned`, the identity of the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Group.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
+~> **NOTE:** Currently you can't use a managed identity in a container group deployed to a virtual network.
 ---
 
 An `init_container` block supports:
@@ -144,6 +145,12 @@ A `container` block supports:
 
 ~> **Note:** Gpu resources are currently only supported in Linux containers.
 
+* `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
+
+* `memory_limit` - (Optional) The the upper limit of the memory of the containers in GB.
+
+* `gpu_limit` - (Optional) A `gpu_limit` block as defined below.
+
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
@@ -160,7 +167,7 @@ A `container` block supports:
 
 ---
 
-A `exposed_port` block supports:
+An `exposed_port` block supports:
 
 * `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
 
@@ -176,7 +183,7 @@ A `diagnostics` block supports:
 
 ---
 
-A `image_registry_credential` block supports:
+An `image_registry_credential` block supports:
 
 * `username` - (Required) The username with which to connect to the registry. Changing this forces a new resource to be created.
 
@@ -213,6 +220,14 @@ A `gpu` block supports:
 * `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
+
+---
+
+A `gpu_limit` block supports:
+
+* `count` - (Optional) The upper limit of the number of GPUs which should be assigned to this container.
+
+* `sku` - (Optional) The allowed SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
 
 ---
 
@@ -294,6 +309,8 @@ The `http_get` block supports:
 
 * `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
 
+* `http_headers` - (Optional) A map of HTTP headers used to access on the container. Changing this forces a new resource to be created.
+
 ---
 
 The `dns_config` block supports:
@@ -327,7 +344,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Group.
 

@@ -39,14 +39,13 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "be-%d"
+  name            = "example"
+  loadbalancer_id = azurerm_lb.example.id
 }
 
 resource "azurerm_lb_outbound_rule" "example" {
-  loadbalancer_id         = azurerm_lb.example.id
   name                    = "OutboundRule"
+  loadbalancer_id         = azurerm_lb.example.id
   protocol                = "Tcp"
   backend_address_pool_id = azurerm_lb_backend_address_pool.example.id
 
@@ -83,7 +82,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Outbound Rule.
 * `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Outbound Rule.

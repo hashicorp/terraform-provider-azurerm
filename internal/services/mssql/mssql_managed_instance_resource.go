@@ -438,6 +438,8 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 				// This value is not returned, so we'll just set whatever is in the state/config
 				AdministratorLoginPassword: state.AdministratorLoginPassword,
+				// This value is not returned, so we'll just set whatever is in the state/config
+				DnsZonePartnerId: state.DnsZonePartnerId,
 			}
 
 			if sku := existing.Sku; sku != nil && sku.Name != nil {

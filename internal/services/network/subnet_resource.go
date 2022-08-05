@@ -120,6 +120,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
+											"Microsoft.Network/dnsResolvers",
 											"Microsoft.Network/managedResolvers",
 											"Microsoft.PowerPlatform/vnetaccesslinks",
 											"Microsoft.ServiceFabricMesh/networks",
@@ -130,6 +131,9 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
+											"Microsoft.Orbital/orbitalGateways",
+											"NGINX.NGINXPLUS/nginxDeployments",
+											"PaloAltoNetworks.Cloudngfw/firewalls",
 										}, false),
 									},
 

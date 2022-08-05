@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +28,7 @@ func resourceAvailabilitySet() *pluginsdk.Resource {
 		Update: resourceAvailabilitySetCreateUpdate,
 		Delete: resourceAvailabilitySetDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AvailabilitySetID(id)
+			_, err := availabilitysets.ParseAvailabilitySetID(id)
 			return err
 		}),
 
@@ -49,9 +50,9 @@ func resourceAvailabilitySet() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"platform_update_domain_count": {
 				Type:         pluginsdk.TypeInt,
@@ -88,7 +89,7 @@ func resourceAvailabilitySet() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -99,58 +100,53 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
-	id := parse.NewAvailabilitySetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
+	id := availabilitysets.NewAvailabilitySetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_availability_set", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
 	managed := d.Get("managed").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	availSet := compute.AvailabilitySet{
-		Name:     &id.Name,
-		Location: &location,
-		AvailabilitySetProperties: &compute.AvailabilitySetProperties{
-			PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
-			PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
+	payload := availabilitysets.AvailabilitySet{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &availabilitysets.AvailabilitySetProperties{
+			PlatformFaultDomainCount:  utils.Int64(int64(faultDomainCount)),
+			PlatformUpdateDomainCount: utils.Int64(int64(updateDomainCount)),
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
-		availSet.AvailabilitySetProperties.ProximityPlacementGroup = &compute.SubResource{
-			ID: utils.String(v.(string)),
+		payload.Properties.ProximityPlacementGroup = &availabilitysets.SubResource{
+			Id: utils.String(v.(string)),
 		}
 	}
 
 	if managed {
 		n := "Aligned"
-		availSet.Sku = &compute.Sku{
+		payload.Sku = &availabilitysets.Sku{
 			Name: &n,
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, availSet)
+	_, err := client.CreateOrUpdate(ctx, id, payload)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-
 	return resourceAvailabilitySetRead(d, meta)
 }
 
@@ -159,39 +155,47 @@ func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AvailabilitySetID(d.Id())
+	id, err := availabilitysets.ParseAvailabilitySetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Availability Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if resp.Sku != nil && resp.Sku.Name != nil {
-		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
-	}
+	d.Set("name", id.AvailabilitySetName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.AvailabilitySetProperties; props != nil {
-		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
-		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		managed := false
+		if model.Sku != nil && model.Sku.Name != nil {
+			managed = strings.EqualFold(*model.Sku.Name, "Aligned")
+		}
+		d.Set("managed", managed)
 
-		if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
-			d.Set("proximity_placement_group_id", proximityPlacementGroup.ID)
+		if props := model.Properties; props != nil {
+			d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+
+			if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
+				d.Set("proximity_placement_group_id", proximityPlacementGroup.Id)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -199,11 +203,14 @@ func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AvailabilitySetID(d.Id())
+	id, err := availabilitysets.ParseAvailabilitySetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
-	return err
+	if _, err = client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
 }

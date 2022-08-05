@@ -56,6 +56,35 @@ function runGraduallyDeprecatedFunctions {
       exit 1
   }
 
+  # check for new combined CreateUpdate methods
+  line=$(grep -H -n "Create:.*CreateUpdate," "$f" -m1)
+  if [ "$line" != "" ];
+  then
+    git diff --diff-filter=AMRC origin/main -U0 "$f" | grep -q "+.*Create:.*CreateUpdate," && {
+      echo "$line"
+      echo "New Resources should no longer use combined CreateUpdate methods, please"
+      echo "split these into two separate Create and Update methods."
+      echo ""
+      echo "Existing resources can continue to use combined CreateUpdate methods"
+      echo "for the moment - but over time these will be split into separate Create and"
+      echo "Update methods."
+      exit 1
+    }
+  fi
+
+  # check for d.Get inside Delete
+  deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete")
+  if [ "$deleteFuncName" != "" ];
+  then
+     deleteMethod=$(cat -n $f | sed -n -e "/func$deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func$deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
+     foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
+     if [ "$foundGet" != "" ];
+     then
+       echo "$f $foundGet"
+       echo "Please do not use 'd.Get' within the Delete function as this does not work as expected in Delete"
+       exit 1
+     fi
+  fi
 done
 }
 

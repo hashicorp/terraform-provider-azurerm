@@ -13,6 +13,9 @@ Manages a Healthcare Service.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_healthcare_service" "example" {
   name                = "uniquefhirname"
   resource_group_name = "sample-resource-group"
@@ -20,7 +23,7 @@ resource "azurerm_healthcare_service" "example" {
   kind                = "fhir-R4"
   cosmosdb_throughput = "2000"
 
-  access_policy_object_ids = ["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
+  access_policy_object_ids = data.azurerm_client_config.current.object_id
 
   tags = {
     "environment" = "testenv"
@@ -92,7 +95,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Healthcare Service.

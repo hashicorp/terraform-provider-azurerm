@@ -63,6 +63,8 @@ The following arguments are supported:
 
 * `icon_url` - (Optional) The icon URL to visually identify the Bot Channels Registration.
 
+* `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for the Bot Channels Registration. Defaults to `false`.
+
 * `isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
 
 ~> **NOTE:** `isolated_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.
@@ -80,7 +82,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Bot Channels Registration.
 * `update` - (Defaults to 30 minutes) Used when updating the Bot Channels Registration.

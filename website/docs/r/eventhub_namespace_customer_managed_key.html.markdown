@@ -55,7 +55,7 @@ resource "azurerm_key_vault_access_policy" "example" {
   tenant_id    = azurerm_eventhub_namespace.example.identity.0.tenant_id
   object_id    = azurerm_eventhub_namespace.example.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "example2" {
@@ -64,12 +64,12 @@ resource "azurerm_key_vault_access_policy" "example2" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
   ]
 }
 
@@ -108,7 +108,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace Customer Managed Key.

@@ -102,6 +102,8 @@ The following arguments are supported:
 
 * `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? Defaults to `false`.
 
+* `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 * `visibility_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service.
@@ -132,7 +134,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Private Link Service.
 * `update` - (Defaults to 60 minutes) Used when updating the Private Link Service.
