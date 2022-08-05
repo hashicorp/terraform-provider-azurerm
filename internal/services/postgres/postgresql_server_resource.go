@@ -214,14 +214,13 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(servers.MinimalTlsVersionEnumTLSEnforcementDisabled),
+				Default:      string(servers.MinimalTlsVersionEnumTLSOneTwo),
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForMinimalTlsVersionEnum(), false),
 			},
 
 			"ssl_enforcement_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Required: true,
 			},
 
 			"threat_detection_policy": {
