@@ -63,5 +63,6 @@ func (c PolicyInsightsClient) responderForRemediationsGetAtSubscription(resp *ht
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

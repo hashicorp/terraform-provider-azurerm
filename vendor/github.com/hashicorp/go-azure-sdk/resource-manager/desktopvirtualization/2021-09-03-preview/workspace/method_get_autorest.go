@@ -63,5 +63,6 @@ func (c WorkspaceClient) responderForGet(resp *http.Response) (result GetOperati
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -93,5 +93,6 @@ func (c ApplicationInsightsClient) responderForWorkbooksUpdate(resp *http.Respon
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

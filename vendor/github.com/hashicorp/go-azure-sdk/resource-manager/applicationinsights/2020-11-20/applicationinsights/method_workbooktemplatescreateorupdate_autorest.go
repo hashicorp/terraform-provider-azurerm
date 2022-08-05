@@ -64,5 +64,6 @@ func (c ApplicationInsightsClient) responderForWorkbookTemplatesCreateOrUpdate(r
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
