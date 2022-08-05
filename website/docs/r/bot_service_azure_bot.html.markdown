@@ -31,6 +31,8 @@ resource "azurerm_application_insights_api_key" "example" {
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_bot_service_azure_bot" "example" {
   name                = "exampleazurebot"
   resource_group_name = azurerm_resource_group.example.name
@@ -72,9 +74,17 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) The Azure Bot Service endpoint.
 
+* `microsoft_app_msi_id` - (Optional) The ID of the Microsoft App Managed Identity for this Azure Bot Service. Changing this forces a new resource to be created.
+
+* `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
+
+* `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+
 * `luis_app_ids` - (Optional) A list of LUIS App IDs to associate with this Azure Bot Service.
 
 * `luis_key` - (Optional) The LUIS key to associate with this Azure Bot Service.
+
+* `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Azure Bot Service.
 

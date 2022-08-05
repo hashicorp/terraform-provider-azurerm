@@ -39,14 +39,13 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "be-%d"
+  name            = "example"
+  loadbalancer_id = azurerm_lb.example.id
 }
 
 resource "azurerm_lb_outbound_rule" "example" {
-  loadbalancer_id         = azurerm_lb.example.id
   name                    = "OutboundRule"
+  loadbalancer_id         = azurerm_lb.example.id
   protocol                = "Tcp"
   backend_address_pool_id = azurerm_lb_backend_address_pool.example.id
 

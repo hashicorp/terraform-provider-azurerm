@@ -77,11 +77,31 @@ The following arguments are supported:
 
 * `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster.
 
+* `authentication_method` - (Optional) The authentication method that is used to authenticate clients. Possible values are `None` and `Cassandra`. Defaults to `Cassandra`.
+
+* `client_certificate_pems` - (Optional) A list of TLS certificates that is used to authorize client connecting to the Cassandra Cluster.
+
+* `external_gossip_certificate_pems` - (Optional) A list of TLS certificates that is used to authorize gossip from unmanaged Cassandra Data Center.
+
+* `external_seed_node_ip_addresses` - (Optional) A list of IP Addresses of the seed nodes in unmanaged the Cassandra Data Center which will be added to the seed node lists of all managed nodes.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster?
+
+* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
+
 * `tags` - (Optional) A mapping of tags assigned to the resource.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cassandra Cluster. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cassandra Cluster.
 

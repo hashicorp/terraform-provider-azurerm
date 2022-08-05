@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below. Changing this forces a new Log Analytics Cluster to be created.
 
-* `size_gb` - (Optional) The capacity of the Log Analytics Cluster specified in GB/day. Defaults to 1000.
+* `size_gb` - (Optional) The capacity of the Log Analytics Cluster specified in GB/day. Defaults to 500.
 
-~> **NOTE:** The `size_gb` can be in the range of 1000 to 3000 GB per day and must be in steps of 100 GB. For `size_gb` levels higher than 3000 GB per day, please contact your Microsoft contact to enable it.
+~> **NOTE:** The `size_gb` can be in the range of 500 to 3000 GB per day and must be in steps of 100 GB. For `size_gb` levels higher than 3000 GB per day, please contact your Microsoft contact to enable it.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Cluster.
 

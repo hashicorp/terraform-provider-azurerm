@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -96,6 +96,18 @@ func TestAccContainerGroup_UserAssignedIdentity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccContainerGroup_UserAssignedIdentityWithVirtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.UserAssignedIdentityWithVirtualNetwork(data),
+		},
+		data.ImportStep("network_profile_id"),
 	})
 }
 
@@ -727,6 +739,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
     }
   }
@@ -846,6 +862,91 @@ resource "azurerm_container_group" "test" {
   ip_address_type     = "Public"
   os_type             = "Linux"
 
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+func (ContainerGroupResource) UserAssignedIdentityWithVirtualNetwork(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testvnet"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_network_profile" "test" {
+  name                = "testnetprofile"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = "testcnic"
+
+    ip_configuration {
+      name      = "testipconfig"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Private"
+  os_type             = "Linux"
+  network_profile_id  = azurerm_network_profile.test.id
   container {
     name   = "hw"
     image  = "ubuntu:20.04"
@@ -1666,6 +1767,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
 
       initial_delay_seconds = 1
@@ -1769,6 +1874,15 @@ resource "azurerm_container_group" "test" {
       sku   = "K80"
     }
 
+    cpu_limit    = "1"
+    memory_limit = "1.5"
+
+    gpu_limit {
+      count = 1
+      sku   = "K80"
+    }
+
+
     volume {
       name       = "logs"
       mount_path = "/aci/logs"
@@ -1803,6 +1917,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
 
       initial_delay_seconds = 1
@@ -2171,17 +2289,21 @@ resource "azurerm_container_group" "test" {
 }
 
 func (t ContainerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ContainerGroupID(state.ID)
+	id, err := containerinstance.ParseContainerGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Containers.GroupsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Containers.ContainerInstanceClient.ContainerGroupsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Container Group (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("unexpected nil model of %q", id)
+	}
+
+	return utils.Bool(resp.Model.Id != nil), nil
 }
 
 func (ContainerGroupResource) withPrivateEmpty(data acceptance.TestData) string {
