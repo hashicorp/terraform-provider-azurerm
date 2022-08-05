@@ -93,13 +93,13 @@ The following attributes are exported:
 
 * `secondary_readonly_key` - The secondary read-only key for the CosmosDB account.
 
-* `primary_connection_string` - The primary connection string for the CosmosDB account.
+* `primary_sql_connection_string` - The primary SQL connection string for the CosmosDB account.
 
-* `secondary_connection_string` - The secondary connection string for the CosmosDB account.
+* `secondary_sql_connection_string` - The secondary SQL connection string for the CosmosDB account.
 
-* `primary_readonly_connection_string` - The primary read-only connection string for the CosmosDB account.
+* `primary_readonly_sql_connection_string` - The primary read-only SQL connection string for the CosmosDB account.
 
-* `secondary_readonly_connection_string` - The secondary read-only connection string for the CosmosDB account.
+* `secondary_readonly_sql_connection_string` - The secondary read-only SQL connection string for the CosmosDB account.
 
 ## Timeouts
 

@@ -36,10 +36,10 @@ import (
 var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
 
 var connStringPropertyMap = map[string]string{
-	"Primary SQL Connection String":             "primary_connection_string",
-	"Secondary SQL Connection String":           "secondary_connection_string",
-	"Primary Read-Only SQL Connection String":   "primary_readonly_connection_string",
-	"Secondary Read-Only SQL Connection String": "secondary_readonly_connection_string",
+	"Primary SQL Connection String":             "primary_sql_connection_string",
+	"Secondary SQL Connection String":           "secondary_sql_connection_string",
+	"Primary Read-Only SQL Connection String":   "primary_readonly_sql_connection_string",
+	"Secondary Read-Only SQL Connection String": "secondary_readonly_sql_connection_string",
 }
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
@@ -572,25 +572,25 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"primary_connection_string": {
+			"primary_sql_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"secondary_connection_string": {
+			"secondary_sql_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"primary_readonly_connection_string": {
+			"primary_readonly_sql_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"secondary_readonly_connection_string": {
+			"secondary_readonly_sql_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
