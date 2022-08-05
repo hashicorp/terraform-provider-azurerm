@@ -14,8 +14,8 @@ Manages a Automation Hybrid Runbook Worker Group.
 
 ```hcl
 resource "azurerm_automation_hybrid_runbook_worker_group" "example" {
-  name = "example"
-  resource_group_name = "example"
+  name                    = "example"
+  resource_group_name     = "example"
   automation_account_name = "example"
 }
 ```
