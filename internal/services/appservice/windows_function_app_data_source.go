@@ -275,10 +275,6 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				functionApp.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if v := props.DefaultHostName; v != nil {
-				functionApp.DefaultHostname = *v
-			}
-
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)

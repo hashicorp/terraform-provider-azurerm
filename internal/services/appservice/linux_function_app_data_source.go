@@ -325,10 +325,6 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if v := props.DefaultHostName; v != nil {
-				state.DefaultHostname = *v
-			}
-
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
