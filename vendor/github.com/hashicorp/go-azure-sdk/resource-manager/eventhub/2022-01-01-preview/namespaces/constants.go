@@ -104,6 +104,37 @@ func parsePrivateLinkConnectionStatus(input string) (*PrivateLinkConnectionStatu
 	return &out, nil
 }
 
+type PublicNetworkAccess string
+
+const (
+	PublicNetworkAccessDisabled           PublicNetworkAccess = "Disabled"
+	PublicNetworkAccessEnabled            PublicNetworkAccess = "Enabled"
+	PublicNetworkAccessSecuredByPerimeter PublicNetworkAccess = "SecuredByPerimeter"
+)
+
+func PossibleValuesForPublicNetworkAccess() []string {
+	return []string{
+		string(PublicNetworkAccessDisabled),
+		string(PublicNetworkAccessEnabled),
+		string(PublicNetworkAccessSecuredByPerimeter),
+	}
+}
+
+func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
+	vals := map[string]PublicNetworkAccess{
+		"disabled":           PublicNetworkAccessDisabled,
+		"enabled":            PublicNetworkAccessEnabled,
+		"securedbyperimeter": PublicNetworkAccessSecuredByPerimeter,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PublicNetworkAccess(input)
+	return &out, nil
+}
+
 type SkuName string
 
 const (
@@ -163,5 +194,36 @@ func parseSkuTier(input string) (*SkuTier, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := SkuTier(input)
+	return &out, nil
+}
+
+type TlsVersion string
+
+const (
+	TlsVersionOnePointOne  TlsVersion = "1.1"
+	TlsVersionOnePointTwo  TlsVersion = "1.2"
+	TlsVersionOnePointZero TlsVersion = "1.0"
+)
+
+func PossibleValuesForTlsVersion() []string {
+	return []string{
+		string(TlsVersionOnePointOne),
+		string(TlsVersionOnePointTwo),
+		string(TlsVersionOnePointZero),
+	}
+}
+
+func parseTlsVersion(input string) (*TlsVersion, error) {
+	vals := map[string]TlsVersion{
+		"1.1": TlsVersionOnePointOne,
+		"1.2": TlsVersionOnePointTwo,
+		"1.0": TlsVersionOnePointZero,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := TlsVersion(input)
 	return &out, nil
 }
