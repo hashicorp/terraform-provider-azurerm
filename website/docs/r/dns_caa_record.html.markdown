@@ -66,10 +66,15 @@ resource "azurerm_dns_caa_record" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the DNS CAA Record. If you are creating the record in the apex of the zone use `"@"` as the name.
+
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
+
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
+
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
+
 * `record` - (Required) A list of values that make up the CAA record. Each `record` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -77,7 +82,9 @@ The following arguments are supported:
 The `record` block supports:
 
 * `flags` - (Required) Extensible CAA flags, currently only 1 is implemented to set the issuer critical flag.
+
 * `tag` - (Required) A property tag, options are `issue`, `issuewild` and `iodef`.
+
 * `value` - (Required) A property value such as a registrar domain.
 
 ## Attributes Reference
@@ -85,6 +92,7 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS CAA Record ID.
+
 * `fqdn` - The FQDN of the DNS CAA Record.
 
 ## Timeouts
@@ -92,8 +100,11 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS CAA Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS CAA Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS CAA Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS CAA Record.
 
 ## Import

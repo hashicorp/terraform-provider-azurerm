@@ -29,16 +29,23 @@ output "dns_cname_record_id" {
 ## Argument Reference
 
 * `name` - The name of the DNS CNAME Record.
+
 * `resource_group_name` - Specifies the resource group where the DNS Zone (parent resource) exists.
+
 * `zone_name` - Specifies the DNS Zone where the resource exists.
 
 ## Attributes Reference
 
 * `id` - The DNS CName Record ID.
+
 * `fqdn` - The FQDN of the DNS CName Record.
+
 * `ttl` - The Time To Live (TTL) of the DNS record in seconds.
+
 * `record` - The target of the CNAME.
+
 * `target_resource_id` - The Azure resource id of the target object from where the dns resource value is taken.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts

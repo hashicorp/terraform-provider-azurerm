@@ -28,21 +28,33 @@ output "dns_soa_record_id" {
 ## Argument Reference
 
 * `resource_group_name` - Specifies the resource group where the resource exists.
+
 * `zone_name` - Specifies the DNS Zone where the DNS Zone (parent resource) exists.
 
 ## Attributes Reference
 
 * `id` - The DNS SOA Record ID.
+
 * `name` - The name of the DNS SOA Record.
+
 * `fqdn` - The FQDN of the DNS SOA Record.
+
 * `ttl` - The Time To Live (TTL) of the DNS record in seconds.
+
 * `email` - The email contact for the SOA record.
+
 * `host_name` - The domain name of the authoritative name server for the SOA record.
+
 * `expire_time` - The expire time for the SOA record.
+
 * `minimum_ttl` - The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration.
+
 * `refresh_time` - The refresh time for the SOA record.
+
 * `retry_time` - The retry time for the SOA record.
+
 * `serial_number` - The serial number for the SOA record.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts

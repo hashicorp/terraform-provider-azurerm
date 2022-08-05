@@ -29,15 +29,21 @@ output "dns_ptr_record_id" {
 ## Argument Reference
 
 * `name` - The name of the DNS PTR Record.
+
 * `resource_group_name` - Specifies the resource group where the resource exists.
+
 * `zone_name` - Specifies the DNS Zone where the DNS Zone (parent resource) exists.
 
 ## Attributes Reference
 
 * `id` - The DNS PTR Record ID.
+
 * `fqdn` - The FQDN of the DNS PTR Record.
+
 * `ttl` - The Time To Live (TTL) of the DNS record in seconds.
+
 * `records` - List of Fully Qualified Domain Names.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts

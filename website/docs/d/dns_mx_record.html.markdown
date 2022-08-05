@@ -29,15 +29,21 @@ output "dns_mx_record_id" {
 ## Argument Reference
 
 * `name` - The name of the DNS MX Record.
+
 * `resource_group_name` - Specifies the resource group where the resource exists.
+
 * `zone_name` - Specifies the DNS Zone where the DNS Zone (parent resource) exists.
 
 ## Attributes Reference
 
 * `id` - The DNS MX Record ID.
+
 * `fqdn` - The FQDN of the DNS MX Record.
+
 * `ttl` - The Time To Live (TTL) of the DNS record in seconds.
+
 * `record` - A list of values that make up the MX record. Each `record` block supports fields documented below.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ---
@@ -45,6 +51,7 @@ output "dns_mx_record_id" {
 The `record` block supports:
 
 * `preference` - String representing the "preference” value of the MX records. Records with lower preference value take priority.
+
 * `exchange` - The mail server responsible for the domain covered by the MX record.
 
 ## Timeouts

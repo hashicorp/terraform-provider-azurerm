@@ -29,15 +29,21 @@ output "dns_caa_record_id" {
 ## Argument Reference
 
 * `name` - The name of the DNS CAA Record.
+
 * `resource_group_name` - Specifies the resource group where the DNS Zone (parent resource) exists.
+
 * `zone_name` - Specifies the DNS Zone where the resource exists.
 
 ## Attributes Reference
 
 * `id` - The DNS CAA Record ID.
+
 * `fqdn` - The FQDN of the DNS CAA Record.
+
 * `ttl` - The Time To Live (TTL) of the DNS record in seconds.
+
 * `record` - A list of values that make up the CAA record. Each `record` block supports fields documented below.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ---
@@ -45,7 +51,9 @@ output "dns_caa_record_id" {
 The `record` block supports:
 
 * `flags` - Extensible CAA flags, currently only 1 is implemented to set the issuer critical flag.
+
 * `tag` - A property tag, options are `issue`, `issuewild` and `iodef`.
+
 * `value` - A property value such as a registrar domain.
 
 ## Timeouts

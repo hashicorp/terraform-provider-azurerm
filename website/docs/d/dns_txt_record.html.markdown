@@ -29,15 +29,21 @@ output "dns_txt_record_id" {
 ## Argument Reference
 
 * `name` - The name of the DNS TXT Record.
+
 * `resource_group_name` - Specifies the resource group where the resource exists.
+
 * `zone_name` - Specifies the DNS Zone where the DNS Zone (parent resource) exists.
 
 ## Attributes Reference
 
 * `id` - The DNS TXT Record ID.
+
 * `fqdn` - The FQDN of the DNS TXT Record.
+
 * `ttl` - The Time To Live (TTL) of the DNS record in seconds.
+
 * `record` - A list of values that make up the txt record. Each `record` block supports fields documented below.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ---

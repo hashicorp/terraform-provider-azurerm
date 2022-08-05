@@ -39,10 +39,15 @@ resource "azurerm_dns_ptr_record" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the DNS PTR Record.
+
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+
 * `zone_name` - (Required) Specifies the DNS Zone where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
+
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
+
 * `records` - (Required) List of Fully Qualified Domain Names.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
@@ -50,6 +55,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The DNS PTR Record ID.
+
 * `fqdn` - The FQDN of the DNS PTR Record.
 
 ## Timeouts
@@ -57,8 +63,11 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS PTR Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS PTR Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS PTR Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS PTR Record.
 
 ## Import
