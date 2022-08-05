@@ -161,9 +161,15 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"private_endpoint_network_policies_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type: pluginsdk.TypeBool,
+				Computed: func() bool {
+					return !features.FourPointOh()
+				}(),
 				Optional: true,
-				Default: func() bool {
+				Default: func() interface{} {
+					if !features.FourPointOh() {
+						return nil
+					}
 					return !features.FourPointOh()
 				}(),
 				ConflictsWith: func() []string {
@@ -175,9 +181,17 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"private_link_service_network_policies_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type: pluginsdk.TypeBool,
+				Computed: func() bool {
+					return !features.FourPointOh()
+				}(),
 				Optional: true,
-				Default:  true,
+				Default: func() interface{} {
+					if !features.FourPointOh() {
+						return nil
+					}
+					return features.FourPointOh()
+				}(),
 				ConflictsWith: func() []string {
 					if !features.FourPointOh() {
 						return []string{"enforce_private_link_service_network_policies"}
