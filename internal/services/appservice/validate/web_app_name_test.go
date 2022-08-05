@@ -8,50 +8,42 @@ import (
 
 func TestWebAppName(t *testing.T) {
 	cases := []struct {
-		Input       string
-		Valid       bool
-		ShowWarning bool
+		Input string
+		Valid bool
 	}{
 		{
-			Input:       "",
-			Valid:       false,
-			ShowWarning: false,
+			Input: "",
+			Valid: false,
 		},
 		{
-			Input:       "a",
-			Valid:       true,
-			ShowWarning: false,
+			Input: "a",
+			Valid: true,
 		},
 		{
-			Input:       "-valid",
-			Valid:       true,
-			ShowWarning: false,
+			Input: "-valid",
+			Valid: true,
 		},
 		{
 			// len is 35
-			Input:       "ThisIsALongAndValidNameThatWillWork",
-			Valid:       true,
-			ShowWarning: true,
+			Input: "ThisIsALongAndValidNameThatWillWork",
+			Valid: true,
 		},
 		{
-			Input:       "ThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLong",
-			Valid:       false,
-			ShowWarning: true,
+			Input: "ThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLong",
+			Valid: false,
 		},
 		{
 			// len is 60 and should show the warning message
-			Input:       "012345678901234567890123456789012345678901234567890123456789",
-			Valid:       true,
-			ShowWarning: true,
+			Input: "012345678901234567890123456789012345678901234567890123456789",
+			Valid: true,
 		},
 	}
 
 	for _, tc := range cases {
-		warnings, errs := validate.WebAppName(tc.Input, "test")
+		_, errs := validate.WebAppName(tc.Input, "test")
 		valid := len(errs) == 0
-		showWarning := len(warnings) > 0
 
-		if valid != tc.Valid && showWarning != tc.ShowWarning {
+		if valid != tc.Valid {
 			t.Fatalf("expected %s to be %t, got %t", tc.Input, tc.Valid, valid)
 		}
 	}

@@ -8,48 +8,40 @@ import (
 
 func TestFunctionAppFunctionName(t *testing.T) {
 	cases := []struct {
-		Input       string
-		Valid       bool
-		ShowWarning bool
+		Input string
+		Valid bool
 	}{
 		{
-			Input:       "",
-			Valid:       false,
-			ShowWarning: false,
+			Input: "",
+			Valid: false,
 		},
 		{
-			Input:       "a",
-			Valid:       true,
-			ShowWarning: false,
+			Input: "a",
+			Valid: true,
 		},
 		{
-			Input:       "-notValid",
-			Valid:       false,
-			ShowWarning: false,
+			Input: "-notValid",
+			Valid: false,
 		},
 		{
-			Input:       "ThisIsALongAndValidNameThatWillWork",
-			Valid:       true,
-			ShowWarning: true,
+			Input: "ThisIsALongAndValidNameThatWillWork",
+			Valid: true,
 		},
 		{
-			Input:       "ThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLong",
-			Valid:       false,
-			ShowWarning: true,
+			Input: "ThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLongThisNameIsTooLong",
+			Valid: false,
 		},
 		{
-			Input:       "EndsInWrongChar-",
-			Valid:       false,
-			ShowWarning: false,
+			Input: "EndsInWrongChar-",
+			Valid: false,
 		},
 	}
 
 	for _, tc := range cases {
-		warnings, errs := validate.FunctionAppFunctionName(tc.Input, "test")
+		_, errs := validate.FunctionAppFunctionName(tc.Input, "test")
 		valid := len(errs) == 0
-		showWarning := len(warnings) > 0
 
-		if valid != tc.Valid && showWarning != tc.ShowWarning {
+		if valid != tc.Valid {
 			t.Fatalf("expected %s to be %t, got %t", tc.Input, tc.Valid, valid)
 		}
 	}
