@@ -18,20 +18,16 @@ import (
 )
 
 type LogAnalyticsQueryPackQueryModel struct {
-	Name           string                 `tfschema:"name"`
-	QueryPackId    string                 `tfschema:"query_pack_id"`
-	Body           string                 `tfschema:"body"`
-	Description    *string                `tfschema:"description"`
-	DisplayName    string                 `tfschema:"display_name"`
-	PropertiesJson string                 `tfschema:"properties_json"`
-	Related        []Related              `tfschema:"related"`
-	Tags           map[string]interface{} `tfschema:"tags"`
-}
-
-type Related struct {
-	Categories    []interface{} `tfschema:"categories"`
-	ResourceTypes []interface{} `tfschema:"resource_types"`
-	Solutions     []interface{} `tfschema:"solutions"`
+	Name           string            `tfschema:"name"`
+	QueryPackId    string            `tfschema:"query_pack_id"`
+	Body           string            `tfschema:"body"`
+	DisplayName    string            `tfschema:"display_name"`
+	Categories     []string          `tfschema:"categories"`
+	Description    string            `tfschema:"description"`
+	PropertiesJson string            `tfschema:"properties_json"`
+	ResourceTypes  []string          `tfschema:"resource_types"`
+	Solutions      []string          `tfschema:"solutions"`
+	Tags           map[string]string `tfschema:"tags"`
 }
 
 type LogAnalyticsQueryPackQueryResource struct{}
@@ -68,18 +64,44 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"body": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"categories": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"applications",
+					"audit",
+					"container",
+					"databases",
+					"desktopanalytics",
+					"management",
+					"monitor",
+					"network",
+					"resources",
+					"security",
+					"virtualmachines",
+					"windowsvirtualdesktop",
+					"workloads",
+				}, false),
+			},
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"properties_json": {
@@ -88,248 +110,216 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 			StateFunc: utils.NormalizeJson,
 		},
 
-		"related": {
+		"resource_types": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"categories": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"applications",
-								"audit",
-								"container",
-								"databases",
-								"desktopanalytics",
-								"management",
-								"monitor",
-								"network",
-								"resources",
-								"security",
-								"virtualmachines",
-								"windowsvirtualdesktop",
-								"workloads",
-							}, false),
-						},
-					},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"default",
+					"microsoft.aad/domainservices",
+					"microsoft.aadiam/tenants",
+					"microsoft.agfoodplatform/farmbeats",
+					"microsoft.analysisservices/servers",
+					"microsoft.apimanagement/service",
+					"microsoft.appconfiguration/configurationstores",
+					"microsoft.appplatform/spring",
+					"microsoft.attestation/attestationproviders",
+					"microsoft.authorization/tenants",
+					"microsoft.automation/automationaccounts",
+					"microsoft.autonomousdevelopmentplatform/accounts",
+					"microsoft.azurestackhci/virtualmachines",
+					"microsoft.batch/batchaccounts",
+					"microsoft.blockchain/blockchainmembers",
+					"microsoft.botservice/botservices",
+					"microsoft.cache/redis",
+					"microsoft.cdn/profiles",
+					"microsoft.cognitiveservices/accounts",
+					"microsoft.communication/communicationservices",
+					"microsoft.compute/virtualmachines",
+					"microsoft.compute/virtualmachinescalesets",
+					"microsoft.connectedcache/cachenodes",
+					"microsoft.connectedvehicle/platformaccounts",
+					"microsoft.conenctedvmwarevsphere/virtualmachines",
+					"microsoft.containerregistry/registries",
+					"microsoft.containerservice/managedclusters",
+					"microsoft.d365customerinsights/instances",
+					"microsoft.dashboard/grafana",
+					"microsoft.databricks/workspaces",
+					"microsoft.datacollaboration/workspaces",
+					"microsoft.datafactory/factories",
+					"microsoft.datalakeanalytics/accounts",
+					"microsoft.datalakestore/accounts",
+					"microsoft.datashare/accounts",
+					"microsoft.dbformariadb/servers",
+					"microsoft.dbformysql/servers",
+					"microsoft.dbforpostgresql/flexibleservers",
+					"microsoft.dbforpostgresql/servers",
+					"microsoft.dbforpostgresql/serversv2",
+					"microsoft.digitaltwins/digitaltwinsinstances",
+					"microsoft.documentdb/cassandraclusters",
+					"microsoft.documentdb/databaseaccounts",
+					"microsoft.desktopvirtualization/applicationgroups",
+					"microsoft.desktopvirtualization/hostpools",
+					"microsoft.desktopvirtualization/workspaces",
+					"microsoft.devices/iothubs",
+					"microsoft.devices/provisioningservices",
+					"microsoft.dynamics/fraudprotection/purchase",
+					"microsoft.eventgrid/domains",
+					"microsoft.eventgrid/topics",
+					"microsoft.eventgrid/partnernamespaces",
+					"microsoft.eventgrid/partnertopics",
+					"microsoft.eventgrid/systemtopics",
+					"microsoft.eventhub/namespaces",
+					"microsoft.experimentation/experimentworkspaces",
+					"microsoft.hdinsight/clusters",
+					"microsoft.healthcareapis/services",
+					"microsoft.informationprotection/datasecuritymanagement",
+					"microsoft.intune/operations",
+					"microsoft.insights/autoscalesettings",
+					"microsoft.insights/components",
+					"microsoft.insights/workloadmonitoring",
+					"microsoft.keyvault/vaults",
+					"microsoft.kubernetes/connectedclusters",
+					"microsoft.kusto/clusters",
+					"microsoft.loadtestservice/loadtests",
+					"microsoft.logic/workflows",
+					"microsoft.machinelearningservices/workspaces",
+					"microsoft.media/mediaservices",
+					"microsoft.netapp/netappaccounts/capacitypools",
+					"microsoft.network/applicationgateways",
+					"microsoft.network/azurefirewalls",
+					"microsoft.network/bastionhosts",
+					"microsoft.network/expressroutecircuits",
+					"microsoft.network/frontdoors",
+					"microsoft.network/loadbalancers",
+					"microsoft.network/networkinterfaces",
+					"microsoft.network/networksecuritygroups",
+					"microsoft.network/networksecurityperimeters",
+					"microsoft.network/networkwatchers/connectionmonitors",
+					"microsoft.network/networkwatchers/trafficanalytics",
+					"microsoft.network/publicipaddresses",
+					"microsoft.network/trafficmanagerprofiles",
+					"microsoft.network/virtualnetworks",
+					"microsoft.network/virtualnetworkgateways",
+					"microsoft.network/vpngateways",
+					"microsoft.networkfunction/azuretrafficcollectors",
+					"microsoft.openenergyplatform/energyservices",
+					"microsoft.openlogisticsplatform/workspaces",
+					"microsoft.operationalinsights/workspaces",
+					"microsoft.powerbi/tenants",
+					"microsoft.powerbi/tenants/workspaces",
+					"microsoft.powerbidedicated/capacities",
+					"microsoft.purview/accounts",
+					"microsoft.recoveryservices/vaults",
+					"microsoft.resources/azureactivity",
+					"microsoft.scvmm/virtualmachines",
+					"microsoft.search/searchservices",
+					"microsoft.security/antimalwaresettings",
+					"microsoft.securityinsights/amazon",
+					"microsoft.securityinsights/anomalies",
+					"microsoft.securityinsights/cef",
+					"microsoft.securityinsights/datacollection",
+					"microsoft.securityinsights/dnsnormalized",
+					"microsoft.securityinsights/mda",
+					"microsoft.securityinsights/mde",
+					"microsoft.securityinsights/mdi",
+					"microsoft.securityinsights/mdo",
+					"microsoft.securityinsights/networksessionnormalized",
+					"microsoft.securityinsights/office365",
+					"microsoft.securityinsights/purview",
+					"microsoft.securityinsights/securityinsights",
+					"microsoft.securityinsights/securityinsights/mcas",
+					"microsoft.securityinsights/tvm",
+					"microsoft.securityinsights/watchlists",
+					"microsoft.servicebus/namespaces",
+					"microsoft.servicefabric/clusters",
+					"microsoft.signalrservice/signalr",
+					"microsoft.signalrservice/webpubsub",
+					"microsoft.sql/managedinstances",
+					"microsoft.sql/servers",
+					"microsoft.sql/servers/databases",
+					"microsoft.storage/storageaccounts",
+					"microsoft.storagecache/caches",
+					"microsoft.streamanalytics/streamingjobs",
+					"microsoft.synapse/workspaces",
+					"microsoft.timeseriesinsights/environments",
+					"microsoft.videoindexer/accounts",
+					"microsoft.web/sites",
+					"microsoft.workloadmonitor/monitors",
+					"resourcegroup",
+					"subscription",
+				}, false),
+			},
+		},
 
-					"resource_types": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"microsoft.agfoodplatform/farmbeats",
-								"microsoft.informationprotection/datasecuritymanagement",
-								"microsoft.appconfiguration/configurationstores",
-								"microsoft.web/sites",
-								"microsoft.authorization/tenants",
-								"microsoft.autonomousdevelopmentplatform/accounts",
-								"microsoft.resources/azureactivity",
-								"microsoft.attestation/attestationproviders",
-								"microsoft.cache/redis",
-								"microsoft.communication/communicationservices",
-								"microsoft.documentdb/databaseaccounts",
-								"microsoft.datacollaboration/workspaces",
-								"microsoft.security/antimalwaresettings",
-								"microsoft.digitaltwins/digitaltwinsinstances",
-								"microsoft.eventgrid/topics",
-								"microsoft.network/azurefirewalls",
-								"microsoft.dashboard/grafana",
-								"microsoft.loadtestservice/loadtests",
-								"microsoft.documentdb/cassandraclusters",
-								"microsoft.containerservice/managedclusters",
-								"microsoft.insights/workloadmonitoring",
-								"microsoft.netapp/netappaccounts/capacitypools",
-								"microsoft.securityinsights/purview",
-								"microsoft.purview/accounts",
-								"microsoft.networkfunction/azuretrafficcollectors",
-								"microsoft.botservice/botservices",
-								"microsoft.connectedcache/cachenodes",
-								"microsoft.connectedvehicle/platformaccounts",
-								"microsoft.network/networkwatchers/connectionmonitors",
-								"microsoft.d365customerinsights/instances",
-								"microsoft.dynamics/fraudprotection/purchase",
-								"microsoft.experimentation/experimentworkspaces",
-								"microsoft.hdinsight/clusters",
-								"microsoft.intune/operations",
-								"microsoft.aadiam/tenants",
-								"microsoft.machinelearningservices/workspaces",
-								"microsoft.network/networksecurityperimeters",
-								"microsoft.openenergyplatform/energyservices",
-								"microsoft.openlogisticsplatform/workspaces",
-								"microsoft.compute/virtualmachines",
-								"microsoft.operationalinsights/workspaces",
-								"microsoft.powerbi/tenants",
-								"microsoft.powerbi/tenants/workspaces",
-								"microsoft.securityinsights/cef",
-								"microsoft.securityinsights/datacollection",
-								"microsoft.securityinsights/anomalies",
-								"microsoft.securityinsights/dnsnormalized",
-								"microsoft.securityinsights/networksessionnormalized",
-								"microsoft.securityinsights/amazon",
-								"microsoft.securityinsights/securityinsights/mcas",
-								"microsoft.securityinsights/mda",
-								"microsoft.securityinsights/mde",
-								"microsoft.securityinsights/mdi",
-								"microsoft.securityinsights/mdo",
-								"microsoft.securityinsights/office365",
-								"microsoft.securityinsights/securityinsights",
-								"microsoft.securityinsights/tvm",
-								"microsoft.securityinsights/watchlists",
-								"microsoft.storagecache/caches",
-								"microsoft.synapse/workspaces",
-								"microsoft.network/networkwatchers/trafficanalytics",
-								"microsoft.videoindexer/accounts",
-								"microsoft.desktopvirtualization/hostpools",
-								"default",
-								"subscription",
-								"resourcegroup",
-								"microsoft.signalrservice/webpubsub",
-								"microsoft.insights/components",
-								"microsoft.desktopvirtualization/applicationgroups",
-								"microsoft.desktopvirtualization/workspaces",
-								"microsoft.timeseriesinsights/environments",
-								"microsoft.workloadmonitor/monitors",
-								"microsoft.analysisservices/servers",
-								"microsoft.batch/batchaccounts",
-								"microsoft.cdn/profiles",
-								"microsoft.appplatform/spring",
-								"microsoft.media/mediaservices",
-								"microsoft.cognitiveservices/accounts",
-								"microsoft.keyvault/vaults",
-								"microsoft.storage/storageaccounts",
-								"microsoft.signalrservice/signalr",
-								"microsoft.containerregistry/registries",
-								"microsoft.kusto/clusters",
-								"microsoft.aad/domainservices",
-								"microsoft.blockchain/blockchainmembers",
-								"microsoft.eventgrid/domains",
-								"microsoft.eventgrid/partnernamespaces",
-								"microsoft.eventgrid/partnertopics",
-								"microsoft.eventgrid/systemtopics",
-								"microsoft.conenctedvmwarevsphere/virtualmachines",
-								"microsoft.azurestackhci/virtualmachines",
-								"microsoft.scvmm/virtualmachines",
-								"microsoft.compute/virtualmachinescalesets",
-								"microsoft.kubernetes/connectedclusters",
-								"microsoft.databricks/workspaces",
-								"microsoft.insights/autoscalesettings",
-								"microsoft.devices/iothubs",
-								"microsoft.servicefabric/clusters",
-								"microsoft.logic/workflows",
-								"microsoft.apimanagement/service",
-								"microsoft.automation/automationaccounts",
-								"microsoft.datafactory/factories",
-								"microsoft.recoveryservices/vaults",
-								"microsoft.datalakestore/accounts",
-								"microsoft.datalakeanalytics/accounts",
-								"microsoft.powerbidedicated/capacities",
-								"microsoft.datashare/accounts",
-								"microsoft.sql/managedinstances",
-								"microsoft.sql/servers",
-								"microsoft.sql/servers/databases",
-								"microsoft.dbformysql/servers",
-								"microsoft.dbforpostgresql/servers",
-								"microsoft.dbforpostgresql/serversv2",
-								"microsoft.dbforpostgresql/flexibleservers",
-								"microsoft.dbformariadb/servers",
-								"microsoft.devices/provisioningservices",
-								"microsoft.eventhub/namespaces",
-								"microsoft.network/applicationgateways",
-								"microsoft.network/expressroutecircuits",
-								"microsoft.network/frontdoors",
-								"microsoft.network/loadbalancers",
-								"microsoft.network/networkinterfaces",
-								"microsoft.network/networksecuritygroups",
-								"microsoft.network/publicipaddresses",
-								"microsoft.network/trafficmanagerprofiles",
-								"microsoft.network/virtualnetworkgateways",
-								"microsoft.network/vpngateways",
-								"microsoft.network/virtualnetworks",
-								"microsoft.search/searchservices",
-								"microsoft.streamanalytics/streamingjobs",
-								"microsoft.network/bastionhosts",
-								"microsoft.healthcareapis/services",
-								"microsoft.servicebus/namespaces",
-							}, false),
-						},
-					},
-
-					"solutions": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"AADDomainServices",
-								"ADAssessment",
-								"ADAssessmentPlus",
-								"ADReplication",
-								"ADSecurityAssessment",
-								"AlertManagement",
-								"AntiMalware",
-								"ApplicationInsights",
-								"AzureAssessment",
-								"AzureSecurityOfThings",
-								"AzureSentinelDSRE",
-								"AzureSentinelPrivatePreview",
-								"BehaviorAnalyticsInsights",
-								"ChangeTracking",
-								"CompatibilityAssessment",
-								"ContainerInsights",
-								"Containers",
-								"CustomizedWindowsEventsFiltering",
-								"DeviceHealthProd",
-								"DnsAnalytics",
-								"ExchangeAssessment",
-								"ExchangeOnlineAssessment",
-								"IISAssessmentPlus",
-								"InfrastructureInsights",
-								"InternalWindowsEvent",
-								"LogManagement",
-								"Microsoft365Analytics",
-								"NetworkMonitoring",
-								"SCCMAssessmentPlus",
-								"SCOMAssessment",
-								"SCOMAssessmentPlus",
-								"SPAssessment",
-								"SQLAdvancedThreatProtection",
-								"SQLAssessment",
-								"SQLAssessmentPlus",
-								"SQLDataClassification",
-								"SQLThreatDetection",
-								"SQLVulnerabilityAssessment",
-								"Security",
-								"SecurityCenter",
-								"SecurityCenterFree",
-								"SecurityInsights",
-								"ServiceMap",
-								"SfBAssessment",
-								"SfBOnlineAssessment",
-								"SharePointOnlineAssessment",
-								"SurfaceHub",
-								"Updates",
-								"VMInsights",
-								"WEFInternalUat",
-								"WEF_10x",
-								"WEF_10xDSRE",
-								"WaaSUpdateInsights",
-								"WinLog",
-								"WindowsClientAssessmentPlus",
-								"WindowsEventForwarding",
-								"WindowsFirewall",
-								"WindowsServerAssessment",
-								"WireData",
-								"WireData2",
-							}, false),
-						},
-					},
-				},
+		"solutions": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"AADDomainServices",
+					"ADAssessment",
+					"ADAssessmentPlus",
+					"ADReplication",
+					"ADSecurityAssessment",
+					"AlertManagement",
+					"AntiMalware",
+					"ApplicationInsights",
+					"AzureAssessment",
+					"AzureSecurityOfThings",
+					"AzureSentinelDSRE",
+					"AzureSentinelPrivatePreview",
+					"BehaviorAnalyticsInsights",
+					"ChangeTracking",
+					"CompatibilityAssessment",
+					"ContainerInsights",
+					"Containers",
+					"CustomizedWindowsEventsFiltering",
+					"DeviceHealthProd",
+					"DnsAnalytics",
+					"ExchangeAssessment",
+					"ExchangeOnlineAssessment",
+					"IISAssessmentPlus",
+					"InfrastructureInsights",
+					"InternalWindowsEvent",
+					"LogManagement",
+					"Microsoft365Analytics",
+					"NetworkMonitoring",
+					"SCCMAssessmentPlus",
+					"SCOMAssessment",
+					"SCOMAssessmentPlus",
+					"Security",
+					"SecurityCenter",
+					"SecurityCenterFree",
+					"SecurityInsights",
+					"ServiceMap",
+					"SfBAssessment",
+					"SfBOnlineAssessment",
+					"SharePointOnlineAssessment",
+					"SPAssessment",
+					"SQLAdvancedThreatProtection",
+					"SQLAssessment",
+					"SQLAssessmentPlus",
+					"SQLDataClassification",
+					"SQLThreatDetection",
+					"SQLVulnerabilityAssessment",
+					"SurfaceHub",
+					"Updates",
+					"VMInsights",
+					"WEFInternalUat",
+					"WEF_10x",
+					"WEF_10xDSRE",
+					"WaaSUpdateInsights",
+					"WinLog",
+					"WindowsClientAssessmentPlus",
+					"WindowsEventForwarding",
+					"WindowsFirewall",
+					"WindowsServerAssessment",
+					"WireData",
+					"WireData2",
+				}, false),
 			},
 		},
 
@@ -382,8 +372,8 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if model.Description != nil {
-				properties.Properties.Description = model.Description
+			if model.Description != "" {
+				properties.Properties.Description = &model.Description
 			}
 
 			if model.PropertiesJson != "" {
@@ -394,8 +384,22 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 				properties.Properties.Properties = &propertiesJson
 			}
 
-			if model.Related != nil {
-				properties.Properties.Related = expandLogAnalyticsQueryPackQueryRelated(model.Related)
+			if model.Categories != nil || model.ResourceTypes != nil || model.Solutions != nil {
+				relatedProps := &queryPacks.LogAnalyticsQueryPackQueryPropertiesRelated{}
+
+				if model.Categories != nil {
+					relatedProps.Categories = &model.Categories
+				}
+
+				if model.ResourceTypes != nil {
+					relatedProps.ResourceTypes = &model.ResourceTypes
+				}
+
+				if model.Solutions != nil {
+					relatedProps.Solutions = &model.Solutions
+				}
+
+				properties.Properties.Related = relatedProps
 			}
 
 			if model.Tags != nil {
@@ -443,7 +447,7 @@ func (r LogAnalyticsQueryPackQueryResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Properties.Description = model.Description
+				properties.Properties.Description = &model.Description
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
@@ -458,8 +462,16 @@ func (r LogAnalyticsQueryPackQueryResource) Update() sdk.ResourceFunc {
 				properties.Properties.Properties = &propertiesJson
 			}
 
-			if metadata.ResourceData.HasChange("related") {
-				properties.Properties.Related = expandLogAnalyticsQueryPackQueryRelated(model.Related)
+			if metadata.ResourceData.HasChange("categories") {
+				properties.Properties.Related.Categories = &model.Categories
+			}
+
+			if metadata.ResourceData.HasChange("resource_types") {
+				properties.Properties.Related.Categories = &model.ResourceTypes
+			}
+
+			if metadata.ResourceData.HasChange("solutions") {
+				properties.Properties.Related.Categories = &model.Solutions
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -500,19 +512,46 @@ func (r LogAnalyticsQueryPackQueryResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			propsJson, jsonErr := json.Marshal(model.Properties.Properties)
-			if jsonErr != nil {
-				return fmt.Errorf("parsing JSON for Log Analytics Query Pack Query Properties: %+v", jsonErr)
+			props := model.Properties
+			if props == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
 			state := LogAnalyticsQueryPackQueryModel{
-				Name:           id.QueryPackName,
-				QueryPackId:    queryPacks.NewQueryPackID(id.SubscriptionId, id.ResourceGroupName, id.QueryPackName).ID(),
-				Body:           model.Properties.Body,
-				DisplayName:    model.Properties.DisplayName,
-				PropertiesJson: string(propsJson),
-				Related:        flattenLogAnalyticsQueryPackQueryRelated(model.Properties.Related),
-				Tags:           flattenLogAnalyticsQueryPackQueryTags(*model.Properties.Tags),
+				Name:        id.Id,
+				QueryPackId: queryPacks.NewQueryPackID(id.SubscriptionId, id.ResourceGroupName, id.QueryPackName).ID(),
+				Body:        props.Body,
+				DisplayName: props.DisplayName,
+			}
+
+			if props.Properties != nil {
+				propsJson, jsonErr := json.Marshal(props.Properties)
+				if jsonErr != nil {
+					return fmt.Errorf("parsing JSON for Log Analytics Query Pack Query Properties: %+v", jsonErr)
+				}
+				state.PropertiesJson = string(propsJson)
+			}
+
+			if props.Description != nil {
+				state.Description = *props.Description
+			}
+
+			if additionalSettings := model.Properties.Related; additionalSettings != nil {
+				if additionalSettings.Categories != nil {
+					state.Categories = *additionalSettings.Categories
+				}
+
+				if additionalSettings.ResourceTypes != nil {
+					state.ResourceTypes = *additionalSettings.ResourceTypes
+				}
+
+				if additionalSettings.Solutions != nil {
+					state.Solutions = *additionalSettings.Solutions
+				}
+			}
+
+			if tags := props.Tags; tags != nil {
+				state.Tags = flattenLogAnalyticsQueryPackQueryTags(*tags)
 			}
 
 			return metadata.Encode(&state)
@@ -540,57 +579,28 @@ func (r LogAnalyticsQueryPackQueryResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandLogAnalyticsQueryPackQueryTags(input map[string]interface{}) *map[string][]string {
-	output := make(map[string][]string)
-	for k, v := range input {
-		output[k] = strings.Split(v.(string), ",")
-	}
-	return &output
-}
-
-func flattenLogAnalyticsQueryPackQueryTags(input map[string][]string) map[string]interface{} {
-	results := make(map[string]interface{})
+func expandLogAnalyticsQueryPackQueryTags(input map[string]string) *map[string][]string {
 	if input == nil {
-		return results
-	}
-	for k, v := range input {
-		results[k] = strings.Join(v, ",")
-	}
-	return results
-}
-
-func expandLogAnalyticsQueryPackQueryRelated(input []Related) *queryPacks.LogAnalyticsQueryPackQueryPropertiesRelated {
-	if len(input) == 0 {
 		return nil
 	}
 
-	result := &queryPacks.LogAnalyticsQueryPackQueryPropertiesRelated{}
-
-	if input[0].Categories != nil {
-		result.Categories = utils.ExpandStringSlice(input[0].Categories)
+	output := make(map[string][]string)
+	for k, v := range input {
+		output[k] = strings.Split(v, ",")
 	}
 
-	if input[0].ResourceTypes != nil {
-		result.ResourceTypes = utils.ExpandStringSlice(input[0].ResourceTypes)
-	}
-
-	if input[0].Solutions != nil {
-		result.Solutions = utils.ExpandStringSlice(input[0].Solutions)
-	}
-
-	return result
+	return &output
 }
 
-func flattenLogAnalyticsQueryPackQueryRelated(input *queryPacks.LogAnalyticsQueryPackQueryPropertiesRelated) []Related {
+func flattenLogAnalyticsQueryPackQueryTags(input map[string][]string) map[string]string {
 	if input == nil {
-		return make([]Related, 0)
+		return nil
 	}
 
-	result := make([]Related, 0)
-	result = append(result, Related{
-		Categories:    utils.FlattenStringSlice(input.Categories),
-		ResourceTypes: utils.FlattenStringSlice(input.ResourceTypes),
-		Solutions:     utils.FlattenStringSlice(input.Solutions),
-	})
-	return result
+	results := make(map[string]string)
+	for k, v := range input {
+		results[k] = strings.Join(v, ",")
+	}
+
+	return results
 }

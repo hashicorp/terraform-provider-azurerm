@@ -44,6 +44,13 @@ func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -98,6 +105,34 @@ resource "azurerm_log_analytics_query_pack_query" "test" {
   query_pack_id = azurerm_log_analytics_query_pack.test.id
   body          = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
   display_name  = "Exceptions - New in the last 24 hours"
+  properties_json = <<JSON
+{
+  "Environment": "Test"
+}
+JSON
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogAnalyticsQueryPackQueryResource) basic2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_query_pack" "test" {
+  name                = "acctestlaqp-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_log_analytics_query_pack_query" "test" {
+  query_pack_id = azurerm_log_analytics_query_pack.test.id
+  body          = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
+  display_name  = "Exceptions - New in the last 28 hours"
+  properties_json = <<JSON
+{
+  "Environment": "Test"
+}
+JSON
 }
 `, r.template(data), data.RandomInteger)
 }
