@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
-* `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
+* `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below. This field is applicable only for Spring Cloud Service with basic and standard tier.
 
 * `service_registry_enabled` - (Optional) Whether enable the default Service Registry. This field is applicable only for Spring Cloud Service with enterprise tier.
 
