@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	queryPacks "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/operationalinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsQueryPackQueryResource struct{}
+type LogAnalyticsQueryPackQueryResource struct{ uuid string }
 
 func (r LogAnalyticsQueryPackQueryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := queryPacks.ParseQueriesID(state.ID)
@@ -44,13 +45,6 @@ func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic2(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -71,18 +65,18 @@ func TestAccLogAnalyticsQueryPackQuery_requiresImport(t *testing.T) {
 
 func TestAccLogAnalyticsQueryPackQuery_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
-	r := LogAnalyticsQueryPackQueryResource{}
+	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "Test1"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, "Test2"),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -105,16 +99,11 @@ resource "azurerm_log_analytics_query_pack_query" "test" {
   query_pack_id = azurerm_log_analytics_query_pack.test.id
   body          = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
   display_name  = "Exceptions - New in the last 24 hours"
-  properties_json = <<JSON
-{
-  "Environment": "Test"
-}
-JSON
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LogAnalyticsQueryPackQueryResource) basic2(data acceptance.TestData) string {
+func (r LogAnalyticsQueryPackQueryResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -125,56 +114,30 @@ resource "azurerm_log_analytics_query_pack" "test" {
 }
 
 resource "azurerm_log_analytics_query_pack_query" "test" {
-  query_pack_id = azurerm_log_analytics_query_pack.test.id
-  body          = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
-  display_name  = "Exceptions - New in the last 28 hours"
-  properties_json = <<JSON
+  name           = "%[3]s"
+  query_pack_id  = azurerm_log_analytics_query_pack.test.id
+  body           = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
+  display_name   = "Exceptions - New in the last 24 hours"
+  description    = "my description"
+  categories     = ["network"]
+  resource_types = ["microsoft.web/sites"]
+  solutions      = ["LogManagement"]
+
+  additional_settings_json = <<JSON
 {
   "Environment": "Test"
 }
 JSON
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LogAnalyticsQueryPackQueryResource) complete(data acceptance.TestData, name string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_log_analytics_query_pack" "test" {
-  name                = "acctestlaqp-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_log_analytics_query_pack_query" "test" {
-  name          = "%[3]s"
-  query_pack_id = azurerm_log_analytics_query_pack.test.id
-  body          = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
-  display_name  = "Exceptions - New in the last 24 hours"
-  description   = "my description"
-
-  properties_json = <<JSON
-{
-  "Environment": "Test"
-}
-JSON
-
-  Related {
-    categories     = ["network"]
-    resource_types = ["microsoft.web/sites"]
-    solutions      = ["LogManagement"]
-  }
 
   tags = {
     my-label       = "label1,label2"
     my-other-label = "label3,label4"
   }
 }
-`, r.template(data), data.RandomInteger, name)
+`, r.template(data), data.RandomInteger, r.uuid)
 }
 
-func (r LogAnalyticsQueryPackQueryResource) update(data acceptance.TestData, name string) string {
+func (r LogAnalyticsQueryPackQueryResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -185,30 +148,27 @@ resource "azurerm_log_analytics_query_pack" "test" {
 }
 
 resource "azurerm_log_analytics_query_pack_query" "test" {
-  name          = "%[3]s"
-  query_pack_id = azurerm_log_analytics_query_pack.test.id
-  body          = "let newExceptionsTimeRange = 2d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
-  display_name  = "Exceptions - New in the last 48 hours"
-  description   = "my test description"
+  name           = "%[3]s"
+  query_pack_id  = azurerm_log_analytics_query_pack.test.id
+  body           = "let newExceptionsTimeRange = 2d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
+  display_name   = "Exceptions - New in the last 48 hours"
+  description    = "my test description"
+  categories     = ["resources"]
+  resource_types = ["microsoft.network/virtualnetworks"]
+  solutions      = ["NetworkMonitoring"]
 
-  properties_json = <<JSON
+  additional_settings_json = <<JSON
 {
   "Environment2": "Test2"
 }
 JSON
-
-  Related {
-    categories     = ["resources"]
-    resource_types = ["microsoft.network/virtualnetworks"]
-    solutions      = ["NetworkMonitoring"]
-  }
 
   tags = {
     my-label       = "label5"
     my-other-label = "label7"
   }
 }
-`, r.template(data), data.RandomInteger, name)
+`, r.template(data), data.RandomInteger, r.uuid)
 }
 
 func (r LogAnalyticsQueryPackQueryResource) requiresImport(data acceptance.TestData) string {
@@ -216,6 +176,7 @@ func (r LogAnalyticsQueryPackQueryResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_log_analytics_query_pack_query" "import" {
+  name          = azurerm_log_analytics_query_pack_query.test.name
   query_pack_id = azurerm_log_analytics_query_pack_query.test.query_pack_id
   body          = azurerm_log_analytics_query_pack_query.test.body
   display_name  = azurerm_log_analytics_query_pack_query.test.display_name

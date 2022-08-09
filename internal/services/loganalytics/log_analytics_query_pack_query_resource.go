@@ -13,21 +13,22 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsQueryPackQueryModel struct {
-	Name           string            `tfschema:"name"`
-	QueryPackId    string            `tfschema:"query_pack_id"`
-	Body           string            `tfschema:"body"`
-	DisplayName    string            `tfschema:"display_name"`
-	Categories     []string          `tfschema:"categories"`
-	Description    string            `tfschema:"description"`
-	PropertiesJson string            `tfschema:"properties_json"`
-	ResourceTypes  []string          `tfschema:"resource_types"`
-	Solutions      []string          `tfschema:"solutions"`
-	Tags           map[string]string `tfschema:"tags"`
+	Name                   string            `tfschema:"name"`
+	QueryPackId            string            `tfschema:"query_pack_id"`
+	Body                   string            `tfschema:"body"`
+	DisplayName            string            `tfschema:"display_name"`
+	Categories             []string          `tfschema:"categories"`
+	Description            string            `tfschema:"description"`
+	AdditionalSettingsJson string            `tfschema:"additional_settings_json"`
+	ResourceTypes          []string          `tfschema:"resource_types"`
+	Solutions              []string          `tfschema:"solutions"`
+	Tags                   map[string]string `tfschema:"tags"`
 }
 
 type LogAnalyticsQueryPackQueryResource struct{}
@@ -104,7 +105,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"properties_json": {
+		"additional_settings_json": {
 			Type:      pluginsdk.TypeString,
 			Optional:  true,
 			StateFunc: utils.NormalizeJson,
@@ -254,8 +255,9 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"solutions": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Type:             pluginsdk.TypeList,
+			Optional:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -319,7 +321,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 					"WindowsServerAssessment",
 					"WireData",
 					"WireData2",
-				}, false),
+				}, true),
 			},
 		},
 
@@ -365,48 +367,43 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &queryPacks.LogAnalyticsQueryPackQuery{
+			parameters := &queryPacks.LogAnalyticsQueryPackQuery{
 				Properties: &queryPacks.LogAnalyticsQueryPackQueryProperties{
 					Body:        model.Body,
 					DisplayName: model.DisplayName,
+					Related:     &queryPacks.LogAnalyticsQueryPackQueryPropertiesRelated{},
 				},
 			}
 
 			if model.Description != "" {
-				properties.Properties.Description = &model.Description
+				parameters.Properties.Description = &model.Description
 			}
 
-			if model.PropertiesJson != "" {
-				var propertiesJson interface{}
-				if err := json.Unmarshal([]byte(model.PropertiesJson), &propertiesJson); err != nil {
+			if model.AdditionalSettingsJson != "" {
+				var additionalSettingsJson interface{}
+				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}
-				properties.Properties.Properties = &propertiesJson
+				parameters.Properties.Properties = &additionalSettingsJson
 			}
 
-			if model.Categories != nil || model.ResourceTypes != nil || model.Solutions != nil {
-				relatedProps := &queryPacks.LogAnalyticsQueryPackQueryPropertiesRelated{}
+			if model.Categories != nil {
+				parameters.Properties.Related.Categories = &model.Categories
+			}
 
-				if model.Categories != nil {
-					relatedProps.Categories = &model.Categories
-				}
+			if model.ResourceTypes != nil {
+				parameters.Properties.Related.ResourceTypes = &model.ResourceTypes
+			}
 
-				if model.ResourceTypes != nil {
-					relatedProps.ResourceTypes = &model.ResourceTypes
-				}
-
-				if model.Solutions != nil {
-					relatedProps.Solutions = &model.Solutions
-				}
-
-				properties.Properties.Related = relatedProps
+			if model.Solutions != nil {
+				parameters.Properties.Related.Solutions = &model.Solutions
 			}
 
 			if model.Tags != nil {
-				properties.Properties.Tags = expandLogAnalyticsQueryPackQueryTags(model.Tags)
+				parameters.Properties.Tags = expandLogAnalyticsQueryPackQueryTags(model.Tags)
 			}
 
-			if _, err := client.QueriesPut(ctx, id, *properties); err != nil {
+			if _, err := client.QueriesPut(ctx, id, *parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -432,53 +429,43 @@ func (r LogAnalyticsQueryPackQueryResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.QueriesGet(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("body") {
-				properties.Properties.Body = model.Body
+			parameters := &queryPacks.LogAnalyticsQueryPackQuery{
+				Properties: &queryPacks.LogAnalyticsQueryPackQueryProperties{
+					Body:        model.Body,
+					DisplayName: model.DisplayName,
+					Related:     &queryPacks.LogAnalyticsQueryPackQueryPropertiesRelated{},
+				},
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Properties.Description = &model.Description
+				parameters.Properties.Description = &model.Description
 			}
 
-			if metadata.ResourceData.HasChange("display_name") {
-				properties.Properties.DisplayName = model.DisplayName
-			}
-
-			if metadata.ResourceData.HasChange("properties_json") {
-				var propertiesJson interface{}
-				if err := json.Unmarshal([]byte(model.PropertiesJson), &propertiesJson); err != nil {
+			if metadata.ResourceData.HasChange("additional_settings_json") {
+				var additionalSettingsJson interface{}
+				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}
-				properties.Properties.Properties = &propertiesJson
+				parameters.Properties.Properties = &additionalSettingsJson
 			}
 
 			if metadata.ResourceData.HasChange("categories") {
-				properties.Properties.Related.Categories = &model.Categories
+				parameters.Properties.Related.Categories = &model.Categories
 			}
 
 			if metadata.ResourceData.HasChange("resource_types") {
-				properties.Properties.Related.Categories = &model.ResourceTypes
+				parameters.Properties.Related.ResourceTypes = &model.ResourceTypes
 			}
 
 			if metadata.ResourceData.HasChange("solutions") {
-				properties.Properties.Related.Categories = &model.Solutions
+				parameters.Properties.Related.Solutions = &model.Solutions
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Properties.Tags = expandLogAnalyticsQueryPackQueryTags(model.Tags)
+				parameters.Properties.Tags = expandLogAnalyticsQueryPackQueryTags(model.Tags)
 			}
 
-			if _, err := client.QueriesUpdate(ctx, *id, *properties); err != nil {
+			if _, err := client.QueriesUpdate(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -529,14 +516,14 @@ func (r LogAnalyticsQueryPackQueryResource) Read() sdk.ResourceFunc {
 				if jsonErr != nil {
 					return fmt.Errorf("parsing JSON for Log Analytics Query Pack Query Properties: %+v", jsonErr)
 				}
-				state.PropertiesJson = string(propsJson)
+				state.AdditionalSettingsJson = string(propsJson)
 			}
 
 			if props.Description != nil {
 				state.Description = *props.Description
 			}
 
-			if additionalSettings := model.Properties.Related; additionalSettings != nil {
+			if additionalSettings := props.Related; additionalSettings != nil {
 				if additionalSettings.Categories != nil {
 					state.Categories = *additionalSettings.Categories
 				}
