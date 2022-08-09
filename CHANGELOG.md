@@ -10,7 +10,7 @@ ENHANCEMENTS:
 * `azurerm_site_recovery_replicated_vm` - support for the `target_disk_encryption` block [GH-15783]
 * `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` [GH-17464]
 * `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` [GH-17464]
-
+* `azurerm_servicebus_subscription` - support for the `client_scoped_subscription_enabled` property and the `client_scoped_subscription` block [GH-17101]
 
 BUG FIXES:
 
