@@ -5,7 +5,7 @@ FEATURES:
 * **New Resource**: `azurerm_monitor_data_collection_endpoint` [GH-17684]
 
 ENHANCEMENTS:
-
+* `azurerm_site_recovery_replicated_vm` - support for the `target_disk_encryption` block [GH-15783]
 * `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` [GH-17464]
 * `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` [GH-17464]
 
