@@ -11,12 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-const tagRuleName = "default"
 
 func resourceLogzTagRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -45,34 +42,7 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 				ValidateFunc: validate.LogzMonitorID,
 			},
 
-			"tag_filter": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 10,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(logz.TagActionInclude),
-								string(logz.TagActionExclude),
-							}, false),
-						},
-
-						"value": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
+			"tag_filter": schemaTagFilter(),
 
 			"send_aad_logs": {
 				Type:     pluginsdk.TypeBool,
@@ -105,7 +75,7 @@ func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	id := parse.NewLogzTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, tagRuleName)
+	id := parse.NewLogzTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, TagRuleName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)

@@ -5,31 +5,31 @@ import "strings"
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ContainerGroupIpAddressType string
+type ContainerGroupIPAddressType string
 
 const (
-	ContainerGroupIpAddressTypePrivate ContainerGroupIpAddressType = "Private"
-	ContainerGroupIpAddressTypePublic  ContainerGroupIpAddressType = "Public"
+	ContainerGroupIPAddressTypePrivate ContainerGroupIPAddressType = "Private"
+	ContainerGroupIPAddressTypePublic  ContainerGroupIPAddressType = "Public"
 )
 
-func PossibleValuesForContainerGroupIpAddressType() []string {
+func PossibleValuesForContainerGroupIPAddressType() []string {
 	return []string{
-		string(ContainerGroupIpAddressTypePrivate),
-		string(ContainerGroupIpAddressTypePublic),
+		string(ContainerGroupIPAddressTypePrivate),
+		string(ContainerGroupIPAddressTypePublic),
 	}
 }
 
-func parseContainerGroupIpAddressType(input string) (*ContainerGroupIpAddressType, error) {
-	vals := map[string]ContainerGroupIpAddressType{
-		"private": ContainerGroupIpAddressTypePrivate,
-		"public":  ContainerGroupIpAddressTypePublic,
+func parseContainerGroupIPAddressType(input string) (*ContainerGroupIPAddressType, error) {
+	vals := map[string]ContainerGroupIPAddressType{
+		"private": ContainerGroupIPAddressTypePrivate,
+		"public":  ContainerGroupIPAddressTypePublic,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ContainerGroupIpAddressType(input)
+	out := ContainerGroupIPAddressType(input)
 	return &out, nil
 }
 
