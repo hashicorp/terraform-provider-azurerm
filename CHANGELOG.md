@@ -5,6 +5,11 @@ ENHANCEMENTS:
 * `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` [GH-17464]
 * `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` [GH-17464]
 
+
+BUG FIXES:
+
+`azurerm_backup_policy_vm` - now prevents crash when `frequency` is set to Hourly and, `hour_interval` and `hour_duration`are not set [GH-17880]
+
 ## 3.17.0 (August 04, 2022)
 
 ENHANCEMENTS:
