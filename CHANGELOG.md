@@ -1,3 +1,10 @@
+## 3.18.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` [GH-17464]
+* `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` [GH-17464]
+
 ## 3.17.0 (August 04, 2022)
 
 ENHANCEMENTS:
