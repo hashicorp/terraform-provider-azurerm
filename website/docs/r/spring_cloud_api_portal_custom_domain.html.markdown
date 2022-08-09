@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud API Portal Domain.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 ## Example Usage
 
 ```hcl
