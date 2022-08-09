@@ -50,7 +50,7 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
-			"schema_compatibility_type": {
+			"schema_compatibility": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -109,7 +109,7 @@ func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceDa
 		}
 	}
 
-	schemaCompatibilityType := schemaregistry.SchemaCompatibility(d.Get("schema_compatibility_type").(string))
+	schemaCompatibilityType := schemaregistry.SchemaCompatibility(d.Get("schema_compatibility").(string))
 	schemaType := schemaregistry.SchemaType(d.Get("schema_type").(string))
 
 	parameters := schemaregistry.SchemaGroup{
@@ -169,7 +169,7 @@ func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if props.SchemaCompatibility != nil {
-				d.Set("schema_compatibility_type", string(*props.SchemaCompatibility))
+				d.Set("schema_compatibility", string(*props.SchemaCompatibility))
 			}
 			if props.SchemaType != nil {
 				d.Set("schema_type", string(*props.SchemaType))
