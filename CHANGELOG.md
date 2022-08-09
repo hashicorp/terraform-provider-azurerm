@@ -1,5 +1,9 @@
 ## 3.18.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource**: `azurerm_monitor_data_collection_endpoint` [GH-17684]
+
 ENHANCEMENTS:
 
 * `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` [GH-17464]
