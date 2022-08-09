@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -46,17 +47,19 @@ func TestAccMaintenanceAssignmentDedicatedHost_requiresImport(t *testing.T) {
 }
 
 func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MaintenanceAssignmentDedicatedHostID(state.ID)
+	maintenanceAssignmentDedicatedHostId, err := parse.MaintenanceAssignmentDedicatedHostID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName)
+	id := configurationassignments.NewResourceGroupProviderID(maintenanceAssignmentDedicatedHostId.DedicatedHostId.SubscriptionId, maintenanceAssignmentDedicatedHostId.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", maintenanceAssignmentDedicatedHostId.DedicatedHostId.HostGroupName, "hosts", maintenanceAssignmentDedicatedHostId.DedicatedHostId.HostName)
+
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", id.DedicatedHostIdRaw, err)
+		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", maintenanceAssignmentDedicatedHostId.DedicatedHostIdRaw, err)
 	}
 
-	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentDedicatedHostResource) basic(data acceptance.TestData) string {
@@ -98,7 +101,7 @@ resource "azurerm_maintenance_configuration" "test" {
   name                = "acctest-MC%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  scope               = "All"
+  scope               = "Host"
 }
 
 resource "azurerm_dedicated_host_group" "test" {
