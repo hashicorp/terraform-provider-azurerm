@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -115,8 +116,9 @@ func checkValueIs(value string) acceptance.ClientCheckFunc {
 					if value != *v {
 						return fmt.Errorf("%s Value (%s) != expected (%s)", *id, *v, value)
 					}
+				} else {
+					return fmt.Errorf("%s Value is nil", *id)
 				}
-				return fmt.Errorf("%s Value is nil", *id)
 			}
 		}
 
@@ -126,14 +128,16 @@ func checkValueIs(value string) acceptance.ClientCheckFunc {
 
 func checkValueIsReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := configurations.ParseConfigurationID(state.ID)
+		serverId, err := servers.ParseServerID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, *id)
+		id := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, configurationName)
+
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %v", *id, err)
+			return fmt.Errorf("retrieving %s: %v", id, err)
 		}
 
 		actualValue := ""
@@ -150,15 +154,15 @@ func checkValueIsReset(configurationName string) acceptance.ClientCheckFunc {
 		}
 
 		if actualValue == "" {
-			return fmt.Errorf("%s Value is nil", *id)
+			return fmt.Errorf("%s Value is nil", id)
 		}
 
 		if defaultValue == "" {
-			return fmt.Errorf("%s Default Value is nil", *id)
+			return fmt.Errorf("%s Default Value is nil", id)
 		}
 
 		if defaultValue != actualValue {
-			return fmt.Errorf("%s Value (%s) != Default (%s)", *id, actualValue, defaultValue)
+			return fmt.Errorf("%s Value (%s) != Default (%s)", id, actualValue, defaultValue)
 		}
 
 		return nil
