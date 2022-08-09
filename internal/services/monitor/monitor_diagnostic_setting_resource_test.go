@@ -3,7 +3,6 @@ package monitor_test
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -22,6 +21,24 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventhub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_name").Exists(),
+				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
+				check.That(data.ResourceName).Key("log.#").HasValue("2"),
+				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorDiagnosticSetting_CategoryGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.categoryGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
@@ -123,15 +140,15 @@ func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *c
 	if err != nil {
 		return nil, err
 	}
-	actualResourceId := id.ResourceID
-	targetResourceId := strings.TrimPrefix(actualResourceId, "/")
+	// actualResourceId := id.ResourceUri
+	// targetResourceId := strings.TrimPrefix(actualResourceId, "/")
 
-	resp, err := clients.Monitor.DiagnosticSettingsClient.Get(ctx, targetResourceId, id.Name)
+	resp, err := clients.Monitor.DiagnosticSettingsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading diagnostic setting (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (MonitorDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
@@ -218,6 +235,88 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
+func (MonitorDiagnosticSettingResource) categoryGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "example"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+  log {
+    category_group = "Audit"
+    enabled        = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category_group = "allLogs"
+    enabled        = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
 func (r MonitorDiagnosticSettingResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -430,56 +529,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log {
     category = "SandboxPipelineRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AirflowDagProcessingLogs"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AirflowSchedulerLogs"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AirflowTaskLogs"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AirflowWebLogs"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AirflowWorkerLogs"
-    enabled  = false
-
     retention_policy {
       days    = 0
       enabled = false

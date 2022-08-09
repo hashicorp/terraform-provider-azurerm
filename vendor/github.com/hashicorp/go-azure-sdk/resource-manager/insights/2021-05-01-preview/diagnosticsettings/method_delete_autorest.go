@@ -1,4 +1,4 @@
-package datacollectionrules
+package diagnosticsettings
 
 import (
 	"context"
@@ -16,22 +16,22 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c DataCollectionRulesClient) Delete(ctx context.Context, id DataCollectionRuleId) (result DeleteOperationResponse, err error) {
+func (c DiagnosticSettingsClient) Delete(ctx context.Context, id ScopedDiagnosticSettingId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "diagnosticsettings.DiagnosticSettingsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Delete", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "diagnosticsettings.DiagnosticSettingsClient", "Delete", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForDelete(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Delete", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "diagnosticsettings.DiagnosticSettingsClient", "Delete", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (c DataCollectionRulesClient) Delete(ctx context.Context, id DataCollection
 }
 
 // preparerForDelete prepares the Delete request.
-func (c DataCollectionRulesClient) preparerForDelete(ctx context.Context, id DataCollectionRuleId) (*http.Request, error) {
+func (c DiagnosticSettingsClient) preparerForDelete(ctx context.Context, id ScopedDiagnosticSettingId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -55,7 +55,7 @@ func (c DataCollectionRulesClient) preparerForDelete(ctx context.Context, id Dat
 
 // responderForDelete handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (c DataCollectionRulesClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
+func (c DiagnosticSettingsClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
