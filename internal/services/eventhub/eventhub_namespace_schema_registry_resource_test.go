@@ -62,10 +62,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub_namespace_schema_group" "test" {
-  name                      = "acctestsg-%d"
-  namespace_id              = azurerm_eventhub_namespace.test.id
+  name                 = "acctestsg-%d"
+  namespace_id         = azurerm_eventhub_namespace.test.id
   schema_compatibility = "Forward"
-  schema_type               = "Avro"
+  schema_type          = "Avro"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
