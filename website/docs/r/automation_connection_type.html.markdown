@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Connection is created. Changing this forces a new resource to be created.
 
-* `field_definitions` - (Required) One or more `field_definitions` blocks as defined below. Changing this forces a new Automation to be created.
+* `field` - (Required) One or more `field` blocks as defined below. Changing this forces a new Automation to be created.
 
 ---
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 ---
 
-A `field_definitions` block supports the following:
+A `field` block supports the following:
 
 * `name` - (Required) The name which should be used for this connection field definition.
 
