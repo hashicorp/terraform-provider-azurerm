@@ -283,6 +283,15 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.PrivateLinkServiceConnections)
+	if err != nil {
+		return err
+	}
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.ManualPrivateLinkServiceConnections)
+	if err != nil {
+		return err
+	}
+
 	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.PrivateEndpointProperties)
 	for _, cosmosDbResId := range cosmosDbResIds {
 		log.Printf("[DEBUG] Add Lock For Private Endpoint %q, lock name: %q", id.Name, cosmosDbResId)
@@ -295,11 +304,17 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+
 		if err != nil {
 			if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
 				return &resource.RetryError{
 					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
 					Retryable: false,
+				}
+			} else if strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id") {
+				return &resource.RetryError{
+					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+					Retryable: true,
 				}
 			} else {
 				return &resource.RetryError{
@@ -312,7 +327,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return &resource.RetryError{
 				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
-				Retryable: strings.Contains(strings.ToLower(err.Error()), "Resource is in Updating state and the last operation that updated/is updating the resource is PutSubnetOperation"),
+				Retryable: false,
 			}
 		}
 		return nil
@@ -334,6 +349,20 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return resourcePrivateEndpointRead(d, meta)
+}
+
+func validatePrivateLinkServiceId(endpoints []network.PrivateLinkServiceConnection) error {
+	for _, connection := range endpoints {
+		_, errors := azure.ValidateResourceID(*connection.PrivateLinkServiceID, "PrivateLinkServiceID")
+		if len(errors) == 0 {
+			continue
+		}
+		_, errors = validate.PrivateConnectionResourceAlias(*connection.PrivateLinkServiceID, "PrivateLinkServiceID")
+		if len(errors) != 0 {
+			return fmt.Errorf("PrivateLinkServiceId Invalid: %q", *connection.PrivateLinkServiceID)
+		}
+	}
+	return nil
 }
 
 func getCosmosDbResIdInPrivateServiceConnections(p *network.PrivateEndpointProperties) []string {
