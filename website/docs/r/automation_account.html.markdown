@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the account - only `Basic` is supported at this time.
 
-* `disable_local_auth` - (Optional) Whether requests using non-AAD authentication are blocked.
+* `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked.
 
 ---
 

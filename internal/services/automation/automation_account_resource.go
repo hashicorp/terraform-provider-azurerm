@@ -73,6 +73,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
+
 						"key_source": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -82,6 +83,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 								false,
 							),
 						},
+
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -91,7 +93,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"local_auth_enabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -154,7 +156,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 	}
 
-	if localAuth := d.Get("local_auth_enabled").(bool); localAuth == false {
+	if localAuth := d.Get("local_authentication_enabled").(bool); localAuth == false {
 		parameters.Properties.DisableLocalAuth = utils.Bool(true)
 	}
 	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
@@ -204,7 +206,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 	}
 
-	if localAuth := d.Get("local_auth_enabled").(bool); localAuth == false {
+	if localAuth := d.Get("local_authentication_enabled").(bool); localAuth == false {
 		parameters.Properties.DisableLocalAuth = utils.Bool(true)
 	}
 
@@ -283,7 +285,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if val := prop.DisableLocalAuth; val != nil && *val == true {
 		localAuthEnabled = false
 	}
-	d.Set("local_auth_enabled", localAuthEnabled)
+	d.Set("local_authentication_enabled", localAuthEnabled)
 
 	if err := d.Set("encryption", flattenEncryption(prop.Encryption)); err != nil {
 		return fmt.Errorf("setting `encryption`: %+v", err)

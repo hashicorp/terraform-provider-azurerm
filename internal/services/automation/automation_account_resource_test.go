@@ -379,7 +379,9 @@ resource "azurerm_automation_account" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
-  local_auth_enabled = false
+
+  local_authentication_enabled = false
+
   encryption {
     key_source                = "Microsoft.Keyvault"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
