@@ -122,7 +122,7 @@ func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
-				"enable_compute_isolation": {
+				"compute_isolation_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -453,7 +453,7 @@ func ExpandHDInsightComputeIsolationProperties(input []interface{}) *hdinsight.C
 	}
 
 	v := input[0].(map[string]interface{})
-	enableComputeIsolation := v["enable_compute_isolation"].(bool)
+	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
 	hostSku := v["host_sku"].(string)
 
 	return &hdinsight.ComputeIsolationProperties{
@@ -612,8 +612,8 @@ func FlattenHDInsightComputeIsolationProperties(input hdinsight.ComputeIsolation
 
 	return []interface{}{
 		map[string]interface{}{
-			"enable_compute_isolation": enableComputeIsolation,
-			"host_sku":                 hostSku,
+			"compute_isolation_enabled": enableComputeIsolation,
+			"host_sku":                  hostSku,
 		},
 	}
 }

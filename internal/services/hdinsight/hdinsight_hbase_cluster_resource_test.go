@@ -2080,8 +2080,8 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     hbase = "2.1"
   }
 
-  compute_isolation_properties {
-    enable_compute_isolation = true
+  compute_isolation {
+    compute_isolation_enabled = true
   }
 
   gateway {
@@ -2097,20 +2097,20 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_F72s_v2"
+      vm_size  = "Standard_F72s_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_F72s_v2"
+      vm_size               = "Standard_F72s_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_F72s_v2"
+      vm_size  = "Standard_F72s_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }

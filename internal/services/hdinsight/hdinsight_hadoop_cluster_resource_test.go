@@ -2462,8 +2462,8 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     hadoop = "3.1"
   }
 
-  compute_isolation_properties {
-    enable_compute_isolation = true
+  compute_isolation {
+    compute_isolation_enabled = true
   }
 
   gateway {
@@ -2479,28 +2479,22 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_F72s_v2"
+      vm_size            = "Standard_F72s_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
-      subnet_id          = azurerm_subnet.test.id
-      virtual_network_id = azurerm_virtual_network.test.id
     }
 
     worker_node {
-      vm_size               = "Standard_F72s_v2"
+      vm_size               = "Standard_F72s_V2"
       username              = "sshuser"
       password              = "TerrAform123!"
       target_instance_count = 1
-      subnet_id             = azurerm_subnet.test.id
-      virtual_network_id    = azurerm_virtual_network.test.id
     }
 
     zookeeper_node {
-      vm_size            = "Standard_F72s_v2"
+      vm_size            = "Standard_F72s_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
-      subnet_id          = azurerm_subnet.test.id
-      virtual_network_id = azurerm_virtual_network.test.id
     }
   }
 }

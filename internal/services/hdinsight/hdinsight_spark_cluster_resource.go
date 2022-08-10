@@ -99,7 +99,7 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"compute_isolation_properties": SchemaHDInsightsComputeIsolation(),
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
 
 			"gateway": SchemaHDInsightsGateway(),
 
@@ -196,7 +196,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("expanding `roles`: %+v", err)
 	}
 
-	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation_properties").([]interface{}))
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -397,8 +397,8 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props.ComputeIsolationProperties != nil {
-			if err := d.Set("compute_isolation_properties", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
-				return fmt.Errorf("failed setting `compute_isolation_properties`: %+v", err)
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 		}
 

@@ -2237,8 +2237,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     spark = "2.4"
   }
 
-  compute_isolation_properties {
-    enable_compute_isolation = true
+  compute_isolation {
+    compute_isolation_enabled = true
   }
 
   gateway {
@@ -2254,20 +2254,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_F72s_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_F72s_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Medium"
+      vm_size  = "Standard_F72s_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }

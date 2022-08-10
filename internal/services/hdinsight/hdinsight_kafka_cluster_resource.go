@@ -109,7 +109,7 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
-			"compute_isolation_properties": SchemaHDInsightsComputeIsolation(),
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
 
 			"encryption_in_transit_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -248,7 +248,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	kafkaRestProperty := expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
 
-	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation_properties").([]interface{}))
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
 
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
@@ -436,8 +436,8 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 		if props.ComputeIsolationProperties.EnableComputeIsolation != nil {
-			if err := d.Set("compute_isolation_properties", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
-				return fmt.Errorf("failed setting `compute_isolation_properties`: %+v", err)
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 		}
 
