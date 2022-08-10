@@ -3,7 +3,7 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_data_collection_rule_association"
 description: |-
-Manages a Data Collection Rule Association.
+  Manages a Data Collection Rule Association.
 ---
 
 # azurerm_monitor_data_collection_rule_association
@@ -102,10 +102,10 @@ resource "azurerm_data_collection_rule_association" "example1" {
 
 # associate to a Data Collection Endpoint
 resource "azurerm_data_collection_rule_association" "example1" {
-  name                    = "configurationAccessEndpoint"
-  target_resource_id      = azurerm_linux_virtual_machine.example.id
+  name                        = "configurationAccessEndpoint"
+  target_resource_id          = azurerm_linux_virtual_machine.example.id
   data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.example.id
-  description             = "example"
+  description                 = "example"
 }
 
 ```

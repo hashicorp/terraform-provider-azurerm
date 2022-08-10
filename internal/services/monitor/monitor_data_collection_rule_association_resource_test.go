@@ -166,8 +166,8 @@ resource "azurerm_monitor_data_collection_endpoint" "test" {
 }
 
 resource "azurerm_monitor_data_collection_rule_association" "test" {
-  name                    = "configurationAccessEndpoint"
-  target_resource_id      = azurerm_linux_virtual_machine.test.id
+  name                        = "configurationAccessEndpoint"
+  target_resource_id          = azurerm_linux_virtual_machine.test.id
   data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.test.id
 }
 `, r.template(data), data.RandomInteger)
