@@ -71,6 +71,11 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
+	if err != nil {
+		return err
+	}
+
 	existingList, err := getMaintenanceAssignmentDedicatedHost(ctx, client, dedicatedHostId, dedicatedHostId.ID())
 	if err != nil {
 		return err
@@ -78,14 +83,10 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 	if existingList != nil && len(*existingList) > 0 {
 		existing := (*existingList)[0]
 		if existing.Id != nil && *existing.Id != "" {
-			return tf.ImportAsExistsError("azurerm_maintenance_assignment_dedicated_host", *existing.Id)
+			return tf.ImportAsExistsError("azurerm_maintenance_assignment_dedicated_host", configurationId.ID())
 		}
 	}
 
-	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
-	if err != nil {
-		return err
-	}
 	// set assignment name to configuration name
 	assignmentName := configurationId.ResourceName
 	configurationAssignment := configurationassignments.ConfigurationAssignment{

@@ -71,6 +71,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		return err
 	}
 
+	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
+	if err != nil {
+		return err
+	}
+
 	existingList, err := getMaintenanceAssignmentVirtualMachine(ctx, client, virtualMachineId, virtualMachineId.ID())
 	if err != nil {
 		return err
@@ -78,13 +83,8 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	if existingList != nil && len(*existingList) > 0 {
 		existing := (*existingList)[0]
 		if existing.Id != nil && *existing.Id != "" {
-			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", *existing.Id)
+			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", configurationId.ID())
 		}
-	}
-
-	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
-	if err != nil {
-		return err
 	}
 
 	// set assignment name to configuration name

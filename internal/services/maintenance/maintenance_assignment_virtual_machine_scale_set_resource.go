@@ -70,6 +70,13 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 		return err
 	}
 
+	maintenanceConfigurationID, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
+	if err != nil {
+		return err
+	}
+
+	configAssignmentId := configurationassignments.NewConfigurationAssignmentID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, maintenanceConfigurationID.ResourceName)
+
 	existingList, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId)
 	if err != nil {
 		return err
@@ -77,16 +84,9 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	if existingList != nil && len(*existingList) > 0 {
 		existing := (*existingList)[0]
 		if existing.Id != nil && *existing.Id != "" {
-			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", *existing.Id)
+			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", configAssignmentId.ID())
 		}
 	}
-
-	maintenanceConfigurationID, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
-	if err != nil {
-		return err
-	}
-
-	configAssignmentId := configurationassignments.NewConfigurationAssignmentID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, maintenanceConfigurationID.ResourceName)
 
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
 		Name:     utils.String(maintenanceConfigurationID.ResourceName),
