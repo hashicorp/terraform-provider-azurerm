@@ -22,14 +22,14 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                = "PublicIPForLB"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "example" {
   name                = "TestLoadBalancer"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   frontend_ip_configuration {
@@ -39,10 +39,9 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_probe" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "ssh-running-probe"
-  port                = 22
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "ssh-running-probe"
+  port            = 22
 }
 ```
 
@@ -51,9 +50,8 @@ resource "azurerm_lb_probe" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Probe.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the NAT Rule.
-* `protocol` - (Optional) Specifies the protocol of the end point. Possible values are `Http`, `Https` or `Tcp`. If Tcp is specified, a received ACK is required for the probe to be successful. If Http is specified, a 200 OK response from the specified URI is required for the probe to be successful.
+* `protocol` - (Optional) Specifies the protocol of the end point. Possible values are `Http`, `Https` or `Tcp`. If TCP is specified, a received ACK is required for the probe to be successful. If HTTP is specified, a 200 OK response from the specified URI is required for the probe to be successful.
 * `port` - (Required) Port on which the Probe queries the backend endpoint. Possible values range from 1 to 65535, inclusive.
 * `request_path` - (Optional) The URI used for requesting health status from the backend endpoint. Required if protocol is set to `Http` or `Https`. Otherwise, it is not allowed.
 * `interval_in_seconds` - (Optional) The interval, in seconds between probes to the backend endpoint for health status. The default value is 15, the minimum value is 5.
@@ -68,7 +66,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Probe.
 * `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Probe.

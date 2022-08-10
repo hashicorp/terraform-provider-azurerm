@@ -32,17 +32,16 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
-  connection_string   = data.azurerm_storage_account.example.primary_connection_string
+  name              = "example"
+  data_factory_id   = azurerm_data_factory.example.id
+  connection_string = data.azurerm_storage_account.example.primary_connection_string
 }
 ```
 
-## Example Usage with SAS Uri and SAS Token.
+## Example Usage with SAS URI and SAS Token.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
@@ -52,32 +51,43 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_key_vault" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
 
-  sas_uri = "https://storageaccountname.blob.core.windows.net"
+  sas_uri = "https://example.blob.core.windows.net"
   key_vault_sas_token {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "secret"
+  }
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
+
+  service_endpoint     = "https://example.blob.core.windows.net"
+  service_principal_id = "00000000-0000-0000-0000-000000000000"
+  tenant_id            = "00000000-0000-0000-0000-000000000000"
+  service_principal_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
@@ -88,17 +98,9 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
-
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `description` - (Optional) The description for the Data Factory Linked Service.
 
@@ -124,17 +126,31 @@ A `key_vault_sas_token` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
-* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the sas token.
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the SAS token.
 
 ---
 
-* `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string` and `sas_uri`. Required with `use_managed_identity`.
+* `service_principal_linked_key_vault_key` - (Optional) A `service_principal_linked_key_vault_key` block as defined below. Use this argument to store Service Principal key in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+
+---
+
+A `service_principal_linked_key_vault_key` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the Service Principal key.
+
+---
+
+* `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string` and `sas_uri`.
 
 * `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Blob Storage account. Incompatible with `service_principal_id` and `service_principal_key`.
 
-* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account. Required if `service_principal_key` is set.
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account.
 
-* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `service_principal_id` is set.
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.
+
+* `storage_kind` - (Optional) Specify the kind of the storage account. Allowed values are `Storage`, `StorageV2`, `BlobStorage` and `BlockBlobStorage`.
 
 * `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
@@ -146,7 +162,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Linked Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Linked Service.

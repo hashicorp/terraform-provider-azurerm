@@ -6,9 +6,11 @@ description: |-
   Manages a Video Analyzer Edge Module.
 ---
 
-# azurerm_video_analyzer
+# azurerm_video_analyzer_edge_module
 
 Manages a Video Analyzer Edge Module.
+
+!> Video Analyzer (Preview) is now Deprecated and will be Retired on 2022-11-30 - as such the `azurerm_video_analyzer_edge_module` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.
 
 ## Example Usage
 
@@ -100,7 +102,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Video Analyzer Edge Module.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Video Analyzer Edge Module.

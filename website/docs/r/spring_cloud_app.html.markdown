@@ -49,13 +49,15 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Service.
+
 * `custom_persistent_disk` - (Optional) A `custom_persistent_disk` block as defined below.
   
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `is_public` - (Optional) Does the Spring Cloud Application have public endpoint? Defaults to `false`.
 
-* `https_only` - (Optional) Is only https allowed? Defaults to `false`.
+* `https_only` - (Optional) Is only HTTPS allowed? Defaults to `false`.
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 
@@ -78,7 +80,11 @@ An `custom_persistent_disk` block exports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Spring Cloud Application. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Spring Cloud Application.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -108,7 +114,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application.

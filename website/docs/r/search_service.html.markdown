@@ -38,9 +38,9 @@ The following arguments are supported:
 
 * `sku` - (Required) The SKU which should be used for this Search Service. Possible values are `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created.
 
--> The `basic` and `free` SKU's provision the Search Service in a Shared Cluster - the `standard` SKU's use a Dedicated Cluster.
+-> The `basic` and `free` SKUs provision the Search Service in a Shared Cluster - the `standard` SKUs use a Dedicated Cluster.
 
-~> **Note:** The SKU's `standard2` and `standard3` are only available when enabled on the backend by Microsoft.
+~> **Note:** The SKUs `standard2` and `standard3` are only available when enabled on the backend by Microsoft.
 
 ---
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for the Search Service. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Search Service. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -86,15 +86,15 @@ A `query_keys` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The (Client) ID of the Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Search Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Search Service.

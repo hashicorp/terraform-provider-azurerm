@@ -10,7 +10,7 @@ description: |-
 
 A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format <endpointname>.azureedge.net.
 
-!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 ## Example Usage
 
@@ -240,7 +240,7 @@ A `cookies_condition` block supports the following:
 
 
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -274,7 +274,7 @@ A `post_arg_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -286,7 +286,7 @@ A `query_string_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -308,7 +308,7 @@ A `request_body_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -322,7 +322,7 @@ A `request_header_condition` block supports the following:
 
 * `match_values` - (Optional) List of header values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -354,7 +354,7 @@ A `request_uri_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -366,7 +366,7 @@ A `url_file_extension_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -378,19 +378,19 @@ A `url_file_name_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
 A `url_path_condition` block supports the following:
 
-* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
+* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `RegEx` and `Wildcard`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -400,9 +400,11 @@ The following attributes are exported:
 
 * `id` - The ID of the CDN Endpoint.
 
+* `fqdn` - The Fully Qualified Domain Name of the CDN Endpoint.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN Endpoint.
 * `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.

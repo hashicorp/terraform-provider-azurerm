@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -78,8 +78,7 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					// API backend accepts event_types case-insensitively
-					ValidateFunc:     validation.StringInSlice([]string{"error", "warning", "information"}, !features.ThreePointOh()),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					ValidateFunc: validation.StringInSlice([]string{"Error", "Warning", "Information"}, false),
 				},
 			},
 		},
@@ -195,7 +194,9 @@ func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData,
 func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceWindowsEventEventType) []interface{} {
 	output := make([]interface{}, 0)
 	for _, e := range eventTypes {
-		output = append(output, e.EventType)
+		// The casing isn't preserved by the API for event types, so we need to normalise it here until
+		// https://github.com/Azure/azure-rest-api-specs/issues/18163 is fixed
+		output = append(output, strings.ToLower(e.EventType))
 	}
 	return output
 }

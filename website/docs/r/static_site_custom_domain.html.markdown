@@ -59,7 +59,7 @@ resource "azurerm_static_site" "example" {
 
 resource "azurerm_static_site_custom_domain" "example" {
   static_site_id  = azurerm_static_site.example.id
-  domain_name     = "my-domain.${azurerm_dns_cname_record.example.zone_name}"
+  domain_name     = "my-domain.${azurerm_dns_txt_record.example.zone_name}"
   validation_type = "dns-txt-token"
 }
 
@@ -94,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Site Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Site Custom Domain.

@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -306,7 +305,6 @@ func (r LoadBalancerRule) basic(data acceptance.TestData) string {
 
 resource "azurerm_lb_rule" "test" {
   name                           = "LbRule-%s"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
   protocol                       = "Tcp"
@@ -322,9 +320,8 @@ func (r LoadBalancerRule) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_rule" "test" {
-  name                = "LbRule-%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name            = "LbRule-%s"
+  loadbalancer_id = azurerm_lb.test.id
 
   protocol      = "Tcp"
   frontend_port = 3389
@@ -348,7 +345,6 @@ func (r LoadBalancerRule) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_lb_rule" "import" {
   name                           = azurerm_lb_rule.test.name
-  resource_group_name            = azurerm_lb_rule.test.resource_group_name
   loadbalancer_id                = azurerm_lb_rule.test.loadbalancer_id
   frontend_ip_configuration_name = azurerm_lb_rule.test.frontend_ip_configuration_name
   protocol                       = "Tcp"
@@ -360,38 +356,31 @@ resource "azurerm_lb_rule" "import" {
 
 // https://github.com/hashicorp/terraform/issues/9424
 func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
-	var rg string
-	if !features.ThreePointOhBeta() {
-		rg = "resource_group_name = azurerm_resource_group.test.name"
-	}
 	template := r.template(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name = "%d-address-pool"
-  %s
-  loadbalancer_id = "${azurerm_lb.test.id}"
+  name            = "%d-address-pool"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name                = "probe-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
-  protocol            = "Tcp"
-  port                = 443
+  name            = "probe-%d"
+  loadbalancer_id = azurerm_lb.test.id
+  protocol        = "Tcp"
+  port            = 443
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "LbRule-%s"
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = azurerm_lb.test.id
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, template, data.RandomInteger, rg, data.RandomInteger, data.RandomStringOfLength(8))
+`, template, data.RandomInteger, data.RandomInteger, data.RandomStringOfLength(8))
 }
 
 func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string {
@@ -400,8 +389,7 @@ func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string 
 %s
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "LbRule-%s"
   protocol                       = "Udp"
   frontend_port                  = 3389
@@ -410,8 +398,7 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_lb_rule" "test2" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "LbRule-%s"
   protocol                       = "Udp"
   frontend_port                  = 3390
@@ -427,8 +414,7 @@ func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) s
 %s
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "LbRule-%s"
   protocol                       = "Udp"
   frontend_port                  = 3389
@@ -437,8 +423,7 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_lb_rule" "test2" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "LbRule-%s"
   protocol                       = "Udp"
   frontend_port                  = 3391
@@ -518,7 +503,6 @@ func (r LoadBalancerRule) vmssBackendPool(data acceptance.TestData, lbRuleName, 
 %s
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   name                           = "%s"
   protocol                       = "Tcp"
@@ -535,7 +519,6 @@ func (r LoadBalancerRule) vmssBackendPoolUpdate(data acceptance.TestData, lbRule
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   name                           = "%s"
   protocol                       = "Tcp"
@@ -650,12 +633,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "abababa"
-  protocol            = "Tcp"
-  frontend_port       = 3389
-  backend_port        = 3389
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "abababa"
+  protocol        = "All"
+  frontend_port   = 0
+  backend_port    = 0
   backend_address_pool_ids = [
     azurerm_lb_backend_address_pool.test.id,
   ]
@@ -692,12 +674,11 @@ resource "azurerm_lb_backend_address_pool" "test2" {
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "abababa"
-  protocol            = "Tcp"
-  frontend_port       = 3389
-  backend_port        = 3389
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "abababa"
+  protocol        = "All"
+  frontend_port   = 0
+  backend_port    = 0
   backend_address_pool_ids = [
     azurerm_lb_backend_address_pool.test1.id,
     azurerm_lb_backend_address_pool.test2.id,

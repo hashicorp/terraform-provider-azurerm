@@ -47,12 +47,12 @@ The following attributes are exported:
 
 * `subnet_id` - The ID of the virtual subnet resource to which the database migration service exists.
 
-* `sku_name` - The sku name of database migration service.
+* `sku_name` - The SKU name of database migration service.
 
 * `tags` - A mapping of tags to assigned to the resource.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.

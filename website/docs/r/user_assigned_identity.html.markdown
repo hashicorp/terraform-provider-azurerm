@@ -1,7 +1,7 @@
 ---
 subcategory: "Authorization"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_user_assigned_identity"
+page_title: "Azure Resource Manager: azurerm_user_assigned_identity"
 description: |-
   Manages a new user assigned identity.
 ---
@@ -55,7 +55,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the User Assigned Identity.
 * `update` - (Defaults to 30 minutes) Used when updating the User Assigned Identity.
@@ -67,5 +67,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 User Assigned Identities can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_user_assigned_identity.exampleIdentity /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/acceptanceTestResourceGroup1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/testIdentity
+terraform import azurerm_user_assigned_identity.exampleIdentity /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/testIdentity
 ```

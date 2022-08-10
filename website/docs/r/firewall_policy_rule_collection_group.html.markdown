@@ -43,7 +43,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "example" {
         port = 443
       }
       source_addresses  = ["10.0.0.1"]
-      destination_fqdns = [".microsoft.com"]
+      destination_fqdns = ["*.microsoft.com"]
     }
   }
 
@@ -123,13 +123,13 @@ A `network_rule_collection` block supports the following:
 
 A `nat_rule_collection` block supports the following:
 
-* `name` - (Required) The name which should be used for this nat rule collection.
+* `name` - (Required) The name which should be used for this NAT rule collection.
 
-* `action` - (Required) The action to take for the nat rules in this collection. Currently, the only possible value is `Dnat`.
+* `action` - (Required) The action to take for the NAT rules in this collection. Currently, the only possible value is `Dnat`.
 
-* `priority` - (Required) The priority of the nat rule collection. The range is `100` - `65000`.
+* `priority` - (Required) The priority of the NAT rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) A `rule` (nat rule) block as defined above.
+* `rule` - (Required) A `rule` (NAT rule) block as defined above.
 
 ---
 
@@ -153,7 +153,7 @@ A `rule` (application rule) block supports the following:
 
 * `destination_fqdn_tags` - (Optional) Specifies a list of destination FQDN tags.
 
-* `terminate_tls` - (Optional) Boolean specifying if TLS shall be terminated (true) or not (false). Needs Premium SKU for Firewall Policy.
+* `terminate_tls` - (Optional) Boolean specifying if TLS shall be terminated (true) or not (false). Must be  `true` when using `destination_urls`. Needs Premium SKU for Firewall Policy.
 
 * `web_categories` - (Optional) Specifies a list of web categories to which access is denied or allowed depending on the value of `action` above. Needs Premium SKU for Firewall Policy.
 
@@ -180,7 +180,7 @@ A `rule` (network rule) block supports the following:
 
 ---
 
-A `rule` (nat rule) block supports the following:
+A `rule` (NAT rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
@@ -218,7 +218,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Policy Rule Collection Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Policy Rule Collection Group.

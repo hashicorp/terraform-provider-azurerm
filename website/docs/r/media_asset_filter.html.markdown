@@ -135,7 +135,7 @@ A `selection` block supports the following:
 
 * `operation` - (Optional) The condition operation to test a track property against. Supported values are `Equal` and `NotEqual`.
 
-* `property` - (Optional) The track property to compare. Supported values are `Bitrate`, `FourCC`, `Language`, `Name` and `Type`. Check [documentation](https://docs.microsoft.com/en-us/azure/media-services/latest/filters-concept) for more details.
+* `property` - (Optional) The track property to compare. Supported values are `Bitrate`, `FourCC`, `Language`, `Name` and `Type`. Check [documentation](https://docs.microsoft.com/azure/media-services/latest/filters-concept) for more details.
 
 * `value` - (Optional) The track property value to match or not match.
 
@@ -153,7 +153,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Asset Filter.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Asset Filter.

@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_managed_application_definition" "example" {
-  name                = "example-managedapplicationdefinition"
+  name                = "examplemanagedapplicationdefinition"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   lock_level          = "ReadOnly"
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `authorization` - (Optional) One or more `authorization` block defined below.
 
-* `create_ui_definition` - (Optional) Specifies the `createUiDefinition` json for the backing template with `Microsoft.Solutions/applications` resource.
+* `create_ui_definition` - (Optional) Specifies the `createUiDefinition` JSON for the backing template with `Microsoft.Solutions/applications` resource.
 
 * `display_name` - (Optional) Specifies the managed application definition display name.
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `package_enabled` - (Optional) Is the package enabled? Defaults to `true`.
 
-* `main_template` - (Optional) Specifies the inline main template json which has resources to be provisioned.
+* `main_template` - (Optional) Specifies the inline main template JSON which has resources to be provisioned.
 
 * `package_file_uri` - (Optional) Specifies the managed application definition package file Uri.
 
@@ -88,7 +88,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed Application Definition.
 * `update` - (Defaults to 30 minutes) Used when updating the Managed Application Definition.

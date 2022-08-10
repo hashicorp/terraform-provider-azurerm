@@ -115,9 +115,9 @@ A `vpn_link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Link Connection.
 
-* `egress_nat_rule_ids` - (Optional) A list of the egress Nat Rule Ids.
+* `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
 
-* `ingress_nat_rule_ids` - (Optional) A list of the ingress Nat Rule Ids.
+* `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.
 
 * `vpn_site_link_id` - (Required) The ID of the connected VPN Site Link. Changing this forces a new VPN Gateway Connection to be created.
 
@@ -137,9 +137,11 @@ A `vpn_link` block supports the following:
 
 * `shared_key` - (Optional) SharedKey for this VPN Link Connection.
 
-* `local_azure_ip_address_enabled` - (Optional) Whether to use local azure ip to initiate connection? Defaults to `false`.
+* `local_azure_ip_address_enabled` - (Optional) Whether to use local Azure IP to initiate connection? Defaults to `false`.
 
 * `policy_based_traffic_selector_enabled` - (Optional) Whether to enable policy-based traffic selectors? Defaults to `false`.
+
+* `custom_bgp_address` - (Optional) One or more `custom_bgp_address` blocks as defined below.
 
 ---
 
@@ -161,9 +163,17 @@ A `traffic_selector_policy` block supports the following:
 
 A `propagated_route_table` block supports the following:
 
-* `route_table_ids` - (Required) A list of Route Table ID's to associated with this VPN Gateway Connection.
+* `route_table_ids` - (Required) A list of Route Table IDs to associated with this VPN Gateway Connection.
 
 * `labels` - (Optional) A list of labels to assign to this route table.
+
+---
+
+A `custom_bgp_address` block supports the following:
+
+* `ip_address` - (Required) The custom bgp ip address which belongs to the IP Configuration.
+
+* `ip_configuration_id` - (Required) The ID of the IP Configuration which belongs to the VPN Gateway.
 
 ## Attributes Reference
 
@@ -173,7 +183,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the VPN Gateway Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway Connection.

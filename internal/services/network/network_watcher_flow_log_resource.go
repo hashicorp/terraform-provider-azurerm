@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -55,11 +55,10 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// TODO 3.0: Make this required and remove computed.
+			//lintignore: S013
 			"name": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.NetworkWatcherFlowLogName,
 			},
@@ -151,10 +150,8 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			},
 
 			"location": {
-				// TODO: `computed` should be removed in 3.0
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
 				ForceNew:         true,
 				ValidateFunc:     location.EnhancedValidate,
 				StateFunc:        location.StateFunc,

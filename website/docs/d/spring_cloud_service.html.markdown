@@ -89,9 +89,9 @@ The `repository` block contains the following:
 
 The `http_basic_auth` block supports the following:
 
-* `username` - The username used to access the Http Basic Authentication Git repository server.
+* `username` - The username used to access the HTTP Basic Authentication Git repository server.
 
-* `password` - The password used to access the Http Basic Authentication Git repository server.
+* `password` - The password used to access the HTTP Basic Authentication Git repository server.
 
 ---
 
@@ -113,7 +113,7 @@ The `required_network_traffic_rules` supports the following:
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The ip list of required traffic.
+* `ip_addresses` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 
@@ -121,6 +121,6 @@ The `required_network_traffic_rules` supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Service.

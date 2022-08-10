@@ -73,9 +73,11 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below.
 
-* `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`
+* `policy_type` - (Optional) Type of the Backup Policy. Possible values are `V1` and `V2` where `V2` stands for the Enhanced Policy. Defaults to `V1`. Changing this forces a new resource to be created.
 
-* `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days.
+* `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`
+
+* `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days. Possible values are between `1` and `5` when `policy_type` is `V1`, and `1` to `30` when `policy_type` is `V2`.
 
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 
@@ -85,17 +87,21 @@ The following arguments are supported:
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ---
 
 The `backup` block supports:
 
-* `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`.
+* `frequency` - (Required) Sets the backup frequency. Possible values are `Hourly`, `Daily` and `Weekly`.
 
 * `time` - (Required) The time of day to perform the backup in 24hour format.
 
-* `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+* `hour_interval` - (Optional) Interval in hour at which backup is triggered. Possible values are `4`, `6`, `8` and `12`. This is used  when `frequency` is `Hourly`.
+
+* `hour_duration` - (Optional) Duration of the backup window in hours. Possible values are between `4` and `24` This is used when `frequency` is `Hourly`.
+
+~> **NOTE:** `hour_duration` must be multiplier of `hour_interval`
+
+* `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`. This is used when `frequency` is `Weekly`.
 
 ---
 
@@ -145,7 +151,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the VM Backup Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the VM Backup Policy.

@@ -2,9 +2,11 @@ package compute
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -191,6 +193,16 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
+							"placement": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(compute.DiffDiskPlacementCacheDisk),
+									string(compute.DiffDiskPlacementResourceDisk),
+								}, false),
+							},
 						},
 					},
 				},
@@ -201,6 +213,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 					DiffSuppressFunc: suppress.CaseDifference,
 					ValidateFunc:     validate.DiskEncryptionSetID,
+					ConflictsWith:    []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
 				"disk_size_gb": {
@@ -217,6 +230,24 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"secure_vm_disk_encryption_set_id": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
+				},
+
+				"security_encryption_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
+						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+					}, false),
+				},
+
 				"write_accelerator_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -227,10 +258,11 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSystemTypes) *compute.OSDisk {
+func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.OSDisk, error) {
 	raw := input[0].(map[string]interface{})
+	caching := raw["caching"].(string)
 	disk := compute.OSDisk{
-		Caching: compute.CachingTypes(raw["caching"].(string)),
+		Caching: compute.CachingTypes(caching),
 		ManagedDisk: &compute.ManagedDiskParameters{
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
@@ -244,14 +276,35 @@ func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSys
 		OsType:       osType,
 	}
 
+	securityEncryptionType := raw["security_encryption_type"].(string)
+	if securityEncryptionType != "" {
+		disk.ManagedDisk.SecurityProfile = &compute.VMDiskSecurityProfile{
+			SecurityEncryptionType: compute.SecurityEncryptionTypes(securityEncryptionType),
+		}
+	}
+	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(secureVMDiskEncryptionId),
+		}
+	}
+
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
 		disk.DiskSizeGB = utils.Int32(int32(osDiskSize))
 	}
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+		if caching != string(compute.CachingTypesReadOnly) {
+			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
+			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
+		}
+
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option: compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
 		}
 	}
 
@@ -265,7 +318,7 @@ func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSys
 		disk.Name = utils.String(name)
 	}
 
-	return &disk
+	return &disk, nil
 }
 
 func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.DisksClient, input *compute.OSDisk) ([]interface{}, error) {
@@ -275,8 +328,14 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
+		placement := string(compute.DiffDiskPlacementCacheDisk)
+		if input.DiffDiskSettings.Placement != "" {
+			placement = string(input.DiffDiskSettings.Placement)
+		}
+
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option": string(input.DiffDiskSettings.Option),
+			"option":    string(input.DiffDiskSettings.Option),
+			"placement": placement,
 		})
 	}
 
@@ -292,6 +351,8 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 
 	diskEncryptionSetId := ""
 	storageAccountType := ""
+	secureVMDiskEncryptionSetId := ""
+	securityEncryptionType := ""
 
 	if input.ManagedDisk != nil {
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
@@ -331,6 +392,13 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				}
 			}
 		}
+
+		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
+			securityEncryptionType = string(securityProfile.SecurityEncryptionType)
+			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.ID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.ID
+			}
+		}
 	}
 
 	writeAcceleratorEnabled := false
@@ -339,13 +407,81 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                   string(input.Caching),
-			"disk_size_gb":              diskSizeGb,
-			"diff_disk_settings":        diffDiskSettings,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"name":                      name,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"caching":                          string(input.Caching),
+			"disk_size_gb":                     diskSizeGb,
+			"diff_disk_settings":               diffDiskSettings,
+			"disk_encryption_set_id":           diskEncryptionSetId,
+			"name":                             name,
+			"storage_account_type":             storageAccountType,
+			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
+			"security_encryption_type":         securityEncryptionType,
+			"write_accelerator_enabled":        writeAcceleratorEnabled,
 		},
 	}, nil
+}
+
+func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					Default:      "PT5M",
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineScheduledEventsProfile(input []interface{}) *compute.ScheduledEventsProfile {
+	if len(input) == 0 {
+		return &compute.ScheduledEventsProfile{
+			TerminateNotificationProfile: &compute.TerminateNotificationProfile{
+				Enable: utils.Bool(false),
+			},
+		}
+	}
+
+	raw := input[0].(map[string]interface{})
+	enabled := raw["enabled"].(bool)
+	timeout := raw["timeout"].(string)
+
+	return &compute.ScheduledEventsProfile{
+		TerminateNotificationProfile: &compute.TerminateNotificationProfile{
+			Enable:           &enabled,
+			NotBeforeTimeout: &timeout,
+		},
+	}
+}
+
+func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
+	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
+	// a user explicitly set enabled to false, we need to assign a default block to this field
+
+	enabled := false
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
+		enabled = *input.TerminateNotificationProfile.Enable
+	}
+
+	timeout := "PT5M"
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
+		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"timeout": timeout,
+		},
+	}
 }

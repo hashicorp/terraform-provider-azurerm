@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -24,8 +24,11 @@ func resourceAppServiceVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 		Read:   resourceAppServiceVirtualNetworkSwiftConnectionRead,
 		Update: resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
 		Delete: resourceAppServiceVirtualNetworkSwiftConnectionDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualNetworkSwiftConnectionID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -14,27 +14,27 @@ Manages a Network Watcher Flow Log.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_network_watcher" "test" {
   name                = "acctestnw"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_storage_account" "test" {
   name                = "acctestsa"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   account_tier              = "Standard"
   account_kind              = "StorageV2"
@@ -44,14 +44,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestlaw"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
+  resource_group_name  = azurerm_resource_group.example.name
   name                 = "example-log"
 
   network_security_group_id = azurerm_network_security_group.test.id
@@ -111,7 +111,7 @@ The following arguments are supported:
 * `traffic_analytics` supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable traffic analytics.
-* `workspace_id` - (Required) The resource guid of the attached workspace.
+* `workspace_id` - (Required) The resource GUID of the attached workspace.
 * `workspace_region` - (Required) The location of the attached workspace.
 * `workspace_resource_id` - (Required) The resource ID of the attached workspace.
 * `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes.
@@ -124,7 +124,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Watcher Flow Log.
 * `update` - (Defaults to 30 minutes) Used when updating the Network Watcher Flow Log.

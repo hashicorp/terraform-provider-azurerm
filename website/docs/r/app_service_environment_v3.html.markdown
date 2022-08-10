@@ -13,7 +13,7 @@ Manages a 3rd Generation (v3) App Service Environment.
 
 ## Example Usage
 
-This example provisions an App Service Environment V3. Additional examples of how to use the `azurerm_app_service_environment_v3` resource can be found [in the `./examples/app-service-environment-v3` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service-environment-v3) within the Github Repository.
+This example provisions an App Service Environment V3. Additional examples of how to use the `azurerm_app_service_environment_v3` resource can be found [in the `./examples/app-service-environment-v3` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service-environment-v3) within the GitHub Repository.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -89,7 +89,7 @@ resource "azurerm_app_service_environment_v3" "example" {
 
 * `dedicated_host_count` - (Optional) This ASEv3 should use dedicated Hosts. Possible values are `2`. Changing this forces a new resource to be created.
 
-* `zone_redundant` - (Optional) Set to `true` to deploy the ASEv3 with availability zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/en-us/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.
+* `zone_redundant` - (Optional) Set to `true` to deploy the ASEv3 with availability zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.
 
 ~> **NOTE:** Setting this value will provision 2 Physical Hosts for your App Service Environment V3, this is done at additional cost, please be aware of the pricing commitment in the [General Availability Notes](https://techcommunity.microsoft.com/t5/apps-on-azure/announcing-app-service-environment-v3-ga/ba-p/2517990)
 
@@ -109,7 +109,7 @@ A `cluster_setting` block supports the following:
 
 * `value` - (Required) The value for the Cluster Setting. 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments above, the following Attributes are exported:
 
@@ -145,7 +145,7 @@ An `inbound_network_dependencies` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the 3rd Generation (v3) App Service Environment.
 * `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.

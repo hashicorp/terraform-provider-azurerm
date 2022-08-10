@@ -13,15 +13,15 @@ Manages a Kusto (also known as Azure Data Explorer) EventHub Data Connection
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "my-kusto-rg"
   location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "cluster" {
   name                = "kustocluster"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Standard_D13_v2"
@@ -31,8 +31,8 @@ resource "azurerm_kusto_cluster" "cluster" {
 
 resource "azurerm_kusto_database" "database" {
   name                = "my-kusto-database"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.cluster.name
   hot_cache_period    = "P7D"
   soft_delete_period  = "P31D"
@@ -40,15 +40,15 @@ resource "azurerm_kusto_database" "database" {
 
 resource "azurerm_eventhub_namespace" "eventhub_ns" {
   name                = "my-eventhub-ns"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "eventhub" {
   name                = "my-eventhub"
   namespace_name      = azurerm_eventhub_namespace.eventhub_ns.name
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   partition_count     = 1
   message_retention   = 1
 }
@@ -57,13 +57,13 @@ resource "azurerm_eventhub_consumer_group" "consumer_group" {
   name                = "my-eventhub-consumergroup"
   namespace_name      = azurerm_eventhub_namespace.eventhub_ns.name
   eventhub_name       = azurerm_eventhub.eventhub.name
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
   name                = "my-kusto-eventhub-data-connection"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.cluster.name
   database_name       = azurerm_kusto_database.database.name
 
@@ -92,7 +92,6 @@ The following arguments are supported:
 
 * `database_name` - (Required) Specifies the name of the Kusto Database this data connection will be added to. Changing this forces a new resource to be created.
 
-
 * `eventhub_id` - (Required) Specifies the resource id of the EventHub this data connection will use for ingestion. Changing this forces a new resource to be created.
 
 * `event_system_properties` - (Optional) Specifies a list of system properties for the Event Hub.
@@ -107,6 +106,8 @@ The following arguments are supported:
 
 * `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `ORC`, `PARQUET`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSVE`, `TSV`, `TXT`, and `W3CLOGFILE`.
 
+* `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -117,7 +118,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kusto EventHub Data Connection.
 * `update` - (Defaults to 60 minutes) Used when updating the Kusto EventHub Data Connection.

@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource manager: azurerm_mssql_managed_instance_active_directory_administrator"
+page_title: "Azure Resource Manager: azurerm_mssql_managed_instance_active_directory_administrator"
 description: |-
   Manages an Active Directory Administrator on a Microsoft Azure SQL Managed Instance
 ---
@@ -13,6 +13,28 @@ Allows you to set a user, group or service principal as the AAD Administrator fo
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_mssql_managed_instance" "example" {
   name                = "managedsqlinstance"
   resource_group_name = azurerm_resource_group.example.name
@@ -50,7 +72,7 @@ resource "azuread_user" "admin" {
 
 resource "azurerm_mssql_managed_instance_active_directory_administrator" "example" {
   managed_instance_id = azurerm_mssql_managed_instance.example.id
-  login               = "msadmin"
+  login_username      = "msadmin"
   object_id           = azuread_user.admin.object_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
@@ -62,7 +84,7 @@ The following arguments are supported:
 
 * `managed_instance_id` - (Required) The ID of the Azure SQL Managed Instance for which to set the administrator. Changing this forces a new resource to be created.
 
-* `login` - (Required) The login name of the principal to set as the Managed Instance Administrator.
+* `login_username` - (Required) The login name of the principal to set as the Managed Instance Administrator.
 
 * `object_id` - (Required) The Object ID of the principal to set as the Managed Instance Administrator.
 
@@ -78,7 +100,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Active Directory Administrator.
 * `update` - (Defaults to 30 minutes) Used when updating the SQL Active Directory Administrator.

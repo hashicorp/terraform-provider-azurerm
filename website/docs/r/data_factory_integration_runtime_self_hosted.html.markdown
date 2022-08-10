@@ -25,9 +25,8 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 }
 ```
 
@@ -35,17 +34,9 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "example" {
 
 The following arguments are supported:
 
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `name` - (Required) The name which should be used for this Data Factory. Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Data Factory should exist. Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
 
 ---
 
@@ -59,9 +50,9 @@ A `rbac_authorization` block supports the following:
 
 * `resource_id` - (Required) The resource identifier of the integration runtime to be shared. Changing this forces a new Data Factory to be created.
 
--> **Please Note**: RBAC Authorization creates a [linked Self-hosted Integration Runtime targeting the Shared Self-hosted Integration Runtime in resource_id](https://docs.microsoft.com/en-us/azure/data-factory/create-shared-self-hosted-integration-runtime-powershell#share-the-self-hosted-integration-runtime-with-another-data-factory). The linked Self-hosted Integration Runtime needs Contributor access granted to the Shared Self-hosted Data Factory. See example [Shared Self-hosted](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/data-factory/shared-self-hosted).
+-> **Please Note**: RBAC Authorization creates a [linked Self-hosted Integration Runtime targeting the Shared Self-hosted Integration Runtime in resource_id](https://docs.microsoft.com/azure/data-factory/create-shared-self-hosted-integration-runtime-powershell#share-the-self-hosted-integration-runtime-with-another-data-factory). The linked Self-hosted Integration Runtime needs Contributor access granted to the Shared Self-hosted Data Factory. See example [Shared Self-hosted](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/data-factory/shared-self-hosted).
 
-For more information on the configuration, please check out the [Azure documentation](https://docs.microsoft.com/en-us/rest/api/datafactory/integrationruntimes/createorupdate#linkedintegrationruntimerbacauthorization)
+For more information on the configuration, please check out the [Azure documentation](https://docs.microsoft.com/rest/api/datafactory/integrationruntimes/createorupdate#linkedintegrationruntimerbacauthorization)
 
 ## Attributes Reference
 
@@ -69,13 +60,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Factory.
 
-* `auth_key_1` - The primary integration runtime authentication key.
+* `primary_authorization_key` - The primary integration runtime authentication key.
 
-* `auth_key_2` - The secondary integration runtime authentication key.
+* `secondary_authorization_key` - The secondary integration runtime authentication key.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.

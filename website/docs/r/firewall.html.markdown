@@ -45,6 +45,8 @@ resource "azurerm_firewall" "example" {
   name                = "testfirewall"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -64,9 +66,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Optional) Sku name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
+* `sku_name` - (Required) SKU name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
 
-* `sku_tier` - (Optional) Sku tier of the Firewall. Possible values are `Premium` and `Standard`.  Changing this forces a new resource to be created.
+* `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium` and `Standard`.
 
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
@@ -84,9 +86,9 @@ The following arguments are supported:
 
 * `virtual_hub` - (Optional) A `virtual_hub` block as documented below.
 
-* `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Azure Firewall should be located. Changing this forces a new Azure Firewall to be created.
 
--> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -104,7 +106,7 @@ An `ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
--> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
+-> **NOTE** The Public IP must have a `Static` allocation and `Standard` SKU.
 
 ---
 
@@ -118,7 +120,7 @@ A `management_ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
--> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
+-> **NOTE** The Public IP must have a `Static` allocation and `Standard` SKU.
 
 ---
 
@@ -154,7 +156,7 @@ A `virtual_hub` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Firewall.
 * `update` - (Defaults to 90 minutes) Used when updating the Firewall.

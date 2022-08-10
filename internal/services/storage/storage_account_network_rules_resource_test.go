@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -32,9 +31,6 @@ func TestAccStorageAccountNetworkRules_basic(t *testing.T) {
 }
 
 func TestAccStorageAccountNetworkRules_id(t *testing.T) {
-	if !features.ThreePointOhBeta() {
-		t.Skipf("Test does not apply on 3.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
@@ -151,18 +147,66 @@ func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 	})
 }
 
-func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	storageAccountName := state.Attributes["storage_account_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+func TestAccStorageAccountNetworkRules_redeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	parent := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountNetworkRulesResource{}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, resourceGroup, storageAccountName, "")
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(parent.ResourceName).ExistsInAzure(r),
+			),
+		},
+		parent.ImportStep(),
+		{
+			Config: r.remove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(parent.ResourceName).DoesNotExistInAzure(r),
+			),
+		},
+		parent.ImportStep(),
+		{
+			Config: r.deploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(parent.ResourceName).ExistsInAzure(r),
+			),
+		},
+		parent.ImportStep(),
+	})
+}
+
+func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.StorageAccountID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return utils.Bool(true), nil
+
+	if resp.AccountProperties == nil {
+		return utils.Bool(false), nil
+	}
+
+	rule := resp.AccountProperties.NetworkRuleSet
+	if rule == nil {
+		return utils.Bool(false), nil
+	}
+
+	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
+		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
+		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
+		return utils.Bool(true), nil
+	}
+
+	return utils.Bool(false), nil
 }
 
 func (r StorageAccountNetworkRulesResource) basic(data acceptance.TestData) string {
@@ -187,7 +231,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -204,8 +248,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   ip_rules                   = ["127.0.0.1"]
@@ -236,7 +279,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -284,7 +327,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -292,7 +335,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestsubnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  address_prefixes     = ["10.0.3.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -309,8 +352,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.2", "127.0.0.3"]
@@ -344,8 +386,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   bypass                     = ["None"]
@@ -372,8 +413,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   bypass                     = ["None"]
@@ -400,8 +440,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action             = "Deny"
   ip_rules                   = ["127.0.0.1"]
@@ -441,6 +480,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 
@@ -457,8 +500,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id = azurerm_storage_account.test.id
 
   default_action = "Deny"
   ip_rules       = ["127.0.0.1"]
@@ -467,4 +509,54 @@ resource "azurerm_storage_account_network_rules" "test" {
   }
 }
 `, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString, data.RandomInteger)
+}
+
+func (r StorageAccountNetworkRulesResource) deploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  default_action = "Deny"
+  ip_rules       = ["198.1.1.0"]
+  bypass         = ["Metrics"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountNetworkRulesResource) remove(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

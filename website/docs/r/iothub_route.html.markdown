@@ -10,7 +10,7 @@ description: |-
 
 Manages an IotHub Route
 
-~> **NOTE:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resourcs - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+~> **NOTE:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
 ## Example Usage
 
@@ -51,7 +51,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string          = azurerm_storage_account.example.primary_blob_connection_string
@@ -102,7 +102,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Route.
 * `update` - (Defaults to 30 minutes) Used when updating the IotHub Route.

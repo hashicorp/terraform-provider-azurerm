@@ -9,11 +9,14 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,6 +32,7 @@ type WindowsFunctionAppSlotModel struct {
 	StorageAccountName            string                                     `tfschema:"storage_account_name"`
 	StorageAccountKey             string                                     `tfschema:"storage_account_access_key"`
 	StorageUsesMSI                bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageKeyVaultSecretID       string                                     `tfschema:"storage_key_vault_secret_id"`
 	AppSettings                   map[string]string                          `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings                     `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
@@ -41,6 +45,7 @@ type WindowsFunctionAppSlotModel struct {
 	FunctionExtensionsVersion     string                                     `tfschema:"functions_extension_version"`
 	ForceDisableContentShare      bool                                       `tfschema:"content_share_force_disabled"`
 	HttpsOnly                     bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID   string                                     `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                    []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
 	Tags                          map[string]string                          `tfschema:"tags"`
 	CustomDomainVerificationId    string                                     `tfschema:"custom_domain_verification_id"`
@@ -51,6 +56,7 @@ type WindowsFunctionAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential                   `tfschema:"site_credential"`
+	VirtualNetworkSubnetID        string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -87,19 +93,23 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
 			Description:  "The backend storage account name which will be used by this Function App Slot.",
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Sensitive:    true, // TODO - Uncomment this
+			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
-			ExactlyOneOf: []string{
+			ConflictsWith: []string{
 				"storage_uses_managed_identity",
-				"storage_account_access_key",
+				"storage_key_vault_secret_id",
 			},
 			Description: "The access key which will be used to access the storage account for the Function App Slot.",
 		},
@@ -108,11 +118,22 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
-			ExactlyOneOf: []string{
-				"storage_uses_managed_identity",
+			ConflictsWith: []string{
 				"storage_account_access_key",
+				"storage_key_vault_secret_id",
 			},
-			Description: "Should the Function App Slot use its Managed Identity to access storage.",
+			Description: "Should the Function App Slot use its Managed Identity to access storage?",
+		},
+
+		"storage_key_vault_secret_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
 		},
 
 		"app_settings": {
@@ -194,9 +215,23 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
+
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
 	}
 }
 
@@ -323,7 +358,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(functionAppSlot.Name),
+				Name: utils.String(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
@@ -361,7 +396,11 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			storageString := functionAppSlot.StorageAccountName
 			if !functionAppSlot.StorageUsesMSI {
-				storageString = fmt.Sprintf(helpers.StorageStringFmt, functionAppSlot.StorageAccountName, functionAppSlot.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				if functionAppSlot.StorageKeyVaultSecretID != "" {
+					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionAppSlot.StorageKeyVaultSecretID)
+				} else {
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionAppSlot.StorageAccountName, functionAppSlot.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				}
 			}
 			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionAppSlot(functionAppSlot.SiteConfig, nil, metadata, functionAppSlot.FunctionExtensionsVersion, storageString, functionAppSlot.StorageUsesMSI)
 			if err != nil {
@@ -378,6 +417,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					functionAppSlot.AppSettings["AzureWebJobsDashboard__accountName"] = functionAppSlot.StorageAccountName
 				}
 			}
+
 			if sendContentSettings {
 				if functionAppSlot.AppSettings == nil {
 					functionAppSlot.AppSettings = make(map[string]string)
@@ -413,6 +453,14 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)),
 				},
+			}
+
+			if functionAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionAppSlot.VirtualNetworkSubnetID)
+			}
+
+			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionAppSlot.KeyVaultReferenceIdentityID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -468,25 +516,25 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 25 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			functionAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			functionApp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
-				if utils.ResponseWasNotFound(functionAppSlot.Response) {
+				if utils.ResponseWasNotFound(functionApp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if functionAppSlot.SiteProperties == nil {
+			if functionApp.SiteProperties == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
-			props := *functionAppSlot.SiteProperties
+			props := *functionApp.SiteProperties
 
 			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
@@ -529,13 +577,16 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state := WindowsFunctionAppSlotModel{
-				Name:                 id.SlotName,
-				FunctionAppID:        parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:              utils.NormaliseNilableBool(functionAppSlot.Enabled),
-				ClientCertMode:       string(functionAppSlot.ClientCertMode),
-				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                 tags.ToTypedObject(functionAppSlot.Tags),
-				Kind:                 utils.NormalizeNilableString(functionAppSlot.Kind),
+				Name:                        id.SlotName,
+				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
+				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:              string(functionApp.ClientCertMode),
+				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				Tags:                        tags.ToTypedObject(functionApp.Tags),
+				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -561,14 +612,18 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 
-			state.HttpsOnly = utils.NormaliseNilableBool(functionAppSlot.HTTPSOnly)
-			state.ClientCertEnabled = utils.NormaliseNilableBool(functionAppSlot.ClientCertEnabled)
+			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
+			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
+			}
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
 			}
 
-			flattenedIdentity, err := flattenIdentity(functionAppSlot.Identity)
+			flattenedIdentity, err := flattenIdentity(functionApp.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -624,6 +679,13 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			if err != nil {
+				return err
+			}
+
+			sendContentSettings := !helpers.PlanIsAppPlan(planSKU)
+
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
@@ -649,13 +711,45 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				existing.Identity = expandedIdentity
 			}
 
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			storageString := ""
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
+					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
+					existing.SiteProperties.VirtualNetworkSubnetID = empty
+				} else {
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
+			}
+
+			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
-				storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				if state.StorageKeyVaultSecretID != "" {
+					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
+				} else {
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				}
+			}
+
+			if sendContentSettings {
+				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+				}
+				if state.AppSettings == nil {
+					state.AppSettings = make(map[string]string)
+				}
+				state.AppSettings = helpers.ParseContentSettings(appSettingsResp, state.AppSettings)
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
@@ -664,7 +758,11 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
 				}
-				state.AppSettings["AzureWebJobsDashboard"] = storageString
+				if !state.StorageUsesMSI {
+					state.AppSettings["AzureWebJobsDashboard"] = storageString
+				} else {
+					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
+				}
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
@@ -765,6 +863,10 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
 			}
 
+			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "DOCKER_REGISTRY_SERVER_URL":
 			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
 
@@ -781,14 +883,25 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
 
 		case "AzureWebJobsStorage":
-			m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
-
+			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(SecretUri=")
+				m.StorageKeyVaultSecretID = trimmed
+			} else {
+				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			}
 		case "AzureWebJobsDashboard":
 			m.BuiltinLogging = true
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
 			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+
+		case "AzureWebJobsStorage__accountName":
+			m.StorageUsesMSI = true
+			m.StorageAccountName = utils.NormalizeNilableString(v)
+
+		case "AzureWebJobsDashboard__accountName":
+			m.BuiltinLogging = true
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)

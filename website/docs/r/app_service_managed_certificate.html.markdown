@@ -10,12 +10,11 @@ description: |-
 
 This certificate can be used to secure custom domains on App Services (Windows and Linux) hosted on an App Service Plan of Basic and above (free and shared tiers are not supported).
 
-~> NOTE: A certificate is valid for six months, and about a month before the certificate’s expiration date, App Services renews/rotates the certificate. This is managed by Azure and doesn't requre this resource to be changed or reprovisioned. It will change the `thumbprint` computed attribute the next time the resource is refreshed after rotation occurs, so keep that in mind if you have any dependencies on this attribute directly.
+~> NOTE: A certificate is valid for six months, and about a month before the certificate’s expiration date, App Services renews/rotates the certificate. This is managed by Azure and doesn't require this resource to be changed or reprovisioned. It will change the `thumbprint` computed attribute the next time the resource is refreshed after rotation occurs, so keep that in mind if you have any dependencies on this attribute directly.
 
 ## Example Usage
 
 ```hcl
-
 data "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
   resource_group_name = azurerm_resource_group.example.name
@@ -55,6 +54,14 @@ resource "azurerm_dns_txt_record" "example" {
   record {
     value = azurerm_app_service.example.custom_domain_verification_id
   }
+}
+
+resource "azurerm_dns_cname_record" "example" {
+  name                = "example-adcr"
+  zone_name           = data.azurerm_dns_zone.example.name
+  resource_group_name = data.azurerm_dns_zone.example.resource_group_name
+  ttl                 = 300
+  record              = azurerm_app_service.example.default_site_hostname
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "example" {
@@ -108,7 +115,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Managed Certificate.
 

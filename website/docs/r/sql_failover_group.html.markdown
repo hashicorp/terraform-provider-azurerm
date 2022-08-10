@@ -10,6 +10,8 @@ description: |-
 
 Create a failover group of databases on a collection of Azure SQL servers.
 
+-> **Note:** The `azurerm_sql_failover_group` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_failover_group`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_failover_group) resource instead.
+
 ## Example Usage
 
 ```hcl
@@ -30,7 +32,7 @@ resource "azurerm_sql_server" "primary" {
 resource "azurerm_sql_server" "secondary" {
   name                         = "sql-secondary"
   resource_group_name          = azurerm_resource_group.example.name
-  location                     = "northeurope"
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "sqladmin"
   administrator_login_password = "pa$$w0rd"
@@ -71,7 +73,7 @@ The following arguments are supported:
 
 * `databases` - A list of database ids to add to the failover group
 
--> **NOTE:** The failover group will create a secondary database for each database listed in `databases`. If the secondary databases need to be managed through Terraform, they should be defined as resources and a dependency added to the failover group to ensure the secondary databases are created first. Please refer to the detailed example which can be found in [the `./examples/sql-azure/failover_group` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/failover_group)
+-> **NOTE:** The failover group will create a secondary database for each database listed in `databases`. If the secondary databases need to be managed through Terraform, they should be defined as resources and a dependency added to the failover group to ensure the secondary databases are created first. Please refer to the detailed example which can be found in [the `./examples/sql-azure/failover_group` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/failover_group)
 
 * `partner_servers` - (Required) A list of secondary servers as documented below
 
@@ -95,7 +97,7 @@ The following arguments are supported:
 
 * `mode` - Failover policy for the read-only endpoint. Possible values are `Enabled`, and `Disabled`
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 
@@ -108,7 +110,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Failover Group.
 * `update` - (Defaults to 30 minutes) Used when updating the SQL Failover Group.

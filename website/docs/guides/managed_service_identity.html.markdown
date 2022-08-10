@@ -13,6 +13,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 - Authenticating to Azure using Managed Identity (covered in this guide)
 - [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 - [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
+- [Authenticating to Azure using OpenID Connect](service_principal_oidc.html)
 
 ---
 
@@ -20,7 +21,7 @@ We recommend using a service principal or a managed identity when running Terraf
 
 ## What is a managed identity?
 
-[Managed identities for Azure resources](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication. There are two types of managed identities: system-assigned and user-assigned. This article is based on system-assigned managed identities.
+[Managed identities for Azure resources](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication. There are two types of managed identities: system-assigned and user-assigned. This article is based on system-assigned managed identities.
 
 Managed identities work in conjunction with Azure Resource Manager (ARM), Azure AD, and the Azure Instance Metadata Service (IMDS). Azure resources that support managed identities expose an internal IMDS endpoint that the client can use to request an access token. No credentials are stored on the VM, and the only additional information needed to bootstrap the Terraform connection to Azure is the subscription ID and tenant ID.
 
@@ -33,7 +34,7 @@ Before you can use the managed identity, it has to be configured. There are two 
 
 Before you can create a resource with a managed identity and then assign an RBAC role, your account needs sufficient permissions. You need to be a member of the account **Owner** role, or have **Contributor** plus **User Access Administrator** roles.
 
-Not all Azure services support managed identities, and availability varies by region. Configuration details vary slightly among services. For more information, see [Services that support managed identities for Azure resources](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/services-support-managed-identities).
+Not all Azure services support managed identities, and availability varies by region. Configuration details vary slightly among services. For more information, see [Services that support managed identities for Azure resources](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/services-support-managed-identities).
 
 ## Configuring a VM to use a system-assigned managed identity
 
@@ -58,7 +59,7 @@ resource "azurerm_role_assignment" "example" {
   name               = azurerm_virtual_machine.example.name
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.subscription.id}${data.azurerm_role_definition.contributor.id}"
-  principal_id       = azurerm_virtual_machine.example.identity[0]["principal_id"]
+  principal_id       = azurerm_virtual_machine.example.identity[0].principal_id
 }
 ```
 
@@ -97,7 +98,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }
@@ -119,7 +120,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }
@@ -142,7 +143,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }

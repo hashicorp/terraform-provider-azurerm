@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,6 +38,58 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mapToBackendAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.mapToBackendAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolMultiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRuleMapToBackendAddressPool(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -128,6 +180,21 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).Key("frontend_port").HasValue("3391"),
 				check.That(data2.ResourceName).Key("backend_port").HasValue("3391"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatRule_zeroPortNumber(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	r := LoadBalancerNatRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zeroPortNumber(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -344,4 +411,118 @@ resource "azurerm_lb_nat_rule" "test2" {
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
 `, template, data.RandomInteger, data2.RandomInteger)
+}
+
+func (r LoadBalancerNatRule) mapToBackendAddressPool(data acceptance.TestData) string {
+	template := r.template(data, "Standard")
+	return fmt.Sprintf(`
+%s
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.0.0/16"]
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "internal"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_backend_address_pool_address" "test" {
+  name                    = "address"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  virtual_network_id      = azurerm_virtual_network.test.id
+  ip_address              = "191.168.0.1"
+}
+
+resource "azurerm_lb_nat_rule" "test" {
+  name                = "NatRule-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+
+  protocol                = "Tcp"
+  frontend_port_start     = 3000
+  frontend_port_end       = 3389
+  backend_port            = 3389
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancerNatRule) multipleRuleMapToBackendAddressPool(data acceptance.TestData) string {
+	template := r.mapToBackendAddressPool(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_lb_nat_rule" "test1" {
+  name                = "NatRule2-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+
+  protocol                = "Udp"
+  frontend_port_start     = 3000
+  frontend_port_end       = 3389
+  backend_port            = 3389
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, template, data.RandomInteger)
+}
+
+func (r LoadBalancerNatRule) zeroPortNumber(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctest-lb-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                          = "Internal"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.7"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+
+resource "azurerm_lb_nat_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  name                           = "NatRule-%[1]d"
+  protocol                       = "All"
+  frontend_port                  = 0
+  backend_port                   = 0
+  idle_timeout_in_minutes        = 4
+  enable_floating_ip             = false
+  enable_tcp_reset               = false
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

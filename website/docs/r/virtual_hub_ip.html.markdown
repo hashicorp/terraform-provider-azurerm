@@ -31,7 +31,8 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -45,7 +46,7 @@ resource "azurerm_subnet" "example" {
   name                 = "RouteServerSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.5.1.0/24"
+  address_prefixes     = ["10.5.1.0/24"]
 }
 
 resource "azurerm_virtual_hub_ip" "example" {
@@ -64,7 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Virtual Hub IP. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this ip configuration should be created. Changing this forces a new resource to be created.
+* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this IP configuration should be created. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet that the IP will reside. Changing this forces a new resource to be created.
 
@@ -82,7 +83,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub IP.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub IP.

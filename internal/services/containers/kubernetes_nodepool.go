@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -53,6 +54,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"capacity_reservation_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.CapacityReservationGroupID,
 					},
 
 					// TODO 4.0: change this from enable_* to *_enabled
@@ -125,7 +133,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"node_labels": {
 						Type:     pluginsdk.TypeMap,
-						ForceNew: true,
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
@@ -211,7 +218,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.ProximityPlacementGroupID,
+						ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 					},
 					"only_critical_addons_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -219,21 +226,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 					},
 
+					"host_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.HostGroupID,
+					},
+
 					"upgrade_settings": upgradeSettingsSchema(),
 				}
 
-				if features.ThreePointOhBeta() {
-					s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
-				} else {
-					s["availability_zones"] = &schema.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					}
-				}
+				s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
 
 				return s
 			}(),
@@ -559,7 +562,7 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(131072, 589824),
+					ValidateFunc: validation.IntBetween(131072, 1048576),
 				},
 
 				"vm_max_map_count": {
@@ -676,19 +679,9 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		// ScaleSetPriority:       "",
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(raw["zones"].(*schema.Set).List())
-		if len(zones) > 0 {
-			profile.AvailabilityZones = &zones
-		}
-	} else {
-		availabilityZonesRaw := raw["availability_zones"].([]interface{})
-		availabilityZones := utils.ExpandStringSlice(availabilityZonesRaw)
-
-		// otherwise: Standard Load Balancer is required for availability zone.
-		if len(*availabilityZones) > 0 {
-			profile.AvailabilityZones = availabilityZones
-		}
+	zones := zones.Expand(raw["zones"].(*schema.Set).List())
+	if len(zones) > 0 {
+		profile.AvailabilityZones = &zones
 	}
 
 	if maxPods := int32(raw["max_pods"].(int)); maxPods > 0 {
@@ -724,12 +717,20 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
+	if hostGroupID := raw["host_group_id"].(string); hostGroupID != "" {
+		profile.HostGroupID = utils.String(hostGroupID)
+	}
+
 	if orchestratorVersion := raw["orchestrator_version"].(string); orchestratorVersion != "" {
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
 
 	if proximityPlacementGroupId := raw["proximity_placement_group_id"].(string); proximityPlacementGroupId != "" {
 		profile.ProximityPlacementGroupID = utils.String(proximityPlacementGroupId)
+	}
+
+	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
+		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
 	}
 
 	count := raw["node_count"].(int)
@@ -972,11 +973,6 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		return nil, err
 	}
 
-	var availabilityZones []string
-	if agentPool.AvailabilityZones != nil {
-		availabilityZones = *agentPool.AvailabilityZones
-	}
-
 	count := 0
 	if agentPool.Count != nil {
 		count = int(*agentPool.Count)
@@ -1069,6 +1065,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		vnetSubnetId = *agentPool.VnetSubnetID
 	}
 
+	hostGroupID := ""
+	if agentPool.HostGroupID != nil {
+		hostGroupID = *agentPool.HostGroupID
+	}
+
 	orchestratorVersion := ""
 	if agentPool.OrchestratorVersion != nil {
 		orchestratorVersion = *agentPool.OrchestratorVersion
@@ -1083,6 +1084,10 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	if agentPool.VMSize != nil {
 		vmSize = *agentPool.VMSize
 	}
+	capacityReservationGroupId := ""
+	if agentPool.CapacityReservationGroupID != nil {
+		capacityReservationGroupId = *agentPool.CapacityReservationGroupID
+	}
 
 	upgradeSettings := flattenUpgradeSettings(agentPool.UpgradeSettings)
 	linuxOSConfig, err := flattenAgentPoolLinuxOSConfig(agentPool.LinuxOSConfig)
@@ -1091,40 +1096,37 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	}
 
 	out := map[string]interface{}{
-		"enable_auto_scaling":          enableAutoScaling,
-		"enable_node_public_ip":        enableNodePublicIP,
-		"enable_host_encryption":       enableHostEncryption,
-		"fips_enabled":                 enableFIPS,
-		"kubelet_disk_type":            string(agentPool.KubeletDiskType),
-		"max_count":                    maxCount,
-		"max_pods":                     maxPods,
-		"min_count":                    minCount,
-		"name":                         name,
-		"node_count":                   count,
-		"node_labels":                  nodeLabels,
-		"node_public_ip_prefix_id":     nodePublicIPPrefixID,
-		"node_taints":                  []string{},
-		"os_disk_size_gb":              osDiskSizeGB,
-		"os_disk_type":                 string(osDiskType),
-		"os_sku":                       string(agentPool.OsSKU),
-		"tags":                         tags.Flatten(agentPool.Tags),
-		"type":                         string(agentPool.Type),
-		"ultra_ssd_enabled":            enableUltraSSD,
-		"vm_size":                      vmSize,
-		"pod_subnet_id":                podSubnetId,
-		"orchestrator_version":         orchestratorVersion,
-		"proximity_placement_group_id": proximityPlacementGroupId,
-		"upgrade_settings":             upgradeSettings,
-		"vnet_subnet_id":               vnetSubnetId,
-		"only_critical_addons_enabled": criticalAddonsEnabled,
-		"kubelet_config":               flattenAgentPoolKubeletConfig(agentPool.KubeletConfig),
-		"linux_os_config":              linuxOSConfig,
-	}
-
-	if features.ThreePointOhBeta() {
-		out["zones"] = zones.Flatten(agentPool.AvailabilityZones)
-	} else {
-		out["availability_zones"] = availabilityZones
+		"enable_auto_scaling":           enableAutoScaling,
+		"enable_node_public_ip":         enableNodePublicIP,
+		"enable_host_encryption":        enableHostEncryption,
+		"fips_enabled":                  enableFIPS,
+		"host_group_id":                 hostGroupID,
+		"kubelet_disk_type":             string(agentPool.KubeletDiskType),
+		"max_count":                     maxCount,
+		"max_pods":                      maxPods,
+		"min_count":                     minCount,
+		"name":                          name,
+		"node_count":                    count,
+		"node_labels":                   nodeLabels,
+		"node_public_ip_prefix_id":      nodePublicIPPrefixID,
+		"node_taints":                   []string{},
+		"os_disk_size_gb":               osDiskSizeGB,
+		"os_disk_type":                  string(osDiskType),
+		"os_sku":                        string(agentPool.OsSKU),
+		"tags":                          tags.Flatten(agentPool.Tags),
+		"type":                          string(agentPool.Type),
+		"ultra_ssd_enabled":             enableUltraSSD,
+		"vm_size":                       vmSize,
+		"pod_subnet_id":                 podSubnetId,
+		"orchestrator_version":          orchestratorVersion,
+		"proximity_placement_group_id":  proximityPlacementGroupId,
+		"upgrade_settings":              upgradeSettings,
+		"vnet_subnet_id":                vnetSubnetId,
+		"only_critical_addons_enabled":  criticalAddonsEnabled,
+		"kubelet_config":                flattenAgentPoolKubeletConfig(agentPool.KubeletConfig),
+		"linux_os_config":               linuxOSConfig,
+		"zones":                         zones.Flatten(agentPool.AvailabilityZones),
+		"capacity_reservation_group_id": capacityReservationGroupId,
 	}
 
 	return &[]interface{}{

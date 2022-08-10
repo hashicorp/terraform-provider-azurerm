@@ -45,6 +45,8 @@ resource "azurerm_firewall" "example" {
   name                = "testfirewall"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -127,7 +129,7 @@ A `protocol` block supports the following:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Application Rule Collection.
 * `update` - (Defaults to 30 minutes) Used when updating the Firewall Application Rule Collection.

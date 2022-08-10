@@ -24,6 +24,8 @@ func resourceSqlElasticPool() *pluginsdk.Resource {
 		Update: resourceSqlElasticPoolCreateUpdate,
 		Delete: resourceSqlElasticPoolDelete,
 
+		DeprecationMessage: "The `azurerm_sql_elasticpool_resource` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_elasticpool` resource instead.",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ElasticPoolID(id)
 			return err

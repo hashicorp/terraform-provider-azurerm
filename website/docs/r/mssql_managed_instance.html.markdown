@@ -150,7 +150,7 @@ resource "azurerm_subnet" "example" {
   name                 = "subnet-mi"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 
   delegation {
     name = "managedinstancedelegation"
@@ -218,19 +218,21 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the SQL Managed Instance.
 
-* `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `GP_G8IM`, `GP_G8IH`, `BC_Gen4`, `BC_Gen5`, `BC_G8IM` or `BC_G8IH`.
+* `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `GP_Gen8IM`, `GP_Gen8IH`, `BC_Gen4`, `BC_Gen5`, `BC_Gen8IM` or `BC_Gen8IH`.
 
 * `storage_size_in_gb` - (Required) Maximum storage space for the SQL Managed instance. This should be a multiple of 32 (GB).
 
 * `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
 
-* `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `8`, `16`, `24`, `32`, or `40` for Gen5 SKUs.
+* `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `8`, `16`, `24`, `32`, `40`, `64`, or `80` for Gen5 SKUs.
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
 * `dns_zone_partner_id` - (Optional) The ID of the SQL Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `maintenance_configuration_name` - (Optional) The name of the Public Maintenance Configuration window to apply to the SQL Managed Instance. Valid values include `SQL_Default`, `SQL_EastUS_MI_1`, `SQL_EastUS2_MI_1`, `SQL_WestUS2_MI_1`, `SQL_SoutheastAsia_MI_1`, `SQL_AustraliaEast_MI_1`, `SQL_NorthEurope_MI_1`, `SQL_SouthCentralUS_MI_1`, `SQL_UKSouth_MI_1`, `SQL_WestEurope_MI_1`, `SQL_EastUS_MI_2`, `SQL_EastUS2_MI_2`, `SQL_WestUS2_MI_2`, `SQL_SoutheastAsia_MI_2`, `SQL_NorthEurope_MI_2`, `SQL_SouthCentralUS_MI_2`, `SQL_UKSouth_MI_2`, `SQL_WestEurope_MI_2`, `SQL_AustraliaSoutheast_MI_1`, `SQL_BrazilSouth_MI_1`, `SQL_CanadaCentral_MI_1`, `SQL_CanadaEast_MI_1`, `SQL_CentralUS_MI_1`, `SQL_EastAsia_MI_1`, `SQL_FranceCentral_MI_1`, `SQL_GermanyWestCentral_MI_1`, `SQL_CentralIndia_MI_1`, `SQL_JapanEast_MI_1`, `SQL_JapanWest_MI_1`, `SQL_NorthCentralUS_MI_1`, `SQL_UKWest_MI_1`, `SQL_WestUS_MI_1`, `SQL_AustraliaSoutheast_MI_2`, `SQL_BrazilSouth_MI_2`, `SQL_CanadaCentral_MI_2`, `SQL_CanadaEast_MI_2`, `SQL_CentralUS_MI_2`, `SQL_EastAsia_MI_2`, `SQL_FranceCentral_MI_2`, `SQL_GermanyWestCentral_MI_2`, `SQL_CentralIndia_MI_2`, `SQL_JapanEast_MI_2`, `SQL_JapanWest_MI_2`, `SQL_NorthCentralUS_MI_2`, `SQL_UKWest_MI_2`, `SQL_WestUS_MI_2`, `SQL_KoreaCentral_MI_1`, `SQL_KoreaCentral_MI_2`, `SQL_WestCentralUS_MI_1`, `SQL_WestCentralUS_MI_2`, `SQL_UAENorth_MI_1`, `SQL_SwitzerlandWest_MI_1`, `SQL_SwitzerlandNorth_MI_1`, `SQL_UAENorth_MI_2`, `SQL_SwitzerlandWest_MI_2`, `SQL_SwitzerlandNorth_MI_2`, `SQL_FranceSouth_MI_1`, `SQL_FranceSouth_MI_2`, `SQL_SouthAfricaNorth_MI_1`, `SQL_KoreaSouth_MI_1`, `SQL_UAECentral_MI_1`, `SQL_SouthAfricaNorth_MI_2`, `SQL_KoreaSouth_MI_2`, `SQL_UAECentral_MI_2`, `SQL_SouthIndia_MI_1`, `SQL_SouthIndia_MI_2`, `SQL_AustraliaCentral_MI_1`, `SQL_AustraliaCentral2_MI_1`, `SQL_AustraliaCentral_MI_2`, `SQL_AustraliaCentral2_MI_2`, `SQL_WestIndia_MI_1`, `SQL_WestIndia_MI_2`, `SQL_SouthAfricaWest_MI_1`, `SQL_SouthAfricaWest_MI_2`, `SQL_GermanyNorth_MI_1`, `SQL_GermanyNorth_MI_2`, `SQL_NorwayEast_MI_1`, `SQL_BrazilSoutheast_MI_1`, `SQL_NorwayWest_MI_1`, `SQL_WestUS3_MI_1`, `SQL_NorwayEast_MI_2`, `SQL_BrazilSoutheast_MI_2`, `SQL_NorwayWest_MI_2`, `SQL_WestUS3_MI_2`. Defaults to `SQL_Default`. 
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.
 
@@ -268,7 +270,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 24 hours) Used when creating the Microsoft SQL Managed Instance.
 * `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.

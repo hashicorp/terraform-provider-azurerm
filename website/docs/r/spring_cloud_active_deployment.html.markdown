@@ -41,11 +41,14 @@ resource "azurerm_spring_cloud_app" "example" {
 resource "azurerm_spring_cloud_java_deployment" "example" {
   name                = "deploy1"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
-  cpu                 = 2
-  memory_in_gb        = 4
   instance_count      = 2
   jvm_options         = "-XX:+PrintGC"
   runtime_version     = "Java_11"
+
+  quota {
+    cpu    = "2"
+    memory = "4Gi"
+  }
 
   environment_variables = {
     "Env" : "Staging"
@@ -74,7 +77,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Active Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Active Deployment.

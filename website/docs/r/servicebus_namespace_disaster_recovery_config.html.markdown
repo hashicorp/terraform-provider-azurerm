@@ -10,7 +10,7 @@ description: |-
 
 Manages a Disaster Recovery Config for a Service Bus Namespace.
 
-~> **NOTE:** Disaster Recovery Config is a Premium Sku only capability. 
+~> **NOTE:** Disaster Recovery Config is a Premium SKU only capability. 
 
 ## Example Usage
 
@@ -30,7 +30,7 @@ resource "azurerm_servicebus_namespace" "primary" {
 
 resource "azurerm_servicebus_namespace" "secondary" {
   name                = "servicebus-secondary"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Premium"
   capacity            = "1"
@@ -70,7 +70,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace Disaster Recovery Config.
 * `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace Disaster Recovery Config.

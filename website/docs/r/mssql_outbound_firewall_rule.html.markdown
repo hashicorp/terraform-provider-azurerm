@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_mssql_server" "example" {
   name                         = "mysqlserver"
   resource_group_name          = azurerm_resource_group.example.name
-  location                     = "West US"
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -50,7 +50,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Outbound Firewall Rule.
 * `update` - (Defaults to 30 minutes) Used when updating the SQL Outbound Firewall Rule.

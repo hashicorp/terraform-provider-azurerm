@@ -10,6 +10,8 @@ description: |-
 
 Manages a Customer Managed Key for a EventHub Namespace.
 
+!> **Note:** In 2.x versions of the Azure Provider during deletion this resource will **delete and recreate the parent EventHub Namespace which may involve data loss** as it's not possible to remove the Customer Managed Key from the EventHub Namespace once it's been added. Version 3.0 of the Azure Provider will change this so that the Delete operation is a noop, requiring the parent EventHub Namespace is deleted/recreated to remove the Customer Managed Key.
+
 ## Example Usage
 
 ```hcl
@@ -45,7 +47,6 @@ resource "azurerm_key_vault" "example" {
   resource_group_name      = azurerm_resource_group.example.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -54,7 +55,7 @@ resource "azurerm_key_vault_access_policy" "example" {
   tenant_id    = azurerm_eventhub_namespace.example.identity.0.tenant_id
   object_id    = azurerm_eventhub_namespace.example.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "example2" {
@@ -63,12 +64,12 @@ resource "azurerm_key_vault_access_policy" "example2" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
   ]
 }
 
@@ -107,7 +108,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace Customer Managed Key.

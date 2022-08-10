@@ -52,9 +52,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "acctestpool"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "acctestpool"
 }
 
 resource "azurerm_network_interface" "example" {
@@ -94,7 +93,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the association between the Network Interface and the Load Balancers Backend Address Pool.
 * `update` - (Defaults to 30 minutes) Used when updating the association between the Network Interface and the Load Balancers Backend Address Pool.

@@ -111,9 +111,10 @@ output "public_ip_address" {
 * `sku` - The SKU of the Public IP.
 * `ip_tags` - A mapping of tags to assigned to the resource.
 * `tags` - A mapping of tags to assigned to the resource.
+* `zones` - A list of Availability Zones in which this Public IP is located.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Address.

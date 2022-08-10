@@ -28,10 +28,6 @@ The following arguments are supported:
 
 * `name` - Specifies the name or UUID of this Management Group.
 
-* `group_id` - Specifies the name or UUID of this Management Group.
-
-~> **NOTE:** The field `group_id` has been deprecated in favour of `name`.
-
 * `display_name` - Specifies the display name of this Management Group.
 
 ~> **NOTE** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.  
@@ -48,6 +44,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Management Group.

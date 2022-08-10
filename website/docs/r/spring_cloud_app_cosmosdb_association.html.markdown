@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `cosmosdb_account_id` - (Required) Specifies the ID of the CosmosDB Account. Changing this forces a new resource to be created.
 
-* `api_type` - (Required) Specifies the api type which should be used when connecting to the CosmosDB Account. Possible values are `cassandra`, `gremlin`, `mongo`, `sql` or `table`. Changing this forces a new resource to be created.
+* `api_type` - (Required) Specifies the API type which should be used when connecting to the CosmosDB Account. Possible values are `cassandra`, `gremlin`, `mongo`, `sql` or `table`. Changing this forces a new resource to be created.
   
 * `cosmosdb_access_key` - (Required) Specifies the CosmosDB Account access key.
 
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `cosmosdb_mongo_database_name` - (Optional) Specifies the name of the Mongo Database which the Spring Cloud App should be associated with. Should only be set when `api_type` is `mongo`.
 
-* `cosmosdb_sql_database_name` - (Optional) Specifies the name of the Sql Database which the Spring Cloud App should be associated with. Should only be set when `api_type` is `sql`.
+* `cosmosdb_sql_database_name` - (Optional) Specifies the name of the SQL Database which the Spring Cloud App should be associated with. Should only be set when `api_type` is `sql`.
 
 ## Attributes Reference
 
@@ -88,7 +88,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application CosmosDB Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application CosmosDB Association.

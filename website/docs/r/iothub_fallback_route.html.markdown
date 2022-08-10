@@ -55,7 +55,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string          = azurerm_storage_account.example.primary_blob_connection_string
@@ -102,7 +102,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Fallback Route.
 * `update` - (Defaults to 30 minutes) Used when updating the IotHub Fallback Route.

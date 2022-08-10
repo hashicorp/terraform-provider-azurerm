@@ -26,7 +26,6 @@ resource "azurerm_data_factory" "example" {
 
 resource "azurerm_data_factory_linked_service_web" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
   data_factory_id     = azurerm_data_factory.example.id
   authentication_type = "Anonymous"
   url                 = "https://www.bing.com"
@@ -34,7 +33,6 @@ resource "azurerm_data_factory_linked_service_web" "example" {
 
 resource "azurerm_data_factory_dataset_parquet" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
   data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_service_web.example.name
 
@@ -50,11 +48,9 @@ resource "azurerm_data_factory_dataset_parquet" "example" {
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 
-* `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Dataset. Changing this forces a new resource
-
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Dataset with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Dataset with. Changing this forces a new resource.
 
 * `linked_service_name` - (Required) The Data Factory Linked Service name in which to associate the Dataset with.
 
@@ -114,6 +110,8 @@ A `azure_blob_storage_location` block supports the following:
 
 * `filename` - (Required) The filename of the file on the web server.
 
+* `dynamic_container_enabled` - (Optional) Is the `container` using dynamic expression, function or system variables? Defaults to `false`.
+
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
@@ -126,7 +124,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Dataset.

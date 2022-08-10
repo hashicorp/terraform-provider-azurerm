@@ -164,7 +164,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Assignment.
 * `update` - (Defaults to 30 minutes) Used when updating the Role Assignment.
@@ -184,7 +184,7 @@ terraform import azurerm_role_assignment.example /subscriptions/00000000-0000-00
 - for scope `Subscription`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
 - for scope `Resource Group`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
 
-~> **NOTE:** for cross tenant scenario, the format of `resource id` is composed of azure resource id and tenantId. for example:
+~> **NOTE:** for cross tenant scenario, the format of `resource id` is composed of Azure resource ID and tenantId. for example:
 ```
 /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000
 ```

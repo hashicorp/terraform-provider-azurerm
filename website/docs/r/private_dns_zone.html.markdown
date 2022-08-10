@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Private DNS Zone. Must be a valid domain name.
 
--> **NOTE:** If you are going to be using the Private DNS Zone with a Private Endpoint the name of the Private DNS Zone must follow the **Private DNS Zone name** schema in the [product documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns#virtual-network-and-on-premises-workloads-using-a-dns-forwarder) in order for the two resources to be connected successfully.
+-> **NOTE:** If you are going to be using the Private DNS Zone with a Private Endpoint the name of the Private DNS Zone must follow the **Private DNS Zone name** schema in the [product documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-dns#virtual-network-and-on-premises-workloads-using-a-dns-forwarder) in order for the two resources to be connected successfully.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
@@ -60,17 +60,25 @@ The `soa_record` block supports:
 The following attributes are exported:
 
 * `id` - The Private DNS Zone ID.
-* `fqdn` - The fully qualified domain name of the Record Set.
-* `host_name` - The domain name of the authoritative name server for the SOA record.
-* `serial_number` - The serial number for the SOA record. 
+* `soa_record` - A `soa_record` block as defined below.
 * `number_of_record_sets` - The current number of record sets in this Private DNS zone.
 * `max_number_of_record_sets` - The maximum number of record sets that can be created in this Private DNS zone.
 * `max_number_of_virtual_network_links` - The maximum number of virtual networks that can be linked to this Private DNS zone.
 * `max_number_of_virtual_network_links_with_registration` - The maximum number of virtual networks that can be linked to this Private DNS zone with registration enabled.
 
+---
+
+A `soa_record` block exports the following:
+
+* `fqdn` - The fully qualified domain name of the Record Set.
+
+* `host_name` - The domain name of the authoritative name server for the SOA record.
+
+* `serial_number` - The serial number for the SOA record.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Private DNS Zone.
 * `update` - (Defaults to 30 minutes) Used when updating the Private DNS Zone.

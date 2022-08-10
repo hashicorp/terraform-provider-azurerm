@@ -28,7 +28,6 @@ resource "azurerm_key_vault" "example" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
 }
 
@@ -70,9 +69,15 @@ resource "azurerm_key_vault_access_policy" "example-disk" {
   object_id = azurerm_disk_encryption_set.example.identity.0.principal_id
 
   key_permissions = [
+    "Create",
+    "Delete",
     "Get",
-    "WrapKey",
-    "UnwrapKey"
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
 }
 
@@ -83,10 +88,22 @@ resource "azurerm_key_vault_access_policy" "example-user" {
   object_id = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "create",
-    "delete"
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
+}
+
+resource "azurerm_role_assignment" "example-disk" {
+  scope                = azurerm_key_vault.example.id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azurerm_disk_encryption_set.example.identity.0.principal_id
 }
 
 ```
@@ -103,11 +120,14 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret).
 
--> **NOTE** Access to the KeyVault must be granted for this Disk Encryption Set, if you want to further use this Disk Encryption Set in a Managed Disk or Virtual Machine, or Virtual Machine Scale Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
+-> **NOTE** Access to the KeyVault must be granted for this Disk Encryption Set, if you want to further use this Disk Encryption Set in a Managed Disk or Virtual Machine, or Virtual Machine Scale Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/azure/virtual-machines/linux/disk-encryption).
+
+-> **NOTE** A KeyVault using [enable_rbac_authorization](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault#enable_rbac_authorization) requires to use `azurerm_role_assignment` to assigne the role `Key Vault Crypto Service Encryption User` to this Disk Encryption Set.
+In this case, `azurerm_key_vault_access_policy` is not needed.
 
 * `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates encryption Key to latest version. Defaults to `false`.
 
-* `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey` and `EncryptionAtRestWithPlatformAndCustomerKeys`. Defaults to `EncryptionAtRestWithCustomerKey`.
+* `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey`, `EncryptionAtRestWithPlatformAndCustomerKeys` and `ConfidentialVmEncryptedWithCustomerKey`. Defaults to `EncryptionAtRestWithCustomerKey`.
 
 * `identity` - (Required) An `identity` block as defined below.
 
@@ -115,9 +135,9 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Disk Encryption Set. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -137,7 +157,7 @@ An `identity` block exports the following:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Disk Encryption Set.
 * `update` - (Defaults to 60 minutes) Used when updating the Disk Encryption Set.

@@ -104,6 +104,21 @@ func TestAccDataFactoryDatasetDelimitedText_blob(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetDelimitedText_blob_empty_path(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blob_empty_path(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryDatasetDelimitedText_blobFS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
 	r := DatasetDelimitedTextResource{}
@@ -111,6 +126,35 @@ func TestAccDataFactoryDatasetDelimitedText_blobFS(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.blobFS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryDatasetDelimitedText_blobDynamicContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blob(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.blobDynamicContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.blob(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -152,7 +196,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "https://www.bing.com"
@@ -160,7 +203,6 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
@@ -201,7 +243,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.bing.com"
@@ -209,7 +250,6 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
@@ -276,7 +316,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.bing.com"
@@ -284,7 +323,6 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
@@ -369,15 +407,13 @@ resource "azurerm_data_factory" "test" {
 
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = azurerm_storage_account.test.primary_connection_string
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
 }
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
@@ -423,15 +459,13 @@ resource "azurerm_data_factory" "test" {
 
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = azurerm_storage_account.test.primary_connection_string
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
 }
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
@@ -439,6 +473,66 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
     container                = azurerm_storage_container.test.name
     path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
     dynamic_path_enabled     = true
+    filename                 = "@concat('foo', '.txt')"
+    dynamic_filename_enabled = true
+  }
+
+  column_delimiter    = ","
+  row_delimiter       = "NEW"
+  encoding            = "UTF-8"
+  quote_character     = "x"
+  escape_character    = "f"
+  first_row_as_header = true
+  null_value          = "NULL"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetDelimitedTextResource) blob_empty_path(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_delimited_text" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container                = azurerm_storage_container.test.name
+    path                     = ""
     filename                 = "@concat('foo', '.txt')"
     dynamic_filename_enabled = true
   }
@@ -467,14 +561,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_kind             = "BlobStorage"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  is_hns_enabled           = true
-  allow_blob_public_access = true
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_kind                    = "BlobStorage"
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  is_hns_enabled                  = true
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
@@ -500,7 +594,6 @@ resource "azurerm_role_assignment" "test" {
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                 = "acctestDataLakeStorage%d"
-  resource_group_name  = azurerm_resource_group.test.name
   data_factory_id      = azurerm_data_factory.test.id
   use_managed_identity = true
   url                  = azurerm_storage_account.test.primary_dfs_endpoint
@@ -508,8 +601,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_data_lake_storage_gen2.test.name
 
   azure_blob_fs_location {
@@ -527,4 +619,67 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   null_value          = "NULL"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetDelimitedTextResource) blobDynamicContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_delimited_text" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container                 = azurerm_storage_container.test.name
+    dynamic_container_enabled = true
+    path                      = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled      = true
+    filename                  = "@concat('foo', '.txt')"
+    dynamic_filename_enabled  = true
+  }
+
+  column_delimiter    = ","
+  row_delimiter       = "NEW"
+  encoding            = "UTF-8"
+  quote_character     = "x"
+  escape_character    = "f"
+  first_row_as_header = true
+  null_value          = "NULL"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

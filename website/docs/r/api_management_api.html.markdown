@@ -88,9 +88,9 @@ The following arguments are supported:
 
 -> **NOTE:** When `version` is set, `version_set_id` must also be specified
 
-* `revision_description` - (Optional) The description of the Api Revision of the API Management API.
+* `revision_description` - (Optional) The description of the API Revision of the API Management API.
 
-* `version_description` - (Optional) The description of the Api Version of the API Management API.
+* `version_description` - (Optional) The description of the API Version of the API Management API.
 
 * `source_api_id` - (Optional) The API id of the source API, which could be in format `azurerm_api_management_api.example.id` or in format `azurerm_api_management_api.example.id;rev=1`
 
@@ -152,7 +152,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API.

@@ -388,13 +388,6 @@ func TestAccHDInsightKafkaCluster_restProxy(t *testing.T) {
 	r := HDInsightKafkaClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.restProxyDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kafka_rest_proxy_endpoint").Exists(),
-			),
-		},
-		{
 			Config: r.restProxy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -525,7 +518,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -579,7 +571,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -635,7 +626,6 @@ resource "azurerm_hdinsight_kafka_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_kafka_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -711,7 +701,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -763,7 +752,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -818,7 +806,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
@@ -833,7 +821,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -890,7 +877,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
@@ -905,15 +892,19 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
 
   storage_account {
+    storage_resource_id  = azurerm_storage_account.test.id
     storage_container_id = azurerm_storage_container.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
+  }
+
+  network {
+    connection_direction = "Outbound"
   }
 
   roles {
@@ -1038,7 +1029,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1129,7 +1119,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     kafka = "2.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1140,7 +1129,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1152,7 +1141,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       number_of_disks_per_node = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1218,7 +1207,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     kafka = "2.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1229,7 +1217,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1241,7 +1229,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       number_of_disks_per_node = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1281,7 +1269,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1345,7 +1332,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1392,75 +1378,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r HDInsightKafkaClusterResource) restProxyDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-provider "azuread" {}
-
-resource "azuread_group" "test" {
-  display_name     = "acctesthdi-%d"
-  security_enabled = true
-}
-
-resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
-  tier                = "Standard"
-
-  component_version {
-    kafka = "2.1"
-  }
-
-  gateway {
-    enabled  = true
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-
-  storage_account {
-    storage_container_id = azurerm_storage_container.test.id
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
-    is_default           = true
-  }
-
-  roles {
-    head_node {
-      vm_size  = "Standard_D3_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-
-    worker_node {
-      vm_size                  = "Standard_D3_V2"
-      username                 = "acctestusrvm"
-      password                 = "AccTestvdSC4daf986!"
-      target_instance_count    = 3
-      number_of_disks_per_node = 2
-    }
-
-    zookeeper_node {
-      vm_size  = "Standard_D3_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-
-    kafka_management_node {
-      vm_size  = "Standard_D4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-  }
-
-  rest_proxy {
-    security_group_id = azuread_group.test.id
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
-}
-
 func (r HDInsightKafkaClusterResource) encryptionInTransitEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1479,7 +1396,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1531,7 +1447,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "sshuser"
     password = "TerrAform123!"
   }

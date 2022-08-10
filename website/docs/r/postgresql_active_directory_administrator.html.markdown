@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource manager: azurerm_postgresql_active_directory_administrator"
+page_title: "Azure Resource Manager: azurerm_postgresql_active_directory_administrator"
 description: |-
   Manages an Active Directory administrator on a PostgreSQL server
 ---
@@ -27,6 +27,8 @@ resource "azurerm_postgresql_server" "example" {
   version                      = "9.6"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  sku_name                     = "GP_Gen5_2"
+  ssl_enforcement_enabled      = true
 }
 
 resource "azurerm_postgresql_active_directory_administrator" "example" {
@@ -60,7 +62,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Active Directory Administrator.
 * `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Active Directory Administrator.
@@ -72,5 +74,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A PostgreSQL Active Directory Administrator can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_postgresql_active_directory_administrator.administrator /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver/administrators/activeDirectory
+terraform import azurerm_postgresql_active_directory_administrator.administrator /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver
 ```

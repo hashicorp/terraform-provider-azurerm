@@ -15,9 +15,10 @@ Manages an API Management API Policy
 
 ```hcl
 data "azurerm_api_management_api" "example" {
-  api_name            = "my-api"
+  name                = "my-api"
   api_management_name = "example-apim"
   resource_group_name = "search-service"
+  revision            = "2"
 }
 
 resource "azurerm_api_management_api_policy" "example" {
@@ -58,7 +59,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API Policy.

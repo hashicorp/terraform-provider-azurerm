@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Windows Function App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -87,13 +85,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account_access_key` - The access key which is used to access the backend storage account for the Function App.
 
 * `storage_account_name` - The backend storage account name which is used by this Function App.
 
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String used to connect to the storage account for this Function App.
+
 * `storage_uses_managed_identity` - Is the Function App using a Managed Identity to access the storage account?
 
 * `tags` - A mapping of tags assigned to the Windows Function App.
+
+* `virtual_network_subnet_id` - The subnet id which the Windows Function App is vNet Integrated with.
 
 ---
 
@@ -231,15 +235,15 @@ A `google` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` - A list of User Assigned Identity IDs.
+* `type` - The type of Managed Service Identity that is configured on this Windows Function App.
 
-* `principal_id` - The ID of the Service Principal.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Windows Function App.
 
-* `tenant_id` - The ID of the tenant.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Windows Function App.
 
-* `type` - The type of managed service identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Windows Function App.
 
 ---
 
@@ -303,7 +307,7 @@ A `site_config` block exports the following:
 
 * `health_check_path` - The path to be checked for this Windows Function App health.
 
-* `http2_enabled` - Is the http2 protocol enabled?
+* `http2_enabled` - Is the HTTP2 protocol enabled?
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
@@ -331,7 +335,7 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker` - Is the Windows Function App using a 32-bit worker process?
 
-* `vnet_route_all_enabled` - Are all outbound traffic to Virtual Network Security Groups and User Defined Routes applied?
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are Web Sockets enabled?
 
@@ -349,6 +353,14 @@ A `site_credential` block exports the following:
 
 ---
 
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+---
+
 A `twitter` block exports the following:
 
 * `consumer_key` - The OAuth 1.0a consumer key of the Twitter application used for sign-in.
@@ -359,6 +371,6 @@ A `twitter` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Function App.

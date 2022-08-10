@@ -30,20 +30,20 @@ func TestAccIotHub_basic(t *testing.T) {
 	})
 }
 
-func TestAccIotHub_ipFilterRules(t *testing.T) {
+func TestAccIotHub_networkRulesSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipFilterRules(data),
+			Config: r.networkRuleSet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.ipFilterRulesUpdate(data),
+			Config: r.networkRuleSetUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -155,11 +155,69 @@ func TestAccIotHub_fileUpload(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.fileUpload(data),
+			Config: r.fileUploadBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fileUploadUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("file_upload.#").HasValue("1"),
 				check.That(data.ResourceName).Key("file_upload.0.lock_duration").HasValue("PT5M"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHub_fileUploadAuthenticationTypeUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fileUploadAuthenticationTypeUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHub_fileUploadAuthenticationTypeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fileUploadAuthenticationTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fileUploadAuthenticationTypeUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fileUploadAuthenticationTypeSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fileUploadAuthenticationTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -376,7 +434,7 @@ func TestAccIotHub_identityUpdate(t *testing.T) {
 	})
 }
 
-func TestAccIotHub_AuthenticationTypeUserAssignedIdentity(t *testing.T) {
+func TestAccIotHub_endpointAuthenticationTypeUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
@@ -391,7 +449,7 @@ func TestAccIotHub_AuthenticationTypeUserAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccIotHub_AuthenticationTypeUpdate(t *testing.T) {
+func TestAccIotHub_endpointAuthenticationTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
@@ -518,7 +576,7 @@ resource "azurerm_iothub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IotHubResource) ipFilterRules(data acceptance.TestData) string {
+func (IotHubResource) networkRuleSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -539,22 +597,22 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  ip_filter_rule {
-    name    = "test"
-    ip_mask = "10.0.0.0/31"
-    action  = "Accept"
-  }
+  network_rule_set {
+    default_action                     = "Allow"
+    apply_to_builtin_eventhub_endpoint = true
 
-  ip_filter_rule {
-    name    = "test2"
-    ip_mask = "10.0.2.0/31"
-    action  = "Accept"
-  }
+    ip_rule {
+      name    = "test"
+      ip_mask = "10.0.1.0/31"
+      action  = "Allow"
+    }
 
-  ip_filter_rule {
-    name    = "test3"
-    ip_mask = "10.0.3.0/31"
-    action  = "Accept"
+    ip_rule {
+      name    = "test2"
+      ip_mask = "10.0.3.0/31"
+      action  = "Allow"
+    }
+
   }
 
   tags = {
@@ -564,7 +622,7 @@ resource "azurerm_iothub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IotHubResource) ipFilterRulesUpdate(data acceptance.TestData) string {
+func (IotHubResource) networkRuleSetUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -585,28 +643,22 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  ip_filter_rule {
-    name    = "test4"
-    ip_mask = "10.0.4.0/31"
-    action  = "Accept"
-  }
+  network_rule_set {
+    default_action                     = "Allow"
+    apply_to_builtin_eventhub_endpoint = true
 
-  ip_filter_rule {
-    name    = "test"
-    ip_mask = "10.0.0.0/31"
-    action  = "Accept"
-  }
+    ip_rule {
+      name    = "test"
+      ip_mask = "10.0.0.0/31"
+      action  = "Allow"
+    }
 
-  ip_filter_rule {
-    name    = "test3"
-    ip_mask = "10.0.3.0/31"
-    action  = "Accept"
-  }
+    ip_rule {
+      name    = "test2"
+      ip_mask = "10.0.2.0/31"
+      action  = "Allow"
+    }
 
-  ip_filter_rule {
-    name    = "test5"
-    ip_mask = "10.0.5.0/31"
-    action  = "Accept"
   }
 
   tags = {
@@ -928,7 +980,50 @@ resource "azurerm_iothub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IotHubResource) fileUpload(data acceptance.TestData) string {
+func (IotHubResource) fileUploadBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  file_upload {
+    connection_string = azurerm_storage_account.test.primary_blob_connection_string
+    container_name    = azurerm_storage_container.test.name
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (IotHubResource) fileUploadUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -972,6 +1067,155 @@ resource "azurerm_iothub" "test" {
     default_ttl        = "PT3H"
     lock_duration      = "PT5M"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r IotHubResource) fileUploadAuthenticationTypeDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  file_upload {
+    connection_string = azurerm_storage_account.test.primary_blob_connection_string
+    container_name    = azurerm_storage_container.test.name
+  }
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test_storage_blob_data_contrib_user,
+  ]
+}
+`, r.fileUploadAuthenticationTypeTemplate(data), data.RandomInteger)
+}
+
+func (r IotHubResource) fileUploadAuthenticationTypeSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  file_upload {
+    connection_string = azurerm_storage_account.test.primary_blob_connection_string
+    container_name    = azurerm_storage_container.test.name
+
+    authentication_type = "identityBased"
+  }
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test_storage_blob_data_contrib_user,
+  ]
+}
+`, r.fileUploadAuthenticationTypeTemplate(data), data.RandomInteger)
+}
+
+func (r IotHubResource) fileUploadAuthenticationTypeUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  file_upload {
+    connection_string = azurerm_storage_account.test.primary_blob_connection_string
+    container_name    = azurerm_storage_container.test.name
+
+    authentication_type = "identityBased"
+    identity_id         = azurerm_user_assigned_identity.test.id
+  }
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test_storage_blob_data_contrib_user,
+  ]
+}
+`, r.fileUploadAuthenticationTypeTemplate(data), data.RandomInteger)
+}
+
+func (IotHubResource) fileUploadAuthenticationTypeTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test_storage_blob_data_contrib_user" {
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_storage_blob_data_contrib_system" {
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.test.id
+  principal_id         = azurerm_iothub.test.identity[0].principal_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -1626,18 +1870,15 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctest-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctest-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  queue_name          = azurerm_servicebus_queue.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  queue_id = azurerm_servicebus_queue.test.id
 
   listen = false
   send   = true
@@ -1645,16 +1886,13 @@ resource "azurerm_servicebus_queue_authorization_rule" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true

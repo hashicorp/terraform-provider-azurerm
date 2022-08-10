@@ -11,11 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -98,8 +96,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 								typeLogicApp,
 								typeLogAnalytics,
 								typeEventHub,
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"resource_id": {
@@ -178,8 +175,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.LesserThanOrEqualTo),
 														string(security.NotEquals),
 														string(security.StartsWith),
-													}, !features.ThreePointOh()),
-													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+													}, false),
 												},
 												"property_type": {
 													Type:     pluginsdk.TypeString,
@@ -189,8 +185,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.String),
 														string(security.Boolean),
 														string(security.Number),
-													}, !features.ThreePointOh()),
-													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+													}, false),
 												},
 											},
 										},
@@ -556,7 +551,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceID,
-				"type":        "LogicApp",
+				"type":        "logicapp",
 				"trigger_url": "",
 			}
 
@@ -576,7 +571,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id":       *actionEventHub.EventHubResourceID,
-				"type":              "EventHub",
+				"type":              "eventhub",
 				"connection_string": "",
 			}
 
@@ -596,7 +591,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogAnalytics.WorkspaceResourceID,
-				"type":        "LogAnalytics",
+				"type":        "loganalytics",
 			}
 
 			resultSlice = append(resultSlice, actionMap)

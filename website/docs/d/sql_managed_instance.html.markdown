@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing SQL Managed Instance.
 
+-> **Note:** The `azurerm_sql_managed_instance` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_instance`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/mssql_managed_instance) data source instead.
+
 ## Example Usage
 
 ```hcl
@@ -32,7 +34,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group in which the SQL Managed Instance exists.
 
 
-## Attribues Reference
+## Attributes Reference
 
 * `id` - The SQL Managed Instance ID.
 
@@ -80,6 +82,6 @@ The `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Azure Managed Instance.

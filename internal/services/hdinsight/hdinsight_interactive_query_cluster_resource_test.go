@@ -565,7 +565,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -618,7 +617,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -791,7 +789,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_interactive_query_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -866,7 +863,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -917,7 +913,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -971,7 +966,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
@@ -986,7 +981,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1042,7 +1036,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
@@ -1057,7 +1051,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1406,7 +1399,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1460,7 +1452,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1550,7 +1541,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1638,7 +1628,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1700,7 +1689,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1753,7 +1741,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1803,7 +1790,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1865,7 +1851,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "sshuser"
     password = "TerrAform123!"
   }

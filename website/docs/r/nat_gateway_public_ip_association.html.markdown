@@ -3,13 +3,13 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nat_gateway_public_ip_association"
 description: |-
-  Manages the association between a Nat Gateway and a Public IP.
+  Manages the association between a NAT Gateway and a Public IP.
 
 ---
 
 # azurerm_nat_gateway_public_ip_association
 
-Manages the association between a Nat Gateway and a Public IP.
+Manages the association between a NAT Gateway and a Public IP.
 
 ## Example Usage
 
@@ -44,27 +44,27 @@ resource "azurerm_nat_gateway_public_ip_association" "example" {
 
 The following arguments are supported:
 
-* `nat_gateway_id` - (Required) The ID of the Nat Gateway. Changing this forces a new resource to be created.
+* `nat_gateway_id` - (Required) The ID of the NAT Gateway. Changing this forces a new resource to be created.
 
-* `public_ip_address_id` - (Required) The ID of the Public IP which this Nat Gateway which should be connected to. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Required) The ID of the Public IP which this NAT Gateway which should be connected to. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The (Terraform specific) ID of the Association between the Nat Gateway and the Public IP.
+* `id` - The (Terraform specific) ID of the Association between the NAT Gateway and the Public IP.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the association between the Nat Gateway and the Public IP.
-* `read` - (Defaults to 5 minutes) Used when retrieving the association between the Nat Gateway and the Public IP.
-* `delete` - (Defaults to 30 minutes) Used when deleting the association between the Nat Gateway and the Public IP.
+* `create` - (Defaults to 30 minutes) Used when creating the association between the NAT Gateway and the Public IP.
+* `read` - (Defaults to 5 minutes) Used when retrieving the association between the NAT Gateway and the Public IP.
+* `delete` - (Defaults to 30 minutes) Used when deleting the association between the NAT Gateway and the Public IP.
 
 ## Import
 
-Associations between Nat Gateway and Public IP Addresses can be imported using the `resource id`, e.g.
+Associations between NAT Gateway and Public IP Addresses can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nat_gateway_public_ip_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/myPublicIpAddress1"

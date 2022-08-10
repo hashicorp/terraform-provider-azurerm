@@ -33,6 +33,7 @@ resource "azurerm_api_management_openid_connect_provider" "example" {
   api_management_name = azurerm_api_management.example.name
   resource_group_name = azurerm_resource_group.example.name
   client_id           = "00001111-2222-3333-4444-555566667777"
+  client_secret       = "00001111-423egvwdcsjx-00001111"
   display_name        = "Example Provider"
   metadata_endpoint   = "https://example.com/example"
 }
@@ -68,7 +69,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management OpenID Connect Provider.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management OpenID Connect Provider.

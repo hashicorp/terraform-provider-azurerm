@@ -14,15 +14,15 @@ Manages an Azure App Configuration.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) The SKU name of the the App Configuration. Possible values are `free` and `standard`.
+* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -46,11 +46,11 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -77,9 +77,9 @@ The following attributes are exported:
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 
@@ -123,7 +123,7 @@ A `secondary_write_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the App Configuration.

@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -847,7 +845,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 }
 
 func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	out := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		// TODO: does this want to be a Set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -911,6 +909,7 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
 				"ultra_ssd_disk_iops_read_write": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
@@ -925,26 +924,6 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		o := out.Elem.(*pluginsdk.Resource)
-
-		o.Schema["disk_iops_read_write"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeInt,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider",
-		}
-
-		o.Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeInt,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider",
-		}
-	}
-
-	return out
 }
 
 func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]compute.VirtualMachineScaleSetDataDisk, error) {
@@ -976,10 +955,10 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
 			iops = ssdIops.(int)
 		}
+
 		if iops > 0 && !ultraSSDEnabled {
 			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
 		}
-		disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 
 		var mbps int
 		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
@@ -987,10 +966,20 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 		} else if ssdMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdMbps.(int) > 0 {
 			mbps = ssdMbps.(int)
 		}
+
 		if mbps > 0 && !ultraSSDEnabled {
 			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
 		}
-		disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
+			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if mbps > 0 {
+			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+		}
 
 		disks = append(disks, disk)
 	}
@@ -1040,19 +1029,27 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			mbps = int(*v.DiskMBpsReadWrite)
 		}
 
-		output = append(output, map[string]interface{}{
-			"caching":                        string(v.Caching),
-			"create_option":                  string(v.CreateOption),
-			"lun":                            lun,
-			"disk_encryption_set_id":         diskEncryptionSetId,
-			"disk_size_gb":                   diskSizeGb,
-			"storage_account_type":           storageAccountType,
-			"write_accelerator_enabled":      writeAcceleratorEnabled,
-			"ultra_ssd_disk_iops_read_write": iops,
-			"ultra_ssd_mbps_read_write":      mbps,
-			"disk_iops_read_write":           iops,
-			"disk_mbps_read_write":           mbps,
-		})
+		dataDisk := map[string]interface{}{
+			"caching":                   string(v.Caching),
+			"create_option":             string(v.CreateOption),
+			"lun":                       lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
+			"disk_size_gb":              diskSizeGb,
+			"storage_account_type":      storageAccountType,
+			"write_accelerator_enabled": writeAcceleratorEnabled,
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
+			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
+		}
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if mbps > 0 {
+			dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
+		}
+
+		output = append(output, dataDisk)
 	}
 
 	return output
@@ -1103,6 +1100,16 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
+							"placement": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(compute.DiffDiskPlacementCacheDisk),
+									string(compute.DiffDiskPlacementResourceDisk),
+								}, false),
+							},
 						},
 					},
 				},
@@ -1113,8 +1120,9 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// whilst the API allows updating this value, it's never actually set at Azure's end
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
-					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
 				"disk_size_gb": {
@@ -1122,6 +1130,24 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
+				},
+
+				"secure_vm_disk_encryption_set_id": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
+				},
+
+				"security_encryption_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
+						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+					}, false),
 				},
 
 				"write_accelerator_enabled": {
@@ -1134,10 +1160,11 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) *compute.VirtualMachineScaleSetOSDisk {
+func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.VirtualMachineScaleSetOSDisk, error) {
 	raw := input[0].(map[string]interface{})
+	caching := raw["caching"].(string)
 	disk := compute.VirtualMachineScaleSetOSDisk{
-		Caching: compute.CachingTypes(raw["caching"].(string)),
+		Caching: compute.CachingTypes(caching),
 		ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
@@ -1146,6 +1173,21 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		// these have to be hard-coded so there's no point exposing them
 		CreateOption: compute.DiskCreateOptionTypesFromImage,
 		OsType:       osType,
+	}
+
+	securityEncryptionType := raw["security_encryption_type"].(string)
+	if securityEncryptionType != "" {
+		disk.ManagedDisk.SecurityProfile = &compute.VMDiskSecurityProfile{
+			SecurityEncryptionType: compute.SecurityEncryptionTypes(securityEncryptionType),
+		}
+	}
+	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(secureVMDiskEncryptionId),
+		}
 	}
 
 	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
@@ -1159,13 +1201,19 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 	}
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+		if caching != string(compute.CachingTypesReadOnly) {
+			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
+			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
+		}
+
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option: compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
 		}
 	}
 
-	return &disk
+	return &disk, nil
 }
 
 func ExpandVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *compute.VirtualMachineScaleSetUpdateOSDisk {
@@ -1199,7 +1247,8 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option": string(input.DiffDiskSettings.Option),
+			"option":    string(input.DiffDiskSettings.Option),
+			"placement": string(input.DiffDiskSettings.Placement),
 		})
 	}
 
@@ -1210,10 +1259,19 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 
 	storageAccountType := ""
 	diskEncryptionSetId := ""
+	secureVMDiskEncryptionSetId := ""
+	securityEncryptionType := ""
 	if input.ManagedDisk != nil {
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
 		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
 			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+		}
+
+		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
+			securityEncryptionType = string(securityProfile.SecurityEncryptionType)
+			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.ID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.ID
+			}
 		}
 	}
 
@@ -1224,12 +1282,14 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                   string(input.Caching),
-			"disk_size_gb":              diskSizeGb,
-			"diff_disk_settings":        diffDiskSettings,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_encryption_set_id":    diskEncryptionSetId,
+			"caching":                          string(input.Caching),
+			"disk_size_gb":                     diskSizeGb,
+			"diff_disk_settings":               diffDiskSettings,
+			"storage_account_type":             storageAccountType,
+			"write_accelerator_enabled":        writeAcceleratorEnabled,
+			"disk_encryption_set_id":           diskEncryptionSetId,
+			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
+			"security_encryption_type":         securityEncryptionType,
 		},
 	}
 }
@@ -1371,7 +1431,33 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 	}
 }
 
+// TODO remove VirtualMachineScaleSetTerminateNotificationSchema in 4.0
 func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeList,
+		Optional:   true,
+		Computed:   true,
+		MaxItems:   1,
+		Deprecated: "`terminate_notification` has been renamed to `termination_notification` and will be removed in 4.0.",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					Default:      "PT5M",
+				},
+			},
+		},
+		ConflictsWith: []string{"termination_notification"},
+	}
+}
+
+func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1386,11 +1472,13 @@ func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
 		},
+		// TODO remove ConflictsWith in 4.0
+		ConflictsWith: []string{"terminate_notification"},
 	}
 }
 

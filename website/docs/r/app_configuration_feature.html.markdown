@@ -14,15 +14,15 @@ Manages an Azure App Configuration Feature.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_app_configuration_feature" "test" {
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
 
-* `name` - (Required) The name of the App Configuration Feature. Changing this foces a new resource to be crearted.
+* `name` - (Required) The name of the App Configuration Feature. Changing this forces a new resource to be created.
 
 * `percentage_filter_value` - (Optional) A list of one or more numbers representing the value of the percentage required to enable this feature.
 
@@ -94,7 +94,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Configuration Feature.
 * `update` - (Defaults to 30 minutes) Used when updating the App Configuration Feature.

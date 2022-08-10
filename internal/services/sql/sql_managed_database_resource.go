@@ -22,6 +22,9 @@ func resourceArmSqlManagedDatabase() *schema.Resource {
 		Create: resourceArmSqlManagedDatabaseCreateUpdate,
 		Read:   resourceArmSqlManagedDatabaseRead,
 		Delete: resourceArmSqlManagedDatabaseDelete,
+
+		DeprecationMessage: "The `azurerm_sql_managed_database` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_managed_database` resource instead.",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ManagedDatabaseID(id)
 			return err

@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Linux Web App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -85,6 +83,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account` - A `storage_account` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Linux Web App.
@@ -125,9 +125,9 @@ An `application_stack` block exports the following:
 
 * `docker_image_tag` - The image Tag.
 
-* `dotnet_version` - The version of .Net in use.
+* `dotnet_version` - The version of .NET in use.
 
-* `java_server` - The java server type.
+* `java_server` - The Java server type.
 
 * `java_server_version` - The Version of the `java_server` in use.
 
@@ -187,6 +187,8 @@ A `auto_heal_setting` block exports the following:
 
 A `azure_blob_storage` block exports the following:
 
+* `level` - The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
 * `retention_in_days` - The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - The SAS url to an Azure blob container.
@@ -227,11 +229,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook login authentication.
 
 ---
 
@@ -247,11 +249,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The client secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub login authentication.
 
 ---
 
@@ -261,7 +263,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Google Sign-In authentication.
 
@@ -275,15 +277,15 @@ A `http_logs` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` - A `identity_ids` block as defined below.
+* `type` - The type of Managed Service Identity that is configured on this Linux Web App.
 
-* `principal_id` - The Principal ID Managed Service Identity.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Linux Web App.
 
-* `tenant_id` - The Tenant ID of the Managed Service Identity.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Linux Web App.
 
-* `type` - The type of Managed Service Identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Linux Web App.
 
 ---
 
@@ -383,7 +385,7 @@ A `site_config` block exports the following:
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
 
-* `remote_debugging` - Is Remote Debugging enabled.
+* `remote_debugging_enabled` - Is Remote Debugging enabled.
 
 * `remote_debugging_version` - The Remote Debugging Version.
 
@@ -396,6 +398,8 @@ A `site_config` block exports the following:
 * `scm_use_main_ip_restriction` - Is the Linux Web App `ip_restriction` configuration used for the SCM also.
 
 * `use_32_bit_worker` - Does the Linux Web App use a 32-bit worker.
+
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are Web Sockets enabled?
 
@@ -439,6 +443,14 @@ A `status_code` block exports the following:
 
 ---
 
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+---
+
 A `storage_account` block exports the following:
 
 * `access_key` - The Access key for the storage account.
@@ -475,6 +487,6 @@ A `twitter` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Web App.

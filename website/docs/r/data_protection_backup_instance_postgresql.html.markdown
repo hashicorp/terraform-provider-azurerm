@@ -10,7 +10,7 @@ description: |-
 
 Manages a Backup Instance to back up PostgreSQL.
 
--> **Note:** Before using this resource, there are some prerequisite permissions for configure backup and restore. See more details from https://docs.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql#prerequisite-permissions-for-configure-backup-and-restore.
+-> **Note:** Before using this resource, there are some prerequisite permissions for configure backup and restore. See more details from https://docs.microsoft.com/azure/backup/backup-azure-database-postgresql#prerequisite-permissions-for-configure-backup-and-restore.
 
 ## Example Usage
 
@@ -80,14 +80,14 @@ resource "azurerm_key_vault" "example" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
-    key_permissions = ["create", "get"]
+    key_permissions = ["Create", "Get"]
 
     secret_permissions = [
-      "set",
-      "get",
-      "delete",
-      "purge",
-      "recover"
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
     ]
   }
 
@@ -95,14 +95,14 @@ resource "azurerm_key_vault" "example" {
     tenant_id = azurerm_data_protection_backup_vault.example.identity.0.tenant_id
     object_id = azurerm_data_protection_backup_vault.example.identity.0.principal_id
 
-    key_permissions = ["create", "get"]
+    key_permissions = ["Create", "Get"]
 
     secret_permissions = [
-      "set",
-      "get",
-      "delete",
-      "purge",
-      "recover"
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
     ]
   }
 }
@@ -161,7 +161,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Instance PostgreSQL.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Instance PostgreSQL.

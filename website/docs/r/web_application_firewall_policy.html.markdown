@@ -208,7 +208,7 @@ The `rule_group_override` block supports the following:
 
 * `rule_group_name` - (Required) The name of the Rule Group
 
-* `disabled_rules` - (Optional) One or more Rule ID's
+* `disabled_rules` - (Optional) One or more Rule IDs
 
 ## Attributes Reference
 
@@ -222,7 +222,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Application Firewall Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the Web Application Firewall Policy.

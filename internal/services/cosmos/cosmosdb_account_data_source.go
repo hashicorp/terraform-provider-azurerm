@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -31,9 +32,9 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"tags": tags.SchemaDataSource(),
 
@@ -196,34 +197,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
-			"primary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"primary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
 		},
 	}
 }
@@ -249,14 +222,12 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("kind", string(resp.Kind))
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
-		d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
+		d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
 		d.Set("endpoint", props.DocumentEndpoint)
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_free_tier", resp.EnableFreeTier)
@@ -282,7 +253,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			for i, l := range policies {
 				locations[i] = map[string]interface{}{
 					"id":                *l.ID,
-					"location":          azure.NormalizeLocation(*l.LocationName),
+					"location":          location.NormalizeNilable(l.LocationName),
 					"failover_priority": int(*l.FailoverPriority),
 				}
 			}
@@ -290,7 +261,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			for _, l := range *props.FailoverPolicies {
 				locations[*l.FailoverPriority] = map[string]interface{}{
 					"id":                *l.ID,
-					"location":          azure.NormalizeLocation(*l.LocationName),
+					"location":          location.NormalizeNilable(l.LocationName),
 					"failover_priority": int(*l.FailoverPriority),
 				}
 			}
@@ -344,8 +315,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	} else {
 		d.Set("primary_key", keys.PrimaryMasterKey)
 		d.Set("secondary_key", keys.SecondaryMasterKey)
-		d.Set("primary_master_key", keys.PrimaryMasterKey)
-		d.Set("secondary_master_key", keys.SecondaryMasterKey)
 	}
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
@@ -354,8 +323,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	} else {
 		d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 		d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
-		d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

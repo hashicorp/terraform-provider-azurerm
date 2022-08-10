@@ -81,7 +81,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 		"azurerm_network_packet_capture":                    resourceNetworkPacketCapture(),
 		"azurerm_network_profile":                           resourceNetworkProfile(),
-		"azurerm_packet_capture":                            resourcePacketCapture(),
 		"azurerm_point_to_site_vpn_gateway":                 resourcePointToSiteVPNGateway(),
 		"azurerm_private_endpoint":                          resourcePrivateEndpoint(),
 		"azurerm_private_link_service":                      resourcePrivateLinkService(),
@@ -94,6 +93,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_route_filter":                              resourceRouteFilter(),
 		"azurerm_route_table":                               resourceRouteTable(),
 		"azurerm_route":                                     resourceRoute(),
+		"azurerm_route_server":                              resourceRouteServer(),
+		"azurerm_route_server_bgp_connection":               resourceRouteServerBgpConnection(),
 		"azurerm_virtual_hub_security_partner_provider":     resourceVirtualHubSecurityPartnerProvider(),
 		"azurerm_subnet_service_endpoint_storage_policy":    resourceSubnetServiceEndpointStoragePolicy(),
 		"azurerm_subnet_network_security_group_association": resourceSubnetNetworkSecurityGroupAssociation(),
@@ -108,6 +109,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_hub_route_table_route":             resourceVirtualHubRouteTableRoute(),
 		"azurerm_virtual_network_dns_servers":               resourceVirtualNetworkDnsServers(),
 		"azurerm_virtual_network_gateway_connection":        resourceVirtualNetworkGatewayConnection(),
+		"azurerm_virtual_network_gateway_nat_rule":          resourceVirtualNetworkGatewayNatRule(),
 		"azurerm_virtual_network_gateway":                   resourceVirtualNetworkGateway(),
 		"azurerm_virtual_network_peering":                   resourceVirtualNetworkPeering(),
 		"azurerm_virtual_network":                           resourceVirtualNetwork(),
@@ -116,6 +118,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_vpn_gateway_connection":                    resourceVPNGatewayConnection(),
 		"azurerm_vpn_gateway_nat_rule":                      resourceVPNGatewayNatRule(),
 		"azurerm_vpn_server_configuration":                  resourceVPNServerConfiguration(),
+		"azurerm_vpn_server_configuration_policy_group":     resourceVPNServerConfigurationPolicyGroup(),
 		"azurerm_vpn_site":                                  resourceVpnSite(),
 		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),
 	}

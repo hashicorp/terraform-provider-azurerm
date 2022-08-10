@@ -10,6 +10,12 @@ description: |-
 
 Manages a Cassandra Datacenter.
 
+~> ** NOTE: ** In order for the `Azure Managed Instances for Apache Cassandra` to work properly the product requires the `Azure Cosmos DB` Application ID to be present and working in your tenant. If the `Azure Cosmos DB` Application ID is missing in your environment you will need to have an administrator of your tenant run the following command to add the `Azure Cosmos DB` Application ID to your tenant:
+
+```powershell
+New-AzADServicePrincipal -ApplicationId a232010e-820c-4083-83bb-3ace5fc29d0b
+```
+
 ## Example Usage
 
 ```hcl
@@ -36,10 +42,14 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+data "azuread_service_principal" "example" {
+  display_name = "Azure Cosmos DB"
+}
+
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_virtual_network.example.id
   role_definition_name = "Network Contributor"
-  principal_id         = "e5007d2c-4b13-4a74-9b6a-605d99f03501"
+  principal_id         = data.azuread_service_principal.example.object_id
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "example" {
@@ -48,6 +58,8 @@ resource "azurerm_cosmosdb_cassandra_cluster" "example" {
   location                       = azurerm_resource_group.example.location
   delegated_management_subnet_id = azurerm_subnet.example.id
   default_admin_password         = "Password1234"
+
+  depends_on = [azurerm_role_assignment.example]
 }
 
 resource "azurerm_cosmosdb_cassandra_datacenter" "example" {
@@ -78,6 +90,14 @@ The following arguments are supported:
 
 ---
 
+* `backup_storage_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the backup Storage Account.
+
+* `base64_encoded_yaml_fragment` - (Optional) The fragment of the cassandra.yaml configuration file to be included in the cassandra.yaml for all nodes in this Cassandra Datacenter. The fragment should be Base64 encoded and only a subset of keys is allowed.
+
+* `disk_sku` - (Optional) The Disk SKU that is used for this Cassandra Datacenter. Defaults to `P30`.
+
+* `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
+
 * `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to `4`.
@@ -92,12 +112,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Cassandra Datacenter.
+* `create` - (Defaults to 60 minutes) Used when creating the Cassandra Datacenter.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Datacenter.
-* `update` - (Defaults to 30 minutes) Used when updating the Cassandra Datacenter.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Cassandra Datacenter.
+* `update` - (Defaults to 60 minutes) Used when updating the Cassandra Datacenter.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Cassandra Datacenter.
 
 ## Import
 

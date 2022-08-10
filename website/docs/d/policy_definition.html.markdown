@@ -40,7 +40,7 @@ output "id" {
 
 * `description` - The Description of the Policy.
 
-* `policy_type` - The Type of the Policy. Possible values are "BuiltIn", "Custom" and "NotSpecified".
+* `policy_type` - The Type of the Policy. Possible values are `BuiltIn`, `Custom` and `NotSpecified`.
 
 * `policy_rule` - The Rule as defined (in JSON) in the Policy.
 
@@ -50,6 +50,6 @@ output "id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Definition.

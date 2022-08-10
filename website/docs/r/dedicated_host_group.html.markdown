@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `automatic_placement_enabled` - (Optional) Would virtual machines or virtual machine scale sets be placed automatically on this Dedicated Host Group? Defaults to `false`. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones in which the Dedicated Host Group should be located. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies the Availability Zones in which this Dedicated Host Group should be located. Changing this forces a new Dedicated Host Group to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -54,7 +54,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dedicated Host Group.
 * `update` - (Defaults to 30 minutes) Used when updating the Dedicated Host Group.

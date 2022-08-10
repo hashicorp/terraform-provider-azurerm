@@ -151,10 +151,6 @@ A `representation` block supports the following:
 
 * `example` - (Optional) One or more `example` blocks as defined above.
 
-* `sample` - (Optional) An example of this representation.
-
-~> **NOTE:** `sample` is deprecated, use `examples` instead.
-
 * `schema_id` - (Optional) The ID of an API Management Schema which represents this Response.
 
 -> **NOTE:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
@@ -201,7 +197,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.

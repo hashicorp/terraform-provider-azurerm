@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -28,14 +29,14 @@ func dataSourceSiteRecoveryFabric() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"recovery_vault_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 		},
 	}
 }
@@ -60,11 +61,14 @@ func dataSourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("recovery_vault_name", id.VaultName)
+
+	normalizedLocation := ""
 	if props := resp.Properties; props != nil {
 		if azureDetails, isAzureDetails := props.CustomDetails.AsAzureFabricSpecificDetails(); isAzureDetails {
-			d.Set("location", azureDetails.Location)
+			normalizedLocation = location.NormalizeNilable(azureDetails.Location)
 		}
 	}
+	d.Set("location", normalizedLocation)
 
 	return nil
 }

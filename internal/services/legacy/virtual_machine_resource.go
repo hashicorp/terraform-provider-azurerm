@@ -9,19 +9,16 @@ import (
 	"strings"
 	"time"
 
-	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
-
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -34,7 +31,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO move into internal/tf/suppress/base64.go
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return userDataStateFunc(old) == new
 }
@@ -159,7 +155,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
+								ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 							},
 						},
 					},
@@ -167,14 +163,13 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"license_type": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
-				}, !features.ThreePointOh()),
+				}, false),
 			},
 
 			"vm_size": {
@@ -240,8 +235,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.OperatingSystemTypesLinux),
 								string(compute.OperatingSystemTypesWindows),
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"name": {
@@ -276,8 +270,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"image_uri": {
@@ -351,8 +344,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 								string(compute.StorageAccountTypesUltraSSDLRS),
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"create_option": {
@@ -476,7 +468,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
-						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_automatic_upgrades": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -500,8 +491,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"HTTP",
 											"HTTPS",
-										}, !features.ThreePointOh()),
-										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+										}, false),
 									},
 									"certificate_url": {
 										Type:     pluginsdk.TypeString,
@@ -515,7 +505,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									// TODO: should we make `pass` and `component` Optional + Defaulted?
 									"pass": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -1159,7 +1148,7 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 			}
 		*/
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

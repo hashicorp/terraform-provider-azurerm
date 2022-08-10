@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                = "example-publicip"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
   domain_name_label   = "example-pip"
 }
@@ -38,7 +38,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
   }
 
   monitor_config {
-    protocol                     = "http"
+    protocol                     = "HTTP"
     port                         = 80
     path                         = "/"
     interval_in_seconds          = 30
@@ -53,7 +53,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
 
 resource "azurerm_traffic_manager_profile" "nested" {
   name                   = "nested-profile"
-  resource_group_name    = azurerm_resource_group.test.name
+  resource_group_name    = azurerm_resource_group.example.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -62,18 +62,19 @@ resource "azurerm_traffic_manager_profile" "nested" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTP"
     port     = 443
     path     = "/"
   }
 }
 
-resource "azurerm_traffic_manager_nested_endpoint" "test" {
-  name                = "example-endpoint"
-  target_resource_id  = azurerm_traffic_manager_profile.child.id
-  priority            = 1
-  profile_id          = azurerm_traffic_manager_profile.parent.id
-  min_child_endpoints = 5
+resource "azurerm_traffic_manager_nested_endpoint" "example" {
+  name                    = "example-endpoint"
+  target_resource_id      = azurerm_traffic_manager_profile.nested.id
+  priority                = 1
+  profile_id              = azurerm_traffic_manager_profile.parent.id
+  minimum_child_endpoints = 9
+  weight                  = 5
 }
 ```
 
@@ -95,8 +96,7 @@ The following arguments are supported:
 * `target_resource_id` - (Required) The resource id of an Azure resource to
   target.
 
-* `weight` - (Required) Specifies how much traffic should be distributed to this
-  endpoint. Valid values are between `1` and `1000`.
+* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
 
 ---
 
@@ -116,7 +116,7 @@ The following arguments are supported:
     values between 1 and 1000, with no Endpoints sharing the same value. If
     omitted the value will be computed in order of creation.
 
-* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
+* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/rest/api/trafficmanager/geographichierarchies/getdefault).
 
 * `subnet` - (Optional) One or more `subnet` blocks as defined below
 
@@ -126,7 +126,7 @@ A `custom_header` block supports the following:
 
 * `name` - (Required) The name of the custom header.
 
-* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
+* `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
 ---
 
@@ -146,7 +146,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Nested Endpoint.
 * `update` - (Defaults to 30 minutes) Used when updating the Nested Endpoint.

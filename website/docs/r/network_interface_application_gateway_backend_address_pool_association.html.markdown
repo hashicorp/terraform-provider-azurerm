@@ -126,7 +126,7 @@ resource "azurerm_network_interface" "example" {
 resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "example" {
   network_interface_id    = azurerm_network_interface.example.id
   ip_configuration_name   = "testconfiguration1"
-  backend_address_pool_id = azurerm_application_gateway.network.backend_address_pool[0].id
+  backend_address_pool_id = tolist(azurerm_application_gateway.network.backend_address_pool).0.id
 }
 ```
 
@@ -148,7 +148,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the association between the Network Interface and the Application Gateway Backend Address Pool.
 * `update` - (Defaults to 30 minutes) Used when updating the association between the Network Interface and the Application Gateway Backend Address Pool.

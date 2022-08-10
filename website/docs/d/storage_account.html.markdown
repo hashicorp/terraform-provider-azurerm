@@ -35,6 +35,8 @@ output "storage_account_tier" {
 
 * `location` - The Azure location where the Storage Account exists
 
+* `identity` - An `identity` block as documented below.
+
 * `account_kind` - The Kind of account.
 
 * `account_tier` - The Tier of this storage account.
@@ -43,14 +45,16 @@ output "storage_account_tier" {
 
 * `access_tier` - The access tier for `BlobStorage` accounts.
 
-* `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
+* `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/)
     for more information.
 
 * `min_tls_version` - The minimum supported TLS version for this storage account.
 
-* `allow_blob_public_access` - Is public access allowed to all blobs or containers in the storage account?
+* `allow_nested_items_to_be_public` - Can nested items in the storage account opt into allowing public access?
 
 * `is_hns_enabled` - Is Hierarchical Namespace enabled?
+
+* `nfsv3_enabled` - Is NFSv3 protocol enabled?
 
 * `custom_domain` - A `custom_domain` block as documented below.
 
@@ -126,7 +130,7 @@ output "storage_account_tier" {
 
 * `table_encryption_key_type` - The encryption key type of the table.
 
-* `infrastructure_encryption_enabled` - Is infrastructure encryption enabled? See [here](https://docs.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable/)
+* `infrastructure_encryption_enabled` - Is infrastructure encryption enabled? See [here](https://docs.microsoft.com/azure/storage/common/infrastructure-encryption-enable/)
     for more information.
 ---
 
@@ -134,8 +138,20 @@ output "storage_account_tier" {
 
 * `name` - The Custom Domain Name used for the Storage Account.
 
+---
+
+`identity` supports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Storage Account
+
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned with the Identity of this Storage Account.
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.

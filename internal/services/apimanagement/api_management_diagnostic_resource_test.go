@@ -231,21 +231,61 @@ resource "azurerm_api_management_diagnostic" "test" {
   frontend_request {
     body_bytes     = 100
     headers_to_log = ["Accept"]
+    data_masking {
+      query_params {
+        mode  = "Hide"
+        value = "backend-Request-Test"
+      }
+      headers {
+        mode  = "Mask"
+        value = "backend-Request-Header"
+      }
+    }
   }
 
   frontend_response {
     body_bytes     = 1000
     headers_to_log = ["Content-Length"]
+    data_masking {
+      query_params {
+        mode  = "Hide"
+        value = "backend-Request-Test"
+      }
+      headers {
+        mode  = "Mask"
+        value = "backend-Request-Header"
+      }
+    }
   }
 
   backend_request {
     body_bytes     = 1
     headers_to_log = ["Host", "Content-Encoding"]
+    data_masking {
+      query_params {
+        mode  = "Hide"
+        value = "backend-Request-Test"
+      }
+      headers {
+        mode  = "Mask"
+        value = "backend-Request-Header"
+      }
+    }
   }
 
   backend_response {
     body_bytes     = 10
     headers_to_log = ["Content-Type"]
+    data_masking {
+      query_params {
+        mode  = "Hide"
+        value = "backend-Request-Test"
+      }
+      headers {
+        mode  = "Mask"
+        value = "backend-Request-Header"
+      }
+    }
   }
   operation_name_format = "Name"
 }

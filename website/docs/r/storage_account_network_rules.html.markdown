@@ -51,12 +51,12 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-resource "azurerm_storage_account_network_rules" "test" {
-  storage_account_id = azurerm_storage_account.test.id
+resource "azurerm_storage_account_network_rules" "example" {
+  storage_account_id = azurerm_storage_account.example.id
 
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.1"]
-  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  virtual_network_subnet_ids = [azurerm_subnet.example.id]
   bypass                     = ["Metrics"]
 }
 ```
@@ -64,14 +64,6 @@ resource "azurerm_storage_account_network_rules" "test" {
 ## Argument Reference
 
 The following arguments are supported:
-
-* `storage_account_name` - (Optional) Specifies the name of the storage account. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
-
--> **NOTE:** This property has been deprecated in favour of the `storage_account_id` property and will be removed in version 3.0 of the provider.
-
-* `resource_group_name` - (Optional) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
-
--> **NOTE:** This property has been deprecated in favour of the `storage_account_id` property and will be removed in version 3.0 of the provider.
 
 * `storage_account_id` - (Optional) Specifies the ID of the storage account. Changing this forces a new resource to be created.
 
@@ -81,7 +73,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `bypass` to empty slice (`[]`) to remove it.
 
-* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 
 -> **NOTE** Small address ranges using "/31" or "/32" prefix sizes are not supported. These ranges should be configured using individual IP address rules without prefix specified.
 
@@ -112,7 +104,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the  Network Rules for this Storage Account.
 * `update` - (Defaults to 60 minutes) Used when updating the Network Rules for this Storage Account.

@@ -18,15 +18,15 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_private_dns_zone" "test" {
+resource "azurerm_private_dns_zone" "example" {
   name                = "contoso.com"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_private_dns_txt_record" "test" {
+resource "azurerm_private_dns_txt_record" "example" {
   name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  resource_group_name = azurerm_resource_group.example.name
+  zone_name           = azurerm_private_dns_zone.example.name
   ttl                 = 300
 
   record {
@@ -68,7 +68,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Private DNS TXT Record.
 * `update` - (Defaults to 30 minutes) Used when updating the Private DNS TXT Record.

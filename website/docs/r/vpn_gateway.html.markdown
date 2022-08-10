@@ -61,10 +61,12 @@ The following arguments are supported:
 
 ---
 
+* `bgp_route_translation_for_nat_enabled` - (Optional) Is BGP route translation for NAT on this VPN Gateway enabled? Defaults to `false`.
+
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below.
 
 * `routing_preference` - (Optional) Azure routing preference lets you to choose how your traffic routes between Azure and the internet. You can choose to route traffic either via the Microsoft network (default value, `Microsoft Network`), or via the ISP network (public internet, set to `Internet`). More context of the configuration can be found in the
-[Microsoft Docs](https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-site-to-site-portal#gateway) to create a VPN Gateway. Changing this forces a new resource to be created.
+[Microsoft Docs](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-site-to-site-portal#gateway) to create a VPN Gateway. Changing this forces a new resource to be created.
 
 * `scale_unit` - (Optional) The Scale Unit for this VPN Gateway. Defaults to `1`.
 
@@ -110,7 +112,7 @@ A `bgp_settings` block exports the following:
 
 A `instance_bgp_peering_address` block exports the following:
 
-* `ip_configuration_id` - The pre-defined id of VPN Gateway Ip Configuration.
+* `ip_configuration_id` - The pre-defined id of VPN Gateway IP Configuration.
 
 * `default_ips` - The list of default BGP peering addresses which belong to the pre-defined VPN Gateway IP configuration.
 
@@ -118,7 +120,7 @@ A `instance_bgp_peering_address` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the VPN Gateway.
 * `update` - (Defaults to 90 minutes) Used when updating the VPN Gateway.

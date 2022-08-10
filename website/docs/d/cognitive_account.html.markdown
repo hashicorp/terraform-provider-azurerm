@@ -38,11 +38,12 @@ The following attributes are exported:
 
 * `kind` - The kind of the Cognitive Services Account
 
-* `sku_name` - The sku name of the Cognitive Services Account
+* `sku_name` - The SKU name of the Cognitive Services Account
 
 * `endpoint` - The endpoint of the Cognitive Services Account
 
 * `qna_runtime_endpoint` - If `kind` is `QnAMaker` the link to the QNA runtime.
+
 * `primary_access_key` - The primary access key of the Cognitive Services Account
 
 * `secondary_access_key` - The secondary access key of the Cognitive Services Account
@@ -51,6 +52,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Services Account.

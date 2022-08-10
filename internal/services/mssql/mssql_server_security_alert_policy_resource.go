@@ -8,17 +8,15 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO 3.0 - this may want to be put into the mssql_server resource now that it exists.
+// TODO 4.0 - consider/investigate inlining this within the mssql_server resource now that it exists.
 
 func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -94,8 +92,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 					string(sql.SecurityAlertPolicyStateDisabled),
 					string(sql.SecurityAlertPolicyStateEnabled),
 					string(sql.SecurityAlertPolicyStateNew),
-				}, !features.ThreePointOh()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"storage_account_access_key": {

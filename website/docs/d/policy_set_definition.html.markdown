@@ -62,7 +62,7 @@ An `policy_definition_reference` block exports the following:
 
 ~> **Note:** This field only supports String fields and is deprecated in favour of the `parameters_values` field
 
-* `parameter_values` - The parameter values for the referenced policy rule. This field is a json object.
+* `parameter_values` - The parameter values for the referenced policy rule. This field is a JSON object.
 
 * `reference_id` - The unique ID within this policy set definition for this policy definition reference.
 
@@ -84,6 +84,6 @@ An `policy_definition_group` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Set Definition.

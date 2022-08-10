@@ -22,10 +22,18 @@ func (s StringNullWhenEmpty) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(s))
 }
 
+type AccessPackageCatalogState = string
+
+const (
+	AccessPackageCatalogStatePublished   AccessPackageCatalogState = "published"
+	AccessPackageCatalogStateUnpublished AccessPackageCatalogState = "unpublished"
+)
+
 type AccessPackageCatalogStatus = string
 
 const (
-	AccessPackageCatalogStatusPublished AccessPackageCatalogStatus = "Published"
+	AccessPackageCatalogStatusPublished   AccessPackageCatalogStatus = "Published"
+	AccessPackageCatalogStatusUnpublished AccessPackageCatalogState  = "Unpublished"
 )
 
 type AccessPackageCatalogType = string
@@ -53,7 +61,7 @@ type AccessPackageResourceRequestType = string
 
 const (
 	AccessPackageResourceRequestTypeAdminAdd     AccessPackageResourceRequestType = "AdminAdd"
-	AccessPackageResourceRequestTypeAdmminRemove AccessPackageResourceRequestType = "AdminRemove"
+	AccessPackageResourceRequestTypeAdminRemove AccessPackageResourceRequestType = "AdminRemove"
 )
 
 type AccessPackageResourceType = string
@@ -61,6 +69,31 @@ type AccessPackageResourceType = string
 const (
 	AccessPackageResourceTypeApplication          AccessPackageResourceType = "Application"
 	AccessPackageResourceTypeSharePointOnlineSite AccessPackageResourceType = "SharePoint Online Site"
+)
+
+type AccessReviewTimeoutBehaviorType = string
+
+const (
+	AccessReviewTimeoutBehaviorTypeAcceptAccessRecommendation AccessReviewTimeoutBehaviorType = "acceptAccessRecommendation"
+	AccessReviewTimeoutBehaviorTypeKeepAccess                 AccessReviewTimeoutBehaviorType = "keepAccess"
+	AccessReviewTimeoutBehaviorTypeRemoveAccess               AccessReviewTimeoutBehaviorType = "removeAccess"
+)
+
+type AccessReviewReviewerType = string
+
+const (
+	AccessReviewReviewerTypeSelf      AccessReviewReviewerType = "Self"
+	AccessReviewReviewerTypeReviewers AccessReviewReviewerType = "Reviewers"
+)
+
+type AccessReviewRecurranceType = string
+
+const (
+	AccessReviewRecurranceTypeWeekly     AccessReviewRecurranceType = "weekly"
+	AccessReviewRecurranceTypeMonthly    AccessReviewRecurranceType = "monthly"
+	AccessReviewRecurranceTypeQuarterly  AccessReviewRecurranceType = "quarterly"
+	AccessReviewRecurranceTypeHalfYearly AccessReviewRecurranceType = "halfyearly"
+	AccessReviewRecurranceTypeAnnual     AccessReviewRecurranceType = "annual"
 )
 
 type AdministrativeUnitVisibility = string
@@ -324,10 +357,18 @@ const (
 	FeatureTypeUnknownFutureValue FeatureType = "unknownFutureValue"
 )
 
+type GroupMembershipRuleProcessingState = string
+
+const (
+	GroupMembershipRuleProcessingStateOn     GroupMembershipRuleProcessingState = "On"
+	GroupMembershipRuleProcessingStatePaused GroupMembershipRuleProcessingState = "Paused"
+)
+
 type GroupType = string
 
 const (
-	GroupTypeUnified GroupType = "Unified"
+	GroupTypeDynamicMembership GroupType = "DynamicMembership"
+	GroupTypeUnified           GroupType = "Unified"
 )
 
 type GroupMembershipClaim = string

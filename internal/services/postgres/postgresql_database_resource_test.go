@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,17 +92,17 @@ func TestAccPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 }
 
 func (t PostgreSQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatabaseID(state.ID)
+	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.DatabasesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := clients.Postgres.DatabasesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Postgresql Database (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PostgreSQLDatabaseResource) basic(data acceptance.TestData) string {
@@ -123,11 +123,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
@@ -177,11 +175,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
@@ -217,11 +213,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
@@ -257,11 +251,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

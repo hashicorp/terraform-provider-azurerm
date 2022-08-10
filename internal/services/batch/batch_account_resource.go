@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,8 +57,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"pool_allocation_mode": {
@@ -114,6 +115,22 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -151,11 +168,15 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
 	parameters := batch.AccountCreateParameters{
 		Location: &location,
 		AccountCreateProperties: &batch.AccountCreateProperties{
 			PoolAllocationMode:  batch.PoolAllocationMode(poolAllocationMode),
 			PublicNetworkAccess: batch.PublicNetworkAccessTypeEnabled,
+			Encryption:          encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
@@ -237,9 +258,11 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("account_endpoint", props.AccountEndpoint)
+		accountID := ""
 		if autoStorage := props.AutoStorage; autoStorage != nil {
-			d.Set("storage_account_id", autoStorage.StorageAccountID)
+			accountID = *autoStorage.StorageAccountID
 		}
+		d.Set("storage_account_id", accountID)
 
 		if props.PublicNetworkAccess != "" {
 			d.Set("public_network_access_enabled", props.PublicNetworkAccess == batch.PublicNetworkAccessTypeEnabled)
@@ -247,6 +270,9 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 
+		if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
+			return fmt.Errorf("setting `encryption`: %+v", err)
+		}
 	}
 
 	if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) {
@@ -273,8 +299,6 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil {
 		return err
 	}
-
-	storageAccountId := d.Get("storage_account_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
@@ -282,14 +306,28 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
-			AutoStorage: &batch.AutoStorageBaseProperties{
-				StorageAccountID: &storageAccountId,
-			},
+			Encryption: encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
+	}
+
+	if d.HasChange("storage_account_id") {
+		if v, ok := d.GetOk("storage_account_id"); ok {
+			parameters.AccountUpdateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
+				StorageAccountID: utils.String(v.(string)),
+			}
+		} else {
+			// remove the storage account from the batch account
+			parameters.AccountUpdateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
+				StorageAccountID: nil,
+			}
+		}
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.BatchAccountName, parameters); err != nil {
@@ -368,4 +406,37 @@ func flattenBatchAccountIdentity(input *batch.AccountIdentity) (*[]interface{}, 
 	}
 
 	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
+
+func expandEncryption(e []interface{}) *batch.EncryptionProperties {
+	defaultEnc := batch.EncryptionProperties{
+		KeySource: batch.KeySourceMicrosoftBatch,
+	}
+
+	if len(e) == 0 || e[0] == nil {
+		return &defaultEnc
+	}
+
+	v := e[0].(map[string]interface{})
+	keyId := v["key_vault_key_id"].(string)
+	encryptionProperty := batch.EncryptionProperties{
+		KeySource: batch.KeySourceMicrosoftKeyVault,
+		KeyVaultProperties: &batch.KeyVaultProperties{
+			KeyIdentifier: &keyId,
+		},
+	}
+
+	return &encryptionProperty
+}
+
+func flattenEncryption(encryptionProperties *batch.EncryptionProperties) []interface{} {
+	if encryptionProperties == nil || encryptionProperties.KeySource == batch.KeySourceMicrosoftBatch {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id": *encryptionProperties.KeyVaultProperties.KeyIdentifier,
+		},
+	}
 }

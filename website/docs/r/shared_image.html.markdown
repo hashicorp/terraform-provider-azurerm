@@ -68,7 +68,11 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of this Shared Image.
 
-* `eula` - (Optional) The End User Licence Agreement for the Shared Image.
+* `disk_types_not_allowed` - (Optional) One or more Disk Types not allowed for the Image. Possible values include `Standard_LRS` and `Premium_LRS`.
+
+* `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image.
+
+* `eula` - (Optional) The End User Licence Agreement for the Shared Image. Changing this forces a new resource to be created.
 
 * `specialized` - (Optional) Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run). Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -76,11 +80,21 @@ The following arguments are supported:
 
 * `hyper_v_generation` - (Optional) The generation of HyperV that the Virtual Machine used to create the Shared Image is based on. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
-* `privacy_statement_uri` - (Optional) The URI containing the Privacy Statement associated with this Shared Image.
+* `max_recommended_vcpu_count` - (Optional) Maximum count of vCPUs recommended for the Image.
+
+* `min_recommended_vcpu_count` - (Optional) Minimum count of vCPUs recommended for the Image.
+
+* `max_recommended_memory_in_gb` - (Optional) Maximum memory in GB recommended for the Image.
+
+* `min_recommended_memory_in_gb` - (Optional) Minimum memory in GB recommended for the Image.
+
+* `privacy_statement_uri` - (Optional) The URI containing the Privacy Statement associated with this Shared Image. Changing this forces a new resource to be created.
 
 * `release_note_uri` - (Optional) The URI containing the Release Notes associated with this Shared Image.
 
 * `trusted_launch_enabled` - (Optional) Specifies if Trusted Launch has to be enabled for the Virtual Machine created from the Shared Image. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `accelerated_network_support_enabled` - (Optional) Specifies if the Shared Image supports Accelerated Network. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Shared Image.
 
@@ -88,11 +102,11 @@ The following arguments are supported:
 
 A `identifier` block supports the following:
 
-* `offer` - (Required) The Offer Name for this Shared Image.
+* `offer` - (Required) The Offer Name for this Shared Image. Changing this forces a new resource to be created.
 
-* `publisher` - (Required) The Publisher Name for this Gallery Image.
+* `publisher` - (Required) The Publisher Name for this Gallery Image. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The Name of the SKU for this Gallery Image.
+* `sku` - (Required) The Name of the SKU for this Gallery Image. Changing this forces a new resource to be created.
 
 ---
 
@@ -112,7 +126,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Shared Image.
 * `update` - (Defaults to 30 minutes) Used when updating the Shared Image.

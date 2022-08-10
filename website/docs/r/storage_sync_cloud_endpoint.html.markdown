@@ -10,7 +10,7 @@ description: |-
 
 Manages a Storage Sync Cloud Endpoint.
 
--> **NOTE:** Please ensure Azure File Sync has access to the storage account in your subscription, which indicates that `Microsoft.StorageSync` is assigned role `Reader and Data Access` ( refer to details [here](https://docs.microsoft.com/en-us/azure/storage/files/storage-sync-files-troubleshoot?tabs=portal1%2Cazure-portal#common-troubleshooting-steps)).
+-> **NOTE:** Please ensure Azure File Sync has access to the storage account in your subscription, which indicates that `Microsoft.StorageSync` is assigned role `Reader and Data Access` ( refer to details [here](https://docs.microsoft.com/azure/storage/files/storage-sync-files-troubleshoot?tabs=portal1%2Cazure-portal#common-troubleshooting-steps)).
 
 ## Example Usage
 
@@ -32,7 +32,7 @@ resource "azurerm_storage_sync_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "example-stracc"
+  name                     = "example"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -42,6 +42,7 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_share" "example" {
   name                 = "example-share"
   storage_account_name = azurerm_storage_account.example.name
+  quota                = 50
   acl {
     id = "GhostedRecall"
     access_policy {
@@ -80,7 +81,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 45 minutes) Used when creating the Storage Sync Cloud Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Sync Cloud Endpoint.

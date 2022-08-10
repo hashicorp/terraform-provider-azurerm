@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
@@ -27,7 +27,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.PoolName,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -190,109 +190,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"command_line": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						// TODO: Remove in 3.0
-						"max_task_retry_count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"task_retry_maximum": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"wait_for_success": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						// TODO: Remove in 3.0
-						"environment": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							// Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-
-						"common_environment_properties": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							// Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-
-						"user_identity": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"user_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"auto_user": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"elevation_level": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-												"scope": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-
-						"resource_file": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"auto_storage_container_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"blob_prefix": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"file_mode": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"file_path": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"http_url": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"storage_container_url": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
+					Schema: startTaskDSSchema(),
 				},
 			},
 			"metadata": {
@@ -308,6 +206,17 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"public_ips": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"public_address_provisioning_type": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -360,6 +269,97 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 			},
 		},
 	}
+}
+
+func startTaskDSSchema() map[string]*pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		"command_line": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"task_retry_maximum": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"wait_for_success": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"common_environment_properties": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			// Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"user_identity": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"user_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"auto_user": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"elevation_level": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"scope": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"resource_file": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"auto_storage_container_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"blob_prefix": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"file_mode": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"file_path": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"http_url": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"storage_container_url": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+	}
+	return s
 }
 
 func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {

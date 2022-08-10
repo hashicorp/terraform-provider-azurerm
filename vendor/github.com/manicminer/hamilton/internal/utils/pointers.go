@@ -19,3 +19,8 @@ func Int32Ptr(i int32) *int32 {
 func StringPtr(s string) *string {
 	return &s
 }
+
+// ArrayStringPtr returns a pointer to the provided array of strings.
+func ArrayStringPtr(s []string) *[]string {
+	return &s
+}

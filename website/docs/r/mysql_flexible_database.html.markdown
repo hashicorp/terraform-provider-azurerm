@@ -6,7 +6,7 @@ description: |-
   Manages a MySQL Database within a MySQL Flexible Server.
 ---
 
-# azurerm_mysql_database
+# azurerm_mysql_flexible_database
 
 Manages a MySQL Database within a MySQL Flexible Server
 
@@ -22,10 +22,10 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_mysql_flexible_server" "test" {
+resource "azurerm_mysql_flexible_server" "example" {
   name                   = "example-mysql-flexible-server"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
   administrator_login    = "mysqladminun"
   administrator_password = "H@Sh1CoR3!"
   sku_name               = "B_Standard_B1s"
@@ -62,7 +62,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the MySQL Database.
 * `update` - (Defaults to 60 minutes) Used when updating the MySQL Database.

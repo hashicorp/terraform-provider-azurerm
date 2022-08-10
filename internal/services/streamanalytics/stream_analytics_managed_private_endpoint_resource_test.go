@@ -19,7 +19,7 @@ func TestAccStreamAnalyticsManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_managed_private_endpoint", "test")
 	r := StreamAnalyticsManagedPrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,7 +34,7 @@ func TestAccStreamAnalyticsManagedPrivateEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_managed_private_endpoint", "test")
 	r := StreamAnalyticsManagedPrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

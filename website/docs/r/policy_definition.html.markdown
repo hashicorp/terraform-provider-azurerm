@@ -76,11 +76,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
-* `management_group_name` - (Optional / **Deprecated in favour of `management_group_id`**) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
-
-* `management_group_id` -  (Optional) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
-
-~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
+* `management_group_id` -  (Optional) The id of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
 
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a JSON string representing the rule that contains an if and
@@ -101,7 +97,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Definition.
 * `update` - (Defaults to 30 minutes) Used when updating the Policy Definition.

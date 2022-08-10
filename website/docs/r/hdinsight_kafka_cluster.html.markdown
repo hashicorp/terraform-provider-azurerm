@@ -44,7 +44,6 @@ resource "azurerm_hdinsight_kafka_cluster" "example" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -97,6 +96,8 @@ The following arguments are supported:
 
 * `roles` - (Required) A `roles` block as defined below.
 
+* `network` - (Optional) A `network` block as defined below.
+
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
 
 * `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
@@ -130,8 +131,6 @@ A `component_version` block supports the following:
 ---
 
 A `gateway` block supports the following:
-
-* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
 * `password` - (Required) The password used for the Ambari Portal.
 
@@ -173,6 +172,16 @@ A `roles` block supports the following:
 
 ---
 
+A `network` block supports the following:
+
+* `connection_direction` - (Optional) The direction of the resource provider connection. Possible values include `Inbound` or `Outbound`. Defaults to `Inbound`. Changing this forces a new resource to be created.
+
+-> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
+
+* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+
+---
+
 A `storage_account` block supports the following:
 
 * `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
@@ -210,8 +219,6 @@ A `worker_node` block supports the following:
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
-
-* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -366,7 +373,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kafka HDInsight Cluster.
 * `update` - (Defaults to 60 minutes) Used when updating the Kafka HDInsight Cluster.

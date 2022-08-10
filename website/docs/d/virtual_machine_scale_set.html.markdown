@@ -43,29 +43,27 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` -  The list of User Managed Identity ID's which are assigned to the Virtual Machine Scale Set.
+* `type` - The type of Managed Service Identity that is configured on this Virtual Machine Scale Set.
 
-* `principal_id` - The ID of the System Managed Service Principal assigned to the Virtual Machine Scale Set.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Virtual Machine Scale Set.
 
-* `type` - The identity type of the Managed Identity assigned to the Virtual Machine Scale Set.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Virtual Machine Scale Set.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Virtual Machine Scale Set.
 
 ---
 
-`network_profile` exports the following:
+`network_interface` exports the following:
 
 * `name` - The name of the network interface configuration.
 * `primary` - Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - An ip_configuration block as documented below.
-* `accelerated_networking` - Whether to enable accelerated networking or not.
-* `dns_settings` - A dns_settings block as documented below.
-* `ip_forwarding` - Whether IP forwarding is enabled on this NIC.
+* `ip_configuration` - An `ip_configuration` block as documented below.
+* `enable_accelerated_networking` - Whether to enable accelerated networking or not.
+* `dns_servers` - An array of the DNS servers in use.
+* `enable_ip_forwarding` - Whether IP forwarding is enabled on this NIC.
 * `network_security_group_id` - The identifier for the network security group.
-
-`dns_settings` exports the following:
-
-* `dns_servers` - The dns servers in use.
 
 `ip_configuration` exports the following:
 
@@ -76,17 +74,24 @@ A `identity` block exports the following:
 * `load_balancer_inbound_nat_rules_ids` - An array of references to inbound NAT pools for load balancers.
 * `primary` -  If this ip_configuration is the primary one.
 * `application_security_group_ids` -  The application security group IDs to use.
-* `public_ip_address_configuration` - The virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address_configuration` is documented below.
+* `public_ip_address` - The virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address` is documented below.
 
-`public_ip_address_configuration` exports the following:
+`public_ip_address` exports the following:
 
-* `name` - The name of the public ip address configuration
-* `idle_timeout` - The idle timeout in minutes.
-* `domain_name_label` - The domain name label for the dns settings.
+* `name` - The name of the public IP address configuration
+* `idle_timeout_in_minutes` - The idle timeout in minutes.
+* `domain_name_label` - The domain name label for the DNS settings.
+* `ip_tag` - A list of `ip_tag` blocks as defined below.
+* `public_ip_prefix_id` - The ID of the public IP prefix.
+
+`ip_tag` exports the following:
+
+* `tag` - The IP Tag associated with the Public IP.
+* `type` - The Type of IP Tag.
 
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.

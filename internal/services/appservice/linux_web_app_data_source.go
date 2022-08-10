@@ -7,9 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -38,6 +36,7 @@ type LinuxWebAppDataSourceModel struct {
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
 	MetaData                      map[string]string          `tfschema:"app_metadata"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
+	StickySettings                []helpers.StickySettings   `tfschema:"sticky_settings"`
 	StorageAccounts               []helpers.StorageAccount   `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
 	Tags                          map[string]string          `tfschema:"tags"`
@@ -49,6 +48,7 @@ type LinuxWebAppDataSourceModel struct {
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
+	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
@@ -69,13 +69,13 @@ func (r LinuxWebAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.WebAppName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
 func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"app_metadata": {
 			Type:     pluginsdk.TypeMap,
@@ -186,7 +186,14 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchemaComputed(),
 
+		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
 		"tags": tags.SchemaDataSource(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -249,6 +256,11 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for Linux %s: %+v", id, err)
@@ -301,6 +313,8 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
 			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+
+			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 
 			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 

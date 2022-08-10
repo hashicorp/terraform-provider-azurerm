@@ -10,8 +10,6 @@ description: |-
 
 Manages an App Service: Service Plan.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -27,8 +25,9 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
-  sku_name            = "P1V2"
+  location            = azurerm_resource_group.example.location
+  os_type             = "Linux"
+  sku_name            = "P1v2"
 }
 ```
 
@@ -44,11 +43,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the AppService should exist. Changing this forces a new AppService to be created.
 
-* `sku_name` - (Required) The SKU for the plan. Possible values include `B1`, `B2`, `B3`, `D1`, `F1`, `FREE`, `I1`, `I2`, `I3`, `I1v2`, `I2v2`, `I3v2`, `P1v2`, `P2v2`, `P3v2`, `P1v3`, `P2v3`, `P3v3`, `S1`, `S2`, `S3`, `SHARED`, `PC2`, `PC3`, `PC4`, `EP1`, `EP2`, `EP3`, `WS1`, `WS2`, and `WS3`,. 
+* `sku_name` - (Required) The SKU for the plan. Possible values include `B1`, `B2`, `B3`, `D1`, `F1`, `I1`, `I2`, `I3`, `I1v2`, `I2v2`, `I3v2`, `P1v2`, `P2v2`, `P3v2`, `P1v3`, `P2v3`, `P3v3`, `S1`, `S2`, `S3`, `SHARED`, `EP1`, `EP2`, `EP3`, `WS1`, `WS2`, `WS3`, and `Y1`.
 
 ~> **NOTE:** Isolated SKUs (`I1`, `I2`, `I3`, `I1v2`, `I2v2`, and `I3v2`) can only be used with App Service Environments
 
-~> **NOTE:** Elastic and Consumption SKUs (`PC2`, `PC3`, `PC4`, `EP1`, `EP2`, and `EP3`) are for use with Function Apps.
+~> **NOTE:** Elastic and Consumption SKUs (`Y1`, `EP1`, `EP2`, and `EP3`) are for use with Function Apps. 
 
 ---
 
@@ -61,6 +60,10 @@ The following arguments are supported:
 * `worker_count` - (Optional) The number of Workers (instances) to be allocated. 
 
 * `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
+ 
+* `zone_balancing_enabled` - (Optional) Should the Service Plan balance across Availability Zones in the region. Defaults to `false`.
+
+~> **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region. 
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the AppService.
 
@@ -76,7 +79,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Service Plan.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Plan.

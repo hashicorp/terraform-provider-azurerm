@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -70,26 +71,26 @@ func TestAccPostgreSqlAdministrator_disappears(t *testing.T) {
 }
 
 func (r PostgreSqlAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
+	id, err := serveradministrators.ParseServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.ServerAdministratorsClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	resp, err := clients.Postgres.ServerAdministratorsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r PostgreSqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
+	id, err := serveradministrators.ParseServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := client.Postgres.ServerAdministratorsClient.Delete(ctx, id.ResourceGroup, id.ServerName); err != nil {
+	if _, err := client.Postgres.ServerAdministratorsClient.Delete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 
@@ -117,11 +118,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
@@ -174,11 +173,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

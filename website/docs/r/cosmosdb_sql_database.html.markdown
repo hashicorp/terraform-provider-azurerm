@@ -48,7 +48,7 @@ The following arguments are supported:
 
 An `autoscale_settings` block supports the following:
 
-* `max_throughput` - (Optional) The maximum throughput of the SQL database (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
+* `max_throughput` - (Optional) The maximum throughput of the SQL database (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 
 ## Attributes Reference
@@ -59,7 +59,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Database.
 * `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Database.

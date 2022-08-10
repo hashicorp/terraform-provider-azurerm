@@ -7,9 +7,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,7 +54,7 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 
 			"event_handler": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"url_template": {
@@ -94,7 +94,7 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 										Required: true,
 										ValidateFunc: validation.Any(
 											validation.IsUUID,
-											identityValidate.UserAssignedIdentityID,
+											commonids.ValidateUserAssignedIdentityID,
 										),
 									},
 								},
@@ -149,10 +149,13 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.HubName, parameters, id.ResourceGroup, id.WebPubSubName); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.HubName, parameters, id.ResourceGroup, id.WebPubSubName)
+	if err != nil {
 		return err
 	}
-
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
 	d.SetId(id.ID())
 
 	return resourceWebPubSubHubRead(d, meta)

@@ -42,6 +42,7 @@ resource "azurerm_sentinel_watchlist" "example" {
   name                       = "example-watchlist"
   log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
   display_name               = "example-wl"
+  item_search_key            = "Key"
 }
 ```
 
@@ -54,6 +55,8 @@ The following arguments are supported:
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace where this Sentinel Watchlist resides in. Changing this forces a new Sentinel Watchlist to be created.
 
 * `display_name` - (Required) The display name of this Sentinel Watchlist. Changing this forces a new Sentinel Watchlist to be created.
+
+* `item_search_key` - (Required) The key used to optimize query performance when using Watchlist for joins with other data. Changing this forces a new Sentinel Watchlist to be created.
 
 ---
 
@@ -71,7 +74,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Sentinel Watchlist.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Watchlist.

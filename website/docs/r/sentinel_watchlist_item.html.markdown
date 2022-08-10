@@ -45,6 +45,7 @@ resource "azurerm_sentinel_watchlist" "example" {
   name                       = "example-watchlist"
   log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
   display_name               = "example-wl"
+  item_search_key            = "Key"
 }
 
 resource "azurerm_sentinel_watchlist_item" "example" {
@@ -77,7 +78,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Sentinel Watchlist Item.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Watchlist Item.

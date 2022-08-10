@@ -13,9 +13,23 @@ Use this data source to access information about an existing SQL database.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_mssql_server" "example" {
+  name                         = "example"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
 data "azurerm_mssql_database" "example" {
   name      = "example-mssql-db"
-  server_id = "example-mssql-server-id"
+  server_id = azurerm_mssql_server.example.id
 }
 
 output "database_id" {
@@ -25,11 +39,11 @@ output "database_id" {
 
 ## Argument Reference
 
-* `name` - The name of the Ms SQL Database.
+* `name` - The name of the MS SQL Database.
 
-* `server_id` - The id of the Ms SQL Server on which to create the database.
+* `server_id` - The id of the MS SQL Server on which to create the database.
 
-## Attribute Reference
+## Attributes Reference
 
 * `collation` - The collation of the database. 
 
@@ -43,7 +57,7 @@ output "database_id" {
 
 * `read_scale` - If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica.
 
-* `sku_name` - The name of the sku of the database.
+* `sku_name` - The name of the SKU of the database.
 
 * `storage_account_type` - The storage account type used to store backups for this database.
 
@@ -53,6 +67,6 @@ output "database_id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL database.

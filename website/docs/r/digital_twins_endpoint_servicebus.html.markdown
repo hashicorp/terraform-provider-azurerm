@@ -36,16 +36,13 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "exampleservicebustopic"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name         = "exampleservicebustopic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "example-rule"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
+  name     = "example-rule"
+  topic_id = azurerm_servicebus_topic.example.id
 
   listen = false
   send   = true
@@ -82,7 +79,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Digital Twins Servicebus Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Digital Twins Servicebus Endpoint.

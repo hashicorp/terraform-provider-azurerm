@@ -47,12 +47,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `identity` block exports the following:
 
-* `identity_ids` - A list of Managed Identity ID's assigned to this Application Gateway.
+* `identity_ids` - A list of Managed Identity IDs assigned to this Application Gateway.
 
 * `type` - The type of Managed Identity assigned to this Application Gateway.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.

@@ -27,10 +27,9 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_mysql" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  name              = "example"
+  data_factory_id   = azurerm_data_factory.example.id
+  connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 ```
 
@@ -39,17 +38,9 @@ resource "azurerm_data_factory_linked_service_mysql" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service MySQL. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+  factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service MySQL. Changing this forces a new resource
-
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `connection_string` - (Required) The connection string in which to authenticate with MySQL.
 
@@ -67,20 +58,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory MySql Linked Service.
+* `id` - The ID of the Data Factory MySQL Linked Service.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory MySql Linked Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory MySql Linked Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory MySql Linked Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory MySql Linked Service.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory MySQL Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory MySQL Linked Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory MySQL Linked Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory MySQL Linked Service.
 
 ## Import
 
-Data Factory MySql Linked Service's can be imported using the `resource id`, e.g.
+Data Factory MySQL Linked Service's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_linked_service_mysql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example

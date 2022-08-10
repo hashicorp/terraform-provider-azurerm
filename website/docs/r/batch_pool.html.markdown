@@ -103,8 +103,9 @@ EOF
   }
 
   certificate {
-    id         = azurerm_batch_certificate.example.id
-    visibility = ["StartTask"]
+    id             = azurerm_batch_certificate.example.id
+    store_location = "CurrentUser"
+    visibility     = ["StartTask"]
   }
 }
 ```
@@ -119,7 +120,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) Specifies the name of the Batch account in which the pool will be created. Changing this forces a new resource to be created.
 
-* `node_agent_sku_id` - (Required) Specifies the Sku of the node agents that will be created in the Batch pool.
+* `node_agent_sku_id` - (Required) Specifies the SKU of the node agents that will be created in the Batch pool.
 
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool.
 
@@ -153,9 +154,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The identity type of the Batch Account. Only possible values is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Only possible value is `UserAssigned`.
 
- * `identity_ids` - (Required) Specifies a list of user assigned identity ids.
+ * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
 ---
 
@@ -175,7 +176,7 @@ To provision from an Azure Platform Image, the following fields are applicable:
 
 To provision a Custom Image, the following fields are applicable:
 
-* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
+* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/azure/batch/batch-custom-images) for more details.
 ---
 
 A `fixed_scale` block supports the following:
@@ -200,17 +201,9 @@ A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
-* `max_task_retry_count` - (Optional) The number of retry count. Defaults to `1`.
-
--> **Note:** This property has been deprecated in favour of the `task_retry_maximum` property and will be removed in version 3.0 of the provider.
-
 * `task_retry_maximum` - (Optional) The number of retry count. Defaults to `1`.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
-
-* `environment` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
-
--> **Note:** This property has been deprecated in favour of the `common_environment_properties` property and will be removed in version 3.0 of the provider.
 
 * `common_environment_properties` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
 
@@ -294,7 +287,7 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
-* `public_ips` - (Optional) A list of public ip ids that will be allocated to nodes. Changing this forces a new resource to be created.
+* `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
 
@@ -332,7 +325,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Pool.
 * `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.

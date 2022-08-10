@@ -142,7 +142,8 @@ func (HealthCareServiceResource) complete(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -169,7 +170,6 @@ resource "azurerm_key_vault" "test" {
   sku_name            = "standard"
 
   purge_protection_enabled   = true
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -177,12 +177,12 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
   }
 
@@ -191,9 +191,9 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey",
+      "Get",
+      "UnwrapKey",
+      "WrapKey",
     ]
   }
 }
@@ -256,7 +256,8 @@ func (HealthCareServiceResource) publicNetworkAccessDisabled(data acceptance.Tes
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -283,7 +284,6 @@ resource "azurerm_key_vault" "test" {
   sku_name            = "standard"
 
   purge_protection_enabled   = true
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -291,12 +291,12 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
   }
 
@@ -305,9 +305,9 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey",
+      "Get",
+      "UnwrapKey",
+      "WrapKey",
     ]
   }
 }

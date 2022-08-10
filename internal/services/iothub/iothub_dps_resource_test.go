@@ -61,6 +61,7 @@ func TestAccIotHubDPS_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -68,6 +69,7 @@ func TestAccIotHubDPS_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -110,7 +112,7 @@ func TestAccIotHubDPS_ipFilterRules(t *testing.T) {
 				check.That(data.ResourceName).Key("device_provisioning_host_name").Exists(),
 				check.That(data.ResourceName).Key("id_scope").Exists(),
 				check.That(data.ResourceName).Key("service_operations_host_name").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("ip_filter_rule.0.name").HasValue("test"),
 				check.That(data.ResourceName).Key("ip_filter_rule.0.ip_mask").HasValue("10.0.0.0/31"),
 				check.That(data.ResourceName).Key("ip_filter_rule.0.action").HasValue("Accept"),
@@ -133,6 +135,7 @@ func TestAccIotHubDPS_ipFilterRules(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_filter_rule.1.ip_mask").HasValue("10.0.2.0/31"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.action").HasValue("Reject"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.target").HasValue("DeviceApi"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -208,9 +211,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iothub_dps" "test" {
-  name                = "acctestIoTDPS-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                          = "acctestIoTDPS-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  public_network_access_enabled = false
 
   sku {
     name     = "S1"
@@ -306,7 +310,7 @@ resource "azurerm_iothub_dps" "test" {
   name                          = "acctestIoTDPS-%d"
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
-  public_network_access_enabled = true
+  public_network_access_enabled = false
 
   ip_filter_rule {
     name    = "test"
@@ -351,7 +355,7 @@ resource "azurerm_iothub_dps" "test" {
   name                          = "acctestIoTDPS-%d"
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
-  public_network_access_enabled = true
+  public_network_access_enabled = false
 
   ip_filter_rule {
     name    = "test"

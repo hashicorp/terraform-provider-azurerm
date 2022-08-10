@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
@@ -29,9 +28,9 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"administrator_login": {
 				Type:     pluginsdk.TypeString,
@@ -63,12 +62,6 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"cmk_enabled": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
-			},
-
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -79,7 +72,7 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -93,49 +86,56 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewFlexibleServerID(subscriptionId, resourceGroup, name)
+	id := servers.NewFlexibleServerID(subscriptionId, resourceGroup, name)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Postgresqlflexibleservers Server %q does not exist", id.Name)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s does not exist", id)
 		}
-		return fmt.Errorf("retrieving Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	// `cmk_enabled` has been removed from API since 2021-06-01
-	// and should be removed in version 3.0 of the provider.
-	d.Set("cmk_enabled", "")
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
 
-	if props := resp.ServerProperties; props != nil {
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("version", props.Version)
-		d.Set("fqdn", props.FullyQualifiedDomainName)
+		if props := model.Properties; props != nil {
+			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("version", props.Version)
+			d.Set("fqdn", props.FullyQualifiedDomainName)
 
-		if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
-			d.Set("storage_mb", (*props.Storage.StorageSizeGB * 1024))
+			if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
+				d.Set("storage_mb", (*props.Storage.StorageSizeGB * 1024))
+			}
+
+			if backup := props.Backup; backup != nil {
+				d.Set("backup_retention_days", props.Backup.BackupRetentionDays)
+			}
+
+			if network := props.Network; network != nil {
+				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
+				publicNetworkAccess := false
+				if network.PublicNetworkAccess != nil {
+					publicNetworkAccess = *network.PublicNetworkAccess == servers.ServerPublicNetworkAccessStateEnabled
+				}
+				d.Set("public_network_access_enabled", publicNetworkAccess)
+			}
+
 		}
 
-		if backup := props.Backup; backup != nil {
-			d.Set("backup_retention_days", props.Backup.BackupRetentionDays)
+		sku, err := flattenFlexibleServerSku(model.Sku)
+		if err != nil {
+			return fmt.Errorf("flattening `sku_name`: %+v", err)
 		}
 
-		if network := props.Network; network != nil {
-			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
-			d.Set("public_network_access_enabled", network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-		}
+		d.Set("sku_name", sku)
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	sku, err := flattenFlexibleServerSku(resp.Sku)
-	if err != nil {
-		return fmt.Errorf("flattening `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
-	}
-
-	d.Set("sku_name", sku)
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

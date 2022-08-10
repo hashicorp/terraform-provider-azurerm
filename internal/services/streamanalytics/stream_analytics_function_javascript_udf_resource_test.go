@@ -67,6 +67,28 @@ func TestAccStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsFunctionJavaScriptUDF_isConfigurationParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
+	r := StreamAnalyticsFunctionJavaScriptUDFResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.isConfigurationParameter(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.isConfigurationParameter(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FunctionID(state.ID)
 	if err != nil {
@@ -164,6 +186,35 @@ SCRIPT
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsFunctionJavaScriptUDFResource) isConfigurationParameter(data acceptance.TestData, isConfigurationParameter bool) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_function_javascript_udf" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+
+  script = <<SCRIPT
+function getRandomNumber(in) {
+  return in;
+}
+SCRIPT
+
+
+  input {
+    type                    = "bigint"
+    configuration_parameter = %t
+  }
+
+  output {
+    type = "bigint"
+  }
+}
+`, template, data.RandomInteger, isConfigurationParameter)
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) template(data acceptance.TestData) string {

@@ -60,9 +60,9 @@ The `security_rule` block supports:
 
 * `destination_address_prefixes` - A list of CIDRs or destination IP ranges.
 
-* `source_application_security_group_ids` - A List of source Application Security Group ID's
+* `source_application_security_group_ids` - A List of source Application Security Group IDs
 
-* `destination_application_security_group_ids` - A List of destination Application Security Group ID's
+* `destination_application_security_group_ids` - A List of destination Application Security Group IDs
 
 * `access` - Is network traffic is allowed or denied?
 
@@ -72,6 +72,6 @@ The `security_rule` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Group.

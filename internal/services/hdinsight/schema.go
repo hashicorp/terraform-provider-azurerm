@@ -2,17 +2,16 @@ package hdinsight
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
-	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -42,8 +41,7 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.TierStandard),
 			string(hdinsight.TierPremium),
-		}, !features.ThreePointOh()),
-		DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+		}, false),
 	}
 }
 
@@ -94,21 +92,6 @@ func SchemaHDInsightsGateway() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				// TODO 3.0: remove this attribute
-				"enabled": {
-					Type:       pluginsdk.TypeBool,
-					Optional:   true,
-					Default:    true,
-					Deprecated: "HDInsight doesn't support disabling gateway anymore",
-					ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-						enabled := i.(bool)
-
-						if !enabled {
-							errors = append(errors, fmt.Errorf("Only true is supported, because HDInsight doesn't support disabling gateway anymore. Provided value %t", enabled))
-						}
-						return warnings, errors
-					},
-				},
 				// NOTE: these are Required since if these aren't present you get a `500 bad request`
 				"username": {
 					Type:     pluginsdk.TypeString,
@@ -290,7 +273,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				},
 
 				"cluster_users_group_dns": {
@@ -305,6 +288,86 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"uri": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+
+				"parameters": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"access_modes": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"destination_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: azValidate.PortNumber,
+				},
+
+				"disable_gateway_auth": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"private_ip_address": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsIPAddress,
+				},
+
+				"sub_domain_suffix": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+type HttpEndpointModel struct {
+	AccessModes        []string `tfschema:"access_modes"`
+	DestinationPort    int32    `tfschema:"destination_port"`
+	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
+	PrivateIpAddress   string   `tfschema:"private_ip_address"`
+	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
 }
 
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
@@ -464,8 +527,6 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 }
 
 func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.ResourceData) []interface{} {
-	enabled := true
-
 	username := ""
 	if v, exists := input["restAuthCredential.username"]; exists && v != nil {
 		username = *v
@@ -478,13 +539,12 @@ func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.Reso
 		password = d.Get("gateway.0.password").(string)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":  enabled,
-			"username": username,
-			"password": password,
-		},
+	out := map[string]interface{}{
+		"username": username,
+		"password": password,
 	}
+
+	return []interface{}{out}
 }
 
 func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
@@ -745,11 +805,10 @@ type HDInsightNodeDefinition struct {
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
 	result := map[string]*pluginsdk.Schema{
 		"vm_size": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOh()),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,
@@ -797,15 +856,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			countValidation = validation.IntBetween(definition.MinInstanceCount, *definition.MaxInstanceCount)
 		}
 
-		// TODO 3.0: remove this property
-		result["min_instance_count"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ForceNew:     true,
-			Computed:     true,
-			Deprecated:   "this has been deprecated from the API and will be removed in version 3.0 of the provider",
-			ValidateFunc: countValidation,
-		}
 		result["target_instance_count"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -990,11 +1040,6 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		minInstanceCount := v["min_instance_count"].(int)
-		if minInstanceCount > 0 {
-			role.MinInstanceCount = utils.Int32(int32(minInstanceCount))
-		}
-
 		// `target_instance_count` must be set while creating
 		targetInstanceCount := v["target_instance_count"].(int)
 		role.TargetInstanceCount = utils.Int32(int32(targetInstanceCount))
@@ -1179,12 +1224,7 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		output["min_instance_count"] = 0
 		output["target_instance_count"] = 0
-
-		if input.MinInstanceCount != nil {
-			output["min_instance_count"] = int(*input.MinInstanceCount)
-		}
 
 		if input.TargetInstanceCount != nil {
 			output["target_instance_count"] = int(*input.TargetInstanceCount)

@@ -54,23 +54,17 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the policy set definition.
 
-* `policy_definitions` - (Optional / **Deprecated in favour of `policy_definition_reference`**) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
-
 * `policy_definition_reference` - (Optional) One or more `policy_definition_reference` blocks as defined below.
 
 * `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 
 * `description` - (Optional) The description of the policy set definition.
 
-* `management_group_name` - (Optional / **Deprecated in favour of `management_group_id`**) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
+* `management_group_id` -  (Optional) The id of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 
-* `management_group_id` -  (Optional) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
+* `metadata` - (Optional) The metadata for the policy set definition. This is a JSON object representing additional metadata that should be stored with the policy definition.
 
-~> **NOTE:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
-
-* `metadata` - (Optional) The metadata for the policy set definition. This is a json object representing additional metadata that should be stored with the policy definition.
-
-* `parameters` - (Optional) Parameters for the policy set definition. This field is a json object that allows you to parameterize your policy definition.
+* `parameters` - (Optional) Parameters for the policy set definition. This field is a JSON object that allows you to parameterize your policy definition.
 
 ---
 
@@ -106,7 +100,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Set Definition.
 * `update` - (Defaults to 30 minutes) Used when updating the Policy Set Definition.

@@ -9,9 +9,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	authRuleParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	logAnalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
@@ -92,17 +92,6 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 						"category": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(aad.AuditLogs),
-								string(aad.SignInLogs),
-								"ADFSSignInLogs",
-								"ManagedIdentitySignInLogs",
-								"NonInteractiveUserSignInLogs",
-								"ProvisioningLogs",
-								"ServicePrincipalSignInLogs",
-								"RiskyUsers",
-								"UserRiskEvents",
-							}, false),
 						},
 
 						"enabled": {

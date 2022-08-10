@@ -30,6 +30,21 @@ func TestAccApiManagementCustomDomain_basic(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementCustomDomain_basicWithUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
+	r := ApiManagementCustomDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagementCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
 	r := ApiManagementCustomDomainResource{}
@@ -96,7 +111,7 @@ func (r ApiManagementCustomDomainResource) basic(data acceptance.TestData) strin
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -106,7 +121,7 @@ resource "azurerm_api_management_custom_domain" "test" {
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data))
+`, r.template(data, true))
 }
 
 func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) string {
@@ -116,12 +131,12 @@ func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) s
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data))
+`, r.template(data, true))
 }
 
 func (r ApiManagementCustomDomainResource) developerPortalOnly(data acceptance.TestData) string {
@@ -136,7 +151,7 @@ resource "azurerm_api_management_custom_domain" "test" {
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data))
+`, r.template(data, true))
 }
 
 func (r ApiManagementCustomDomainResource) requiresImport(data acceptance.TestData) string {
@@ -146,7 +161,7 @@ func (r ApiManagementCustomDomainResource) requiresImport(data acceptance.TestDa
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -159,7 +174,23 @@ resource "azurerm_api_management_custom_domain" "import" {
 `, r.basic(data))
 }
 
-func (ApiManagementCustomDomainResource) template(data acceptance.TestData) string {
+func (ApiManagementCustomDomainResource) template(data acceptance.TestData, systemAssignedIdentity bool) string {
+
+	identitySnippet := `
+  identity {
+    type = "SystemAssigned"
+  }
+`
+	if !systemAssignedIdentity {
+		identitySnippet = `
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -181,9 +212,8 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
 
-  identity {
-    type = "SystemAssigned"
-  }
+%[4]s
+
 }
 
 resource "azurerm_key_vault" "test" {
@@ -199,20 +229,20 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-      "purge",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
+      "Purge",
     ]
 
     key_permissions = [
-      "create",
-      "get",
+      "Create",
+      "Get",
     ]
 
     secret_permissions = [
-      "get",
+      "Get",
     ]
   }
 
@@ -221,11 +251,11 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_api_management.test.identity.0.principal_id
 
     certificate_permissions = [
-      "get",
+      "Get",
     ]
 
     secret_permissions = [
-      "get",
+      "Get",
     ]
   }
 }
@@ -282,5 +312,31 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, identitySnippet)
+}
+
+func (r ApiManagementCustomDomainResource) basicWithUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "bp-user-example"
+}
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_id = azurerm_api_management.test.id
+
+  gateway {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, r.template(data, false))
 }

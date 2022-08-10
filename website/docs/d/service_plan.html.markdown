@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Service Plan.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -57,10 +55,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku_name` - The SKU for the Service Plan.
 
+* `zone_balancing_enabled` - Is the Service Plan balance across Availability Zones in the region?
+
 * `tags` - A mapping of tags assigned to the Service Plan.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Plan.

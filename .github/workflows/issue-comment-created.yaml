@@ -7,12 +7,28 @@ on:
 jobs:
   issue_comment_triage:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           labels: stale
       - uses: actions-ecosystem/action-remove-labels@v1
+        if: ${{ !github.event.issue.pull_request }}
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           labels: waiting-response
+      - uses: actions-ecosystem/action-remove-labels@v1
+        if: (github.event.issue.pull_request && github.actor == github.event.issue.user.login)
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: waiting-response
+      - uses: actions-ecosystem/action-add-labels@v1.1.0
+        if: github.event.issue.pull_request && endsWith(github.event.comment.body, '/wr')
+        with:
+          labels: waiting-response
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          number: ${{ github.event.pull_request.number }}
+          repo: ${{ github.repository }}
+

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -65,7 +65,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 			ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
 		},
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"managed_instance_id": {
 			Type:         pluginsdk.TypeString,
@@ -120,7 +120,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Attributes() map[string]*plug
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": location.SchemaComputed(),
+					"location": commonschema.LocationComputed(),
 
 					"role": {
 						Type:     pluginsdk.TypeString,
@@ -195,7 +195,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 					},
 					ManagedInstancePairs: &[]sql.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceID: utils.String(id.ID()),
+							PrimaryManagedInstanceID: utils.String(managedInstanceId.ID()),
 							PartnerManagedInstanceID: utils.String(partnerId.ID()),
 						},
 					},
@@ -232,6 +232,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.InstanceFailoverGroupsClient
+			instancesClient := metadata.Client.MSSQL.ManagedInstancesClient
 
 			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -242,6 +243,21 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 			var state MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
+			}
+
+			managedInstanceId, err := parse.ManagedInstanceID(state.ManagedInstanceId)
+			if err != nil {
+				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+			}
+
+			partnerId, err := parse.ManagedInstanceID(state.PartnerManagedInstanceId)
+			if err != nil {
+				return err
+			}
+
+			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
+			if err != nil || partner.Location == nil || *partner.Location == "" {
+				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
 
 			readOnlyFailoverPolicy := sql.ReadOnlyEndpointFailoverPolicyDisabled
@@ -255,6 +271,17 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 						FailoverPolicy: readOnlyFailoverPolicy,
 					},
 					ReadWriteEndpoint: &sql.InstanceFailoverGroupReadWriteEndpoint{},
+					PartnerRegions: &[]sql.PartnerRegionInfo{
+						{
+							Location: partner.Location,
+						},
+					},
+					ManagedInstancePairs: &[]sql.ManagedInstancePairInfo{
+						{
+							PrimaryManagedInstanceID: utils.String(managedInstanceId.ID()),
+							PartnerManagedInstanceID: utils.String(partnerId.ID()),
+						},
+					},
 				},
 			}
 
@@ -298,7 +325,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			result, err := client.Get(ctx, id.ResourceGroup, state.Location, id.Name)
+			result, err := client.Get(ctx, id.ResourceGroup, id.LocationName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(result.Response) {
 					return metadata.MarkAsGone(id)

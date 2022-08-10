@@ -21,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
@@ -29,20 +31,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
@@ -92,7 +95,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmesh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
@@ -113,16 +115,23 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		aadb2c.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
+		applicationinsights.Registration{},
 		appservice.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		compute.Registration{},
 		consumption.Registration{},
 		containers.Registration{},
 		costmanagement.Registration{},
 		disks.Registration{},
+		domainservices.Registration{},
 		eventhub.Registration{},
+		fluidrelay.Registration{},
+		keyvault.Registration{},
 		loadbalancer.Registration{},
 		loadtest.Registration{},
+		loganalytics.Registration{},
+		monitor.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
 		resource.Registration{},
@@ -134,103 +143,106 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 }
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
-	return []sdk.UntypedServiceRegistration{
-		advisor.Registration{},
-		analysisservices.Registration{},
-		apimanagement.Registration{},
-		appconfiguration.Registration{},
-		springcloud.Registration{},
-		applicationinsights.Registration{},
-		attestation.Registration{},
-		authorization.Registration{},
-		automation.Registration{},
-		azurestackhci.Registration{},
-		batch.Registration{},
-		billing.Registration{},
-		blueprints.Registration{},
-		bot.Registration{},
-		cdn.Registration{},
-		cognitive.Registration{},
-		communication.Registration{},
-		compute.Registration{},
-		containers.Registration{},
-		consumption.Registration{},
-		cosmos.Registration{},
-		costmanagement.Registration{},
-		customproviders.Registration{},
-		databricks.Registration{},
-		datafactory.Registration{},
-		datalake.Registration{},
-		databasemigration.Registration{},
-		databoxedge.Registration{},
-		dataprotection.Registration{},
-		datashare.Registration{},
-		desktopvirtualization.Registration{},
-		devspace.Registration{},
-		devtestlabs.Registration{},
-		digitaltwins.Registration{},
-		dns.Registration{},
-		domainservices.Registration{},
-		eventgrid.Registration{},
-		eventhub.Registration{},
-		firewall.Registration{},
-		frontdoor.Registration{},
-		hpccache.Registration{},
-		hsm.Registration{},
-		hdinsight.Registration{},
-		healthcare.Registration{},
-		iothub.Registration{},
-		iotcentral.Registration{},
-		keyvault.Registration{},
-		kusto.Registration{},
-		legacy.Registration{},
-		loadbalancer.Registration{},
-		loganalytics.Registration{},
-		logic.Registration{},
-		logz.Registration{},
-		machinelearning.Registration{},
-		maintenance.Registration{},
-		managedapplications.Registration{},
-		lighthouse.Registration{},
-		managementgroup.Registration{},
-		maps.Registration{},
-		mariadb.Registration{},
-		media.Registration{},
-		mixedreality.Registration{},
-		monitor.Registration{},
-		msi.Registration{},
-		mssql.Registration{},
-		mysql.Registration{},
-		netapp.Registration{},
-		network.Registration{},
-		notificationhub.Registration{},
-		policy.Registration{},
-		portal.Registration{},
-		postgres.Registration{},
-		powerbi.Registration{},
-		privatedns.Registration{},
-		purview.Registration{},
-		recoveryservices.Registration{},
-		redis.Registration{},
-		redisenterprise.Registration{},
-		relay.Registration{},
-		resource.Registration{},
-		search.Registration{},
-		securitycenter.Registration{},
-		sentinel.Registration{},
-		servicebus.Registration{},
-		servicefabric.Registration{},
-		servicefabricmesh.Registration{},
-		signalr.Registration{},
-		sql.Registration{},
-		storage.Registration{},
-		streamanalytics.Registration{},
-		subscription.Registration{},
-		synapse.Registration{},
-		iottimeseriesinsights.Registration{},
-		trafficmanager.Registration{},
-		videoanalyzer.Registration{},
-		vmware.Registration{},
-		web.Registration{},
-	}
+	return func() []sdk.UntypedServiceRegistration {
+		out := []sdk.UntypedServiceRegistration{
+			advisor.Registration{},
+			analysisservices.Registration{},
+			apimanagement.Registration{},
+			appconfiguration.Registration{},
+			springcloud.Registration{},
+			applicationinsights.Registration{},
+			attestation.Registration{},
+			authorization.Registration{},
+			automation.Registration{},
+			azurestackhci.Registration{},
+			batch.Registration{},
+			billing.Registration{},
+			blueprints.Registration{},
+			bot.Registration{},
+			cdn.Registration{},
+			cognitive.Registration{},
+			communication.Registration{},
+			compute.Registration{},
+			confidentialledger.Registration{},
+			connections.Registration{},
+			containers.Registration{},
+			consumption.Registration{},
+			cosmos.Registration{},
+			customproviders.Registration{},
+			databricks.Registration{},
+			datadog.Registration{},
+			datafactory.Registration{},
+			databasemigration.Registration{},
+			databoxedge.Registration{},
+			dataprotection.Registration{},
+			datashare.Registration{},
+			desktopvirtualization.Registration{},
+			devtestlabs.Registration{},
+			digitaltwins.Registration{},
+			dns.Registration{},
+			domainservices.Registration{},
+			elastic.Registration{},
+			eventgrid.Registration{},
+			eventhub.Registration{},
+			firewall.Registration{},
+			frontdoor.Registration{},
+			hpccache.Registration{},
+			hsm.Registration{},
+			hdinsight.Registration{},
+			healthcare.Registration{},
+			iothub.Registration{},
+			iotcentral.Registration{},
+			keyvault.Registration{},
+			kusto.Registration{},
+			legacy.Registration{},
+			loadbalancer.Registration{},
+			loganalytics.Registration{},
+			logic.Registration{},
+			logz.Registration{},
+			machinelearning.Registration{},
+			maintenance.Registration{},
+			managedapplications.Registration{},
+			lighthouse.Registration{},
+			managementgroup.Registration{},
+			maps.Registration{},
+			mariadb.Registration{},
+			media.Registration{},
+			mixedreality.Registration{},
+			monitor.Registration{},
+			msi.Registration{},
+			mssql.Registration{},
+			mysql.Registration{},
+			netapp.Registration{},
+			network.Registration{},
+			notificationhub.Registration{},
+			policy.Registration{},
+			portal.Registration{},
+			postgres.Registration{},
+			powerbi.Registration{},
+			privatedns.Registration{},
+			purview.Registration{},
+			recoveryservices.Registration{},
+			redis.Registration{},
+			redisenterprise.Registration{},
+			relay.Registration{},
+			resource.Registration{},
+			search.Registration{},
+			securitycenter.Registration{},
+			sentinel.Registration{},
+			servicebus.Registration{},
+			servicefabric.Registration{},
+			signalr.Registration{},
+			sql.Registration{},
+			storage.Registration{},
+			streamanalytics.Registration{},
+			subscription.Registration{},
+			synapse.Registration{},
+			iottimeseriesinsights.Registration{},
+			trafficmanager.Registration{},
+			videoanalyzer.Registration{},
+			vmware.Registration{},
+			web.Registration{},
+		}
+		return out
+	}()
 }

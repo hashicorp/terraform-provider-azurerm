@@ -12,7 +12,7 @@ Manages the Data Access Settings for Azure Security Center.
 
 ~> **NOTE:** This resource requires the `Owner` permission on the Subscription.
 
-~> **NOTE:** Deletion of this resource does not change or reset the data access settings
+~> **NOTE:** Deletion of this resource disables the setting.
 
 ## Example Usage
 
@@ -27,7 +27,7 @@ resource "azurerm_security_center_setting" "example" {
 
 The following arguments are supported:
 
-* `setting_name` - (Required) The setting to manage. Possible values are `MCAS` and `WDATP`.
+* `setting_name` - (Required) The setting to manage. Possible values are `MCAS` and `WDATP`. Changing this forces a new resource to be created.
 * `enabled` - (Required) Boolean flag to enable/disable data access.
 
 ## Attributes Reference
@@ -38,7 +38,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Security Center Setting.
 * `update` - (Defaults to 60 minutes) Used when updating the Security Center Setting.

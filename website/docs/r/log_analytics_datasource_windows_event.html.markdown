@@ -34,7 +34,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "example" {
   resource_group_name = azurerm_resource_group.example.name
   workspace_name      = azurerm_log_analytics_workspace.example.name
   event_log_name      = "Application"
-  event_types         = ["error"]
+  event_types         = ["Error"]
 }
 ```
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `event_log_name` - (Required) Specifies the name of the Windows Event Log to collect events from.
 
-* `event_types` - (Required) Specifies an array of event types applied to the specified event log. Possible values include `error`, `warning` and `information`.
+* `event_types` - (Required) Specifies an array of event types applied to the specified event log. Possible values include `Error`, `Warning` and `Information`.
 
 ## Attributes Reference
 
@@ -60,7 +60,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Windows Event DataSource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Windows Event DataSource.

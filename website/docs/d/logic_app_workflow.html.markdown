@@ -51,28 +51,30 @@ The following attributes are exported:
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow
 
-* `connector_endpoint_ip_addresses` - The list of access endpoint ip addresses of connector.
+* `connector_endpoint_ip_addresses` - The list of access endpoint IP addresses of connector.
 
-* `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
+* `connector_outbound_ip_addresses` - The list of outgoing IP addresses of connector.
 
-* `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
+* `workflow_endpoint_ip_addresses` - The list of access endpoint IP addresses of workflow.
 
-* `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
+* `workflow_outbound_ip_addresses` - The list of outgoing IP addresses of workflow.
 
 * `identity` - An `identity` block as defined below.
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - The Type of Managed Identity assigned to this Logic App Workflow.
+* `type` - The type of Managed Service Identity that is configured on this API Management Service.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this API Management Service.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.

@@ -4,26 +4,24 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -60,10 +58,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			sku := d.Get("sku").(string)
 
 			hasGeoReplications := false
-			if !features.ThreePointOhBeta() {
-				geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
-				hasGeoReplications = geoReplicationLocations.Len() > 0
-			}
 			geoReplications := d.Get("georeplications").([]interface{})
 			hasGeoReplicationsApplied := hasGeoReplications || len(geoReplications) > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
@@ -71,9 +65,22 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
+			// ensure location is different than any location of the geo-replication
+			var geoReplicationLocations []string
+			for _, v := range geoReplications {
+				v := v.(map[string]interface{})
+				geoReplicationLocations = append(geoReplicationLocations, azure.NormalizeLocation(v["location"]))
+			}
+			location := location.Normalize(d.Get("location").(string))
+			for _, loc := range geoReplicationLocations {
+				if loc == location {
+					return fmt.Errorf("The `georeplications` list cannot contain the location where the Container Registry exists.")
+				}
+			}
+
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
 			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
-				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set quarantine_policy {}")
+				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
@@ -84,6 +91,16 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			trustPolicyEnabled, ok := d.GetOk("trust_policy.0.enabled")
 			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
+			}
+
+			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
+			if !exportPolicyEnabled {
+				if !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
+					return fmt.Errorf("ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
+				}
+				if d.Get("public_network_access_enabled").(bool) {
+					return fmt.Errorf("To disable export of artifacts, `public_network_access_enabled` must also be `false`")
+				}
 			}
 
 			encryptionEnabled, ok := d.GetOk("encryption.0.enabled")
@@ -173,6 +190,8 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	trustPolicyRaw := d.Get("trust_policy").([]interface{})
 	trustPolicy := expandTrustPolicy(trustPolicyRaw)
 
+	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
+
 	encryptionRaw := d.Get("encryption").([]interface{})
 	encryption := expandEncryption(encryptionRaw)
 
@@ -206,6 +225,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				QuarantinePolicy: quarantinePolicy,
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
+				ExportPolicy:     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			ZoneRedundancy:           zoneRedundancy,
@@ -229,15 +249,9 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	// the ACR is being created so no previous geo-replication locations
 	var oldGeoReplicationLocations, newGeoReplicationLocations []containerregistry.Replication
 	newGeoReplicationLocations = expandReplications(geoReplications)
-	if !features.ThreePointOhBeta() {
-		geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
-		if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
-			newGeoReplicationLocations = expandReplicationsFromLocations(geoReplicationLocations.List())
-		}
-	}
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
+		err = applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -288,6 +302,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	quarantinePolicy := expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool))
 	retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
 	trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
+	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
 
 	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -310,6 +325,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 				QuarantinePolicy: quarantinePolicy,
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
+				ExportPolicy:     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			Encryption:               encryption,
@@ -326,14 +342,6 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	oldGeoReplicationLocations := make([]interface{}, 0)
 	newGeoReplicationLocations := make([]interface{}, 0)
 
-	if !features.ThreePointOhBeta() {
-		hasGeoReplicationLocationsChanges = d.HasChange("georeplication_locations")
-		old, new := d.GetChange("georeplication_locations")
-		oldGeoReplicationLocations = old.(*pluginsdk.Set).List()
-		newGeoReplicationLocations := new.(*pluginsdk.Set).List()
-		hasNewGeoReplicationLocations = len(newGeoReplicationLocations) > 0
-	}
-
 	// geo replication is only supported by Premium Sku
 	hasGeoReplicationsApplied := hasNewGeoReplicationLocations || len(newReplications) > 0
 	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
@@ -341,12 +349,12 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
+		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -397,41 +405,151 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	return nil
 }
 
-func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
+func applyGeoReplicationLocations(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing to apply geo-replications for  Container Registry.")
 
-	// delete previously deployed locations
+	oldReplications := map[string]containerregistry.Replication{}
 	for _, replication := range oldGeoReplications {
 		if replication.Location == nil {
 			continue
 		}
-		oldLocation := azure.NormalizeLocation(*replication.Location)
-
-		future, err := replicationClient.Delete(ctx, resourceGroup, name, oldLocation)
-		if err != nil {
-			return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
-		}
+		loc := azure.NormalizeLocation(*replication.Location)
+		oldReplications[loc] = replication
 	}
 
-	// create new geo-replication locations
+	newReplications := map[string]containerregistry.Replication{}
 	for _, replication := range newGeoReplications {
 		if replication.Location == nil {
 			continue
 		}
-		locationToCreate := azure.NormalizeLocation(*replication.Location)
-		future, err := replicationClient.Create(ctx, resourceGroup, name, locationToCreate, replication)
+		loc := azure.NormalizeLocation(*replication.Location)
+		newReplications[loc] = replication
+	}
+
+	// Delete replications that only appear in the old locations.
+	for loc := range oldReplications {
+		if _, ok := newReplications[loc]; ok {
+			continue
+		}
+		future, err := replicationClient.Delete(ctx, resourceGroup, name, loc)
 		if err != nil {
-			return fmt.Errorf("creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+			return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+	}
+
+	// Create replications that only exists in the new locations.
+	for loc, repl := range newReplications {
+		if _, ok := oldReplications[loc]; ok {
+			continue
+		}
+		future, err := replicationClient.Create(ctx, resourceGroup, name, loc, repl)
+		if err != nil {
+			return fmt.Errorf("creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+	}
+
+	// Update (potentially replace) replications that exists at both side.
+	for loc, newRepl := range newReplications {
+		oldRepl, ok := oldReplications[loc]
+		if !ok {
+			continue
+		}
+		// Compare old and new replication parameters to see whether it has updated.
+		// If there no update, then skip it. Otherwise, need to check whether the update
+		// can happen in place, or need a recreation.
+
+		var (
+			needUpdate  bool
+			needReplace bool
+		)
+		// Since the replications here are all derived from expand function, where we guaranteed
+		// each properties are non-nil. Whilst we are still doing nil check here in case.
+		if oprop, nprop := oldRepl.ReplicationProperties, newRepl.ReplicationProperties; oprop != nil && nprop != nil {
+			// zoneRedundency can't be updated in place
+			if oprop.ZoneRedundancy != nprop.ZoneRedundancy {
+				needUpdate = true
+				needReplace = true
+			}
+			if ov, nv := oprop.RegionEndpointEnabled, nprop.RegionEndpointEnabled; ov != nil && nv != nil && *ov != *nv {
+				needUpdate = true
+			}
+		}
+		otag, ntag := oldRepl.Tags, newRepl.Tags
+		if len(otag) != len(ntag) {
+			needUpdate = true
+		} else {
+			for k, ov := range otag {
+				nv, ok := ntag[k]
+				if !ok {
+					needUpdate = true
+					break
+				}
+				if ov != nil && nv != nil && *ov != *nv {
+					needUpdate = true
+					break
+				}
+			}
+		}
+
+		if !needUpdate {
+			continue
+		}
+
+		if needReplace {
+			future, err := replicationClient.Delete(ctx, resourceGroup, name, loc)
+			if err != nil {
+				return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+			if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+
+			// Following can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18934 is resolved. Otherwise, the create right after delete will always fail.
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context is missing a timeout")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"InProgress"},
+				Target:  []string{"NotFound"},
+				Refresh: func() (interface{}, string, error) {
+					resp, err := replicationClient.Get(ctx, resourceGroup, name, loc)
+					if err != nil {
+						if utils.ResponseWasNotFound(resp.Response) {
+							return resp, "NotFound", nil
+						}
+
+						return nil, "Error", err
+					}
+
+					return resp, "InProgress", nil
+				},
+				ContinuousTargetOccurence: 5,
+				PollInterval:              5 * time.Second,
+				Timeout:                   time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("additional waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+		}
+
+		future, err := replicationClient.Create(ctx, resourceGroup, name, loc, newRepl)
+		if err != nil {
+			return fmt.Errorf("creating/updating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+			return fmt.Errorf("waiting for creation/update of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
 		}
 	}
 
@@ -482,15 +600,14 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if properties := resp.RegistryProperties; properties != nil {
-		if err := d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies)); err != nil {
-			return fmt.Errorf("setting `quarantine_policy`: %+v", err)
-		}
+		d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies))
 		if err := d.Set("retention_policy", flattenRetentionPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("setting `retention_policy`: %+v", err)
 		}
 		if err := d.Set("trust_policy", flattenTrustPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("setting `trust_policy`: %+v", err)
 		}
+		d.Set("export_policy_enabled", flattenExportPolicy(properties.Policies))
 		if err := d.Set("encryption", flattenEncryption(properties.Encryption)); err != nil {
 			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
@@ -542,10 +659,10 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	if !features.ThreePointOhBeta() {
-		d.Set("georeplication_locations", geoReplicationLocations)
-		d.Set("storage_account_id", "")
-	}
+	// The order of the georeplications returned from the list API is not consistent. We simply order it alphabetically to be consistent.
+	sort.Slice(geoReplications, func(i, j int) bool {
+		return geoReplications[i].(map[string]interface{})["location"].(string) < geoReplications[j].(map[string]interface{})["location"].(string)
+	})
 
 	d.Set("georeplications", geoReplications)
 
@@ -656,6 +773,18 @@ func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 	}
 
 	return &trustPolicy
+}
+
+func expandExportPolicy(enabled bool) *containerregistry.ExportPolicy {
+	exportPolicy := containerregistry.ExportPolicy{
+		Status: containerregistry.ExportPolicyStatusDisabled,
+	}
+
+	if enabled {
+		exportPolicy.Status = containerregistry.ExportPolicyStatusEnabled
+	}
+
+	return &exportPolicy
 }
 
 func expandReplicationsFromLocations(p []interface{}) []containerregistry.Replication {
@@ -851,8 +980,16 @@ func flattenTrustPolicy(p *containerregistry.Policies) []interface{} {
 	return []interface{}{trustPolicy}
 }
 
+func flattenExportPolicy(p *containerregistry.Policies) bool {
+	if p == nil || p.ExportPolicy == nil {
+		return false
+	}
+
+	return p.ExportPolicy.Status == containerregistry.ExportPolicyStatusEnabled
+}
+
 func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -865,16 +1002,13 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"location": azure.SchemaLocation(),
 
 		"sku": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Default:          string(containerregistry.SkuNameClassic),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(containerregistry.SkuNameClassic),
 				string(containerregistry.SkuNameBasic),
 				string(containerregistry.SkuNameStandard),
 				string(containerregistry.SkuNamePremium),
-			}, !features.ThreePointOhBeta()),
+			}, false),
 		},
 
 		"admin_enabled": {
@@ -886,21 +1020,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"georeplications": {
 			// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
 			// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"georeplication_locations"}
-				}
-				return []string{}
-			}(),
-			ConfigMode: func() schema.SchemaConfigMode {
-				if !features.ThreePointOhBeta() {
-					return pluginsdk.SchemaConfigModeAttr
-				}
-				return pluginsdk.SchemaConfigModeAuto
-			}(),
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAuto,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"location": commonschema.LocationWithoutForceNew(),
@@ -1082,6 +1204,12 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"export_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"zone_redundancy_enabled": {
 			Type:     pluginsdk.TypeBool,
 			ForceNew: true,
@@ -1111,30 +1239,4 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-
-		out["storage_account_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			ForceNew:   true,
-			Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
-		}
-
-		out["georeplication_locations"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Deprecated:    "Deprecated in favour of `georeplications`",
-			Computed:      true,
-			ConflictsWith: []string{"georeplications"},
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Set: location.HashCode,
-		}
-	}
-
-	return out
 }

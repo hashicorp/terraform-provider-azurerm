@@ -15,12 +15,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -32,6 +30,9 @@ func resourceArmSqlMiServer() *schema.Resource {
 		Read:   resourceArmSqlMiServerRead,
 		Update: resourceArmSqlMiServerCreateUpdate,
 		Delete: resourceArmSqlMiServerDelete,
+
+		DeprecationMessage: "The `azurerm_sql_managed_instance` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_managed_instance` resource instead.",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ManagedInstanceID(id)
 			return err
@@ -99,7 +100,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 			"storage_size_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(32, 8192),
+				ValidateFunc: validation.IntBetween(32, 16384),
 			},
 
 			"license_type": {
@@ -108,8 +109,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"LicenseIncluded",
 					"BasePrice",
-				}, !features.ThreePointOh()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"subnet_id": {

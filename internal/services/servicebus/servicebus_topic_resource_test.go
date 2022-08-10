@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -58,7 +58,7 @@ func TestAccServiceBusTopic_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_service_fabric_cluster"),
+			ExpectError: acceptance.RequiresImportError("azurerm_servicebus_topic"),
 		},
 	})
 }
@@ -226,17 +226,17 @@ func TestAccServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 }
 
 func (t ServiceBusTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.TopicID(state.ID)
+	id, err := topics.ParseTopicID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.TopicsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := clients.ServiceBus.TopicsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Service Bus Topic (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ServiceBusTopicResource) basic(data acceptance.TestData) string {
@@ -283,10 +283,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  support_ordering    = true
+  name             = "acctestservicebustopic-%[1]d"
+  namespace_id     = azurerm_servicebus_namespace.test.id
+  support_ordering = true
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -323,7 +322,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_topic" "test" {
   name         = "acctestservicebustopic-%d"
   namespace_id = azurerm_servicebus_namespace.test.id
-  status       = "disabled"
+  status       = "Disabled"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -426,7 +425,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "premium"
+  sku                 = "Premium"
   capacity            = 1
 }
 

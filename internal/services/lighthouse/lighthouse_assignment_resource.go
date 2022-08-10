@@ -6,13 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationdefinitions"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,8 +23,11 @@ func resourceLighthouseAssignment() *pluginsdk.Resource {
 		Create: resourceLighthouseAssignmentCreate,
 		Read:   resourceLighthouseAssignmentRead,
 		Delete: resourceLighthouseAssignmentDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := registrationassignments.ParseScopedRegistrationAssignmentID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -46,7 +48,7 @@ func resourceLighthouseAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LighthouseDefinitionID,
+				ValidateFunc: registrationdefinitions.ValidateScopedRegistrationDefinitionID,
 			},
 
 			"scope": {
@@ -74,40 +76,28 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 		lighthouseAssignmentName = uuid
 	}
 
-	scope := d.Get("scope").(string)
-
-	existing, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
+	id := registrationassignments.NewScopedRegistrationAssignmentID(d.Get("scope").(string), lighthouseAssignmentName)
+	options := registrationassignments.GetOperationOptions{
+		ExpandRegistrationDefinition: utils.Bool(false),
+	}
+	existing, err := client.Get(ctx, id, options)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_lighthouse_assignment", *existing.ID)
-	}
-
-	parameters := managedservices.RegistrationAssignment{
-		Properties: &managedservices.RegistrationAssignmentProperties{
-			RegistrationDefinitionID: utils.String(d.Get("lighthouse_definition_id").(string)),
+	parameters := registrationassignments.RegistrationAssignment{
+		Properties: &registrationassignments.RegistrationAssignmentProperties{
+			RegistrationDefinitionId: d.Get("lighthouse_definition_id").(string),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, scope, lighthouseAssignmentName, parameters); err != nil {
-		return fmt.Errorf("creating Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
-	if err != nil {
-		return fmt.Errorf("retrieving Lighthouse Assessment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("ID was nil or empty for Lighthouse Assignment %q ID (scope %q) ID", lighthouseAssignmentName, scope)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceLighthouseAssignmentRead(d, meta)
 }
 
@@ -116,27 +106,32 @@ func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LighthouseAssignmentID(d.Id())
+	id, err := registrationassignments.ParseScopedRegistrationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Scope, id.Name, utils.Bool(false))
+	options := registrationassignments.GetOperationOptions{
+		ExpandRegistrationDefinition: utils.Bool(false),
+	}
+	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Lighthouse Assignment %q was not found (Scope %q)", id.Name, id.Scope)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Lighthouse Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.RegistrationAssignmentId)
 	d.Set("scope", id.Scope)
 
-	if props := resp.Properties; props != nil {
-		d.Set("lighthouse_definition_id", props.RegistrationDefinitionID)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("lighthouse_definition_id", props.RegistrationDefinitionId)
+		}
 	}
 
 	return nil
@@ -147,41 +142,43 @@ func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LighthouseAssignmentID(d.Id())
+	id, err := registrationassignments.ParseScopedRegistrationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.Scope, id.Name); err != nil {
-		return fmt.Errorf("deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"Deleted"},
-		Refresh:    lighthouseAssignmentDeleteRefreshFunc(ctx, client, id.Scope, id.Name),
+		Refresh:    lighthouseAssignmentDeleteRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Lighthouse Assignment %q (Scope %q) to be deleted: %s", id.Name, id.Scope, err)
+		return err
 	}
 
 	return nil
 }
 
-func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *managedservices.RegistrationAssignmentsClient, scope string, lighthouseAssignmentName string) pluginsdk.StateRefreshFunc {
+func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *registrationassignments.RegistrationAssignmentsClient, id registrationassignments.ScopedRegistrationAssignmentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		expandLighthouseDefinition := true
-		res, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
+		options := registrationassignments.GetOperationOptions{
+			ExpandRegistrationDefinition: utils.Bool(true),
+		}
+		resp, err := client.Get(ctx, id, options)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, "Deleted", nil
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, "Deleted", nil
 			}
-			return nil, "Error", fmt.Errorf("issuing read request in lighthouseAssignmentDeleteRefreshFunc to Lighthouse Assignment %q (Scope %q): %s", lighthouseAssignmentName, scope, err)
+			return nil, "Error", fmt.Errorf("polling to check the deletion of %s: %+v", id, err)
 		}
 
-		return res, "Deleting", nil
+		return resp, "Deleting", nil
 	}
 }

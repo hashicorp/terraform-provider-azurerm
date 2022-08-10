@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -380,6 +380,14 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 				results[k] = v.(float64)
 			case string:
 				results[k] = v.(string)
+			case map[string]interface{}:
+				// Azure NVA managed applications read call returns empty map[string]interface{} parameter 'tags'
+				// Do not return an error if the parameter is unsupported type, but is empty
+				if len(v.(map[string]interface{})) == 0 {
+					log.Printf("parameter '%s' is unexpected type %T, but we're ignoring it because of the empty value", k, t)
+				} else {
+					return nil, fmt.Errorf("unexpected parameter type %T", t)
+				}
 			default:
 				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}

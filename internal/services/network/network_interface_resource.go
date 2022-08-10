@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -93,8 +94,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPAllocationMethodDynamic),
 								string(network.IPAllocationMethodStatic),
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"public_ip_address_id": {
@@ -119,6 +119,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				},
 			},
 
+			// Optional
 			"dns_servers": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -128,6 +129,8 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_accelerated_networking": {
@@ -262,6 +265,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	iface := network.Interface{
 		Name:                      utils.String(id.Name),
+		ExtendedLocation:          expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                  utils.String(location),
 		InterfacePropertiesFormat: &properties,
 		Tags:                      tags.Expand(t),
@@ -308,8 +312,9 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	update := network.Interface{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
 		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
 			DNSSettings:                 &network.InterfaceDNSSettings{},
@@ -401,9 +406,8 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if props := resp.InterfacePropertiesFormat; props != nil {
 		primaryPrivateIPAddress := ""

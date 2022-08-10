@@ -10,6 +10,8 @@ description: |-
 
 Manages a Video Analyzer.
 
+!> Video Analyzer (Preview) is now Deprecated and will be Retired on 2022-11-30 - as such the `azurerm_video_analyzer` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl
@@ -94,15 +96,15 @@ A `storage_account` block supports the following:
 
 * `id` - (Required) Specifies the ID of the Storage Account that will be associated with the Video Analyzer instance.
 
-* `user_assigned_identity_id` - (Required) Specifies the User Assigned Identity ID which should be assigned to a access this Storage Account.
+* `user_assigned_identity_id` - (Required) Specifies the User Assigned Identity ID which should be assigned to access this Storage Account.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Identity that should be configured on this Video Analyzer. At this time the only possible value is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Video Analyzer instance. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Required) A list of User Assigned Identity ID's to be assigned to this Video Analyzer.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Video Analyzer instance.
 
 ---
 
@@ -115,7 +117,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Video Analyzer.
 * `update` - (Defaults to 30 minutes) Used when updating the Video Analyzer.

@@ -34,7 +34,7 @@ data "azurerm_blueprint_definition" "example" {
 
 * `scope_id` - (Required) The ID of the Subscription or Management Group, as the scope at which the blueprint definition is stored.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Blueprint Definition.  
 
@@ -53,6 +53,6 @@ data "azurerm_blueprint_definition" "example" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Blueprint Published Version.  

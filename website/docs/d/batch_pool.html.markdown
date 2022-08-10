@@ -31,7 +31,7 @@ The following attributes are exported:
 
 * `account_name` - The name of the Batch account.
 
-* `node_agent_sku_id` - The Sku of the node agents in the Batch pool.
+* `node_agent_sku_id` - The SKU of the node agents in the Batch pool.
 
 * `vm_size` - The size of the VM created in the Batch pool.
 
@@ -73,17 +73,9 @@ A `start_task` block exports the following:
 
 * `command_line` - The command line executed by the start task.
 
-* `max_task_retry_count` - The number of retry count.
-
--> **Note:** This property has been deprecated in favour of the `task_retry_maximum` property and will be removed in version 3.0 of the provider.
-
 * `task_retry_maximum` - The number of retry count
 
 * `wait_for_success` - A flag that indicates if the Batch pool should wait for the start task to be completed.
-
-* `environment` - A map of strings (key,value) that represents the environment variables to set in the start task.
-
--> **Note:** This property has been deprecated in favour of the `common_environment_properties` property and will be removed in version 3.0 of the provider.
 
 * `common_environment_properties` - A map of strings (key,value) that represents the environment variables to set in the start task.
 
@@ -193,6 +185,6 @@ A `network_security_group_rules` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.

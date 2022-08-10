@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `device_vendor` - (Optional) The name of the VPN device vendor.
 
+* `o365_policy` - (Optional) An `o365_policy` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the VPN Site.
 
 ---
@@ -74,7 +76,7 @@ A `bgp` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
-* `peering_address` - (Required) The BGP peering ip address. 
+* `peering_address` - (Required) The BGP peering IP address. 
 
 ---
 
@@ -96,6 +98,22 @@ A `link` block supports the following:
 
 * `speed_in_mbps` - (Optional) The speed of the VPN device at the branch location in unit of mbps.
 
+---
+
+A `o365_policy` block supports the following:
+
+* `traffic_category` - (Optional) A `traffic_category` block as defined above.
+
+---
+
+A `traffic_category` block supports the following:
+
+* `allow_endpoint_enabled` - (Optional) Is allow endpoint enabled? The `Allow` endpoint is required for connectivity to specific O365 services and features, but are not as sensitive to network performance and latency as other endpoint types. Defaults to `false`.
+
+* `default_endpoint_enabled` - (Optional) Is default endpoint enabled? The `Default` endpoint represents O365 services and dependencies that do not require any optimization, and can be treated by customer networks as normal Internet bound traffic. Defaults to `false`.
+
+* `optimize_endpoint_enabled` - (Optional) Is optimize endpoint enabled? The `Optimize` endpoint is required for connectivity to every O365 service and represents the O365 scenario that is the most sensitive to network performance, latency, and availability. Defaults to `false`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -112,7 +130,7 @@ A `link` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the VPN Site.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Site.

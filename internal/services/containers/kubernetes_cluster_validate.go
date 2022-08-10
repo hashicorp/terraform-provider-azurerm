@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -251,7 +251,7 @@ details can be found at https://aka.ms/version-skew-policy.
 `, desiredNodePoolVersion, nodePoolName, clusterName, resourceGroup, clusterVersionDetails, versionsList)
 }
 
-func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, defaultNodePoolId parse.NodePoolId, desiredNodePoolVersion string) error {
+func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, currentNodePoolVersion string, defaultNodePoolId parse.NodePoolId, desiredNodePoolVersion string) error {
 	// confirm the version being used is >= the version of the control plane
 	versions, err := client.AgentPoolsClient.GetAvailableAgentPoolVersions(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName)
 	if err != nil {
@@ -259,14 +259,23 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 	}
 	versionExists := false
 	supportedVersions := make([]string, 0)
-	if versions.AgentPoolAvailableVersionsProperties != nil && versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions != nil {
+
+	// when updating a cluster running a deprecated version of k8s then the validation should pass
+	if currentNodePoolVersion == desiredNodePoolVersion {
+		versionExists = true
+	}
+
+	// when creating a new cluster or upgrading the desired version should be supported
+	if !versionExists && versions.AgentPoolAvailableVersionsProperties != nil && versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions != nil {
 		for _, version := range *versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions {
 			if version.KubernetesVersion == nil {
 				continue
 			}
 
-			supportedVersions = append(supportedVersions, *version.KubernetesVersion)
-			if *version.KubernetesVersion == desiredNodePoolVersion {
+			v := *version.KubernetesVersion
+			supportedVersions = append(supportedVersions, v)
+			// alias versions (major.minor) are also fine as the latest supported GA patch version is chosen automatically in this case
+			if v == desiredNodePoolVersion || v[:strings.LastIndex(v, ".")] == desiredNodePoolVersion {
 				versionExists = true
 			}
 		}
@@ -284,7 +293,7 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 		// nilable since a user may not necessarily have access, and this is trying to be helpful
 		var clusterVersion *string
 		if props := cluster.ManagedClusterProperties; props != nil {
-			clusterVersion = props.KubernetesVersion
+			clusterVersion = props.CurrentKubernetesVersion
 		}
 
 		return clusterControlPlaneMustBeUpgradedError(defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)

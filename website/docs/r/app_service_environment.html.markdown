@@ -42,6 +42,7 @@ resource "azurerm_subnet" "gateway" {
 
 resource "azurerm_app_service_environment" "example" {
   name                         = "example-ase"
+  resource_group_name          = azurerm_resource_group.example.name
   subnet_id                    = azurerm_subnet.ase.id
   pricing_tier                 = "I2"
   front_end_scale_factor       = 10
@@ -74,7 +75,7 @@ resource "azurerm_app_service_environment" "example" {
 
 * `allowed_user_ip_cidrs` - (Optional) Allowed user added IP ranges on the ASE database. Use the addresses you want to set as the explicit egress address ranges.
 
-~> **NOTE:** `allowed_user_ip_cidrs` The addresses that will be used for all outbound traffic from your App Service Environment to the internet to avoid asymmetric routing challenge. If you're routing the traffic on premises, these addresses are your NATs or gateway IPs. If you want to route the App Service Environment outbound traffic through an NVA, the egress address is the public IP of the NVA. Please visit [Create your ASE with the egress addresses](https://docs.microsoft.com/en-us/azure/app-service/environment/forced-tunnel-support#add-your-own-ips-to-the-ase-azure-sql-firewall)
+~> **NOTE:** `allowed_user_ip_cidrs` The addresses that will be used for all outbound traffic from your App Service Environment to the internet to avoid asymmetric routing challenge. If you're routing the traffic on premises, these addresses are your NATs or gateway IPs. If you want to route the App Service Environment outbound traffic through an NVA, the egress address is the public IP of the NVA. Please visit [Create your ASE with the egress addresses](https://docs.microsoft.com/azure/app-service/environment/forced-tunnel-support#add-your-own-ips-to-the-ase-azure-sql-firewall)
 
 * `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 
@@ -88,7 +89,7 @@ A `cluster_setting` block supports the following:
 
 * `value` - (Required) The value for the Cluster Setting. 
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the App Service Environment.
 
@@ -102,7 +103,7 @@ A `cluster_setting` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 4 hours) Used when creating the App Service Environment.
 * `update` - (Defaults to 4 hours) Used when updating the App Service Environment.

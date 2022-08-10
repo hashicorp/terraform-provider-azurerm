@@ -72,7 +72,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestDat
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
-  resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -95,7 +94,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) update(data acceptance.TestDa
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
-  resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -127,7 +125,7 @@ resource "azurerm_subnet" "gateway_snet_test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -170,7 +168,7 @@ resource "azurerm_subnet" "gateway_snet_secondary" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.secondary.name
   virtual_network_name = azurerm_virtual_network.secondary.name
-  address_prefix       = "10.1.1.0/24"
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_public_ip" "secondary" {

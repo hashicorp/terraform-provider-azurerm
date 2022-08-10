@@ -39,13 +39,17 @@ output "redis_enterprise_database_secondary_key" {
 
 * `cluster_id` - The resource ID of Redis Enterprise Cluster which hosts the Redis Enterprise Database instance.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The Redis Enterprise Database ID.
 
 * `name` - The Redis Enterprise Database name.
 
 * `cluster_id` - The Redis Enterprise Cluster ID that is hosting the Redis Enterprise Database.
+
+* `linked_database_id` - The Linked Database list for the Redis Enterprise Database instance.
+
+* `linked_database_group_nickname` - The Linked Database Group Nickname for the Redis Enterprise Database instance.
 
 * `primary_access_key` - The Primary Access Key for the Redis Enterprise Database instance.
 
@@ -55,6 +59,6 @@ output "redis_enterprise_database_secondary_key" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Enterprise Database.

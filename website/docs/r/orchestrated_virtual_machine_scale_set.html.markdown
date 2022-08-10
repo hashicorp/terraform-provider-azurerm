@@ -49,7 +49,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `sku_name` - (Optional) The `name` of the sku to be used by this Orcestrated Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine sku's.
+* `sku_name` - (Optional) The `name` of the SKU to be used by this Orcestrated Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
 
 * `instances`- (Optional) The number of Virtual Machines in the Orcestrated Virtual Machine Scale Set.
 
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Orchestrated Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Orchestrated Virtual Machine should be located. Changing this forces a new Orchestrated Virtual Machine to be created.
 
 ~> **NOTE:** Due to a limitation of the Azure API at this time only one Availability Zone can be defined.
 
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 ---
 
-A `os_profile` block supports the following: 
+A `os_profile` block supports the following:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Orchestrated Virtual Machine Scale Set.
 
@@ -121,9 +121,9 @@ A `windows_configuration` block supports the following:
 
 * `hotpatching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` or `false`. Defaults to `false`. For more information about hot patching please see the [product documentation](https://docs.microsoft.com/azure/automanage/automanage-hotpatch).
 
--> **NOTE:** Hotpatching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform`, the `provision_vm_agent` is set to `true`, your `source_image_reference` references a hotpatching enabled image, the VM's `sku_name` is set to a [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM sku and the `extension` contains an application health extension. An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Windows Virtual Machine with hotpatching enabled can be found in the [`./examples/orchestrated-vm-scale-set/hotpatching-enabled`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/hotpatching-enabled) directory within the Github Repository.
+-> **NOTE:** Hotpatching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform`, the `provision_vm_agent` is set to `true`, your `source_image_reference` references a hotpatching enabled image, the VM's `sku_name` is set to a [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM SKU and the `extension` contains an application health extension. An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Windows Virtual Machine with hotpatching enabled can be found in the [`./examples/orchestrated-vm-scale-set/hotpatching-enabled`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/hotpatching-enabled) directory within the GitHub Repository.
 
-* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`. For more informaton on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
 -> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.
 
@@ -133,7 +133,7 @@ A `windows_configuration` block supports the following:
 
 * `timezone` - (Optional) Specifies the time zone of the virtual machine, the possible values are defined [here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
-* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. 
+* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.
 
 ---
 
@@ -149,9 +149,9 @@ A `linux_configuration` block supports the following:
 
 ~> **NOTE:** Either `admin_password` or `admin_ssh_key` must be specified.
 
-* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `ImageDefault` or `AutomaticByPlatform`. Defaults to `ImageDefault`. For more informaton on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `ImageDefault` or `AutomaticByPlatform`. Defaults to `ImageDefault`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
--> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.  An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Linux Virtual Machine with Automatic VM Guest Patching enabled can be found in the [`./examples/orchestrated-vm-scale-set/automatic-vm-guest-patching`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/automatic-vm-guest-patching) directory within the Github Repository.
+-> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.  An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Linux Virtual Machine with Automatic VM Guest Patching enabled can be found in the [`./examples/orchestrated-vm-scale-set/automatic-vm-guest-patching`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/automatic-vm-guest-patching) directory within the GitHub Repository.
 
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
 
@@ -193,7 +193,7 @@ A `admin_ssh_key` block supports the following:
 
 ---
 
-A `winrm_listener` block supports the following: 
+A `winrm_listener` block supports the following:
 
 * `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when protocol is set to `Https`.
 
@@ -201,7 +201,7 @@ A `winrm_listener` block supports the following:
 
 ---
 
-A `automatic_instance_repair` block supports the following: 
+A `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Orchestrated Virtual Machine Scale Set? Possible values are `true` and `false`. Defaults to `false`.
 
@@ -209,19 +209,19 @@ A `automatic_instance_repair` block supports the following:
 
 ---
 
-A `boot_diagnostics` block supports the following: 
+A `boot_diagnostics` block supports the following:
 
 * `storage_account_uri` - (Optional) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor. By including a `boot_diagnostics` block without passing the `storage_account_uri` field will cause the API to utilize a Managed Storage Account to store the Boot Diagnostics output.
 
 ---
 
-A `certificate` block supports the following: 
+A `certificate` block supports the following:
 
-* `store` - (Required) The certificate store on the Virtual Machine where the certificate should be added. 
+* `store` - (Required) The certificate store on the Virtual Machine where the certificate should be added.
 
-* `url` - (Required) The Secret URL of a Key Vault Certificate. 
+* `url` - (Required) The Secret URL of a Key Vault Certificate.
 
-~> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource. 
+~> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
 
 ---
 
@@ -229,41 +229,43 @@ A `diff_disk_settings` block supports the following:
 
 * `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
 
----
-
-A `data_disk` block supports the following: 
-
-* `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are None, ReadOnly and ReadWrite. 
-
-* `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are Empty and FromImage. Defaults to Empty. (FromImage should only be used if the source image includes data disks). 
-
-* `disk_size_gb` - (Required) The size of the Data Disk which should be created. 
-
-* `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine. 
-
-* `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include Standard_LRS, StandardSSD_LRS, Premium_LRS and UltraSSD_LRS. 
+* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk` and `ResourceDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
 
 ---
 
-An `extension` block supports the following: 
+A `data_disk` block supports the following:
 
-* `name` - (Required) The name for the Virtual Machine Scale Set Extension. 
+* `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are None, ReadOnly and ReadWrite.
 
-* `publisher` - (Required) Specifies the Publisher of the Extension. 
+* `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are Empty and FromImage. Defaults to Empty. (FromImage should only be used if the source image includes data disks).
 
-* `type` - (Required) Specifies the Type of the Extension. 
+* `disk_size_gb` - (Required) The size of the Data Disk which should be created.
 
-* `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI. 
+* `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.
 
-* `auto_upgrade_minor_version_enabled` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to true. 
+* `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include Standard_LRS, StandardSSD_LRS, Premium_LRS and UltraSSD_LRS.
+
+---
+
+An `extension` block supports the following:
+
+* `name` - (Required) The name for the Virtual Machine Scale Set Extension.
+
+* `publisher` - (Required) Specifies the Publisher of the Extension.
+
+* `type` - (Required) Specifies the Type of the Extension.
+
+* `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
+
+* `auto_upgrade_minor_version_enabled` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to true.
 
 * `extensions_to_provision_after_vm_creation` - (Optional) An ordered list of Extension names which Orchestrated Virtual Machine Scale Set should provision after VM creation.
 
-* `force_extension_execution_on_change` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed. 
+* `force_extension_execution_on_change` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
 
-* `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension. 
+* `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
 
-~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information. 
+~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information.
 
 ---
 
@@ -271,11 +273,11 @@ A `ip_configuration` block supports the following:
 
 * `name` - (Required) The Name which should be used for this IP Configuration.
 
-* `application_gateway_backend_address_pool_ids` - (Optional) A list of Backend Address Pools ID's from a Application Gateway which this Orchestrated Virtual Machine Scale Set should be connected to.
+* `application_gateway_backend_address_pool_ids` - (Optional) A list of Backend Address Pools IDs from a Application Gateway which this Orchestrated Virtual Machine Scale Set should be connected to.
 
-* `application_security_group_ids` - (Optional) A list of Application Security Group ID's which this Orchestrated Virtual Machine Scale Set should be connected to.
+* `application_security_group_ids` - (Optional) A list of Application Security Group IDs which this Orchestrated Virtual Machine Scale Set should be connected to.
 
-* `load_balancer_backend_address_pool_ids` - (Optional) A list of Backend Address Pools ID's from a Load Balancer which this Orchestrated Virtual Machine Scale Set should be connected to.
+* `load_balancer_backend_address_pool_ids` - (Optional) A list of Backend Address Pools IDs from a Load Balancer which this Orchestrated Virtual Machine Scale Set should be connected to.
 
 ~> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a depends_on between this resource and the Load Balancer Rule.
 
@@ -287,7 +289,7 @@ A `ip_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet which this IP Configuration should be connected to.
 
-~> **NOTE:** `subnet_id` is required if version is set to `IPv4`. 
+~> **NOTE:** `subnet_id` is required if version is set to `IPv4`.
 
 * `version` - (Optional) The Internet Protocol Version which should be used for this IP Configuration. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`.
 
@@ -301,7 +303,7 @@ A `ip_tag` block supports the following:
 
 ---
 
-A `network_interface` block supports the following: 
+A `network_interface` block supports the following:
 
 * `name` - (Required) The Name which should be used for this Network Interface. Changing this forces a new resource to be created.
 
@@ -323,21 +325,21 @@ A `network_interface` block supports the following:
 
 A `os_disk` block supports the following:
 
-* `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`. 
+* `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
-* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS` and `Premium_LRS`. 
+* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS` and `Premium_LRS`.
 
 * `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above.
 
-* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk. 
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk.
 
-~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions 
+~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.
 
 ---
 
-A `plan` block supports the following: 
+A `plan` block supports the following:
 
 * `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
 
@@ -349,43 +351,43 @@ A `plan` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Windows Orchestrated Virtual Machine Scale Set. Possible value is `UserAssigned`.
+* `type` - (Required) The type of Managed Identity that should be configured on this Orchestrated Windows Virtual Machine Scale Set. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Required) A list of User Managed Identity ID's which should be assigned to the Orchestrated Windows Virtual Machine Scale Set.
+* `identity_ids` - (Required) Specifies a list of User Managed Identity IDs to be assigned to this Orchestrated Windows Virtual Machine Scale Set.
 
 ---
 
-A `public_ip_address` block supports the following: 
+A `public_ip_address` block supports the following:
 
-* `name` - (Required) The Name of the Public IP Address Configuration. 
+* `name` - (Required) The Name of the Public IP Address Configuration.
 
 * `domain_name_label` - (Optional) The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance. Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine. Valid values must be between `1` and `26` characters long, start with a lower case letter, end with a lower case letter or number and contains only `a-z`, `0-9` and `hyphens`.
 
-* `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values are in the range `4` to `32`. 
+* `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values are in the range `4` to `32`.
 
 * `ip_tag` - (Optional) One or more `ip_tag` blocks as defined above.
 
-* `public_ip_prefix_id` - (Optional) The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated. Changing this forces a new resource to be created. 
+* `public_ip_prefix_id` - (Optional) The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated. Changing this forces a new resource to be created.
 
 ---
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? Possible values `true` or `false` Defaults to `false`. 
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? Possible values `true` or `false` Defaults to `false`.
 
 * `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in `ISO 8601` format. Defaults to `PT5M`.
 
 ---
 
-A `source_image_reference` block supports the following: 
+A `source_image_reference` block supports the following:
 
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines. 
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines. 
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
 
-* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines. 
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 
-* `version` - (Optional) Specifies the version of the image used to create the virtual machines. 
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ---
 
@@ -399,7 +401,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Orchestrated Virtual Machine Scale Set.
 * `update` - (Defaults to 30 minutes) Used when updating the Orchestrated Virtual Machine Scale Set.
@@ -411,5 +413,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 An Orchestrated Virtual Machine Scale Set can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_orchestrated_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/Microsoft.Compute/virtualMachineScaleSets/scaleset1
+terraform import azurerm_orchestrated_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```

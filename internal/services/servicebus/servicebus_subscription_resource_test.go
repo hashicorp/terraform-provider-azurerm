@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -37,6 +37,21 @@ func TestAccServiceBusSubscription_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusSubscription_clientScopedEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clientScopedSubscriptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -219,17 +234,17 @@ func TestAccServiceBusSubscription_status(t *testing.T) {
 }
 
 func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionID(state.ID)
+	id, err := subscriptions.ParseSubscriptions2ID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.SubscriptionsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name)
+	resp, err := clients.ServiceBus.SubscriptionsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Service Bus NameSpace Subscription (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 const testAccServiceBusSubscription_tfTemplate = `
@@ -277,22 +292,20 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_subscription" "test" {
   name                                 = "_acctestservicebussubscription-%[1]d_"
-  namespace_name                       = "${azurerm_servicebus_namespace.test.name}"
-  topic_name                           = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
+  topic_id                             = azurerm_servicebus_topic.test.id
   max_delivery_count                   = 10
   auto_delete_on_idle                  = "PT5M"
   lock_duration                        = "PT1M"
   dead_lettering_on_message_expiration = true
 	%[3]s
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, "")
 }
@@ -370,4 +383,37 @@ func (ServiceBusSubscriptionResource) status(data acceptance.TestData, status st
 func (ServiceBusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"dead_lettering_on_filter_evaluation_error = false\n")
+}
+
+func (ServiceBusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestsbn-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Premium"
+  capacity            = 1
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+}
+
+resource "azurerm_servicebus_subscription" "test" {
+  name                               = "_acctestsub-%[1]d_"
+  topic_id                           = azurerm_servicebus_topic.test.id
+  max_delivery_count                 = 10
+  client_scoped_subscription_enabled = true
+  client_scoped_subscription {
+    client_id                               = "123456"
+    is_client_scoped_subscription_shareable = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -139,7 +139,7 @@ A `rule` block supports the following:
 
 * `property_type` - (Required) The data type of the compared operands, must be one of: `Integer`, `String`, `Boolean` or `Number`.
 
-~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/en-us/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
+~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
 
 
 ## Attributes Reference
@@ -150,7 +150,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Security Center Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Automation.

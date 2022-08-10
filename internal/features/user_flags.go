@@ -2,11 +2,11 @@ package features
 
 type UserFeatures struct {
 	ApiManagement          ApiManagementFeatures
+	ApplicationInsights    ApplicationInsightFeatures
 	CognitiveAccount       CognitiveAccountFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
-	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
@@ -33,14 +33,11 @@ type KeyVaultFeatures struct {
 	PurgeSoftDeletedKeysOnDestroy    bool
 	PurgeSoftDeletedCertsOnDestroy   bool
 	PurgeSoftDeletedSecretsOnDestroy bool
+	PurgeSoftDeletedHSMsOnDestroy    bool
 	RecoverSoftDeletedKeyVaults      bool
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
-}
-
-type NetworkFeatures struct {
-	RelaxedLocking bool
 }
 
 type TemplateDeploymentFeatures struct {
@@ -57,4 +54,9 @@ type ResourceGroupFeatures struct {
 
 type ApiManagementFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
+	RecoverSoftDeleted       bool
+}
+
+type ApplicationInsightFeatures struct {
+	DisableGeneratedRule bool
 }

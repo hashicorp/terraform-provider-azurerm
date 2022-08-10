@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `version` - The version of this MySQL Server.
 
-* `administrator_login` - The Administrator Login for the MySQL Server.
+* `administrator_login` - The Administrator login for the MySQL Server.
 
 * `auto_grow_enabled` - The auto grow setting for this MySQL Server.
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - The geo redundant backup setting for this MySQL Server.
 
-* `identity` - An `identity` block for this MySQL server as defined below. 
+* `identity` - An `identity` block as defined below. 
 
 * `infrastructure_encryption_enabled` - Whether or not infrastructure is encrypted for this MySQL Server.
 
@@ -70,12 +70,12 @@ The following arguments are supported:
 ---
 
 An `identity` block exports the following:
-   
-* `type` -  The Type of Identity used for this MySQL Server.
 
-* `principal_id` - The Client ID of the Service Principal assigned to this MySQL Server.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
 ---
 
 A `threat_detection_policy` block exports the following:
@@ -92,10 +92,10 @@ A `threat_detection_policy` block exports the following:
 
 * `storage_account_access_key` - Specifies the identifier key of the Threat Detection audit storage account.
 
-* `storage_endpoint` - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+* `storage_endpoint` - Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Server.

@@ -33,7 +33,7 @@ output "maps_account_id" {
 
 * `id` - The ID of the Maps Account.
 
-* `sku_name` - The sku of the Azure Maps Account.
+* `sku_name` - The SKU of the Azure Maps Account.
 
 * `primary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs.
 
@@ -44,6 +44,6 @@ output "maps_account_id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maps Account.

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Dedicated Hardware Security Module.
 
--> **Note:** Before using this resource, it's required to submit the request of registering the providers and features with Azure CLI `az provider register --namespace Microsoft.HardwareSecurityModules && az feature register --namespace Microsoft.HardwareSecurityModules --name AzureDedicatedHSM && az provider register --namespace Microsoft.Network && az feature register --namespace Microsoft.Network --name AllowBaremetalServers` and ask service team (hsmrequest@microsoft.com) to approve. See more details from https://docs.microsoft.com/en-us/azure/dedicated-hsm/tutorial-deploy-hsm-cli#prerequisites.
+-> **Note:** Before using this resource, it's required to submit the request of registering the providers and features with Azure CLI `az provider register --namespace Microsoft.HardwareSecurityModules && az feature register --namespace Microsoft.HardwareSecurityModules --name AzureDedicatedHSM && az provider register --namespace Microsoft.Network && az feature register --namespace Microsoft.Network --name AllowBaremetalServers` and ask service team (hsmrequest@microsoft.com) to approve. See more details from https://docs.microsoft.com/azure/dedicated-hsm/tutorial-deploy-hsm-cli#prerequisites.
 
 -> **Note:** If the quota is not enough in some region, please submit the quota request to service team.
 
@@ -118,11 +118,11 @@ The following arguments are supported:
 
 * `network_profile` - (Required)  A `network_profile` block as defined below.
 
-* `sku_name` - (Required) The sku name of the dedicated hardware security module. Changing this forces a new Dedicated Hardware Security Module to be created.
+* `sku_name` - (Required) The SKU name of the dedicated hardware security module. Changing this forces a new Dedicated Hardware Security Module to be created.
 
 * `stamp_id` - (Optional) The ID of the stamp. Possible values are `stamp1` or `stamp2`. Changing this forces a new Dedicated Hardware Security Module to be created.
 
-* `zones` - (Optional) The Dedicated Hardware Security Module zones. Changing this forces a new Dedicated Hardware Security Module to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Dedicated Hardware Security Module should be located. Changing this forces a new Dedicated Hardware Security Module to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dedicated Hardware Security Module.
 
@@ -142,7 +142,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dedicated Hardware Security Module.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Hardware Security Module.

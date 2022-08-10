@@ -9,14 +9,16 @@ description: |-
 
 # azurerm_lighthouse_assignment
 
-Manages a [Lighthouse](https://docs.microsoft.com/en-us/azure/lighthouse) Assignment to a subscription, or to a resource group.
+Manages a [Lighthouse](https://docs.microsoft.com/azure/lighthouse) Assignment to a subscription, or to a resource group.
 
 ## Example Usage
 
 ```hcl
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_lighthouse_assignment" "example" {
-  scope                    = "/subscription/00000000-0000-0000-0000-000000000000"
+  scope                    = data.azurerm_subscription.primary.id
   lighthouse_definition_id = "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationDefinitions/00000000-0000-0000-0000-000000000000"
 }
 ```
@@ -39,7 +41,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Lighthouse Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Lighthouse Assignment.

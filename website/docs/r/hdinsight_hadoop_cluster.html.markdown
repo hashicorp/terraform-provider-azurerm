@@ -44,7 +44,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -127,8 +126,6 @@ A `component_version` block supports the following:
 ---
 
 A `gateway` block supports the following:
-
-* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
 * `password` - (Required) The password used for the Ambari Portal.
 
@@ -218,8 +215,6 @@ A `worker_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
 
-* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
-
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
 -> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
@@ -276,7 +271,33 @@ A `install_script_action` block supports the following:
 
 * `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
 
---- 
+* `parameters` - (Optional) The parameters for the script.
+
+---
+
+A `https_endpints` block supports the following:
+
+* `access_modes` - (Optional) A list of access modes for the application.
+
+* `destination_port` - (Optional) The destination port to connect to.
+
+* `disable_gateway_auth` - (Optional) The value indicates whether the gateway authentication is enabled or not.
+
+* `private_ip_address` - (Optional) The private ip address of the endpoint.
+
+* `sub_domain_suffix` - (Optional) The application's subdomain suffix.
+
+---
+
+A `uninstall_script_actions` block supports the following:
+
+* `name` - (Required) The name of the uninstall script action. Changing this forces a new resource to be created.
+
+* `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
+
+* `parameters` - (Optional) The parameters for the script.
+
+---
 
 A `metastores` block supports the following:
 
@@ -399,7 +420,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Hadoop HDInsight Cluster.
 * `update` - (Defaults to 60 minutes) Used when updating the Hadoop HDInsight Cluster.

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -67,6 +70,25 @@ func resourceSharedImage() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"disk_types_not_allowed": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.DiskStorageAccountTypesStandardLRS),
+						string(compute.DiskStorageAccountTypesPremiumLRS),
+					}, false),
+				},
+			},
+
+			"end_of_life_date": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
+			},
+
 			"hyper_v_generation": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -85,16 +107,22 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"publisher": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validate.SharedImageIdentifierAttribute,
 						},
 						"offer": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validate.SharedImageIdentifierAttribute,
 						},
 						"sku": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validate.SharedImageIdentifierAttribute,
 						},
 					},
 				},
@@ -108,6 +136,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 			"eula": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"purchase_plan": {
@@ -140,7 +169,32 @@ func resourceSharedImage() *pluginsdk.Resource {
 
 			"privacy_statement_uri": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Optional: true,
+			},
+
+			"max_recommended_vcpu_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 80),
+			},
+
+			"min_recommended_vcpu_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 80),
+			},
+
+			"max_recommended_memory_in_gb": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 640),
+			},
+
+			"min_recommended_memory_in_gb": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 640),
 			},
 
 			"release_note_uri": {
@@ -160,8 +214,20 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"accelerated_network_support_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != "" && new.(string) == ""
+			}),
+		),
 	}
 }
 
@@ -194,12 +260,23 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Value: utils.String("TrustedLaunch"),
 		})
 	}
+	if d.Get("accelerated_network_support_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("IsAcceleratedNetworkSupported"),
+			Value: utils.String("true"),
+		})
+	}
+
+	recommended, err := expandGalleryImageRecommended(d)
+	if err != nil {
+		return err
+	}
 
 	image := compute.GalleryImage{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		GalleryImageProperties: &compute.GalleryImageProperties{
 			Description:         utils.String(d.Get("description").(string)),
-			Eula:                utils.String(d.Get("eula").(string)),
+			Disallowed:          expandGalleryImageDisallowed(d),
 			Identifier:          expandGalleryImageIdentifier(d),
 			PrivacyStatementURI: utils.String(d.Get("privacy_statement_uri").(string)),
 			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
@@ -207,8 +284,20 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
 			Features:            &features,
+			Recommended:         recommended,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("end_of_life_date"); ok {
+		endOfLifeDate, _ := time.Parse(time.RFC3339, v.(string))
+		image.GalleryImageProperties.EndOfLifeDate = &date.Time{
+			Time: endOfLifeDate,
+		}
+	}
+
+	if v, ok := d.GetOk("eula"); ok {
+		image.GalleryImageProperties.Eula = utils.String(v.(string))
 	}
 
 	if d.Get("specialized").(bool) {
@@ -261,7 +350,50 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if props := resp.GalleryImageProperties; props != nil {
 		d.Set("description", props.Description)
+
+		diskTypesNotAllowed := make([]string, 0)
+		if disallowed := props.Disallowed; disallowed != nil {
+			if disallowed.DiskTypes != nil {
+				for _, v := range *disallowed.DiskTypes {
+					diskTypesNotAllowed = append(diskTypesNotAllowed, v)
+				}
+			}
+		}
+		d.Set("disk_types_not_allowed", diskTypesNotAllowed)
+
+		if v := props.EndOfLifeDate; v != nil {
+			d.Set("end_of_life_date", props.EndOfLifeDate.Format(time.RFC3339))
+		}
+
 		d.Set("eula", props.Eula)
+
+		maxRecommendedVcpuCount := 0
+		minRecommendedVcpuCount := 0
+		maxRecommendedMemoryInGB := 0
+		minRecommendedMemoryInGB := 0
+		if recommended := props.Recommended; recommended != nil {
+			if vcpus := recommended.VCPUs; vcpus != nil {
+				if vcpus.Max != nil {
+					maxRecommendedVcpuCount = int(*vcpus.Max)
+				}
+				if vcpus.Min != nil {
+					minRecommendedVcpuCount = int(*vcpus.Min)
+				}
+			}
+			if memory := recommended.Memory; memory != nil {
+				if memory.Max != nil {
+					maxRecommendedMemoryInGB = int(*memory.Max)
+				}
+				if memory.Min != nil {
+					minRecommendedMemoryInGB = int(*memory.Min)
+				}
+			}
+		}
+		d.Set("max_recommended_vcpu_count", maxRecommendedVcpuCount)
+		d.Set("min_recommended_vcpu_count", minRecommendedVcpuCount)
+		d.Set("max_recommended_memory_in_gb", maxRecommendedMemoryInGB)
+		d.Set("min_recommended_memory_in_gb", minRecommendedMemoryInGB)
+
 		d.Set("os_type", string(props.OsType))
 		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
@@ -276,15 +408,25 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 
-		trusted_launch_enabled := false
-		if props.Features != nil {
-			for _, feature := range *props.Features {
-				if feature.Name != nil && feature.Value != nil && *feature.Name == "SecurityType" && *feature.Value == "TrustedLaunch" {
-					trusted_launch_enabled = true
+		trustedLaunchEnabled := false
+		acceleratedNetworkSupportEnabled := false
+		if features := props.Features; features != nil {
+			for _, feature := range *features {
+				if feature.Name == nil || feature.Value == nil {
+					continue
+				}
+
+				if strings.EqualFold(*feature.Name, "SecurityType") {
+					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+				}
+
+				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+					acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
 				}
 			}
 		}
-		d.Set("trusted_launch_enabled", trusted_launch_enabled)
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -437,4 +579,50 @@ func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interfa
 			"product":   product,
 		},
 	}
+}
+
+func expandGalleryImageDisallowed(d *pluginsdk.ResourceData) *compute.Disallowed {
+	diskTypesNotAllowedRaw := d.Get("disk_types_not_allowed").(*pluginsdk.Set).List()
+
+	diskTypesNotAllowed := make([]string, 0)
+	for _, v := range diskTypesNotAllowedRaw {
+		diskTypesNotAllowed = append(diskTypesNotAllowed, v.(string))
+	}
+
+	return &compute.Disallowed{
+		DiskTypes: &diskTypesNotAllowed,
+	}
+}
+
+func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*compute.RecommendedMachineConfiguration, error) {
+	result := &compute.RecommendedMachineConfiguration{
+		VCPUs:  &compute.ResourceRange{},
+		Memory: &compute.ResourceRange{},
+	}
+
+	maxVcpuCount := d.Get("max_recommended_vcpu_count").(int)
+	minVcpuCount := d.Get("min_recommended_vcpu_count").(int)
+	if maxVcpuCount != 0 && minVcpuCount != 0 && maxVcpuCount < minVcpuCount {
+		return nil, fmt.Errorf("`max_recommended_vcpu_count` must be greater than or equal to `min_recommended_vcpu_count`")
+	}
+	if maxVcpuCount != 0 {
+		result.VCPUs.Max = utils.Int32(int32(maxVcpuCount))
+	}
+	if minVcpuCount != 0 {
+		result.VCPUs.Min = utils.Int32(int32(minVcpuCount))
+	}
+
+	maxMemory := d.Get("max_recommended_memory_in_gb").(int)
+	minMemory := d.Get("min_recommended_memory_in_gb").(int)
+	if maxMemory != 0 && minMemory != 0 && maxMemory < minMemory {
+		return nil, fmt.Errorf("`max_recommended_memory_in_gb` must be greater than or equal to `min_recommended_memory_in_gb`")
+	}
+	if maxMemory != 0 {
+		result.Memory.Max = utils.Int32(int32(maxMemory))
+	}
+	if minMemory != 0 {
+		result.Memory.Min = utils.Int32(int32(minMemory))
+	}
+
+	return result, nil
 }

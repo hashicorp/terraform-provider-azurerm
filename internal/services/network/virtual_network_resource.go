@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -42,118 +44,117 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
+		Schema: resourceVirtualNetworkSchema(),
+	}
+}
+
+func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"address_space": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"address_space": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-
-			"bgp_community": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.VirtualNetworkBgpCommunity,
-			},
-
-			"ddos_protection_plan": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-
-						"enable": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"dns_servers": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-
-			"flow_timeout_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(4, 30),
-			},
-
-			// TODO 3.0: Remove this property
-			"vm_protection_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Default:    false,
-				Deprecated: "This is deprecated in favor of `ddos_protection_plan`",
-			},
-
-			"guid": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"subnet": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"address_prefix": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"security_group": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-				Set: resourceAzureSubnetHash,
-			},
-
-			"tags": tags.Schema(),
 		},
+
+		// Optional
+		"bgp_community": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.VirtualNetworkBgpCommunity,
+		},
+
+		"ddos_protection_plan": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+
+					"enable": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"dns_servers": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
+		"flow_timeout_in_minutes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(4, 30),
+		},
+
+		"guid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"subnet": {
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"address_prefix": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"security_group": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Set: resourceAzureSubnetHash,
+		},
+
+		"tags": tags.Schema(),
 	}
 }
 
@@ -187,6 +188,7 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	vnet := network.VirtualNetwork{
 		Name:                           utils.String(id.Name),
+		ExtendedLocation:               expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                       utils.String(location),
 		VirtualNetworkPropertiesFormat: vnetProperties,
 		Tags:                           tags.Expand(t),
@@ -261,9 +263,8 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		d.Set("guid", props.ResourceGUID)
@@ -294,8 +295,6 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("bgp_community", bgpCommunity); err != nil {
 			return fmt.Errorf("setting `bgp_community`: %+v", err)
 		}
-
-		d.Set("vm_protection_enabled", props.EnableVMProtection)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -379,8 +378,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
-		EnableVMProtection: utils.Bool(d.Get("vm_protection_enabled").(bool)),
-		Subnets:            &subnets,
+		Subnets: &subnets,
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {

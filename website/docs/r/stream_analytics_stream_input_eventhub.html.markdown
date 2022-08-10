@@ -13,8 +13,9 @@ Manages a Stream Analytics Stream Input EventHub.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -24,8 +25,8 @@ data "azurerm_stream_analytics_job" "example" {
 
 resource "azurerm_eventhub_namespace" "example" {
   name                = "example-namespace"
-  location            = data.azurerm_resource_group.example.location
-  resource_group_name = data.azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
   capacity            = 1
 }
@@ -33,7 +34,7 @@ resource "azurerm_eventhub_namespace" "example" {
 resource "azurerm_eventhub" "example" {
   name                = "example-eventhub"
   namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = data.azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.example.name
   partition_count     = 2
   message_retention   = 1
 }
@@ -42,7 +43,7 @@ resource "azurerm_eventhub_consumer_group" "example" {
   name                = "example-consumergroup"
   namespace_name      = azurerm_eventhub_namespace.example.name
   eventhub_name       = azurerm_eventhub.example.name
-  resource_group_name = data.azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_stream_analytics_stream_input_eventhub" "example" {
@@ -84,6 +85,8 @@ The following arguments are supported:
 
 * `partition_key` - (Optional) The property the input Event Hub has been partitioned by.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 * `eventhub_consumer_group_name` - (Optional) The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub. If not set the input will use the Event Hub's default consumer group. 
 
 ---
@@ -108,7 +111,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Stream Input EventHub.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input EventHub.

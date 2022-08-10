@@ -38,15 +38,27 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/azure/firewall/public-preview)
 
-* `addon_profile` - A `addon_profile` block as documented below.
+* `aci_connector_linux` - An `aci_connector_linux` block as documented below.
+
+* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below. 
+
+* `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
 
 * `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+* `http_application_routing_enabled` - Is HTTP Application Routing enabled for this managed Kubernetes Cluster?
+
+* `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
+
+* `ingress_application_gateway` - An `ingress_application_gateway` block as documented below.
+
+* `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located                   
 
@@ -66,6 +78,16 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
+* `microsoft_defender` - A `microsoft_defender` block as defined below.
+
+* `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
+
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
+
+* `oms_agent` - An `oms_agent` block as documented below.
+
+* `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?
+
 * `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
 
 * `linux_profile` - A `linux_profile` block as documented below.
@@ -76,11 +98,11 @@ The following attributes are exported:
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
-* `role_based_access_control` - A `role_based_access_control` block as documented below.
+* `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster.
 
 * `service_principal` - A `service_principal` block as documented below.
 
-* `identity` - A `identity` block as documented below.
+* `identity` - An `identity` block as documented below.
 
 * `kubelet_identity` - A `kubelet_identity` block as documented below.
 
@@ -88,21 +110,9 @@ The following attributes are exported:
 
 ---
 
-A `addon_profile` block exports the following:
+A `aci_connector_linux` block exports the following:
 
-* `http_application_routing` - A `http_application_routing` block.
-
-* `oms_agent` - A `oms_agent` block.
-
-* `kube_dashboard` - A `kube_dashboard` block.
-
-* `azure_policy` - A `azure_policy` block.
-
-* `ingress_application_gateway` - An `ingress_application_gateway` block.
-
-* `open_service_mesh` - An `open_service_mesh` block.
-
-* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block.
+* `subnet_name` - The subnet name for the virtual nodes to run.
 
 ---
 
@@ -117,6 +127,10 @@ A `agent_pool_profile` block exports the following:
 * `enable_auto_scaling` - If the auto-scaler is enabled.
 
 * `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
+
+* `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
 
 * `min_count` - Minimum number of nodes for auto-scaling
 
@@ -140,7 +154,23 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-* `zones` - Specifies the Availability Zones where the Nodes within this Agent Pool exist.
+* `zones` - A list of Availability Zones in which this Kubernetes Cluster is located.
+
+---
+
+An `azure_active_directory_role_based_access_control` block exports the following:
+
+* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+
+* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
+
+* `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
+
+* `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
+
+* `client_app_id` - The Client ID of an Azure Active Directory Application.
+
+* `server_app_id` - The Server ID of an Azure Active Directory Application.
 
 ---
 
@@ -150,26 +180,13 @@ A `upgrade_settings` block exports the following:
 
 ---
 
+A `key_vault_secrets_provider` block exports the following:
 
-A `azure_active_directory` block exports the following:
+* `secret_rotation_enabled` - Is secret rotation enabled?
 
-* `admin_group_object_ids` - The list of Object IDs of Azure Active Directory Groups which have Admin Role on the Cluster (when using a Managed integration).
+* `secret_rotation_interval` - The interval to poll for secret rotation.
 
-* `client_app_id` - The Client ID of an Azure Active Directory Application.
-
-* `managed` - Is the Azure Active Directory Integration managed (also known as AAD Integration V2)?
-
-* `server_app_id` - The Server ID of an Azure Active Directory Application.
-
-* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
-
----
-
-A `http_application_routing` block exports the following:
-
-* `enabled` - Is HTTP Application Routing Enabled?
-
-* `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
+* `secret_identity` - A `secret_identity` block as documented below.
 
 ---
 
@@ -210,6 +227,12 @@ A `linux_profile` block exports the following:
 
 ---
 
+A `microsoft_defender` block exports the following:
+
+* `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which Microsoft Defender uses to send audit logs to.
+
+---
+
 A `windows_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the Windows VMs.
@@ -224,9 +247,9 @@ A `network_profile` block exports the following:
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
-* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
+* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
 
-* `network_mode` - Network mode to be used with Azure CNI. Eg: `bridge` or `transparent`
+* `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
 
 -> **NOTE:** `network_mode` Is currently in Preview on an opt-in basis. To use it, enable feature `AKSNetworkModePreview` for `namespace Microsoft.ContainerService`.
 
@@ -236,9 +259,7 @@ A `network_profile` block exports the following:
 
 ---
 
-A `oms_agent` block exports the following:
-
-* `enabled` - Is the OMS Agent Enabled?
+An `oms_agent` block exports the following:
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
 
@@ -256,21 +277,7 @@ The `oms_agent_identity` block exports the following:
 
 ---
 
-A `kube_dashboard` block supports the following:
-
-* `enabled` - Is the Kubernetes Dashboard enabled?
-
----
-
-A `azure_policy` block supports the following:
-
-* `enabled` - Is Azure Policy for Kubernetes enabled?
-
----
-
 An `ingress_application_gateway` block supports the following:
-
-* `enabled` -  Is the Application Gateway ingress controller integrated with this Kubernetes Cluster?
 
 * `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
 
@@ -294,22 +301,6 @@ The `ingress_application_gateway_identity` block exports the following:
 
 ---
 
-An `open_service_mesh` block supports the following:
-
-* `enabled` - Is Open Service Mesh enabled?
-
----
-
-An `azure_keyvault_secrets_provider` block exports the following:
-
-* `enabled` - Is the Azure Keyvault Secrets Provider enabled?
-
-* `secret_rotation_enabled` - Is secret rotation enabled?
-
-* `secret_rotation_interval` - The interval to poll for secret rotation.
-
----
-
 The `secret_identity` block exports the following:
 
 * `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
@@ -320,29 +311,23 @@ The `secret_identity` block exports the following:
 
 ---
 
-A `role_based_access_control` block exports the following:
-
-* `azure_active_directory` - A `azure_active_directory` block as documented above.
-
-* `enabled` - Is Role Based Access Control enabled?
-
----
-
 A `service_principal` block supports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - The type of identity used for the managed cluster.
+* `type` - The type of Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `principal_id` - The principal id of the system assigned identity which is used by primary components.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by primary components.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `user_assigned_identity_id` - The ID of the User Assigned Identity which is used by primary components. This value will be empty when using system assigned identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
+
+-> **NOTE:** Currently only one User Assigned Identity is supported.
 
 ---
 
@@ -362,6 +347,6 @@ A `ssh_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Kubernetes Cluster (AKS).

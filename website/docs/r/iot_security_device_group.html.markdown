@@ -71,13 +71,13 @@ The following arguments are supported:
 
 An `allow_rule` block supports the following:
 
-* `connection_from_ips_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for inbound connection.
+* `connection_from_ips_not_allowed` - (Optional) Specifies which IP is not allowed to be connected to in current device group for inbound connection.
 
-* `connection_to_ips_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for outbound connection.
+* `connection_to_ips_not_allowed` - (Optional) Specifies which IP is not allowed to be connected to in current device group for outbound connection.
 
-* `local_users_not_allowed` - (optional) Specifies which local user is not allowed to Login in current device group.
+* `local_users_not_allowed` - (Optional) Specifies which local user is not allowed to login in current device group.
 
-* `processes_not_allowed` - (optional) Specifies which process is not allowed to be executed in current device group.
+* `processes_not_allowed` - (Optional) Specifies which process is not allowed to be executed in current device group.
 
 ---
 
@@ -99,7 +99,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Iot Security Device Group.
 * `update` - (Defaults to 30 minutes) Used when updating the Iot Security Device Group.

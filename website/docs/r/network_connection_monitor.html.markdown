@@ -97,14 +97,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   name                = "example-Workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_connection_monitor" "example" {
-  name                 = "example-Monitor"
-  network_watcher_name = azurerm_network_watcher.example.name
-  resource_group_name  = azurerm_resource_group.example.name
-  location             = azurerm_network_watcher.example.location
+  name               = "example-Monitor"
+  network_watcher_id = azurerm_network_watcher.example.id
+  location           = azurerm_network_watcher.example.location
 
   endpoint {
     name               = "source"
@@ -140,7 +139,6 @@ resource "azurerm_network_connection_monitor" "example" {
     destination_endpoints    = ["destination"]
     source_endpoints         = ["source"]
     test_configuration_names = ["tcpName"]
-    disable                  = false
   }
 
   notes = "examplenote"
@@ -194,8 +192,6 @@ A `endpoint` block supports the following:
 * `filter` - (Optional) A `filter` block as defined below.
 
 * `target_resource_type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
-
-* `virtual_machine_id` - (Optional / **Deprecated**) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor. This property is deprecated in favour of `target_resource_id`.
 
 ---
 
@@ -275,11 +271,11 @@ A `success_threshold` block supports the following:
 
 A `tcp_configuration` block supports the following:
 
-* `port` - (Required) The port for the Tcp connection.
+* `port` - (Required) The port for the TCP connection.
 
 * `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
-* `destination_port_behavior` - (Optional) The destination port behavior for the Tcp connection. Possible values are `None` and `ListenIfAvailable`.
+* `destination_port_behavior` - (Optional) The destination port behavior for the TCP connection. Possible values are `None` and `ListenIfAvailable`.
 
 ---
 
@@ -303,7 +299,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Connection Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Connection Monitor.

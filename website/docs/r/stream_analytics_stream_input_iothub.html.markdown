@@ -13,8 +13,9 @@ Manages a Stream Analytics Stream Input IoTHub.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -94,7 +95,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Stream Input IoTHub.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input IoTHub.

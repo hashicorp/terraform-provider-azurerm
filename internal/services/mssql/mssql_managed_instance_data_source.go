@@ -3,6 +3,7 @@ package mssql
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -61,7 +61,7 @@ func (d MsSqlManagedInstanceDataSource) Arguments() map[string]*pluginsdk.Schema
 			ValidateFunc: validate.ValidateMsSqlServerName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
@@ -94,7 +94,7 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
-		"location": azure.SchemaLocationForDataSource(),
+		"location": commonschema.LocationComputed(),
 
 		"minimum_tls_version": {
 			Type:     schema.TypeString,
@@ -222,7 +222,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 }
 
 func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemAssigned {
-	if input == nil {
+	if input == nil || !strings.EqualFold(string(input.Type), string(identity.TypeSystemAssigned)) {
 		return nil
 	}
 

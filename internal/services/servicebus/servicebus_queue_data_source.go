@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceServiceBusQueue() *pluginsdk.Resource {
@@ -29,12 +30,29 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: azValidate.QueueName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"namespace_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: namespaces.ValidateNamespaceID,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			},
 
+			// TODO Remove in 4.0
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: azValidate.NamespaceName,
+				Optional:     true,
+				ValidateFunc: validate.NamespaceName,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
+			},
+
+			// TODO Remove in 4.0
+			"resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: resourcegroups.ValidateName,
+				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"auto_delete_on_idle": {
@@ -124,56 +142,70 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	id := parse.NewQueueID(subscriptionId, resourceGroup, namespaceName, name)
-
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Service Bus Queue %q was not found in Resource Group %q Namespace %q", name, resourceGroup, namespaceName)
+	var resourceGroup string
+	var namespaceName string
+	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
+		namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
+		if err != nil {
+			return err
 		}
-		return fmt.Errorf("making Read request on Azure Service Bus Queue %q in Resource Group %q Namespace %q: %v", name, resourceGroup, namespaceName, err)
+		resourceGroup = namespaceId.ResourceGroupName
+		namespaceName = namespaceId.NamespaceName
+	} else {
+		resourceGroup = d.Get("resource_group_name").(string)
+		namespaceName = d.Get("namespace_name").(string)
+	}
+
+	id := queues.NewQueueID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	if props := resp.SBQueueProperties; props != nil {
-		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
-		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
-		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
-		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-		d.Set("enable_batched_operations", props.EnableBatchedOperations)
-		d.Set("enable_express", props.EnableExpress)
-		d.Set("enable_partitioning", props.EnablePartitioning)
-		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-		d.Set("forward_to", props.ForwardTo)
-		d.Set("lock_duration", props.LockDuration)
-		d.Set("max_delivery_count", props.MaxDeliveryCount)
-		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
-		d.Set("requires_session", props.RequiresSession)
-		d.Set("status", props.Status)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
+			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
+			d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
+			d.Set("enable_batched_operations", props.EnableBatchedOperations)
+			d.Set("enable_express", props.EnableExpress)
+			d.Set("enable_partitioning", props.EnablePartitioning)
+			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
+			d.Set("forward_to", props.ForwardTo)
+			d.Set("lock_duration", props.LockDuration)
+			d.Set("max_delivery_count", props.MaxDeliveryCount)
+			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
+			d.Set("requires_session", props.RequiresSession)
+			d.Set("status", props.Status)
 
-		if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
-			maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
+			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
+				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
 
-			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
-			// then the max size returned by the API will be 16 times greater than the value set.
-			if *props.EnablePartitioning {
-				namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
-				if err != nil {
-					return err
+				// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
+				// then the max size returned by the API will be 16 times greater than the value set.
+				if *props.EnablePartitioning {
+					namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+					namespaceId := namespaces.NewNamespaceID(subscriptionId, resourceGroup, namespaceName)
+					namespace, err := namespacesClient.Get(ctx, namespaceId)
+					if err != nil {
+						return err
+					}
+
+					if nsModel := namespace.Model; nsModel != nil && nsModel.Sku.Name != namespaces.SkuNamePremium {
+						const partitionCount = 16
+						maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
+					}
 				}
 
-				if namespace.Sku.Name != servicebus.SkuNamePremium {
-					const partitionCount = 16
-					maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
-				}
+				d.Set("max_size_in_megabytes", maxSizeInMegabytes)
 			}
-
-			d.Set("max_size_in_megabytes", maxSizeInMegabytes)
 		}
 	}
 

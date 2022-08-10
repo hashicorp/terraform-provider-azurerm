@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/profiles/latest/graphrbac/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -11,9 +10,6 @@ type Client struct {
 	ClustersClient       *hdinsight.ClustersClient
 	ConfigurationsClient *hdinsight.ConfigurationsClient
 	ExtensionsClient     *hdinsight.ExtensionsClient
-
-	// TODO: remove graph client in v3.0
-	GroupsClient *graphrbac.GroupsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -33,17 +29,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	ExtensionsClient := hdinsight.NewExtensionsClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
 	opts.ConfigureClient(&ExtensionsClient.Client, opts.ResourceManagerAuthorizer)
 
-	// TODO: remove graph client in v3.0
-	groupsClient := graphrbac.NewGroupsClient(opts.TenantID)
-	opts.ConfigureClient(&groupsClient.Client, opts.GraphAuthorizer)
-
-	return &Client{
+	c := &Client{
 		ApplicationsClient:   &ApplicationsClient,
 		ClustersClient:       &ClustersClient,
 		ConfigurationsClient: &ConfigurationsClient,
 		ExtensionsClient:     &ExtensionsClient,
-
-		// TODO: remove graph client in v3.0
-		GroupsClient: &groupsClient,
 	}
+
+	return c
 }

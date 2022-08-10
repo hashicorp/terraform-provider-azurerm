@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Azure Maps Account should exist. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The sku of the Azure Maps Account. Possible values are `S0`, `S1` and `G2`.
+* `sku_name` - (Required) The SKU of the Azure Maps Account. Possible values are `S0`, `S1` and `G2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 
@@ -56,7 +56,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maps Account.
 * `update` - (Defaults to 30 minutes) Used when updating the Maps Account.

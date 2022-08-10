@@ -90,11 +90,11 @@ The following arguments are supported:
 
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
 
-* `disable_ip_masking` - (Optional) By default the real client ip is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client ip. Defaults to `false`.
+* `disable_ip_masking` - (Optional) By default the real client IP is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client IP. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource
+* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource. Changing this forces a new resource to be created.
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
@@ -118,7 +118,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Component.
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.

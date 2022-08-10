@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Logic App Integration Account should exist. Changing this forces a new Logic App Integration Account to be created.
 
-* `sku_name` - (Required) The sku name of the Logic App Integration Account. Possible Values are `Basic`, `Free` and `Standard`.
+* `sku_name` - (Required) The SKU name of the Logic App Integration Account. Possible Values are `Basic`, `Free` and `Standard`.
 
 ---
 
@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Integration Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Integration Account.

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                = "example-storage-account"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
 
   location                 = azurerm_resource_group.example.location
@@ -31,12 +31,12 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                 = "examplecontainer"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_name = azurerm_storage_account.example.name
 }
 
 resource "azurerm_subscription_cost_management_export" "example" {
   name                         = "example"
-  subscription_id              = azurerm_subscription.example.id
+  subscription_id              = data.azurerm_subscription.example.id
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "2020-08-18T00:00:00Z"
   recurrence_period_end_date   = "2020-09-18T00:00:00Z"
@@ -99,7 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Subscription Cost Management Export.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Subscription Cost Management Export.

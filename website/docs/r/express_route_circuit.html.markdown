@@ -84,12 +84,12 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the ExpressRoute circuit.
-* `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
+* `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are `NotProvisioned`, `Provisioning`, `Provisioned`, and `Deprovisioning`.
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit.
 * `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit.

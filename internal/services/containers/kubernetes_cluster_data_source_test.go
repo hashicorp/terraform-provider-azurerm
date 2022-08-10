@@ -19,8 +19,6 @@ func TestAccDataSourceKubernetesCluster_basic(t *testing.T) {
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
@@ -63,9 +61,8 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 		{
 			Config: r.roleBasedAccessControlConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("0"),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
 			),
@@ -84,12 +81,11 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 		{
 			Config: r.roleBasedAccessControlAADConfig(data, clientId, clientSecret, tenantId),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.client_app_id").Exists(),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.server_app_id").Exists(),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.client_app_id").Exists(),
+				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.server_app_id").Exists(),
+				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
 			),
@@ -106,10 +102,9 @@ func TestAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
 		{
 			Config: r.localAccountDisabled(data, clientData.TenantID),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.managed").HasValue("true"),
+				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.managed").HasValue("true"),
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config_raw").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
@@ -143,6 +138,25 @@ func TestAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.docker_bridge_cidr").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_advancedNetworkingNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingNoneConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("none"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.docker_bridge_cidr").Exists(),
@@ -301,29 +315,11 @@ func TestAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
 		{
 			Config: r.addOnProfileOMSConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.log_analytics_workspace_id").Exists(),
-				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.oms_agent_identity.0.client_id").Exists(),
-				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.oms_agent_identity.0.object_id").Exists(),
-				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.oms_agent_identity.0.user_assigned_identity_id").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.addOnProfileKubeDashboardConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("oms_agent.#").HasValue("1"),
+				check.That(data.ResourceName).Key("oms_agent.0.log_analytics_workspace_id").Exists(),
+				check.That(data.ResourceName).Key("oms_agent.0.oms_agent_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("oms_agent.0.oms_agent_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("oms_agent.0.oms_agent_identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
 	})
@@ -337,8 +333,7 @@ func TestAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 		{
 			Config: r.addOnProfileAzurePolicyConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("azure_policy_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -352,10 +347,8 @@ func TestAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
 		{
 			Config: r.addOnProfileRoutingConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.http_application_routing_zone_name").Exists(),
+				check.That(data.ResourceName).Key("http_application_routing_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("http_application_routing_zone_name").Exists(),
 			),
 		},
 	})
@@ -369,17 +362,15 @@ func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayApp
 		{
 			Config: r.addOnProfileIngressApplicationGatewayAppGatewayConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
-					check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id"),
+				check.That(data.ResourceName).Key("ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
+					check.That(data.ResourceName).Key("ingress_application_gateway.0.gateway_id"),
 				),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.client_id").Exists(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.object_id").Exists(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.user_assigned_identity_id").Exists(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_cidr").IsEmpty(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_id").IsEmpty(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.ingress_application_gateway_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.ingress_application_gateway_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.ingress_application_gateway_identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
 	})
@@ -393,12 +384,10 @@ func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 		{
 			Config: r.addOnProfileIngressApplicationGatewaySubnetCIDRConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_id").IsEmpty(),
 			),
 		},
 	})
@@ -412,11 +401,9 @@ func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 		{
 			Config: r.addOnProfileIngressApplicationGatewaySubnetIdConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_cidr").IsEmpty(),
 			),
 		},
 	})
@@ -430,8 +417,7 @@ func TestAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T
 		{
 			Config: r.addOnProfileOpenServiceMeshConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("open_service_mesh_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -445,10 +431,8 @@ func TestAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider
 		{
 			Config: r.addOnProfileAzureKeyvaultSecretsProviderConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
+				check.That(data.ResourceName).Key("key_vault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("key_vault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
 			),
 		},
 	})
@@ -518,6 +502,50 @@ func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_oidcIssuerEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.oidcIssuer(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_oidcIssuerDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.oidcIssuer(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_microsoftDefender(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.microsoftDefender(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("microsoft_defender.0.log_analytics_workspace_id").Exists(),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -582,6 +610,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.advancedNetworkingConfig(data, "azure"))
+}
+
+func (KubernetesClusterDataSource) advancedNetworkingNoneConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.advancedNetworkingConfig(data, "none"))
 }
 
 func (KubernetesClusterDataSource) advancedNetworkingAzureCalicoPolicyConfig(data acceptance.TestData) string {
@@ -672,17 +711,6 @@ data "azurerm_kubernetes_cluster" "test" {
 `, KubernetesClusterResource{}.addonProfileOMSConfig(data))
 }
 
-func (KubernetesClusterDataSource) addOnProfileKubeDashboardConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_cluster" "test" {
-  name                = azurerm_kubernetes_cluster.test.name
-  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
-}
-`, KubernetesClusterResource{}.addonProfileKubeDashboardConfig(data))
-}
-
 func (KubernetesClusterDataSource) addOnProfileAzurePolicyConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -757,7 +785,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, true, "2m"))
+`, KubernetesClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, "2m"))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {
@@ -802,4 +830,24 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.nodePublicIPPrefixConfig(data))
+}
+
+func (KubernetesClusterDataSource) oidcIssuer(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.oidcIssuer(data, enabled))
+}
+
+func (KubernetesClusterDataSource) microsoftDefender(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.microsoftDefender(data))
 }

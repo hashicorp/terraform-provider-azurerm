@@ -12,7 +12,7 @@ Manages a Microsoft SQL Virtual Machine
 
 ## Example Usage
 
-This example provisions a brief Managed MsSql Virtual Machine. The detailed example of the `azurerm_mssql_virtual_machine` resource can be found in [the `./examples/mssql/mssqlvm` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/mssql/mssqlvm)
+This example provisions a brief Managed Microsoft SQL Virtual Machine. The detailed example of the `azurerm_mssql_virtual_machine` resource can be found in [the `./examples/mssql/mssqlvm` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/mssql/mssqlvm)
 
 ```hcl
 data "azurerm_virtual_machine" "example" {
@@ -111,7 +111,7 @@ The `key_vault_credential` block supports the following:
 
 * `name` - (Required) The credential name.
 
-* `key_vault_url` - (Required) The azure Key Vault url. Changing this forces a new resource to be created.
+* `key_vault_url` - (Required) The Azure Key Vault url. Changing this forces a new resource to be created.
 
 * `service_principal_name` - (Required) The service principal name to access key vault. Changing this forces a new resource to be created.
 
@@ -146,17 +146,17 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the MSSQL Virtual Machine.
-* `update` - (Defaults to 60 minutes) Used when updating the MSSQL Virtual Machine.
-* `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL Virtual Machine.
-* `delete` - (Defaults to 60 minutes) Used when deleting the MSSQL Virtual Machine.
+* `create` - (Defaults to 60 minutes) Used when creating the Microsoft SQL Virtual Machine.
+* `update` - (Defaults to 60 minutes) Used when updating the Microsoft SQL Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Virtual Machine.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Microsoft SQL Virtual Machine.
 
 
 ## Import
 
-Sql Virtual Machines can be imported using the `resource id`, e.g.
+Microsoft SQL Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
 $ terraform import azurerm_mssql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example1

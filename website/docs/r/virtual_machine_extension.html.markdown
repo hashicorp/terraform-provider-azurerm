@@ -150,7 +150,7 @@ $ az vm extension image list --location westus -o table
     the latest minor version update to the `type_handler_version` specified.
 
 * `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? Defaults to `false`.
-* `settings` - (Required) The settings passed to the extension, these are
+* `settings` - (Optional) The settings passed to the extension, these are
     specified as a JSON object in a string.
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
@@ -170,7 +170,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Extension.
 * `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Extension.

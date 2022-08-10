@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Desktop Host Pool.
 ---
 
-# virtual_desktop_host_pool
+# azurerm_virtual_desktop_host_pool
 
 Manages a Virtual Desktop Host Pool.
 
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.    
 
-* `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files).
+* `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/windows-server/remote/remote-desktop-services/clients/rdp-files).
 
 * `personal_desktop_assignment_type` - (Optional) `Automatic` assignment – The service will select an available host and assign it to an user.
     `Direct` Assignment – Admin selects a specific host to assign to an user.
@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Application Group.
 * `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Application Group.

@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `storage_profile` - A `storage_profile` block as defined below.
 
-* `administrator_login` - The Administrator Login for the MariaDB Server.
+* `administrator_login` - The Administrator login for the MariaDB Server.
 
 * `version` - The version of MariaDB being used.
 
@@ -66,6 +66,6 @@ A `storage_profile` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Server.

@@ -106,7 +106,7 @@ The following arguments are supported:
 
 `publish_content_link` supports the following:
 
-* `uri` - (Required) The uri of the runbook content.
+* `uri` - (Required) The URI of the runbook content.
 
 ## Attributes Reference
 
@@ -116,7 +116,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Runbook.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Runbook.

@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this API Management Redis Cache. Changing this forces a new API Management Redis Cache to be created.
 
-* `api_management_id` - (Required) The resource ID of the Api Management Service from which to create this external cache. Changing this forces a new API Management Redis Cache to be created.
+* `api_management_id` - (Required) The resource ID of the API Management Service from which to create this external cache. Changing this forces a new API Management Redis Cache to be created.
 
 * `connection_string` - (Required) The connection string to the Cache for Redis.
 
@@ -77,7 +77,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Redis Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Redis Cache.

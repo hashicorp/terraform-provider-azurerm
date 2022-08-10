@@ -3,6 +3,7 @@ package keyvault_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -27,6 +28,8 @@ func TestAccKeyVaultKey_basicEC(t *testing.T) {
 			Config: r.basicEC(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.KeyVault/vaults/[\w-]+/keys/[\w-]+/versions/[\w-]+$`)),
+				check.That(data.ResourceName).Key("resource_versionless_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.KeyVault/vaults/[\w-]+/keys/[\w-]+$`)),
 			),
 		},
 		data.ImportStep("key_size", "key_vault_id"),
@@ -72,21 +75,6 @@ func TestAccKeyVaultKey_curveEC(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.curveEC(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("key_vault_id"),
-	})
-}
-
-func TestAccKeyVaultKey_curveECDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-	r := KeyVaultKeyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.curveECDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -579,28 +567,6 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "EC"
   curve        = "P-521"
-
-  key_opts = [
-    "sign",
-    "verify",
-  ]
-}
-`, r.templateStandard(data), data.RandomString)
-}
-
-func (r KeyVaultKeyResource) curveECDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "key-%s"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "EC"
-  curve        = "SECP256K1"
 
   key_opts = [
     "sign",

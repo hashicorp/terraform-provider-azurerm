@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -82,14 +80,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"identity": func() *schema.Schema {
-				// TODO: 3.0 - document this in the upgrade guide
-				if features.ThreePointOhBeta() {
-					return commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew()
-				}
-
-				return identityLegacySchema()
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 			"ssl": {
 				Type:     pluginsdk.TypeList,
@@ -143,7 +134,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 }
 
 func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	aksClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +149,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Check if Inference Cluster already exists
-	existing, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
+	existing, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspaceID.Name, workspaceID.ResourceGroup, err)
@@ -190,11 +181,11 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := mlComputeClient.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.Name, name, inferenceClusterParameters)
+	future, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.Name, name, inferenceClusterParameters)
 	if err != nil {
 		return fmt.Errorf("creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -205,7 +196,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,7 +208,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("name", id.ComputeName)
 
 	// Check that Inference Cluster Response can be read
-	computeResource, err := mlComputeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+	computeResource, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
 	if err != nil {
 		if utils.ResponseWasNotFound(computeResource.Response) {
 			d.SetId("")
@@ -264,7 +255,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.InferenceClusterID(d.Id())
@@ -272,12 +263,12 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.UnderlyingResourceActionDetach)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.UnderlyingResourceActionDetach)
 	if err != nil {
 		return fmt.Errorf("deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, mlComputeClient.Client); err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of Inference Cluster %q in workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
 	}

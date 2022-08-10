@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) Map of input parameters passed to runbook.
 
-* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/en-us/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation.
+* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation.
 
 ## Attributes Reference
 
@@ -87,7 +87,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Webhook.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Webhook.

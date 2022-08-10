@@ -16,13 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -30,7 +28,7 @@ import (
 
 func resourceKeyVaultCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		// TODO: support Updating once we have more information about what can be updated
+		// TODO: support Updating additional properties once we have more information about what can be updated
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,
 		Delete: resourceKeyVaultCertificateDelete,
@@ -164,8 +162,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											string(keyvault.RSA),
 											string(keyvault.RSAHSM),
 											string(keyvault.Oct),
-										}, !features.ThreePointOh()),
-										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+										}, false),
 									},
 									"reuse_key": {
 										Type:     pluginsdk.TypeBool,
@@ -254,7 +251,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										},
 									},
 									"key_usage": {
-										Type:     pluginsdk.TypeList,
+										Type:     pluginsdk.TypeSet,
 										Required: true,
 										ForceNew: true,
 										Elem: &pluginsdk.Schema{
@@ -464,8 +461,14 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
-		if _, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
-			return err
+		if resp, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(resp.Response) {
+				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
 		}
 	} else {
 		// Generate new
@@ -475,26 +478,8 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(resp.Response) {
-				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, *keyVaultBaseUrl, name)
-				if err != nil {
+				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return err
-				}
-				log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredCertificate.ID)
-				if certificate := recoveredCertificate.ID; certificate != nil {
-					stateConf := &pluginsdk.StateChangeConf{
-						Pending:                   []string{"pending"},
-						Target:                    []string{"available"},
-						Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
-						Delay:                     30 * time.Second,
-						PollInterval:              10 * time.Second,
-						ContinuousTargetOccurence: 10,
-						Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-					}
-
-					if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-						return fmt.Errorf("waiting for Key Vault Secret %q to become available: %s", name, err)
-					}
-					log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredCertificate.ID)
 				}
 			} else {
 				return err
@@ -530,6 +515,32 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	d.SetId(*resp.ID)
 
 	return resourceKeyVaultCertificateRead(d, meta)
+}
+
+func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, keyVaultBaseUrl string, name string) error {
+	client := meta.(*clients.Client).KeyVault.ManagementClient
+	recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
+	if err != nil {
+		return err
+	}
+	log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredCertificate.ID)
+	if certificate := recoveredCertificate.ID; certificate != nil {
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"pending"},
+			Target:                    []string{"available"},
+			Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
+			Delay:                     30 * time.Second,
+			PollInterval:              10 * time.Second,
+			ContinuousTargetOccurence: 10,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Key Vault Secret %q to become available: %s", name, err)
+		}
+		log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredCertificate.ID)
+	}
+	return nil
 }
 
 func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -849,7 +860,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 		extendedKeyUsage := utils.ExpandStringSlice(ekus)
 
 		keyUsage := make([]keyvault.KeyUsageType, 0)
-		keys := cert["key_usage"].([]interface{})
+		keys := cert["key_usage"].(*pluginsdk.Set).List()
 		for _, key := range keys {
 			keyUsage = append(keyUsage, keyvault.KeyUsageType(key.(string)))
 		}

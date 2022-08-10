@@ -43,6 +43,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 - `location` - The Azure Region where the Azure Data Factory exists.
 
+- `purview_id` - (Optional) The ID of purview account.
+
 - `tags` - A mapping of tags assigned to the Azure Data Factory.
 
 - `vsts_configuration` - A `vsts_configuration` block as defined below.
@@ -65,11 +67,13 @@ A `github_configuration` block exports the following:
 
 An `identity` block exports the following:
 
-- `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `type` - The type of Managed Service Identity that is configured on this Data Factory.
 
-- `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
 
-- `type` - The identity type of the Data Factory.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Data Factory.
 
 ---
 
@@ -89,6 +93,6 @@ A `vsts_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 - `read` - (Defaults to 5 minutes) Used when retrieving the Azure Data Factory.

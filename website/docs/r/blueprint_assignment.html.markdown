@@ -132,14 +132,14 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ---
 
-An `identity` block supports the following Arguments
+An `identity` block supports the following:
 
-* `type` - (Required) The Identity type for the Managed Service Identity. Currently only `UserAssigned` is supported.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Blueprint. Only possible value is `UserAssigned`.
 
-* `user_assigned_identities` - (Required) a list of User Assigned Identity ID's. At least one ID is required.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Blueprint.
 
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Blueprint Assignment
 
@@ -151,7 +151,7 @@ An `identity` block supports the following Arguments
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Blueprint Assignment.
 * `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.

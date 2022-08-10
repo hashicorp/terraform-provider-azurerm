@@ -19,6 +19,8 @@ CDN
 Cognitive Services
 Communication
 Compute
+Confidential Ledger
+Connections
 Consumption
 Container
 CosmosDB (DocumentDB)
@@ -27,18 +29,19 @@ Custom Providers
 DNS
 Data Explorer
 Data Factory
-Data Lake
 Data Share
 DataProtection
 Database
 Database Migration
 Databox Edge
 Databricks
+Datadog
 Desktop Virtualization
 Dev Test
-DevSpace
 Digital Twins
 Disks
+Elastic
+Fluid Relay
 HDInsight
 Hardware Security Module
 Healthcare
@@ -75,7 +78,6 @@ Security Center
 Sentinel
 Service Fabric
 Service Fabric Managed Clusters
-Service Fabric Mesh
 Spring Cloud
 Storage
 Stream Analytics

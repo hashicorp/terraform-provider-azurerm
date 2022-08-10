@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Static Site.
 
-->**NOTE:** After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/en-us/azure/static-web-apps/github-actions-workflow).
+->**NOTE:** After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/azure/static-web-apps/github-actions-workflow).
 
 ## Example Usage
 
@@ -32,9 +32,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App should exist. Changing this forces a new Static Web App to be created.
 
-* `sku_tier` - (Optional) Specifies the sku tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+* `sku_tier` - (Optional) Specifies the SKU tier of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.
 
-* `sku_size` - (Optional) Specifies the sku size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+* `sku_size` - (Optional) Specifies the SKU size of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.
 
 * `identitiy` - (Optional) An `identity` block as defined below.
 
@@ -44,9 +44,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Managed Identity assigned to this Static Site resource. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) The Type of Managed Identity assigned to this Static Site resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Static Site resource.
+* `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Site resource.
 
 ## Attributes Reference
 
@@ -54,13 +54,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Static Web App.
 
-* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. Github Action.
+* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. GitHub Action.
   
 * `default_host_name` - The default host name of the Static Web App.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Web App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App.

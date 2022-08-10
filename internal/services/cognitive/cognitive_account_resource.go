@@ -9,22 +9,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts"
+	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -51,7 +49,238 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: resourceCognitiveAccountSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.CognitiveServicesAccountName(),
+			},
+
+			"location": azure.SchemaLocation(),
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"kind": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Academic",
+					"AnomalyDetector",
+					"Bing.Autosuggest",
+					"Bing.Autosuggest.v7",
+					"Bing.CustomSearch",
+					"Bing.Search",
+					"Bing.Search.v7",
+					"Bing.Speech",
+					"Bing.SpellCheck",
+					"Bing.SpellCheck.v7",
+					"CognitiveServices",
+					"ComputerVision",
+					"ContentModerator",
+					"CustomSpeech",
+					"CustomVision.Prediction",
+					"CustomVision.Training",
+					"Emotion",
+					"Face",
+					"FormRecognizer",
+					"ImmersiveReader",
+					"LUIS",
+					"LUIS.Authoring",
+					"MetricsAdvisor",
+					"Personalizer",
+					"QnAMaker",
+					"Recommendations",
+					"SpeakerRecognition",
+					"Speech",
+					"SpeechServices",
+					"SpeechTranslation",
+					"TextAnalytics",
+					"TextTranslation",
+					"WebLM",
+				}, false),
+			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0",
+				}, false),
+			},
+
+			"custom_subdomain_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"fqdns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"metrics_advisor_aad_client_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"metrics_advisor_aad_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"metrics_advisor_super_user_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"metrics_advisor_website_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"network_acls": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				RequiredWith: []string{"custom_subdomain_name"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservicesaccounts.NetworkRuleActionAllow),
+								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
+							}, false),
+						},
+						"ip_rules": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.Any(
+									commonValidate.IPv4Address,
+									commonValidate.CIDR,
+								),
+							},
+							Set: set.HashIPv4AddressOrCIDR,
+						},
+
+						"virtual_network_rules": {
+							Type:       pluginsdk.TypeSet,
+							Optional:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAuto,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"subnet_id": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+
+									"ignore_missing_vnet_service_endpoint": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"outbound_network_access_restricted": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"qna_runtime_endpoint": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			},
+
+			"custom_question_answering_search_service_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: search.ValidateSearchServiceID,
+			},
+
+			"custom_question_answering_search_service_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"storage": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"storage_account_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: storageValidate.StorageAccountID,
+						},
+
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
+
+			"tags": commonschema.Tags(),
+
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+		},
 	}
 }
 
@@ -120,13 +349,13 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	identity, err := expandCognitiveAccountIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -203,13 +432,13 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandCognitiveAccountIdentity(identityRaw)
+	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -276,7 +505,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("sku_name", sku.Name)
 		}
 
-		identity, err := flattenCognitiveAccountIdentity(model.Identity)
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return err
 		}
@@ -285,6 +514,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {
 				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+				d.Set("custom_question_answering_search_service_id", apiProps.QnaAzureSearchEndpointId)
 				d.Set("metrics_advisor_aad_client_id", apiProps.AadClientId)
 				d.Set("metrics_advisor_aad_tenant_id", apiProps.AadTenantId)
 				d.Set("metrics_advisor_super_user_name", apiProps.SuperUser)
@@ -311,7 +541,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
 			//lintignore:R001
-			d.Set(outboundNetworkAccessRestrictedName(), outboundNetworkAccessRestricted)
+			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -320,7 +550,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("local_auth_enabled", localAuthEnabled)
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
 }
@@ -412,44 +642,31 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
 
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
-	ipRules := make([]cognitiveservicesaccounts.IpRule, 0)
+	ipRules := make([]cognitiveservicesaccounts.IPRule, 0)
 
 	for _, v := range ipRulesRaw.List() {
-		rule := cognitiveservicesaccounts.IpRule{
+		rule := cognitiveservicesaccounts.IPRule{
 			Value: v.(string),
 		}
 		ipRules = append(ipRules, rule)
 	}
 
 	networkRules := make([]cognitiveservicesaccounts.VirtualNetworkRule, 0)
-	if !features.ThreePointOhBeta() && d.HasChange("network_acls.0.virtual_network_subnet_ids") {
-		networkRulesRaw := v["virtual_network_subnet_ids"]
-		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-			rawId := v.(string)
-			subnetIds = append(subnetIds, rawId)
-			rule := cognitiveservicesaccounts.VirtualNetworkRule{
-				Id: rawId,
-			}
-			networkRules = append(networkRules, rule)
+	networkRulesRaw := v["virtual_network_rules"]
+	for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
+		value := v.(map[string]interface{})
+		subnetId := value["subnet_id"].(string)
+		subnetIds = append(subnetIds, subnetId)
+		rule := cognitiveservicesaccounts.VirtualNetworkRule{
+			Id:                               subnetId,
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
-	}
-	if d.HasChange("network_acls.0.virtual_network_rules") {
-		networkRulesRaw := v["virtual_network_rules"]
-		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-			value := v.(map[string]interface{})
-			subnetId := value["subnet_id"].(string)
-			subnetIds = append(subnetIds, subnetId)
-			rule := cognitiveservicesaccounts.VirtualNetworkRule{
-				Id:                               subnetId,
-				IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
-			}
-			networkRules = append(networkRules, rule)
-		}
+		networkRules = append(networkRules, rule)
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
 		DefaultAction:       &defaultAction,
-		IpRules:             &ipRules,
+		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 	return &ruleSet, subnetIds
@@ -470,28 +687,6 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	return &results
 }
 
-func expandCognitiveAccountIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	intermediate := legacyIdentity.ExpandedConfig{
-		Type: legacyIdentity.Type(string(expanded.Type)),
-	}
-
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		intermediate.UserAssignedIdentityIds = make([]string, 0)
-		for k := range expanded.IdentityIds {
-			intermediate.UserAssignedIdentityIds = append(intermediate.UserAssignedIdentityIds, k)
-		}
-	}
-
-	out := legacyIdentity.SystemUserAssignedIdentityMap{}
-	out.FromExpandedConfig(intermediate)
-	return &out, nil
-}
-
 func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.ApiProperties, error) {
 	props := cognitiveservicesaccounts.ApiProperties{}
 	kind := d.Get("kind")
@@ -500,6 +695,20 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			props.QnaRuntimeEndpoint = utils.String(v.(string))
 		} else {
 			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
+	}
+	if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
+		if kind == "TextAnalytics" {
+			props.QnaAzureSearchEndpointId = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
+		}
+	}
+	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
+		if kind == "TextAnalytics" {
+			props.QnaAzureSearchEndpointKey = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
@@ -539,8 +748,8 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}
 
 	ipRules := make([]interface{}, 0)
-	if input.IpRules != nil {
-		for _, v := range *input.IpRules {
+	if input.IPRules != nil {
+		for _, v := range *input.IPRules {
 			ipRules = append(ipRules, v.Value)
 		}
 	}
@@ -562,16 +771,12 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 			})
 		}
 	}
-	out := map[string]interface{}{
+
+	return []interface{}{map[string]interface{}{
 		"default_action":        input.DefaultAction,
 		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
 		"virtual_network_rules": virtualNetworkRules,
-	}
-	if !features.ThreePointOhBeta() {
-		out["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds)
-	}
-
-	return []interface{}{out}
+	}}
 }
 
 func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
@@ -590,279 +795,4 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 		results = append(results, value)
 	}
 	return results
-}
-
-func flattenCognitiveAccountIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) (*[]interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		expanded := input.ToExpandedConfig()
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(expanded.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-			TenantId:    expanded.TenantId,
-			PrincipalId: expanded.PrincipalId,
-		}
-		for _, k := range expanded.UserAssignedIdentityIds {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				// TODO: populate me once the SDK is updated
-			}
-		}
-	}
-
-	return identity.FlattenSystemAndUserAssignedMap(transform)
-}
-
-func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.CognitiveServicesAccountName(),
-		},
-
-		"location": azure.SchemaLocation(),
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"kind": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Academic",
-				"AnomalyDetector",
-				"Bing.Autosuggest",
-				"Bing.Autosuggest.v7",
-				"Bing.CustomSearch",
-				"Bing.Search",
-				"Bing.Search.v7",
-				"Bing.Speech",
-				"Bing.SpellCheck",
-				"Bing.SpellCheck.v7",
-				"CognitiveServices",
-				"ComputerVision",
-				"ContentModerator",
-				"CustomSpeech",
-				"CustomVision.Prediction",
-				"CustomVision.Training",
-				"Emotion",
-				"Face",
-				"FormRecognizer",
-				"ImmersiveReader",
-				"LUIS",
-				"LUIS.Authoring",
-				"MetricsAdvisor",
-				"Personalizer",
-				"QnAMaker",
-				"Recommendations",
-				"SpeakerRecognition",
-				"Speech",
-				"SpeechServices",
-				"SpeechTranslation",
-				"TextAnalytics",
-				"TextTranslation",
-				"WebLM",
-			}, false),
-		},
-
-		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0",
-			}, false),
-		},
-
-		"custom_subdomain_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"fqdns": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
-
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-		"local_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"metrics_advisor_aad_client_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsUUID,
-		},
-
-		"metrics_advisor_aad_tenant_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsUUID,
-		},
-
-		"metrics_advisor_super_user_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"metrics_advisor_website_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"network_acls": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			MaxItems:     1,
-			RequiredWith: []string{"custom_subdomain_name"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"default_action": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cognitiveservicesaccounts.NetworkRuleActionAllow),
-							string(cognitiveservicesaccounts.NetworkRuleActionDeny),
-						}, false),
-					},
-					"ip_rules": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.Any(
-								commonValidate.IPv4Address,
-								commonValidate.CIDR,
-							),
-						},
-						Set: set.HashIPv4AddressOrCIDR,
-					},
-
-					"virtual_network_rules": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Computed: !features.ThreePointOhBeta(),
-						ConflictsWith: func() []string {
-							if features.ThreePointOhBeta() {
-								return []string{}
-							}
-							return []string{"network_acls.0.virtual_network_subnet_ids"}
-						}(),
-						ConfigMode: func() schema.SchemaConfigMode {
-							if features.ThreePointOhBeta() {
-								return pluginsdk.SchemaConfigModeAuto
-							}
-							return pluginsdk.SchemaConfigModeAttr
-						}(),
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"subnet_id": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-
-								"ignore_missing_vnet_service_endpoint": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		outboundNetworkAccessRestrictedName(): {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"qna_runtime_endpoint": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-		},
-
-		"storage": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"storage_account_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: storageValidate.StorageAccountID,
-					},
-
-					"identity_client_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-				},
-			},
-		},
-
-		"tags": tags.Schema(),
-
-		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-	}
-	if !features.ThreePointOhBeta() {
-		s := schema["network_acls"].Elem.(*pluginsdk.Resource)
-		s.Schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"network_acls.0.virtual_network_rules"},
-			Deprecated:    "Deprecated in favour of `virtual_network_rules`",
-			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-		}
-	}
-	return schema
-}
-
-func outboundNetworkAccessRestrictedName() string {
-	if !features.ThreePointOhBeta() {
-		return "outbound_network_access_restrited"
-	}
-	return "outbound_network_access_restricted"
 }

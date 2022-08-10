@@ -53,18 +53,18 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Server.
+* `type` - The type of Managed Service Identity that is configured on this Microsoft SQL Server.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Microsoft SQL Server.
 
-* `type` - The identity type of the Microsoft SQL Server.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Microsoft SQL Server.
 
-* `user_assigned_identity_ids` - A list of the User Assigned Identities of this SQL Server.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Microsoft SQL Server.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Server.

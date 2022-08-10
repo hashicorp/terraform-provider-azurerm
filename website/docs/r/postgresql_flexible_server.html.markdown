@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `administrator_login` - (Optional) The Administrator Login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
@@ -100,9 +100,9 @@ The following arguments are supported:
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `private_dns_zone_id` - (Optional) The ID of the private dns zone to create the PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `private_dns_zone_id` - (Optional) The ID of the private DNS zone to create the PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private dns zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
+~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
 
@@ -118,9 +118,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 * 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12` and `13`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13` and `14`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `zone` - (Optional) The Availability Zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`.
+* `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
 -> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `high_availability.0.standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
 
@@ -130,9 +130,9 @@ The following arguments are supported:
 
 A `maintenance_window` block supports the following:
 
-* `day_of_week` - (Optional) The day of week for maintenance window. Defaults to `0`.
+* `day_of_week` - (Optional) The day of week for maintenance window, where the week starts on a Sunday, i.e. Sunday = `0`, Monday = `1`. Defaults to `0`.
 
-* `start_hour` - (Optional) The day of week for maintenance window. Defaults to `0`.
+* `start_hour` - (Optional) The start hour for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
@@ -142,7 +142,7 @@ A `high_availability` block supports the following:
 
 * `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
 
-* `standby_availability_zone` - (Optional) The Availability Zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
+* `standby_availability_zone` - (Optional) Specifies the Availability Zone in which the standby Flexible Server should be located.
 
 -> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `high_availability.0.standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
 
@@ -154,17 +154,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the PostgreSQL Flexible Server.
 
-* `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
-
-~> **Note:** Attribute `cmk_enabled` has been deprecated and will be removed in version 3.0 of the provider.
-
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 
 * `public_network_access_enabled` - Is public network access enabled?
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the PostgreSQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Server.

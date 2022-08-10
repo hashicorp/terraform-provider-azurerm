@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
-~> **Note:** `partition_count` cannot be changed unless Eventhub Namespace sku is `Premium`.
+~> **Note:** `partition_count` cannot be changed unless Eventhub Namespace SKU is `Premium`.
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `partition_count` is 1024. When using a shared parent EventHub Namespace, maximum value is 32.
 
@@ -104,7 +104,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub.
 * `update` - (Defaults to 30 minutes) Used when updating the EventHub.

@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1068,22 +1068,12 @@ func TestAccApplicationGateway_requestRoutingRulePriority(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.requestRoutingRulePriorityNotSet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
 			Config: r.requestRoutingRulePrioritySet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("request_routing_rule.0.priority").HasValue("1"),
 				check.That(data.ResourceName).Key("request_routing_rule.1.priority").HasValue("20000"),
 			),
-		},
-		{
-			Config:      r.requestRoutingRulePriorityValidation(data),
-			ExpectError: regexp.MustCompile("If you wish to use rule priority, you will have to specify rule-priority field values for all the existing request routing rules."),
 		},
 	})
 }
@@ -1166,6 +1156,59 @@ func TestAccApplicationGateway_updateEnableFips(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateEnableFips(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationGateway_updateFeipConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.public_ip_address_id").IsSet(),
+			),
+		},
+		{
+			Config: r.updateFeipConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.public_ip_address_id").IsEmpty(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.subnet_id").IsSet(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address_allocation").HasValue("Static"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address").HasValue("10.0.0.10"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.public_ip_address_id").IsSet(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.deletePublicFeip(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.public_ip_address_id").IsEmpty(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.subnet_id").IsSet(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address_allocation").HasValue("Static"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address").HasValue("10.0.0.10"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1").DoesNotExist(),
+			),
+		},
+	})
+}
+
+func TestAccApplicationGateway_withoutRequestTimeout(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutRequestTimeout(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1331,6 +1374,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -1421,6 +1465,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
@@ -1446,6 +1491,7 @@ resource "azurerm_public_ip" "test_standard" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1500,6 +1546,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -1582,6 +1629,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, minCapacity, maxCapacity)
@@ -1663,6 +1711,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -1952,7 +2001,7 @@ resource "azurerm_application_gateway" "test" {
 
 // nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	out := fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -1989,20 +2038,19 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
   sku_name            = "standard"
-  soft_delete_enabled = true
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${data.azurerm_client_config.test.object_id}"
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
     object_id               = "${azurerm_user_assigned_identity.test.principal_id}"
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 }
 
@@ -2094,13 +2142,15 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger)
+	return out
 }
 
 func (r ApplicationGatewayResource) update_trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	out := fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -2136,20 +2186,19 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
   sku_name            = "standard"
-  soft_delete_enabled = true
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
 }
 
@@ -2268,9 +2317,11 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger)
+	return out
 }
 
 func (r ApplicationGatewayResource) updateForceFirewallPolicyAssociation(data acceptance.TestData, forceFirewallPolicyAssociation bool) string {
@@ -2426,6 +2477,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2529,6 +2581,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2648,6 +2701,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2767,6 +2821,7 @@ resource "azurerm_application_gateway" "test" {
     rule_type          = "PathBasedRouting"
     url_path_map_name  = local.url_path_map_name
     http_listener_name = local.listener_name
+    priority           = 10
   }
 
   url_path_map {
@@ -2950,6 +3005,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -3109,6 +3165,8 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
+    host_name                      = "application.test.com"
+    require_sni                    = false
   }
 
   http_listener {
@@ -3431,6 +3489,7 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    minimum_servers     = 0
   }
 
   probe {
@@ -3736,6 +3795,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -3888,6 +3948,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -4007,18 +4068,16 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4105,6 +4164,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 
   ssl_certificate {
@@ -4158,18 +4218,16 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = azurerm_user_assigned_identity.test.principal_id
-    secret_permissions      = ["get"]
-    certificate_permissions = ["get"]
+    secret_permissions      = ["Get"]
+    certificate_permissions = ["Get"]
   }
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4256,6 +4314,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 
   ssl_certificate {
@@ -4961,6 +5020,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5058,6 +5118,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5174,6 +5235,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5268,6 +5330,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5350,6 +5413,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5433,6 +5497,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5514,6 +5579,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5541,7 +5607,7 @@ resource "azurerm_subnet" "test" {
   name                                          = "subnet-%d"
   resource_group_name                           = azurerm_resource_group.test.name
   virtual_network_name                          = azurerm_virtual_network.test.name
-  address_prefix                                = "10.0.0.0/24"
+  address_prefixes                              = ["10.0.0.0/24"]
   enforce_private_link_service_network_policies = true
 }
 
@@ -5697,7 +5763,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_address_pool {
-    name = local.backend_address_pool_name
+    name  = local.backend_address_pool_name
+    fqdns = ["foo.com", "bar.com"]
   }
 
   backend_http_settings {
@@ -5722,6 +5789,7 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     rewrite_rule_set_name      = local.rewrite_rule_set_name
+    priority                   = 10
   }
 
   rewrite_rule_set {
@@ -5836,6 +5904,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name          = local.listener_name
     redirect_configuration_name = local.redirect_configuration_name
     rewrite_rule_set_name       = local.rewrite_rule_set_name
+    priority                    = 10
   }
 
   rewrite_rule_set {
@@ -5958,6 +6027,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name          = local.listener_name
     redirect_configuration_name = local.redirect_configuration_name
     rewrite_rule_set_name       = local.rewrite_rule_set_name
+    priority                    = 10
   }
 
   rewrite_rule_set {
@@ -5968,13 +6038,20 @@ resource "azurerm_application_gateway" "test" {
       rule_sequence = 1
 
       condition {
-        variable = "var_uri_path"
-        pattern  = ".*article/(.*)/(.*)"
+        variable    = "var_uri_path"
+        pattern     = ".*article/(.*)/(.*)"
+        ignore_case = false
+        negate      = false
+      }
+      response_header_configuration {
+        header_name  = "X-custom"
+        header_value = "customvalue"
       }
 
       url {
         path         = "/article.aspx"
         query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
+        reroute      = false
       }
     }
   }
@@ -6139,7 +6216,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "subnet1-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -6281,6 +6358,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -6563,6 +6641,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 
   ssl_profile {
@@ -6659,6 +6738,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 
   ssl_profile {
@@ -6757,6 +6837,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 
   ssl_profile {
@@ -6861,6 +6942,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 
   ssl_profile {
@@ -6964,6 +7046,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 
   ssl_profile {
@@ -6980,90 +7063,6 @@ resource "azurerm_application_gateway" "test" {
     name     = local.ssl_certificate_name
     data     = filebase64("testdata/application_gateway_test.pfx")
     password = "terraform"
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (r ApplicationGatewayResource) requestRoutingRulePriorityNotSet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-}
-
-resource "azurerm_public_ip" "test_standard" {
-  name                = "acctest-pubip-%d-standard"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctestag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 1
-  }
-
-  ssl_policy {
-    policy_type          = "Custom"
-    min_protocol_version = "TLSv1_1"
-    cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
-  }
-
-  frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test_standard.id
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -7178,114 +7177,6 @@ resource "azurerm_application_gateway" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r ApplicationGatewayResource) requestRoutingRulePriorityValidation(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name_1           = "${azurerm_virtual_network.test.name}-feport-1"
-  frontend_port_name_2           = "${azurerm_virtual_network.test.name}-feport-2"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name_1                = "${azurerm_virtual_network.test.name}-httplstn-1"
-  listener_name_2                = "${azurerm_virtual_network.test.name}-httplstn-2"
-  request_routing_rule_name_1    = "${azurerm_virtual_network.test.name}-rqrt-1"
-  request_routing_rule_name_2    = "${azurerm_virtual_network.test.name}-rqrt-2"
-}
-
-resource "azurerm_public_ip" "test_standard" {
-  name                = "acctest-pubip-%d-standard"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctestag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 1
-  }
-
-  ssl_policy {
-    policy_type          = "Custom"
-    min_protocol_version = "TLSv1_1"
-    cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name_1
-    port = 80
-  }
-
-  frontend_port {
-    name = local.frontend_port_name_2
-    port = 8080
-  }
-
-  frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test_standard.id
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name_1
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name_1
-    protocol                       = "Http"
-  }
-
-  http_listener {
-    name                           = local.listener_name_2
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name_2
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name_1
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name_1
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-    priority                   = 1
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name_2
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name_2
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
-}
-
 func (r ApplicationGatewayResource) privateLink(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -7379,6 +7270,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -7453,4 +7345,224 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, enableFips)
+}
+
+func (r ApplicationGatewayResource) updateFeipConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name          = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name                 = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name     = "${azurerm_virtual_network.test.name}-feip"
+  frontend_ip_configuration_name_new = "${azurerm_virtual_network.test.name}-feip-new"
+  http_setting_name                  = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                      = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name          = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                          = local.frontend_ip_configuration_name_new
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.0.10"
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name_new
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) deletePublicFeip(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name          = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name                 = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name     = "${azurerm_virtual_network.test.name}-feip"
+  frontend_ip_configuration_name_new = "${azurerm_virtual_network.test.name}-feip-new"
+  http_setting_name                  = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                      = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name          = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                          = local.frontend_ip_configuration_name_new
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.0.10"
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name_new
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) withoutRequestTimeout(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

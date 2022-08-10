@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Certificate is created. Changing this forces a new resource to be created.
 
-* `base64` - (Required) Base64 encoded value of the certificate.
+* `base64` - (Required) Base64 encoded value of the certificate. Changing this forces a new resource to be created.
 
 * `description` -  (Optional) The description of this Automation Certificate.
 
@@ -63,7 +63,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Certificate.

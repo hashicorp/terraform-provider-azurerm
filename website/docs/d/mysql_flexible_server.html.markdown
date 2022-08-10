@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `location` - The Azure Region of the MySQL Flexible Server.
 
-* `administrator_login` - The Administrator Login of the MySQL Flexible Server.
+* `administrator_login` - The Administrator login of the MySQL Flexible Server.
 
 * `backup_retention_days` - The backup retention days of the MySQL Flexible Server.
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `maintenance_window` - A `maintenance_window` block for this MySQL Flexible Server as defined below.
 
-* `private_dns_zone_id` - The ID of the private dns zone of the MySQL Flexible Server.
+* `private_dns_zone_id` - The ID of the Private DNS zone of the MySQL Flexible Server.
 
 * `replication_role` - The replication role of the MySQL Flexible Server.
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `version` - The version of the MySQL Flexible Server.
 
-* `zone` - The availability zones of the MySQL Flexible Server.
+* `zone` - The Availability Zones where this MySQL Flexible Server is located.
 
 * `tags` - A mapping of tags which are assigned to the MySQL Flexible Server.
 
@@ -99,6 +99,6 @@ A `storage` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Flexible Server.

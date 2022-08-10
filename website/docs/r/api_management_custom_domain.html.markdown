@@ -17,15 +17,24 @@ Manages a API Management Custom Domain.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
+data "azurerm_key_vault" "example" {
+  name                = "mykeyvault"
+  resource_group_name = "some-resource-group"
+}
+
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
@@ -33,7 +42,7 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_key_vault_certificate" "example" {
   name         = "example-certificate"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = data.azurerm_key_vault.example.id
 
   certificate_policy {
     issuer_parameters {
@@ -87,14 +96,14 @@ resource "azurerm_key_vault_certificate" "example" {
 resource "azurerm_api_management_custom_domain" "example" {
   api_management_id = azurerm_api_management.example.id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.secret_id
   }
 
   developer_portal {
     host_name    = "portal.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.secret_id
   }
 }
 ```
@@ -113,9 +122,7 @@ The following arguments are supported:
 
 * `portal` - (Optional) One or more `portal` blocks as defined below.
 
-* `proxy` - (Optional) One or more `proxy` blocks as defined below.
-
-~> **Note:** This property has been deprecated and will be renamed to `gateway` in version 3.0 of the provider.
+* `gateway` - (Optional) One or more `gateway` blocks as defined below.
 
 * `scm` - (Optional) One or more `scm` blocks as defined below.
 
@@ -135,9 +142,9 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 
 ---
 
-A `proxy` block supports the following:
+A `gateway` block supports the following:
 
--> **Tip:** The default proxy hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
+-> **Tip:** The default gateway hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
 
 * `host_name` - (Required) The Hostname to use for the API Proxy Endpoint.
 
@@ -159,7 +166,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Custom Domain.

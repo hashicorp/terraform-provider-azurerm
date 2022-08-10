@@ -34,13 +34,39 @@ resource "azurerm_public_ip" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Public IP resource . Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Public IP. Changing this forces a new Public IP to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the public ip.
+* `resource_group_name` - (Required) The name of the Resource Group where this Public IP should exist. Changing this forces a new Public IP to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the Public IP should exist. Changing this forces a new resource to be created.
+
+* `allocation_method` - (Required)  Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
+
+~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).
+
+---
+
+* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
+
+-> **Note:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time. Standard SKU Public IP Addresses that do not specify a zone are **not** zone-redundant by default.
+
+* `domain_name_label` - (Optional) Label for the Domain Name. Will be used to make up the FQDN.  If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system.
+
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Public IP should exist. Changing this forces a new Public IP to be created.
+
+* `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the TCP idle connection. The value can be set between 4 and 30 minutes.
+
+* `ip_tags` - (Optional) A mapping of IP tags to assign to the public IP.
+
+-> **Note** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
+
+* `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4.
+
+-> **Note** Only `static` IP address allocation is supported for IPv6.
+
+* `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource.
+
+* `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
 
 * `sku` - (Optional) The SKU of the Public IP. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
@@ -50,37 +76,14 @@ The following arguments are supported:
 
 -> **Note** When `sku_tier` is set to `Global`, `sku` must be set to `Standard`.
 
-* `allocation_method` - (Required)  Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
-
-~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).
-
-* `availability_zone` - (Optional) The availability zone to allocate the Public IP in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Defaults to `Zone-Redundant`. 
-
--> **Note:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Public IP Addresses that do not specify a zone are zone redundant by default.
-
-* `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4.
-
--> **Note** Only `static` IP address allocation is supported for IPv6.
-
-* `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the TCP idle connection. The value can be set between 4 and 30 minutes.
-
-* `domain_name_label` - (Optional) Label for the Domain Name. Will be used to make up the FQDN.  If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system.
-
-* `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
-
-* `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource.
-
-* `ip_tags` - (Optional) A mapping of IP tags to assign to the public IP.
-
--> **Note** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Public IP ID.
+* `id` - The ID of this Public IP.
+
 * `ip_address` - The IP address value that was allocated.
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
@@ -89,7 +92,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Public IP.
 * `update` - (Defaults to 30 minutes) Used when updating the Public IP.

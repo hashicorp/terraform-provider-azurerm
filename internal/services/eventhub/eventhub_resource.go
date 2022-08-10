@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -85,13 +84,12 @@ func resourceEventHub() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"encoding": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(eventhubs.EncodingCaptureDescriptionAvro),
 								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
-							}, !features.ThreePointOh()),
+							}, false),
 						},
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
@@ -172,6 +170,19 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
 	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if existing.Model != nil {
+			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
+		}
+	}
 
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
@@ -305,6 +316,9 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
 	input := inputs[0].(map[string]interface{})
 
 	enabled := input["enabled"].(bool)

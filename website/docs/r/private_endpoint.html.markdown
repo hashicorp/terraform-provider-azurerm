@@ -98,25 +98,25 @@ resource "azurerm_private_endpoint" "example" {
 Using a Private Link Service Alias with existing resources:
 
 ```hcl
-data "azurerm_resource_group" "rg" {
+data "azurerm_resource_group" "example" {
   name = "example-resources"
 }
 
 data "azurerm_virtual_network" "vnet" {
   name                = "example-network"
-  resource_group_name = data.azurerm_resource_group.rg.name
+  resource_group_name = data.azurerm_resource_group.example.name
 }
 
 data "azurerm_subnet" "subnet" {
   name                 = "default"
   virtual_network_name = data.azurerm_virtual_network.vnet.name
-  resource_group_name  = data.azurerm_resource_group.rg.name
+  resource_group_name  = data.azurerm_resource_group.example.name
 }
 
 resource "azurerm_private_endpoint" "example" {
   name                = "example-endpoint"
-  location            = data.azurerm_resource_group.rg.location
-  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.example.location
+  resource_group_name = data.azurerm_resource_group.example.name
   subnet_id           = data.azurerm_subnet.subnet.id
 
   private_service_connection {
@@ -175,7 +175,7 @@ A `private_service_connection` supports the following:
 | Resource Type                 | SubResource Name | Secondary SubResource Name |
 | ----------------------------- | ---------------- | -------------------------- |
 | Data Lake File System Gen2    | dfs              | dfs_secondary              |
-| Sql Database / Data Warehouse | sqlServer        |                            |
+| SQL Database / Data Warehouse | sqlServer        |                            |
 | SQL Managed Instance          | managedInstance  |                            |
 | Storage Account               | blob             | blob_secondary             |
 | Storage Account               | file             | file_secondary             |
@@ -185,7 +185,7 @@ A `private_service_connection` supports the following:
 | Web App / Function App        | sites            |                            |
 | Web App / Function App Slots  | sites-<slotName> |                            |
 
-See the product [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
+See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
@@ -266,7 +266,7 @@ A `record_sets` block exports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Private Endpoint.
 * `update` - (Defaults to 60 minutes) Used when updating the Private Endpoint.

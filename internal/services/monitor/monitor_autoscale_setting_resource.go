@@ -13,12 +13,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -143,8 +141,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.MetricStatisticTypeMax),
 														string(insights.MetricStatisticTypeMin),
 														string(insights.MetricStatisticTypeSum),
-													}, !features.ThreePointOh()),
-													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+													}, false),
 												},
 												"time_window": {
 													Type:         pluginsdk.TypeString,
@@ -161,8 +158,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
 														string(insights.TimeAggregationTypeLast),
-													}, !features.ThreePointOh()),
-													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+													}, false),
 												},
 												"operator": {
 													Type:     pluginsdk.TypeString,
@@ -174,8 +170,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.ComparisonOperationTypeLessThan),
 														string(insights.ComparisonOperationTypeLessThanOrEqual),
 														string(insights.ComparisonOperationTypeNotEquals),
-													}, !features.ThreePointOh()),
-													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+													}, false),
 												},
 												"threshold": {
 													Type:     pluginsdk.TypeFloat,
@@ -239,8 +234,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ScaleDirectionDecrease),
 														string(insights.ScaleDirectionIncrease),
-													}, !features.ThreePointOh()),
-													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+													}, false),
 												},
 												"type": {
 													Type:     pluginsdk.TypeString,
@@ -250,8 +244,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.ScaleTypeExactCount),
 														string(insights.ScaleTypePercentChangeCount),
 														string(insights.ScaleTypeServiceAllowedNextValue),
-													}, !features.ThreePointOh()),
-													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+													}, false),
 												},
 												"value": {
 													Type:         pluginsdk.TypeInt,
@@ -319,8 +312,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 												"Friday",
 												"Saturday",
 												"Sunday",
-											}, !features.ThreePointOh()),
-											DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+											}, false),
 										},
 									},
 									"hours": {

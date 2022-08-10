@@ -34,7 +34,7 @@ output "hostname" {
 
 * `resource_group_name` - The name of the resource group the Redis cache instance is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The Cache ID.
 
@@ -70,6 +70,8 @@ output "hostname" {
 
 * `redis_configuration` - A `redis_configuration` block as defined below.
 
+* `zones` - A list of Availability Zones in which this Redis Cache is located.
+
 ---
 
 A `patch_schedule` block supports the following:
@@ -96,18 +98,18 @@ A `redis_configuration` block exports the following:
 
 * `maxfragmentationmemory_reserved` - Value in megabytes reserved to accommodate for memory fragmentation.
 
-* `rdb_backup_enabled` - Is Backup Enabled? Only supported on Premium SKU's.
+* `rdb_backup_enabled` - Is Backup Enabled? Only supported on Premium SKUs.
 
-* `rdb_backup_frequency` - The Backup Frequency in Minutes. Only supported on Premium SKU's.
+* `rdb_backup_frequency` - The Backup Frequency in Minutes. Only supported on Premium SKUs.
 
 * `rdb_backup_max_snapshot_count` - The maximum number of snapshots that can be created as a backup.
 
-* `rdb_storage_connection_string` - The Connection String to the Storage Account. Only supported for Premium SKU's.
+* `rdb_storage_connection_string` - The Connection String to the Storage Account. Only supported for Premium SKUs.
 
-~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) e.g.:
+~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.

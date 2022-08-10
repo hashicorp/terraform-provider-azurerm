@@ -8,15 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -44,219 +42,7 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[a-zA-Z][-_!a-zA-Z0-9]{2,149}$"),
-					"Backup Policy name must be 3 - 150 characters long, start with a letter, contain only letters and numbers.",
-				),
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"instant_restore_retention_days": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 5),
-			},
-
-			"recovery_vault_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.RecoveryServicesVaultName,
-			},
-
-			"timezone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "UTC",
-			},
-
-			"backup": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"frequency": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(backup.ScheduleRunTypeDaily),
-								string(backup.ScheduleRunTypeWeekly),
-							}, !features.ThreePointOh()),
-						},
-
-						"time": { // applies to all backup schedules & retention times (they all must be the same)
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
-								"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
-							),
-						},
-
-						"weekdays": { // only for weekly
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"retention_daily": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999), // Azure no longer supports less than 7 daily backups. This should be updated in 3.0 provider
-
-						},
-					},
-				},
-			},
-
-			"retention_weekly": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
-						},
-
-						"weekdays": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"retention_monthly": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
-						},
-
-						"weeks": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(backup.WeekOfMonthFirst),
-									string(backup.WeekOfMonthSecond),
-									string(backup.WeekOfMonthThird),
-									string(backup.WeekOfMonthFourth),
-									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOh()),
-							},
-						},
-
-						"weekdays": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"retention_yearly": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"count": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
-						},
-
-						"months": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsMonth(true),
-							},
-						},
-
-						"weeks": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(backup.WeekOfMonthFirst),
-									string(backup.WeekOfMonthSecond),
-									string(backup.WeekOfMonthThird),
-									string(backup.WeekOfMonthFourth),
-									string(backup.WeekOfMonthLast),
-								}, !features.ThreePointOh()),
-							},
-						},
-
-						"weekdays": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Set:      set.HashStringIgnoreCase,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.IsDayOfTheWeek(true),
-							},
-						},
-					},
-				},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceBackupProtectionPolicyVMSchema(),
 
 		// if daily, we need daily retention
 		// if weekly daily cannot be set, and we need weekly
@@ -264,9 +50,17 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			_, hasDaily := diff.GetOk("retention_daily")
 			_, hasWeekly := diff.GetOk("retention_weekly")
 
-			frequencyI, _ := diff.GetOk("backup.0.frequency")
-			switch strings.ToLower(frequencyI.(string)) {
-			case "daily":
+			frequency, _ := diff.GetOk("backup.0.frequency")
+			switch frequency.(string) {
+			case string(backup.ScheduleRunTypeHourly):
+				if !hasDaily {
+					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is hourly")
+				}
+
+				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
+					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
+				}
+			case string(backup.ScheduleRunTypeDaily):
 				if !hasDaily {
 					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
 				}
@@ -274,12 +68,28 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
 					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
-			case "weekly":
+
+				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
+					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
+				}
+
+				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
+					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
+				}
+			case string(backup.ScheduleRunTypeWeekly):
 				if hasDaily {
 					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
 					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
+				}
+
+				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
+					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
+				}
+
+				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
+					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
 				}
 			default:
 				return fmt.Errorf("Unrecognized value for backup.0.frequency")
@@ -297,7 +107,6 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	policyName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Azure Backup Protection Policy %s (resource group %q)", policyName, resourceGroup)
 
@@ -327,10 +136,17 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
+	schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
+	if err != nil {
+		return err
+	}
+
+	policyType := backup.IAASVMPolicyType(d.Get("policy_type").(string))
 	vmProtectionPolicyProperties := &backup.AzureIaaSVMProtectionPolicy{
 		TimeZone:             utils.String(d.Get("timezone").(string)),
 		BackupManagementType: backup.ManagementTypeBasicProtectionPolicyBackupManagementTypeAzureIaasVM,
-		SchedulePolicy:       expandBackupProtectionPolicyVMSchedule(d, times),
+		PolicyType:           policyType,
+		SchedulePolicy:       *schedulePolicy,
 		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 			DailySchedule:       expandBackupProtectionPolicyVMRetentionDaily(d, times),
@@ -341,11 +157,15 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if d.HasChange("instant_restore_retention_days") {
-		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = utils.Int32(int32(d.Get("instant_restore_retention_days").(int)))
+		days := d.Get("instant_restore_retention_days").(int)
+		if backup.IAASVMPolicyTypeV1 == policyType && days > 5 {
+			return fmt.Errorf("`instant_restore_retention_days` must be less than or equal to `5` when `policy_type` is `V1`")
+		}
+
+		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = utils.Int32(int32(days))
 	}
 
 	policy := backup.ProtectionPolicyResource{
-		Tags:       tags.Expand(t),
 		Properties: vmProtectionPolicyProperties,
 	}
 
@@ -356,6 +176,10 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	resp, err := resourceBackupProtectionPolicyVMWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
 	if err != nil {
 		return err
+	}
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("retrieving Backup Policy VM %q (Vault Name %q /Resource Group %q): ID was nil or empty", policyName, vaultName, resourceGroup)
 	}
 
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
@@ -400,6 +224,18 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
+		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicyV2(); ok && schedule != nil {
+			if err := d.Set("backup", flattenBackupProtectionPolicyVMScheduleV2(schedule)); err != nil {
+				return fmt.Errorf("setting `backup`: %+v", err)
+			}
+		}
+
+		policyType := string(backup.IAASVMPolicyTypeV1)
+		if properties.PolicyType != "" {
+			policyType = string(properties.PolicyType)
+		}
+		d.Set("policy_type", policyType)
+
 		if retention, ok := properties.RetentionPolicy.AsLongTermRetentionPolicy(); ok && retention != nil {
 			if s := retention.DailySchedule; s != nil {
 				if err := d.Set("retention_daily", flattenBackupProtectionPolicyVMRetentionDaily(s)); err != nil {
@@ -435,7 +271,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -473,31 +309,98 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
+func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []date.Time) (*backup.BasicSchedulePolicy, error) {
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
 
-		schedule := backup.SimpleSchedulePolicy{ // LongTermSchedulePolicy has no properties
-			SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
-			ScheduleRunTimes:   &times,
-		}
-
-		if v, ok := block["frequency"].(string); ok {
-			schedule.ScheduleRunFrequency = backup.ScheduleRunType(v)
-		}
-
-		if v, ok := block["weekdays"].(*pluginsdk.Set); ok {
-			days := make([]backup.DayOfWeek, 0)
-			for _, day := range v.List() {
-				days = append(days, backup.DayOfWeek(day.(string)))
+		policyType := d.Get("policy_type").(string)
+		if policyType == string(backup.IAASVMPolicyTypeV1) {
+			schedule := backup.SimpleSchedulePolicy{ // LongTermSchedulePolicy has no properties
+				SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
+				ScheduleRunTimes:   &times,
 			}
-			schedule.ScheduleRunDays = &days
-		}
 
-		return &schedule
+			if v, ok := block["frequency"].(string); ok {
+				schedule.ScheduleRunFrequency = backup.ScheduleRunType(v)
+			}
+
+			if v, ok := block["weekdays"].(*pluginsdk.Set); ok {
+				days := make([]backup.DayOfWeek, 0)
+				for _, day := range v.List() {
+					days = append(days, backup.DayOfWeek(day.(string)))
+				}
+				schedule.ScheduleRunDays = &days
+			}
+
+			result, _ := schedule.AsBasicSchedulePolicy()
+			return &result, nil
+		} else {
+			frequency := block["frequency"].(string)
+			schedule := backup.SimpleSchedulePolicyV2{
+				SchedulePolicyType:   backup.SchedulePolicyTypeSimpleSchedulePolicyV2,
+				ScheduleRunFrequency: backup.ScheduleRunType(frequency),
+			}
+
+			switch frequency {
+			case string(backup.ScheduleRunTypeHourly):
+				interval, ok := block["hour_interval"].(int)
+				if !ok {
+					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
+				duration, ok := block["hour_duration"].(int)
+				if !ok {
+					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
+				if interval == 0 && duration == 0 {
+					return nil, fmt.Errorf("`hour_interval` and `hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if interval == 0 {
+					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if duration == 0 {
+					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
+				if duration%interval != 0 {
+					return nil, fmt.Errorf("`hour_duration` must be multiplier of `hour_interval`")
+				}
+
+				schedule.HourlySchedule = &backup.HourlySchedule{
+					Interval:                utils.Int32(int32(interval)),
+					ScheduleWindowStartTime: &times[0],
+					ScheduleWindowDuration:  utils.Int32(int32(duration)),
+				}
+			case string(backup.ScheduleRunTypeDaily):
+				schedule.DailySchedule = &backup.DailySchedule{
+					ScheduleRunTimes: &times,
+				}
+			case string(backup.ScheduleRunTypeWeekly):
+				weekDays, ok := block["weekdays"].(*pluginsdk.Set)
+				if !ok {
+					return nil, fmt.Errorf("`weekdays` must be specified when `backup.0.frequency` is `Weekly`")
+				}
+
+				days := make([]backup.DayOfWeek, 0)
+				for _, day := range weekDays.List() {
+					days = append(days, backup.DayOfWeek(day.(string)))
+				}
+
+				schedule.WeeklySchedule = &backup.WeeklySchedule{
+					ScheduleRunDays:  &days,
+					ScheduleRunTimes: &times,
+				}
+			default:
+				return nil, fmt.Errorf("Unrecognized value for backup.0.frequency")
+			}
+
+			result, _ := schedule.AsBasicSchedulePolicy()
+			return &result, nil
+		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func expandBackupProtectionPolicyVMRetentionDaily(d *pluginsdk.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
@@ -629,6 +532,50 @@ func flattenBackupProtectionPolicyVMSchedule(schedule *backup.SimpleSchedulePoli
 			weekdays = append(weekdays, string(d))
 		}
 		block["weekdays"] = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
+	}
+
+	return []interface{}{block}
+}
+
+func flattenBackupProtectionPolicyVMScheduleV2(schedule *backup.SimpleSchedulePolicyV2) []interface{} {
+	block := map[string]interface{}{}
+
+	frequency := schedule.ScheduleRunFrequency
+	block["frequency"] = string(frequency)
+
+	switch frequency {
+	case backup.ScheduleRunTypeHourly:
+		schedule := schedule.HourlySchedule
+		if schedule.Interval != nil {
+			block["hour_interval"] = *schedule.Interval
+		}
+
+		if schedule.ScheduleWindowDuration != nil {
+			block["hour_duration"] = *schedule.ScheduleWindowDuration
+		}
+
+		if schedule.ScheduleWindowStartTime != nil {
+			block["time"] = schedule.ScheduleWindowStartTime.Format("15:04")
+		}
+	case backup.ScheduleRunTypeDaily:
+		schedule := schedule.DailySchedule
+		if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
+			block["time"] = (*times)[0].Format("15:04")
+		}
+	case backup.ScheduleRunTypeWeekly:
+		schedule := schedule.WeeklySchedule
+		if days := schedule.ScheduleRunDays; days != nil {
+			weekdays := make([]interface{}, 0)
+			for _, d := range *days {
+				weekdays = append(weekdays, string(d))
+			}
+			block["weekdays"] = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
+		}
+
+		if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
+			block["time"] = (*times)[0].Format("15:04")
+		}
+	default:
 	}
 
 	return []interface{}{block}
@@ -779,5 +726,245 @@ func resourceBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *ba
 		}
 
 		return resp, "Found", nil
+	}
+}
+
+func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z][-_!a-zA-Z0-9]{2,149}$"),
+				"Backup Policy name must be 3 - 150 characters long, start with a letter, contain only letters and numbers.",
+			),
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"instant_restore_retention_days": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 30),
+		},
+
+		"recovery_vault_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.RecoveryServicesVaultName,
+		},
+
+		"timezone": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "UTC",
+		},
+
+		"backup": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"frequency": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(backup.ScheduleRunTypeHourly),
+							string(backup.ScheduleRunTypeDaily),
+							string(backup.ScheduleRunTypeWeekly),
+						}, false),
+					},
+
+					"time": { // applies to all backup schedules & retention times (they all must be the same)
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+							"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+						),
+					},
+
+					"weekdays": { // only for weekly
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+
+					"hour_interval": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						ValidateFunc: validation.IntInSlice([]int{
+							4,
+							6,
+							8,
+							12,
+						}),
+					},
+
+					"hour_duration": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(4, 24),
+					},
+				},
+			},
+		},
+
+		"policy_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(backup.IAASVMPolicyTypeV1),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(backup.IAASVMPolicyTypeV1),
+				string(backup.IAASVMPolicyTypeV2),
+			}, false),
+		},
+
+		"retention_daily": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999), // Azure no longer supports less than 7 daily backups. This should be updated in 3.0 provider
+
+					},
+				},
+			},
+		},
+
+		"retention_weekly": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999),
+					},
+
+					"weekdays": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+				},
+			},
+		},
+
+		"retention_monthly": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999),
+					},
+
+					"weeks": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(backup.WeekOfMonthFirst),
+								string(backup.WeekOfMonthSecond),
+								string(backup.WeekOfMonthThird),
+								string(backup.WeekOfMonthFourth),
+								string(backup.WeekOfMonthLast),
+							}, false),
+						},
+					},
+
+					"weekdays": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+				},
+			},
+		},
+
+		"retention_yearly": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 9999),
+					},
+
+					"months": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsMonth(true),
+						},
+					},
+
+					"weeks": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(backup.WeekOfMonthFirst),
+								string(backup.WeekOfMonthSecond),
+								string(backup.WeekOfMonthThird),
+								string(backup.WeekOfMonthFourth),
+								string(backup.WeekOfMonthLast),
+							}, false),
+						},
+					},
+
+					"weekdays": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Set:      set.HashStringIgnoreCase,
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+						},
+					},
+				},
+			},
+		},
 	}
 }

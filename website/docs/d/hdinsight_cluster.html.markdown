@@ -52,7 +52,7 @@ output "https_endpoint" {
 
 * `ssh_endpoint` - The SSH Endpoint for this HDInsight Cluster.
 
-* `tls_min_version` - The minimal supported tls version. 
+* `tls_min_version` - The minimal supported TLS version. 
 
 * `tags` - A map of tags assigned to the HDInsight Cluster.
 
@@ -68,6 +68,6 @@ A `gateway` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the HDInsight Cluster.

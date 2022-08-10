@@ -8,8 +8,6 @@ description: |-
 
 # azurerm_log_analytics_cluster
 
-!> **Important** Due to capacity constraints, Microsoft requires you to pre-register your subscription IDs before you are allowed to create a Log Analytics cluster. Contact Microsoft, or open a support request to register your subscription IDs.
-
 ~> **Note:** Log Analytics Clusters are subject to 14-day soft delete policy. Clusters created with the same resource group & name as a previously deleted cluster will be recovered rather than creating anew. 
 
 Manages a Log Analytics Cluster.
@@ -49,9 +47,9 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below. Changing this forces a new Log Analytics Cluster to be created.
 
-* `size_gb` - (Optional) The capacity of the Log Analytics Cluster specified in GB/day. Defaults to 1000.
+* `size_gb` - (Optional) The capacity of the Log Analytics Cluster is specified in GB/day. Possible values include `500`, `1000`, `2000` or `5000`. Defaults to `1000`.
 
-~> **NOTE:** The `size_gb` can be in the range of 1000 to 3000 GB per day and must be in steps of 100 GB. For `size_gb` levels higher than 3000 GB per day, please contact your Microsoft contact to enable it.
+~> **NOTE:** The cluster capacity must start at 500 GB and can be set to 1000, 2000 or 5000 GB/day. For more information on cluster costs, see [Dedicated clusters](https://docs.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#dedicated-clusters).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Cluster.
 
@@ -59,7 +57,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Log Analytics Cluster. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Log Analytics Cluster. The only possible value is `SystemAssigned`.
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Log Analytics Cluster has been created. More details are available below.
 
@@ -79,15 +77,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Log Analytics Cluster.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Log Analytics Cluster.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
 
 -> You can access the Principal ID via `azurerm_log_analytics_cluster.example.identity.0.principal_id` and the Tenant ID via `azurerm_log_analytics_cluster.example.identity.0.tenant_id`
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the Log Analytics Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Cluster.

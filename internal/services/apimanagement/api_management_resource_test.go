@@ -3,6 +3,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -381,6 +381,28 @@ func TestAccApiManagement_consumption(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_consumptionWithTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagement_clientCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
@@ -475,36 +497,7 @@ func TestAccApiManagement_minApiVersion(t *testing.T) {
 	})
 }
 
-func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	r := ApiManagementResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.consumptionPurgeSoftDeleteRecovery(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.consumptionPurgeSoftDelete(data),
-		},
-		{
-			Config: r.consumptionPurgeSoftDeleteRecovery(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccApiManagement_removeSamples(t *testing.T) {
-	if !features.ThreePointOh() {
-		t.Skip("Skipping since 3.0 mode is disabled")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
@@ -517,6 +510,53 @@ func TestAccApiManagement_removeSamples(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.softDelete(data),
+		},
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_softDeleteRecoveryDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.softDelete(data),
+		},
+		{
+			Config:      r.consumptionRecoveryDisabled(data),
+			ExpectError: regexp.MustCompile(`An existing soft-deleted API Management exists with the Name "[^"]+" in the location "[^"]+"`),
+		},
 	})
 }
 
@@ -1188,7 +1228,7 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     location = azurerm_resource_group.test2.location
-    capacity = 1
+    capacity = 2
   }
 
   certificate {
@@ -1411,7 +1451,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestSNET2-%[2]d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefix       = "10.1.1.0/24"
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_network_security_group" "test2" {
@@ -1683,15 +1723,15 @@ resource "azurerm_key_vault_access_policy" "test" {
   certificate_permissions = [
     "Create",
     "Delete",
-    "Deleteissuers",
+    "DeleteIssuers",
     "Get",
-    "Getissuers",
+    "GetIssuers",
     "Import",
     "List",
-    "Listissuers",
-    "Managecontacts",
-    "Manageissuers",
-    "Setissuers",
+    "ListIssuers",
+    "ManageContacts",
+    "ManageIssuers",
+    "SetIssuers",
     "Update",
     "Purge",
   ]
@@ -1859,15 +1899,15 @@ resource "azurerm_key_vault_access_policy" "test" {
   certificate_permissions = [
     "Create",
     "Delete",
-    "Deleteissuers",
+    "DeleteIssuers",
     "Get",
-    "Getissuers",
+    "GetIssuers",
     "Import",
     "List",
-    "Listissuers",
-    "Managecontacts",
-    "Manageissuers",
-    "Setissuers",
+    "ListIssuers",
+    "ManageContacts",
+    "ManageIssuers",
+    "SetIssuers",
     "Update",
     "Purge",
   ]
@@ -1982,6 +2022,32 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Consumption_0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+
+  tags = {
+    Hello = "World"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2129,10 +2195,14 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r ApiManagementResource) consumptionPurgeSoftDeleteRecovery(data acceptance.TestData) string {
+func (ApiManagementResource) consumptionRecoveryDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    api_management {
+      recover_soft_deleted = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -2151,12 +2221,12 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ApiManagementResource) consumptionPurgeSoftDelete(data acceptance.TestData) string {
+func (ApiManagementResource) softDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     api_management {
-      purge_soft_delete_on_destroy = true
+      purge_soft_delete_on_destroy = false
     }
   }
 }

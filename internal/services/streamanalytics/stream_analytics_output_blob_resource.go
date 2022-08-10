@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -64,13 +64,6 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"storage_account_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"storage_account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -91,6 +84,16 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
 
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+				}, false),
+			},
+
 			"batch_max_wait_time": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -100,6 +103,13 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				ValidateFunc: validation.FloatBetween(0, 10000),
+			},
+
+			"storage_account_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -112,6 +122,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
@@ -128,7 +139,6 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	containerName := d.Get("storage_container_name").(string)
 	dateFormat := d.Get("date_format").(string)
 	pathPattern := d.Get("path_pattern").(string)
-	storageAccountKey := d.Get("storage_account_key").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
 
@@ -142,18 +152,19 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.BlobOutputDataSource{
-				Type: streamanalytics.TypeMicrosoftStorageBlob,
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageBlob,
 				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
 					StorageAccounts: &[]streamanalytics.StorageAccount{
 						{
-							AccountKey:  utils.String(storageAccountKey),
+							AccountKey:  getStorageAccountKey(d.Get("storage_account_key").(string)),
 							AccountName: utils.String(storageAccountName),
 						},
 					},
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+					Container:          utils.String(containerName),
+					DateFormat:         utils.String(dateFormat),
+					PathPattern:        utils.String(pathPattern),
+					TimeFormat:         utils.String(timeFormat),
+					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -222,6 +233,7 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("path_pattern", v.PathPattern)
 		d.Set("storage_container_name", v.Container)
 		d.Set("time_format", v.TimeFormat)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
 		if accounts := v.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 			account := (*accounts)[0]
@@ -255,4 +267,12 @@ func resourceStreamAnalyticsOutputBlobDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func getStorageAccountKey(input string) *string {
+	if input == "" {
+		return nil
+	}
+
+	return utils.String(input)
 }

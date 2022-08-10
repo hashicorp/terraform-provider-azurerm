@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/checknameavailabilitydisasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,8 +27,10 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 		Update: resourceEventHubNamespaceDisasterRecoveryConfigUpdate,
 		Delete: resourceEventHubNamespaceDisasterRecoveryConfigDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -58,14 +60,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
-			},
-
-			// this property is broken and should not be reimplemented after 3.0 until this is addressed: https://github.com/Azure/azure-sdk-for-go/issues/5893
-			"alternate_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.ValidateEventHubNamespaceName(),
-				Deprecated:   "This property has been deprecated and will be removed in v3.0 of the provider as any DRC created with an alternate name cannot be deleted and the service is not going to change this. Please see: https://github.com/Azure/azure-sdk-for-go/issues/5893",
 			},
 		},
 	}
@@ -101,10 +95,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
 			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
 		},
-	}
-
-	if v, ok := d.GetOk("alternate_name"); ok {
-		parameters.Properties.AlternateName = utils.String(v.(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -149,10 +139,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	if v, ok := d.GetOk("alternate_name"); ok {
-		parameters.Properties.AlternateName = utils.String(v.(string))
-	}
-
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -189,7 +175,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 
 	if model := resp.Model; model != nil && model.Properties != nil {
 		d.Set("partner_namespace_id", model.Properties.PartnerNamespace)
-		d.Set("alternate_name", model.Properties.AlternateName)
 	}
 
 	return nil

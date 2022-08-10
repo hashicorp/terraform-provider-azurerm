@@ -1,6 +1,7 @@
 package loganalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -11,13 +12,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -29,6 +28,8 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 		Read:   resourceLogAnalyticsWorkspaceRead,
 		Update: resourceLogAnalyticsWorkspaceCreateUpdate,
 		Delete: resourceLogAnalyticsWorkspaceDelete,
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceLogAnalyticsWorkspaceCustomDiff),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogAnalyticsWorkspaceID(id)
@@ -72,11 +73,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 4.0: Clean up lacluster "workaround" to make it more readable and easier to understand. (@WodansSon already has the code written for the clean up)
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
-				Default:  string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(operationalinsights.WorkspaceSkuNameEnumFree),
 					string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
@@ -86,25 +87,14 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
-				}, !features.ThreePointOh()),
-				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
-			},
-
-			"reservation_capcity_in_gb_per_day": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
-				Deprecated:    "As this property name contained a typo originally, please switch to using 'reservation_capacity_in_gb_per_day' instead.",
-				ConflictsWith: []string{"reservation_capacity_in_gb_per_day"},
+				}, false),
 			},
 
 			"reservation_capacity_in_gb_per_day": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
-				ConflictsWith: []string{"reservation_capcity_in_gb_per_day"},
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
 			},
 
 			"retention_in_days": {
@@ -127,12 +117,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"portal_url": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
-			},
-
 			"primary_shared_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -150,6 +134,26 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	}
 }
 
+func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	// Since sku needs to be a force new if the sku changes we need to have this
+	// custom diff here because when you link the workspace to a cluster the
+	// cluster changes the sku to LACluster, so we need to ignore the change
+	// if it is LACluster else invoke the ForceNew as before...
+	//
+	// NOTE: Since LACluster is not in our enum the value is returned as ""
+	if d.HasChange("sku") {
+		old, new := d.GetChange("sku")
+		log.Printf("[INFO] Log Analytics Workspace SKU: OLD: %q, NEW: %q", old, new)
+		// If the old value is not LACluster(e.g. "") return ForceNew because they are
+		// really changing the sku...
+		if !strings.EqualFold(old.(string), "") {
+			d.ForceNew("sku")
+		}
+	}
+
+	return nil
+}
+
 func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -157,6 +161,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
+	var isLACluster bool
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	id := parse.NewLogAnalyticsWorkspaceID(subscriptionId, resourceGroup, name)
@@ -181,14 +186,15 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	// (@WodansSon) - If the workspace is connected to a cluster via the linked service resource
-	// the workspace cannot be modified since the linked service changes the sku value within
-	// the workspace
+	// the workspace SKU cannot be modified since the linked service owns the sku value within
+	// the workspace once it is linked
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 		if err == nil {
 			if azSku := resp.Sku; azSku != nil {
 				if strings.EqualFold(string(azSku.Name), "lacluster") {
-					return fmt.Errorf("Log Analytics Workspace %q (Resource Group %q): cannot be modified while it is connected to a Log Analytics cluster", name, resourceGroup)
+					isLACluster = true
+					log.Printf("[INFO] Log Analytics Workspace %q (Resource Group %q): SKU is linked to Log Analytics cluster", name, resourceGroup)
 				}
 			}
 		}
@@ -207,6 +213,13 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	t := d.Get("tags").(map[string]interface{})
 
+	if isLACluster {
+		sku.Name = "lacluster"
+	} else if skuName == "" {
+		// Default value if sku is not defined
+		sku.Name = operationalinsights.WorkspaceSkuNameEnumPerGB2018
+	}
+
 	parameters := operationalinsights.Workspace{
 		Name:     &name,
 		Location: &location,
@@ -220,7 +233,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	dailyQuotaGb, ok := d.GetOk("daily_quota_gb")
-	if ok && strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) && dailyQuotaGb != -1 {
+	if ok && strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) && (dailyQuotaGb != -1 && dailyQuotaGb != 0.5) {
 		return fmt.Errorf("`Free` tier SKU quota is not configurable and is hard set to 0.5GB")
 	} else if !strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		parameters.WorkspaceProperties.WorkspaceCapping = &operationalinsights.WorkspaceCapping{
@@ -228,14 +241,8 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	// Handle typoed property name
 	propName := "reservation_capacity_in_gb_per_day"
 	capacityReservationLevel, ok := d.GetOk(propName)
-	if !ok {
-		propName := "reservation_capcity_in_gb_per_day"
-		capacityReservationLevel, ok = d.GetOk(propName)
-	}
-
 	if ok {
 		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
 			parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(capacityReservationLevel.(int))))
@@ -291,16 +298,20 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == operationalinsights.Enabled)
 
 	d.Set("workspace_id", resp.CustomerID)
-	d.Set("portal_url", "")
+	skuName := ""
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", sku.Name)
+		for _, v := range operationalinsights.PossibleSkuNameEnumValues() {
+			if strings.EqualFold(string(v), string(sku.Name)) {
+				skuName = string(v)
+			}
+		}
 
 		if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
 			d.Set("reservation_capacity_in_gb_per_day", capacityReservationLevel)
-			// Handle typoed property name
-			d.Set("reservation_capcity_in_gb_per_day", capacityReservationLevel)
 		}
 	}
+	d.Set("sku", skuName)
+
 	d.Set("retention_in_days", resp.RetentionInDays)
 	if resp.WorkspaceProperties != nil && resp.WorkspaceProperties.Sku != nil && strings.EqualFold(string(resp.WorkspaceProperties.Sku.Name), string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		// Special case for "Free" tier
@@ -352,15 +363,4 @@ func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *pluginsdk.ResourceData) boo
 	}
 
 	return false
-}
-
-func logAnalyticsLinkedServiceSkuChangeCaseDifference(k, old, new string, d *pluginsdk.ResourceData) bool {
-	// (@WodansSon) - This is needed because if you connect your workspace to a log analytics linked service resource it
-	// will modify the value of your sku to "lacluster". We are currently in negotiations with the service team to
-	// see if there is another way of doing this, for now this is the workaround
-	if old == "lacluster" {
-		old = new
-	}
-
-	return suppress.CaseDifferenceV2Only(k, old, new, d)
 }
