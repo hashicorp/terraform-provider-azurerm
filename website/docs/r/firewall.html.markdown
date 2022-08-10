@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) SKU name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
 
-* `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium` and `Standard`.  Changing this forces a new resource to be created.
+* `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium` and `Standard`.
 
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
@@ -156,7 +156,7 @@ A `virtual_hub` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Firewall.
 * `update` - (Defaults to 90 minutes) Used when updating the Firewall.

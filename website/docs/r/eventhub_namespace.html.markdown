@@ -59,6 +59,12 @@ The following arguments are supported:
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
 
+* `local_authentication_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace?
+
+* `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. Valid values are: `1.0`, `1.1` and `1.2`. The current default minimum TLS version is `1.2`.
+
 ---
 
 A `identity` block supports the following:
@@ -134,7 +140,7 @@ An `identity` block exports the following:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace.
 * `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace.
