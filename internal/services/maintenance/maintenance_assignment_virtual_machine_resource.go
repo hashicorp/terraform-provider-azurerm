@@ -47,7 +47,7 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 
 			"virtual_machine_id": {
@@ -55,7 +55,7 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     validateCompute.VirtualMachineID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 		},
 	}
@@ -82,7 +82,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		}
 	}
 
-	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(d.Get("maintenance_configuration_id").(string))
+	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
 	if err != nil {
 		return err
 	}
@@ -115,19 +115,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	resp, err := getMaintenanceAssignmentVirtualMachine(ctx, client, virtualMachineId, virtualMachineId.ID())
-	if err != nil {
-		return err
-	}
-	if resp == nil || len(*resp) == 0 {
-		return fmt.Errorf("could not find Maintenance assignment (virtual machine ID: %q)", virtualMachineId.ID())
-	}
-	assignment := (*resp)[0]
-	if assignment.Id == nil || *assignment.Id == "" {
-		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine ID %q)", virtualMachineId.ID())
-	}
-
-	d.SetId(*assignment.Id)
+	d.SetId(id.ID())
 	return resourceArmMaintenanceAssignmentVirtualMachineRead(d, meta)
 }
 
@@ -163,7 +151,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 	if props := assignment.Properties; props != nil {
 		maintenanceConfigurationId := ""
 		if props.MaintenanceConfigurationId != nil {
-			maintenanceConfigurationId = *props.MaintenanceConfigurationId
+			parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+			}
+			maintenanceConfigurationId = parsedId.ID()
 		}
 		d.Set("maintenance_configuration_id", maintenanceConfigurationId)
 	}

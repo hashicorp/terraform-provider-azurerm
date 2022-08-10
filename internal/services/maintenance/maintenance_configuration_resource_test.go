@@ -134,7 +134,7 @@ func (MaintenanceConfigurationResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil
 }
 
 func (MaintenanceConfigurationResource) basic(data acceptance.TestData) string {

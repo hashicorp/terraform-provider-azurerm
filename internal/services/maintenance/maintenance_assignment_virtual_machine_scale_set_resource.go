@@ -46,7 +46,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 
 			"virtual_machine_scale_set_id": {
@@ -54,7 +54,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     validateCompute.VirtualMachineScaleSetID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 		},
 	}
@@ -102,19 +102,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 		return err
 	}
 
-	resp, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId)
-	if err != nil {
-		return err
-	}
-	if resp == nil || len(*resp) == 0 {
-		return fmt.Errorf("could not find Maintenance assignment (virtual machine scale set ID: %q)", virtualMachineScaleSetId.ID())
-	}
-	assignment := (*resp)[0]
-	if assignment.Id == nil || *assignment.Id == "" {
-		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine scale set ID %q)", virtualMachineScaleSetId.ID())
-	}
-
-	d.SetId(*assignment.Id)
+	d.SetId(configAssignmentId.ID())
 	return resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d, meta)
 }
 
@@ -150,7 +138,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 	if props := assignment.Properties; props != nil {
 		maintenanceConfigurationId := ""
 		if props.MaintenanceConfigurationId != nil {
-			maintenanceConfigurationId = *props.MaintenanceConfigurationId
+			parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+			}
+			maintenanceConfigurationId = parsedId.ID()
 		}
 		d.Set("maintenance_configuration_id", maintenanceConfigurationId)
 	}

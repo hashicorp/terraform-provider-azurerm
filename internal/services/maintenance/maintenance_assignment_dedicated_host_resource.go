@@ -47,7 +47,7 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 
 			"dedicated_host_id": {
@@ -55,7 +55,7 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     validateCompute.DedicatedHostID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 		},
 	}
@@ -82,16 +82,17 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 		}
 	}
 
-	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
-	configurationId, _ := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(maintenanceConfigurationID)
-
+	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
+	if err != nil {
+		return err
+	}
 	// set assignment name to configuration name
 	assignmentName := configurationId.ResourceName
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
 		Name:     utils.String(assignmentName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &configurationassignments.ConfigurationAssignmentProperties{
-			MaintenanceConfigurationId: utils.String(maintenanceConfigurationID),
+			MaintenanceConfigurationId: utils.String(configurationId.ID()),
 			ResourceId:                 utils.String(dedicatedHostId.ID()),
 		},
 	}
@@ -113,19 +114,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	resp, err := getMaintenanceAssignmentDedicatedHost(ctx, client, dedicatedHostId, dedicatedHostId.ID())
-	if err != nil {
-		return err
-	}
-	if resp == nil || len(*resp) == 0 {
-		return fmt.Errorf("could not find Maintenance assignment (virtual machine scale set ID: %q)", dedicatedHostId.ID())
-	}
-	assignment := (*resp)[0]
-	if assignment.Id == nil || *assignment.Id == "" {
-		return fmt.Errorf("empty or nil ID of Maintenance Assignment (Dedicated Host ID %q)", dedicatedHostId.ID())
-	}
-
-	d.SetId(*assignment.Id)
+	d.SetId(id.ID())
 	return resourceArmMaintenanceAssignmentDedicatedHostRead(d, meta)
 }
 
@@ -159,14 +148,15 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *pluginsdk.ResourceData
 	d.Set("dedicated_host_id", dedicatedHostId)
 
 	if props := assignment.Properties; props != nil {
+		maintenanceConfigurationId := ""
 		if props.MaintenanceConfigurationId != nil {
-			maintenanceConfigurationId := ""
-			if props.MaintenanceConfigurationId != nil {
-				maintenanceConfigurationId = *props.MaintenanceConfigurationId
+			parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
 			}
-			d.Set("maintenance_configuration_id", maintenanceConfigurationId)
+			maintenanceConfigurationId = parsedId.ID()
 		}
-
+		d.Set("maintenance_configuration_id", maintenanceConfigurationId)
 	}
 	return nil
 }

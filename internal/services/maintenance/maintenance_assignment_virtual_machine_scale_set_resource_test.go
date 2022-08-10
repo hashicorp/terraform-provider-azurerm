@@ -60,7 +60,7 @@ func (MaintenanceAssignmentVirtualMachineScaleSetResource) Exists(ctx context.Co
 		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine Scale Set (target resource id: %q): %v", maVmScaleSetID.VirtualMachineScaleSetIdRaw, err)
 	}
 
-	return utils.Bool(resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {

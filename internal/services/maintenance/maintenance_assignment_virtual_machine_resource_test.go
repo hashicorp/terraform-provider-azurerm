@@ -60,7 +60,7 @@ func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, c
 		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", maintenanceAssignmentVirtualMachineId.VirtualMachineIdRaw, err)
 	}
 
-	return utils.Bool(resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineResource) basic(data acceptance.TestData) string {
