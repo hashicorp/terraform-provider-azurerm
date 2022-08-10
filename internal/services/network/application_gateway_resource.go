@@ -409,7 +409,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"global_configuration": {
+			"global": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
@@ -1579,9 +1579,9 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
-	globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global_configuration").([]interface{}))
+	globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding `global_configuration`: %+v", err)
+		return fmt.Errorf("expanding `global`: %+v", err)
 	}
 
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
@@ -1817,10 +1817,10 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations = gatewayIPConfigurations
 	}
 
-	if d.HasChange("global_configuration") {
-		globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global_configuration").([]interface{}))
+	if d.HasChange("global") {
+		globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding `global_configuration`: %+v", err)
+			return fmt.Errorf("expanding `global`: %+v", err)
 		}
 
 		applicationGateway.ApplicationGatewayPropertiesFormat.GlobalConfiguration = globalConfiguration
@@ -2085,8 +2085,8 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `gateway_ip_configuration`: %+v", setErr)
 		}
 
-		if setErr := d.Set("global_configuration", flattenApplicationGatewayGlobalConfiguration(props.GlobalConfiguration)); setErr != nil {
-			return fmt.Errorf("setting `global_configuration`: %+v", setErr)
+		if setErr := d.Set("global", flattenApplicationGatewayGlobalConfiguration(props.GlobalConfiguration)); setErr != nil {
+			return fmt.Errorf("setting `global`: %+v", setErr)
 		}
 
 		if setErr := d.Set("private_endpoint_connection", flattenApplicationGatewayPrivateEndpoints(props.PrivateEndpointConnections)); setErr != nil {

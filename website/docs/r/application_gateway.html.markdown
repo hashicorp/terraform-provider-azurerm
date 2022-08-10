@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
 
-* `global_configuration` - (Optional) A `global_configuration` block as defined below.
+* `global` - (Optional) A `global` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -439,7 +439,7 @@ A `request_routing_rule` block supports the following:
 
 ---
 
-A `global_configuration` block supports the following:
+A `global` block supports the following:
 
 * `request_buffering_enabled` - (Required) Whether Application Gateway's Request buffer is enabled.
 

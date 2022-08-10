@@ -100,8 +100,8 @@ func TestAccApplicationGateway_globalConfiguration(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
-				check.That(data.ResourceName).Key("global_configuration.0.request_buffering_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("global_configuration.0.response_buffering_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("global.0.request_buffering_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("global.0.response_buffering_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -111,8 +111,8 @@ func TestAccApplicationGateway_globalConfiguration(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
-				check.That(data.ResourceName).Key("global_configuration.0.request_buffering_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("global_configuration.0.response_buffering_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("global.0.request_buffering_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("global.0.response_buffering_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1470,7 +1470,7 @@ resource "azurerm_application_gateway" "test" {
     request_timeout       = 1
   }
 
-  global_configuration {
+  global {
     request_buffering_enabled  = true
     response_buffering_enabled = true
   }
@@ -1554,7 +1554,7 @@ resource "azurerm_application_gateway" "test" {
     request_timeout       = 1
   }
 
-  global_configuration {
+  global {
     request_buffering_enabled  = false
     response_buffering_enabled = false
   }
