@@ -58,6 +58,7 @@ func TestAccFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("dns.0.servers.0").HasValue("1.1.1.1"),
 				check.That(data.ResourceName).Key("dns.0.servers.1").HasValue("3.3.3.3"),
 				check.That(data.ResourceName).Key("dns.0.servers.2").HasValue("2.2.2.2"),
+				check.That(data.ResourceName).Key("dns.0.proxy_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
