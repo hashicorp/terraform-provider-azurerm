@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FieldDefinition struct {
+type Field struct {
 	Name        string `tfschema:"name"`
 	IsOptional  bool   `tfschema:"is_optional"`
 	IsEncrypted bool   `tfschema:"is_encrypted"`
@@ -24,11 +24,11 @@ type FieldDefinition struct {
 }
 
 type AutomationConnectionTypeModel struct {
-	ResourceGrup          string            `json:"resource_grup" tfschema:"resource_group_name"`
-	AutomationAccountName string            `json:"automation_account_name" tfschema:"automation_account_name"`
-	Name                  string            `json:"name" tfschema:"name"`
-	IsGlobal              bool              `json:"is_global" tfschema:"is_global"`
-	FieldDefinitions      []FieldDefinition `json:"field_definitions" tfschema:"field_definitions"`
+	ResourceGrup          string  `json:"resource_grup" tfschema:"resource_group_name"`
+	AutomationAccountName string  `json:"automation_account_name" tfschema:"automation_account_name"`
+	Name                  string  `json:"name" tfschema:"name"`
+	IsGlobal              bool    `json:"is_global" tfschema:"is_global"`
+	Field                 []Field `json:"field" tfschema:"field"`
 }
 
 type AutomationConnectionTypeResource struct{}
@@ -59,7 +59,7 @@ func (m AutomationConnectionTypeResource) Arguments() map[string]*pluginsdk.Sche
 			ForceNew: true,
 		},
 
-		"field_definitions": {
+		"field": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
@@ -136,7 +136,7 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 					FieldDefinitions: map[string]*automation.FieldDefinition{},
 				},
 			}
-			for _, field := range model.FieldDefinitions {
+			for _, field := range model.Field {
 				param.ConnectionTypeCreateOrUpdateProperties.FieldDefinitions[field.Name] = &automation.FieldDefinition{
 					IsEncrypted: utils.Bool(field.IsEncrypted),
 					IsOptional:  utils.Bool(field.IsOptional),
@@ -175,7 +175,7 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 			output.AutomationAccountName = id.AutomationAccountName
 			output.ResourceGrup = id.ResourceGroup
 			for name, prop := range result.FieldDefinitions {
-				output.FieldDefinitions = append(output.FieldDefinitions, FieldDefinition{
+				output.Field = append(output.Field, Field{
 					Name:        name,
 					Type:        utils.NormalizeNilableString(prop.Type),
 					IsEncrypted: utils.NormaliseNilableBool(prop.IsEncrypted),

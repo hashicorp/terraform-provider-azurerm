@@ -59,7 +59,7 @@ resource "azurerm_automation_connection_type" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   is_global               = false
-  field_definitions {
+  field {
     name = "my_def"
     type = "string"
   }

@@ -3,7 +3,7 @@ subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_connection_type"
 description: |-
-  Manages a Automation.
+  Manages a Automation Connection Type.
 ---
 
 # azurerm_automation_connection_type
