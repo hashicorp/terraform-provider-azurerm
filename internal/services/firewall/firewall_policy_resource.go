@@ -99,7 +99,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	if v, ok := d.GetOk("allow_sql_redirect"); ok {
+	if v, ok := d.GetOk("sql_redirect_allowed"); ok {
 		props.FirewallPolicyPropertiesFormat.SQL = &network.FirewallPolicySQL{
 			AllowSQLRedirect: utils.Bool(v.(bool)),
 		}
@@ -207,8 +207,8 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if prop.SQL != nil && prop.SQL.AllowSQLRedirect != nil {
-			if err := d.Set("allow_sql_redirect", prop.SQL.AllowSQLRedirect); err != nil {
-				return fmt.Errorf("setting `allow_sql_redirect`: %+v", err)
+			if err := d.Set("sql_redirect_allowed", prop.SQL.AllowSQLRedirect); err != nil {
+				return fmt.Errorf("setting `sql_redirect_allowed`: %+v", err)
 			}
 		}
 	}
@@ -884,7 +884,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"allow_sql_redirect": {
+		"sql_redirect_allowed": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},

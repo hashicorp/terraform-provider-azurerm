@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `tls_certificate` - (Optional) A `tls_certificate` block as defined below.
 
-* `allow_sql_redirect` - (Optional) Whether SQL Redirect traffic filtering is enabled. Turning on the flag requires no rule using port 11000-11999.
+* `sql_redirect_allowed` - (Optional) Whether SQL Redirect traffic filtering is allowed. Turning on the flag requires no rule using port 11000-11999.
 
 ---
 
