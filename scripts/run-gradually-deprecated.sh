@@ -73,17 +73,28 @@ function runGraduallyDeprecatedFunctions {
   fi
 
   # check for d.Get inside Delete
-  deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete")
+  deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
   if [ "$deleteFuncName" != "" ];
   then
-     deleteMethod=$(cat -n $f | sed -n -e "/func$deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func$deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
-     foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
-     if [ "$foundGet" != "" ];
-     then
-       echo "$f $foundGet"
-       echo "Please do not use 'd.Get' within the Delete function as this does not work as expected in Delete"
-       exit 1
-     fi
+    deleteMethod=$(cat -n $f | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
+    foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
+    if [ "$foundGet" != "" ];
+    then
+      echo "$f $foundGet"
+      echo "Please do not use 'd.Get' within the Delete function as this does not work as expected in Delete"
+      exit 1
+    fi
+  else
+    # check for Get in typed resource
+    deleteFuncName=" Delete() sdk.ResourceFunc "
+    deleteMethod=$(cat -n $f | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
+    foundGet=$(echo "$deleteMethod" | grep "metadata.ResourceData.Get" -m1)
+    if [ "$foundGet" != "" ];
+    then
+      echo "$f $foundGet"
+      echo "Please do not use 'metadata.ResourceData.Get' within the Delete function as this does not work as expected in Delete"
+      exit 1
+    fi
   fi
 done
 }
