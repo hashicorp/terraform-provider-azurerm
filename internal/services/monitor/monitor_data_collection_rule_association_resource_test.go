@@ -47,6 +47,21 @@ func TestAccMonitorDataCollectionRuleAssociation_basic(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRuleAssociation_basicEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule_association", "test")
+	r := MonitorDataCollectionRuleAssociationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDataCollectionRuleAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule_association", "test")
 	r := MonitorDataCollectionRuleAssociationResource{}
@@ -137,8 +152,24 @@ resource "azurerm_monitor_data_collection_rule_association" "test" {
   target_resource_id      = azurerm_linux_virtual_machine.test.id
   data_collection_rule_id = azurerm_monitor_data_collection_rule.test.id
 }
+`, r.template(data), data.RandomInteger)
+}
 
+func (r MonitorDataCollectionRuleAssociationResource) basicEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
+resource "azurerm_monitor_data_collection_endpoint" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_monitor_data_collection_rule_association" "test" {
+  name                    = "configurationAccessEndpoint"
+  target_resource_id      = azurerm_linux_virtual_machine.test.id
+  data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.test.id
+}
 `, r.template(data), data.RandomInteger)
 }
 
@@ -152,8 +183,6 @@ resource "azurerm_monitor_data_collection_rule_association" "test" {
   data_collection_rule_id = azurerm_monitor_data_collection_rule.test.id
   description             = "test dcra"
 }
-
-
 `, r.template(data), data.RandomInteger)
 }
 
@@ -181,8 +210,6 @@ resource "azurerm_monitor_data_collection_rule_association" "test" {
   target_resource_id      = azurerm_linux_virtual_machine.test.id
   data_collection_rule_id = azurerm_monitor_data_collection_rule.test2.id
 }
-
-
 `, r.template(data), data.RandomInteger)
 }
 
@@ -193,8 +220,7 @@ func (r MonitorDataCollectionRuleAssociationResource) requiresImport(data accept
 resource "azurerm_monitor_data_collection_rule_association" "import" {
   name                    = azurerm_monitor_data_collection_rule_association.test.name
   target_resource_id      = azurerm_monitor_data_collection_rule_association.test.target_resource_id
-  data_collection_rule_id = azurerm_monitor_data_colleciton_rule_association.test.data_colleciton_rule_id
-  description             = azurerm_monitor_data_collection_rule_association.test.description
+  data_collection_rule_id = azurerm_monitor_data_collection_rule_association.test.data_collection_rule_id
 }
 `, r.basic(data))
 }
