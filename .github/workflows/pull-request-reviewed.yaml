@@ -1,0 +1,28 @@
+---
+name: "Pull Request Reviewed"
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  add-waiting-response:
+    if: github.event.review.state != 'approved' && github.actor != github.event.pull_request.user.login
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions-ecosystem/action-add-labels@v1.1.0
+        with:
+          labels: waiting-response
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          number: ${{ github.event.pull_request.number }}
+          repo: ${{ github.repository }}
+  remove-waiting-response:
+    if: github.actor == github.event.pull_request.user.login
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: waiting-response

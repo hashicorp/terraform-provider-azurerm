@@ -951,6 +951,9 @@ func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
+		if m, ok := v["webhook_properties"].(map[string]interface{}); ok && m != nil {
+			buf.WriteString(fmt.Sprintf("%v-", m))
+		}
 	}
 	return pluginsdk.HashString(buf.String())
 }

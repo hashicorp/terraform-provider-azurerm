@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connections.NewResourceGroupID()
+id := connections.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 read, err := client.List(ctx, id, connections.DefaultListOperationOptions())
 if err != nil {

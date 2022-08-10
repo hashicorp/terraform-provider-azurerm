@@ -102,6 +102,18 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
+												"tier_to_archive_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"delete_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_cool_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 											},
 										},
 									},
@@ -167,7 +179,7 @@ func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default")
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagementPolicyName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
