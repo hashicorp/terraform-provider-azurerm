@@ -198,6 +198,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if v := props.PublicNetworkAccess; v != nil {
 			d.Set("public_network_access_enabled", *v == "Enabled")
 		}
+
 		d.Set("vault_uri", props.VaultURI)
 		if props.VaultURI != nil {
 			meta.(*clients.Client).KeyVault.AddToCache(id, *resp.Properties.VaultURI)
