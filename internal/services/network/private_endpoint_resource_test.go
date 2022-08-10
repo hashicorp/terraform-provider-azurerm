@@ -215,7 +215,7 @@ func TestAccPrivateEndpoint_privateConnectionAlias(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.privateConnectionAlias(data),
+			Config: r.privateConnectionAlias(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
@@ -223,6 +223,22 @@ func TestAccPrivateEndpoint_privateConnectionAlias(t *testing.T) {
 				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_connection_resource_alias").Exists(),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpoint_updateToPrivateConnectionAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateConnectionAlias(data, false),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateConnectionAlias(data, true),
 		},
 		data.ImportStep(),
 	})
@@ -270,7 +286,7 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelink-%d"
+  name     = "zjhe-acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -435,7 +451,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelink-%d"
+  name     = "zjhe-acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -515,7 +531,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelink-%d"
+  name     = "zjhe-acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -590,7 +606,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelink-%d"
+  name     = "zjhe-acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -675,7 +691,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelink-%d"
+  name     = "zjhe-acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -748,7 +764,15 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r PrivateEndpointResource) privateConnectionAlias(data acceptance.TestData) string {
+func (r PrivateEndpointResource) privateConnectionAlias(data acceptance.TestData, withTags bool) string {
+	tags := `
+  tags = {
+    env = "TEST"
+  }
+`
+	if !withTags {
+		tags = ""
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -764,8 +788,9 @@ resource "azurerm_private_endpoint" "test" {
     private_connection_resource_alias = azurerm_private_link_service.test.alias
     request_message                   = "test"
   }
+%s
 }
-`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, tags)
 }
 
 func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, count int) string {

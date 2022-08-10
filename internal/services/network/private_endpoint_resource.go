@@ -304,26 +304,30 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
-
 		if err != nil {
-			if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
-				return &resource.RetryError{
-					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
-					Retryable: false,
+			switch {
+			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
+						Retryable: false,
+					}
 				}
-			} else if strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id") {
-				return &resource.RetryError{
-					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
-					Retryable: true,
+			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+						Retryable: true,
+					}
 				}
-			} else {
+			default:
 				return &resource.RetryError{
 					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 					Retryable: false,
 				}
 			}
 		}
-
+		
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return &resource.RetryError{
 				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
@@ -427,19 +431,53 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.PrivateLinkServiceConnections)
+	if err != nil {
+		return err
+	}
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.ManualPrivateLinkServiceConnections)
+	if err != nil {
+		return err
+	}
+
 	locks.ByName(subnetId, "azurerm_private_endpoint")
 	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
-	if err != nil {
-		if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
-			return fmt.Errorf("updating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err)
-		} else {
-			return fmt.Errorf("updating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+		if err != nil {
+			switch {
+			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("updating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
+						Retryable: false,
+					}
+				}
+			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+						Retryable: true,
+					}
+				}
+			default:
+				return &resource.RetryError{
+					Err: fmt.Errorf("updating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+				}
+			}
 		}
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return &resource.RetryError{
+				Err:       fmt.Errorf("waiting for update of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+				Retryable: false,
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	// 1 Private Endpoint can have 1 Private DNS Zone Group - so to update we need to Delete & Recreate
