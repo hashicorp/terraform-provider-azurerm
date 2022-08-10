@@ -19,8 +19,10 @@ type EHNamespaceProperties struct {
 	KafkaEnabled               *bool                        `json:"kafkaEnabled,omitempty"`
 	MaximumThroughputUnits     *int64                       `json:"maximumThroughputUnits,omitempty"`
 	MetricId                   *string                      `json:"metricId,omitempty"`
+	MinimumTlsVersion          *TlsVersion                  `json:"minimumTlsVersion,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *string                      `json:"provisioningState,omitempty"`
+	PublicNetworkAccess        *PublicNetworkAccess         `json:"publicNetworkAccess,omitempty"`
 	ServiceBusEndpoint         *string                      `json:"serviceBusEndpoint,omitempty"`
 	Status                     *string                      `json:"status,omitempty"`
 	UpdatedAt                  *string                      `json:"updatedAt,omitempty"`

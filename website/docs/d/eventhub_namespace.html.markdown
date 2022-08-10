@@ -46,6 +46,8 @@ output "eventhub_namespace_id" {
 
 * `dedicated_cluster_id` - The ID of the EventHub Dedicated Cluster where this Namespace exists.
 
+* `local_authentication_enabled` - Is this EventHub Namespace SAS authentication enabled?
+
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
 
 The following attributes are exported only if there is an authorization rule named

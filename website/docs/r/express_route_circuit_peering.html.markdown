@@ -45,6 +45,7 @@ resource "azurerm_express_route_circuit_peering" "example" {
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
   secondary_peer_address_prefix = "123.0.0.4/30"
+  ipv4_enabled                  = true
   vlan_id                       = 300
 
   microsoft_peering_config {
@@ -54,10 +55,57 @@ resource "azurerm_express_route_circuit_peering" "example" {
   ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
+    enabled                       = true
 
     microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]
     }
+  }
+}
+```
+
+## Example Usage (Creating Azure Private Peering)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "exprtTest"
+  location = "West Europe"
+}
+
+resource "azurerm_express_route_circuit" "example" {
+  name                  = "expressRoute1"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_express_route_circuit_peering" "example" {
+  peering_type                  = "AzurePrivatePeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  resource_group_name           = azurerm_resource_group.example.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "123.0.0.0/30"
+  secondary_peer_address_prefix = "123.0.0.4/30"
+  ipv4_enabled                  = true
+  vlan_id                       = 300
+
+  ipv6 {
+    primary_peer_address_prefix   = "2002:db01::/126"
+    secondary_peer_address_prefix = "2003:db01::/126"
+    enabled                       = true
   }
 }
 ```
@@ -74,17 +122,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Express Route Circuit Peering. Changing this forces a new resource to be created.
 
-* `primary_peer_address_prefix` - (Required) A `/30` subnet for the primary link.
-
-* `secondary_peer_address_prefix` - (Required) A `/30` subnet for the secondary link.
-
 * `vlan_id` - (Required) A valid VLAN ID to establish this peering on.
+
+* `primary_peer_address_prefix` - (Optional) A `/30` subnet for the primary link. Required when config for IPv4.
+
+* `secondary_peer_address_prefix` - (Optional) A `/30` subnet for the secondary link. Required when config for IPv4.
+
+* `ipv4_enabled` - (Optional) A boolean value indicating whether the IPv4 peering is enabled. Defaults to `true`.
 
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
 
 * `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private.
 
-* `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.
+* `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering` and config for IPv4.
 
 * `ipv6` - (Optional) A `ipv6` block as defined below.
 
@@ -104,13 +154,17 @@ A `microsoft_peering_config` block contains:
 
 A `ipv6` block contains:
 
-* `microsoft_peering` - (Required) A `microsoft_peering` block as defined below.  
-
 * `primary_peer_address_prefix` - (Required) A subnet for the primary link.
 
 * `secondary_peer_address_prefix` - (Required) A subnet for the secondary link.
+ 
+* `enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
+
+* `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below.  
 
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
+
+~> **NOTE:** `ipv6` can be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`
 
 ---
 
