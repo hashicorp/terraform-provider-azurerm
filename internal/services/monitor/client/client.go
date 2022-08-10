@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -26,6 +27,7 @@ type Client struct {
 	ActionGroupsClient                   *newActionGroupClient.ActionGroupsClient
 	ActivityLogAlertsClient              *insights.ActivityLogAlertsClient
 	AlertRulesClient                     *classic.AlertRulesClient
+	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
 	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
 	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
 	DiagnosticSettingsClient             *classic.DiagnosticSettingsClient
@@ -58,6 +60,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	DataCollectionEndpointsClient := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&DataCollectionEndpointsClient.Client, o.ResourceManagerAuthorizer)
 
 	DataCollectionRuleAssociationsClient := datacollectionruleassociations.NewDataCollectionRuleAssociationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionRuleAssociationsClient.Client, o.ResourceManagerAuthorizer)
@@ -94,6 +99,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionGroupsClient:                   &ActionGroupsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
 		AlertRulesClient:                     &AlertRulesClient,
+		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
 		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,
 		DataCollectionRulesClient:            &DataCollectionRulesClient,
 		DiagnosticSettingsClient:             &DiagnosticSettingsClient,
