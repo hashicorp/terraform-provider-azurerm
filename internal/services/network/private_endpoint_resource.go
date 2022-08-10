@@ -327,7 +327,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			}
 		}
-		
+
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return &resource.RetryError{
 				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
