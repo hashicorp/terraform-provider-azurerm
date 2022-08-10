@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,6 +55,7 @@ type LinuxFunctionAppModel struct {
 	KeyVaultReferenceIdentityID string                               `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                  []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	Tags                        map[string]string                    `tfschema:"tags"`
+	VirtualNetworkSubnetID      string                               `tfschema:"virtual_network_subnet_id"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -243,6 +245,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
 	}
 }
 
@@ -450,6 +458,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
 			}
 
+			if functionApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
+			}
+
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
@@ -621,6 +633,10 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
 
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
+			}
+
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
 			}
@@ -700,6 +716,19 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("https_only") {
 				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
+					if _, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName); err != nil {
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
+					existing.SiteProperties.VirtualNetworkSubnetID = empty
+				} else {
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {

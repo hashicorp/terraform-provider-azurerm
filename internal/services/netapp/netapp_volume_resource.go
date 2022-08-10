@@ -1084,8 +1084,8 @@ func flattenNetAppVolumeMountIPAddresses(input *[]volumes.MountTargetProperties)
 	}
 
 	for _, item := range *input {
-		if item.IpAddress != nil {
-			results = append(results, item.IpAddress)
+		if item.IPAddress != nil {
+			results = append(results, item.IPAddress)
 		}
 	}
 
