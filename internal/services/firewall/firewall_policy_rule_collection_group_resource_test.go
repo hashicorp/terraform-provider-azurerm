@@ -45,6 +45,21 @@ func TestAccFirewallPolicyRuleCollectionGroup_complete(t *testing.T) {
 	})
 }
 
+func TestAccFirewallPolicyRuleCollectionGroup_mssql(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
+	r := FirewallPolicyRuleCollectionGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mssql(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewallPolicyRuleCollectionGroup_completePremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 	r := FirewallPolicyRuleCollectionGroupResource{}
@@ -877,4 +892,59 @@ resource "azurerm_firewall_policy_rule_collection_group" "import" {
   priority           = azurerm_firewall_policy_rule_collection_group.test.priority
 }
 `, template)
+}
+
+func (FirewallPolicyRuleCollectionGroupResource) mssql(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fwpolicy-RCG-%[1]d"
+  location = "%[2]s"
+}
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-fwpolicy-RCG-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  dns {
+    proxy_enabled = true
+  }
+}
+resource "azurerm_ip_group" "test_source" {
+  name                = "acctestIpGroupForFirewallPolicySource"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["1.2.3.4/32", "12.34.56.0/24"]
+}
+resource "azurerm_ip_group" "test_destination" {
+  name                = "acctestIpGroupForFirewallPolicyDest"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
+resource "azurerm_firewall_policy_rule_collection_group" "test" {
+  name               = "acctest-fwpolicy-RCG-%[1]d"
+  firewall_policy_id = azurerm_firewall_policy.test.id
+  priority           = 500
+  application_rule_collection {
+    name     = "app_rule_collection1"
+    priority = 500
+    action   = "Deny"
+    rule {
+      name = "app_rule_collection1_rule1"
+      protocols {
+        type = "Mssql"
+        port = 80
+      }
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses  = ["10.0.0.1"]
+      destination_fqdns = ["pluginsdk.io"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

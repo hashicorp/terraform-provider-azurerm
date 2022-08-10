@@ -105,12 +105,15 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
+												// Mssql is supported but service team didn't include it in the current swagger, they are working on the fix in the next swagger release.
+												// todo: to use the sdk enum for this Mssql const
 												"type": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(network.FirewallPolicyRuleApplicationProtocolTypeHTTP),
 														string(network.FirewallPolicyRuleApplicationProtocolTypeHTTPS),
+														"Mssql",
 													}, false),
 												},
 												"port": {

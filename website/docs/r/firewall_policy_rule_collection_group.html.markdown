@@ -206,7 +206,7 @@ A `rule` (NAT rule) block supports the following:
 
 A `protocols` block supports the following:
 
-* `type` - (Required) Protocol type. Possible values are `Http` and `Https`.
+* `type` - (Required) Protocol type. Possible values are `Http`, `Https`, `Mssql`.
 
 * `port` - (Required) Port number of the protocol. Range is 0-64000.
 
