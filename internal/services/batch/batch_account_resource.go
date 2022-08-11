@@ -384,11 +384,20 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
-			Encryption:                 encryption,
-			AllowedAuthenticationModes: expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()),
+			Encryption: encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
+	}
+
+	if d.HasChange("allowed_authentication_modes") {
+		allowedAuthModes := d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()
+		if len(allowedAuthModes) == 0 {
+			parameters.AllowedAuthenticationModes = &[]batch.AuthenticationMode{} // remove all modes need explicit set it to empty array not nil
+		} else {
+			parameters.AllowedAuthenticationModes = expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List())
+		}
+
 	}
 
 	if d.HasChange("storage_account_id") {
