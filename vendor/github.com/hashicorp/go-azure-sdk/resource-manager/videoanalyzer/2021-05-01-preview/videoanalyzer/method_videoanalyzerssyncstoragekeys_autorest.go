@@ -63,5 +63,6 @@ func (c VideoAnalyzerClient) responderForVideoAnalyzersSyncStorageKeys(resp *htt
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

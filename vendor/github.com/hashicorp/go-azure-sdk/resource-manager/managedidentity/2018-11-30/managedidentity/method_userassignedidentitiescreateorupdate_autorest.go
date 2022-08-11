@@ -65,5 +65,6 @@ func (c ManagedIdentityClient) responderForUserAssignedIdentitiesCreateOrUpdate(
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

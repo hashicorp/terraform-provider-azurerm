@@ -59,50 +59,6 @@ func (c DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.Contex
 	return
 }
 
-// ListAuthorizationRulesComplete retrieves all of the results into a single object
-func (c DisasterRecoveryConfigsClient) ListAuthorizationRulesComplete(ctx context.Context, id DisasterRecoveryConfigId) (ListAuthorizationRulesCompleteResult, error) {
-	return c.ListAuthorizationRulesCompleteMatchingPredicate(ctx, id, SBAuthorizationRuleOperationPredicate{})
-}
-
-// ListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DisasterRecoveryConfigsClient) ListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id DisasterRecoveryConfigId, predicate SBAuthorizationRuleOperationPredicate) (resp ListAuthorizationRulesCompleteResult, err error) {
-	items := make([]SBAuthorizationRule, 0)
-
-	page, err := c.ListAuthorizationRules(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListAuthorizationRulesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListAuthorizationRules prepares the ListAuthorizationRules request.
 func (c DisasterRecoveryConfigsClient) preparerForListAuthorizationRules(ctx context.Context, id DisasterRecoveryConfigId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c DisasterRecoveryConfigsClient) responderForListAuthorizationRules(resp *
 		}
 	}
 	return
+}
+
+// ListAuthorizationRulesComplete retrieves all of the results into a single object
+func (c DisasterRecoveryConfigsClient) ListAuthorizationRulesComplete(ctx context.Context, id DisasterRecoveryConfigId) (ListAuthorizationRulesCompleteResult, error) {
+	return c.ListAuthorizationRulesCompleteMatchingPredicate(ctx, id, SBAuthorizationRuleOperationPredicate{})
+}
+
+// ListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DisasterRecoveryConfigsClient) ListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id DisasterRecoveryConfigId, predicate SBAuthorizationRuleOperationPredicate) (resp ListAuthorizationRulesCompleteResult, err error) {
+	items := make([]SBAuthorizationRule, 0)
+
+	page, err := c.ListAuthorizationRules(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListAuthorizationRulesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

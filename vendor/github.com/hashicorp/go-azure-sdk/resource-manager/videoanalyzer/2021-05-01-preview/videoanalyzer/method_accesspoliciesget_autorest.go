@@ -63,5 +63,6 @@ func (c VideoAnalyzerClient) responderForAccessPoliciesGet(resp *http.Response) 
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
