@@ -14,7 +14,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-`azurerm_backup_policy_vm` - now prevents crash when `frequency` is set to Hourly and, `hour_interval` and `hour_duration`are not set [GH-17880]
+* `azurerm_backup_policy_vm` - now prevents crash when `frequency` is set to Hourly and, `hour_interval` and `hour_duration`are not set [GH-17880]
+* Data Source: `azurerm_blueprint_definition` - Fix `version` property output [GH-16299]
 
 ## 3.17.0 (August 04, 2022)
 
