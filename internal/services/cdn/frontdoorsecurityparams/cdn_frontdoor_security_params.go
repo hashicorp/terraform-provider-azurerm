@@ -16,29 +16,17 @@ type CdnFrontdoorSecurityMappings struct {
 	Firewall CdnFrontdoorSecurityParameters
 }
 
-func InitializeCdnFrontdoorSecurityMappings() *CdnFrontdoorSecurityMappings {
-	m := new(CdnFrontdoorSecurityMappings)
-
-	m.Firewall = CdnFrontdoorSecurityParameters{
-		TypeName:   cdn.TypeWebApplicationFirewall,
-		ConfigName: "firewall",
-	}
-
-	return m
-}
-
 func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardSku bool) (cdn.SecurityPolicyWebApplicationFirewallParameters, error) {
 	results := cdn.SecurityPolicyWebApplicationFirewallParameters{}
 	if len(input) == 0 {
 		return results, nil
 	}
 
-	m := InitializeCdnFrontdoorSecurityMappings()
 	associations := make([]cdn.SecurityPolicyWebApplicationFirewallAssociation, 0)
 
 	// pull off only the firewall policy from the security_policies list
 	policyType := input[0].(map[string]interface{})
-	firewallPolicy := policyType[m.Firewall.ConfigName].([]interface{})
+	firewallPolicy := policyType["firewall"].([]interface{})
 	v := firewallPolicy[0].(map[string]interface{})
 
 	if id := v["cdn_frontdoor_firewall_policy_id"].(string); id != "" {
@@ -72,7 +60,6 @@ func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 	}
 
 	results.Associations = &associations
-	results.Type = m.Firewall.TypeName
 
 	return results, nil
 }
@@ -85,12 +72,11 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]cd
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		activatedResourceReference := cdn.ActivatedResourceReference{}
 
 		if id := v["cdn_frontdoor_domain_id"].(string); id != "" {
-			activatedResourceReference.ID = utils.String(id)
-
-			results = append(results, activatedResourceReference)
+			results = append(results, cdn.ActivatedResourceReference{
+				ID: utils.String(id),
+			})
 		}
 	}
 
@@ -105,27 +91,32 @@ func FlattenCdnFrontdoorFirewallPolicyParameters(input cdn.BasicSecurityPolicyPr
 
 	// we know it's a firewall policy at this point,
 	// create the objects to hold the policy data
-	securityPolicy := make([]interface{}, 0)
-	firewall := make([]interface{}, 0)
 	associations := make([]interface{}, 0)
-	wafPolicy := make(map[string]interface{})
-	firewallPolicy := make(map[string]interface{})
 
-	wafPolicy["cdn_frontdoor_firewall_policy_id"] = *waf.WafPolicy.ID
-
-	for _, item := range *waf.Associations {
-		association := make(map[string]interface{})
-		association["domain"] = flattenSecurityPoliciesActivatedResourceReference(item.Domains)
-		association["patterns_to_match"] = utils.FlattenStringSlice(item.PatternsToMatch)
-		associations = append(associations, association)
+	wafPolicyId := ""
+	if waf.WafPolicy != nil && waf.WafPolicy.ID != nil {
+		wafPolicyId = *waf.WafPolicy.ID
 	}
 
-	wafPolicy["association"] = associations
-	firewall = append(firewall, wafPolicy)
-	firewallPolicy["firewall"] = firewall
-	securityPolicy = append(securityPolicy, firewallPolicy)
+	if waf.Associations != nil {
+		for _, item := range *waf.Associations {
+			associations = append(associations, map[string]interface{}{
+				"domain":            flattenSecurityPoliciesActivatedResourceReference(item.Domains),
+				"patterns_to_match": utils.FlattenStringSlice(item.PatternsToMatch),
+			})
+		}
+	}
 
-	return securityPolicy, nil
+	return []interface{}{
+		map[string]interface{}{
+			"firewall": []interface{}{
+				map[string]interface{}{
+					"association":                      associations,
+					"cdn_frontdoor_firewall_policy_id": wafPolicyId,
+				},
+			},
+		},
+	}, nil
 }
 
 func flattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedResourceReference) []interface{} {
@@ -135,11 +126,20 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedRes
 	}
 
 	for _, item := range *input {
-		domain := make(map[string]interface{})
-		domain["cdn_frontdoor_domain_id"] = *item.ID
-		domain["active"] = *item.IsActive
+		frontDoorDomainId := ""
+		if item.ID != nil {
+			frontDoorDomainId = *item.ID
+		}
 
-		results = append(results, domain)
+		active := false
+		if item.IsActive != nil {
+			active = *item.IsActive
+		}
+
+		results = append(results, map[string]interface{}{
+			"active":                  active,
+			"cdn_frontdoor_domain_id": frontDoorDomainId,
+		})
 	}
 
 	return results

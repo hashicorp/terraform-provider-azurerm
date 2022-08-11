@@ -158,17 +158,15 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	securityPolicyName := d.Get("name").(string)
 	id := parse.NewFrontDoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
 	}
 
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
@@ -182,13 +180,10 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	isStandardSku := strings.HasPrefix(strings.ToLower(string(profile.Sku.Name)), "standard")
-	params := cdn.BasicSecurityPolicyPropertiesParameters(nil)
 
-	if secPol, ok := d.GetOk("security_policies"); ok {
-		params, err = cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(secPol.([]interface{}), isStandardSku)
-		if err != nil {
-			return fmt.Errorf("expanding %q: %+v", "security_policies", err)
-		}
+	params, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
+	if err != nil {
+		return fmt.Errorf("expanding %q: %+v", "security_policies", err)
 	}
 
 	props := cdn.SecurityPolicy{
