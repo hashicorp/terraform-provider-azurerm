@@ -33,6 +33,7 @@ import (
 	confidentialledger "github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/client"
 	connections "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	consumption "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
+	containerapps "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
 	containerServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
@@ -152,6 +153,7 @@ type Client struct {
 	ConfidentialLedger    *confidentialledger.Client
 	Connections           *connections.Client
 	Consumption           *consumption.Client
+	ContainerApps         *containerapps.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
@@ -274,6 +276,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
 	client.Containers = containerServices.NewContainersClient(o)
+	client.ContainerApps = containerapps.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)

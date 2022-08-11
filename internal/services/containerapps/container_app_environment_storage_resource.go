@@ -1,0 +1,254 @@
+package containerapps
+
+import (
+	"context"
+	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironmentsstorages"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type ContainerAppEnvironmentStorageResource struct{}
+
+type ContainerAppEnvironmentStorageModel struct {
+	Name                      string `tfschema:"name"`
+	ContainerAppEnvironmentId string `tfschema:"container_app_environment_id"`
+	AccountName               string `tfschema:"account_name"`
+	AccessKey                 string `tfschema:"access_key"`
+	ShareName                 string `tfschema:"share_name"`
+	AccessMode                string `tfschema:"access_mode"`
+}
+
+var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentStorageResource{}
+
+func (r ContainerAppEnvironmentStorageResource) ModelObject() interface{} {
+	return &ContainerAppEnvironmentStorageModel{}
+}
+
+func (r ContainerAppEnvironmentStorageResource) ResourceType() string {
+	return "azurerm_container_app_environment_storage"
+}
+
+func (r ContainerAppEnvironmentStorageResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return managedenvironmentsstorages.ValidateStorageID
+}
+
+func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty, // TODO
+			Description:  "The name for this Storage.",
+		},
+
+		"container_app_environment_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: managedenvironmentsstorages.ValidateManagedEnvironmentID,
+			Description:  "The ID of the Container App Environment to which this storage belongs.",
+		},
+
+		"account_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: storageValidate.StorageAccountName,
+			Description:  "The Azure Storage Account in which the Share to be used is located.",
+		},
+
+		"access_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The Storage Account Access Key.",
+		},
+
+		"share_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: storageValidate.StorageShareName,
+		},
+
+		"access_mode": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedenvironmentsstorages.AccessModeReadOnly),
+				string(managedenvironmentsstorages.AccessModeReadWrite),
+			}, false),
+		},
+	}
+}
+
+func (r ContainerAppEnvironmentStorageResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ContainerApps.StorageClient
+
+			var storage ContainerAppEnvironmentStorageModel
+
+			if err := metadata.Decode(&storage); err != nil {
+				return err
+			}
+
+			containerAppEnvironmentId, err := managedenvironmentsstorages.ParseManagedEnvironmentID(storage.ContainerAppEnvironmentId)
+			if err != nil {
+				return err
+			}
+
+			id := managedenvironmentsstorages.NewStorageID(metadata.Client.Account.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.EnvironmentName, storage.Name)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			accessMode := managedenvironmentsstorages.AccessMode(storage.AccessMode)
+
+			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{
+				Name: utils.String(id.StorageName),
+				Properties: &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
+						AccessMode:  &accessMode,
+						AccountKey:  utils.String(storage.AccessKey),
+						AccountName: utils.String(storage.AccountName),
+						ShareName:   utils.String(storage.ShareName),
+					},
+				},
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id, managedEnvironmentStorage); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
+		},
+	}
+}
+
+func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ContainerApps.StorageClient
+
+			id, err := managedenvironmentsstorages.ParseStorageID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			var state ContainerAppEnvironmentStorageModel
+
+			state.Name = id.StorageName
+			state.ContainerAppEnvironmentId = managedenvironmentsstorages.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName).ID()
+
+			if model := existing.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if azureFile := props.AzureFile; azureFile != nil {
+						state.AccountName = utils.NormalizeNilableString(azureFile.AccountName)
+						//state.AccessKey = utils.NormalizeNilableString(azureFile.AccountKey) // Probably not returned?
+						if azureFile.AccessMode != nil {
+							state.AccessMode = string(*azureFile.AccessMode)
+						}
+						state.ShareName = utils.NormalizeNilableString(azureFile.ShareName)
+					}
+				}
+			}
+			if keyFromConfig, ok := metadata.ResourceData.GetOk("access_key"); ok {
+				state.AccessKey = keyFromConfig.(string)
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r ContainerAppEnvironmentStorageResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ContainerApps.StorageClient
+
+			id, err := managedenvironmentsstorages.ParseStorageID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if resp, err := client.Delete(ctx, *id); err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("deleting %s: %+v", *id, err)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r ContainerAppEnvironmentStorageResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ContainerApps.StorageClient
+
+			id, err := managedenvironmentsstorages.ParseStorageID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var storage ContainerAppEnvironmentStorageModel
+			if err := metadata.Decode(&storage); err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil || existing.Model == nil {
+				return fmt.Errorf("reading %s for update: %+v", *id, err)
+			}
+
+			if existing.Model.Properties == nil || existing.Model.Properties.AzureFile == nil {
+				return fmt.Errorf("could not update %s: %+v", *id, err)
+			}
+
+			// This *must* be sent, and since it is not returned from the API in any way, we re-read from config.
+			existing.Model.Properties.AzureFile.AccountKey = utils.String(metadata.ResourceData.Get("access_key").(string))
+
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
