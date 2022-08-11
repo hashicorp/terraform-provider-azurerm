@@ -89,6 +89,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					"LUIS",
 					"LUIS.Authoring",
 					"MetricsAdvisor",
+					"OpenAI",
 					"Personalizer",
 					"QnAMaker",
 					"Recommendations",
