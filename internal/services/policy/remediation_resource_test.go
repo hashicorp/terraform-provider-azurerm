@@ -86,7 +86,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_resource_policy_assignment" "test" {
-  name                 = "acctestpa-%[1]s"
+  name                 = "acctestpa-res-%[1]s"
   resource_id          = azurerm_virtual_network.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({

@@ -76,7 +76,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[1]d"
+  name                 = "acctestpa-sub-%[1]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({

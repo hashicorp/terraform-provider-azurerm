@@ -109,7 +109,7 @@ PARAMETERS
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[1]s"
+  name                 = "acctestpa-rg-%[1]s"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 
