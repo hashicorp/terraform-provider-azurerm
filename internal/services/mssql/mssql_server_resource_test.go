@@ -26,7 +26,7 @@ func TestAccMsSqlServer_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -41,7 +41,7 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -56,7 +56,7 @@ func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -86,28 +86,28 @@ func TestAccMsSqlServer_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basicWithMinimumTLSVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -122,7 +122,7 @@ func TestAccMsSqlServer_systemAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -137,7 +137,7 @@ func TestAccMsSqlServer_userAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -152,7 +152,7 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -167,28 +167,28 @@ func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.aadAdmin(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.aadAdminWithAADAuthOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -203,7 +203,7 @@ func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -218,14 +218,14 @@ func TestAccMsSqlServer_updateAzureadAuthenticationOnlyWithIdentity(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.updateAzureadAuthenticationOnlyWithIdentity(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "minimum_tls_version"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 

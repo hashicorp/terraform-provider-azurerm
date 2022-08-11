@@ -467,6 +467,11 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		if v := props.MinimalTLSVersion; v == nil {
+			d.Set("minimum_tls_version", "Disabled")
+		} else {
+			d.Set("minimum_tls_version", props.MinimalTLSVersion)
+		}
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		d.Set("outbound_network_restriction_enabled", props.RestrictOutboundNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		primaryUserAssignedIdentityID := ""
