@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20220809.1122626` [GH-17905]
 * storage: updating to use API Version `2021-09-01` [GH-17523]
 * `azurerm_express_route_circuit_peering` - support for the `ipv4_enabled` and `gateway_manager_etag` properties [GH-17338]
 * `azurerm_site_recovery_replicated_vm` - support for the `target_disk_encryption` block [GH-15783]
