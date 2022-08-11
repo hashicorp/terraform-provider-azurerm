@@ -60,50 +60,6 @@ func (c OperationalInsightsClient) QueryPacksListByResourceGroup(ctx context.Con
 	return
 }
 
-// QueryPacksListByResourceGroupComplete retrieves all of the results into a single object
-func (c OperationalInsightsClient) QueryPacksListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (QueryPacksListByResourceGroupCompleteResult, error) {
-	return c.QueryPacksListByResourceGroupCompleteMatchingPredicate(ctx, id, LogAnalyticsQueryPackOperationPredicate{})
-}
-
-// QueryPacksListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c OperationalInsightsClient) QueryPacksListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate LogAnalyticsQueryPackOperationPredicate) (resp QueryPacksListByResourceGroupCompleteResult, err error) {
-	items := make([]LogAnalyticsQueryPack, 0)
-
-	page, err := c.QueryPacksListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := QueryPacksListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForQueryPacksListByResourceGroup prepares the QueryPacksListByResourceGroup request.
 func (c OperationalInsightsClient) preparerForQueryPacksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c OperationalInsightsClient) responderForQueryPacksListByResourceGroup(res
 		}
 	}
 	return
+}
+
+// QueryPacksListByResourceGroupComplete retrieves all of the results into a single object
+func (c OperationalInsightsClient) QueryPacksListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (QueryPacksListByResourceGroupCompleteResult, error) {
+	return c.QueryPacksListByResourceGroupCompleteMatchingPredicate(ctx, id, LogAnalyticsQueryPackOperationPredicate{})
+}
+
+// QueryPacksListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c OperationalInsightsClient) QueryPacksListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate LogAnalyticsQueryPackOperationPredicate) (resp QueryPacksListByResourceGroupCompleteResult, err error) {
+	items := make([]LogAnalyticsQueryPack, 0)
+
+	page, err := c.QueryPacksListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := QueryPacksListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

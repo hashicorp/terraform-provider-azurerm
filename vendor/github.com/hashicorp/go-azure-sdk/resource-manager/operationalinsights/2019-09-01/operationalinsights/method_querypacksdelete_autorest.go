@@ -61,5 +61,6 @@ func (c OperationalInsightsClient) responderForQueryPacksDelete(resp *http.Respo
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

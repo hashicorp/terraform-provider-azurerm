@@ -191,7 +191,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20220725.1163004
+# github.com/hashicorp/go-azure-sdk v0.20220809.1122626
 ## explicit; go 1.18
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
@@ -207,6 +207,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/comm
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2021-04-01-preview/workspaces

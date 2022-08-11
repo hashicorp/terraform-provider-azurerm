@@ -83,50 +83,6 @@ func (c PolicyInsightsClient) RemediationsListDeploymentsAtResource(ctx context.
 	return
 }
 
-// RemediationsListDeploymentsAtResourceComplete retrieves all of the results into a single object
-func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceComplete(ctx context.Context, id ScopedRemediationId, options RemediationsListDeploymentsAtResourceOperationOptions) (RemediationsListDeploymentsAtResourceCompleteResult, error) {
-	return c.RemediationsListDeploymentsAtResourceCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
-}
-
-// RemediationsListDeploymentsAtResourceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceCompleteMatchingPredicate(ctx context.Context, id ScopedRemediationId, options RemediationsListDeploymentsAtResourceOperationOptions, predicate RemediationDeploymentOperationPredicate) (resp RemediationsListDeploymentsAtResourceCompleteResult, err error) {
-	items := make([]RemediationDeployment, 0)
-
-	page, err := c.RemediationsListDeploymentsAtResource(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := RemediationsListDeploymentsAtResourceCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForRemediationsListDeploymentsAtResource prepares the RemediationsListDeploymentsAtResource request.
 func (c PolicyInsightsClient) preparerForRemediationsListDeploymentsAtResource(ctx context.Context, id ScopedRemediationId, options RemediationsListDeploymentsAtResourceOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c PolicyInsightsClient) responderForRemediationsListDeploymentsAtResource(
 		}
 	}
 	return
+}
+
+// RemediationsListDeploymentsAtResourceComplete retrieves all of the results into a single object
+func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceComplete(ctx context.Context, id ScopedRemediationId, options RemediationsListDeploymentsAtResourceOperationOptions) (RemediationsListDeploymentsAtResourceCompleteResult, error) {
+	return c.RemediationsListDeploymentsAtResourceCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
+}
+
+// RemediationsListDeploymentsAtResourceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceCompleteMatchingPredicate(ctx context.Context, id ScopedRemediationId, options RemediationsListDeploymentsAtResourceOperationOptions, predicate RemediationDeploymentOperationPredicate) (resp RemediationsListDeploymentsAtResourceCompleteResult, err error) {
+	items := make([]RemediationDeployment, 0)
+
+	page, err := c.RemediationsListDeploymentsAtResource(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := RemediationsListDeploymentsAtResourceCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

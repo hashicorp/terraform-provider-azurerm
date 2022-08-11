@@ -93,50 +93,6 @@ func (c VideoAnalyzerClient) EdgeModulesList(ctx context.Context, id VideoAnalyz
 	return
 }
 
-// EdgeModulesListComplete retrieves all of the results into a single object
-func (c VideoAnalyzerClient) EdgeModulesListComplete(ctx context.Context, id VideoAnalyzerId, options EdgeModulesListOperationOptions) (EdgeModulesListCompleteResult, error) {
-	return c.EdgeModulesListCompleteMatchingPredicate(ctx, id, options, EdgeModuleEntityOperationPredicate{})
-}
-
-// EdgeModulesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c VideoAnalyzerClient) EdgeModulesListCompleteMatchingPredicate(ctx context.Context, id VideoAnalyzerId, options EdgeModulesListOperationOptions, predicate EdgeModuleEntityOperationPredicate) (resp EdgeModulesListCompleteResult, err error) {
-	items := make([]EdgeModuleEntity, 0)
-
-	page, err := c.EdgeModulesList(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := EdgeModulesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForEdgeModulesList prepares the EdgeModulesList request.
 func (c VideoAnalyzerClient) preparerForEdgeModulesList(ctx context.Context, id VideoAnalyzerId, options EdgeModulesListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -222,4 +178,48 @@ func (c VideoAnalyzerClient) responderForEdgeModulesList(resp *http.Response) (r
 		}
 	}
 	return
+}
+
+// EdgeModulesListComplete retrieves all of the results into a single object
+func (c VideoAnalyzerClient) EdgeModulesListComplete(ctx context.Context, id VideoAnalyzerId, options EdgeModulesListOperationOptions) (EdgeModulesListCompleteResult, error) {
+	return c.EdgeModulesListCompleteMatchingPredicate(ctx, id, options, EdgeModuleEntityOperationPredicate{})
+}
+
+// EdgeModulesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c VideoAnalyzerClient) EdgeModulesListCompleteMatchingPredicate(ctx context.Context, id VideoAnalyzerId, options EdgeModulesListOperationOptions, predicate EdgeModuleEntityOperationPredicate) (resp EdgeModulesListCompleteResult, err error) {
+	items := make([]EdgeModuleEntity, 0)
+
+	page, err := c.EdgeModulesList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := EdgeModulesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

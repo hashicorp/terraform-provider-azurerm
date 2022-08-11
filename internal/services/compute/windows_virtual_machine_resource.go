@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -17,7 +18,6 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -255,10 +255,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
+				Default:  string(compute.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Regular),
-					string(compute.Spot),
+					string(compute.VirtualMachinePriorityTypesRegular),
+					string(compute.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -585,7 +585,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		if encryptionAtHostEnabled.(bool) {
-			if compute.DiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
 				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 			}
 		}
@@ -641,12 +641,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if params.Priority != compute.Spot {
+		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Spot {
+	} else if priority == compute.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
@@ -655,7 +655,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -858,7 +858,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
 	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
-	priority := string(compute.Regular)
+	priority := string(compute.VirtualMachinePriorityTypesRegular)
 	if props.Priority != "" {
 		priority = string(props.Priority)
 	}
@@ -976,7 +976,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		if storage := props.StorageProfile; storage != nil {
 			if disk := storage.OsDisk; disk != nil {
 				if settings := disk.DiffDiskSettings; settings != nil {
-					hasEphemeralOSDisk = settings.Option == compute.Local
+					hasEphemeralOSDisk = settings.Option == compute.DiffDiskOptionsLocal
 				}
 			}
 		}
@@ -1263,7 +1263,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		if d.Get("encryption_at_host_enabled").(bool) {
 			osDiskRaw := d.Get("os_disk").([]interface{})
 			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if compute.DiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
 				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 			}
 		}

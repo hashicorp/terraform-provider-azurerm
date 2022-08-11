@@ -5,10 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -53,8 +53,8 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Copy),
-					string(compute.Import),
+					string(compute.DiskCreateOptionCopy),
+					string(compute.DiskCreateOptionImport),
 				}, false),
 			},
 
@@ -148,7 +148,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
+		properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(settings)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
@@ -205,13 +205,13 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+		if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
 
 		trustedLaunchEnabled := false
 		if securityProfile := props.SecurityProfile; securityProfile != nil {
-			if securityProfile.SecurityType == compute.TrustedLaunch {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
 				trustedLaunchEnabled = true
 			}
 		}

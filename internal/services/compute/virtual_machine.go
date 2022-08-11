@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/legacysdk/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,9 +77,9 @@ func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineI
 		Type: compute.ResourceIdentityType(string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
+		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
+			out.UserAssignedIdentities[k] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
 				// intentionally empty
 			}
 		}
@@ -190,17 +190,17 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.Local),
+									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
 							"placement": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
 								ForceNew: true,
-								Default:  string(compute.CacheDisk),
+								Default:  string(compute.DiffDiskPlacementCacheDisk),
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.CacheDisk),
-									string(compute.ResourceDisk),
+									string(compute.DiffDiskPlacementCacheDisk),
+									string(compute.DiffDiskPlacementResourceDisk),
 								}, false),
 							},
 						},
@@ -243,8 +243,8 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.VMGuestStateOnly),
-						string(compute.DiskWithVMGuestState),
+						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
+						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
 					}, false),
 				},
 
@@ -283,7 +283,7 @@ func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSys
 		}
 	}
 	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
-		if compute.DiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
 			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
@@ -328,7 +328,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
-		placement := string(compute.CacheDisk)
+		placement := string(compute.DiffDiskPlacementCacheDisk)
 		if input.DiffDiskSettings.Placement != "" {
 			placement = string(input.DiffDiskSettings.Placement)
 		}

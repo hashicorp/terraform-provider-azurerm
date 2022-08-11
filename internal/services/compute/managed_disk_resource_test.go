@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	managedDisks "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -146,7 +145,7 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("tags.cost-center").HasValue("ops"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(compute.StorageAccountTypesStandardLRS)),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(managedDisks.DiskStorageAccountTypesStandardLRS)),
 			),
 		},
 		{
@@ -156,7 +155,7 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(compute.StorageAccountTypesPremiumLRS)),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(managedDisks.DiskStorageAccountTypesPremiumLRS)),
 			),
 		},
 	})
@@ -678,17 +677,17 @@ func TestAccManagedDisk_storageAccountType(t *testing.T) {
 }
 
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedDiskID(state.ID)
+	id, err := managedDisks.ParseDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+	resp, err := clients.Compute.ManagedDisksClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Managed Disk %q", id.String())
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ManagedDiskResource) destroyVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
