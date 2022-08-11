@@ -71,11 +71,11 @@ The following arguments are supported:
 
 * `gateway_name` - (Required) The name of the API Management Gateway. Changing this forces a new resource to be created.
 
-* `certificate_id` - (Required) Whether the API Management Gateway Certificate Authority is trusted.
+* `certificate_id` - (Required) The certificate ID to be used for TLS connection establishment.
 
 * `host_name` - (Required) The host name to use for the API Management Gateway Host Name Configuration.
 
-* `is_client_certificate_requested` - (Optional) Whether the API Management Gateway Certificate Authority is trusted.
+* `is_client_certificate_requested` - (Optional) Whether the API Management Gateway requests a client certificate.
 
 * `is_http2_enabled` - (Optional) Whether HTTP/2.0 is supported.
 

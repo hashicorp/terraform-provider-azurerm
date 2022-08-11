@@ -160,13 +160,13 @@ func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		//{
-		//	Config: r.storageConfigurationRevert(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.storageConfigurationRevert(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
