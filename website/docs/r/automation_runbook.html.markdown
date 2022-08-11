@@ -104,7 +104,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `log_activity_trace` - (Optional) Specifies the activity-level tracing options of the runbook.
+* `log_activity_trace` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. 
+Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
 
 * `draft` - (Required) A `draft` block as defined below .
 
@@ -114,7 +115,7 @@ The `publish_content_link` supports the following:
 
 * `uri` - (Required) The URI of the runbook content.
 
-* `version` - (Optional) Specifies the verison of the content
+* `version` - (Optional) Specifies the version of the content
 
 * `hash` - (Optional) A `hash` block as defined blow.
 
@@ -146,7 +147,7 @@ The `parameter` block supports:
 
 * `type` (Optional) Specifies the type of this parameter.
 
-* `is_mandatory` (Optional) Whether this parameter is mandatory.
+* `mandatory` (Optional) Whether this parameter is mandatory.
 
 * `positioin` (Optional) Specifies the position of the parameter.
 

@@ -7,10 +7,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,13 +31,15 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"uri": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"hash": {
@@ -48,12 +49,15 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"algorithm": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
+
 							"value": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -173,7 +177,8 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -183,29 +188,33 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"type": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"is_mandatory": {
+									"mandatory": {
 										Type:     pluginsdk.TypeBool,
 										Default:  false,
 										Optional: true,
 									},
 
 									"position": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
 									},
 
 									"default_value": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -215,8 +224,9 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			},
 
 			"log_activity_trace": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"tags": tags.Schema(),
@@ -498,7 +508,7 @@ func expandDraft(inputs []interface{}) *automation.RunbookDraft {
 		key := param["key"].(string)
 		res.Parameters[key] = &automation.RunbookParameter{
 			Type:         utils.String(param["type"].(string)),
-			IsMandatory:  utils.Bool(param["is_mandatory"].(bool)),
+			IsMandatory:  utils.Bool(param["mandatory"].(bool)),
 			Position:     utils.Int32(int32(param["position"].(int))),
 			DefaultValue: utils.String(param["default_value"].(string)),
 		}

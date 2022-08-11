@@ -537,7 +537,7 @@ resource "azurerm_automation_runbook" "test" {
       key           = "name"
       type          = "string"
       position      = 1
-      is_mandatory  = false
+      mandatory     = false
       default_value = "foo"
     }
   }

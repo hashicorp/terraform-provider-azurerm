@@ -116,21 +116,33 @@ func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]automation.JobScheduleProp
 	return res
 }
 
+// parameter v should be instanced of `map[string]interface{}`
+// and the hash should ignore the job_schedule_id
 func resourceAutomationJobScheduleHash(v interface{}) int {
 	var buf bytes.Buffer
 
+	var scheduleName, runOn string
+	var parameters map[string]*string
 	if m, ok := v.(automation.JobScheduleProperties); ok {
-		var scheduleName, runOn string
 		if m.Schedule.Name != nil {
 			scheduleName = *m.Schedule.Name
 		}
-
 		if m.RunOn != nil {
 			runOn = *m.RunOn
 		}
-
-		buf.WriteString(fmt.Sprintf("%s-%s-%s-%s", scheduleName, utils.FlattenMapStringPtrString(m.Parameters), runOn, *m.JobScheduleID))
+		parameters = m.Parameters
+	} else if m, ok := v.(map[string]interface{}); ok && m != nil {
+		if v, ok := m["schedule_name"]; ok {
+			scheduleName = v.(string)
+		}
+		if v, ok := m["run_on"]; ok {
+			runOn = v.(string)
+		}
+		if v, ok := m["parameters"]; ok {
+			parameters = utils.ExpandMapStringPtrString(v.(map[string]interface{}))
+		}
 	}
+	buf.WriteString(fmt.Sprintf("%s-%s-%s", scheduleName, utils.FlattenMapStringPtrString(parameters), runOn))
 
 	return pluginsdk.HashString(buf.String())
 }
