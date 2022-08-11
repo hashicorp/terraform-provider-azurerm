@@ -2,12 +2,11 @@ package compute
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
-	"encoding/json"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -68,8 +67,8 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AccessLevelRead),
-					string(compute.AccessLevelWrite),
+					string(disks.AccessLevelRead),
+					string(disks.AccessLevelWrite),
 				}, false),
 			},
 
@@ -124,7 +123,11 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			buf := new(bytes.Buffer)
-			buf.ReadFrom(future.Poller.HttpResponse.Body)
+			_, err = buf.ReadFrom(future.Poller.HttpResponse.Body)
+			if err != nil {
+				return err
+			}
+
 			var result Result
 			err = json.Unmarshal([]byte(buf.String()), &result)
 			if err != nil {
