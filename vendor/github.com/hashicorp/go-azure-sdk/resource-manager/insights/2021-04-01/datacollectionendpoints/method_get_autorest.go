@@ -63,5 +63,6 @@ func (c DataCollectionEndpointsClient) responderForGet(resp *http.Response) (res
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
