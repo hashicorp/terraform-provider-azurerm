@@ -14,11 +14,13 @@ const (
 	AccessTierCool AccessTier = "Cool"
 	// AccessTierHot ...
 	AccessTierHot AccessTier = "Hot"
+	// AccessTierPremium ...
+	AccessTierPremium AccessTier = "Premium"
 )
 
 // PossibleAccessTierValues returns an array of possible values for the AccessTier const type.
 func PossibleAccessTierValues() []AccessTier {
-	return []AccessTier{AccessTierCool, AccessTierHot}
+	return []AccessTier{AccessTierCool, AccessTierHot, AccessTierPremium}
 }
 
 // AccountExpand enumerates the values for account expand.
@@ -36,6 +38,23 @@ func PossibleAccountExpandValues() []AccountExpand {
 	return []AccountExpand{AccountExpandBlobRestoreStatus, AccountExpandGeoReplicationStats}
 }
 
+// AccountImmutabilityPolicyState enumerates the values for account immutability policy state.
+type AccountImmutabilityPolicyState string
+
+const (
+	// AccountImmutabilityPolicyStateDisabled ...
+	AccountImmutabilityPolicyStateDisabled AccountImmutabilityPolicyState = "Disabled"
+	// AccountImmutabilityPolicyStateLocked ...
+	AccountImmutabilityPolicyStateLocked AccountImmutabilityPolicyState = "Locked"
+	// AccountImmutabilityPolicyStateUnlocked ...
+	AccountImmutabilityPolicyStateUnlocked AccountImmutabilityPolicyState = "Unlocked"
+)
+
+// PossibleAccountImmutabilityPolicyStateValues returns an array of possible values for the AccountImmutabilityPolicyState const type.
+func PossibleAccountImmutabilityPolicyStateValues() []AccountImmutabilityPolicyState {
+	return []AccountImmutabilityPolicyState{AccountImmutabilityPolicyStateDisabled, AccountImmutabilityPolicyStateLocked, AccountImmutabilityPolicyStateUnlocked}
+}
+
 // AccountStatus enumerates the values for account status.
 type AccountStatus string
 
@@ -49,6 +68,21 @@ const (
 // PossibleAccountStatusValues returns an array of possible values for the AccountStatus const type.
 func PossibleAccountStatusValues() []AccountStatus {
 	return []AccountStatus{AccountStatusAvailable, AccountStatusUnavailable}
+}
+
+// AccountType enumerates the values for account type.
+type AccountType string
+
+const (
+	// AccountTypeComputer ...
+	AccountTypeComputer AccountType = "Computer"
+	// AccountTypeUser ...
+	AccountTypeUser AccountType = "User"
+)
+
+// PossibleAccountTypeValues returns an array of possible values for the AccountType const type.
+func PossibleAccountTypeValues() []AccountType {
+	return []AccountType{AccountTypeComputer, AccountTypeUser}
 }
 
 // Action enumerates the values for action.
@@ -83,6 +117,21 @@ const (
 // PossibleAction1Values returns an array of possible values for the Action1 const type.
 func PossibleAction1Values() []Action1 {
 	return []Action1{Action1Acquire, Action1Break, Action1Change, Action1Release, Action1Renew}
+}
+
+// AllowedCopyScope enumerates the values for allowed copy scope.
+type AllowedCopyScope string
+
+const (
+	// AllowedCopyScopeAAD ...
+	AllowedCopyScopeAAD AllowedCopyScope = "AAD"
+	// AllowedCopyScopePrivateLink ...
+	AllowedCopyScopePrivateLink AllowedCopyScope = "PrivateLink"
+)
+
+// PossibleAllowedCopyScopeValues returns an array of possible values for the AllowedCopyScope const type.
+func PossibleAllowedCopyScopeValues() []AllowedCopyScope {
+	return []AllowedCopyScope{AllowedCopyScopeAAD, AllowedCopyScopePrivateLink}
 }
 
 // BlobRestoreProgressStatus enumerates the values for blob restore progress status.
@@ -165,15 +214,13 @@ const (
 	DefaultSharePermissionStorageFileDataSmbShareContributor DefaultSharePermission = "StorageFileDataSmbShareContributor"
 	// DefaultSharePermissionStorageFileDataSmbShareElevatedContributor ...
 	DefaultSharePermissionStorageFileDataSmbShareElevatedContributor DefaultSharePermission = "StorageFileDataSmbShareElevatedContributor"
-	// DefaultSharePermissionStorageFileDataSmbShareOwner ...
-	DefaultSharePermissionStorageFileDataSmbShareOwner DefaultSharePermission = "StorageFileDataSmbShareOwner"
 	// DefaultSharePermissionStorageFileDataSmbShareReader ...
 	DefaultSharePermissionStorageFileDataSmbShareReader DefaultSharePermission = "StorageFileDataSmbShareReader"
 )
 
 // PossibleDefaultSharePermissionValues returns an array of possible values for the DefaultSharePermission const type.
 func PossibleDefaultSharePermissionValues() []DefaultSharePermission {
-	return []DefaultSharePermission{DefaultSharePermissionNone, DefaultSharePermissionStorageFileDataSmbShareContributor, DefaultSharePermissionStorageFileDataSmbShareElevatedContributor, DefaultSharePermissionStorageFileDataSmbShareOwner, DefaultSharePermissionStorageFileDataSmbShareReader}
+	return []DefaultSharePermission{DefaultSharePermissionNone, DefaultSharePermissionStorageFileDataSmbShareContributor, DefaultSharePermissionStorageFileDataSmbShareElevatedContributor, DefaultSharePermissionStorageFileDataSmbShareReader}
 }
 
 // DirectoryServiceOptions enumerates the values for directory service options.
@@ -191,6 +238,21 @@ const (
 // PossibleDirectoryServiceOptionsValues returns an array of possible values for the DirectoryServiceOptions const type.
 func PossibleDirectoryServiceOptionsValues() []DirectoryServiceOptions {
 	return []DirectoryServiceOptions{DirectoryServiceOptionsAADDS, DirectoryServiceOptionsAD, DirectoryServiceOptionsNone}
+}
+
+// DNSEndpointType enumerates the values for dns endpoint type.
+type DNSEndpointType string
+
+const (
+	// DNSEndpointTypeAzureDNSZone ...
+	DNSEndpointTypeAzureDNSZone DNSEndpointType = "AzureDnsZone"
+	// DNSEndpointTypeStandard ...
+	DNSEndpointTypeStandard DNSEndpointType = "Standard"
+)
+
+// PossibleDNSEndpointTypeValues returns an array of possible values for the DNSEndpointType const type.
+func PossibleDNSEndpointTypeValues() []DNSEndpointType {
+	return []DNSEndpointType{DNSEndpointTypeAzureDNSZone, DNSEndpointTypeStandard}
 }
 
 // EnabledProtocols enumerates the values for enabled protocols.
@@ -686,6 +748,21 @@ func PossiblePublicAccessValues() []PublicAccess {
 	return []PublicAccess{PublicAccessBlob, PublicAccessContainer, PublicAccessNone}
 }
 
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// PublicNetworkAccessDisabled ...
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled ...
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
+}
+
 // Reason enumerates the values for reason.
 type Reason string
 
@@ -835,6 +912,23 @@ const (
 // PossibleSignedResourceTypesValues returns an array of possible values for the SignedResourceTypes const type.
 func PossibleSignedResourceTypesValues() []SignedResourceTypes {
 	return []SignedResourceTypes{SignedResourceTypesC, SignedResourceTypesO, SignedResourceTypesS}
+}
+
+// SkuConversionStatus enumerates the values for sku conversion status.
+type SkuConversionStatus string
+
+const (
+	// SkuConversionStatusFailed ...
+	SkuConversionStatusFailed SkuConversionStatus = "Failed"
+	// SkuConversionStatusInProgress ...
+	SkuConversionStatusInProgress SkuConversionStatus = "InProgress"
+	// SkuConversionStatusSucceeded ...
+	SkuConversionStatusSucceeded SkuConversionStatus = "Succeeded"
+)
+
+// PossibleSkuConversionStatusValues returns an array of possible values for the SkuConversionStatus const type.
+func PossibleSkuConversionStatusValues() []SkuConversionStatus {
+	return []SkuConversionStatus{SkuConversionStatusFailed, SkuConversionStatusInProgress, SkuConversionStatusSucceeded}
 }
 
 // SkuName enumerates the values for sku name.
