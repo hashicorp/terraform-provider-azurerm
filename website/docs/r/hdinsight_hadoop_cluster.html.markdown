@@ -99,7 +99,7 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below.
 
-* `compute_isolation_properties` - (Optional) A `compute_isolation_properties` block as defined below.
+* `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
 
 * `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
 
@@ -193,7 +193,7 @@ A `network` block supports the following:
 
 ---
 
-A `compute_isolation_properties` block supports the following:
+A `compute_isolation` block supports the following:
 
 * `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
 

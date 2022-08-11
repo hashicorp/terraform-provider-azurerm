@@ -2479,9 +2479,9 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_F72s_V2"
-      username           = "sshuser"
-      password           = "TerrAform123!"
+      vm_size  = "Standard_F72s_V2"
+      username = "sshuser"
+      password = "TerrAform123!"
     }
 
     worker_node {
@@ -2492,9 +2492,9 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_F72s_V2"
-      username           = "sshuser"
-      password           = "TerrAform123!"
+      vm_size  = "Standard_F72s_V2"
+      username = "sshuser"
+      password = "TerrAform123!"
     }
   }
 }

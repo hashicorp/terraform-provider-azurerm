@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Kafka Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
-* `compute_isolation_properties` - (Optional) A `compute_isolation_properties` block as defined below.
+* `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
 
 * `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are `1.0`, `1.1` or `1.2`. Changing this forces a new resource to be created.
 
@@ -144,7 +144,7 @@ A `gateway` block supports the following:
 
 ---
 
-A `compute_isolation_properties` block supports the following:
+A `compute_isolation` block supports the following:
 
 * `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
 

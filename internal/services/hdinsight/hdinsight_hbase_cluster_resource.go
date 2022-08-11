@@ -89,13 +89,9 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 				},
 			},
 
-<<<<<<< HEAD
 			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
-			"compute_isolation_properties": SchemaHDInsightsComputeIsolation(),
-=======
 			"compute_isolation": SchemaHDInsightsComputeIsolation(),
->>>>>>> 7cc5781b2d (Rename attributes)
 
 			"gateway": SchemaHDInsightsGateway(),
 

@@ -97,7 +97,7 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 
 			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
-			"compute_isolation_properties": SchemaHDInsightsComputeIsolation(),
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
 
 			"gateway": SchemaHDInsightsGateway(),
 
@@ -226,7 +226,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
-	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation_properties").([]interface{}))
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
@@ -472,8 +472,8 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if props.ComputeIsolationProperties != nil {
-			if err := d.Set("compute_isolation_properties", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
-				return fmt.Errorf("failed setting `compute_isolation_properties`: %+v", err)
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 		}
 
