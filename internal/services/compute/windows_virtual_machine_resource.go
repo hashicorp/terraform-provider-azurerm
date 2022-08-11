@@ -297,7 +297,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					computeValidate.SharedImageID,
 					computeValidate.SharedImageVersionID,
 					computeValidate.CommunityGalleryImageID,
+					computeValidate.CommunityGalleryImageVersionID,
 					computeValidate.SharedGalleryImageID,
+					computeValidate.SharedGalleryImageVersionID,
 				),
 			},
 

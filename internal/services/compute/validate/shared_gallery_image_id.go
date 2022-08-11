@@ -2,7 +2,8 @@ package validate
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 )
 
 func SharedGalleryImageID(input interface{}, key string) (warnings []string, errors []error) {
@@ -12,8 +13,8 @@ func SharedGalleryImageID(input interface{}, key string) (warnings []string, err
 		return
 	}
 
-	if strings.Contains(strings.ToLower(v), "/sharedgalleries/") {
-		errors = append(errors, fmt.Errorf("%q is missing the %q segment, got %q", key, "/sharedGalleries/", v))
+	if _, err := parse.SharedGalleryImageID(v); err != nil {
+		errors = append(errors, err)
 	}
 
 	return

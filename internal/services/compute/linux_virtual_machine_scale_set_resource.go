@@ -1335,7 +1335,9 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 				validate.SharedImageID,
 				validate.SharedImageVersionID,
 				validate.CommunityGalleryImageID,
+				validate.CommunityGalleryImageVersionID,
 				validate.SharedGalleryImageID,
+				validate.SharedGalleryImageVersionID,
 			),
 		},
 

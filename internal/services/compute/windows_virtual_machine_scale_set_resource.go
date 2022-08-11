@@ -1376,7 +1376,9 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 				computeValidate.SharedImageID,
 				computeValidate.SharedImageVersionID,
 				computeValidate.CommunityGalleryImageID,
+				computeValidate.CommunityGalleryImageVersionID,
 				computeValidate.SharedGalleryImageID,
+				computeValidate.SharedGalleryImageVersionID,
 			),
 		},
 
