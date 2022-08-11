@@ -28,7 +28,7 @@ func (r ManagementGroupAssignmentResource) Arguments() map[string]*pluginsdk.Sch
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotWhiteSpace,
-				// The policy assignment name length must not exceed '24' characters.
+				// The policy assignment name length must not exceed '128' characters.
 				validation.StringLenBetween(1, 128),
 				validation.StringDoesNotContainAny("/"),
 			),
