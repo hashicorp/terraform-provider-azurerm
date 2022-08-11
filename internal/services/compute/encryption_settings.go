@@ -2,7 +2,7 @@ package compute
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
-	managedDisks "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -168,42 +168,42 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *compute.Encryptio
 	}
 }
 
-func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *managedDisks.EncryptionSettingsCollection {
+func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *disks.EncryptionSettingsCollection {
 	enabled := settings["enabled"].(bool)
-	config := &managedDisks.EncryptionSettingsCollection{
+	config := &disks.EncryptionSettingsCollection{
 		Enabled: enabled,
 	}
 
-	var diskEncryptionKey *managedDisks.KeyVaultAndSecretReference
+	var diskEncryptionKey *disks.KeyVaultAndSecretReference
 	if v := settings["disk_encryption_key"].([]interface{}); len(v) > 0 {
 		dek := v[0].(map[string]interface{})
 
 		secretURL := dek["secret_url"].(string)
 		sourceVaultId := dek["source_vault_id"].(string)
-		diskEncryptionKey = &managedDisks.KeyVaultAndSecretReference{
+		diskEncryptionKey = &disks.KeyVaultAndSecretReference{
 			SecretUrl: secretURL,
-			SourceVault: managedDisks.SourceVault{
+			SourceVault: disks.SourceVault{
 				Id: utils.String(sourceVaultId),
 			},
 		}
 	}
 
-	var keyEncryptionKey *managedDisks.KeyVaultAndKeyReference
+	var keyEncryptionKey *disks.KeyVaultAndKeyReference
 	if v := settings["key_encryption_key"].([]interface{}); len(v) > 0 {
 		kek := v[0].(map[string]interface{})
 
 		secretURL := kek["key_url"].(string)
 		sourceVaultId := kek["source_vault_id"].(string)
-		keyEncryptionKey = &managedDisks.KeyVaultAndKeyReference{
+		keyEncryptionKey = &disks.KeyVaultAndKeyReference{
 			KeyUrl: secretURL,
-			SourceVault: managedDisks.SourceVault{
+			SourceVault: disks.SourceVault{
 				Id: utils.String(sourceVaultId),
 			},
 		}
 	}
 
 	// at this time we only support a single element
-	config.EncryptionSettings = &[]managedDisks.EncryptionSettingsElement{
+	config.EncryptionSettings = &[]disks.EncryptionSettingsElement{
 		{
 			DiskEncryptionKey: diskEncryptionKey,
 			KeyEncryptionKey:  keyEncryptionKey,
@@ -212,7 +212,7 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *manag
 	return config
 }
 
-func flattenManagedDiskEncryptionSettings(encryptionSettings *managedDisks.EncryptionSettingsCollection) []interface{} {
+func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSettingsCollection) []interface{} {
 	if encryptionSettings == nil {
 		return []interface{}{}
 	}

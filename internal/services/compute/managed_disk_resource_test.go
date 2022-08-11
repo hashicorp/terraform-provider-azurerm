@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	managedDisks "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -145,7 +145,7 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("tags.cost-center").HasValue("ops"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(managedDisks.DiskStorageAccountTypesStandardLRS)),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(disks.DiskStorageAccountTypesStandardLRS)),
 			),
 		},
 		{
@@ -155,7 +155,7 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(managedDisks.DiskStorageAccountTypesPremiumLRS)),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(disks.DiskStorageAccountTypesPremiumLRS)),
 			),
 		},
 	})
@@ -677,12 +677,12 @@ func TestAccManagedDisk_storageAccountType(t *testing.T) {
 }
 
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := managedDisks.ParseDiskID(state.ID)
+	id, err := disks.ParseDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.ManagedDisksClient.Get(ctx, *id)
+	resp, err := clients.Compute.DisksClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Managed Disk %q", id.String())
 	}

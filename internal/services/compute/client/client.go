@@ -16,7 +16,7 @@ type Client struct {
 	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
 	DedicatedHostsClient             *compute.DedicatedHostsClient
 	DedicatedHostGroupsClient        *compute.DedicatedHostGroupsClient
-	DisksClient                      *compute.DisksClient
+	DisksClient                      *disks.DisksClient
 	DiskAccessClient                 *compute.DiskAccessesClient
 	DiskEncryptionSetsClient         *compute.DiskEncryptionSetsClient
 	GalleriesClient                  *compute.GalleriesClient
@@ -25,7 +25,6 @@ type Client struct {
 	GalleryImagesClient              *compute.GalleryImagesClient
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
 	ImagesClient                     *compute.ImagesClient
-	ManagedDisksClient               *disks.DisksClient
 	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
 	ProximityPlacementGroupsClient   *proximityplacementgroups.ProximityPlacementGroupsClient
 	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
@@ -57,7 +56,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	dedicatedHostGroupsClient := compute.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	disksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	disksClient := disks.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
 
 	diskAccessClient := compute.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -83,9 +82,6 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	imagesClient := compute.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&imagesClient.Client, o.ResourceManagerAuthorizer)
-
-	managedDisksClient := disks.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&managedDisksClient.Client, o.ResourceManagerAuthorizer)
 
 	marketplaceAgreementsClient := marketplaceordering.NewMarketplaceAgreementsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&marketplaceAgreementsClient.Client, o.ResourceManagerAuthorizer)
@@ -141,7 +137,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		GalleryImagesClient:              &galleryImagesClient,
 		GalleryImageVersionsClient:       &galleryImageVersionsClient,
 		ImagesClient:                     &imagesClient,
-		ManagedDisksClient:               &managedDisksClient,
 		MarketplaceAgreementsClient:      &marketplaceAgreementsClient,
 		ProximityPlacementGroupsClient:   &proximityPlacementGroupsClient,
 		SSHPublicKeysClient:              &sshPublicKeysClient,
