@@ -13,10 +13,10 @@ type CommunityGalleryImageId struct {
 	ImageName   string
 }
 
-func NewCommunityGalleryImageID(GalleryName, ImageName string) CommunityGalleryImageId {
+func NewCommunityGalleryImageID(galleryName, imageName string) CommunityGalleryImageId {
 	return CommunityGalleryImageId{
-		GalleryName: GalleryName,
-		ImageName:   ImageName,
+		GalleryName: galleryName,
+		ImageName:   imageName,
 	}
 }
 

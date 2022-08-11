@@ -13,10 +13,10 @@ type SharedGalleryImageId struct {
 	ImageName   string
 }
 
-func NewSharedGalleryImageID(GalleryName, ImageName string) SharedGalleryImageId {
+func NewSharedGalleryImageID(galleryName, imageName string) SharedGalleryImageId {
 	return SharedGalleryImageId{
-		GalleryName: GalleryName,
-		ImageName:   ImageName,
+		GalleryName: galleryName,
+		ImageName:   imageName,
 	}
 }
 
