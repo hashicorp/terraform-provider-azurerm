@@ -9,6 +9,8 @@ jobs:
   add-waiting-response:
     if: github.event.review.state != 'approved' && github.actor != github.event.pull_request.user.login
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions-ecosystem/action-add-labels@v1.1.0
         with:
