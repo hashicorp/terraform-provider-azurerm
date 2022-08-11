@@ -862,7 +862,9 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
-	d.Set("host_group_id", props.HostGroup.ID)
+	if props.HostGroup != nil && props.HostGroup.ID != nil {
+		d.Set("host_group_id", props.HostGroup.ID)
+	}
 	d.Set("overprovision", props.Overprovision)
 	proximityPlacementGroupId := ""
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
