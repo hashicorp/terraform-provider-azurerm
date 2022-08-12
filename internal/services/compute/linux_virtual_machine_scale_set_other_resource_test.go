@@ -2507,7 +2507,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrade_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2571,7 +2571,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   health_probe_id = azurerm_lb_probe.test.id
 
   rolling_upgrade_policy {
-    cross_zone_upgrade_enabled              = %t
+    cross_zone_upgrades_enabled             = %t
     max_batch_instance_percent              = %d
     max_unhealthy_instance_percent          = %d
     max_unhealthy_upgraded_instance_percent = %d
@@ -2605,7 +2605,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = [azurerm_lb_rule.test]
 }
-`, r.template(data), data.RandomInteger, cross_zone_upgrade_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
+`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {
