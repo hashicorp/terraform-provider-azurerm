@@ -689,6 +689,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
+  public_network_access_enabled   = false
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -723,6 +724,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
 
+  public_network_access_enabled   = true
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -792,6 +794,8 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
+
+  public_network_access_enabled = false
 
   access_policy {
     tenant_id      = data.azurerm_client_config.current.tenant_id
