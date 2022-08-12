@@ -2,8 +2,11 @@
 name: Pull Request New Commit
 
 on:
-  pull_request:
+  pull_request_target:
     types: [synchronize]
+
+permissions:
+  pull-requests: write
 
 jobs:
   issue_comment_triage:
