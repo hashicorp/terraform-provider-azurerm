@@ -208,7 +208,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `true`.
 
-* `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible values include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
+* `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
 
@@ -370,11 +370,11 @@ A `gallery_applications` block supports the following:
 
 -> **NOTE:** The `package_reference_id` should be in the form of `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/applications/application1/versions/version1`.
 
-* `configuration_reference` - (Opptional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resource to be created.
+* `configuration_reference_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resource to be created.
 
-* `order` - (Opptional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`. Changing this forces a new resource to be created.
+* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`. Changing this forces a new resource to be created.
 
-* `tag` - (Opptional) Specifies a passthrough value for more generic context. This field can be any valid `string` value. Changing this forces a new resource to be created.
+* `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value. Changing this forces a new resource to be created.
 
 ---
 
@@ -446,7 +446,7 @@ A `network_interface` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
 
-* `delete_option` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
+* `delete_action` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
@@ -520,7 +520,7 @@ A `public_ip_address` block supports the following:
 
 * `name` - (Required) The Name of the Public IP Address Configuration.
 
-* `delete_option` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
+* `delete_action` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
 
 * `domain_name_label` - (Optional) The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance. Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine.
 
@@ -538,7 +538,7 @@ A `public_ip_address` block supports the following:
 
 A `rolling_upgrade_policy` block supports the following:
 
-* `cross_zone_upgrade_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` or `false`. Defaults to `false`.
+* `cross_zone_upgrades_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` or `false`. Defaults to `false`.
 
 * `max_batch_instance_percent` - (Required) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability.
 

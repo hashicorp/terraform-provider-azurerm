@@ -401,7 +401,7 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 
 func expandSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
 	if imageId != "" {
-		// With Version            : "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName/Versions/myGalleryImageVersionName"
+		// With Version            : "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName"
 		if _, err := validate.CommunityGalleryImageID(imageId, "source_image_id"); err == nil {
 			return &compute.ImageReference{
@@ -409,7 +409,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 			}, nil
 		}
 
-		// With Version            : "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName/Versions/myGalleryImageVersionName"
+		// With Version            : "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName"
 		if _, err := validate.SharedGalleryImageID(imageId, "source_image_id"); err == nil {
 			return &compute.ImageReference{
