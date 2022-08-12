@@ -12,7 +12,8 @@ type ContainerGroup struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                            `json:"location,omitempty"`
 	Name       *string                            `json:"name,omitempty"`
-	Properties ContainerGroupProperties           `json:"properties"`
+	Properties ContainerGroupPropertiesProperties `json:"properties"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 	Type       *string                            `json:"type,omitempty"`
+	Zones      *[]string                          `json:"zones,omitempty"`
 }

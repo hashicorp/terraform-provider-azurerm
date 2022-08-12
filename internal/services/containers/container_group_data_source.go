@@ -8,7 +8,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -44,6 +45,17 @@ func dataSourceContainerGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"subnets": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+				Set: pluginsdk.HashString,
+			},
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -72,6 +84,8 @@ func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("zones", zones.Flatten(model.Zones))
+
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
@@ -79,6 +93,14 @@ func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if address := props.IPAddress; address != nil {
 			d.Set("ip_address", address.IP)
 			d.Set("fqdn", address.Fqdn)
+		}
+
+		subnets, err := flattenContainerGroupSubnets(props.SubnetIds)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("subnet_ids", subnets); err != nil {
+			return fmt.Errorf("setting `subnet_ids`: %+v", err)
 		}
 	}
 

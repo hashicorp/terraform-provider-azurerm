@@ -51,6 +51,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Container Group instance exists.
 
+* `subnets` - The subnet resource IDs for a container group.
+
+* `zones` - A list of Availability Zones in which this Container Group is located.
+
 * `tags` - A mapping of tags assigned to the Container Group instance.
 
 ## Timeouts
