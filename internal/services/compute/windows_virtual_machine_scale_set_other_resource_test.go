@@ -255,6 +255,36 @@ func TestAccWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisabled(t 
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_otherHardwareProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherHardwareProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherHibernationEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherHibernationEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -365,6 +395,21 @@ func TestAccWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 		{
 			// removed
 			Config: r.otherSecretRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherSpotRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSpotRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -742,14 +787,14 @@ func TestAccWindowsVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *tes
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, 40, 40, 40, "PT0S"),
+			Config: r.otherRollingUpgradePolicyUpdate(data, true, 40, 40, 40, "PT0S", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, 30, 100, 100, "PT1S"),
+			Config: r.otherRollingUpgradePolicyUpdate(data, false, 30, 100, 100, "PT1S", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1302,6 +1347,93 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
+func (r WindowsVirtualMachineScaleSetResource) otherHardwareProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  hardware_profile {
+    virtual_cpus_available = 4
+    virtual_cpus_per_core  = 2
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherHibernationEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  additional_capabilities = {
+    hibernation_enabled = true
+  }
+}
+`, r.template(data))
+}
+
 func (r WindowsVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
 	return fmt.Sprintf(`
 %s
@@ -1738,6 +1870,50 @@ resource "azurerm_key_vault_certificate" "second" {
   }
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherSpotRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  spot_restore {
+    enabled = true
+    timeout = "PT2H"
+  }
+}
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherTags(data acceptance.TestData) string {
@@ -2824,7 +3000,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string) string {
+func (r WindowsVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrade_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2886,10 +3062,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   health_probe_id = azurerm_lb_probe.test.id
 
   rolling_upgrade_policy {
+    cross_zone_upgrade_enabled              = %t
     max_batch_instance_percent              = %d
     max_unhealthy_instance_percent          = %d
     max_unhealthy_upgraded_instance_percent = %d
     pause_time_between_batches              = "%s"
+    prioritize_unhealthy_instances_enabled  = %t
   }
 
   source_image_reference {
@@ -2919,7 +3097,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   depends_on = [azurerm_lb_rule.test]
 
 }
-`, r.template(data), data.RandomInteger, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches)
+`, r.template(data), data.RandomInteger, cross_zone_upgrade_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {
