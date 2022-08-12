@@ -6,18 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -77,23 +75,43 @@ func resourceKustoCluster() *pluginsdk.Resource {
 								string(kusto.AzureSkuNameStandardD12V2),
 								string(kusto.AzureSkuNameStandardD13V2),
 								string(kusto.AzureSkuNameStandardD14V2),
+								string(kusto.AzureSkuNameStandardD16dV5),
+								string(kusto.AzureSkuNameStandardD32dV4),
+								string(kusto.AzureSkuNameStandardD32dV5),
 								string(kusto.AzureSkuNameStandardDS13V21TBPS),
 								string(kusto.AzureSkuNameStandardDS13V22TBPS),
 								string(kusto.AzureSkuNameStandardDS14V23TBPS),
 								string(kusto.AzureSkuNameStandardDS14V24TBPS),
+								string(kusto.AzureSkuNameStandardE16aV4),
+								string(kusto.AzureSkuNameStandardE16adsV5),
 								string(kusto.AzureSkuNameStandardE16asV43TBPS),
 								string(kusto.AzureSkuNameStandardE16asV44TBPS),
-								string(kusto.AzureSkuNameStandardE16aV4),
+								string(kusto.AzureSkuNameStandardE16asV53TBPS),
+								string(kusto.AzureSkuNameStandardE16asV54TBPS),
+								string(kusto.AzureSkuNameStandardE16sV43TBPS),
+								string(kusto.AzureSkuNameStandardE16sV44TBPS),
+								string(kusto.AzureSkuNameStandardE16sV53TBPS),
+								string(kusto.AzureSkuNameStandardE16sV54TBPS),
 								string(kusto.AzureSkuNameStandardE2aV4),
+								string(kusto.AzureSkuNameStandardE2adsV5),
 								string(kusto.AzureSkuNameStandardE4aV4),
+								string(kusto.AzureSkuNameStandardE4adsV5),
 								string(kusto.AzureSkuNameStandardE64iV3),
+								string(kusto.AzureSkuNameStandardE80idsV4),
+								string(kusto.AzureSkuNameStandardE8aV4),
+								string(kusto.AzureSkuNameStandardE8adsV5),
 								string(kusto.AzureSkuNameStandardE8asV41TBPS),
 								string(kusto.AzureSkuNameStandardE8asV42TBPS),
-								string(kusto.AzureSkuNameStandardE8aV4),
+								string(kusto.AzureSkuNameStandardE8asV51TBPS),
+								string(kusto.AzureSkuNameStandardE8asV52TBPS),
+								string(kusto.AzureSkuNameStandardE8sV41TBPS),
+								string(kusto.AzureSkuNameStandardE8sV42TBPS),
+								string(kusto.AzureSkuNameStandardE8sV51TBPS),
+								string(kusto.AzureSkuNameStandardE8sV52TBPS),
 								string(kusto.AzureSkuNameStandardL16s),
+								string(kusto.AzureSkuNameStandardL16sV2),
 								string(kusto.AzureSkuNameStandardL4s),
 								string(kusto.AzureSkuNameStandardL8s),
-								string(kusto.AzureSkuNameStandardL16sV2),
 								string(kusto.AzureSkuNameStandardL8sV2),
 							}, false),
 						},
@@ -105,6 +123,24 @@ func resourceKustoCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(1, 1000),
 						},
 					},
+				},
+			},
+
+			"allowed_fqdns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"allowed_ip_ranges": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -211,6 +247,12 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"outbound_network_access_restricted": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"double_encryption_enabled": {
@@ -334,6 +376,21 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		clusterProperties.VirtualNetworkConfiguration = vnet
 	}
 
+	if v, ok := d.GetOk("allowed_fqdns"); ok {
+		clusterProperties.AllowedFqdnList, _ = expandKustoListString(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("allowed_ip_ranges"); ok {
+		clusterProperties.AllowedIPRangeList, _ = expandKustoListString(v.([]interface{}))
+	}
+
+	clusterProperties.RestrictOutboundNetworkAccess = kusto.ClusterNetworkAccessFlagDisabled
+	if v, ok := d.GetOk("outbound_network_access_restricted"); ok {
+		if v.(bool) {
+			clusterProperties.RestrictOutboundNetworkAccess = kusto.ClusterNetworkAccessFlagEnabled
+		}
+	}
+
 	expandedIdentity, err := expandClusterIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -451,6 +508,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if props := resp.ClusterProperties; props != nil {
+		d.Set("allowed_fqdns", props.AllowedFqdnList)
+		d.Set("allowed_ip_ranges", props.AllowedIPRangeList)
 		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
 		d.Set("auto_stop_enabled", props.EnableAutoStop)
@@ -463,6 +522,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("data_ingestion_uri", props.DataIngestionURI)
 		d.Set("engine", props.EngineType)
 		d.Set("public_ip_type", props.PublicIPType)
+		d.Set("outbound_network_access_restricted", props.RestrictOutboundNetworkAccess == kusto.ClusterNetworkAccessFlagEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -527,6 +587,20 @@ func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []i
 			"minimum_instances": minInstances,
 		},
 	}
+}
+
+func expandKustoListString(input []interface{}) (*[]string, error) {
+	if input == nil || len(input) == 0 {
+		return nil, fmt.Errorf("list of string is empty")
+	}
+
+	result := make([]string, 0)
+
+	for _, v := range input {
+		result = append(result, v.(string))
+	}
+
+	return &result, nil
 }
 
 func expandKustoClusterSku(input []interface{}) (*kusto.AzureSku, error) {

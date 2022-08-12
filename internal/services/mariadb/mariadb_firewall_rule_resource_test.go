@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -49,17 +49,17 @@ func TestAccMariaDbFirewallRule_requiresImport(t *testing.T) {
 }
 
 func (MariaDbFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MariaDBFirewallRuleID(state.ID)
+	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MariaDB.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.FirewallRuleName)
+	resp, err := clients.MariaDB.FirewallRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.FirewallRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MariaDbFirewallRuleResource) basic(data acceptance.TestData) string {

@@ -61,5 +61,6 @@ func (c DedicatedHostGroupsClient) responderForDelete(resp *http.Response) (resu
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -4,5 +4,5 @@ package recordsets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AaaaRecord struct {
-	Ipv6Address *string `json:"ipv6Address,omitempty"`
+	IPv6Address *string `json:"ipv6Address,omitempty"`
 }

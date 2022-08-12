@@ -47,6 +47,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                      map[string]string                    `tfschema:"tags"`
+	VirtualNetworkSubnetID    string                               `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -219,6 +220,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -334,6 +340,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+			state.VirtualNetworkSubnetID = utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID)
 
 			metadata.SetID(id)
 

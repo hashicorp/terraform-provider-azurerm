@@ -64,5 +64,6 @@ func (c DedicatedHostGroupsClient) responderForUpdate(resp *http.Response) (resu
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

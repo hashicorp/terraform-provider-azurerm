@@ -353,6 +353,16 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []d
 					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 
+				if interval == 0 && duration == 0 {
+					return nil, fmt.Errorf("`hour_interval` and `hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if interval == 0 {
+					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if duration == 0 {
+					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
 				if duration%interval != 0 {
 					return nil, fmt.Errorf("`hour_duration` must be multiplier of `hour_interval`")
 				}
