@@ -966,7 +966,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"body": {
 										Type:     pluginsdk.TypeString,
-										Required: false,
+										Optional: true,
 									},
 
 									"status_code": {
