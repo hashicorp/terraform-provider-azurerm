@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * `azurerm_mssql_elastic_pool` - support for the `maintenance_configuration_name` property [GH-17790]
 
 BUG FIXES:
