@@ -1278,6 +1278,12 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
 				"caching": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
@@ -1370,6 +1376,10 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
 		}
 
+		if name := raw["name"].(string); name != "" {
+			disk.Name = utils.String(name)
+		}
+
 		if id := raw["disk_encryption_set_id"].(string); id != "" {
 			disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
 				ID: utils.String(id),
@@ -1422,6 +1432,11 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 	output := make([]interface{}, 0)
 
 	for _, v := range *input {
+		var name string
+		if v.Name != nil {
+			name = *v.Name
+		}
+
 		diskSizeGb := 0
 		if v.DiskSizeGB != nil && *v.DiskSizeGB != 0 {
 			diskSizeGb = int(*v.DiskSizeGB)
@@ -1457,6 +1472,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		}
 
 		dataDisk := map[string]interface{}{
+			"name":                      name,
 			"caching":                   string(v.Caching),
 			"create_option":             string(v.CreateOption),
 			"lun":                       lun,
