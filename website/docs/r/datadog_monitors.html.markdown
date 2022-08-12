@@ -118,15 +118,21 @@ To enable metrics flow, perform role assignment on the identity created above. `
 
 ### Role assignment on the monitor created
 ```hcl
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_role_definition" "monitoring_reader" {
+  name = "Monitoring Reader"
+}
+
 resource "azurerm_role_assignment" "example" {
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = "/subscriptions/XXXX-XXXX-XXXX/providers/Microsoft.Authorization/roleDefinitions/43d0d8ad-25c7-4714-9337-8ba259a9fe05"
+  role_definition_id = data.azurerm_role_definition.monitoring_reader.role_definition_id
   principal_id       = azurerm_datadog_monitor.example.identity.0.principal_id
 }
 ```
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Datadog Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Datadog Monitor.

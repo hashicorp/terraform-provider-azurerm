@@ -72,6 +72,11 @@ resource "azurerm_network_security_group" "webserver" {
   }
 }
 
+resource "azurerm_subnet_network_security_group_association" "example" {
+  subnet_id                 = azurerm_subnet.internal.id
+  network_security_group_id = azurerm_network_security_group.webserver.id
+}
+
 resource "azurerm_lb" "example" {
   name                = "${var.prefix}-lb"
   location            = azurerm_resource_group.main.location

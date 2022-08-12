@@ -64,5 +64,6 @@ func (c SshPublicKeysClient) responderForCreate(resp *http.Response) (result Cre
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

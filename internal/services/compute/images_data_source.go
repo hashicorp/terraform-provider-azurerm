@@ -3,6 +3,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
@@ -139,7 +140,23 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("no images were found that match the specified tags")
 	}
 
-	d.SetId(time.Now().UTC().String())
+	tagsId := ""
+	tagKeys := make([]string, 0, len(filterTags))
+	for key := range filterTags {
+		tagKeys = append(tagKeys, key)
+	}
+	sort.Strings(tagKeys)
+	for _, key := range tagKeys {
+		value := ""
+		if v, ok := filterTags[key]; ok && v != nil {
+			value = *v
+		}
+		tagsId += fmt.Sprintf("[%s:%s]", key, value)
+	}
+	if tagsId == "" {
+		tagsId = "[]"
+	}
+	d.SetId(fmt.Sprintf("resourceGroups/%s/tags/%s/images", resourceGroup, tagsId))
 
 	d.Set("resource_group_name", resourceGroup)
 

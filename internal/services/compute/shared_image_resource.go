@@ -107,19 +107,22 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"publisher": {
-							Type:     pluginsdk.TypeString,
-							ForceNew: true,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validate.SharedImageIdentifierAttribute,
 						},
 						"offer": {
-							Type:     pluginsdk.TypeString,
-							ForceNew: true,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validate.SharedImageIdentifierAttribute,
 						},
 						"sku": {
-							Type:     pluginsdk.TypeString,
-							ForceNew: true,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Required:     true,
+							ValidateFunc: validate.SharedImageIdentifierAttribute,
 						},
 					},
 				},

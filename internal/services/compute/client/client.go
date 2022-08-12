@@ -4,6 +4,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -24,7 +25,7 @@ type Client struct {
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
 	ImagesClient                     *compute.ImagesClient
 	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
-	ProximityPlacementGroupsClient   *compute.ProximityPlacementGroupsClient
+	ProximityPlacementGroupsClient   *proximityplacementgroups.ProximityPlacementGroupsClient
 	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                  *compute.SnapshotsClient
 	UsageClient                      *compute.UsageClient
@@ -84,7 +85,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	marketplaceAgreementsClient := marketplaceordering.NewMarketplaceAgreementsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&marketplaceAgreementsClient.Client, o.ResourceManagerAuthorizer)
 
-	proximityPlacementGroupsClient := compute.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	proximityPlacementGroupsClient := proximityplacementgroups.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&proximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

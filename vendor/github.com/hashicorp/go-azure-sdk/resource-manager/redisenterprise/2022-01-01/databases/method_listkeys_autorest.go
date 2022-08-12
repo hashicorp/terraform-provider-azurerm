@@ -64,5 +64,6 @@ func (c DatabasesClient) responderForListKeys(resp *http.Response) (result ListK
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
