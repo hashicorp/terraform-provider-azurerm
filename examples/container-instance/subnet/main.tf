@@ -57,7 +57,7 @@ resource "azurerm_container_group" "example" {
     memory = "1.5"
   }
 
-  subnets = [azurerm_subnet.example.id]
+  subnet_ids = [azurerm_subnet.example.id]
 
   tags = {
     environment = "testing"
