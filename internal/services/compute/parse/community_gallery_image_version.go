@@ -34,7 +34,7 @@ func (id CommunityGalleryImageVersionId) String() string {
 }
 
 func (id CommunityGalleryImageVersionId) ID() string {
-	fmtString := "/CommunityGalleries/%s/images/%s/versions/%s"
+	fmtString := "/communityGalleries/%s/images/%s/versions/%s"
 	return fmt.Sprintf(fmtString, id.GalleryName, id.ImageName, id.Version)
 }
 
@@ -43,7 +43,7 @@ func CommunityGalleryImageVersionID(input string) (*CommunityGalleryImageVersion
 	segments := make([]resourceids.Segment, 0)
 
 	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("CommunityGalleries"),
+		FixedValue: utils.String("communityGalleries"),
 		Name:       "communityGalleries",
 		Type:       resourceids.StaticSegmentType,
 	})

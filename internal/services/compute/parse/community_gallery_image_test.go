@@ -10,7 +10,7 @@ var _ resourceids.Id = CommunityGalleryImageId{}
 
 func TestCommunityGalleryImageIDFormatter(t *testing.T) {
 	actual := NewCommunityGalleryImageID("myGallery1", "myImage1").ID()
-	expected := "/CommunityGalleries/myGallery1/images/myImage1"
+	expected := "/communityGalleries/myGallery1/images/myImage1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -37,25 +37,25 @@ func TestCommunityGalleryImageID(t *testing.T) {
 
 		{
 			// missing value for CommunityGalleries
-			Input: "/CommunityGalleries/",
+			Input: "/communityGalleries/",
 			Error: true,
 		},
 
 		{
 			// missing images
-			Input: "/CommunityGalleries/myGallery1/",
+			Input: "/communityGalleries/myGallery1/",
 			Error: true,
 		},
 
 		{
 			// missing value for images
-			Input: "/CommunityGalleries/myGallery1/images/",
+			Input: "/communityGalleries/myGallery1/images/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1",
+			Input: "/communityGalleries/myGallery1/images/myImage1",
 			Expected: &CommunityGalleryImageId{
 				GalleryName: "myGallery1",
 				ImageName:   "myImage1",

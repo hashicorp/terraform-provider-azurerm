@@ -30,7 +30,7 @@ func (id SharedGalleryImageId) String() string {
 }
 
 func (id SharedGalleryImageId) ID() string {
-	fmtString := "/SharedGalleries/%s/images/%s"
+	fmtString := "/sharedGalleries/%s/images/%s"
 	return fmt.Sprintf(fmtString, id.GalleryName, id.ImageName)
 }
 
@@ -39,7 +39,7 @@ func SharedGalleryImageID(input string) (*SharedGalleryImageId, error) {
 	segments := make([]resourceids.Segment, 0)
 
 	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("SharedGalleries"),
+		FixedValue: utils.String("sharedGalleries"),
 		Name:       "sharedGalleries",
 		Type:       resourceids.StaticSegmentType,
 	})

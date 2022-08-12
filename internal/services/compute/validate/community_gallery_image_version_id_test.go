@@ -22,55 +22,55 @@ func TestCommunityGalleryImageVersionID(t *testing.T) {
 
 		{
 			// missing value for CommunityGalleries
-			Input: "/CommunityGalleries/",
+			Input: "/communityGalleries/",
 			Valid: false,
 		},
 
 		{
 			// missing images
-			Input: "/CommunityGalleries/myGallery1/",
+			Input: "/communityGalleries/myGallery1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for images
-			Input: "/CommunityGalleries/myGallery1/images/",
+			Input: "/communityGalleries/myGallery1/images/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/latest",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/latest",
 			Valid: true,
 		},
 
 		{
 			// valid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.2.3",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.2.3",
 			Valid: true,
 		},
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/notTheLatest",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/notTheLatest",
 			Valid: false,
 		},
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.2.",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.2.",
 			Valid: false,
 		},
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.2",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.2",
 			Valid: false,
 		},
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.two.3",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.two.3",
 			Valid: false,
 		},
 

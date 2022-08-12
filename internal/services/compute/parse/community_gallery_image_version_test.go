@@ -10,7 +10,7 @@ var _ resourceids.Id = CommunityGalleryImageVersionId{}
 
 func TestCommunityGalleryImageVersionIDFormatter(t *testing.T) {
 	actual := NewCommunityGalleryImageVersionID("myGallery1", "myImage1", "latest").ID()
-	expected := "/CommunityGalleries/myGallery1/images/myImage1/versions/latest"
+	expected := "/communityGalleries/myGallery1/images/myImage1/versions/latest"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -37,37 +37,37 @@ func TestCommunityGalleryImageVersionID(t *testing.T) {
 
 		{
 			// missing value for CommunityGalleries
-			Input: "/CommunityGalleries/",
+			Input: "/communityGalleries/",
 			Error: true,
 		},
 
 		{
 			// missing images
-			Input: "/CommunityGalleries/myGallery1/",
+			Input: "/communityGalleries/myGallery1/",
 			Error: true,
 		},
 
 		{
 			// missing value for images
-			Input: "/CommunityGalleries/myGallery1/images/",
+			Input: "/communityGalleries/myGallery1/images/",
 			Error: true,
 		},
 
 		{
 			// missing versions
-			Input: "/CommunityGalleries/myGallery1/images/myImage1",
+			Input: "/communityGalleries/myGallery1/images/myImage1",
 			Error: true,
 		},
 
 		{
 			// missing value for versions
-			Input: "/CommunityGalleries/myGallery1/images/versions",
+			Input: "/communityGalleries/myGallery1/images/versions",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/latest",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/latest",
 			Expected: &CommunityGalleryImageVersionId{
 				GalleryName: "myGallery1",
 				ImageName:   "myImage1",
@@ -77,7 +77,7 @@ func TestCommunityGalleryImageVersionID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.2.3",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.2.3",
 			Expected: &CommunityGalleryImageVersionId{
 				GalleryName: "myGallery1",
 				ImageName:   "myImage1",
@@ -87,25 +87,25 @@ func TestCommunityGalleryImageVersionID(t *testing.T) {
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/notTheLatest",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/notTheLatest",
 			Error: true,
 		},
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.2",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.2",
 			Error: true,
 		},
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.2.",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.2.",
 			Error: true,
 		},
 
 		{
 			// invalid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1/versions/1.two.3",
+			Input: "/communityGalleries/myGallery1/images/myImage1/versions/1.two.3",
 			Error: true,
 		},
 

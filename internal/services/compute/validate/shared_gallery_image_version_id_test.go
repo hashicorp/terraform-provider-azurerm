@@ -22,55 +22,55 @@ func TestSharedGalleryImageVersionID(t *testing.T) {
 
 		{
 			// missing value for SharedGalleries
-			Input: "/SharedGalleries/",
+			Input: "/sharedGalleries/",
 			Valid: false,
 		},
 
 		{
 			// missing images
-			Input: "/SharedGalleries/myGallery1/",
+			Input: "/sharedGalleries/myGallery1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for images
-			Input: "/SharedGalleries/myGallery1/images/",
+			Input: "/sharedGalleries/myGallery1/images/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/latest",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/latest",
 			Valid: true,
 		},
 
 		{
 			// valid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.2.3",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.2.3",
 			Valid: true,
 		},
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/notTheLatest",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/notTheLatest",
 			Valid: false,
 		},
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.2.",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.2.",
 			Valid: false,
 		},
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.2",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.2",
 			Valid: false,
 		},
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.two.3",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.two.3",
 			Valid: false,
 		},
 

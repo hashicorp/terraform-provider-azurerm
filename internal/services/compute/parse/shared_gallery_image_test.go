@@ -10,7 +10,7 @@ var _ resourceids.Id = SharedGalleryImageId{}
 
 func TestSharedGalleryImageIDFormatter(t *testing.T) {
 	actual := NewSharedGalleryImageID("myGallery1", "myImage1").ID()
-	expected := "/SharedGalleries/myGallery1/images/myImage1"
+	expected := "/sharedGalleries/myGallery1/images/myImage1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -37,25 +37,25 @@ func TestSharedGalleryImageID(t *testing.T) {
 
 		{
 			// missing value for SharedGalleries
-			Input: "/SharedGalleries/",
+			Input: "/sharedGalleries/",
 			Error: true,
 		},
 
 		{
 			// missing images
-			Input: "/SharedGalleries/myGallery1/",
+			Input: "/sharedGalleries/myGallery1/",
 			Error: true,
 		},
 
 		{
 			// missing value for images
-			Input: "/SharedGalleries/myGallery1/images/",
+			Input: "/sharedGalleries/myGallery1/images/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/SharedGalleries/myGallery1/images/myImage1",
+			Input: "/sharedGalleries/myGallery1/images/myImage1",
 			Expected: &SharedGalleryImageId{
 				GalleryName: "myGallery1",
 				ImageName:   "myImage1",

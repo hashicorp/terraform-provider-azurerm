@@ -34,7 +34,7 @@ func (id SharedGalleryImageVersionId) String() string {
 }
 
 func (id SharedGalleryImageVersionId) ID() string {
-	fmtString := "/SharedGalleries/%s/images/%s/versions/%s"
+	fmtString := "/sharedGalleries/%s/images/%s/versions/%s"
 	return fmt.Sprintf(fmtString, id.GalleryName, id.ImageName, id.Version)
 }
 
@@ -43,7 +43,7 @@ func SharedGalleryImageVersionID(input string) (*SharedGalleryImageVersionId, er
 	segments := make([]resourceids.Segment, 0)
 
 	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("SharedGalleries"),
+		FixedValue: utils.String("sharedGalleries"),
 		Name:       "sharedGalleries",
 		Type:       resourceids.StaticSegmentType,
 	})

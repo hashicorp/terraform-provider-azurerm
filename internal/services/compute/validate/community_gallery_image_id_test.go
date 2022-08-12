@@ -22,25 +22,25 @@ func TestCommunityGalleryImageID(t *testing.T) {
 
 		{
 			// missing value for CommunityGalleries
-			Input: "/CommunityGalleries/",
+			Input: "/communityGalleries/",
 			Valid: false,
 		},
 
 		{
 			// missing images
-			Input: "/CommunityGalleries/myGallery1/",
+			Input: "/communityGalleries/myGallery1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for images
-			Input: "/CommunityGalleries/myGallery1/images/",
+			Input: "/communityGalleries/myGallery1/images/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/CommunityGalleries/myGallery1/images/myImage1",
+			Input: "/communityGalleries/myGallery1/images/myImage1",
 			Valid: true,
 		},
 

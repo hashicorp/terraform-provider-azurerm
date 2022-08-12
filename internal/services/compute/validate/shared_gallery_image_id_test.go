@@ -22,25 +22,25 @@ func TestSharedGalleryImageID(t *testing.T) {
 
 		{
 			// missing value for SharedGalleries
-			Input: "/SharedGalleries/",
+			Input: "/sharedGalleries/",
 			Valid: false,
 		},
 
 		{
 			// missing images
-			Input: "/SharedGalleries/myGallery1/",
+			Input: "/sharedGalleries/myGallery1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for images
-			Input: "/SharedGalleries/myGallery1/images/",
+			Input: "/sharedGalleries/myGallery1/images/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/SharedGalleries/myGallery1/images/myImage1",
+			Input: "/sharedGalleries/myGallery1/images/myImage1",
 			Valid: true,
 		},
 

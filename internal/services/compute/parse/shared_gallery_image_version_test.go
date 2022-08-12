@@ -10,7 +10,7 @@ var _ resourceids.Id = SharedGalleryImageVersionId{}
 
 func TestSharedGalleryImageVersionIDFormatter(t *testing.T) {
 	actual := NewSharedGalleryImageVersionID("myGallery1", "myImage1", "latest").ID()
-	expected := "/SharedGalleries/myGallery1/images/myImage1/versions/latest"
+	expected := "/sharedGalleries/myGallery1/images/myImage1/versions/latest"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -37,37 +37,37 @@ func TestSharedGalleryImageVersionID(t *testing.T) {
 
 		{
 			// missing value for SharedGalleries
-			Input: "/SharedGalleries/",
+			Input: "/sharedGalleries/",
 			Error: true,
 		},
 
 		{
 			// missing images
-			Input: "/SharedGalleries/myGallery1/",
+			Input: "/sharedGalleries/myGallery1/",
 			Error: true,
 		},
 
 		{
 			// missing value for images
-			Input: "/SharedGalleries/myGallery1/images/",
+			Input: "/sharedGalleries/myGallery1/images/",
 			Error: true,
 		},
 
 		{
 			// missing versions
-			Input: "/SharedGalleries/myGallery1/images/myImage1",
+			Input: "/sharedGalleries/myGallery1/images/myImage1",
 			Error: true,
 		},
 
 		{
 			// missing value for versions
-			Input: "/SharedGalleries/myGallery1/images/versions",
+			Input: "/sharedGalleries/myGallery1/images/versions",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/latest",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/latest",
 			Expected: &SharedGalleryImageVersionId{
 				GalleryName: "myGallery1",
 				ImageName:   "myImage1",
@@ -77,7 +77,7 @@ func TestSharedGalleryImageVersionID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.2.3",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.2.3",
 			Expected: &SharedGalleryImageVersionId{
 				GalleryName: "myGallery1",
 				ImageName:   "myImage1",
@@ -87,25 +87,25 @@ func TestSharedGalleryImageVersionID(t *testing.T) {
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/notTheLatest",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/notTheLatest",
 			Error: true,
 		},
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.2",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.2",
 			Error: true,
 		},
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.2.",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.2.",
 			Error: true,
 		},
 
 		{
 			// invalid
-			Input: "/SharedGalleries/myGallery1/images/myImage1/versions/1.two.3",
+			Input: "/sharedGalleries/myGallery1/images/myImage1/versions/1.two.3",
 			Error: true,
 		},
 
