@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +25,6 @@ import (
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	vnetParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
@@ -237,7 +236,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: msiValidate.UserAssignedIdentityID,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
 				},
@@ -401,6 +400,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+
+						"change_feed_retention_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 146000),
 						},
 
 						"default_service_version": {
@@ -1173,7 +1178,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}))
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -1571,7 +1576,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -2323,7 +2328,7 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	v := input[0].(map[string]interface{})
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw, true)
+	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -2333,6 +2338,10 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
 	}
 
+	if v := v["change_feed_retention_in_days"].(int); v != 0 {
+		props.ChangeFeed.RetentionInDays = utils.Int32((int32)(v))
+	}
+
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
 	}
@@ -2340,15 +2349,11 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	return &props
 }
 
-func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}, isupdate bool) *storage.DeleteRetentionPolicy {
+func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
 	result := storage.DeleteRetentionPolicy{
 		Enabled: utils.Bool(false),
 	}
-	if (len(input) == 0 || input[0] == nil) && !isupdate {
-		return nil
-	}
-
-	if (len(input) == 0 || input[0] == nil) && isupdate {
+	if len(input) == 0 || input[0] == nil {
 		return &result
 	}
 
@@ -2410,7 +2415,7 @@ func expandShareProperties(input []interface{}) storage.FileServiceProperties {
 
 	v := input[0].(map[string]interface{})
 
-	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}), false)
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}))
 
 	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
 
@@ -2791,13 +2796,18 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
-	versioning, changeFeed := false, false
+	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
 	if input.BlobServicePropertiesProperties.IsVersioningEnabled != nil {
 		versioning = *input.BlobServicePropertiesProperties.IsVersioningEnabled
 	}
 
-	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil && v.Enabled != nil {
-		changeFeed = *v.Enabled
+	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil {
+		if v.Enabled != nil {
+			changeFeedEnabled = *v.Enabled
+		}
+		if v.RetentionInDays != nil {
+			changeFeedRetentionInDays = int(*v.RetentionInDays)
+		}
 	}
 
 	var defaultServiceVersion string
@@ -2815,7 +2825,8 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
 			"versioning_enabled":                versioning,
-			"change_feed_enabled":               changeFeed,
+			"change_feed_enabled":               changeFeedEnabled,
+			"change_feed_retention_in_days":     changeFeedRetentionInDays,
 			"default_service_version":           defaultServiceVersion,
 			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
@@ -3007,10 +3018,6 @@ func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
 	flattenedSMB := make([]interface{}, 0)
 	if protocol := input.FileServicePropertiesProperties.ProtocolSettings; protocol != nil {
 		flattenedSMB = flattenedSharePropertiesSMB(protocol.Smb)
-	}
-
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedSMB) == 0 {
-		return []interface{}{}
 	}
 
 	return []interface{}{

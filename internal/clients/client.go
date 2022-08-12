@@ -35,6 +35,7 @@ import (
 	datamigration "github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/client"
 	databoxedge "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/client"
 	databricks "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
+	datadog "github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/client"
 	datafactory "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
@@ -48,6 +49,7 @@ import (
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
+	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
@@ -146,6 +148,7 @@ type Client struct {
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
+	Datadog               *datadog.Client
 	DataFactory           *datafactory.Client
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
@@ -159,6 +162,7 @@ type Client struct {
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
+	FluidRelay            *fluidrelay.Client
 	Frontdoor             *frontdoor.Client
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
@@ -259,6 +263,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataboxEdge = databoxedge.NewClient(o)
+	client.Datadog = datadog.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
@@ -272,6 +277,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Firewall = firewall.NewClient(o)
+	client.FluidRelay = fluidrelay.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Build Deployment.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 ## Example Usage
 
 ```hcl
@@ -64,6 +66,8 @@ The following arguments are supported:
 
 ---
 
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Build Deployment.
+
 * `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Deployment as a map of key-value pairs.
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
@@ -90,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Build Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Build Deployment.

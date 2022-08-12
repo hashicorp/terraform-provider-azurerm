@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-0
 ```go
 client := endpoints.NewEndpointsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "examp
 payload := endpoints.Endpoint{
 	// ...
 }
+
 
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileValue", "AzureEndpoints", "endpointValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileValue", "AzureEndpoints", "endpointValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -82,6 +82,7 @@ id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "examp
 payload := endpoints.Endpoint{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {

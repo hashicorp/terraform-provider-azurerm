@@ -100,7 +100,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 			"storage_size_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(32, 8192),
+				ValidateFunc: validation.IntBetween(32, 16384),
 			},
 
 			"license_type": {

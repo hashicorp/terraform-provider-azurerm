@@ -54,6 +54,10 @@ func TestAccFirewallPolicy_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dns.0.servers.#").HasValue("3"),
+				check.That(data.ResourceName).Key("dns.0.servers.0").HasValue("1.1.1.1"),
+				check.That(data.ResourceName).Key("dns.0.servers.1").HasValue("3.3.3.3"),
+				check.That(data.ResourceName).Key("dns.0.servers.2").HasValue("2.2.2.2"),
 			),
 		},
 		data.ImportStep(),
@@ -248,7 +252,7 @@ resource "azurerm_firewall_policy" "test" {
     fqdns        = ["foo.com", "bar.com"]
   }
   dns {
-    servers       = ["1.1.1.1", "2.2.2.2"]
+    servers       = ["1.1.1.1", "3.3.3.3", "2.2.2.2"]
     proxy_enabled = true
   }
   tags = {
@@ -415,10 +419,9 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id   = azurerm_key_vault.test.id
-  application_id = azurerm_user_assigned_identity.test.client_id
-  tenant_id      = data.azurerm_client_config.current.tenant_id
-  object_id      = azurerm_user_assigned_identity.test.principal_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = [
     "Backup",
@@ -499,26 +502,10 @@ resource "azurerm_key_vault_certificate" "test" {
 
   certificate {
     contents = filebase64("testdata/certificate.pfx")
+    password = "somepassword"
   }
 
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
-
-  depends_on = [azurerm_key_vault_access_policy.test2]
+  depends_on = [azurerm_key_vault_access_policy.test, azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
 }

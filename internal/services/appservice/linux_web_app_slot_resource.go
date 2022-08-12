@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -133,9 +133,9 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -144,7 +144,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"logs": helpers.LogsConfigSchema(),
@@ -452,7 +452,10 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
 				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
-				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
+			}
+
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
 			}
 
 			var healthCheckCount *int
@@ -587,6 +590,19 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
 				existing.SiteConfig = siteConfig
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
+					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
+					existing.SiteProperties.VirtualNetworkSubnetID = empty
+				} else {
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
 			}
 
 			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)

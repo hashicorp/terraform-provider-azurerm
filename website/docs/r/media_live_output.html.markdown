@@ -103,7 +103,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Live Output.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Live Output.
@@ -115,5 +115,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Live Outputs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1/liveoutputs/output1
+terraform import azurerm_media_live_event_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1/liveoutputs/output1
 ```

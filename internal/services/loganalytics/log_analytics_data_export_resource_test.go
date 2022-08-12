@@ -85,6 +85,21 @@ func TestAccLogAnalyticsDataExportRule_complete(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsDataExportRule_toEventhubs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.toEventHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LogAnalyticsDataExportRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsDataExportID(state.ID)
 	if err != nil {
@@ -125,7 +140,22 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 7
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LogAnalyticsDataExportRuleResource) basic(data acceptance.TestData) string {
@@ -179,6 +209,21 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   workspace_resource_id   = azurerm_log_analytics_workspace.test.id
   destination_resource_id = azurerm_storage_account.test.id
+  table_names             = ["Heartbeat"]
+  enabled                 = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogAnalyticsDataExportRuleResource) toEventHub(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_data_export_rule" "test" {
+  name                    = "acctest-DER-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  workspace_resource_id   = azurerm_log_analytics_workspace.test.id
+  destination_resource_id = azurerm_eventhub.test.id
   table_names             = ["Heartbeat"]
   enabled                 = true
 }

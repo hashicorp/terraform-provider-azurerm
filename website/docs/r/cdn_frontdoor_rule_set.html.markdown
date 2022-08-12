@@ -25,7 +25,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                     = "exampleruleset"
+  name                     = "ExampleRuleSet"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 ```
@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Rule Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Rule Set.
