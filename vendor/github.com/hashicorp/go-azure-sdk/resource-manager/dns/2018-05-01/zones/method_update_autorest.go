@@ -93,5 +93,6 @@ func (c ZonesClient) responderForUpdate(resp *http.Response) (result UpdateOpera
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -86,7 +86,7 @@ func dataSourceDnsCaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading %s (zone %s): %+v", id, err)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

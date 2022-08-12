@@ -88,50 +88,6 @@ func (c RecordSetsClient) ListByDnsZone(ctx context.Context, id DnsZoneId, optio
 	return
 }
 
-// ListByDnsZoneComplete retrieves all of the results into a single object
-func (c RecordSetsClient) ListByDnsZoneComplete(ctx context.Context, id DnsZoneId, options ListByDnsZoneOperationOptions) (ListByDnsZoneCompleteResult, error) {
-	return c.ListByDnsZoneCompleteMatchingPredicate(ctx, id, options, RecordSetOperationPredicate{})
-}
-
-// ListByDnsZoneCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c RecordSetsClient) ListByDnsZoneCompleteMatchingPredicate(ctx context.Context, id DnsZoneId, options ListByDnsZoneOperationOptions, predicate RecordSetOperationPredicate) (resp ListByDnsZoneCompleteResult, err error) {
-	items := make([]RecordSet, 0)
-
-	page, err := c.ListByDnsZone(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByDnsZoneCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByDnsZone prepares the ListByDnsZone request.
 func (c RecordSetsClient) preparerForListByDnsZone(ctx context.Context, id DnsZoneId, options ListByDnsZoneOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c RecordSetsClient) responderForListByDnsZone(resp *http.Response) (result
 		}
 	}
 	return
+}
+
+// ListByDnsZoneComplete retrieves all of the results into a single object
+func (c RecordSetsClient) ListByDnsZoneComplete(ctx context.Context, id DnsZoneId, options ListByDnsZoneOperationOptions) (ListByDnsZoneCompleteResult, error) {
+	return c.ListByDnsZoneCompleteMatchingPredicate(ctx, id, options, RecordSetOperationPredicate{})
+}
+
+// ListByDnsZoneCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c RecordSetsClient) ListByDnsZoneCompleteMatchingPredicate(ctx context.Context, id DnsZoneId, options ListByDnsZoneOperationOptions, predicate RecordSetOperationPredicate) (resp ListByDnsZoneCompleteResult, err error) {
+	items := make([]RecordSet, 0)
+
+	page, err := c.ListByDnsZone(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByDnsZoneCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
