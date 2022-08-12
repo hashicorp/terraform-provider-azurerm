@@ -83,8 +83,7 @@ type LogAnalytic struct {
 	WorkspaceResourceId string `tfschema:"workspace_resource_id"`
 }
 
-type DataCollectionRuleResource struct {
-}
+type DataCollectionRuleResource struct{}
 
 func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
