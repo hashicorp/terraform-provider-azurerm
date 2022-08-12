@@ -297,7 +297,7 @@ resource "azurerm_firewall_policy" "test" {
       ]
     }
   }
-  allow_sql_redirect = true
+  sql_redirect_allowed = true
   identity {
     type = "UserAssigned"
     identity_ids = [
