@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_data_protection_backup_policy_postgresql_resource` - prevent a crash when given an empty criteria block [GH-17904]
 * `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
 
 ## 3.18.0 (August 11, 2022)
