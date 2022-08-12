@@ -1,20 +1,23 @@
-## 3.18.0 (Unreleased)
+## 3.18.0 (August 11, 2022)
 
 FEATURES: 
 
-* **New Resource**: `azurerm_monitor_data_collection_endpoint` [GH-17684]
+* **New Resource**: `azurerm_monitor_data_collection_endpoint` ([#17684](https://github.com/hashicorp/terraform-provider-azurerm/issues/17684))
 
 ENHANCEMENTS:
 
-* `azurerm_express_route_circuit_peering` - support for the `ipv4_enabled` and `gateway_manager_etag` properties [GH-17338]
-* `azurerm_site_recovery_replicated_vm` - support for the `target_disk_encryption` block [GH-15783]
-* `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` [GH-17464]
-* `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` [GH-17464]
-* `azurerm_servicebus_subscription` - support for the `client_scoped_subscription_enabled` property and the `client_scoped_subscription` block [GH-17101]
+* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20220809.1122626` ([#17905](https://github.com/hashicorp/terraform-provider-azurerm/issues/17905))
+* storage: updating to use API Version `2021-09-01` ([#17523](https://github.com/hashicorp/terraform-provider-azurerm/issues/17523))
+* `azurerm_express_route_circuit_peering` - support for the `ipv4_enabled` and `gateway_manager_etag` properties ([#17338](https://github.com/hashicorp/terraform-provider-azurerm/issues/17338))
+* `azurerm_site_recovery_replicated_vm` - support for the `target_disk_encryption` block ([#15783](https://github.com/hashicorp/terraform-provider-azurerm/issues/15783))
+* `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` ([#17464](https://github.com/hashicorp/terraform-provider-azurerm/issues/17464))
+* `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` ([#17464](https://github.com/hashicorp/terraform-provider-azurerm/issues/17464))
+* `azurerm_servicebus_subscription` - support for the `client_scoped_subscription_enabled` property and the `client_scoped_subscription` block ([#17101](https://github.com/hashicorp/terraform-provider-azurerm/issues/17101))
 
 BUG FIXES:
 
-`azurerm_backup_policy_vm` - now prevents crash when `frequency` is set to Hourly and, `hour_interval` and `hour_duration`are not set [GH-17880]
+* `azurerm_backup_policy_vm` - now prevents crash when `frequency` is set to Hourly and, `hour_interval` and `hour_duration`are not set ([#17880](https://github.com/hashicorp/terraform-provider-azurerm/issues/17880))
+* Data Source: `azurerm_blueprint_definition` - Fix `version` property output ([#16299](https://github.com/hashicorp/terraform-provider-azurerm/issues/16299))
 
 ## 3.17.0 (August 04, 2022)
 

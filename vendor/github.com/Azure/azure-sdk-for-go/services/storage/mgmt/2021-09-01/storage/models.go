@@ -18,14 +18,14 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 
 // AccessPolicy ...
 type AccessPolicy struct {
-	// Start - Start time of the access policy
-	Start *date.Time `json:"start,omitempty"`
-	// Expiry - Expiry time of the access policy
-	Expiry *date.Time `json:"expiry,omitempty"`
+	// StartTime - Start time of the access policy
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// ExpiryTime - Expiry time of the access policy
+	ExpiryTime *date.Time `json:"expiryTime,omitempty"`
 	// Permission - List of abbreviated permissions.
 	Permission *string `json:"permission,omitempty"`
 }
@@ -313,6 +313,16 @@ func (acp *AccountCreateParameters) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// AccountImmutabilityPolicyProperties this defines account-level immutability policy properties.
+type AccountImmutabilityPolicyProperties struct {
+	// ImmutabilityPeriodSinceCreationInDays - The immutability period for the blobs in the container since the policy creation, in days.
+	ImmutabilityPeriodSinceCreationInDays *int32 `json:"immutabilityPeriodSinceCreationInDays,omitempty"`
+	// State - The ImmutabilityPolicy state defines the mode of the policy. Disabled state disables the policy, Unlocked state allows increase and decrease of immutability retention time and also allows toggling allowProtectedAppendWrites property, Locked state only allows the increase of the immutability retention time. A policy can only be created in a Disabled or Unlocked state and can be toggled between the two states. Only a policy in an Unlocked state can transition to a Locked state which cannot be reverted. Possible values include: 'AccountImmutabilityPolicyStateUnlocked', 'AccountImmutabilityPolicyStateLocked', 'AccountImmutabilityPolicyStateDisabled'
+	State AccountImmutabilityPolicyState `json:"state,omitempty"`
+	// AllowProtectedAppendWrites - This property can only be changed for disabled and unlocked time-based retention policies. When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
+	AllowProtectedAppendWrites *bool `json:"allowProtectedAppendWrites,omitempty"`
+}
+
 // AccountInternetEndpoints the URIs that are used to perform a retrieval of a public blob, file, web or
 // dfs object via a internet routing endpoint.
 type AccountInternetEndpoints struct {
@@ -579,9 +589,9 @@ type AccountProperties struct {
 	KeyCreationTime *KeyCreationTime `json:"keyCreationTime,omitempty"`
 	// SecondaryEndpoints - READ-ONLY; Gets the URLs that are used to perform a retrieval of a public blob, queue, or table object from the secondary location of the storage account. Only available if the SKU name is Standard_RAGRS.
 	SecondaryEndpoints *Endpoints `json:"secondaryEndpoints,omitempty"`
-	// Encryption - READ-ONLY; Gets the encryption settings on the account. If unspecified, the account is unencrypted.
+	// Encryption - READ-ONLY; Encryption settings to be used for server-side encryption for the storage account.
 	Encryption *Encryption `json:"encryption,omitempty"`
-	// AccessTier - READ-ONLY; Required for storage accounts where kind = BlobStorage. The access tier used for billing. Possible values include: 'AccessTierHot', 'AccessTierCool'
+	// AccessTier - READ-ONLY; Required for storage accounts where kind = BlobStorage. The access tier is used for billing. The 'Premium' access tier is the default value for premium block blobs storage account type and it cannot be changed for the premium block blobs storage account type. Possible values include: 'AccessTierHot', 'AccessTierCool', 'AccessTierPremium'
 	AccessTier AccessTier `json:"accessTier,omitempty"`
 	// AzureFilesIdentityBasedAuthentication - Provides the identity based authentication settings for Azure Files.
 	AzureFilesIdentityBasedAuthentication *AzureFilesIdentityBasedAuthentication `json:"azureFilesIdentityBasedAuthentication,omitempty"`
@@ -589,6 +599,10 @@ type AccountProperties struct {
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// NetworkRuleSet - READ-ONLY; Network rule set
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
+	// IsSftpEnabled - Enables Secure File Transfer Protocol, if set to true
+	IsSftpEnabled *bool `json:"isSftpEnabled,omitempty"`
+	// IsLocalUserEnabled - Enables local users feature, if set to true
+	IsLocalUserEnabled *bool `json:"isLocalUserEnabled,omitempty"`
 	// IsHnsEnabled - Account HierarchicalNamespace enabled if sets to true.
 	IsHnsEnabled *bool `json:"isHnsEnabled,omitempty"`
 	// GeoReplicationStats - READ-ONLY; Geo Replication Stats
@@ -613,6 +627,18 @@ type AccountProperties struct {
 	EnableNfsV3 *bool `json:"isNfsV3Enabled,omitempty"`
 	// AllowCrossTenantReplication - Allow or disallow cross AAD tenant object replication. The default interpretation is true for this property.
 	AllowCrossTenantReplication *bool `json:"allowCrossTenantReplication,omitempty"`
+	// DefaultToOAuthAuthentication - A boolean flag which indicates whether the default authentication is OAuth or not. The default interpretation is false for this property.
+	DefaultToOAuthAuthentication *bool `json:"defaultToOAuthAuthentication,omitempty"`
+	// PublicNetworkAccess - Allow or disallow public network access to Storage Account. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// ImmutableStorageWithVersioning - The property is immutable and can only be set to true at the account creation time. When set to true, it enables object level immutability for all the containers in the account by default.
+	ImmutableStorageWithVersioning *ImmutableStorageAccount `json:"immutableStorageWithVersioning,omitempty"`
+	// AllowedCopyScope - Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values include: 'AllowedCopyScopePrivateLink', 'AllowedCopyScopeAAD'
+	AllowedCopyScope AllowedCopyScope `json:"allowedCopyScope,omitempty"`
+	// StorageAccountSkuConversionStatus - This property is readOnly and is set by server during asynchronous storage account sku conversion operations.
+	StorageAccountSkuConversionStatus *AccountSkuConversionStatus `json:"storageAccountSkuConversionStatus,omitempty"`
+	// DNSEndpointType - Allows you to specify the type of endpoint. Set this to AzureDNSZone to create a large number of accounts in a single subscription, which creates accounts in an Azure DNS Zone and the endpoint URL will have an alphanumeric DNS Zone identifier. Possible values include: 'DNSEndpointTypeStandard', 'DNSEndpointTypeAzureDNSZone'
+	DNSEndpointType DNSEndpointType `json:"dnsEndpointType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AccountProperties.
@@ -623,6 +649,12 @@ func (ap AccountProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ap.EnableHTTPSTrafficOnly != nil {
 		objectMap["supportsHttpsTrafficOnly"] = ap.EnableHTTPSTrafficOnly
+	}
+	if ap.IsSftpEnabled != nil {
+		objectMap["isSftpEnabled"] = ap.IsSftpEnabled
+	}
+	if ap.IsLocalUserEnabled != nil {
+		objectMap["isLocalUserEnabled"] = ap.IsLocalUserEnabled
 	}
 	if ap.IsHnsEnabled != nil {
 		objectMap["isHnsEnabled"] = ap.IsHnsEnabled
@@ -648,27 +680,53 @@ func (ap AccountProperties) MarshalJSON() ([]byte, error) {
 	if ap.AllowCrossTenantReplication != nil {
 		objectMap["allowCrossTenantReplication"] = ap.AllowCrossTenantReplication
 	}
+	if ap.DefaultToOAuthAuthentication != nil {
+		objectMap["defaultToOAuthAuthentication"] = ap.DefaultToOAuthAuthentication
+	}
+	if ap.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = ap.PublicNetworkAccess
+	}
+	if ap.ImmutableStorageWithVersioning != nil {
+		objectMap["immutableStorageWithVersioning"] = ap.ImmutableStorageWithVersioning
+	}
+	if ap.AllowedCopyScope != "" {
+		objectMap["allowedCopyScope"] = ap.AllowedCopyScope
+	}
+	if ap.StorageAccountSkuConversionStatus != nil {
+		objectMap["storageAccountSkuConversionStatus"] = ap.StorageAccountSkuConversionStatus
+	}
+	if ap.DNSEndpointType != "" {
+		objectMap["dnsEndpointType"] = ap.DNSEndpointType
+	}
 	return json.Marshal(objectMap)
 }
 
 // AccountPropertiesCreateParameters the parameters used to create the storage account.
 type AccountPropertiesCreateParameters struct {
+	// AllowedCopyScope - Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values include: 'AllowedCopyScopePrivateLink', 'AllowedCopyScopeAAD'
+	AllowedCopyScope AllowedCopyScope `json:"allowedCopyScope,omitempty"`
+	// PublicNetworkAccess - Allow or disallow public network access to Storage Account. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// SasPolicy - SasPolicy assigned to the storage account.
 	SasPolicy *SasPolicy `json:"sasPolicy,omitempty"`
 	// KeyPolicy - KeyPolicy assigned to the storage account.
 	KeyPolicy *KeyPolicy `json:"keyPolicy,omitempty"`
 	// CustomDomain - User domain assigned to the storage account. Name is the CNAME source. Only one custom domain is supported per storage account at this time. To clear the existing custom domain, use an empty string for the custom domain name property.
 	CustomDomain *CustomDomain `json:"customDomain,omitempty"`
-	// Encryption - Not applicable. Azure Storage encryption is enabled for all storage accounts and cannot be disabled.
+	// Encryption - Encryption settings to be used for server-side encryption for the storage account.
 	Encryption *Encryption `json:"encryption,omitempty"`
 	// NetworkRuleSet - Network rule set
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
-	// AccessTier - Required for storage accounts where kind = BlobStorage. The access tier used for billing. Possible values include: 'AccessTierHot', 'AccessTierCool'
+	// AccessTier - Required for storage accounts where kind = BlobStorage. The access tier is used for billing. The 'Premium' access tier is the default value for premium block blobs storage account type and it cannot be changed for the premium block blobs storage account type. Possible values include: 'AccessTierHot', 'AccessTierCool', 'AccessTierPremium'
 	AccessTier AccessTier `json:"accessTier,omitempty"`
 	// AzureFilesIdentityBasedAuthentication - Provides the identity based authentication settings for Azure Files.
 	AzureFilesIdentityBasedAuthentication *AzureFilesIdentityBasedAuthentication `json:"azureFilesIdentityBasedAuthentication,omitempty"`
 	// EnableHTTPSTrafficOnly - Allows https traffic only to storage service if sets to true. The default value is true since API version 2019-04-01.
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
+	// IsSftpEnabled - Enables Secure File Transfer Protocol, if set to true
+	IsSftpEnabled *bool `json:"isSftpEnabled,omitempty"`
+	// IsLocalUserEnabled - Enables local users feature, if set to true
+	IsLocalUserEnabled *bool `json:"isLocalUserEnabled,omitempty"`
 	// IsHnsEnabled - Account HierarchicalNamespace enabled if sets to true.
 	IsHnsEnabled *bool `json:"isHnsEnabled,omitempty"`
 	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'LargeFileSharesStateDisabled', 'LargeFileSharesStateEnabled'
@@ -685,24 +743,34 @@ type AccountPropertiesCreateParameters struct {
 	EnableNfsV3 *bool `json:"isNfsV3Enabled,omitempty"`
 	// AllowCrossTenantReplication - Allow or disallow cross AAD tenant object replication. The default interpretation is true for this property.
 	AllowCrossTenantReplication *bool `json:"allowCrossTenantReplication,omitempty"`
+	// DefaultToOAuthAuthentication - A boolean flag which indicates whether the default authentication is OAuth or not. The default interpretation is false for this property.
+	DefaultToOAuthAuthentication *bool `json:"defaultToOAuthAuthentication,omitempty"`
+	// ImmutableStorageWithVersioning - The property is immutable and can only be set to true at the account creation time. When set to true, it enables object level immutability for all the new containers in the account by default.
+	ImmutableStorageWithVersioning *ImmutableStorageAccount `json:"immutableStorageWithVersioning,omitempty"`
+	// DNSEndpointType - Allows you to specify the type of endpoint. Set this to AzureDNSZone to create a large number of accounts in a single subscription, which creates accounts in an Azure DNS Zone and the endpoint URL will have an alphanumeric DNS Zone identifier. Possible values include: 'DNSEndpointTypeStandard', 'DNSEndpointTypeAzureDNSZone'
+	DNSEndpointType DNSEndpointType `json:"dnsEndpointType,omitempty"`
 }
 
 // AccountPropertiesUpdateParameters the parameters used when updating a storage account.
 type AccountPropertiesUpdateParameters struct {
 	// CustomDomain - Custom domain assigned to the storage account by the user. Name is the CNAME source. Only one custom domain is supported per storage account at this time. To clear the existing custom domain, use an empty string for the custom domain name property.
 	CustomDomain *CustomDomain `json:"customDomain,omitempty"`
-	// Encryption - Provides the encryption settings on the account. The default setting is unencrypted.
+	// Encryption - Not applicable. Azure Storage encryption at rest is enabled by default for all storage accounts and cannot be disabled.
 	Encryption *Encryption `json:"encryption,omitempty"`
 	// SasPolicy - SasPolicy assigned to the storage account.
 	SasPolicy *SasPolicy `json:"sasPolicy,omitempty"`
 	// KeyPolicy - KeyPolicy assigned to the storage account.
 	KeyPolicy *KeyPolicy `json:"keyPolicy,omitempty"`
-	// AccessTier - Required for storage accounts where kind = BlobStorage. The access tier used for billing. Possible values include: 'AccessTierHot', 'AccessTierCool'
+	// AccessTier - Required for storage accounts where kind = BlobStorage. The access tier is used for billing. The 'Premium' access tier is the default value for premium block blobs storage account type and it cannot be changed for the premium block blobs storage account type. Possible values include: 'AccessTierHot', 'AccessTierCool', 'AccessTierPremium'
 	AccessTier AccessTier `json:"accessTier,omitempty"`
 	// AzureFilesIdentityBasedAuthentication - Provides the identity based authentication settings for Azure Files.
 	AzureFilesIdentityBasedAuthentication *AzureFilesIdentityBasedAuthentication `json:"azureFilesIdentityBasedAuthentication,omitempty"`
 	// EnableHTTPSTrafficOnly - Allows https traffic only to storage service if sets to true.
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
+	// IsSftpEnabled - Enables Secure File Transfer Protocol, if set to true
+	IsSftpEnabled *bool `json:"isSftpEnabled,omitempty"`
+	// IsLocalUserEnabled - Enables local users feature, if set to true
+	IsLocalUserEnabled *bool `json:"isLocalUserEnabled,omitempty"`
 	// NetworkRuleSet - Network rule set
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
 	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'LargeFileSharesStateDisabled', 'LargeFileSharesStateEnabled'
@@ -717,12 +785,59 @@ type AccountPropertiesUpdateParameters struct {
 	AllowSharedKeyAccess *bool `json:"allowSharedKeyAccess,omitempty"`
 	// AllowCrossTenantReplication - Allow or disallow cross AAD tenant object replication. The default interpretation is true for this property.
 	AllowCrossTenantReplication *bool `json:"allowCrossTenantReplication,omitempty"`
+	// DefaultToOAuthAuthentication - A boolean flag which indicates whether the default authentication is OAuth or not. The default interpretation is false for this property.
+	DefaultToOAuthAuthentication *bool `json:"defaultToOAuthAuthentication,omitempty"`
+	// PublicNetworkAccess - Allow or disallow public network access to Storage Account. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// ImmutableStorageWithVersioning - The property is immutable and can only be set to true at the account creation time. When set to true, it enables object level immutability for all the containers in the account by default.
+	ImmutableStorageWithVersioning *ImmutableStorageAccount `json:"immutableStorageWithVersioning,omitempty"`
+	// AllowedCopyScope - Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values include: 'AllowedCopyScopePrivateLink', 'AllowedCopyScopeAAD'
+	AllowedCopyScope AllowedCopyScope `json:"allowedCopyScope,omitempty"`
+	// DNSEndpointType - Allows you to specify the type of endpoint. Set this to AzureDNSZone to create a large number of accounts in a single subscription, which creates accounts in an Azure DNS Zone and the endpoint URL will have an alphanumeric DNS Zone identifier. Possible values include: 'DNSEndpointTypeStandard', 'DNSEndpointTypeAzureDNSZone'
+	DNSEndpointType DNSEndpointType `json:"dnsEndpointType,omitempty"`
 }
 
 // AccountRegenerateKeyParameters the parameters used to regenerate the storage account key.
 type AccountRegenerateKeyParameters struct {
 	// KeyName - The name of storage keys that want to be regenerated, possible values are key1, key2, kerb1, kerb2.
 	KeyName *string `json:"keyName,omitempty"`
+}
+
+// AccountsAbortHierarchicalNamespaceMigrationFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type AccountsAbortHierarchicalNamespaceMigrationFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *AccountsAbortHierarchicalNamespaceMigrationFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for AccountsAbortHierarchicalNamespaceMigrationFuture.Result.
+func (future *AccountsAbortHierarchicalNamespaceMigrationFuture) result(client AccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storage.AccountsAbortHierarchicalNamespaceMigrationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("storage.AccountsAbortHierarchicalNamespaceMigrationFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // AccountSasParameters the parameters to list SAS credentials of a storage account.
@@ -823,6 +938,65 @@ func (future *AccountsFailoverFuture) result(client AccountsClient) (ar autorest
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// AccountsHierarchicalNamespaceMigrationFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type AccountsHierarchicalNamespaceMigrationFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *AccountsHierarchicalNamespaceMigrationFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for AccountsHierarchicalNamespaceMigrationFuture.Result.
+func (future *AccountsHierarchicalNamespaceMigrationFuture) result(client AccountsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storage.AccountsHierarchicalNamespaceMigrationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("storage.AccountsHierarchicalNamespaceMigrationFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// AccountSkuConversionStatus this defines the sku conversion status object for asynchronous sku
+// conversions.
+type AccountSkuConversionStatus struct {
+	// SkuConversionStatus - READ-ONLY; This property indicates the current sku conversion status. Possible values include: 'SkuConversionStatusInProgress', 'SkuConversionStatusSucceeded', 'SkuConversionStatusFailed'
+	SkuConversionStatus SkuConversionStatus `json:"skuConversionStatus,omitempty"`
+	// TargetSkuName - This property represents the target sku name to which the account sku is being converted asynchronously. Possible values include: 'SkuNameStandardLRS', 'SkuNameStandardGRS', 'SkuNameStandardRAGRS', 'SkuNameStandardZRS', 'SkuNamePremiumLRS', 'SkuNamePremiumZRS', 'SkuNameStandardGZRS', 'SkuNameStandardRAGZRS'
+	TargetSkuName SkuName `json:"targetSkuName,omitempty"`
+	// StartTime - READ-ONLY; This property represents the sku conversion start time.
+	StartTime *string `json:"startTime,omitempty"`
+	// EndTime - READ-ONLY; This property represents the sku conversion end time.
+	EndTime *string `json:"endTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountSkuConversionStatus.
+func (ascs AccountSkuConversionStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ascs.TargetSkuName != "" {
+		objectMap["targetSkuName"] = ascs.TargetSkuName
+	}
+	return json.Marshal(objectMap)
 }
 
 // AccountsRestoreBlobRangesFuture an abstraction for monitoring and retrieving the results of a
@@ -978,6 +1152,10 @@ type ActiveDirectoryProperties struct {
 	DomainSid *string `json:"domainSid,omitempty"`
 	// AzureStorageSid - Specifies the security identifier (SID) for Azure Storage.
 	AzureStorageSid *string `json:"azureStorageSid,omitempty"`
+	// SamAccountName - Specifies the Active Directory SAMAccountName for Azure Storage.
+	SamAccountName *string `json:"samAccountName,omitempty"`
+	// AccountType - Specifies the Active Directory account type for Azure Storage. Possible values include: 'AccountTypeUser', 'AccountTypeComputer'
+	AccountType AccountType `json:"accountType,omitempty"`
 }
 
 // AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
@@ -1004,7 +1182,7 @@ type AzureFilesIdentityBasedAuthentication struct {
 	DirectoryServiceOptions DirectoryServiceOptions `json:"directoryServiceOptions,omitempty"`
 	// ActiveDirectoryProperties - Required if choose AD.
 	ActiveDirectoryProperties *ActiveDirectoryProperties `json:"activeDirectoryProperties,omitempty"`
-	// DefaultSharePermission - Default share permission for users using Kerberos authentication if RBAC role is not assigned. Possible values include: 'DefaultSharePermissionNone', 'DefaultSharePermissionStorageFileDataSmbShareReader', 'DefaultSharePermissionStorageFileDataSmbShareContributor', 'DefaultSharePermissionStorageFileDataSmbShareElevatedContributor', 'DefaultSharePermissionStorageFileDataSmbShareOwner'
+	// DefaultSharePermission - Default share permission for users using Kerberos authentication if RBAC role is not assigned. Possible values include: 'DefaultSharePermissionNone', 'DefaultSharePermissionStorageFileDataSmbShareReader', 'DefaultSharePermissionStorageFileDataSmbShareContributor', 'DefaultSharePermissionStorageFileDataSmbShareElevatedContributor'
 	DefaultSharePermission DefaultSharePermission `json:"defaultSharePermission,omitempty"`
 }
 
@@ -1225,7 +1403,7 @@ type BlobInventoryPolicyDefinition struct {
 	Schedule Schedule `json:"schedule,omitempty"`
 	// ObjectType - This is a required field. This field specifies the scope of the inventory created either at the blob or container level. Possible values include: 'ObjectTypeBlob', 'ObjectTypeContainer'
 	ObjectType ObjectType `json:"objectType,omitempty"`
-	// SchemaFields - This is a required field. This field specifies the fields and properties of the object to be included in the inventory. The Schema field value 'Name' is always required. The valid values for this field for the 'Blob' definition.objectType include 'Name, Creation-Time, Last-Modified, Content-Length, Content-MD5, BlobType, AccessTier, AccessTierChangeTime, Expiry-Time, hdi_isfolder, Owner, Group, Permissions, Acl, Snapshot, VersionId, IsCurrentVersion, Metadata, LastAccessTime'. The valid values for 'Container' definition.objectType include 'Name, Last-Modified, Metadata, LeaseStatus, LeaseState, LeaseDuration, PublicAccess, HasImmutabilityPolicy, HasLegalHold'. Schema field values 'Expiry-Time, hdi_isfolder, Owner, Group, Permissions, Acl' are valid only for Hns enabled accounts.
+	// SchemaFields - This is a required field. This field specifies the fields and properties of the object to be included in the inventory. The Schema field value 'Name' is always required. The valid values for this field for the 'Blob' definition.objectType include 'Name, Creation-Time, Last-Modified, Content-Length, Content-MD5, BlobType, AccessTier, AccessTierChangeTime, AccessTierInferred, Tags, Expiry-Time, hdi_isfolder, Owner, Group, Permissions, Acl, Snapshot, VersionId, IsCurrentVersion, Metadata, LastAccessTime, Tags, Etag, ContentType, ContentEncoding, ContentLanguage, ContentCRC64, CacheControl, ContentDisposition, LeaseStatus, LeaseState, LeaseDuration, ServerEncrypted, Deleted, DeletionId, DeletedTime, RemainingRetentionDays, ImmutabilityPolicyUntilDate, ImmutabilityPolicyMode, LegalHold, CopyId, CopyStatus, CopySource, CopyProgress, CopyCompletionTime, CopyStatusDescription, CustomerProvidedKeySha256, RehydratePriority, ArchiveStatus, XmsBlobSequenceNumber, EncryptionScope, IncrementalCopy, TagCount'. For Blob object type schema field value 'DeletedTime' is applicable only for Hns enabled accounts. The valid values for 'Container' definition.objectType include 'Name, Last-Modified, Metadata, LeaseStatus, LeaseState, LeaseDuration, PublicAccess, HasImmutabilityPolicy, HasLegalHold, Etag, DefaultEncryptionScope, DenyEncryptionScopeOverride, ImmutableStorageWithVersioningEnabled, Deleted, Version, DeletedTime, RemainingRetentionDays'. Schema field values 'Expiry-Time, hdi_isfolder, Owner, Group, Permissions, Acl, DeletionId' are valid only for Hns enabled accounts.Schema field values 'Tags, TagCount' are only valid for Non-Hns accounts.
 	SchemaFields *[]string `json:"schemaFields,omitempty"`
 }
 
@@ -1233,14 +1411,18 @@ type BlobInventoryPolicyDefinition struct {
 // definition.objectType all filter properties are applicable, 'blobTypes' is required and others are
 // optional. For 'Container' definition.objectType only prefixMatch is applicable and is optional.
 type BlobInventoryPolicyFilter struct {
-	// PrefixMatch - An array of strings for blob prefixes to be matched.
+	// PrefixMatch - An array of strings with maximum 10 blob prefixes to be included in the inventory.
 	PrefixMatch *[]string `json:"prefixMatch,omitempty"`
+	// ExcludePrefix - An array of strings with maximum 10 blob prefixes to be excluded from the inventory.
+	ExcludePrefix *[]string `json:"excludePrefix,omitempty"`
 	// BlobTypes - An array of predefined enum values. Valid values include blockBlob, appendBlob, pageBlob. Hns accounts does not support pageBlobs. This field is required when definition.objectType property is set to 'Blob'.
 	BlobTypes *[]string `json:"blobTypes,omitempty"`
 	// IncludeBlobVersions - Includes blob versions in blob inventory when value is set to true. The definition.schemaFields values 'VersionId and IsCurrentVersion' are required if this property is set to true, else they must be excluded.
 	IncludeBlobVersions *bool `json:"includeBlobVersions,omitempty"`
 	// IncludeSnapshots - Includes blob snapshots in blob inventory when value is set to true. The definition.schemaFields value 'Snapshot' is required if this property is set to true, else it must be excluded.
 	IncludeSnapshots *bool `json:"includeSnapshots,omitempty"`
+	// IncludeDeleted - For 'Container' definition.objectType the definition.schemaFields must include 'Deleted, Version, DeletedTime and RemainingRetentionDays'. For 'Blob' definition.objectType and HNS enabled storage accounts the definition.schemaFields must include 'DeletionId, Deleted, DeletedTime and RemainingRetentionDays' and for Hns disabled accounts the definition.schemaFields must include 'Deleted and RemainingRetentionDays', else it must be excluded.
+	IncludeDeleted *bool `json:"includeDeleted,omitempty"`
 }
 
 // BlobInventoryPolicyProperties the storage account blob inventory policy properties.
@@ -1277,10 +1459,27 @@ type BlobInventoryPolicyRule struct {
 type BlobInventoryPolicySchema struct {
 	// Enabled - Policy is enabled if set to true.
 	Enabled *bool `json:"enabled,omitempty"`
+	// Destination - READ-ONLY; Deprecated Property from API version 2021-04-01 onwards, the required destination container name must be specified at the rule level 'policy.rule.destination'
+	Destination *string `json:"destination,omitempty"`
 	// Type - The valid value is Inventory
 	Type *string `json:"type,omitempty"`
 	// Rules - The storage account blob inventory policy rules. The rule is applied when it is enabled.
 	Rules *[]BlobInventoryPolicyRule `json:"rules,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BlobInventoryPolicySchema.
+func (bips BlobInventoryPolicySchema) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bips.Enabled != nil {
+		objectMap["enabled"] = bips.Enabled
+	}
+	if bips.Type != nil {
+		objectMap["type"] = bips.Type
+	}
+	if bips.Rules != nil {
+		objectMap["rules"] = bips.Rules
+	}
+	return json.Marshal(objectMap)
 }
 
 // BlobRestoreParameters blob restore parameters
@@ -1515,6 +1714,10 @@ type ContainerProperties struct {
 	HasImmutabilityPolicy *bool `json:"hasImmutabilityPolicy,omitempty"`
 	// ImmutableStorageWithVersioning - The object level immutability property of the container. The property is immutable and can only be set to true at the container creation time. Existing containers must undergo a migration process.
 	ImmutableStorageWithVersioning *ImmutableStorageWithVersioning `json:"immutableStorageWithVersioning,omitempty"`
+	// EnableNfsV3RootSquash - Enable NFSv3 root squash on blob container.
+	EnableNfsV3RootSquash *bool `json:"enableNfsV3RootSquash,omitempty"`
+	// EnableNfsV3AllSquash - Enable NFSv3 all squash on blob container.
+	EnableNfsV3AllSquash *bool `json:"enableNfsV3AllSquash,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ContainerProperties.
@@ -1534,6 +1737,12 @@ func (cp ContainerProperties) MarshalJSON() ([]byte, error) {
 	}
 	if cp.ImmutableStorageWithVersioning != nil {
 		objectMap["immutableStorageWithVersioning"] = cp.ImmutableStorageWithVersioning
+	}
+	if cp.EnableNfsV3RootSquash != nil {
+		objectMap["enableNfsV3RootSquash"] = cp.EnableNfsV3RootSquash
+	}
+	if cp.EnableNfsV3AllSquash != nil {
+		objectMap["enableNfsV3AllSquash"] = cp.EnableNfsV3AllSquash
 	}
 	return json.Marshal(objectMap)
 }
@@ -1566,20 +1775,28 @@ type CustomDomain struct {
 	UseSubDomainName *bool `json:"useSubDomainName,omitempty"`
 }
 
-// DateAfterCreation object to define the number of days after creation.
+// DateAfterCreation object to define snapshot and version action conditions.
 type DateAfterCreation struct {
 	// DaysAfterCreationGreaterThan - Value indicating the age in days after creation
 	DaysAfterCreationGreaterThan *float64 `json:"daysAfterCreationGreaterThan,omitempty"`
+	// DaysAfterLastTierChangeGreaterThan - Value indicating the age in days after last blob tier change time. This property is only applicable for tierToArchive actions and requires daysAfterCreationGreaterThan to be set for snapshots and blob version based actions. The blob will be archived if both the conditions are satisfied.
+	DaysAfterLastTierChangeGreaterThan *float64 `json:"daysAfterLastTierChangeGreaterThan,omitempty"`
 }
 
-// DateAfterModification object to define the number of days after object last modification Or last access.
-// Properties daysAfterModificationGreaterThan and daysAfterLastAccessTimeGreaterThan are mutually
-// exclusive.
+// DateAfterModification object to define the base blob action conditions. Properties
+// daysAfterModificationGreaterThan, daysAfterLastAccessTimeGreaterThan and daysAfterCreationGreaterThan
+// are mutually exclusive. The daysAfterLastTierChangeGreaterThan property is only applicable for
+// tierToArchive actions which requires daysAfterModificationGreaterThan to be set, also it cannot be used
+// in conjunction with daysAfterLastAccessTimeGreaterThan or daysAfterCreationGreaterThan.
 type DateAfterModification struct {
 	// DaysAfterModificationGreaterThan - Value indicating the age in days after last modification
 	DaysAfterModificationGreaterThan *float64 `json:"daysAfterModificationGreaterThan,omitempty"`
 	// DaysAfterLastAccessTimeGreaterThan - Value indicating the age in days after last blob access. This property can only be used in conjunction with last access time tracking policy
 	DaysAfterLastAccessTimeGreaterThan *float64 `json:"daysAfterLastAccessTimeGreaterThan,omitempty"`
+	// DaysAfterLastTierChangeGreaterThan - Value indicating the age in days after last blob tier change time. This property is only applicable for tierToArchive actions and requires daysAfterModificationGreaterThan to be set for baseBlobs based actions. The blob will be archived if both the conditions are satisfied.
+	DaysAfterLastTierChangeGreaterThan *float64 `json:"daysAfterLastTierChangeGreaterThan,omitempty"`
+	// DaysAfterCreationGreaterThan - Value indicating the age in days after blob creation.
+	DaysAfterCreationGreaterThan *float64 `json:"daysAfterCreationGreaterThan,omitempty"`
 }
 
 // DeletedAccount deleted storage account
@@ -1854,6 +2071,8 @@ type DeleteRetentionPolicy struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// Days - Indicates the number of days that the deleted item should be retained. The minimum specified value can be 1 and the maximum value can be 365.
 	Days *int32 `json:"days,omitempty"`
+	// AllowPermanentDelete - This property when set to true allows deletion of the soft deleted blob versions and snapshots. This property cannot be used blob restore policy. This property only applies to blob service and does not apply to containers or file share.
+	AllowPermanentDelete *bool `json:"allowPermanentDelete,omitempty"`
 }
 
 // Dimension dimension of blobs, possibly be blob type or access tier.
@@ -1882,6 +2101,8 @@ type Encryption struct {
 type EncryptionIdentity struct {
 	// EncryptionUserAssignedIdentity - Resource identifier of the UserAssigned identity to be associated with server-side encryption on the storage account.
 	EncryptionUserAssignedIdentity *string `json:"userAssignedIdentity,omitempty"`
+	// EncryptionFederatedIdentityClientID - ClientId of the multi-tenant application to be used in conjunction with the user-assigned identity for cross-tenant customer-managed-keys server-side encryption on the storage account.
+	EncryptionFederatedIdentityClientID *string `json:"federatedIdentityClientId,omitempty"`
 }
 
 // EncryptionScope the Encryption Scope resource.
@@ -2179,9 +2400,9 @@ func (esp EncryptionScopeProperties) MarshalJSON() ([]byte, error) {
 
 // EncryptionService a service that allows server-side encryption to be used.
 type EncryptionService struct {
-	// Enabled - A boolean indicating whether or not the service encrypts the data as it is stored.
+	// Enabled - A boolean indicating whether or not the service encrypts the data as it is stored. Encryption at rest is enabled by default today and cannot be disabled.
 	Enabled *bool `json:"enabled,omitempty"`
-	// LastEnabledTime - READ-ONLY; Gets a rough estimate of the date/time when the encryption was last enabled by the user. Only returned when encryption is enabled. There might be some unencrypted blobs which were written after this time, as it is just a rough estimate.
+	// LastEnabledTime - READ-ONLY; Gets a rough estimate of the date/time when the encryption was last enabled by the user. Data is encrypted at rest by default today and cannot be disabled.
 	LastEnabledTime *date.Time `json:"lastEnabledTime,omitempty"`
 	// KeyType - Encryption key type to be used for the encryption service. 'Account' key type implies that an account-scoped encryption key will be used. 'Service' key type implies that a default service key is used. Possible values include: 'KeyTypeService', 'KeyTypeAccount'
 	KeyType KeyType `json:"keyType,omitempty"`
@@ -2963,8 +3184,10 @@ type ImmutabilityPolicyProperty struct {
 	ImmutabilityPeriodSinceCreationInDays *int32 `json:"immutabilityPeriodSinceCreationInDays,omitempty"`
 	// State - READ-ONLY; The ImmutabilityPolicy state of a blob container, possible values include: Locked and Unlocked. Possible values include: 'ImmutabilityPolicyStateLocked', 'ImmutabilityPolicyStateUnlocked'
 	State ImmutabilityPolicyState `json:"state,omitempty"`
-	// AllowProtectedAppendWrites - This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API
+	// AllowProtectedAppendWrites - This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API.
 	AllowProtectedAppendWrites *bool `json:"allowProtectedAppendWrites,omitempty"`
+	// AllowProtectedAppendWritesAll - This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to both 'Append and Bock Blobs' while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API. The 'allowProtectedAppendWrites' and 'allowProtectedAppendWritesAll' properties are mutually exclusive.
+	AllowProtectedAppendWritesAll *bool `json:"allowProtectedAppendWritesAll,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ImmutabilityPolicyProperty.
@@ -2976,7 +3199,19 @@ func (ipp ImmutabilityPolicyProperty) MarshalJSON() ([]byte, error) {
 	if ipp.AllowProtectedAppendWrites != nil {
 		objectMap["allowProtectedAppendWrites"] = ipp.AllowProtectedAppendWrites
 	}
+	if ipp.AllowProtectedAppendWritesAll != nil {
+		objectMap["allowProtectedAppendWritesAll"] = ipp.AllowProtectedAppendWritesAll
+	}
 	return json.Marshal(objectMap)
+}
+
+// ImmutableStorageAccount this property enables and defines account-level immutability. Enabling the
+// feature auto-enables Blob Versioning.
+type ImmutableStorageAccount struct {
+	// Enabled - A boolean flag which enables account-level immutability. All the containers under such an account have object-level immutability enabled by default.
+	Enabled *bool `json:"enabled,omitempty"`
+	// ImmutabilityPolicy - Specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
+	ImmutabilityPolicy *AccountImmutabilityPolicyProperties `json:"immutabilityPolicy,omitempty"`
 }
 
 // ImmutableStorageWithVersioning object level immutability properties of the container.
@@ -3030,6 +3265,8 @@ type KeyVaultProperties struct {
 	CurrentVersionedKeyIdentifier *string `json:"currentVersionedKeyIdentifier,omitempty"`
 	// LastKeyRotationTimestamp - READ-ONLY; Timestamp of last rotation of the Key Vault Key.
 	LastKeyRotationTimestamp *date.Time `json:"lastKeyRotationTimestamp,omitempty"`
+	// CurrentVersionedKeyExpirationTimestamp - READ-ONLY; This is a read only property that represents the expiration time of the current version of the customer managed key used for encryption.
+	CurrentVersionedKeyExpirationTimestamp *date.Time `json:"currentVersionedKeyExpirationTimestamp,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for KeyVaultProperties.
@@ -3112,6 +3349,8 @@ type LegalHold struct {
 	HasLegalHold *bool `json:"hasLegalHold,omitempty"`
 	// Tags - Each tag should be 3 to 23 alphanumeric characters and is normalized to lower case at SRP.
 	Tags *[]string `json:"tags,omitempty"`
+	// AllowProtectedAppendWritesAll - When enabled, new blocks can be written to both 'Append and Bock Blobs' while maintaining legal hold protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
+	AllowProtectedAppendWritesAll *bool `json:"allowProtectedAppendWritesAll,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for LegalHold.
@@ -3119,6 +3358,9 @@ func (lh LegalHold) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if lh.Tags != nil {
 		objectMap["tags"] = lh.Tags
+	}
+	if lh.AllowProtectedAppendWritesAll != nil {
+		objectMap["allowProtectedAppendWritesAll"] = lh.AllowProtectedAppendWritesAll
 	}
 	return json.Marshal(objectMap)
 }
@@ -3129,6 +3371,8 @@ type LegalHoldProperties struct {
 	HasLegalHold *bool `json:"hasLegalHold,omitempty"`
 	// Tags - The list of LegalHold tags of a blob container.
 	Tags *[]TagProperty `json:"tags,omitempty"`
+	// ProtectedAppendWritesHistory - Protected append blob writes history.
+	ProtectedAppendWritesHistory *ProtectedAppendWritesHistory `json:"protectedAppendWritesHistory,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for LegalHoldProperties.
@@ -3136,6 +3380,9 @@ func (lhp LegalHoldProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if lhp.Tags != nil {
 		objectMap["tags"] = lhp.Tags
+	}
+	if lhp.ProtectedAppendWritesHistory != nil {
+		objectMap["protectedAppendWritesHistory"] = lhp.ProtectedAppendWritesHistory
 	}
 	return json.Marshal(objectMap)
 }
@@ -3871,6 +4118,160 @@ func (lts ListTableServices) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// LocalUser the local user associated with the storage accounts.
+type LocalUser struct {
+	autorest.Response `json:"-"`
+	// LocalUserProperties - Storage account local user properties.
+	*LocalUserProperties `json:"properties,omitempty"`
+	SystemData           *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LocalUser.
+func (lu LocalUser) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lu.LocalUserProperties != nil {
+		objectMap["properties"] = lu.LocalUserProperties
+	}
+	if lu.SystemData != nil {
+		objectMap["systemData"] = lu.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for LocalUser struct.
+func (lu *LocalUser) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var localUserProperties LocalUserProperties
+				err = json.Unmarshal(*v, &localUserProperties)
+				if err != nil {
+					return err
+				}
+				lu.LocalUserProperties = &localUserProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				lu.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				lu.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				lu.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				lu.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// LocalUserKeys the Storage Account Local User keys.
+type LocalUserKeys struct {
+	autorest.Response `json:"-"`
+	SSHAuthorizedKeys *[]SSHPublicKey `json:"sshAuthorizedKeys,omitempty"`
+	SharedKey         *string         `json:"sharedKey,omitempty"`
+}
+
+// LocalUserProperties the Storage Account Local User properties.
+type LocalUserProperties struct {
+	// PermissionScopes - The permission scopes of the local user.
+	PermissionScopes *[]PermissionScope `json:"permissionScopes,omitempty"`
+	// HomeDirectory - Optional, local user home directory.
+	HomeDirectory     *string         `json:"homeDirectory,omitempty"`
+	SSHAuthorizedKeys *[]SSHPublicKey `json:"sshAuthorizedKeys,omitempty"`
+	// Sid - READ-ONLY; A unique Security Identifier that is generated by the server.
+	Sid *string `json:"sid,omitempty"`
+	// HasSharedKey - Indicates whether shared key exists. Set it to false to remove existing shared key.
+	HasSharedKey *bool `json:"hasSharedKey,omitempty"`
+	// HasSSHKey - Indicates whether ssh key exists. Set it to false to remove existing SSH key.
+	HasSSHKey *bool `json:"hasSshKey,omitempty"`
+	// HasSSHPassword - Indicates whether ssh password exists. Set it to false to remove existing SSH password.
+	HasSSHPassword *bool `json:"hasSshPassword,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LocalUserProperties.
+func (lup LocalUserProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lup.PermissionScopes != nil {
+		objectMap["permissionScopes"] = lup.PermissionScopes
+	}
+	if lup.HomeDirectory != nil {
+		objectMap["homeDirectory"] = lup.HomeDirectory
+	}
+	if lup.SSHAuthorizedKeys != nil {
+		objectMap["sshAuthorizedKeys"] = lup.SSHAuthorizedKeys
+	}
+	if lup.HasSharedKey != nil {
+		objectMap["hasSharedKey"] = lup.HasSharedKey
+	}
+	if lup.HasSSHKey != nil {
+		objectMap["hasSshKey"] = lup.HasSSHKey
+	}
+	if lup.HasSSHPassword != nil {
+		objectMap["hasSshPassword"] = lup.HasSSHPassword
+	}
+	return json.Marshal(objectMap)
+}
+
+// LocalUserRegeneratePasswordResult the secrets of Storage Account Local User.
+type LocalUserRegeneratePasswordResult struct {
+	autorest.Response `json:"-"`
+	// SSHPassword - READ-ONLY; Auto generated password by the server for SSH authentication if hasSshPassword is set to true on the creation of local user.
+	SSHPassword *string `json:"sshPassword,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LocalUserRegeneratePasswordResult.
+func (lurpr LocalUserRegeneratePasswordResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// LocalUsers list storage account local users.
+type LocalUsers struct {
+	autorest.Response `json:"-"`
+	// Value - The local users associated with the storage account.
+	Value *[]LocalUser `json:"value,omitempty"`
+}
+
 // ManagementPolicy the Get Storage Account ManagementPolicies operation response.
 type ManagementPolicy struct {
 	autorest.Response `json:"-"`
@@ -4323,6 +4724,16 @@ type OperationProperties struct {
 	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
 }
 
+// PermissionScope ...
+type PermissionScope struct {
+	// Permissions - The permissions for the local user. Possible values include: Read (r), Write (w), Delete (d), List (l), and Create (c).
+	Permissions *string `json:"permissions,omitempty"`
+	// Service - The service used by the local user, e.g. blob, file.
+	Service *string `json:"service,omitempty"`
+	// ResourceName - The name of resource, normally the container name or the file share name, used by the local user.
+	ResourceName *string `json:"resourceName,omitempty"`
+}
+
 // PrivateEndpoint the Private Endpoint resource.
 type PrivateEndpoint struct {
 	// ID - READ-ONLY; The ARM identifier for Private Endpoint
@@ -4533,6 +4944,24 @@ type PrivateLinkServiceConnectionState struct {
 	Description *string `json:"description,omitempty"`
 	// ActionRequired - A message indicating if changes on the service provider require any updates on the consumer.
 	ActionRequired *string `json:"actionRequired,omitempty"`
+}
+
+// ProtectedAppendWritesHistory protected append writes history setting for the blob container with Legal
+// holds.
+type ProtectedAppendWritesHistory struct {
+	// AllowProtectedAppendWritesAll - When enabled, new blocks can be written to both 'Append and Bock Blobs' while maintaining legal hold protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
+	AllowProtectedAppendWritesAll *bool `json:"allowProtectedAppendWritesAll,omitempty"`
+	// Timestamp - READ-ONLY; Returns the date and time the tag was added.
+	Timestamp *date.Time `json:"timestamp,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProtectedAppendWritesHistory.
+func (pawh ProtectedAppendWritesHistory) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pawh.AllowProtectedAppendWritesAll != nil {
+		objectMap["allowProtectedAppendWritesAll"] = pawh.AllowProtectedAppendWritesAll
+	}
+	return json.Marshal(objectMap)
 }
 
 // ProtocolSettings protocol settings for file service
@@ -4950,6 +5379,14 @@ type SmbSetting struct {
 	ChannelEncryption *string `json:"channelEncryption,omitempty"`
 }
 
+// SSHPublicKey ...
+type SSHPublicKey struct {
+	// Description - Optional. It is used to store the function/usage of the key
+	Description *string `json:"description,omitempty"`
+	// Key - Ssh public key base64 encoded. The format should be: '<keyType> <keyData>', e.g. ssh-rsa AAAABBBB
+	Key *string `json:"key,omitempty"`
+}
+
 // SystemData metadata pertaining to creation and last modification of the resource.
 type SystemData struct {
 	// CreatedBy - The identity that created the resource.
@@ -5039,15 +5476,30 @@ func (t *Table) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// TableAccessPolicy table Access Policy Properties Object.
+type TableAccessPolicy struct {
+	// StartTime - Start time of the access policy
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// ExpiryTime - Expiry time of the access policy
+	ExpiryTime *date.Time `json:"expiryTime,omitempty"`
+	// Permission - Required. List of abbreviated permissions. Supported permission values include 'r','a','u','d'
+	Permission *string `json:"permission,omitempty"`
+}
+
 // TableProperties ...
 type TableProperties struct {
 	// TableName - READ-ONLY; Table name under the specified account
 	TableName *string `json:"tableName,omitempty"`
+	// SignedIdentifiers - List of stored access policies specified on the table.
+	SignedIdentifiers *[]TableSignedIdentifier `json:"signedIdentifiers,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TableProperties.
 func (tp TableProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if tp.SignedIdentifiers != nil {
+		objectMap["signedIdentifiers"] = tp.SignedIdentifiers
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -5130,6 +5582,14 @@ type TableServicePropertiesProperties struct {
 	Cors *CorsRules `json:"cors,omitempty"`
 }
 
+// TableSignedIdentifier object to set Table Access Policy.
+type TableSignedIdentifier struct {
+	// ID - unique-64-character-value of the stored access policy.
+	ID *string `json:"id,omitempty"`
+	// AccessPolicy - Access policy
+	AccessPolicy *TableAccessPolicy `json:"accessPolicy,omitempty"`
+}
+
 // TagFilter blob index tag based filtering for blob objects
 type TagFilter struct {
 	// Name - This is the filter tag name, it can have 1 - 128 characters
@@ -5201,11 +5661,21 @@ type UpdateHistoryProperty struct {
 	TenantID *string `json:"tenantId,omitempty"`
 	// Upn - READ-ONLY; Returns the User Principal Name of the user who updated the ImmutabilityPolicy.
 	Upn *string `json:"upn,omitempty"`
+	// AllowProtectedAppendWrites - This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API.
+	AllowProtectedAppendWrites *bool `json:"allowProtectedAppendWrites,omitempty"`
+	// AllowProtectedAppendWritesAll - This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to both 'Append and Bock Blobs' while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API. The 'allowProtectedAppendWrites' and 'allowProtectedAppendWritesAll' properties are mutually exclusive.
+	AllowProtectedAppendWritesAll *bool `json:"allowProtectedAppendWritesAll,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for UpdateHistoryProperty.
 func (uhp UpdateHistoryProperty) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if uhp.AllowProtectedAppendWrites != nil {
+		objectMap["allowProtectedAppendWrites"] = uhp.AllowProtectedAppendWrites
+	}
+	if uhp.AllowProtectedAppendWritesAll != nil {
+		objectMap["allowProtectedAppendWritesAll"] = uhp.AllowProtectedAppendWritesAll
+	}
 	return json.Marshal(objectMap)
 }
 
