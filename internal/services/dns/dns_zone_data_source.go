@@ -87,6 +87,7 @@ func dataSourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		zone = result
+		id.ResourceGroupName = *resourceGroupName
 	}
 
 	if zone == nil {
@@ -125,17 +126,17 @@ func findZone(ctx context.Context, client *zones.ZonesClient, subscriptionId, na
 		return nil, nil, fmt.Errorf("listing DNS Zones: %+v", err)
 	}
 
-	var found *zones.Zone
+	var found zones.Zone
 	for _, zone := range zonesIterator.Items {
 		if zone.Name != nil && *zone.Name == name {
-			if found != nil {
+			if found.Id != nil {
 				return nil, nil, fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
 			}
-			found = &zone
+			found = zone
 		}
 	}
 
-	if found == nil || found.Id == nil {
+	if found.Id == nil {
 		return nil, nil, fmt.Errorf("could not find DNS zone with name: %q", name)
 	}
 
@@ -143,5 +144,5 @@ func findZone(ctx context.Context, client *zones.ZonesClient, subscriptionId, na
 	if err != nil {
 		return nil, nil, fmt.Errorf("parsing %q as a DNS Zone ID: %+v", *found.Id, err)
 	}
-	return found, &id.ResourceGroupName, nil
+	return &found, &id.ResourceGroupName, nil
 }
