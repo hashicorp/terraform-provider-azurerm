@@ -20,7 +20,7 @@ func MaintenanceAssignmentDedicatedHostID(input string) (*MaintenanceAssignmentD
 	}
 
 	targetResourceId, name := groups[1], groups[2]
-	dedicatedHostID, err := dedicatedhosts.ParseHostID(targetResourceId)
+	dedicatedHostID, err := dedicatedhosts.ParseHostIDInsensitively(targetResourceId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Maintenance Assignment Dedicated Host ID: %q: Expected valid Dedicated Host ID", input)
 	}
