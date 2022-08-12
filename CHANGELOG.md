@@ -1,5 +1,9 @@
 ## 3.19.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_mssql_elastic_pool` - support for the `maintenance_configuration_name` property [GH-17790]
+
 BUG FIXES:
 
 * `azurerm_data_protection_backup_policy_postgresql_resource` - prevent a crash when given an empty criteria block [GH-17904]
