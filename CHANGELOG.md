@@ -1,3 +1,9 @@
+## 3.19.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
+
 ## 3.18.0 (August 11, 2022)
 
 FEATURES: 
