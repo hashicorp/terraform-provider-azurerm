@@ -12,7 +12,7 @@ var _ resourceids.Id = FrontDoorFirewallPolicyId{}
 
 func TestFrontDoorFirewallPolicyIDFormatter(t *testing.T) {
 	actual := NewFrontDoorFirewallPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "policy1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/policy1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -63,13 +63,13 @@ func TestFrontDoorFirewallPolicyID(t *testing.T) {
 
 		{
 			// missing value for FrontDoorWebApplicationFirewallPolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/policy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1",
 			Expected: &FrontDoorFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
@@ -156,13 +156,13 @@ func TestFrontDoorFirewallPolicyIDInsensitively(t *testing.T) {
 
 		{
 			// missing value for FrontDoorWebApplicationFirewallPolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/policy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1",
 			Expected: &FrontDoorFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",

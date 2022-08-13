@@ -16,10 +16,10 @@ type CdnFrontdoorSecurityMappings struct {
 	Firewall CdnFrontdoorSecurityParameters
 }
 
-func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardSku bool) (cdn.SecurityPolicyWebApplicationFirewallParameters, error) {
+func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardSku bool) (*cdn.SecurityPolicyWebApplicationFirewallParameters, error) {
 	results := cdn.SecurityPolicyWebApplicationFirewallParameters{}
 	if len(input) == 0 {
-		return results, nil
+		return &results, nil
 	}
 
 	associations := make([]cdn.SecurityPolicyWebApplicationFirewallAssociation, 0)
@@ -43,11 +43,11 @@ func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 		if isStandardSku {
 			if len(*domains) > 100 {
-				return results, fmt.Errorf("the %q sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", cdn.SkuNameStandardAzureFrontDoor, len(*domains))
+				return &results, fmt.Errorf("the %q sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", cdn.SkuNameStandardAzureFrontDoor, len(*domains))
 			}
 		} else {
 			if len(*domains) > 500 {
-				return results, fmt.Errorf("the %q sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", cdn.SkuNamePremiumAzureFrontDoor, len(*domains))
+				return &results, fmt.Errorf("the %q sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", cdn.SkuNamePremiumAzureFrontDoor, len(*domains))
 			}
 		}
 
@@ -61,7 +61,7 @@ func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 	results.Associations = &associations
 
-	return results, nil
+	return &results, nil
 }
 
 func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]cdn.ActivatedResourceReference {
@@ -83,43 +83,7 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]cd
 	return &results
 }
 
-func FlattenCdnFrontdoorFirewallPolicyParameters(input cdn.BasicSecurityPolicyPropertiesParameters) ([]interface{}, error) {
-	waf, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
-	if !ok {
-		return nil, fmt.Errorf("expected security policy web application firewall parameters")
-	}
-
-	// we know it's a firewall policy at this point,
-	// create the objects to hold the policy data
-	associations := make([]interface{}, 0)
-
-	wafPolicyId := ""
-	if waf.WafPolicy != nil && waf.WafPolicy.ID != nil {
-		wafPolicyId = *waf.WafPolicy.ID
-	}
-
-	if waf.Associations != nil {
-		for _, item := range *waf.Associations {
-			associations = append(associations, map[string]interface{}{
-				"domain":            flattenSecurityPoliciesActivatedResourceReference(item.Domains),
-				"patterns_to_match": utils.FlattenStringSlice(item.PatternsToMatch),
-			})
-		}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"firewall": []interface{}{
-				map[string]interface{}{
-					"association":                      associations,
-					"cdn_frontdoor_firewall_policy_id": wafPolicyId,
-				},
-			},
-		},
-	}, nil
-}
-
-func flattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedResourceReference) []interface{} {
+func FlattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

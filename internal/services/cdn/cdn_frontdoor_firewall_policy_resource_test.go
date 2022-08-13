@@ -128,6 +128,8 @@ func (r CdnFrontDoorFirewallPolicyResource) basic(data acceptance.TestData) stri
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                = "accTestWAF%d"
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
 }
 `, tmp, data.RandomInteger)
 }
@@ -139,6 +141,8 @@ func (r CdnFrontDoorFirewallPolicyResource) requiresImport(data acceptance.TestD
 resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
   name                = azurerm_cdn_frontdoor_firewall_policy.test.name
   resource_group_name = azurerm_cdn_frontdoor_firewall_policy.test.resource_group_name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
 }
 `, r.basic(data))
 }
@@ -151,7 +155,7 @@ func (r CdnFrontDoorFirewallPolicyResource) update(data acceptance.TestData) str
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                              = "accTestWAF%d"
   resource_group_name               = azurerm_resource_group.test.name
-  sku_name                          = "Premium_AzureFrontDoor"
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"
@@ -178,6 +182,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "preview-0.1"
+    action  = "Block"
 
     override {
       rule_group_name = "PHP"
@@ -207,7 +212,7 @@ func (r CdnFrontDoorFirewallPolicyResource) complete(data acceptance.TestData) s
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                              = "accTestWAF%d"
   resource_group_name               = azurerm_resource_group.test.name
-  sku_name                          = "Premium_AzureFrontDoor"
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"
@@ -286,6 +291,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "1.0"
+    action  = "Block"
 
     exclusion {
       match_variable = "QueryStringArgNames"
@@ -328,6 +334,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "Microsoft_BotManagerRuleSet"
     version = "1.0"
+    action  = "Block"
   }
 }
 `, tmp, data.RandomInteger)

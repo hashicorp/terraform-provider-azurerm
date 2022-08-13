@@ -33,7 +33,7 @@ func (id FrontDoorFirewallPolicyId) String() string {
 }
 
 func (id FrontDoorFirewallPolicyId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 }
 
@@ -57,7 +57,7 @@ func FrontDoorFirewallPolicyID(input string) (*FrontDoorFirewallPolicyId, error)
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.FrontDoorWebApplicationFirewallPolicyName, err = id.PopSegment("FrontDoorWebApplicationFirewallPolicies"); err != nil {
+	if resourceId.FrontDoorWebApplicationFirewallPolicyName, err = id.PopSegment("frontDoorWebApplicationFirewallPolicies"); err != nil {
 		return nil, err
 	}
 
@@ -93,15 +93,15 @@ func FrontDoorFirewallPolicyIDInsensitively(input string) (*FrontDoorFirewallPol
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	// find the correct casing for the 'FrontDoorWebApplicationFirewallPolicies' segment
-	FrontDoorWebApplicationFirewallPoliciesKey := "FrontDoorWebApplicationFirewallPolicies"
+	// find the correct casing for the 'frontDoorWebApplicationFirewallPolicies' segment
+	frontDoorWebApplicationFirewallPoliciesKey := "frontDoorWebApplicationFirewallPolicies"
 	for key := range id.Path {
-		if strings.EqualFold(key, FrontDoorWebApplicationFirewallPoliciesKey) {
-			FrontDoorWebApplicationFirewallPoliciesKey = key
+		if strings.EqualFold(key, frontDoorWebApplicationFirewallPoliciesKey) {
+			frontDoorWebApplicationFirewallPoliciesKey = key
 			break
 		}
 	}
-	if resourceId.FrontDoorWebApplicationFirewallPolicyName, err = id.PopSegment(FrontDoorWebApplicationFirewallPoliciesKey); err != nil {
+	if resourceId.FrontDoorWebApplicationFirewallPolicyName, err = id.PopSegment(frontDoorWebApplicationFirewallPoliciesKey); err != nil {
 		return nil, err
 	}
 

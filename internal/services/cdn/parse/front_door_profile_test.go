@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = FrontDoorProfileId{}
 
 func TestFrontDoorProfileIDFormatter(t *testing.T) {
-	actual := NewFrontDoorProfileID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1"
+	actual := NewFrontDoorProfileID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,29 +57,29 @@ func TestFrontDoorProfileID(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1",
 			Expected: &FrontDoorProfileId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1",
 			Error: true,
 		},
 	}
@@ -150,52 +150,52 @@ func TestFrontDoorProfileIDInsensitively(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1",
 			Expected: &FrontDoorProfileId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1",
 			Expected: &FrontDoorProfileId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PROFILES/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1",
 			Expected: &FrontDoorProfileId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1",
 			Expected: &FrontDoorProfileId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 			},
 		},

@@ -166,6 +166,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "preview-0.1"
+    action  = "Block"
 
     override {
       rule_group_name = "PHP"
@@ -181,6 +182,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "BotProtection"
     version = "preview-0.1"
+    action  = "Block"
   }
 }
 
@@ -247,6 +249,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "preview-0.1"
+    action  = "Block"
 
     override {
       rule_group_name = "PHP"
@@ -262,6 +265,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "BotProtection"
     version = "preview-0.1"
+    action  = "Block"
   }
 }
 

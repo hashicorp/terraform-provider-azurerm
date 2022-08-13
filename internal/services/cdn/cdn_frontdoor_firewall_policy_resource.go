@@ -51,12 +51,20 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Default:  string(frontdoor.SkuNameStandardAzureFrontDoor),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(frontdoor.SkuNameStandardAzureFrontDoor),
 					string(frontdoor.SkuNamePremiumAzureFrontDoor),
+				}, false),
+			},
+
+			"mode": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(frontdoor.PolicyModeDetection),
+					string(frontdoor.PolicyModePrevention),
 				}, false),
 			},
 
@@ -64,16 +72,6 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-			},
-
-			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(frontdoor.PolicyModeDetection),
-					string(frontdoor.PolicyModePrevention),
-				}, false),
-				Default: string(frontdoor.PolicyModePrevention),
 			},
 
 			"redirect_url": {
@@ -97,7 +95,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			"custom_block_response_body": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.LegacyCustomBlockResponseBody,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"custom_rule": {
@@ -262,8 +260,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 						"action": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(frontdoor.ActionTypeBlock),
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(frontdoor.ActionTypeAllow),
 								string(frontdoor.ActionTypeLog),
@@ -412,8 +409,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 												"action": {
 													Type:     pluginsdk.TypeString,
-													Optional: true,
-													Default:  frontdoor.ActionTypeBlock,
+													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(frontdoor.ActionTypeAllow),
 														string(frontdoor.ActionTypeLog),
@@ -460,7 +456,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Cdn Frontdoor Firewall Policy %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
@@ -490,7 +486,6 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	t := d.Get("tags").(map[string]interface{})
 
 	payload := frontdoor.WebApplicationFirewallPolicy{
-		Name:     utils.String(id.FrontDoorWebApplicationFirewallPolicyName),
 		Location: utils.String(location.Normalize("Global")),
 		Sku: &frontdoor.Sku{
 			Name: frontdoor.SkuName(sku),
@@ -644,12 +639,8 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	if properties := resp.WebApplicationFirewallPolicyProperties; properties != nil {
 		if policy := properties.PolicySettings; policy != nil {
-			if policy.EnabledState != "" {
-				d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
-			}
-			if policy.Mode != "" {
-				d.Set("mode", string(policy.Mode))
-			}
+			d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
+			d.Set("mode", string(policy.Mode))
 			d.Set("redirect_url", policy.RedirectURL)
 			d.Set("custom_block_response_status_code", policy.CustomBlockResponseStatusCode)
 			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)

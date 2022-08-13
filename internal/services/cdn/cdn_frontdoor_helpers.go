@@ -37,6 +37,9 @@ func flattenFrontDoorTags(tagMap map[string]*string) *map[string]string {
 	for k, v := range tagMap {
 		tagKey := k
 		tagValue := v
+		if tagValue == nil {
+			continue
+		}
 		t[tagKey] = *tagValue
 	}
 

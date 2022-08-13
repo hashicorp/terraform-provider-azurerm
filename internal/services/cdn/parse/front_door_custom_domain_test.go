@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = FrontDoorCustomDomainId{}
 
 func TestFrontDoorCustomDomainIDFormatter(t *testing.T) {
-	actual := NewFrontDoorCustomDomainID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1", "customDomain1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1"
+	actual := NewFrontDoorCustomDomainID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "customDomain1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,34 +57,34 @@ func TestFrontDoorCustomDomainID(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// missing CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
 			// missing value for CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
 			Expected: &FrontDoorCustomDomainId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resourceGroup1",
+				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
 			},
@@ -92,7 +92,7 @@ func TestFrontDoorCustomDomainID(t *testing.T) {
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOMDOMAIN1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOMDOMAIN1",
 			Error: true,
 		},
 	}
@@ -166,34 +166,34 @@ func TestFrontDoorCustomDomainIDInsensitively(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// missing CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
 			// missing value for CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
 			Expected: &FrontDoorCustomDomainId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resourceGroup1",
+				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
 			},
@@ -201,10 +201,10 @@ func TestFrontDoorCustomDomainIDInsensitively(t *testing.T) {
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customdomains/customDomain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customdomains/customDomain1",
 			Expected: &FrontDoorCustomDomainId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resourceGroup1",
+				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
 			},
@@ -212,10 +212,10 @@ func TestFrontDoorCustomDomainIDInsensitively(t *testing.T) {
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PROFILES/profile1/CUSTOMDOMAINS/customDomain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/CUSTOMDOMAINS/customDomain1",
 			Expected: &FrontDoorCustomDomainId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resourceGroup1",
+				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
 			},
@@ -223,10 +223,10 @@ func TestFrontDoorCustomDomainIDInsensitively(t *testing.T) {
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/CuStOmDoMaInS/customDomain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/CuStOmDoMaInS/customDomain1",
 			Expected: &FrontDoorCustomDomainId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resourceGroup1",
+				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
 			},

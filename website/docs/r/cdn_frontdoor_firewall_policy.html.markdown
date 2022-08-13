@@ -135,6 +135,10 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
+* `sku_name` - (Required) The sku's pricing tier for this Cdn Frontdoor firewall policy. Possible values include `Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`.
+
+-> **NOTE:** The `Standard_AzureFrontDoor` Cdn Frontdoor firewall policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Cdn Frontdoor firewall policy skus may contain both `custom` and `managed` rules.
+
 * `enabled` - (Optional) Is the Cdn Frontdoor firewall policy enabled? Defaults to `true`.
 
 * `mode` - (Optional) The Cdn Frontdoor firewall policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
@@ -150,10 +154,6 @@ The following arguments are supported:
 * `custom_block_response_body` - (Optional) If a `custom_rule` block's action type is `block`, this is the response body. The body must be specified in base64 encoding.
 
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
-
-* `sku_name` - (Optional) The sku's pricing tier for this Cdn Frontdoor firewall policy. Possible values include`Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`. Defaults to `Standard_AzureFrontDoor`.
-
--> **NOTE:** The `Standard_AzureFrontDoor` Cdn Frontdoor firewall policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Cdn Frontdoor firewall policy skus may contain both `custom` and `managed` rules.
 
 * `tags` - (Optional) A mapping of tags to assign to the Cdn Frontdoor firewall policy.
 
@@ -191,7 +191,7 @@ A `match_condition` block supports the following:
 
 * `negation_condition` - (Optional) Should the result of the condition be negated.
 
-* `transforms` - (Optional) Up to `5` transforms to apply. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `URLDecode` or`URLEncode`.
+* `transforms` - (Optional) Up to `5` transforms to apply. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `URLDecode` or `URLEncode`.
 
 ---
 
@@ -201,7 +201,7 @@ A `managed_rule` block supports the following:
 
 * `version` - (Required) The version on the managed rule to use with this resource.
 
-* `action` - (Optional) The action to perform when the managed rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`. Defaults to `Block`.
+* `action` - (Required) The action to perform when the managed rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
@@ -223,7 +223,7 @@ A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Optional) The action to be applied when the rule matches. Possible values are `Allow`, `Block`, `Log`, or `Redirect`. Defaults to `Block`.
+* `action` - (Required) The action to be applied when the rule matches. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
 * `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
 
@@ -263,5 +263,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Frontdoor Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/FrontdoorWebApplicationFirewallPolicies/firewallPolicy1
+$ terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/frontdoorWebApplicationFirewallPolicies/firewallPolicy1
 ```

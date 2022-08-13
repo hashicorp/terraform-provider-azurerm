@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = FrontDoorSecurityPolicyId{}
 
 func TestFrontDoorSecurityPolicyIDFormatter(t *testing.T) {
-	actual := NewFrontDoorSecurityPolicyID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1", "securityPolicy1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1"
+	actual := NewFrontDoorSecurityPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "securityPolicy1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,34 +57,34 @@ func TestFrontDoorSecurityPolicyID(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// missing SecurityPolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
 			// missing value for SecurityPolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
 			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resourceGroup1",
+				ResourceGroup:      "resGroup1",
 				ProfileName:        "profile1",
 				SecurityPolicyName: "securityPolicy1",
 			},
@@ -92,7 +92,7 @@ func TestFrontDoorSecurityPolicyID(t *testing.T) {
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/SECURITYPOLICIES/SECURITYPOLICY1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/SECURITYPOLICIES/SECURITYPOLICY1",
 			Error: true,
 		},
 	}
@@ -166,34 +166,34 @@ func TestFrontDoorSecurityPolicyIDInsensitively(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// missing SecurityPolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
 			// missing value for SecurityPolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
 			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resourceGroup1",
+				ResourceGroup:      "resGroup1",
 				ProfileName:        "profile1",
 				SecurityPolicyName: "securityPolicy1",
 			},
@@ -201,10 +201,10 @@ func TestFrontDoorSecurityPolicyIDInsensitively(t *testing.T) {
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securitypolicies/securityPolicy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securitypolicies/securityPolicy1",
 			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resourceGroup1",
+				ResourceGroup:      "resGroup1",
 				ProfileName:        "profile1",
 				SecurityPolicyName: "securityPolicy1",
 			},
@@ -212,10 +212,10 @@ func TestFrontDoorSecurityPolicyIDInsensitively(t *testing.T) {
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PROFILES/profile1/SECURITYPOLICIES/securityPolicy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/SECURITYPOLICIES/securityPolicy1",
 			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resourceGroup1",
+				ResourceGroup:      "resGroup1",
 				ProfileName:        "profile1",
 				SecurityPolicyName: "securityPolicy1",
 			},
@@ -223,10 +223,10 @@ func TestFrontDoorSecurityPolicyIDInsensitively(t *testing.T) {
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/SeCuRiTyPoLiCiEs/securityPolicy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/SeCuRiTyPoLiCiEs/securityPolicy1",
 			Expected: &FrontDoorSecurityPolicyId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resourceGroup1",
+				ResourceGroup:      "resGroup1",
 				ProfileName:        "profile1",
 				SecurityPolicyName: "securityPolicy1",
 			},

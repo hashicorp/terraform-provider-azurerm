@@ -76,14 +76,6 @@ func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error
 	return nil, nil
 }
 
-func LegacyCustomBlockResponseBody(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q contains invalid characters, %q must contain only alphanumeric and equals sign characters`, k, k))
-	}
-
-	return nil, nil
-}
-
 func CdnFrontDoorActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
 	routeConfigurationOverride := false
 	responseHeader := false
