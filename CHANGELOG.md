@@ -15,6 +15,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* updating `dedicated_host_*` to use `hashicorp/go-azure-sdk` [GH-17616]
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
 * `azurerm_mssql_elastic_pool` - support for the `maintenance_configuration_name` property [GH-17790]
