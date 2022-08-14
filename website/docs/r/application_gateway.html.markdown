@@ -525,7 +525,7 @@ When using a `policy_type` of `Custom` the following fields are supported:
 
 A `waf_configuration` block supports the following:
 
-* `enabled` - (Required) Is the Web Application Firewall be enabled?
+* `enabled` - (Required) Is the Web Application Firewall enabled?
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
@@ -849,7 +849,7 @@ A `rewrite_rule_set` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
 * `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.

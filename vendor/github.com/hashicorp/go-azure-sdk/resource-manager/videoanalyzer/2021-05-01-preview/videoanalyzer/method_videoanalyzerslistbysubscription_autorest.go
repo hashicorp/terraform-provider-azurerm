@@ -65,5 +65,6 @@ func (c VideoAnalyzerClient) responderForVideoAnalyzersListBySubscription(resp *
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

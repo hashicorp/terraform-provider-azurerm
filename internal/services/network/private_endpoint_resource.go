@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	mariaDB "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	mariaDBParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	mysqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -673,7 +673,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 					}
 				}
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
-					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := mariaDB.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -735,7 +735,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 					}
 				}
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
-					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := mariaDB.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}

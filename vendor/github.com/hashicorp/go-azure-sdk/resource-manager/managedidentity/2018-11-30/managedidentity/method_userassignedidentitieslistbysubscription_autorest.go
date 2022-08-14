@@ -60,50 +60,6 @@ func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscription(ctx cont
 	return
 }
 
-// UserAssignedIdentitiesListBySubscriptionComplete retrieves all of the results into a single object
-func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (UserAssignedIdentitiesListBySubscriptionCompleteResult, error) {
-	return c.UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
-}
-
-// UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate IdentityOperationPredicate) (resp UserAssignedIdentitiesListBySubscriptionCompleteResult, err error) {
-	items := make([]Identity, 0)
-
-	page, err := c.UserAssignedIdentitiesListBySubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := UserAssignedIdentitiesListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForUserAssignedIdentitiesListBySubscription prepares the UserAssignedIdentitiesListBySubscription request.
 func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListBySubscript
 		}
 	}
 	return
+}
+
+// UserAssignedIdentitiesListBySubscriptionComplete retrieves all of the results into a single object
+func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (UserAssignedIdentitiesListBySubscriptionCompleteResult, error) {
+	return c.UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
+}
+
+// UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate IdentityOperationPredicate) (resp UserAssignedIdentitiesListBySubscriptionCompleteResult, err error) {
+	items := make([]Identity, 0)
+
+	page, err := c.UserAssignedIdentitiesListBySubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := UserAssignedIdentitiesListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

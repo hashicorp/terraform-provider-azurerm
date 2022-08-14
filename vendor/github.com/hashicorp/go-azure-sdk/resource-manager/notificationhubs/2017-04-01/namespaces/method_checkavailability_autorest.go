@@ -66,5 +66,6 @@ func (c NamespacesClient) responderForCheckAvailability(resp *http.Response) (re
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
