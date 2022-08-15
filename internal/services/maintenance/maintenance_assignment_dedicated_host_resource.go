@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -179,7 +180,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostDelete(d *pluginsdk.ResourceDa
 
 func getMaintenanceAssignmentDedicatedHost(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, hostId dedicatedhosts.HostId, dedicatedHostId string) (result *[]configurationassignments.ConfigurationAssignment, err error) {
 
-	id := configurationassignments.NewResourceGroupProviderID(hostId.SubscriptionId, hostId.ResourceGroup, "Microsoft.Compute", "hostGroups", hostId.HostGroupName, "hosts", hostId.HostName)
+	id := configurationassignments.NewResourceGroupProviderID(hostId.SubscriptionId, hostId.ResourceGroupName, "Microsoft.Compute", "hostGroups", hostId.HostGroupName, "hosts", hostId.HostName)
 
 	resp, err := client.ListParent(ctx, id)
 

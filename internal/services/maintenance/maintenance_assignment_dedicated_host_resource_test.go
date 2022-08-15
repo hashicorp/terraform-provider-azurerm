@@ -56,7 +56,7 @@ func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, cl
 	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, rgProviderId)
 
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", maintenanceAssignmentDedicatedHostId.DedicatedHostIdRaw, err)
+		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", id.DedicatedHostIdRaw, err)
 	}
 
 	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
