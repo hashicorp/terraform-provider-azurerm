@@ -16,6 +16,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * Dependencies: bump `go-azure-helpers` to `v0.39.0` [GH-17996]
+* Dependencies: bump `go-azure-sdk` to `v0.20220815.1092453` [GH-7998]
 * updating `dedicated_host_*` to use `hashicorp/go-azure-sdk` [GH-17616]
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
