@@ -1,5 +1,9 @@
 ---
 name: Unit Tests
+
+permissions:
+  pull-requests: read
+
 on:
   pull_request:
     types: ['opened', 'synchronize']
