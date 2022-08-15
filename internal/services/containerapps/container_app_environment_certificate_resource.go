@@ -196,8 +196,9 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 				if certBlob, ok := metadata.ResourceData.GetOk("certificate_blob"); ok {
 					state.CertificateBlob = certBlob.(string)
 				}
+
 				if certPassword, ok := metadata.ResourceData.GetOk("certificate_password"); ok {
-					state.CertificateBlob = certPassword.(string)
+					state.CertificatePassword = certPassword.(string)
 				}
 
 				if props := model.Properties; props != nil {

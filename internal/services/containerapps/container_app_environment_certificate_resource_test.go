@@ -27,7 +27,7 @@ func TestAccContainerAppEnvironmentCertificate_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("certificate_blob", "certificate_password"),
 	})
 }
 func TestAccContainerAppEnvironmentCertificate_basicUpdateTags(t *testing.T) {
@@ -41,14 +41,14 @@ func TestAccContainerAppEnvironmentCertificate_basicUpdateTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("certificate_blob", "certificate_password"),
 		{
 			Config: r.basicAddTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("certificate_blob", "certificate_password"),
 	})
 }
 
@@ -82,9 +82,8 @@ provider "azurerm" {
 resource "azurerm_container_app_environment_certificate" "test" {
   name                         = "acctest-cacert%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
-  // TODO - self signed are not valid?	
-  certificate_blob             = base64encode(file("testdata/testPrivateKey.crt"))
-  certificate_password         = base64encode("testacc")
+  certificate_blob             = filebase64("testdata/testacc.pfx")
+  certificate_password         = "TestAcc"
 }
 `, r.template(data), data.RandomInteger)
 }
