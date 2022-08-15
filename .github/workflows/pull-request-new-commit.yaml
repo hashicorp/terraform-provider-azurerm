@@ -8,9 +8,6 @@ on:
   pull_request_target:
     types: [synchronize]
 
-permissions:
-  pull-requests: write
-
 jobs:
   issue_comment_triage:
     runs-on: ubuntu-latest
