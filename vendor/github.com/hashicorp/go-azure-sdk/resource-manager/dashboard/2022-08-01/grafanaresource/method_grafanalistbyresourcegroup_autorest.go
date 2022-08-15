@@ -60,50 +60,6 @@ func (c GrafanaResourceClient) GrafanaListByResourceGroup(ctx context.Context, i
 	return
 }
 
-// GrafanaListByResourceGroupComplete retrieves all of the results into a single object
-func (c GrafanaResourceClient) GrafanaListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (GrafanaListByResourceGroupCompleteResult, error) {
-	return c.GrafanaListByResourceGroupCompleteMatchingPredicate(ctx, id, ManagedGrafanaOperationPredicate{})
-}
-
-// GrafanaListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c GrafanaResourceClient) GrafanaListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ManagedGrafanaOperationPredicate) (resp GrafanaListByResourceGroupCompleteResult, err error) {
-	items := make([]ManagedGrafana, 0)
-
-	page, err := c.GrafanaListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GrafanaListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGrafanaListByResourceGroup prepares the GrafanaListByResourceGroup request.
 func (c GrafanaResourceClient) preparerForGrafanaListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c GrafanaResourceClient) responderForGrafanaListByResourceGroup(resp *http
 		}
 	}
 	return
+}
+
+// GrafanaListByResourceGroupComplete retrieves all of the results into a single object
+func (c GrafanaResourceClient) GrafanaListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (GrafanaListByResourceGroupCompleteResult, error) {
+	return c.GrafanaListByResourceGroupCompleteMatchingPredicate(ctx, id, ManagedGrafanaOperationPredicate{})
+}
+
+// GrafanaListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c GrafanaResourceClient) GrafanaListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ManagedGrafanaOperationPredicate) (resp GrafanaListByResourceGroupCompleteResult, err error) {
+	items := make([]ManagedGrafana, 0)
+
+	page, err := c.GrafanaListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GrafanaListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
