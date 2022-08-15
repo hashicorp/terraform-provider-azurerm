@@ -13,14 +13,15 @@ Manages a Data Collection Endpoint.
 ## Example Usage
 
 ```hcl
-# Generated from AccTest TestAccMonitorDataCollectionEndpoint_complete
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
   location = "West Europe"
 }
+
 resource "azurerm_monitor_data_collection_endpoint" "example" {
   name                          = "example-mdce"
   resource_group_name           = azurerm_resource_group.example.name
@@ -60,9 +61,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Collection Endpoint.
 
+* `configuration_access_endpoint` - The endpoint used for accessing configuration, e.g., `https://mydce-abcd.eastus-1.control.monitor.azure.com`.
+
+* `logs_ingestion_endpoint` - The endpoint used for ingesting logs, e.g., `https://mydce-abcd.eastus-1.ingest.monitor.azure.com`.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Collection Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Collection Endpoint.
