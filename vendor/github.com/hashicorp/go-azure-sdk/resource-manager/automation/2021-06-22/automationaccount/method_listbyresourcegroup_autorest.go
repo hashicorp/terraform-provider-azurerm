@@ -60,50 +60,6 @@ func (c AutomationAccountClient) ListByResourceGroup(ctx context.Context, id com
 	return
 }
 
-// ListByResourceGroupComplete retrieves all of the results into a single object
-func (c AutomationAccountClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, AutomationAccountOperationPredicate{})
-}
-
-// ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AutomationAccountClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate AutomationAccountOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
-	items := make([]AutomationAccount, 0)
-
-	page, err := c.ListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByResourceGroup prepares the ListByResourceGroup request.
 func (c AutomationAccountClient) preparerForListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c AutomationAccountClient) responderForListByResourceGroup(resp *http.Resp
 		}
 	}
 	return
+}
+
+// ListByResourceGroupComplete retrieves all of the results into a single object
+func (c AutomationAccountClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, AutomationAccountOperationPredicate{})
+}
+
+// ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c AutomationAccountClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate AutomationAccountOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
+	items := make([]AutomationAccount, 0)
+
+	page, err := c.ListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

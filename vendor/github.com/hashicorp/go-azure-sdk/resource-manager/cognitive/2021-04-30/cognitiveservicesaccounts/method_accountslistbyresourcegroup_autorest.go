@@ -60,50 +60,6 @@ func (c CognitiveServicesAccountsClient) AccountsListByResourceGroup(ctx context
 	return
 }
 
-// AccountsListByResourceGroupComplete retrieves all of the results into a single object
-func (c CognitiveServicesAccountsClient) AccountsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (AccountsListByResourceGroupCompleteResult, error) {
-	return c.AccountsListByResourceGroupCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
-}
-
-// AccountsListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c CognitiveServicesAccountsClient) AccountsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate AccountOperationPredicate) (resp AccountsListByResourceGroupCompleteResult, err error) {
-	items := make([]Account, 0)
-
-	page, err := c.AccountsListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AccountsListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAccountsListByResourceGroup prepares the AccountsListByResourceGroup request.
 func (c CognitiveServicesAccountsClient) preparerForAccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c CognitiveServicesAccountsClient) responderForAccountsListByResourceGroup
 		}
 	}
 	return
+}
+
+// AccountsListByResourceGroupComplete retrieves all of the results into a single object
+func (c CognitiveServicesAccountsClient) AccountsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (AccountsListByResourceGroupCompleteResult, error) {
+	return c.AccountsListByResourceGroupCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
+}
+
+// AccountsListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c CognitiveServicesAccountsClient) AccountsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate AccountOperationPredicate) (resp AccountsListByResourceGroupCompleteResult, err error) {
+	items := make([]Account, 0)
+
+	page, err := c.AccountsListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AccountsListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

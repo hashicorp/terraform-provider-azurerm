@@ -60,50 +60,6 @@ func (c ResourceClient) RemoteRenderingAccountsListBySubscription(ctx context.Co
 	return
 }
 
-// RemoteRenderingAccountsListBySubscriptionComplete retrieves all of the results into a single object
-func (c ResourceClient) RemoteRenderingAccountsListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (RemoteRenderingAccountsListBySubscriptionCompleteResult, error) {
-	return c.RemoteRenderingAccountsListBySubscriptionCompleteMatchingPredicate(ctx, id, RemoteRenderingAccountOperationPredicate{})
-}
-
-// RemoteRenderingAccountsListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceClient) RemoteRenderingAccountsListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate RemoteRenderingAccountOperationPredicate) (resp RemoteRenderingAccountsListBySubscriptionCompleteResult, err error) {
-	items := make([]RemoteRenderingAccount, 0)
-
-	page, err := c.RemoteRenderingAccountsListBySubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := RemoteRenderingAccountsListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForRemoteRenderingAccountsListBySubscription prepares the RemoteRenderingAccountsListBySubscription request.
 func (c ResourceClient) preparerForRemoteRenderingAccountsListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ResourceClient) responderForRemoteRenderingAccountsListBySubscription(re
 		}
 	}
 	return
+}
+
+// RemoteRenderingAccountsListBySubscriptionComplete retrieves all of the results into a single object
+func (c ResourceClient) RemoteRenderingAccountsListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (RemoteRenderingAccountsListBySubscriptionCompleteResult, error) {
+	return c.RemoteRenderingAccountsListBySubscriptionCompleteMatchingPredicate(ctx, id, RemoteRenderingAccountOperationPredicate{})
+}
+
+// RemoteRenderingAccountsListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceClient) RemoteRenderingAccountsListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate RemoteRenderingAccountOperationPredicate) (resp RemoteRenderingAccountsListBySubscriptionCompleteResult, err error) {
+	items := make([]RemoteRenderingAccount, 0)
+
+	page, err := c.RemoteRenderingAccountsListBySubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := RemoteRenderingAccountsListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

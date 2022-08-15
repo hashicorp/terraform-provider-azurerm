@@ -59,50 +59,6 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRules(ctx context.
 	return
 }
 
-// QueuesListAuthorizationRulesComplete retrieves all of the results into a single object
-func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesComplete(ctx context.Context, id QueueId) (QueuesListAuthorizationRulesCompleteResult, error) {
-	return c.QueuesListAuthorizationRulesCompleteMatchingPredicate(ctx, id, SBAuthorizationRuleOperationPredicate{})
-}
-
-// QueuesListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id QueueId, predicate SBAuthorizationRuleOperationPredicate) (resp QueuesListAuthorizationRulesCompleteResult, err error) {
-	items := make([]SBAuthorizationRule, 0)
-
-	page, err := c.QueuesListAuthorizationRules(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := QueuesListAuthorizationRulesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForQueuesListAuthorizationRules prepares the QueuesListAuthorizationRules request.
 func (c QueuesAuthorizationRuleClient) preparerForQueuesListAuthorizationRules(ctx context.Context, id QueueId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c QueuesAuthorizationRuleClient) responderForQueuesListAuthorizationRules(
 		}
 	}
 	return
+}
+
+// QueuesListAuthorizationRulesComplete retrieves all of the results into a single object
+func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesComplete(ctx context.Context, id QueueId) (QueuesListAuthorizationRulesCompleteResult, error) {
+	return c.QueuesListAuthorizationRulesCompleteMatchingPredicate(ctx, id, SBAuthorizationRuleOperationPredicate{})
+}
+
+// QueuesListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id QueueId, predicate SBAuthorizationRuleOperationPredicate) (resp QueuesListAuthorizationRulesCompleteResult, err error) {
+	items := make([]SBAuthorizationRule, 0)
+
+	page, err := c.QueuesListAuthorizationRules(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := QueuesListAuthorizationRulesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

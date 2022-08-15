@@ -59,50 +59,6 @@ func (c ApplicationInsightsClient) WorkbooksRevisionsList(ctx context.Context, i
 	return
 }
 
-// WorkbooksRevisionsListComplete retrieves all of the results into a single object
-func (c ApplicationInsightsClient) WorkbooksRevisionsListComplete(ctx context.Context, id WorkbookId) (WorkbooksRevisionsListCompleteResult, error) {
-	return c.WorkbooksRevisionsListCompleteMatchingPredicate(ctx, id, WorkbookOperationPredicate{})
-}
-
-// WorkbooksRevisionsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ApplicationInsightsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx context.Context, id WorkbookId, predicate WorkbookOperationPredicate) (resp WorkbooksRevisionsListCompleteResult, err error) {
-	items := make([]Workbook, 0)
-
-	page, err := c.WorkbooksRevisionsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := WorkbooksRevisionsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForWorkbooksRevisionsList prepares the WorkbooksRevisionsList request.
 func (c ApplicationInsightsClient) preparerForWorkbooksRevisionsList(ctx context.Context, id WorkbookId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ApplicationInsightsClient) responderForWorkbooksRevisionsList(resp *http
 		}
 	}
 	return
+}
+
+// WorkbooksRevisionsListComplete retrieves all of the results into a single object
+func (c ApplicationInsightsClient) WorkbooksRevisionsListComplete(ctx context.Context, id WorkbookId) (WorkbooksRevisionsListCompleteResult, error) {
+	return c.WorkbooksRevisionsListCompleteMatchingPredicate(ctx, id, WorkbookOperationPredicate{})
+}
+
+// WorkbooksRevisionsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ApplicationInsightsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx context.Context, id WorkbookId, predicate WorkbookOperationPredicate) (resp WorkbooksRevisionsListCompleteResult, err error) {
+	items := make([]Workbook, 0)
+
+	page, err := c.WorkbooksRevisionsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := WorkbooksRevisionsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

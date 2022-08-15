@@ -83,50 +83,6 @@ func (c PolicyInsightsClient) RemediationsListDeploymentsAtManagementGroup(ctx c
 	return
 }
 
-// RemediationsListDeploymentsAtManagementGroupComplete retrieves all of the results into a single object
-func (c PolicyInsightsClient) RemediationsListDeploymentsAtManagementGroupComplete(ctx context.Context, id Providers2RemediationId, options RemediationsListDeploymentsAtManagementGroupOperationOptions) (RemediationsListDeploymentsAtManagementGroupCompleteResult, error) {
-	return c.RemediationsListDeploymentsAtManagementGroupCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
-}
-
-// RemediationsListDeploymentsAtManagementGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PolicyInsightsClient) RemediationsListDeploymentsAtManagementGroupCompleteMatchingPredicate(ctx context.Context, id Providers2RemediationId, options RemediationsListDeploymentsAtManagementGroupOperationOptions, predicate RemediationDeploymentOperationPredicate) (resp RemediationsListDeploymentsAtManagementGroupCompleteResult, err error) {
-	items := make([]RemediationDeployment, 0)
-
-	page, err := c.RemediationsListDeploymentsAtManagementGroup(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := RemediationsListDeploymentsAtManagementGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForRemediationsListDeploymentsAtManagementGroup prepares the RemediationsListDeploymentsAtManagementGroup request.
 func (c PolicyInsightsClient) preparerForRemediationsListDeploymentsAtManagementGroup(ctx context.Context, id Providers2RemediationId, options RemediationsListDeploymentsAtManagementGroupOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c PolicyInsightsClient) responderForRemediationsListDeploymentsAtManagemen
 		}
 	}
 	return
+}
+
+// RemediationsListDeploymentsAtManagementGroupComplete retrieves all of the results into a single object
+func (c PolicyInsightsClient) RemediationsListDeploymentsAtManagementGroupComplete(ctx context.Context, id Providers2RemediationId, options RemediationsListDeploymentsAtManagementGroupOperationOptions) (RemediationsListDeploymentsAtManagementGroupCompleteResult, error) {
+	return c.RemediationsListDeploymentsAtManagementGroupCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
+}
+
+// RemediationsListDeploymentsAtManagementGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c PolicyInsightsClient) RemediationsListDeploymentsAtManagementGroupCompleteMatchingPredicate(ctx context.Context, id Providers2RemediationId, options RemediationsListDeploymentsAtManagementGroupOperationOptions, predicate RemediationDeploymentOperationPredicate) (resp RemediationsListDeploymentsAtManagementGroupCompleteResult, err error) {
+	items := make([]RemediationDeployment, 0)
+
+	page, err := c.RemediationsListDeploymentsAtManagementGroup(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := RemediationsListDeploymentsAtManagementGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

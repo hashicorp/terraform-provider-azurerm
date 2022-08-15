@@ -64,5 +64,6 @@ func (c AuthorizationRulesEventHubsClient) responderForEventHubsListKeys(resp *h
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

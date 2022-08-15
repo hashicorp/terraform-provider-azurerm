@@ -44,6 +44,7 @@ resource "azurerm_dns_txt_record" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -60,6 +61,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `record` block supports:
 
 * `value` - (Required) The value of the record. Max length: 1024 characters
@@ -69,17 +72,19 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS TXT Record ID.
+
 * `fqdn` - The FQDN of the DNS TXT Record.
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS TXT Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS TXT Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS TXT Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS TXT Record.
 
 ## Import

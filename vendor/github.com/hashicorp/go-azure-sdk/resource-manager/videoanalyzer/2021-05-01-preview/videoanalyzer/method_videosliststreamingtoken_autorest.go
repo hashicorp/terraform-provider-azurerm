@@ -64,5 +64,6 @@ func (c VideoAnalyzerClient) responderForVideosListStreamingToken(resp *http.Res
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

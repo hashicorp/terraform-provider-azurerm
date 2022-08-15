@@ -47,14 +47,14 @@ func TestAccMaintenanceAssignmentDedicatedHost_requiresImport(t *testing.T) {
 }
 
 func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	maintenanceAssignmentDedicatedHostId, err := parse.MaintenanceAssignmentDedicatedHostID(state.ID)
+	id, err := parse.MaintenanceAssignmentDedicatedHostID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	id := configurationassignments.NewResourceGroupProviderID(maintenanceAssignmentDedicatedHostId.DedicatedHostId.SubscriptionId, maintenanceAssignmentDedicatedHostId.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", maintenanceAssignmentDedicatedHostId.DedicatedHostId.HostGroupName, "hosts", maintenanceAssignmentDedicatedHostId.DedicatedHostId.HostName)
+	rgProviderId := configurationassignments.NewResourceGroupProviderID(id.DedicatedHostId.SubscriptionId, id.DedicatedHostId.ResourceGroupName, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName)
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, rgProviderId)
 
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", maintenanceAssignmentDedicatedHostId.DedicatedHostIdRaw, err)
 	}
