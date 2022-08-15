@@ -65,5 +65,6 @@ func (c CheckNameAvailabilityDisasterRecoveryConfigsClient) responderForDisaster
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

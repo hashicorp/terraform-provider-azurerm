@@ -83,50 +83,6 @@ func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceGroup(ctx con
 	return
 }
 
-// RemediationsListDeploymentsAtResourceGroupComplete retrieves all of the results into a single object
-func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceGroupComplete(ctx context.Context, id ProviderRemediationId, options RemediationsListDeploymentsAtResourceGroupOperationOptions) (RemediationsListDeploymentsAtResourceGroupCompleteResult, error) {
-	return c.RemediationsListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
-}
-
-// RemediationsListDeploymentsAtResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx context.Context, id ProviderRemediationId, options RemediationsListDeploymentsAtResourceGroupOperationOptions, predicate RemediationDeploymentOperationPredicate) (resp RemediationsListDeploymentsAtResourceGroupCompleteResult, err error) {
-	items := make([]RemediationDeployment, 0)
-
-	page, err := c.RemediationsListDeploymentsAtResourceGroup(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := RemediationsListDeploymentsAtResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForRemediationsListDeploymentsAtResourceGroup prepares the RemediationsListDeploymentsAtResourceGroup request.
 func (c PolicyInsightsClient) preparerForRemediationsListDeploymentsAtResourceGroup(ctx context.Context, id ProviderRemediationId, options RemediationsListDeploymentsAtResourceGroupOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c PolicyInsightsClient) responderForRemediationsListDeploymentsAtResourceG
 		}
 	}
 	return
+}
+
+// RemediationsListDeploymentsAtResourceGroupComplete retrieves all of the results into a single object
+func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceGroupComplete(ctx context.Context, id ProviderRemediationId, options RemediationsListDeploymentsAtResourceGroupOperationOptions) (RemediationsListDeploymentsAtResourceGroupCompleteResult, error) {
+	return c.RemediationsListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
+}
+
+// RemediationsListDeploymentsAtResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c PolicyInsightsClient) RemediationsListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx context.Context, id ProviderRemediationId, options RemediationsListDeploymentsAtResourceGroupOperationOptions, predicate RemediationDeploymentOperationPredicate) (resp RemediationsListDeploymentsAtResourceGroupCompleteResult, err error) {
+	items := make([]RemediationDeployment, 0)
+
+	page, err := c.RemediationsListDeploymentsAtResourceGroup(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := RemediationsListDeploymentsAtResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

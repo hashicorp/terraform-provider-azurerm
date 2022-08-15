@@ -6,12 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,7 +25,7 @@ func resourceMariaDbVirtualNetworkRule() *pluginsdk.Resource {
 		Update: resourceMariaDbVirtualNetworkRuleCreateUpdate,
 		Delete: resourceMariaDbVirtualNetworkRuleDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MariaDBVirtualNetworkRuleID(id)
+			_, err := virtualnetworkrules.ParseVirtualNetworkRuleID(id)
 			return err
 		}),
 
@@ -69,36 +68,32 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewMariaDBVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	id := virtualnetworkrules.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 
 	subnetId := d.Get("subnet_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mariadb_virtual_network_rule", id.ID())
 		}
 	}
 
-	parameters := mariadb.VirtualNetworkRule{
-		VirtualNetworkRuleProperties: &mariadb.VirtualNetworkRuleProperties{
-			VirtualNetworkSubnetID:           utils.String(subnetId),
+	parameters := virtualnetworkrules.VirtualNetworkRule{
+		Properties: &virtualnetworkrules.VirtualNetworkRuleProperties{
+			VirtualNetworkSubnetId:           subnetId,
 			IgnoreMissingVnetServiceEndpoint: utils.Bool(false),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	// Wait for the provisioning state to become ready
@@ -106,7 +101,7 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
-		Refresh:                   mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName),
+		Refresh:                   mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id),
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 5,
 	}
@@ -130,14 +125,14 @@ func resourceMariaDbVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDBVirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Error reading MariaDb Virtual Network Rule %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -147,11 +142,13 @@ func resourceMariaDbVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	d.Set("name", id.VirtualNetworkRuleName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("server_name", id.ServerName)
 
-	if props := resp.VirtualNetworkRuleProperties; props != nil {
-		d.Set("subnet_id", props.VirtualNetworkSubnetID)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("subnet_id", props.VirtualNetworkSubnetId)
+		}
 	}
 
 	return nil
@@ -162,44 +159,40 @@ func resourceMariaDbVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDBVirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-		}
 	}
 
 	return nil
 }
 
-func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mariadb.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) pluginsdk.StateRefreshFunc {
+func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *virtualnetworkrules.VirtualNetworkRulesClient, id virtualnetworkrules.VirtualNetworkRuleId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned 404.", resourceGroup, serverName, name)
+			if response.WasNotFound(resp.HttpResponse) {
+				log.Printf("[DEBUG] Retrieving %s returned 404.", id)
 				return nil, "ResponseNotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("polling for the state of the MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the state of %s: %+v", id, err)
 		}
 
-		if props := resp.VirtualNetworkRuleProperties; props != nil {
-			log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned Status %s", resourceGroup, serverName, name, props.State)
-			return resp, string(props.State), nil
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				log.Printf("[DEBUG] Retrieving %s returned Status %s", id, *props.State)
+				return resp, string(*props.State), nil
+
+			}
 		}
 
 		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
-		log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned empty VirtualNetworkRuleProperties", resourceGroup, serverName, name)
+		log.Printf("[DEBUG] Retrieving %s returned empty VirtualNetworkRuleProperties", id)
 		return resp, "Unknown", nil
 	}
 }

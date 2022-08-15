@@ -84,50 +84,6 @@ func (c ConfidentialLedgerClient) LedgerListBySubscription(ctx context.Context, 
 	return
 }
 
-// LedgerListBySubscriptionComplete retrieves all of the results into a single object
-func (c ConfidentialLedgerClient) LedgerListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions) (LedgerListBySubscriptionCompleteResult, error) {
-	return c.LedgerListBySubscriptionCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerOperationPredicate{})
-}
-
-// LedgerListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ConfidentialLedgerClient) LedgerListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions, predicate ConfidentialLedgerOperationPredicate) (resp LedgerListBySubscriptionCompleteResult, err error) {
-	items := make([]ConfidentialLedger, 0)
-
-	page, err := c.LedgerListBySubscription(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := LedgerListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForLedgerListBySubscription prepares the LedgerListBySubscription request.
 func (c ConfidentialLedgerClient) preparerForLedgerListBySubscription(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -213,4 +169,48 @@ func (c ConfidentialLedgerClient) responderForLedgerListBySubscription(resp *htt
 		}
 	}
 	return
+}
+
+// LedgerListBySubscriptionComplete retrieves all of the results into a single object
+func (c ConfidentialLedgerClient) LedgerListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions) (LedgerListBySubscriptionCompleteResult, error) {
+	return c.LedgerListBySubscriptionCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerOperationPredicate{})
+}
+
+// LedgerListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ConfidentialLedgerClient) LedgerListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions, predicate ConfidentialLedgerOperationPredicate) (resp LedgerListBySubscriptionCompleteResult, err error) {
+	items := make([]ConfidentialLedger, 0)
+
+	page, err := c.LedgerListBySubscription(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := LedgerListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

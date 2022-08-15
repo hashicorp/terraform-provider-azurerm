@@ -89,50 +89,6 @@ func (c PolicyInsightsClient) RemediationsListForResourceGroup(ctx context.Conte
 	return
 }
 
-// RemediationsListForResourceGroupComplete retrieves all of the results into a single object
-func (c PolicyInsightsClient) RemediationsListForResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options RemediationsListForResourceGroupOperationOptions) (RemediationsListForResourceGroupCompleteResult, error) {
-	return c.RemediationsListForResourceGroupCompleteMatchingPredicate(ctx, id, options, RemediationOperationPredicate{})
-}
-
-// RemediationsListForResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PolicyInsightsClient) RemediationsListForResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options RemediationsListForResourceGroupOperationOptions, predicate RemediationOperationPredicate) (resp RemediationsListForResourceGroupCompleteResult, err error) {
-	items := make([]Remediation, 0)
-
-	page, err := c.RemediationsListForResourceGroup(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := RemediationsListForResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForRemediationsListForResourceGroup prepares the RemediationsListForResourceGroup request.
 func (c PolicyInsightsClient) preparerForRemediationsListForResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options RemediationsListForResourceGroupOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -218,4 +174,48 @@ func (c PolicyInsightsClient) responderForRemediationsListForResourceGroup(resp 
 		}
 	}
 	return
+}
+
+// RemediationsListForResourceGroupComplete retrieves all of the results into a single object
+func (c PolicyInsightsClient) RemediationsListForResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options RemediationsListForResourceGroupOperationOptions) (RemediationsListForResourceGroupCompleteResult, error) {
+	return c.RemediationsListForResourceGroupCompleteMatchingPredicate(ctx, id, options, RemediationOperationPredicate{})
+}
+
+// RemediationsListForResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c PolicyInsightsClient) RemediationsListForResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options RemediationsListForResourceGroupOperationOptions, predicate RemediationOperationPredicate) (resp RemediationsListForResourceGroupCompleteResult, err error) {
+	items := make([]Remediation, 0)
+
+	page, err := c.RemediationsListForResourceGroup(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := RemediationsListForResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

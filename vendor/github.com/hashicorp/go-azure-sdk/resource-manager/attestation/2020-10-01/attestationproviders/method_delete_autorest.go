@@ -61,5 +61,6 @@ func (c AttestationProvidersClient) responderForDelete(resp *http.Response) (res
 		azure.WithErrorUnlessStatusCode(http.StatusAccepted, http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
