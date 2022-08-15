@@ -60,50 +60,6 @@ func (c AlertsManagementClient) AlertProcessingRulesListByResourceGroup(ctx cont
 	return
 }
 
-// AlertProcessingRulesListByResourceGroupComplete retrieves all of the results into a single object
-func (c AlertsManagementClient) AlertProcessingRulesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (AlertProcessingRulesListByResourceGroupCompleteResult, error) {
-	return c.AlertProcessingRulesListByResourceGroupCompleteMatchingPredicate(ctx, id, AlertProcessingRuleOperationPredicate{})
-}
-
-// AlertProcessingRulesListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AlertsManagementClient) AlertProcessingRulesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate AlertProcessingRuleOperationPredicate) (resp AlertProcessingRulesListByResourceGroupCompleteResult, err error) {
-	items := make([]AlertProcessingRule, 0)
-
-	page, err := c.AlertProcessingRulesListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AlertProcessingRulesListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAlertProcessingRulesListByResourceGroup prepares the AlertProcessingRulesListByResourceGroup request.
 func (c AlertsManagementClient) preparerForAlertProcessingRulesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c AlertsManagementClient) responderForAlertProcessingRulesListByResourceGr
 		}
 	}
 	return
+}
+
+// AlertProcessingRulesListByResourceGroupComplete retrieves all of the results into a single object
+func (c AlertsManagementClient) AlertProcessingRulesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (AlertProcessingRulesListByResourceGroupCompleteResult, error) {
+	return c.AlertProcessingRulesListByResourceGroupCompleteMatchingPredicate(ctx, id, AlertProcessingRuleOperationPredicate{})
+}
+
+// AlertProcessingRulesListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c AlertsManagementClient) AlertProcessingRulesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate AlertProcessingRuleOperationPredicate) (resp AlertProcessingRulesListByResourceGroupCompleteResult, err error) {
+	items := make([]AlertProcessingRule, 0)
+
+	page, err := c.AlertProcessingRulesListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AlertProcessingRulesListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

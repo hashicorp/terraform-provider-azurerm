@@ -64,5 +64,6 @@ func (c DashboardClient) responderForCreateOrUpdate(resp *http.Response) (result
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -65,5 +65,6 @@ func (c CapacitiesClient) responderForList(resp *http.Response) (result ListOper
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

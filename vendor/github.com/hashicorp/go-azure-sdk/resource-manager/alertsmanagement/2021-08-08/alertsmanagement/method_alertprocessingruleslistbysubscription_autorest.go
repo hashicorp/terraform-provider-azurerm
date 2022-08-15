@@ -60,50 +60,6 @@ func (c AlertsManagementClient) AlertProcessingRulesListBySubscription(ctx conte
 	return
 }
 
-// AlertProcessingRulesListBySubscriptionComplete retrieves all of the results into a single object
-func (c AlertsManagementClient) AlertProcessingRulesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (AlertProcessingRulesListBySubscriptionCompleteResult, error) {
-	return c.AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate(ctx, id, AlertProcessingRuleOperationPredicate{})
-}
-
-// AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AlertsManagementClient) AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AlertProcessingRuleOperationPredicate) (resp AlertProcessingRulesListBySubscriptionCompleteResult, err error) {
-	items := make([]AlertProcessingRule, 0)
-
-	page, err := c.AlertProcessingRulesListBySubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AlertProcessingRulesListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAlertProcessingRulesListBySubscription prepares the AlertProcessingRulesListBySubscription request.
 func (c AlertsManagementClient) preparerForAlertProcessingRulesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c AlertsManagementClient) responderForAlertProcessingRulesListBySubscripti
 		}
 	}
 	return
+}
+
+// AlertProcessingRulesListBySubscriptionComplete retrieves all of the results into a single object
+func (c AlertsManagementClient) AlertProcessingRulesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (AlertProcessingRulesListBySubscriptionCompleteResult, error) {
+	return c.AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate(ctx, id, AlertProcessingRuleOperationPredicate{})
+}
+
+// AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c AlertsManagementClient) AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AlertProcessingRuleOperationPredicate) (resp AlertProcessingRulesListBySubscriptionCompleteResult, err error) {
+	items := make([]AlertProcessingRule, 0)
+
+	page, err := c.AlertProcessingRulesListBySubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AlertProcessingRulesListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

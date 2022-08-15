@@ -88,50 +88,6 @@ func (c SubscriptionsClient) ListByTopic(ctx context.Context, id TopicId, option
 	return
 }
 
-// ListByTopicComplete retrieves all of the results into a single object
-func (c SubscriptionsClient) ListByTopicComplete(ctx context.Context, id TopicId, options ListByTopicOperationOptions) (ListByTopicCompleteResult, error) {
-	return c.ListByTopicCompleteMatchingPredicate(ctx, id, options, SBSubscriptionOperationPredicate{})
-}
-
-// ListByTopicCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SubscriptionsClient) ListByTopicCompleteMatchingPredicate(ctx context.Context, id TopicId, options ListByTopicOperationOptions, predicate SBSubscriptionOperationPredicate) (resp ListByTopicCompleteResult, err error) {
-	items := make([]SBSubscription, 0)
-
-	page, err := c.ListByTopic(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByTopicCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByTopic prepares the ListByTopic request.
 func (c SubscriptionsClient) preparerForListByTopic(ctx context.Context, id TopicId, options ListByTopicOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c SubscriptionsClient) responderForListByTopic(resp *http.Response) (resul
 		}
 	}
 	return
+}
+
+// ListByTopicComplete retrieves all of the results into a single object
+func (c SubscriptionsClient) ListByTopicComplete(ctx context.Context, id TopicId, options ListByTopicOperationOptions) (ListByTopicCompleteResult, error) {
+	return c.ListByTopicCompleteMatchingPredicate(ctx, id, options, SBSubscriptionOperationPredicate{})
+}
+
+// ListByTopicCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SubscriptionsClient) ListByTopicCompleteMatchingPredicate(ctx context.Context, id TopicId, options ListByTopicOperationOptions, predicate SBSubscriptionOperationPredicate) (resp ListByTopicCompleteResult, err error) {
+	items := make([]SBSubscription, 0)
+
+	page, err := c.ListByTopic(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByTopicCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

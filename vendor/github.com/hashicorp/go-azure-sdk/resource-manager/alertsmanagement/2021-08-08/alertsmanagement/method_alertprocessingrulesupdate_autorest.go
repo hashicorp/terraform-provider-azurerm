@@ -64,5 +64,6 @@ func (c AlertsManagementClient) responderForAlertProcessingRulesUpdate(resp *htt
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

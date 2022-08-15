@@ -59,50 +59,6 @@ func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjects(ctx context.Co
 	return
 }
 
-// GetBackupSecurityPINRequestsObjectsComplete retrieves all of the results into a single object
-func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetBackupSecurityPINRequestsObjectsCompleteResult, error) {
-	return c.GetBackupSecurityPINRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
-}
-
-// GetBackupSecurityPINRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetBackupSecurityPINRequestsObjectsCompleteResult, err error) {
-	items := make([]DppBaseResource, 0)
-
-	page, err := c.GetBackupSecurityPINRequestsObjects(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetBackupSecurityPINRequestsObjectsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetBackupSecurityPINRequestsObjects prepares the GetBackupSecurityPINRequestsObjects request.
 func (c ResourceGuardsClient) preparerForGetBackupSecurityPINRequestsObjects(ctx context.Context, id ResourceGuardId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ResourceGuardsClient) responderForGetBackupSecurityPINRequestsObjects(re
 		}
 	}
 	return
+}
+
+// GetBackupSecurityPINRequestsObjectsComplete retrieves all of the results into a single object
+func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetBackupSecurityPINRequestsObjectsCompleteResult, error) {
+	return c.GetBackupSecurityPINRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
+}
+
+// GetBackupSecurityPINRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetBackupSecurityPINRequestsObjectsCompleteResult, err error) {
+	items := make([]DppBaseResource, 0)
+
+	page, err := c.GetBackupSecurityPINRequestsObjects(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetBackupSecurityPINRequestsObjectsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

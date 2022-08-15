@@ -325,6 +325,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"public_ip_address_id": {
