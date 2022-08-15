@@ -61,5 +61,6 @@ func (c ResourceClient) responderForSpatialAnchorsAccountsDelete(resp *http.Resp
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

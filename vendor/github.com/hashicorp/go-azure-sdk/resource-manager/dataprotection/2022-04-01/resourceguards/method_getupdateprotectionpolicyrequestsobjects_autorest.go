@@ -59,50 +59,6 @@ func (c ResourceGuardsClient) GetUpdateProtectionPolicyRequestsObjects(ctx conte
 	return
 }
 
-// GetUpdateProtectionPolicyRequestsObjectsComplete retrieves all of the results into a single object
-func (c ResourceGuardsClient) GetUpdateProtectionPolicyRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetUpdateProtectionPolicyRequestsObjectsCompleteResult, error) {
-	return c.GetUpdateProtectionPolicyRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
-}
-
-// GetUpdateProtectionPolicyRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceGuardsClient) GetUpdateProtectionPolicyRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetUpdateProtectionPolicyRequestsObjectsCompleteResult, err error) {
-	items := make([]DppBaseResource, 0)
-
-	page, err := c.GetUpdateProtectionPolicyRequestsObjects(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetUpdateProtectionPolicyRequestsObjectsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetUpdateProtectionPolicyRequestsObjects prepares the GetUpdateProtectionPolicyRequestsObjects request.
 func (c ResourceGuardsClient) preparerForGetUpdateProtectionPolicyRequestsObjects(ctx context.Context, id ResourceGuardId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ResourceGuardsClient) responderForGetUpdateProtectionPolicyRequestsObjec
 		}
 	}
 	return
+}
+
+// GetUpdateProtectionPolicyRequestsObjectsComplete retrieves all of the results into a single object
+func (c ResourceGuardsClient) GetUpdateProtectionPolicyRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetUpdateProtectionPolicyRequestsObjectsCompleteResult, error) {
+	return c.GetUpdateProtectionPolicyRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
+}
+
+// GetUpdateProtectionPolicyRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceGuardsClient) GetUpdateProtectionPolicyRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetUpdateProtectionPolicyRequestsObjectsCompleteResult, err error) {
+	items := make([]DppBaseResource, 0)
+
+	page, err := c.GetUpdateProtectionPolicyRequestsObjects(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetUpdateProtectionPolicyRequestsObjectsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

@@ -5,7 +5,7 @@ package dedicatedhsms
 
 type EndpointDetail struct {
 	Description *string `json:"description,omitempty"`
-	IpAddress   *string `json:"ipAddress,omitempty"`
+	IPAddress   *string `json:"ipAddress,omitempty"`
 	Port        *int64  `json:"port,omitempty"`
 	Protocol    *string `json:"protocol,omitempty"`
 }

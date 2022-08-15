@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -160,17 +161,17 @@ func TestAccAutomationAccount_userAssignedIdentity(t *testing.T) {
 }
 
 func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AutomationAccountID(state.ID)
+	id, err := automationaccount.ParseAutomationAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Automation.AccountClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Automation.AccountClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.AccountProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (AutomationAccountResource) basic(data acceptance.TestData) string {
