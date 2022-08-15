@@ -30,8 +30,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	setDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&setDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	policyInsightsClient := remediations.NewRemediationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&policyInsightsClient.Client, o.ResourceManagerAuthorizer)
+	remediationsClient := remediations.NewRemediationsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&remediationsClient.Client, o.ResourceManagerAuthorizer)
 
 	guestConfigurationAssignmentsClient := guestconfiguration.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&guestConfigurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
@@ -41,7 +41,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DefinitionsClient:                   &definitionsClient,
 		ExemptionsClient:                    &exemptionsClient,
 		SetDefinitionsClient:                &setDefinitionsClient,
-		RemediationsClient:                  &policyInsightsClient,
+		RemediationsClient:                  &remediationsClient,
 		GuestConfigurationAssignmentsClient: &guestConfigurationAssignmentsClient,
 	}
 }

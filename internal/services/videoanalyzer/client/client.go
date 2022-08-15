@@ -15,11 +15,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	edgeModulesClient := edgemodules.NewEdgeModulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&edgeModulesClient.Client, o.ResourceManagerAuthorizer)
 
-	VideoAnalyzersClient := videoanalyzers.NewVideoAnalyzersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&VideoAnalyzersClient.Client, o.ResourceManagerAuthorizer)
+	videoAnalyzersClient := videoanalyzers.NewVideoAnalyzersClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&videoAnalyzersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		EdgeModuleClient:     &edgeModulesClient,
-		VideoAnalyzersClient: &VideoAnalyzersClient,
+		VideoAnalyzersClient: &videoAnalyzersClient,
 	}
 }
