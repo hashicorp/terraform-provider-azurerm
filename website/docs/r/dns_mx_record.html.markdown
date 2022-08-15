@@ -46,6 +46,7 @@ resource "azurerm_dns_mx_record" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -62,6 +63,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `record` block supports:
 
 * `preference` - (Required) String representing the "preference” value of the MX records. Records with lower preference value take priority.
@@ -73,17 +76,19 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS MX Record ID.
+
 * `fqdn` - The FQDN of the DNS MX Record.
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS MX Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS MX Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS MX Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS MX Record.
 
 ## Import
