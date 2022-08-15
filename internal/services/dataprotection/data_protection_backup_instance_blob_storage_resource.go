@@ -66,7 +66,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupVaultID,
+				ValidateFunc: backuppolicies.ValidateBackupPoliciesID,
 			},
 		},
 	}

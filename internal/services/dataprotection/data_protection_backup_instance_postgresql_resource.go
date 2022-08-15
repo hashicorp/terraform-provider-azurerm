@@ -68,7 +68,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupVaultID,
+				ValidateFunc: backuppolicies.ValidateBackupPoliciesID,
 			},
 
 			"database_credential_key_vault_secret_id": {
