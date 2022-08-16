@@ -70,15 +70,6 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 					string(schemaregistry.SchemaTypeAvro),
 				}, false),
 			},
-
-			// todo: add the group property once the sdk gets clarified.
-			// "schema_group_property": {
-			// 	Type:     pluginsdk.TypeMap,
-			// 	Optional: true,
-			// 	Elem: &pluginsdk.Schema{
-			// 		Type: pluginsdk.TypeString,
-			// 	},
-			// },
 		},
 	}
 }
@@ -119,20 +110,6 @@ func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceDa
 		},
 	}
 
-	// todo: confirm the SDK property type, current type doesn't accept the null as a valid value
-	// if d.HasChange("schema_group_property") {
-	// 	oldList, newList := d.GetChange("schema_group_property")
-	// 	for k, v := range oldList.(map[string]interface{}) {
-	// 		if
-	// 	}
-	// }
-	// if value, ok := d.GetOk("schema_group_property"); ok {
-	// 	result := make(map[string]string)
-	// 	for k, v := range value.(map[string]interface{}) {
-	// 		result[k] = v.(string)
-	// 		parameters.Properties.GroupProperties = &result
-	// 	}
-	// }
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -174,15 +151,6 @@ func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta
 			if props.SchemaType != nil {
 				d.Set("schema_type", string(*props.SchemaType))
 			}
-
-			// todo: add the group property once the sdk gets clarified
-			// if props.GroupProperties != nil {
-			// 	properties := make(map[string]string)
-			// 	for k, v := range *props.GroupProperties {
-			// 		properties[k] = v
-			// 	}
-			// 	d.Set("schema_group_property", properties)
-			// }
 		}
 	}
 
