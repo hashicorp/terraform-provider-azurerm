@@ -642,9 +642,6 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			}); err != nil {
 				return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
 			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for replication of %q: %+v", id, err)
-			}
 
 			// Waiting for replication be in broken state
 			log.Printf("[DEBUG] Waiting for the replication of %s to be in broken state", *replicaVolumeId)

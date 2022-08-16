@@ -146,11 +146,8 @@ func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	if _, err = client.Delete(ctx, *id); err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	// The resource NetApp Snapshot depends on the resource NetApp Volume.
