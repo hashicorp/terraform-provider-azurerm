@@ -77,7 +77,6 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			azure.TitleCase(string(keyvault.KeyPermissionsBackup)),
 			azure.TitleCase(string(keyvault.KeyPermissionsRestore)),
 		}
-
 		templateManagementPermissions["secret"] = []string{
 			azure.TitleCase(string(keyvault.SecretPermissionsGet)),
 			azure.TitleCase(string(keyvault.SecretPermissionsList)),
@@ -87,7 +86,6 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			azure.TitleCase(string(keyvault.SecretPermissionsBackup)),
 			azure.TitleCase(string(keyvault.SecretPermissionsRestore)),
 		}
-
 		templateManagementPermissions["certificate"] = []string{
 			azure.TitleCase(string(keyvault.CertificatePermissionsGet)),
 			azure.TitleCase(string(keyvault.CertificatePermissionsList)),
@@ -114,7 +112,6 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			string(keyvault.KeyPermissionsBackup),
 			string(keyvault.KeyPermissionsRestore),
 		}
-
 		templateManagementPermissions["secret"] = []string{
 			string(keyvault.SecretPermissionsGet),
 			string(keyvault.SecretPermissionsList),
@@ -124,7 +121,6 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			string(keyvault.SecretPermissionsBackup),
 			string(keyvault.SecretPermissionsRestore),
 		}
-
 		templateManagementPermissions["certificate"] = []string{
 			string(keyvault.CertificatePermissionsGet),
 			string(keyvault.CertificatePermissionsList),
