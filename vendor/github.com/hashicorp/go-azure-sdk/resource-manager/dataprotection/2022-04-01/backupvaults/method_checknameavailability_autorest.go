@@ -65,5 +65,6 @@ func (c BackupVaultsClient) responderForCheckNameAvailability(resp *http.Respons
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

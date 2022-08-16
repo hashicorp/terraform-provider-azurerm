@@ -60,50 +60,6 @@ func (c BackupVaultsClient) GetInSubscription(ctx context.Context, id commonids.
 	return
 }
 
-// GetInSubscriptionComplete retrieves all of the results into a single object
-func (c BackupVaultsClient) GetInSubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (GetInSubscriptionCompleteResult, error) {
-	return c.GetInSubscriptionCompleteMatchingPredicate(ctx, id, BackupVaultResourceOperationPredicate{})
-}
-
-// GetInSubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c BackupVaultsClient) GetInSubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate BackupVaultResourceOperationPredicate) (resp GetInSubscriptionCompleteResult, err error) {
-	items := make([]BackupVaultResource, 0)
-
-	page, err := c.GetInSubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetInSubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetInSubscription prepares the GetInSubscription request.
 func (c BackupVaultsClient) preparerForGetInSubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c BackupVaultsClient) responderForGetInSubscription(resp *http.Response) (
 		}
 	}
 	return
+}
+
+// GetInSubscriptionComplete retrieves all of the results into a single object
+func (c BackupVaultsClient) GetInSubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (GetInSubscriptionCompleteResult, error) {
+	return c.GetInSubscriptionCompleteMatchingPredicate(ctx, id, BackupVaultResourceOperationPredicate{})
+}
+
+// GetInSubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c BackupVaultsClient) GetInSubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate BackupVaultResourceOperationPredicate) (resp GetInSubscriptionCompleteResult, err error) {
+	items := make([]BackupVaultResource, 0)
+
+	page, err := c.GetInSubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetInSubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

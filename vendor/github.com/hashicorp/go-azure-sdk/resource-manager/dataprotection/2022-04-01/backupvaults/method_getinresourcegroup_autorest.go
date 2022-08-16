@@ -60,50 +60,6 @@ func (c BackupVaultsClient) GetInResourceGroup(ctx context.Context, id commonids
 	return
 }
 
-// GetInResourceGroupComplete retrieves all of the results into a single object
-func (c BackupVaultsClient) GetInResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (GetInResourceGroupCompleteResult, error) {
-	return c.GetInResourceGroupCompleteMatchingPredicate(ctx, id, BackupVaultResourceOperationPredicate{})
-}
-
-// GetInResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c BackupVaultsClient) GetInResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate BackupVaultResourceOperationPredicate) (resp GetInResourceGroupCompleteResult, err error) {
-	items := make([]BackupVaultResource, 0)
-
-	page, err := c.GetInResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetInResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetInResourceGroup prepares the GetInResourceGroup request.
 func (c BackupVaultsClient) preparerForGetInResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c BackupVaultsClient) responderForGetInResourceGroup(resp *http.Response) 
 		}
 	}
 	return
+}
+
+// GetInResourceGroupComplete retrieves all of the results into a single object
+func (c BackupVaultsClient) GetInResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (GetInResourceGroupCompleteResult, error) {
+	return c.GetInResourceGroupCompleteMatchingPredicate(ctx, id, BackupVaultResourceOperationPredicate{})
+}
+
+// GetInResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c BackupVaultsClient) GetInResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate BackupVaultResourceOperationPredicate) (resp GetInResourceGroupCompleteResult, err error) {
+	items := make([]BackupVaultResource, 0)
+
+	page, err := c.GetInResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetInResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

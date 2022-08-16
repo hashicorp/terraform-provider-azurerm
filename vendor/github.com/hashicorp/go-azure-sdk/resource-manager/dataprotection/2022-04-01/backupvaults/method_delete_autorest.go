@@ -61,5 +61,6 @@ func (c BackupVaultsClient) responderForDelete(resp *http.Response) (result Dele
 		azure.WithErrorUnlessStatusCode(http.StatusAccepted, http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
