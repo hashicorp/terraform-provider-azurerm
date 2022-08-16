@@ -84,50 +84,6 @@ func (c DedicatedHsmsClient) DedicatedHsmListBySubscription(ctx context.Context,
 	return
 }
 
-// DedicatedHsmListBySubscriptionComplete retrieves all of the results into a single object
-func (c DedicatedHsmsClient) DedicatedHsmListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options DedicatedHsmListBySubscriptionOperationOptions) (DedicatedHsmListBySubscriptionCompleteResult, error) {
-	return c.DedicatedHsmListBySubscriptionCompleteMatchingPredicate(ctx, id, options, DedicatedHsmOperationPredicate{})
-}
-
-// DedicatedHsmListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DedicatedHsmsClient) DedicatedHsmListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options DedicatedHsmListBySubscriptionOperationOptions, predicate DedicatedHsmOperationPredicate) (resp DedicatedHsmListBySubscriptionCompleteResult, err error) {
-	items := make([]DedicatedHsm, 0)
-
-	page, err := c.DedicatedHsmListBySubscription(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := DedicatedHsmListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForDedicatedHsmListBySubscription prepares the DedicatedHsmListBySubscription request.
 func (c DedicatedHsmsClient) preparerForDedicatedHsmListBySubscription(ctx context.Context, id commonids.SubscriptionId, options DedicatedHsmListBySubscriptionOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -213,4 +169,48 @@ func (c DedicatedHsmsClient) responderForDedicatedHsmListBySubscription(resp *ht
 		}
 	}
 	return
+}
+
+// DedicatedHsmListBySubscriptionComplete retrieves all of the results into a single object
+func (c DedicatedHsmsClient) DedicatedHsmListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options DedicatedHsmListBySubscriptionOperationOptions) (DedicatedHsmListBySubscriptionCompleteResult, error) {
+	return c.DedicatedHsmListBySubscriptionCompleteMatchingPredicate(ctx, id, options, DedicatedHsmOperationPredicate{})
+}
+
+// DedicatedHsmListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DedicatedHsmsClient) DedicatedHsmListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options DedicatedHsmListBySubscriptionOperationOptions, predicate DedicatedHsmOperationPredicate) (resp DedicatedHsmListBySubscriptionCompleteResult, err error) {
+	items := make([]DedicatedHsm, 0)
+
+	page, err := c.DedicatedHsmListBySubscription(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := DedicatedHsmListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

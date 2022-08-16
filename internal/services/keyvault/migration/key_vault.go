@@ -184,6 +184,10 @@ func (KeyVaultV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 						outputKeyPermissions = append(outputKeyPermissions, "update")
 						outputKeyPermissions = append(outputKeyPermissions, "verify")
 						outputKeyPermissions = append(outputKeyPermissions, "wrapKey")
+						outputKeyPermissions = append(outputKeyPermissions, "release")
+						outputKeyPermissions = append(outputKeyPermissions, "rotate")
+						outputKeyPermissions = append(outputKeyPermissions, "getRotationPolicy")
+						outputKeyPermissions = append(outputKeyPermissions, "setRotationPolicy")
 						break
 					}
 				}

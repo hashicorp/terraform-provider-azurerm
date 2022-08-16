@@ -1,8 +1,11 @@
 ---
 name: Pull Request New Commit
 
+permissions:
+  pull-requests: write
+
 on:
-  pull_request:
+  pull_request_target:
     types: [synchronize]
 
 jobs:

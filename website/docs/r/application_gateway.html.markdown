@@ -361,7 +361,7 @@ An `ip_configuration` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Required) A snippet from the Response Body which must be present in the Response.
+* `body` - A snippet from the Response Body which must be present in the Response.
 
 * `status_code` - (Required) A list of allowed status codes for this Health Probe.
 
@@ -525,7 +525,7 @@ When using a `policy_type` of `Custom` the following fields are supported:
 
 A `waf_configuration` block supports the following:
 
-* `enabled` - (Required) Is the Web Application Firewall be enabled?
+* `enabled` - (Required) Is the Web Application Firewall enabled?
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 

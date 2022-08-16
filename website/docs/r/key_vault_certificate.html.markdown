@@ -327,7 +327,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate.
+* `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate.
 
 ## Import

@@ -60,50 +60,6 @@ func (c CognitiveServicesAccountsClient) AccountsList(ctx context.Context, id co
 	return
 }
 
-// AccountsListComplete retrieves all of the results into a single object
-func (c CognitiveServicesAccountsClient) AccountsListComplete(ctx context.Context, id commonids.SubscriptionId) (AccountsListCompleteResult, error) {
-	return c.AccountsListCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
-}
-
-// AccountsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c CognitiveServicesAccountsClient) AccountsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AccountOperationPredicate) (resp AccountsListCompleteResult, err error) {
-	items := make([]Account, 0)
-
-	page, err := c.AccountsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AccountsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAccountsList prepares the AccountsList request.
 func (c CognitiveServicesAccountsClient) preparerForAccountsList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c CognitiveServicesAccountsClient) responderForAccountsList(resp *http.Res
 		}
 	}
 	return
+}
+
+// AccountsListComplete retrieves all of the results into a single object
+func (c CognitiveServicesAccountsClient) AccountsListComplete(ctx context.Context, id commonids.SubscriptionId) (AccountsListCompleteResult, error) {
+	return c.AccountsListCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
+}
+
+// AccountsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c CognitiveServicesAccountsClient) AccountsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AccountOperationPredicate) (resp AccountsListCompleteResult, err error) {
+	items := make([]Account, 0)
+
+	page, err := c.AccountsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AccountsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

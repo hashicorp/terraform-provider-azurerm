@@ -51,7 +51,7 @@ func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName)
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, id.DedicatedHostId.ResourceGroupName, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", id.DedicatedHostIdRaw, err)
 	}
