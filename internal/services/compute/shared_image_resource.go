@@ -60,6 +60,17 @@ func resourceSharedImage() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"architecture": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(compute.ArchitectureTypesX64),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.ArchitectureTypesX64),
+					string(compute.ArchitectureTypesArm64),
+				}, false),
+			},
+
 			"os_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -280,6 +291,7 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Identifier:          expandGalleryImageIdentifier(d),
 			PrivacyStatementURI: utils.String(d.Get("privacy_statement_uri").(string)),
 			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
+			Architecture:        compute.Architecture(d.Get("architecture").(string)),
 			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
@@ -395,6 +407,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("min_recommended_memory_in_gb", minRecommendedMemoryInGB)
 
 		d.Set("os_type", string(props.OsType))
+		d.Set("architecture", string(props.Architecture))
 		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
