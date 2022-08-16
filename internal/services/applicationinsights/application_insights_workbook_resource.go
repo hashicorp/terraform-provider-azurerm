@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
+	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -43,7 +43,7 @@ func (r ApplicationInsightsWorkbookResource) ModelObject() interface{} {
 }
 
 func (r ApplicationInsightsWorkbookResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return applicationinsights.ValidateWorkbookID
+	return workbooks.ValidateWorkbookID
 }
 
 func (r ApplicationInsightsWorkbookResource) Arguments() map[string]*pluginsdk.Schema {
@@ -133,8 +133,8 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.AppInsights.WorkbookClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := applicationinsights.NewWorkbookID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.WorkbooksGet(ctx, id, applicationinsights.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+			id := workbooks.NewWorkbookID(subscriptionId, model.ResourceGroupName, model.Name)
+			existing, err := client.WorkbooksGet(ctx, id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
@@ -148,12 +148,12 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			kindValue := applicationinsights.WorkbookSharedTypeKindShared
-			properties := &applicationinsights.Workbook{
+			kindValue := workbooks.WorkbookSharedTypeKindShared
+			properties := &workbooks.Workbook{
 				Identity: identityValue,
 				Kind:     &kindValue,
 				Location: utils.String(location.Normalize(model.Location)),
-				Properties: &applicationinsights.WorkbookProperties{
+				Properties: &workbooks.WorkbookProperties{
 					Category:       model.Category,
 					DisplayName:    model.DisplayName,
 					SerializedData: model.DataJson,
@@ -171,7 +171,7 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 				properties.Properties.StorageUri = &model.StorageContainerId
 			}
 
-			if _, err := client.WorkbooksCreateOrUpdate(ctx, id, *properties, applicationinsights.WorkbooksCreateOrUpdateOperationOptions{SourceId: &model.SourceId}); err != nil {
+			if _, err := client.WorkbooksCreateOrUpdate(ctx, id, *properties, workbooks.WorkbooksCreateOrUpdateOperationOptions{SourceId: &model.SourceId}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -187,7 +187,7 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.WorkbookClient
 
-			id, err := applicationinsights.ParseWorkbookID(metadata.ResourceData.Id())
+			id, err := workbooks.ParseWorkbookID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -197,7 +197,7 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.WorkbooksGet(ctx, *id, applicationinsights.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+			resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -227,7 +227,7 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
-			if _, err := client.WorkbooksCreateOrUpdate(ctx, *id, *properties, applicationinsights.WorkbooksCreateOrUpdateOperationOptions{SourceId: &model.SourceId}); err != nil {
+			if _, err := client.WorkbooksCreateOrUpdate(ctx, *id, *properties, workbooks.WorkbooksCreateOrUpdateOperationOptions{SourceId: &model.SourceId}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -242,12 +242,12 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.WorkbookClient
 
-			id, err := applicationinsights.ParseWorkbookID(metadata.ResourceData.Id())
+			id, err := workbooks.ParseWorkbookID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.WorkbooksGet(ctx, *id, applicationinsights.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+			resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -316,7 +316,7 @@ func (r ApplicationInsightsWorkbookResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.WorkbookClient
 
-			id, err := applicationinsights.ParseWorkbookID(metadata.ResourceData.Id())
+			id, err := workbooks.ParseWorkbookID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

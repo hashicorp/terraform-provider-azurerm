@@ -41,7 +41,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
+			Read:   pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},

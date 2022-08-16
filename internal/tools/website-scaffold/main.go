@@ -464,7 +464,7 @@ func (gen documentationGenerator) timeoutsBlock() string {
 	}
 	timeouts := *gen.resource.Timeouts
 
-	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:"
+	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:"
 
 	timeoutToFriendlyText := func(duration time.Duration) string {
 		hours := int(math.Floor(duration.Hours()))

@@ -59,50 +59,6 @@ func (c NamespacesClient) ListNetworkRuleSets(ctx context.Context, id NamespaceI
 	return
 }
 
-// ListNetworkRuleSetsComplete retrieves all of the results into a single object
-func (c NamespacesClient) ListNetworkRuleSetsComplete(ctx context.Context, id NamespaceId) (ListNetworkRuleSetsCompleteResult, error) {
-	return c.ListNetworkRuleSetsCompleteMatchingPredicate(ctx, id, NetworkRuleSetOperationPredicate{})
-}
-
-// ListNetworkRuleSetsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c NamespacesClient) ListNetworkRuleSetsCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate NetworkRuleSetOperationPredicate) (resp ListNetworkRuleSetsCompleteResult, err error) {
-	items := make([]NetworkRuleSet, 0)
-
-	page, err := c.ListNetworkRuleSets(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListNetworkRuleSetsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListNetworkRuleSets prepares the ListNetworkRuleSets request.
 func (c NamespacesClient) preparerForListNetworkRuleSets(ctx context.Context, id NamespaceId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c NamespacesClient) responderForListNetworkRuleSets(resp *http.Response) (
 		}
 	}
 	return
+}
+
+// ListNetworkRuleSetsComplete retrieves all of the results into a single object
+func (c NamespacesClient) ListNetworkRuleSetsComplete(ctx context.Context, id NamespaceId) (ListNetworkRuleSetsCompleteResult, error) {
+	return c.ListNetworkRuleSetsCompleteMatchingPredicate(ctx, id, NetworkRuleSetOperationPredicate{})
+}
+
+// ListNetworkRuleSetsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c NamespacesClient) ListNetworkRuleSetsCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate NetworkRuleSetOperationPredicate) (resp ListNetworkRuleSetsCompleteResult, err error) {
+	items := make([]NetworkRuleSet, 0)
+
+	page, err := c.ListNetworkRuleSets(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListNetworkRuleSetsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

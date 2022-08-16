@@ -199,7 +199,12 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_postgresql", id.ID())
 	}
 
-	taggingCriteria := expandBackupPolicyPostgreSQLTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
+
+	taggingCriteria, err := expandBackupPolicyPostgreSQLTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
+  	if err != nil {
+		return err
+	}
+  
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), taggingCriteria)...)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(d.Get("default_retention_duration")))
@@ -345,8 +350,9 @@ func expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(input interface{}) ba
 	}
 }
 
-func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) *[]backuppolicies.TaggingCriteria {
+func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]backuppolicies.TaggingCriteria, error) {
 	results := []backuppolicies.TaggingCriteria{
+
 		{
 			Criteria:        nil,
 			IsDefault:       true,
@@ -359,21 +365,33 @@ func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) *[]ba
 	}
 	for _, item := range input {
 		v := item.(map[string]interface{})
+
 		results = append(results, backuppolicies.TaggingCriteria{
-			Criteria:        expandBackupPolicyPostgreSQLCriteriaArray(v["criteria"].([]interface{})),
 			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
 			TagInfo: backuppolicies.RetentionTag{
 				Id:      utils.String(v["name"].(string) + "_"),
 				TagName: v["name"].(string),
 			},
-		})
+		}
+		criteria, err := expandBackupPolicyPostgreSQLCriteriaArray(v["criteria"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		result.Criteria = criteria
+
+		results = append(results, result)
 	}
-	return &results
+	return &results, nil
 }
 
+
 func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) *[]backuppolicies.BackupCriteria {
+	if len(input) == 0 || input[0] == nil {
+		return nil, fmt.Errorf("criteria is a required field, cannot leave blank")
+	}
 	results := make([]backuppolicies.BackupCriteria, 0)
+
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		var absoluteCriteria []backuppolicies.AbsoluteMarker
@@ -418,7 +436,7 @@ func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) *[]backuppol
 			WeeksOfTheMonth:  &weeksOfMonth,
 		})
 	}
-	return &results
+	return &results, nil
 }
 
 func flattenBackupPolicyPostgreSQLBackupRuleArray(input *[]backuppolicies.BasePolicyRule) []interface{} {

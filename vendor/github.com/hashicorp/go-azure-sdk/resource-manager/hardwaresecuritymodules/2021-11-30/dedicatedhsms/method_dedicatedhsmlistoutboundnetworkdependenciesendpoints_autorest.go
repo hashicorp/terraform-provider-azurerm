@@ -59,50 +59,6 @@ func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpoint
 	return
 }
 
-// DedicatedHsmListOutboundNetworkDependenciesEndpointsComplete retrieves all of the results into a single object
-func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, id DedicatedHSMId) (DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult, error) {
-	return c.DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx, id, OutboundEnvironmentEndpointOperationPredicate{})
-}
-
-// DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx context.Context, id DedicatedHSMId, predicate OutboundEnvironmentEndpointOperationPredicate) (resp DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult, err error) {
-	items := make([]OutboundEnvironmentEndpoint, 0)
-
-	page, err := c.DedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForDedicatedHsmListOutboundNetworkDependenciesEndpoints prepares the DedicatedHsmListOutboundNetworkDependenciesEndpoints request.
 func (c DedicatedHsmsClient) preparerForDedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx context.Context, id DedicatedHSMId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c DedicatedHsmsClient) responderForDedicatedHsmListOutboundNetworkDependen
 		}
 	}
 	return
+}
+
+// DedicatedHsmListOutboundNetworkDependenciesEndpointsComplete retrieves all of the results into a single object
+func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, id DedicatedHSMId) (DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult, error) {
+	return c.DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx, id, OutboundEnvironmentEndpointOperationPredicate{})
+}
+
+// DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx context.Context, id DedicatedHSMId, predicate OutboundEnvironmentEndpointOperationPredicate) (resp DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult, err error) {
+	items := make([]OutboundEnvironmentEndpoint, 0)
+
+	page, err := c.DedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

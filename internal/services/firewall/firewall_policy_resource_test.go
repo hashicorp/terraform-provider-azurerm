@@ -58,6 +58,7 @@ func TestAccFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("dns.0.servers.0").HasValue("1.1.1.1"),
 				check.That(data.ResourceName).Key("dns.0.servers.1").HasValue("3.3.3.3"),
 				check.That(data.ResourceName).Key("dns.0.servers.2").HasValue("2.2.2.2"),
+				check.That(data.ResourceName).Key("dns.0.proxy_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -122,13 +123,6 @@ func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.completePremium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -287,11 +281,14 @@ resource "azurerm_firewall_policy" "test" {
       state = "Alert"
       id    = "1"
     }
+    private_ranges = ["172.111.111.111"]
     traffic_bypass {
-      name              = "Name bypass traffic settings"
-      description       = "Description bypass traffic settings"
-      protocol          = "ANY"
-      destination_ports = ["*"]
+      name                  = "Name bypass traffic settings"
+      description           = "Description bypass traffic settings"
+      destination_addresses = []
+      source_addresses      = []
+      protocol              = "Any"
+      destination_ports     = ["*"]
       source_ip_groups = [
         azurerm_ip_group.test_source.id,
       ]
@@ -300,6 +297,7 @@ resource "azurerm_firewall_policy" "test" {
       ]
     }
   }
+  sql_redirect_allowed = true
   identity {
     type = "UserAssigned"
     identity_ids = [
