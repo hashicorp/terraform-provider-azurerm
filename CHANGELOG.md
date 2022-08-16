@@ -22,8 +22,14 @@ ENHANCEMENTS:
 * Data Source: `azurerm_management_group` - now exports the `management_group_ids`, `all_management_group_ids`, and `all_subscription_ids` attributes [GH-16208]
 * `azurerm_automation_account` - support for the `private_endpoint_connection` property [GH-17934]
 * `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
+* `azurerm_linux_virtual_machine` - now supports delete Eviction policies [GH-17226]
+* `azurerm_linux_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
 * `azurerm_mssql_elastic_pool` - support for the `maintenance_configuration_name` property [GH-17790]
 * `azurerm_mssql_server` - support `Disabled` for the `minimum_tls_version` property [GH-16595]
+* `azurerm_windows_virtual_machine` - now supports delete Eviction policies [GH-17226]
+* `azurerm_windows_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
+* 
+Allow Delete eviction policy on Azure VMs #17226
 
 BUG FIXES:
 
