@@ -59,50 +59,6 @@ func (c ManagedEnvironmentsClient) CertificatesList(ctx context.Context, id Mana
 	return
 }
 
-// CertificatesListComplete retrieves all of the results into a single object
-func (c ManagedEnvironmentsClient) CertificatesListComplete(ctx context.Context, id ManagedEnvironmentId) (CertificatesListCompleteResult, error) {
-	return c.CertificatesListCompleteMatchingPredicate(ctx, id, CertificateOperationPredicate{})
-}
-
-// CertificatesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ManagedEnvironmentsClient) CertificatesListCompleteMatchingPredicate(ctx context.Context, id ManagedEnvironmentId, predicate CertificateOperationPredicate) (resp CertificatesListCompleteResult, err error) {
-	items := make([]Certificate, 0)
-
-	page, err := c.CertificatesList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := CertificatesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForCertificatesList prepares the CertificatesList request.
 func (c ManagedEnvironmentsClient) preparerForCertificatesList(ctx context.Context, id ManagedEnvironmentId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ManagedEnvironmentsClient) responderForCertificatesList(resp *http.Respo
 		}
 	}
 	return
+}
+
+// CertificatesListComplete retrieves all of the results into a single object
+func (c ManagedEnvironmentsClient) CertificatesListComplete(ctx context.Context, id ManagedEnvironmentId) (CertificatesListCompleteResult, error) {
+	return c.CertificatesListCompleteMatchingPredicate(ctx, id, CertificateOperationPredicate{})
+}
+
+// CertificatesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ManagedEnvironmentsClient) CertificatesListCompleteMatchingPredicate(ctx context.Context, id ManagedEnvironmentId, predicate CertificateOperationPredicate) (resp CertificatesListCompleteResult, err error) {
+	items := make([]Certificate, 0)
+
+	page, err := c.CertificatesList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := CertificatesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

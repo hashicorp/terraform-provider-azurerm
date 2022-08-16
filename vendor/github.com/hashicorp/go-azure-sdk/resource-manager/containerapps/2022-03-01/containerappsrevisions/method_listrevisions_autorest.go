@@ -83,50 +83,6 @@ func (c ContainerAppsRevisionsClient) ListRevisions(ctx context.Context, id Cont
 	return
 }
 
-// ListRevisionsComplete retrieves all of the results into a single object
-func (c ContainerAppsRevisionsClient) ListRevisionsComplete(ctx context.Context, id ContainerAppId, options ListRevisionsOperationOptions) (ListRevisionsCompleteResult, error) {
-	return c.ListRevisionsCompleteMatchingPredicate(ctx, id, options, RevisionOperationPredicate{})
-}
-
-// ListRevisionsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ContainerAppsRevisionsClient) ListRevisionsCompleteMatchingPredicate(ctx context.Context, id ContainerAppId, options ListRevisionsOperationOptions, predicate RevisionOperationPredicate) (resp ListRevisionsCompleteResult, err error) {
-	items := make([]Revision, 0)
-
-	page, err := c.ListRevisions(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListRevisionsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListRevisions prepares the ListRevisions request.
 func (c ContainerAppsRevisionsClient) preparerForListRevisions(ctx context.Context, id ContainerAppId, options ListRevisionsOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c ContainerAppsRevisionsClient) responderForListRevisions(resp *http.Respo
 		}
 	}
 	return
+}
+
+// ListRevisionsComplete retrieves all of the results into a single object
+func (c ContainerAppsRevisionsClient) ListRevisionsComplete(ctx context.Context, id ContainerAppId, options ListRevisionsOperationOptions) (ListRevisionsCompleteResult, error) {
+	return c.ListRevisionsCompleteMatchingPredicate(ctx, id, options, RevisionOperationPredicate{})
+}
+
+// ListRevisionsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ContainerAppsRevisionsClient) ListRevisionsCompleteMatchingPredicate(ctx context.Context, id ContainerAppId, options ListRevisionsOperationOptions, predicate RevisionOperationPredicate) (resp ListRevisionsCompleteResult, err error) {
+	items := make([]Revision, 0)
+
+	page, err := c.ListRevisions(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListRevisionsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

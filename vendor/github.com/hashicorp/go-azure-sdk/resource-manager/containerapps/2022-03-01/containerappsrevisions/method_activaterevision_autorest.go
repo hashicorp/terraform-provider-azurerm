@@ -62,5 +62,6 @@ func (c ContainerAppsRevisionsClient) responderForActivateRevision(resp *http.Re
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

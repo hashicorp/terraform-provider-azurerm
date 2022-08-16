@@ -63,5 +63,6 @@ func (c CertificatesClient) responderForGet(resp *http.Response) (result GetOper
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

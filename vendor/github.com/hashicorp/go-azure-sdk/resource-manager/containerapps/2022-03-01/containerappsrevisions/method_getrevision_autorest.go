@@ -63,5 +63,6 @@ func (c ContainerAppsRevisionsClient) responderForGetRevision(resp *http.Respons
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

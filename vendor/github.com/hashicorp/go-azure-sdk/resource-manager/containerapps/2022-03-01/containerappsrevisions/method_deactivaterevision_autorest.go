@@ -62,5 +62,6 @@ func (c ContainerAppsRevisionsClient) responderForDeactivateRevision(resp *http.
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

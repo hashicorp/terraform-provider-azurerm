@@ -64,5 +64,6 @@ func (c ManagedEnvironmentsClient) responderForCertificatesCreateOrUpdate(resp *
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

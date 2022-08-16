@@ -64,5 +64,6 @@ func (c CertificatesClient) responderForUpdate(resp *http.Response) (result Upda
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

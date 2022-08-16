@@ -65,5 +65,6 @@ func (c ManagedEnvironmentsClient) responderForNamespacesCheckNameAvailability(r
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
