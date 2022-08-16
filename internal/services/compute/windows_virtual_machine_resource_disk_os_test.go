@@ -733,11 +733,11 @@ resource "azurerm_windows_virtual_machine" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   # Message="OS disk of Ephemeral VM with size greater than 32 GB is not allowed for VM size Standard_F2s_v2"
-  size           = "Standard_DS3_v2"
-  admin_username = "adminuser"
-  admin_password = "P@$$w0rd1234!"
-  priority            = "Spot"
-  eviction_policy     = "Delete"
+  size            = "Standard_DS3_v2"
+  admin_username  = "adminuser"
+  admin_password  = "P@$$w0rd1234!"
+  priority        = "Spot"
+  eviction_policy = "Delete"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
