@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,8 +63,10 @@ func dataSourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 
 func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}) error {
 	name := d.Get("name").(string)
-	templateManagementPermissions := map[string][]string{
-		"key": {
+	templateManagementPermissions := map[string][]string{}
+
+	if features.FourPointOh() {
+		templateManagementPermissions["key"] = []string{
 			azure.TitleCase(string(keyvault.KeyPermissionsGet)),
 			azure.TitleCase(string(keyvault.KeyPermissionsList)),
 			azure.TitleCase(string(keyvault.KeyPermissionsUpdate)),
@@ -72,8 +76,9 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			azure.TitleCase(string(keyvault.KeyPermissionsRecover)),
 			azure.TitleCase(string(keyvault.KeyPermissionsBackup)),
 			azure.TitleCase(string(keyvault.KeyPermissionsRestore)),
-		},
-		"secret": {
+		}
+
+		templateManagementPermissions["secret"] = []string{
 			azure.TitleCase(string(keyvault.SecretPermissionsGet)),
 			azure.TitleCase(string(keyvault.SecretPermissionsList)),
 			azure.TitleCase(string(keyvault.SecretPermissionsSet)),
@@ -81,8 +86,9 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			azure.TitleCase(string(keyvault.SecretPermissionsRecover)),
 			azure.TitleCase(string(keyvault.SecretPermissionsBackup)),
 			azure.TitleCase(string(keyvault.SecretPermissionsRestore)),
-		},
-		"certificate": {
+		}
+
+		templateManagementPermissions["certificate"] = []string{
 			azure.TitleCase(string(keyvault.CertificatePermissionsGet)),
 			azure.TitleCase(string(keyvault.CertificatePermissionsList)),
 			azure.TitleCase(string(keyvault.CertificatePermissionsUpdate)),
@@ -95,7 +101,44 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			azure.TitleCase(string(keyvault.CertificatePermissionsListissuers)),
 			azure.TitleCase(string(keyvault.CertificatePermissionsSetissuers)),
 			azure.TitleCase(string(keyvault.CertificatePermissionsDeleteissuers)),
-		},
+		}
+	} else {
+		templateManagementPermissions["key"] = []string{
+			string(keyvault.KeyPermissionsGet),
+			string(keyvault.KeyPermissionsList),
+			string(keyvault.KeyPermissionsUpdate),
+			string(keyvault.KeyPermissionsCreate),
+			string(keyvault.KeyPermissionsImport),
+			string(keyvault.KeyPermissionsDelete),
+			string(keyvault.KeyPermissionsRecover),
+			string(keyvault.KeyPermissionsBackup),
+			string(keyvault.KeyPermissionsRestore),
+		}
+
+		templateManagementPermissions["secret"] = []string{
+			string(keyvault.SecretPermissionsGet),
+			string(keyvault.SecretPermissionsList),
+			string(keyvault.SecretPermissionsSet),
+			string(keyvault.SecretPermissionsDelete),
+			string(keyvault.SecretPermissionsRecover),
+			string(keyvault.SecretPermissionsBackup),
+			string(keyvault.SecretPermissionsRestore),
+		}
+
+		templateManagementPermissions["certificate"] = []string{
+			string(keyvault.CertificatePermissionsGet),
+			string(keyvault.CertificatePermissionsList),
+			string(keyvault.CertificatePermissionsUpdate),
+			string(keyvault.CertificatePermissionsCreate),
+			string(keyvault.CertificatePermissionsImport),
+			string(keyvault.CertificatePermissionsDelete),
+			string(keyvault.CertificatePermissionsManagecontacts),
+			string(keyvault.CertificatePermissionsManageissuers),
+			string(keyvault.CertificatePermissionsGetissuers),
+			string(keyvault.CertificatePermissionsListissuers),
+			string(keyvault.CertificatePermissionsSetissuers),
+			string(keyvault.CertificatePermissionsDeleteissuers),
+		}
 	}
 
 	d.SetId(name)
