@@ -24,7 +24,7 @@ func TestAccMaintenanceConfiguration_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue("Extension"),
+				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
 				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 			),
 		},
@@ -82,7 +82,7 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue("Extension"),
+				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
 				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("window.#").HasValue("0"),
@@ -112,7 +112,7 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue("Extension"),
+				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
 				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("window.#").HasValue("0"),
@@ -152,7 +152,7 @@ resource "azurerm_maintenance_configuration" "test" {
   name                = "acctest-MC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  scope               = "Extension"
+  scope               = "SQLDB"
   visibility          = "Custom"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
