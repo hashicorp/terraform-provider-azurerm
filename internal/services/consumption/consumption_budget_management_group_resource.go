@@ -1,7 +1,7 @@
 package consumption
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	validateManagementGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
@@ -58,10 +58,10 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 					"threshold_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  string(consumption.ThresholdTypeActual),
+						Default:  string(budgets.ThresholdTypeActual),
 						ForceNew: true, // TODO: remove this when the above issue is fixed
 						ValidateFunc: validation.StringInSlice([]string{
-							string(consumption.ThresholdTypeActual),
+							string(budgets.ThresholdTypeActual),
 							"Forecasted",
 						}, false),
 					},
@@ -69,9 +69,9 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(consumption.OperatorTypeEqualTo),
-							string(consumption.OperatorTypeGreaterThan),
-							string(consumption.OperatorTypeGreaterThanOrEqualTo),
+							string(budgets.OperatorTypeEqualTo),
+							string(budgets.OperatorTypeGreaterThan),
+							string(budgets.OperatorTypeGreaterThanOrEqualTo),
 						}, false),
 					},
 
