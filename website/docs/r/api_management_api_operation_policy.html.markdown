@@ -71,7 +71,7 @@ XML
 
 The following arguments are supported:
 
-* `api_name` - (Required) The ID of the API Management API Operation within the API Management Service. Changing this forces a new resource to be created.
+* `api_name` - (Required) The name of the API within the API Management Service where the Operation exists. Changing this forces a new resource to be created.
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
@@ -91,7 +91,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation Policy.

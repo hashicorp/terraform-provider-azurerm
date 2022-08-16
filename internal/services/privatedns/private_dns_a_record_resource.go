@@ -7,12 +7,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -50,12 +51,16 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 				ValidateFunc: validate.LowerCasedString,
 			},
 
+			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
+
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"records": {
@@ -187,11 +192,11 @@ func flattenAzureRmPrivateDnsARecords(records *[]recordsets.ARecord) []string {
 	}
 
 	for _, record := range *records {
-		if record.Ipv4Address == nil {
+		if record.IPv4Address == nil {
 			continue
 		}
 
-		results = append(results, *record.Ipv4Address)
+		results = append(results, *record.IPv4Address)
 	}
 
 	return results
@@ -204,7 +209,7 @@ func expandAzureRmPrivateDnsARecords(d *pluginsdk.ResourceData) *[]recordsets.AR
 	for i, v := range recordStrings {
 		ipv4 := v.(string)
 		records[i] = recordsets.ARecord{
-			Ipv4Address: &ipv4,
+			IPv4Address: &ipv4,
 		}
 	}
 

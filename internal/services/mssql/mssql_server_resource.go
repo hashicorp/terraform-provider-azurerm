@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -136,9 +135,9 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: msivalidate.UserAssignedIdentityID,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				RequiredWith: []string{
-					"identity.0.identity_ids",
+					"identity",
 				},
 			},
 
@@ -150,6 +149,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 					"1.0",
 					"1.1",
 					"1.2",
+					"Disabled",
 				}, false),
 			},
 
@@ -257,7 +257,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.RestrictOutboundNetworkAccess = sql.ServerNetworkAccessFlagEnabled
 	}
 
-	if v := d.Get("minimum_tls_version"); v.(string) != "" {
+	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
@@ -347,7 +347,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
-	if v := d.Get("minimum_tls_version"); v.(string) != "" {
+	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
@@ -467,7 +467,11 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
-		d.Set("minimum_tls_version", props.MinimalTLSVersion)
+		if v := props.MinimalTLSVersion; v == nil {
+			d.Set("minimum_tls_version", "Disabled")
+		} else {
+			d.Set("minimum_tls_version", props.MinimalTLSVersion)
+		}
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		d.Set("outbound_network_restriction_enabled", props.RestrictOutboundNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		primaryUserAssignedIdentityID := ""
@@ -682,7 +686,7 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 
 func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
-	if old != "" && new == "" {
+	if old != "" && old != "Disabled" && new == "Disabled" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
 	}
 	return

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,7 +83,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.UserAssignedIdentityID,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"microsoft_app_tenant_id": {
@@ -118,6 +118,12 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"streaming_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"tags": tags.Schema(),
@@ -173,6 +179,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightsApplicationID: utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           utils.String(metadata.ResourceData.Get("luis_key").(string)),
+					IsStreamingSupported:              utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
@@ -290,6 +297,12 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 					luisAppIds = *v
 				}
 				metadata.ResourceData.Set("luis_app_ids", utils.FlattenStringSlice(&luisAppIds))
+
+				streamingEndpointEnabled := false
+				if v := props.IsStreamingSupported; v != nil {
+					streamingEndpointEnabled = *v
+				}
+				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
 			}
 
 			return nil
@@ -357,6 +370,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("luis_key") {
 				existing.Properties.LuisKey = utils.String(metadata.ResourceData.Get("luis_key").(string))
+			}
+
+			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
+				existing.Properties.IsStreamingSupported = utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool))
 			}
 
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {

@@ -39,8 +39,8 @@ resource "azurerm_spring_cloud_container_deployment" "example" {
   name                = "example"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
   instance_count      = 2
-  arguments           = ["-c", "echo hello"]
-  commands            = ["/bin/sh"]
+  arguments           = ["-cp", "/app/resources:/app/classes:/app/libs/*", "hello.Application"]
+  commands            = ["java"]
   environment_variables = {
     "Foo" : "Bar"
     "Env" : "Staging"
@@ -64,6 +64,8 @@ The following arguments are supported:
 * `server` - (Required) The name of the registry that contains the container image.
 
 ---
+
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Container Deployment.
 
 * `arguments` - (Optional) Specifies the arguments to the entrypoint. The docker image's `CMD` is used if not specified.
 
@@ -97,7 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Container Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Container Deployment.

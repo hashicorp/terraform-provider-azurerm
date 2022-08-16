@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,17 +53,11 @@ func resourceLogAnalyticsCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
-			// Per the documentation cluster capacity must start at 1000 GB and can go above 3000 GB with an exception by Microsoft
-			// so I am not limiting the upperbound here by design
-			// https://docs.microsoft.com/en-us/azure/azure-monitor/platform/manage-cost-storage#log-analytics-dedicated-clusters
 			"size_gb": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Default:  1000,
-				ValidateFunc: validation.All(
-					validation.IntAtLeast(1000),
-					validation.IntDivisibleBy(100),
-				),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1000,
+				ValidateFunc: validation.IntInSlice([]int{500, 1000, 2000, 5000}),
 			},
 
 			"cluster_id": {

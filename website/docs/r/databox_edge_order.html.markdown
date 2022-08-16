@@ -151,7 +151,7 @@ A `return_tracking` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating a Databox Edge Order.
 * `read` - (Defaults to 5 minutes) Used when retrieving a Databox Edge Order.
@@ -163,5 +163,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Databox Edge Orders can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databoxedge_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/device1/orders/default
+terraform import azurerm_databox_edge_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/device1/orders/default
 ```

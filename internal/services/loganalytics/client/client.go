@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -12,6 +13,7 @@ type Client struct {
 	DataSourcesClient          *operationalinsights.DataSourcesClient
 	LinkedServicesClient       *operationalinsights.LinkedServicesClient
 	LinkedStorageAccountClient *operationalinsights.LinkedStorageAccountsClient
+	QueryPacksClient           *querypacks.QueryPacksClient
 	SavedSearchesClient        *operationalinsights.SavedSearchesClient
 	SharedKeysClient           *operationalinsights.SharedKeysClient
 	SolutionsClient            *operationsmanagement.SolutionsClient
@@ -50,12 +52,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	LinkedStorageAccountClient := operationalinsights.NewLinkedStorageAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
 
+	QueryPacksClient := querypacks.NewQueryPacksClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&QueryPacksClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ClusterClient:              &ClusterClient,
 		DataExportClient:           &DataExportClient,
 		DataSourcesClient:          &DataSourcesClient,
 		LinkedServicesClient:       &LinkedServicesClient,
 		LinkedStorageAccountClient: &LinkedStorageAccountClient,
+		QueryPacksClient:           &QueryPacksClient,
 		SavedSearchesClient:        &SavedSearchesClient,
 		SharedKeysClient:           &SharedKeysClient,
 		SolutionsClient:            &SolutionsClient,

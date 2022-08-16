@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -95,24 +96,28 @@ func TestAccPostgreSQLConfiguration_multiplePostgreSQLConfigurations(t *testing.
 
 func (r PostgreSQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ServerID(state.Attributes["id"])
+		id, err := configurations.ParseServerID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
+		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, configurationName)
+
+		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, configurationId)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", configurationName, id.Name, id.ResourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("%s does not exist", id)
 			}
 			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
 		}
 
-		actualValue := *resp.Value
-		defaultValue := *resp.DefaultValue
+		if resp.Model != nil && resp.Model.Properties != nil {
+			actualValue := *resp.Model.Properties.Value
+			defaultValue := *resp.Model.Properties.DefaultValue
 
-		if defaultValue != actualValue {
-			return fmt.Errorf("PostgreSQL Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
+			if defaultValue != actualValue {
+				return fmt.Errorf("PostgreSQL Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
+			}
 		}
 
 		return nil
@@ -121,22 +126,26 @@ func (r PostgreSQLConfigurationResource) checkReset(configurationName string) ac
 
 func (r PostgreSQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ConfigurationID(state.Attributes["id"])
+		id, err := configurations.ParseConfigurationID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, *id)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("%s does not exist", id)
 			}
 
 			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
 		}
 
-		if *resp.Value != value {
-			return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Value != nil {
+			if *resp.Model.Properties.Value != value {
+				return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Model.Properties.Value, resp)
+			}
+		} else {
+			return fmt.Errorf("bad get on %s", id)
 		}
 
 		return nil
@@ -144,17 +153,17 @@ func (r PostgreSQLConfigurationResource) checkValue(value string) acceptance.Cli
 }
 
 func (t PostgreSQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConfigurationID(state.ID)
+	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Postgresql Configuration (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r PostgreSQLConfigurationResource) backslashQuote(data acceptance.TestData) string {

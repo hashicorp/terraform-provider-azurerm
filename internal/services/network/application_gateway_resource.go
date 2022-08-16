@@ -325,6 +325,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"public_ip_address_id": {
@@ -663,7 +664,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 						"priority": {
 							Type:         pluginsdk.TypeInt,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 20000),
 						},
 
@@ -966,7 +967,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"body": {
 										Type:     pluginsdk.TypeString,
-										Required: true,
+										Optional: true,
 									},
 
 									"status_code": {
