@@ -88,50 +88,6 @@ func (c SchemaRegistryClient) ListByNamespace(ctx context.Context, id NamespaceI
 	return
 }
 
-// ListByNamespaceComplete retrieves all of the results into a single object
-func (c SchemaRegistryClient) ListByNamespaceComplete(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (ListByNamespaceCompleteResult, error) {
-	return c.ListByNamespaceCompleteMatchingPredicate(ctx, id, options, SchemaGroupOperationPredicate{})
-}
-
-// ListByNamespaceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SchemaRegistryClient) ListByNamespaceCompleteMatchingPredicate(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions, predicate SchemaGroupOperationPredicate) (resp ListByNamespaceCompleteResult, err error) {
-	items := make([]SchemaGroup, 0)
-
-	page, err := c.ListByNamespace(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByNamespaceCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByNamespace prepares the ListByNamespace request.
 func (c SchemaRegistryClient) preparerForListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c SchemaRegistryClient) responderForListByNamespace(resp *http.Response) (
 		}
 	}
 	return
+}
+
+// ListByNamespaceComplete retrieves all of the results into a single object
+func (c SchemaRegistryClient) ListByNamespaceComplete(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (ListByNamespaceCompleteResult, error) {
+	return c.ListByNamespaceCompleteMatchingPredicate(ctx, id, options, SchemaGroupOperationPredicate{})
+}
+
+// ListByNamespaceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SchemaRegistryClient) ListByNamespaceCompleteMatchingPredicate(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions, predicate SchemaGroupOperationPredicate) (resp ListByNamespaceCompleteResult, err error) {
+	items := make([]SchemaGroup, 0)
+
+	page, err := c.ListByNamespace(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByNamespaceCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
