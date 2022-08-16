@@ -24,8 +24,7 @@ type DataCollectionRuleAssociationModel struct {
 	Description              string `tfschema:"description"`
 }
 
-type DataCollectionRuleAssociationResource struct {
-}
+type DataCollectionRuleAssociationResource struct{}
 
 func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
