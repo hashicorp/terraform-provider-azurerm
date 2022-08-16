@@ -3,10 +3,9 @@ package storage
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -49,12 +48,9 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile(`^[a-zA-Z0-9-]*$`),
-								"A rule name can contain any combination of alpha numeric characters.",
-							),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,

@@ -120,7 +120,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_size_in_gb": {
 			Type:         schema.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(32, 8192),
+			ValidateFunc: validation.IntBetween(32, 16384),
 		},
 
 		"subnet_id": {
@@ -438,6 +438,8 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 				// This value is not returned, so we'll just set whatever is in the state/config
 				AdministratorLoginPassword: state.AdministratorLoginPassword,
+				// This value is not returned, so we'll just set whatever is in the state/config
+				DnsZonePartnerId: state.DnsZonePartnerId,
 			}
 
 			if sku := existing.Sku; sku != nil && sku.Name != nil {

@@ -59,50 +59,6 @@ func (c ContainerInstanceClient) LocationListCapabilities(ctx context.Context, i
 	return
 }
 
-// LocationListCapabilitiesComplete retrieves all of the results into a single object
-func (c ContainerInstanceClient) LocationListCapabilitiesComplete(ctx context.Context, id LocationId) (LocationListCapabilitiesCompleteResult, error) {
-	return c.LocationListCapabilitiesCompleteMatchingPredicate(ctx, id, CapabilitiesOperationPredicate{})
-}
-
-// LocationListCapabilitiesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ContainerInstanceClient) LocationListCapabilitiesCompleteMatchingPredicate(ctx context.Context, id LocationId, predicate CapabilitiesOperationPredicate) (resp LocationListCapabilitiesCompleteResult, err error) {
-	items := make([]Capabilities, 0)
-
-	page, err := c.LocationListCapabilities(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := LocationListCapabilitiesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForLocationListCapabilities prepares the LocationListCapabilities request.
 func (c ContainerInstanceClient) preparerForLocationListCapabilities(ctx context.Context, id LocationId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ContainerInstanceClient) responderForLocationListCapabilities(resp *http
 		}
 	}
 	return
+}
+
+// LocationListCapabilitiesComplete retrieves all of the results into a single object
+func (c ContainerInstanceClient) LocationListCapabilitiesComplete(ctx context.Context, id LocationId) (LocationListCapabilitiesCompleteResult, error) {
+	return c.LocationListCapabilitiesCompleteMatchingPredicate(ctx, id, CapabilitiesOperationPredicate{})
+}
+
+// LocationListCapabilitiesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ContainerInstanceClient) LocationListCapabilitiesCompleteMatchingPredicate(ctx context.Context, id LocationId, predicate CapabilitiesOperationPredicate) (resp LocationListCapabilitiesCompleteResult, err error) {
+	items := make([]Capabilities, 0)
+
+	page, err := c.LocationListCapabilities(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := LocationListCapabilitiesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

@@ -217,9 +217,9 @@ func (r DisksPoolIscsiTargetLunResource) multipleLuns(data acceptance.TestData, 
 %[1]s
 
 resource "azurerm_disk_pool_iscsi_target_lun" "test%[2]d" {
-  iscsi_target_id            = azurerm_disk_pool_iscsi_target.test.id
+  iscsi_target_id                      = azurerm_disk_pool_iscsi_target.test.id
   disk_pool_managed_disk_attachment_id = azurerm_disk_pool_managed_disk_attachment.test[%[2]d].id
-  name                       = "test-%[2]d"
+  name                                 = "test-%[2]d"
 }
 `, tfCode, i)
 	}

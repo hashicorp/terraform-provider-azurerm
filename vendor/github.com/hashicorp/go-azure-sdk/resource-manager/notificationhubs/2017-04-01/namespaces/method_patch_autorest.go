@@ -64,5 +64,6 @@ func (c NamespacesClient) responderForPatch(resp *http.Response) (result PatchOp
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

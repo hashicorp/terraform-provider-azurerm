@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourcePostgreSqlServer() *pluginsdk.Resource {
@@ -57,7 +58,7 @@ func dataSourcePostgreSqlServer() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -68,10 +69,10 @@ func dataSourcePostgreSqlServerRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -79,23 +80,26 @@ func dataSourcePostgreSqlServerRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("fqdn", props.FullyQualifiedDomainName)
+			d.Set("version", props.Version)
+			d.Set("administrator_login", props.AdministratorLogin)
+		}
+
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	if err := d.Set("identity", flattenServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if props := resp.ServerProperties; props != nil {
-		d.Set("fqdn", props.FullyQualifiedDomainName)
-		d.Set("version", props.Version)
-		d.Set("administrator_login", props.AdministratorLogin)
-	}
-
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

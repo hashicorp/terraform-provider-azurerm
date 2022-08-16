@@ -65,5 +65,6 @@ func (c AttestationProvidersClient) responderForList(resp *http.Response) (resul
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
