@@ -266,6 +266,8 @@ A `managed_disk` block supports the following:
 
 * `target_disk_encryption_set_id` - (Optional)  The Disk Encryption Set that the Managed Disk will be associated with.
 
+* `target_disk_encryption` - (Optional) A `target_disk_encryption` block as defined below.
+
 ---
 
 A `network_interface` block supports the following:
@@ -278,6 +280,30 @@ A `network_interface` block supports the following:
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
 
+---
+
+The `target_disk_encryption` block supports:
+
+* `disk_encryption_key` - (Required) A `disk_encryption_key` block as defined below.
+
+* `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
+
+---
+
+The `disk_encryption_key` block supports:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_secret` resource. Changing this forces a new resource to be created.
+
+* `vault_id` - (Required) The ID of the Key Vault. This can be found as `id` on the `azurerm_key_vault` resource. Changing this forces a new resource to be created.
+
+---
+
+The `key_encryption_key` block supports:
+
+* `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_key` resource. Changing this forces a new resource to be created.
+
+* `vault_id` - (Required) The ID of the Key Vault. This can be found as `id` on the `azurerm_key_vault` resource. Changing this forces a new resource to be created.
+
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
@@ -286,7 +312,7 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 120 minutes) Used when creating the Site Recovery Replicated VM.
 * `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.

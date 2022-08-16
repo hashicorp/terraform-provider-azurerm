@@ -93,5 +93,6 @@ func (c RecordSetsClient) responderForUpdate(resp *http.Response) (result Update
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

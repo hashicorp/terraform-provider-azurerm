@@ -25,7 +25,7 @@ resource "azurerm_iotcentral_application" "example" {
   sub_domain          = "example-iotcentral-app-subdomain"
 
   display_name = "example-iotcentral-app-display-name"
-  sku          = "S1"
+  sku          = "ST1"
   template     = "iotc-default@1.0.0"
 
   tags = {
@@ -62,7 +62,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IoT Central Application.
 * `update` - (Defaults to 30 minutes) Used when updating the IoT Central Application.

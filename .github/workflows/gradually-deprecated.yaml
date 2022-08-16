@@ -1,5 +1,7 @@
 ---
 name: Check for new usages of deprecated functionality
+permissions:
+  contents: read
 on:
   pull_request:
     types: ['opened', 'synchronize']
@@ -16,5 +18,5 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.18.1'
+          go-version: '1.18.5'
       - run: ./scripts/run-gradually-deprecated.sh

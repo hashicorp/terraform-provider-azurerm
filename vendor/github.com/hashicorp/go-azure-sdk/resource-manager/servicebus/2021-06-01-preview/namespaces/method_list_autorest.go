@@ -60,50 +60,6 @@ func (c NamespacesClient) List(ctx context.Context, id commonids.SubscriptionId)
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c NamespacesClient) ListComplete(ctx context.Context, id commonids.SubscriptionId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, SBNamespaceOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c NamespacesClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate SBNamespaceOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]SBNamespace, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c NamespacesClient) preparerForList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c NamespacesClient) responderForList(resp *http.Response) (result ListOper
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c NamespacesClient) ListComplete(ctx context.Context, id commonids.SubscriptionId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, SBNamespaceOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c NamespacesClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate SBNamespaceOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]SBNamespace, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

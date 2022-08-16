@@ -60,50 +60,6 @@ func (c ServersClient) List(ctx context.Context, id commonids.SubscriptionId) (r
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c ServersClient) ListComplete(ctx context.Context, id commonids.SubscriptionId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, ServerOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ServersClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ServerOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]Server, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c ServersClient) preparerForList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ServersClient) responderForList(resp *http.Response) (result ListOperati
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c ServersClient) ListComplete(ctx context.Context, id commonids.SubscriptionId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, ServerOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ServersClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ServerOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]Server, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

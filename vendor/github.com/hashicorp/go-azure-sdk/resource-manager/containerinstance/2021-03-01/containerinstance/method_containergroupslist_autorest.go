@@ -60,50 +60,6 @@ func (c ContainerInstanceClient) ContainerGroupsList(ctx context.Context, id com
 	return
 }
 
-// ContainerGroupsListComplete retrieves all of the results into a single object
-func (c ContainerInstanceClient) ContainerGroupsListComplete(ctx context.Context, id commonids.SubscriptionId) (ContainerGroupsListCompleteResult, error) {
-	return c.ContainerGroupsListCompleteMatchingPredicate(ctx, id, ContainerGroupOperationPredicate{})
-}
-
-// ContainerGroupsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ContainerInstanceClient) ContainerGroupsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ContainerGroupOperationPredicate) (resp ContainerGroupsListCompleteResult, err error) {
-	items := make([]ContainerGroup, 0)
-
-	page, err := c.ContainerGroupsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ContainerGroupsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForContainerGroupsList prepares the ContainerGroupsList request.
 func (c ContainerInstanceClient) preparerForContainerGroupsList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ContainerInstanceClient) responderForContainerGroupsList(resp *http.Resp
 		}
 	}
 	return
+}
+
+// ContainerGroupsListComplete retrieves all of the results into a single object
+func (c ContainerInstanceClient) ContainerGroupsListComplete(ctx context.Context, id commonids.SubscriptionId) (ContainerGroupsListCompleteResult, error) {
+	return c.ContainerGroupsListCompleteMatchingPredicate(ctx, id, ContainerGroupOperationPredicate{})
+}
+
+// ContainerGroupsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ContainerInstanceClient) ContainerGroupsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ContainerGroupOperationPredicate) (resp ContainerGroupsListCompleteResult, err error) {
+	items := make([]ContainerGroup, 0)
+
+	page, err := c.ContainerGroupsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ContainerGroupsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
