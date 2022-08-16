@@ -192,11 +192,11 @@ The `exclusion` block supports the following:
 
 * `selector_match_operator` - (Required) Describes operator to be matched. Possible values: `Contains`, `EndsWith`, `Equals`, `EqualsAny`, `StartsWith`.
 
-* `exclusion_managed_rule_set` - (Optional) One or more `exclusion_managed_rule_set` block defined below.
+* `excluded_rule_set` - (Optional) One or more `excluded_rule_set` block defined below.
 
 ---
 
-The `exclusion_managed_rule_set` block supports the following:
+The `excluded_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. The only possible value is `OWASP` . Defaults to `OWASP`.
 

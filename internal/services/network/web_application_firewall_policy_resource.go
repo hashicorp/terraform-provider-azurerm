@@ -195,7 +195,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
 										}, false),
 									},
-									"exclusion_managed_rule_set": {
+									"excluded_rule_set": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
@@ -580,7 +580,7 @@ func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]networ
 		matchVariable := v["match_variable"].(string)
 		selectorMatchOperator := v["selector_match_operator"].(string)
 		selector := v["selector"].(string)
-		exclusionManagedRuleSets := v["exclusion_managed_rule_set"].([]interface{})
+		exclusionManagedRuleSets := v["excluded_rule_set"].([]interface{})
 
 		result := network.OwaspCrsExclusionEntry{
 			MatchVariable:            network.OwaspCrsExclusionEntryMatchVariable(matchVariable),
@@ -820,7 +820,7 @@ func flattenWebApplicationFirewallPolicyExclusions(input *[]network.OwaspCrsExcl
 		}
 
 		v["selector_match_operator"] = string(item.SelectorMatchOperator)
-		v["exclusion_managed_rule_set"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(item.ExclusionManagedRuleSets)
+		v["excluded_rule_set"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(item.ExclusionManagedRuleSets)
 
 		results = append(results, v)
 	}

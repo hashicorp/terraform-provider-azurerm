@@ -609,7 +609,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       selector                = "x-shared-secret"
       selector_match_operator = "Equals"
 
-      exclusion_managed_rule_set {
+      excluded_rule_set {
         rule_group {
           rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
           excluded_rules = [
@@ -716,7 +716,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       selector                = "x-shared-secret"
       selector_match_operator = "Equals"
 
-      exclusion_managed_rule_set {
+      excluded_rule_set {
         rule_group {
           rule_group_name = "REQUEST-913-SCANNER-DETECTION"
           excluded_rules = [
