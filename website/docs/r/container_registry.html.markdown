@@ -153,6 +153,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
 
+~> **NOTE:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
+
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
