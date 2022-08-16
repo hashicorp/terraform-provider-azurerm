@@ -205,7 +205,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		if err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
-
 		// Uncomment below once https://github.com/Azure/azure-sdk-for-go/issues/17196 is resolved.
 		// if err := f1.WaitForCompletionRef(ctx, draftClient.Client); err != nil {
 		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)
