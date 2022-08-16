@@ -157,7 +157,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   resource_group_name               = azurerm_resource_group.test.name
   sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
   enabled                           = true
-  mode                              = "Prevention"
+  mode                              = "Detection"
   redirect_url                      = "https://www.contoso.com"
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="

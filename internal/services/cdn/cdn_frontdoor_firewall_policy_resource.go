@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -963,7 +962,7 @@ func flattenCdnFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchConditio
 		results = append(results, map[string]interface{}{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
-			"negation_condition": negateCondition, // TODO: why isn't this negate_condition in the schema? WS: For consistency with all of the other existing firewall policies(e.g. web application and legacy frontdoor).
+			"negation_condition": negateCondition,
 			"operator":           string(v.Operator),
 			"selector":           selector,
 			"transforms":         flattenTransformSlice(v.Transforms),

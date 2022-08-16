@@ -36,11 +36,9 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: validation
-				// WS: There are literally no rules for what this string can be. Fixed
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -70,11 +68,9 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 
 									"cdn_frontdoor_firewall_policy_id": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ForceNew: true,
-										// TODO: validation for the ID type
-										// WS: Fixed
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
 										ValidateFunc: validate.FrontDoorFirewallPolicyID,
 									},
 
@@ -96,9 +92,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
-
-															// WS: I changed this to a generic name from 'cdn_frontdoor_custom_domain_id' because
-															// this value can be either a custom domain id or a endpoint id...
 															"cdn_frontdoor_domain_id": {
 																Type:         pluginsdk.TypeString,
 																Required:     true,
@@ -146,10 +139,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// WS: I need to have the fake profile id field here because
-	// I need the profile name and the last I knew we wanted to get
-	// away from using the name as a field and use ID which we can parse
-	// to get the same data?
+	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
 	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
