@@ -27,6 +27,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_elastic_pool` - support for the `maintenance_configuration_name` property [GH-17790]
 * `azurerm_mssql_server` - support `Disabled` for the `minimum_tls_version` property [GH-16595]
 * `azurerm_shared_image` - support for the `architecture` property [GH-17250]
+* `azurerm_storage_account` - support for the `default_to_oauth_authentication` property [GH-17116]
 * `azurerm_windows_virtual_machine` - now supports delete Eviction policies [GH-17226]
 * `azurerm_windows_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
 * 
