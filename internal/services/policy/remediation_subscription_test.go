@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/policyinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -47,12 +47,12 @@ func TestAccAzureRMSubscriptionPolicyRemediation_complete(t *testing.T) {
 }
 
 func (r SubscriptionPolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := policyinsights.ParseRemediationID(state.ID)
+	id, err := remediations.ParseRemediationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Policy.PolicyInsightsClient.RemediationsGetAtSubscription(ctx, *id)
+	resp, err := client.Policy.RemediationsClient.RemediationsGetAtSubscription(ctx, *id)
 	if err != nil || resp.Model == nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

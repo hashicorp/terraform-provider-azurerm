@@ -63,5 +63,6 @@ func (c ConnectionsClient) responderForGet(resp *http.Response) (result GetOpera
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
