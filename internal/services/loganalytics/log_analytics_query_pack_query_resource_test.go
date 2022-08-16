@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	queryPacks "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/operationalinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,12 +18,12 @@ import (
 type LogAnalyticsQueryPackQueryResource struct{ uuid string }
 
 func (r LogAnalyticsQueryPackQueryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := queryPacks.ParseQueriesID(state.ID)
+	id, err := querypackqueries.ParseQueriesID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.LogAnalytics.QueryPacksClient.QueriesGet(ctx, *id)
+	resp, err := client.LogAnalytics.QueryPackQueriesClient.QueriesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
