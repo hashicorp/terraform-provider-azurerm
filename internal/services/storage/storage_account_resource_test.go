@@ -1312,9 +1312,9 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  location                      = azurerm_resource_group.test.location
+  account_tier                  = "Standard"
+  account_replication_type      = "LRS"
   public_network_access_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, enabled)
