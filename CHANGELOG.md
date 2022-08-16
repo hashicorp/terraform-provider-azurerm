@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
 * `azurerm_mssql_elastic_pool` - support for the `maintenance_configuration_name` property [GH-17790]
+* `azurerm_mssql_server` - support `Disabled` for the `minimum_tls_version` property [GH-16595]
 
 BUG FIXES:
 
