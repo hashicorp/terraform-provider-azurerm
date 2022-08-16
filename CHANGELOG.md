@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Rersource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
 * **New Data Source**: `azurerm_dns_a_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_aaaa_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_caa_record` [GH-17477]
