@@ -57,6 +57,12 @@ The following arguments are supported:
 
 * `target_region` - (Required) One or more `target_region` blocks as documented below.
 
+* `blob_uri` - (Optional) URI of the Azure Storage Blob used to create the Image Version. Changing this forces a new resource to be created.
+
+-> **NOTE:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
+
+-> **NOTE:** `blob_uri` and `storage_account_id` must be specified together
+
 * `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image Version.
 
 * `exclude_from_latest` - (Optional) Should this Image Version be excluded from the `latest` filter? If set to `true` this Image Version won't be returned for the `latest` version. Defaults to `false`.
@@ -65,11 +71,17 @@ The following arguments are supported:
 
 -> **NOTE:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
 
+-> **NOTE:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
+
 * `os_disk_snapshot_id` - (Optional) The ID of the OS disk snapshot which should be used for this Shared Image Version. Changing this forces a new resource to be created.
 
--> **NOTE:** You must specify exact one of `managed_image_id` and `os_disk_snapshot_id`.
+-> **NOTE:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
 
 * `replication_mode` - (Optional)  Mode to be used for replication. Possible values are `Full` and `Shallow`. Defaults to `Full`. Changing this forces a new resource to be created.
+
+* `storage_account_id` - (Optional) The ID of the Storage Account where the Blob exists. Changing this forces a new resource to be created.
+
+-> **NOTE:** `blob_uri` and `storage_account_id` must be specified together
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
 
