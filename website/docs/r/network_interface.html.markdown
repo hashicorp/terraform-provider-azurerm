@@ -100,7 +100,7 @@ The `ip_configuration` block supports the following:
 
 When `private_ip_address_allocation` is set to `Static` the following fields can be configured:
 
-* `private_ip_address` - The Static IP Address which should be used.
+* `private_ip_address` - (Optional) The Static IP Address which should be used.
 
 When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
 
