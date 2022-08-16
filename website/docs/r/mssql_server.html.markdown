@@ -63,9 +63,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `minimum_tls_version` - (Optional) The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` and `1.2`.
+* `minimum_tls_version` - (Optional) The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` , `1.2` and `Disabled`. Defaults to `1.2`.
 
-~> **NOTE:** Once `minimum_tls_version` is set it is not possible to remove this setting and must be given a valid value for any further updates to the resource.
+~> **NOTE:** The `minimum_tls_version` is set to `Disabled` means all TLS versions are allowed. After you enforce a version of `minimum_tls_version`, it's not possible to revert to `Disabled`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
@@ -121,7 +121,7 @@ The following attributes are exported:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Microsoft SQL Server.
 * `update` - (Defaults to 60 minutes) Used when updating the Microsoft SQL Server.

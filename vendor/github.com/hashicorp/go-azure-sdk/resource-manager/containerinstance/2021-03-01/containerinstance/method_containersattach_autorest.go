@@ -64,5 +64,6 @@ func (c ContainerInstanceClient) responderForContainersAttach(resp *http.Respons
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

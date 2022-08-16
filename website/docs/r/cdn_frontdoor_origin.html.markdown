@@ -18,19 +18,22 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "example" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Premium_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                     = "example-origingroup"
-  cdn_frontdoor_profile_id = azurerm_frontdoor_profile.example.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {}
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
-  name                                  = "example-origin"
-  cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
   health_probes_enabled          = true
   certificate_name_check_enabled = false
@@ -70,14 +73,17 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-resource "azurerm_frontdoor_profile" "example" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Premium_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                     = "example-origin-group"
-  cdn_frontdoor_profile_id = azurerm_frontdoor_profile.example.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {}
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
@@ -171,7 +177,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Origin.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Origin.

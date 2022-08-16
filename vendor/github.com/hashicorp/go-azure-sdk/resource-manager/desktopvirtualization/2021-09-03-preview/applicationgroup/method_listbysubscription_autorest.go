@@ -84,50 +84,6 @@ func (c ApplicationGroupClient) ListBySubscription(ctx context.Context, id commo
 	return
 }
 
-// ListBySubscriptionComplete retrieves all of the results into a single object
-func (c ApplicationGroupClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (ListBySubscriptionCompleteResult, error) {
-	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, options, ApplicationGroupOperationPredicate{})
-}
-
-// ListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ApplicationGroupClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions, predicate ApplicationGroupOperationPredicate) (resp ListBySubscriptionCompleteResult, err error) {
-	items := make([]ApplicationGroup, 0)
-
-	page, err := c.ListBySubscription(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListBySubscription prepares the ListBySubscription request.
 func (c ApplicationGroupClient) preparerForListBySubscription(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -213,4 +169,48 @@ func (c ApplicationGroupClient) responderForListBySubscription(resp *http.Respon
 		}
 	}
 	return
+}
+
+// ListBySubscriptionComplete retrieves all of the results into a single object
+func (c ApplicationGroupClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (ListBySubscriptionCompleteResult, error) {
+	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, options, ApplicationGroupOperationPredicate{})
+}
+
+// ListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ApplicationGroupClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions, predicate ApplicationGroupOperationPredicate) (resp ListBySubscriptionCompleteResult, err error) {
+	items := make([]ApplicationGroup, 0)
+
+	page, err := c.ListBySubscription(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

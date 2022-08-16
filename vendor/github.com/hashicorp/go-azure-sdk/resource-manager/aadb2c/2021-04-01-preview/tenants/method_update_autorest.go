@@ -64,5 +64,6 @@ func (c TenantsClient) responderForUpdate(resp *http.Response) (result UpdateOpe
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

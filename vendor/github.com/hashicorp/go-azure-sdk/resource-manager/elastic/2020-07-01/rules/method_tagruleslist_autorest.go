@@ -59,50 +59,6 @@ func (c RulesClient) TagRulesList(ctx context.Context, id MonitorId) (resp TagRu
 	return
 }
 
-// TagRulesListComplete retrieves all of the results into a single object
-func (c RulesClient) TagRulesListComplete(ctx context.Context, id MonitorId) (TagRulesListCompleteResult, error) {
-	return c.TagRulesListCompleteMatchingPredicate(ctx, id, MonitoringTagRulesOperationPredicate{})
-}
-
-// TagRulesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c RulesClient) TagRulesListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoringTagRulesOperationPredicate) (resp TagRulesListCompleteResult, err error) {
-	items := make([]MonitoringTagRules, 0)
-
-	page, err := c.TagRulesList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := TagRulesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForTagRulesList prepares the TagRulesList request.
 func (c RulesClient) preparerForTagRulesList(ctx context.Context, id MonitorId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c RulesClient) responderForTagRulesList(resp *http.Response) (result TagRu
 		}
 	}
 	return
+}
+
+// TagRulesListComplete retrieves all of the results into a single object
+func (c RulesClient) TagRulesListComplete(ctx context.Context, id MonitorId) (TagRulesListCompleteResult, error) {
+	return c.TagRulesListCompleteMatchingPredicate(ctx, id, MonitoringTagRulesOperationPredicate{})
+}
+
+// TagRulesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c RulesClient) TagRulesListCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoringTagRulesOperationPredicate) (resp TagRulesListCompleteResult, err error) {
+	items := make([]MonitoringTagRules, 0)
+
+	page, err := c.TagRulesList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := TagRulesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

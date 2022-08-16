@@ -44,11 +44,15 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the account - only `Basic` is supported at this time.
 
+* `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked.
+
 ---
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `encryption` - (Optional) An `encryption` block as defined below.
 
 ---
 
@@ -59,6 +63,16 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Automation Account.
 
 -> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+--
+
+An `encryption` block supports the following:
+
+* `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
+
+* `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`.
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
 
 ---
 
@@ -86,7 +100,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Account.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Account.
