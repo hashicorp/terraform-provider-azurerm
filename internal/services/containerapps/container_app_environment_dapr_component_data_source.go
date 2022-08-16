@@ -61,8 +61,9 @@ func (r ContainerAppEnvironmentDaprComponentDataSource) Arguments() map[string]*
 func (r ContainerAppEnvironmentDaprComponentDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Dapr Component Type.",
 		},
 
 		"version": {

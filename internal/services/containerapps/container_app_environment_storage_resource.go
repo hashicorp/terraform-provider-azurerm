@@ -45,7 +45,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty, // TODO
+			ValidateFunc: validation.StringIsNotEmpty, // TODO - all lower + other rules...
 			Description:  "The name for this Storage.",
 		},
 
@@ -68,6 +68,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 		"access_key": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The Storage Account Access Key.",
 		},
@@ -77,6 +78,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: storageValidate.StorageShareName,
+			Description:  "The name of the Azure Storage Share to use.",
 		},
 
 		"access_mode": {
@@ -87,6 +89,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 				string(managedenvironmentsstorages.AccessModeReadOnly),
 				string(managedenvironmentsstorages.AccessModeReadWrite),
 			}, false),
+			Description: "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
 		},
 	}
 }
@@ -177,7 +180,6 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					if azureFile := props.AzureFile; azureFile != nil {
 						state.AccountName = utils.NormalizeNilableString(azureFile.AccountName)
-						//state.AccessKey = utils.NormalizeNilableString(azureFile.AccountKey) // Probably not returned?
 						if azureFile.AccessMode != nil {
 							state.AccessMode = string(*azureFile.AccessMode)
 						}
@@ -241,7 +243,7 @@ func (r ContainerAppEnvironmentStorageResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("could not update %s: %+v", *id, err)
 			}
 
-			// This *must* be sent, and since it is not returned from the API in any way, we re-read from config.
+			// This *must* be sent, and is currently the only updatable property on the resource.
 			existing.Model.Properties.AzureFile.AccountKey = utils.String(metadata.ResourceData.Get("access_key").(string))
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {

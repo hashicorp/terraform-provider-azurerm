@@ -20,6 +20,9 @@ func TestAccContainerAppEnvironmentDaprComponentDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("type").HasValue("state.azure.blobstorage"),
 				check.That(data.ResourceName).Key("version").HasValue("v1"),
+				check.That(data.ResourceName).Key("init_timeout").HasValue("10s"),
+				check.That(data.ResourceName).Key("secret.#").HasValue("2"),
+				check.That(data.ResourceName).Key("metadata.#").HasValue("3"),
 			),
 		},
 	})
@@ -30,9 +33,10 @@ func (d ContainerAppEnvironmentDaprComponentDataSource) basic(data acceptance.Te
 %s
 
 data "azurerm_container_app_environment_dapr_component" "test" {
-  name 						   = azurerm_container_app_environment_dapr_component.test.name
-  container_app_environment_id = azurerm_container_app_environment_dapr_component.test.container_app_environment_id   
+  name                         = azurerm_container_app_environment_dapr_component.test.name
+  container_app_environment_id = azurerm_container_app_environment_dapr_component.test.container_app_environment_id
 }
 
-`, ContainerAppEnvironmentDaprComponentResource{}.basic(data))
+
+`, ContainerAppEnvironmentDaprComponentResource{}.complete(data))
 }

@@ -58,7 +58,7 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: helpers.ValidateCertificateName,
-			Description:  "The name of the Container Apps Certificate.",
+			Description:  "The name of the Container Apps Environment Certificate.",
 		},
 
 		"container_app_environment_id": {
@@ -73,8 +73,8 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "The Certificate Private Key as a base64 encoded PFX or PEM.",
 			ValidateFunc: validation.StringIsBase64,
+			Description:  "The Certificate Private Key as a base64 encoded PFX or PEM.",
 		},
 
 		"certificate_password": {
@@ -92,28 +92,33 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 func (r ContainerAppEnvironmentCertificateResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subject_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Subject Name for the Certificate.",
 		},
 
 		"issuer": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Certificate Issuer.",
 		},
 
 		"issue_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The date of issue for the Certificate.",
 		},
 
 		"expiration_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The expiration date for the Certificate.",
 		},
 
 		"thumbprint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Thumbprint of the Certificate.",
 		},
 	}
 }

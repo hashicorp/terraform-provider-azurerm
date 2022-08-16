@@ -50,7 +50,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: helpers.ValidateDaprComponentName,
-			Description:  "The name for this Dapr component.",
+			Description:  "The name for this Dapr Component.",
 		},
 
 		"container_app_environment_id": {
@@ -62,12 +62,11 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 		},
 
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				helpers.StateAzureBlobStorage, // TODO - find supported strings from `service-to-service`, `pub/sub`, `event-bindings` and `state-stores`, or just let the user free-text it?
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The Dapr Component Type. For example `state.azure.blobstorage`.",
 		},
 
 		"version": {
@@ -82,7 +81,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 			Optional:     true,
 			Default:      "5s",
 			ValidateFunc: helpers.ValidateInitTimeout,
-			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`. Defaults to `5s`",
+			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`. Defaults to `5s`.",
 		},
 
 		"ignore_errors": {

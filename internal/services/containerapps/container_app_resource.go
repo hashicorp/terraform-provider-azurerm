@@ -68,6 +68,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: helpers.ValidateContainerAppName,
+			Description:  "The name for this Container App.",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),

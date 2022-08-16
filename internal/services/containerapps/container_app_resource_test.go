@@ -252,14 +252,14 @@ resource "azurerm_container_app" "test" {
       }
 
       volume_mounts {
-       name = azurerm_container_app_environment_storage.test.name
-       path = "/tmp/testdata"
+        name = azurerm_container_app_environment_storage.test.name
+        path = "/tmp/testdata"
       }
     }
 
     volume {
-     name = azurerm_container_app_environment_storage.test.name
-     storage_type = "AzureFile"
+      name         = azurerm_container_app_environment_storage.test.name
+      storage_type = "AzureFile"
     }
 
     min_replicas = 2
@@ -473,12 +473,12 @@ resource "azurerm_storage_share" "test" {
 }
 
 resource "azurerm_container_app_environment_storage" "test" {
-  name = "testacc-caes-%[2]d"
+  name                         = "testacc-caes-%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
-  account_name = azurerm_storage_account.test.name
-  access_key   = azurerm_storage_account.test.primary_access_key
-  share_name   = azurerm_storage_share.test.name
-  access_mode  = "ReadWrite"
+  account_name                 = azurerm_storage_account.test.name
+  access_key                   = azurerm_storage_account.test.primary_access_key
+  share_name                   = azurerm_storage_share.test.name
+  access_mode                  = "ReadWrite"
 }
 `, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
 }

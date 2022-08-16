@@ -37,7 +37,7 @@ func (r ContainerAppEnvironmentCertificateDataSource) ModelObject() interface{} 
 }
 
 func (r ContainerAppEnvironmentCertificateDataSource) ResourceType() string {
-	return "azurerm_container_app_environment_certificate_resource"
+	return "azurerm_container_app_environment_certificate"
 }
 
 func (r ContainerAppEnvironmentCertificateDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -63,28 +63,33 @@ func (r ContainerAppEnvironmentCertificateDataSource) Arguments() map[string]*pl
 func (r ContainerAppEnvironmentCertificateDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subject_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Subject Name for the Certificate.",
 		},
 
 		"issuer": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Certificate Issuer.",
 		},
 
 		"issue_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The date of issue for the Certificate.",
 		},
 
 		"expiration_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The expiration date for the Certificate.",
 		},
 
 		"thumbprint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Thumbprint of the Certificate.",
 		},
 
 		"tags": commonschema.TagsDataSource(),

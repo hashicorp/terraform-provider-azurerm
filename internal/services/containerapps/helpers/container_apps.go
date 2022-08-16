@@ -12,10 +12,6 @@ import (
 	"strings"
 )
 
-const (
-	StateAzureBlobStorage = "state.azure.blobstorage"
-)
-
 type Registry struct {
 	PasswordSecretRef string `tfschema:"password_secret_reference"`
 	Server            string `tfschema:"server"`
@@ -268,6 +264,7 @@ func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The suffix string to append to the revision. This must be unique for the Container App's lifetime. A default hash created by the service will be used if this value is omitted.",
 				},
 
 				"latest_revision": {
@@ -430,6 +427,7 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name of the Metadata configuration item.",
 				},
 
 				"value": {
@@ -455,8 +453,9 @@ func ContainerAppEnvironmentDaprMetadataDataSourceSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of the Metadata configuration item.",
 				},
 
 				"value": {
@@ -515,9 +514,10 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"volume": ContainerVolumeSchema(),
 
 				"revision_suffix": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true,
+					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
 				},
 			},
 		},
@@ -634,8 +634,9 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				},
 
 				"ephemeral_storage": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "The amount of ephemeral storage available to the Container App.",
 				}, // Not supported?
 
 				"env": ContainerEnvVarSchema(),

@@ -33,9 +33,10 @@ func (d ContainerAppEnvironmentCertificateDataSource) basic(data acceptance.Test
 %s
 
 data "azurerm_container_app_environment_certificate" "test" {
-  name 						   = azurerm_container_app_environment_certificate.test.name
-  container_app_environment_id = azurerm_container_app_environment_certificate.test.container_app_environment_id   
+  name                         = azurerm_container_app_environment_certificate.test.name
+  container_app_environment_id = azurerm_container_app_environment_certificate.test.container_app_environment_id
 }
+
 
 `, ContainerAppEnvironmentCertificateResource{}.basic(data))
 }
