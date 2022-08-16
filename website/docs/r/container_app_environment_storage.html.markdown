@@ -1,5 +1,5 @@
 ---
-subcategory: "Containerapps"
+subcategory: "Container Apps"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_app_environment_storage"
 description: |-
