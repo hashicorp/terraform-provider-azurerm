@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * Data Source: `azurerm_management_group` - now exports the `management_group_ids`, `all_management_group_ids`, and `all_subscription_ids` attributes [GH-16208]
 * `azurerm_automation_account` - support for the `private_endpoint_connection` property [GH-17934]
+* `azurerm_automation_account` - support for the `encryption` block and `local_authentication_enabled` property [GH-17454]
 * `azurerm_firewall_policy_resource` - support for the `private_ranges` and `allow_sql_redirect` properties [GH-17842]
 * `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
 * `azurerm_linux_virtual_machine` - now supports delete Eviction policies [GH-17226]
