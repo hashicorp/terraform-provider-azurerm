@@ -24,6 +24,7 @@ var services = mapOf(
         "connections" to "Connections",
         "consumption" to "Consumption",
         "containers" to "Container Services",
+        "containerapps" to "ContainerApps",
         "cosmos" to "CosmosDB",
         "costmanagement" to "Cost Management",
         "customproviders" to "Custom Providers",
