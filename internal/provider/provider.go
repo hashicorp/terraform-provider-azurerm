@@ -27,7 +27,6 @@ func TestAzureProvider() *schema.Provider {
 
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	// ValidatePartnerID checks if partner_id is any of the following:
-	//  * empty string
 	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
 	//  * a valid UUID prefixed with "pid-"
 	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
