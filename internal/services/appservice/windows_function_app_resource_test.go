@@ -879,6 +879,30 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_appStackUpdateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackNode(data, SkuConsumptionPlan, "~14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appStackNodeWithTags(data, SkuConsumptionPlan, "~14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsFunctionApp_appStackJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -2345,6 +2369,36 @@ resource "azurerm_windows_function_app" "test" {
     application_stack {
       node_version = "%s"
     }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, nodeVersion)
+}
+
+func (r WindowsFunctionAppResource) appStackNodeWithTags(data acceptance.TestData, planSku string, nodeVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      node_version = "%s"
+    }
+  }
+
+  tags = {
+    env = "TestAcc"
   }
 }
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
