@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
+* **New Resource**: `azurerm_cdn_frontdoor_firewall_policy` [GH-17715]
+* **New Resource**: `azurerm_cdn_frontdoor_security_policy` [GH-17715]
 * **New Data Source**: `azurerm_dns_a_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_aaaa_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_caa_record` [GH-17477]
