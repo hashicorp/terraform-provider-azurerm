@@ -1190,6 +1190,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 												"components": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
+													Computed: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														"path_only",
 														"query_string_only",
@@ -3641,9 +3642,9 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 							}
 
 							if path != queryString {
-								if path != "" {
+								if path != "" && queryString == "" {
 									components = "path_only"
-								} else {
+								} else if queryString != "" && path == "" {
 									components = "query_string_only"
 								}
 							}
