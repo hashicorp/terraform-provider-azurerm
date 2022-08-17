@@ -64,7 +64,6 @@ func dataSourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}) error {
 	name := d.Get("name").(string)
 	templateManagementPermissions := map[string][]string{}
-
 	if features.FourPointOh() {
 		templateManagementPermissions["key"] = []string{
 			azure.TitleCase(string(keyvault.KeyPermissionsGet)),
