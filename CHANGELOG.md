@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_active_directory_domain_service` - support for the `kerberos_armoring_enabled` and `kerberos_rc4_encryption_enabled` properties [GH-17853]
 * `azurerm_automation_account` - support for the `private_endpoint_connection` property [GH-17934]
 * `azurerm_automation_account` - support for the `encryption` block and `local_authentication_enabled` property [GH-17454]
+* `azurerm_batch_pool` - support for identity referencees in container registries [GH-17416]
 * `azurerm_firewall_policy_resource` - support for the `private_ranges` and `allow_sql_redirect` properties [GH-17842]
 * `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
 * `azurerm_linux_virtual_machine` - now supports delete Eviction policies [GH-17226]
