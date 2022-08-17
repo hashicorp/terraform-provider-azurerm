@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	CdnFrontDoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
+	cdnFrontDoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyValutValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -38,11 +37,9 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: validation
-				// WS: Fixed
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.CdnFrontDoorSecretName,
 			},
 
@@ -214,10 +211,10 @@ func expandCdnFrontDoorBasicSecretParameters(ctx context.Context, input []interf
 	}
 
 	secretParameters := input[0].(map[string]interface{})
-	m := *CdnFrontDoorsecretparams.InitializeCdnFrontDoorSecretMappings()
+	m := *cdnFrontDoorsecretparams.InitializeCdnFrontDoorSecretMappings()
 	config := secretParameters[m.CustomerCertificate.ConfigName]
 
-	customerCertificate, err := CdnFrontDoorsecretparams.ExpandCdnFrontDoorCustomerCertificateParameters(ctx, config.([]interface{}), clients)
+	customerCertificate, err := cdnFrontDoorsecretparams.ExpandCdnFrontDoorCustomerCertificateParameters(ctx, config.([]interface{}), clients)
 	if err != nil {
 		return nil, err
 	}
