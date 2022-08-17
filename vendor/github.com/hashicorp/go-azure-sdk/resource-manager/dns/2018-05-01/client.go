@@ -8,15 +8,15 @@ import (
 )
 
 type Client struct {
-	DNS        *dns.DNSClient
+	Dns        *dns.DnsClient
 	RecordSets *recordsets.RecordSetsClient
 	Zones      *zones.ZonesClient
 }
 
 func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Client)) Client {
 
-	dNSClient := dns.NewDNSClientWithBaseURI(endpoint)
-	configureAuthFunc(&dNSClient.Client)
+	dnsClient := dns.NewDnsClientWithBaseURI(endpoint)
+	configureAuthFunc(&dnsClient.Client)
 
 	recordSetsClient := recordsets.NewRecordSetsClientWithBaseURI(endpoint)
 	configureAuthFunc(&recordSetsClient.Client)
@@ -25,7 +25,7 @@ func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Cl
 	configureAuthFunc(&zonesClient.Client)
 
 	return Client{
-		DNS:        &dNSClient,
+		Dns:        &dnsClient,
 		RecordSets: &recordSetsClient,
 		Zones:      &zonesClient,
 	}

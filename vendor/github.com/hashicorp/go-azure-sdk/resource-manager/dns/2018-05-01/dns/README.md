@@ -15,12 +15,12 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/dns"
 ### Client Initialization
 
 ```go
-client := dns.NewDNSClientWithBaseURI("https://management.azure.com")
+client := dns.NewDnsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `DNSClient.DnsResourceReferenceGetByTargetResources`
+### Example Usage: `DnsClient.DnsResourceReferenceGetByTargetResources`
 
 ```go
 ctx := context.TODO()

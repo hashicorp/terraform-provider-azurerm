@@ -19,22 +19,22 @@ type DnsResourceReferenceGetByTargetResourcesOperationResponse struct {
 }
 
 // DnsResourceReferenceGetByTargetResources ...
-func (c DNSClient) DnsResourceReferenceGetByTargetResources(ctx context.Context, id commonids.SubscriptionId, input DnsResourceReferenceRequest) (result DnsResourceReferenceGetByTargetResourcesOperationResponse, err error) {
+func (c DnsClient) DnsResourceReferenceGetByTargetResources(ctx context.Context, id commonids.SubscriptionId, input DnsResourceReferenceRequest) (result DnsResourceReferenceGetByTargetResourcesOperationResponse, err error) {
 	req, err := c.preparerForDnsResourceReferenceGetByTargetResources(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dns.DNSClient", "DnsResourceReferenceGetByTargetResources", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dns.DnsClient", "DnsResourceReferenceGetByTargetResources", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dns.DNSClient", "DnsResourceReferenceGetByTargetResources", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dns.DnsClient", "DnsResourceReferenceGetByTargetResources", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForDnsResourceReferenceGetByTargetResources(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dns.DNSClient", "DnsResourceReferenceGetByTargetResources", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dns.DnsClient", "DnsResourceReferenceGetByTargetResources", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -42,7 +42,7 @@ func (c DNSClient) DnsResourceReferenceGetByTargetResources(ctx context.Context,
 }
 
 // preparerForDnsResourceReferenceGetByTargetResources prepares the DnsResourceReferenceGetByTargetResources request.
-func (c DNSClient) preparerForDnsResourceReferenceGetByTargetResources(ctx context.Context, id commonids.SubscriptionId, input DnsResourceReferenceRequest) (*http.Request, error) {
+func (c DnsClient) preparerForDnsResourceReferenceGetByTargetResources(ctx context.Context, id commonids.SubscriptionId, input DnsResourceReferenceRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -59,7 +59,7 @@ func (c DNSClient) preparerForDnsResourceReferenceGetByTargetResources(ctx conte
 
 // responderForDnsResourceReferenceGetByTargetResources handles the response to the DnsResourceReferenceGetByTargetResources request. The method always
 // closes the http.Response Body.
-func (c DNSClient) responderForDnsResourceReferenceGetByTargetResources(resp *http.Response) (result DnsResourceReferenceGetByTargetResourcesOperationResponse, err error) {
+func (c DnsClient) responderForDnsResourceReferenceGetByTargetResources(resp *http.Response) (result DnsResourceReferenceGetByTargetResourcesOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
