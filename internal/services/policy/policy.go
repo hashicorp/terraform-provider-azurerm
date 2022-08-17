@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -26,7 +27,7 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 	var results []policy.Definition
 	for policyDefinitions.NotDone() {
 		def := policyDefinitions.Value()
-		if def.DisplayName != nil && *def.DisplayName == displayName && def.ID != nil {
+		if def.DisplayName != nil && (*def.DisplayName == displayName || strings.TrimPrefix(*def.DisplayName, "[Deprecated]: ") == displayName || strings.TrimPrefix(*def.DisplayName, "[Preview]: ") == displayName) && def.ID != nil {
 			results = append(results, def)
 		}
 
