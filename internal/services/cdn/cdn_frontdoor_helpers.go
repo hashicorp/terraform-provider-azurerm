@@ -72,3 +72,16 @@ func flattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) [
 
 	return result
 }
+
+func cdnFrontDoorRuleHasDeliveryRuleConditions(conditions map[string]interface{}) bool {
+	var hasConditions bool
+
+	for _, condition := range conditions {
+		if len(condition.([]interface{})) > 0 {
+			hasConditions = true
+			break
+		}
+	}
+
+	return hasConditions
+}
