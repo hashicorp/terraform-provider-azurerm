@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -1084,31 +1086,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										Optional: true,
 										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"path": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-												},
-												"query_string": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-												},
-
-												"components": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														"path_only",
-														"query_string_only",
-													}, false),
-												},
-
-												"reroute": {
-													Type:     pluginsdk.TypeBool,
-													Optional: true,
-													Default:  false,
-												},
-											},
+											Schema: RewriteRuleURLSchema(),
 										},
 									},
 								},
@@ -1509,6 +1487,38 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
+}
+
+func RewriteRuleURLSchema() map[string]*pluginsdk.Schema {
+	output := map[string]*pluginsdk.Schema{
+		"path": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+		"query_string": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"reroute": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+	}
+
+	if features.FourPointOhBeta() {
+		output["components"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"path_only",
+				"query_string_only",
+			}, false),
+		}
+	}
+
+	return output
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -3610,10 +3620,14 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]netw
 				if c["path"] == nil && c["query_string"] == nil {
 					return nil, fmt.Errorf("At least one of `path` or `query_string` must be set")
 				}
+
 				components := ""
-				if c["components"] != nil {
-					components = c["components"].(string)
+				if features.FourPointOhBeta() {
+					if c["components"] != nil {
+						components = c["components"].(string)
+					}
 				}
+
 				if c["path"] != nil && components != "query_string_only" {
 					urlConfiguration.ModifiedPath = utils.String(c["path"].(string))
 				}
@@ -3760,9 +3774,9 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 							}
 
 							if path != queryString {
-								if path != "" {
+								if path != "" && queryString == "" {
 									components = "path_only"
-								} else {
+								} else if queryString != "" && path == "" {
 									components = "query_string_only"
 								}
 							}
@@ -3772,12 +3786,17 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 								reroute = *config.Reroute
 							}
 
-							urlConfigs = append(urlConfigs, map[string]interface{}{
-								"components":   components,
+							attrs := map[string]interface{}{
 								"query_string": queryString,
 								"path":         path,
 								"reroute":      reroute,
-							})
+							}
+
+							if features.FourPointOhBeta() {
+								attrs["components"] = components
+							}
+
+							urlConfigs = append(urlConfigs, attrs)
 						}
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs
