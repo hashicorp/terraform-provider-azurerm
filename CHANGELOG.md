@@ -2,9 +2,6 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
-* **New Resource**: `azurerm_cdn_frontdoor_firewall_policy` [GH-17715]
-* **New Resource**: `azurerm_cdn_frontdoor_security_policy` [GH-17715]
 * **New Data Source**: `azurerm_dns_a_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_aaaa_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_caa_record` [GH-17477]
@@ -15,6 +12,9 @@ FEATURES:
 * **New Data Source**: `azurerm_dns_soa_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_srv_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_txt_record` [GH-17477]
+* **New Resource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
+* **New Resource**: `azurerm_cdn_frontdoor_firewall_policy` [GH-17715]
+* **New Resource**: `azurerm_cdn_frontdoor_security_policy` [GH-17715]
 
 ENHANCEMENTS:
 
@@ -51,6 +51,8 @@ BUG FIXES:
 
 * `azurerm_data_protection_backup_policy_postgresql_resource` - prevent a crash when given an empty criteria block [GH-17904]
 * `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
+* `azurerm_windows_function_app` fix a bug with setting values for `WindowsFxString` [GH-18014]
+* `azurerm_windows_function_app_slot` - fix a bug with setting values for `WindowsFxString` [GH-18014]
 
 ## 3.18.0 (August 11, 2022)
 
