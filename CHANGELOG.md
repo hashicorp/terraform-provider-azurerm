@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * Data Source: `azurerm_management_group` - now exports the `management_group_ids`, `all_management_group_ids`, and `all_subscription_ids` attributes [GH-16208]
 * `azurerm_active_directory_domain_service` - support for the `kerberos_armoring_enabled` and `kerberos_rc4_encryption_enabled` properties [GH-17853]
+* `azurerm_application_gateway`: Support for `components` in `rewrite_rule_set.rewrite_rule.url` [GH-13899]
 * `azurerm_automation_account` - support for the `private_endpoint_connection` property [GH-17934]
 * `azurerm_automation_account` - support for the `encryption` block and `local_authentication_enabled` property [GH-17454]
 * `azurerm_batch_pool` - support for identity referencees in container registries [GH-17416]
