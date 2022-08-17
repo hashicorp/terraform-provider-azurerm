@@ -63,5 +63,6 @@ func (c CapacityPoolsClient) responderForPoolsGet(resp *http.Response) (result P
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

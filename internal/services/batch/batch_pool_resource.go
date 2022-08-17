@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -159,15 +160,22 @@ func resourceBatchPool() *pluginsdk.Resource {
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									"user_assigned_identity_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+										Description:  "The User Assigned Identity to use for Container Registry access.",
+									},
 									"user_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"password": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,

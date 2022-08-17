@@ -77,6 +77,7 @@ func dataSourceBlueprintDefinition() *pluginsdk.Resource {
 
 func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.BlueprintsClient
+	publishedClient := meta.(*clients.Client).Blueprints.PublishedBlueprintsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -112,9 +113,20 @@ func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("target_scope", resp.TargetScope)
 
-	if resp.Versions != nil {
-		d.Set("versions", resp.Versions)
+	versionList := make([]string, 0)
+	versions, err := publishedClient.List(ctx, scope, name)
+	if err != nil {
+		return fmt.Errorf("listing blue print versions for %s error: %+v", *resp.ID, err)
 	}
+
+	for _, version := range versions.Values() {
+		if version.PublishedBlueprintProperties == nil || version.Name == nil {
+			continue
+		}
+		versionList = append(versionList, *version.Name)
+	}
+
+	d.Set("versions", versionList)
 
 	return nil
 }

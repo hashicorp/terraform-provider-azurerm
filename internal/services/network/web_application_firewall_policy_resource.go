@@ -195,6 +195,47 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
 										}, false),
 									},
+									"excluded_rule_set": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"type": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													Default:      "OWASP",
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetType,
+												},
+												"version": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													Default:      "3.2",
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion,
+												},
+												"rule_group": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"rule_group_name": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+															},
+															"excluded_rules": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																Elem: &pluginsdk.Schema{
+																	Type: pluginsdk.TypeString,
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -475,6 +516,62 @@ func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{
 	}
 }
 
+func expandWebApplicationFirewallPolicyExclusionManagedRules(input []interface{}) *[]network.ExclusionManagedRule {
+	results := make([]network.ExclusionManagedRule, 0)
+	for _, item := range input {
+		ruleID := item.(string)
+
+		result := network.ExclusionManagedRule{
+			RuleID: utils.String(ruleID),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(input []interface{}) *[]network.ExclusionManagedRuleGroup {
+	results := make([]network.ExclusionManagedRuleGroup, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleGroupName := v["rule_group_name"].(string)
+
+		result := network.ExclusionManagedRuleGroup{
+			RuleGroupName: utils.String(ruleGroupName),
+		}
+
+		if excludedRules := v["excluded_rules"].([]interface{}); len(excludedRules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyExclusionManagedRules(excludedRules)
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExclusionManagedRuleSet(input []interface{}) *[]network.ExclusionManagedRuleSet {
+	results := make([]network.ExclusionManagedRuleSet, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleSetType := v["type"].(string)
+		ruleSetVersion := v["version"].(string)
+		ruleGroups := make([]interface{}, 0)
+		if value, exists := v["rule_group"]; exists {
+			ruleGroups = value.([]interface{})
+		}
+		result := network.ExclusionManagedRuleSet{
+			RuleSetType:    utils.String(ruleSetType),
+			RuleSetVersion: utils.String(ruleSetVersion),
+			RuleGroups:     expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(ruleGroups),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
 func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]network.OwaspCrsExclusionEntry {
 	results := make([]network.OwaspCrsExclusionEntry, 0)
 	for _, item := range input {
@@ -483,11 +580,13 @@ func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]networ
 		matchVariable := v["match_variable"].(string)
 		selectorMatchOperator := v["selector_match_operator"].(string)
 		selector := v["selector"].(string)
+		exclusionManagedRuleSets := v["excluded_rule_set"].([]interface{})
 
 		result := network.OwaspCrsExclusionEntry{
-			MatchVariable:         network.OwaspCrsExclusionEntryMatchVariable(matchVariable),
-			SelectorMatchOperator: network.OwaspCrsExclusionEntrySelectorMatchOperator(selectorMatchOperator),
-			Selector:              utils.String(selector),
+			MatchVariable:            network.OwaspCrsExclusionEntryMatchVariable(matchVariable),
+			SelectorMatchOperator:    network.OwaspCrsExclusionEntrySelectorMatchOperator(selectorMatchOperator),
+			Selector:                 utils.String(selector),
+			ExclusionManagedRuleSets: expandWebApplicationFirewallPolicyExclusionManagedRuleSet(exclusionManagedRuleSets),
 		}
 
 		results = append(results, result)
@@ -653,6 +752,57 @@ func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input *network.Ma
 	return results
 }
 
+func flattenWebApplicationFirewallPolicyExclusionManagedRules(input *[]network.ExclusionManagedRule) []string {
+	results := make([]string, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		if item.RuleID != nil {
+			v := *item.RuleID
+			results = append(results, v)
+		}
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(input *[]network.ExclusionManagedRuleGroup) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["rule_group_name"] = item.RuleGroupName
+		v["excluded_rules"] = flattenWebApplicationFirewallPolicyExclusionManagedRules(item.Rules)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(input *[]network.ExclusionManagedRuleSet) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["type"] = item.RuleSetType
+		v["version"] = item.RuleSetVersion
+		v["rule_group"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(item.RuleGroups)
+
+		results = append(results, v)
+	}
+	return results
+}
+
 func flattenWebApplicationFirewallPolicyExclusions(input *[]network.OwaspCrsExclusionEntry) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -668,7 +818,9 @@ func flattenWebApplicationFirewallPolicyExclusions(input *[]network.OwaspCrsExcl
 		if selector != nil {
 			v["selector"] = *selector
 		}
+
 		v["selector_match_operator"] = string(item.SelectorMatchOperator)
+		v["excluded_rule_set"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(item.ExclusionManagedRuleSets)
 
 		results = append(results, v)
 	}

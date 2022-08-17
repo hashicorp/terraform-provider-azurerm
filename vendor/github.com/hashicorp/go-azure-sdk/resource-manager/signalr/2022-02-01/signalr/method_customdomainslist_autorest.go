@@ -59,50 +59,6 @@ func (c SignalRClient) CustomDomainsList(ctx context.Context, id SignalRId) (res
 	return
 }
 
-// CustomDomainsListComplete retrieves all of the results into a single object
-func (c SignalRClient) CustomDomainsListComplete(ctx context.Context, id SignalRId) (CustomDomainsListCompleteResult, error) {
-	return c.CustomDomainsListCompleteMatchingPredicate(ctx, id, CustomDomainOperationPredicate{})
-}
-
-// CustomDomainsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SignalRClient) CustomDomainsListCompleteMatchingPredicate(ctx context.Context, id SignalRId, predicate CustomDomainOperationPredicate) (resp CustomDomainsListCompleteResult, err error) {
-	items := make([]CustomDomain, 0)
-
-	page, err := c.CustomDomainsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := CustomDomainsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForCustomDomainsList prepares the CustomDomainsList request.
 func (c SignalRClient) preparerForCustomDomainsList(ctx context.Context, id SignalRId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c SignalRClient) responderForCustomDomainsList(resp *http.Response) (resul
 		}
 	}
 	return
+}
+
+// CustomDomainsListComplete retrieves all of the results into a single object
+func (c SignalRClient) CustomDomainsListComplete(ctx context.Context, id SignalRId) (CustomDomainsListCompleteResult, error) {
+	return c.CustomDomainsListCompleteMatchingPredicate(ctx, id, CustomDomainOperationPredicate{})
+}
+
+// CustomDomainsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SignalRClient) CustomDomainsListCompleteMatchingPredicate(ctx context.Context, id SignalRId, predicate CustomDomainOperationPredicate) (resp CustomDomainsListCompleteResult, err error) {
+	items := make([]CustomDomain, 0)
+
+	page, err := c.CustomDomainsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := CustomDomainsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

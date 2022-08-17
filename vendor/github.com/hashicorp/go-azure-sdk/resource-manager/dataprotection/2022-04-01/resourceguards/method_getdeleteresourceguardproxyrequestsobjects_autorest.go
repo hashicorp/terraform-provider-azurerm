@@ -59,50 +59,6 @@ func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjects(ctx con
 	return
 }
 
-// GetDeleteResourceGuardProxyRequestsObjectsComplete retrieves all of the results into a single object
-func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetDeleteResourceGuardProxyRequestsObjectsCompleteResult, error) {
-	return c.GetDeleteResourceGuardProxyRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
-}
-
-// GetDeleteResourceGuardProxyRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetDeleteResourceGuardProxyRequestsObjectsCompleteResult, err error) {
-	items := make([]DppBaseResource, 0)
-
-	page, err := c.GetDeleteResourceGuardProxyRequestsObjects(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetDeleteResourceGuardProxyRequestsObjectsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetDeleteResourceGuardProxyRequestsObjects prepares the GetDeleteResourceGuardProxyRequestsObjects request.
 func (c ResourceGuardsClient) preparerForGetDeleteResourceGuardProxyRequestsObjects(ctx context.Context, id ResourceGuardId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ResourceGuardsClient) responderForGetDeleteResourceGuardProxyRequestsObj
 		}
 	}
 	return
+}
+
+// GetDeleteResourceGuardProxyRequestsObjectsComplete retrieves all of the results into a single object
+func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetDeleteResourceGuardProxyRequestsObjectsCompleteResult, error) {
+	return c.GetDeleteResourceGuardProxyRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
+}
+
+// GetDeleteResourceGuardProxyRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetDeleteResourceGuardProxyRequestsObjectsCompleteResult, err error) {
+	items := make([]DppBaseResource, 0)
+
+	page, err := c.GetDeleteResourceGuardProxyRequestsObjects(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetDeleteResourceGuardProxyRequestsObjectsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

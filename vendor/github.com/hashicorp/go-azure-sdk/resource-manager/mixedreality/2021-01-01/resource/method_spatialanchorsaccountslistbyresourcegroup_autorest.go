@@ -60,50 +60,6 @@ func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroup(ctx context.Co
 	return
 }
 
-// SpatialAnchorsAccountsListByResourceGroupComplete retrieves all of the results into a single object
-func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (SpatialAnchorsAccountsListByResourceGroupCompleteResult, error) {
-	return c.SpatialAnchorsAccountsListByResourceGroupCompleteMatchingPredicate(ctx, id, SpatialAnchorsAccountOperationPredicate{})
-}
-
-// SpatialAnchorsAccountsListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate SpatialAnchorsAccountOperationPredicate) (resp SpatialAnchorsAccountsListByResourceGroupCompleteResult, err error) {
-	items := make([]SpatialAnchorsAccount, 0)
-
-	page, err := c.SpatialAnchorsAccountsListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := SpatialAnchorsAccountsListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForSpatialAnchorsAccountsListByResourceGroup prepares the SpatialAnchorsAccountsListByResourceGroup request.
 func (c ResourceClient) preparerForSpatialAnchorsAccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ResourceClient) responderForSpatialAnchorsAccountsListByResourceGroup(re
 		}
 	}
 	return
+}
+
+// SpatialAnchorsAccountsListByResourceGroupComplete retrieves all of the results into a single object
+func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (SpatialAnchorsAccountsListByResourceGroupCompleteResult, error) {
+	return c.SpatialAnchorsAccountsListByResourceGroupCompleteMatchingPredicate(ctx, id, SpatialAnchorsAccountOperationPredicate{})
+}
+
+// SpatialAnchorsAccountsListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate SpatialAnchorsAccountOperationPredicate) (resp SpatialAnchorsAccountsListByResourceGroupCompleteResult, err error) {
+	items := make([]SpatialAnchorsAccount, 0)
+
+	page, err := c.SpatialAnchorsAccountsListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := SpatialAnchorsAccountsListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

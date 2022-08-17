@@ -7,5 +7,5 @@ type NetworkRuleSets struct {
 	ApplyToDevices    *bool                   `json:"applyToDevices,omitempty"`
 	ApplyToIoTCentral *bool                   `json:"applyToIoTCentral,omitempty"`
 	DefaultAction     *NetworkAction          `json:"defaultAction,omitempty"`
-	IpRules           *[]NetworkRuleSetIpRule `json:"ipRules,omitempty"`
+	IPRules           *[]NetworkRuleSetIPRule `json:"ipRules,omitempty"`
 }

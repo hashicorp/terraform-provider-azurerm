@@ -88,50 +88,6 @@ func (c TopicsClient) ListByNamespace(ctx context.Context, id NamespaceId, optio
 	return
 }
 
-// ListByNamespaceComplete retrieves all of the results into a single object
-func (c TopicsClient) ListByNamespaceComplete(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (ListByNamespaceCompleteResult, error) {
-	return c.ListByNamespaceCompleteMatchingPredicate(ctx, id, options, SBTopicOperationPredicate{})
-}
-
-// ListByNamespaceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c TopicsClient) ListByNamespaceCompleteMatchingPredicate(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions, predicate SBTopicOperationPredicate) (resp ListByNamespaceCompleteResult, err error) {
-	items := make([]SBTopic, 0)
-
-	page, err := c.ListByNamespace(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByNamespaceCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByNamespace prepares the ListByNamespace request.
 func (c TopicsClient) preparerForListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c TopicsClient) responderForListByNamespace(resp *http.Response) (result L
 		}
 	}
 	return
+}
+
+// ListByNamespaceComplete retrieves all of the results into a single object
+func (c TopicsClient) ListByNamespaceComplete(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (ListByNamespaceCompleteResult, error) {
+	return c.ListByNamespaceCompleteMatchingPredicate(ctx, id, options, SBTopicOperationPredicate{})
+}
+
+// ListByNamespaceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c TopicsClient) ListByNamespaceCompleteMatchingPredicate(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions, predicate SBTopicOperationPredicate) (resp ListByNamespaceCompleteResult, err error) {
+	items := make([]SBTopic, 0)
+
+	page, err := c.ListByNamespace(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByNamespaceCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

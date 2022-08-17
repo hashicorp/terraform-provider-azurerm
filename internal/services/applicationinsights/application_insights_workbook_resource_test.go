@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
+	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -92,13 +92,13 @@ func TestAccApplicationInsightsWorkbook_hiddenTitleInTags(t *testing.T) {
 }
 
 func (r ApplicationInsightsWorkbookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := applicationinsights.ParseWorkbookID(state.ID)
+	id, err := workbooks.ParseWorkbookID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.AppInsights.WorkbookClient
-	resp, err := client.WorkbooksGet(ctx, *id, applicationinsights.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+	resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

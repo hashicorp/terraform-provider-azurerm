@@ -60,50 +60,6 @@ func (c AppsClient) ListTemplates(ctx context.Context, id commonids.Subscription
 	return
 }
 
-// ListTemplatesComplete retrieves all of the results into a single object
-func (c AppsClient) ListTemplatesComplete(ctx context.Context, id commonids.SubscriptionId) (ListTemplatesCompleteResult, error) {
-	return c.ListTemplatesCompleteMatchingPredicate(ctx, id, AppTemplateOperationPredicate{})
-}
-
-// ListTemplatesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AppsClient) ListTemplatesCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AppTemplateOperationPredicate) (resp ListTemplatesCompleteResult, err error) {
-	items := make([]AppTemplate, 0)
-
-	page, err := c.ListTemplates(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListTemplatesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListTemplates prepares the ListTemplates request.
 func (c AppsClient) preparerForListTemplates(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c AppsClient) responderForListTemplates(resp *http.Response) (result ListT
 		}
 	}
 	return
+}
+
+// ListTemplatesComplete retrieves all of the results into a single object
+func (c AppsClient) ListTemplatesComplete(ctx context.Context, id commonids.SubscriptionId) (ListTemplatesCompleteResult, error) {
+	return c.ListTemplatesCompleteMatchingPredicate(ctx, id, AppTemplateOperationPredicate{})
+}
+
+// ListTemplatesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c AppsClient) ListTemplatesCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AppTemplateOperationPredicate) (resp ListTemplatesCompleteResult, err error) {
+	items := make([]AppTemplate, 0)
+
+	page, err := c.ListTemplates(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListTemplatesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

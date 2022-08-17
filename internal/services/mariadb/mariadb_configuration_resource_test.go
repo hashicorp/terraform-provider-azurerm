@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -84,39 +85,41 @@ func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 }
 
 func (MariaDbConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MariaDBConfigurationID(state.ID)
+	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName)
+	resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ConfigurationProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func checkValueIs(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.MariaDBConfigurationID(state.ID)
+		id, err := configurations.ParseConfigurationID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName)
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %v", *id, err)
 		}
 
-		if resp.Value == nil {
-			return fmt.Errorf("%s Value is nil", *id)
-		}
-
-		actualValue := *resp.Value
-
-		if value != actualValue {
-			return fmt.Errorf("%s Value (%s) != expected (%s)", *id, actualValue, value)
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if v := props.Value; v != nil {
+					if value != *v {
+						return fmt.Errorf("%s Value (%s) != expected (%s)", *id, *v, value)
+					}
+				} else {
+					return fmt.Errorf("%s Value is nil", *id)
+				}
+			}
 		}
 
 		return nil
@@ -125,28 +128,41 @@ func checkValueIs(value string) acceptance.ClientCheckFunc {
 
 func checkValueIsReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ServerID(state.ID)
+		serverId, err := servers.ParseServerID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
+		id := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, configurationName)
+
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id)
 		if err != nil {
-			return fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", configurationName, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving %s: %v", id, err)
 		}
 
-		if resp.Value == nil {
-			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value is nil", configurationName, id.Name, id.ResourceGroup)
+		actualValue := ""
+		defaultValue := ""
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if v := props.Value; v != nil {
+					actualValue = *v
+				}
+				if v := props.DefaultValue; v != nil {
+					defaultValue = *v
+				}
+			}
 		}
 
-		if resp.DefaultValue == nil {
-			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Default Value is nil", configurationName, id.Name, id.ResourceGroup)
+		if actualValue == "" {
+			return fmt.Errorf("%s Value is nil", id)
 		}
-		actualValue := *resp.Value
-		defaultValue := *resp.DefaultValue
+
+		if defaultValue == "" {
+			return fmt.Errorf("%s Default Value is nil", id)
+		}
 
 		if defaultValue != actualValue {
-			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value (%s) != Default (%s)", configurationName, id.Name, id.ResourceGroup, actualValue, defaultValue)
+			return fmt.Errorf("%s Value (%s) != Default (%s)", id, actualValue, defaultValue)
 		}
 
 		return nil
