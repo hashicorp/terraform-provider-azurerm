@@ -35,17 +35,15 @@ func ValidateDaprComponentName(i interface{}, k string) (warnings []string, erro
 	return
 }
 
-func ValidateDaprSecretNames(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(map[string]interface{})
+func ValidateSecretName(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be map", k))
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
-	for name, _ := range v {
-		if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9-.]*[a-z0-9]?$`).Match([]byte(name)); !matched || strings.HasSuffix(name, "-") || strings.HasSuffix(name, ".") {
-			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character", k))
-		}
+	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9-.]*[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.HasSuffix(v, ".") {
+		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character", k))
 	}
 	return
 }

@@ -103,20 +103,20 @@ func TestAccContainerAppResource_completeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		// TODO - Uncomment the following stages when https://github.com/Azure/azure-rest-api-specs/issues/19285 is resolved
-		//{
+		// {
 		//	Config: r.complete(data, "rev3"),
 		//	Check: acceptance.ComposeTestCheckFunc(
 		//		check.That(data.ResourceName).ExistsInAzure(r),
 		//	),
-		//},
-		//data.ImportStep(),
-		//{
+		// },
+		// data.ImportStep(),
+		// {
 		//	Config: r.completeUpdate2(data, "rev4"),
 		//	Check: acceptance.ComposeTestCheckFunc(
 		//		check.That(data.ResourceName).ExistsInAzure(r),
 		//	),
-		//},
-		//data.ImportStep(),
+		// },
+		// data.ImportStep(),
 	})
 }
 

@@ -3,7 +3,6 @@ package containerapps
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"net/http"
 	"strings"
 	"time"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -35,7 +35,7 @@ type ContainerAppModel struct {
 	Dapr         []helpers.Dapr              `tfschema:"dapr"`
 	Template     []helpers.ContainerTemplate `tfschema:"template"`
 
-	//Identity identity.LegacySystemAndUserAssignedMap `tfschema:"identity"` // TODO - when the basics are working...
+	// Identity identity.LegacySystemAndUserAssignedMap `tfschema:"identity"` // TODO - when the basics are working...
 
 	Tags map[string]interface{} `tfschema:"tags"`
 
@@ -101,7 +101,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"dapr": helpers.ContainerDaprSchema(),
 
-		//"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		// "identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -189,7 +189,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 					ManagedEnvironmentId: utils.String(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
 				},
-				//Identity: &app.Identity,
+				// Identity: &app.Identity,
 				Tags: tags.Expand(app.Tags),
 			}
 
@@ -234,7 +234,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				state.Location = model.Location
 				state.Tags = tags.Flatten(model.Tags)
-				//state.Identity = []identity.LegacySystemAndUserAssignedMap{*model.Identity}
+				// state.Identity = []identity.LegacySystemAndUserAssignedMap{*model.Identity}
 
 				if props := model.Properties; props != nil {
 					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(utils.NormalizeNilableString(props.ManagedEnvironmentId))
@@ -256,7 +256,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationId)
 					state.OutboundIpAddresses = *props.OutboundIPAddresses
 				}
-				//state.Identity = *model.Identity
+				// state.Identity = *model.Identity
 			}
 
 			secretsResp, err := client.ListSecrets(ctx, *id)

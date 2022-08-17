@@ -120,7 +120,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Create() sdk.ResourceFunc 
 
 			var daprComponent ContainerAppEnvironmentDaprComponentModel
 
-			if err := metadata.Decode(&daprComponent); err != err {
+			if err := metadata.Decode(&daprComponent); err != nil {
 				return err
 			}
 

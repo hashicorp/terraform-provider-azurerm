@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -9,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"strings"
 )
 
 type Registry struct {
@@ -479,11 +480,7 @@ type ContainerTemplate struct {
 	Suffix      string            `tfschema:"revision_suffix"`
 	MinReplicas int               `tfschema:"min_replicas"`
 	MaxReplicas int               `tfschema:"max_replicas"`
-	Volumes     []ContainerVolume `tfschema:"volume"` // Not currently supported by the SDK/API:
-	// 		  Original Error: Code="WebhookInvalidParameterValue"
-	//        Message="The following field(s) are either invalid or missing. Required
-	//        value: template.storage.volumes.azureFileVolumeSource.secretName, Required
-	//        value: template.storage.volumes.azureFileVolumeSource.shareName."
+	Volumes     []ContainerVolume `tfschema:"volume"`
 }
 
 func ContainerTemplateSchema() *pluginsdk.Schema {
@@ -499,7 +496,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(1, 10), //TODO - Double check this against API
+					ValidateFunc: validation.IntBetween(1, 10), // TODO - Double check this against API
 					Description:  "The minimum number of replicas for this container.",
 				},
 
@@ -507,7 +504,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(1, 10), //TODO - Double check this against API
+					ValidateFunc: validation.IntBetween(1, 10), // TODO - Double check this against API
 					Description:  "The maximum number of replicas for this container.",
 				},
 
@@ -1282,7 +1279,6 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 		PeriodSeconds:       utils.Int64(int64(input.Interval)),
 		TimeoutSeconds:      utils.Int64(int64(input.Timeout)),
 		FailureThreshold:    utils.Int64(int64(input.FailureThreshold)),
-		//TerminationGracePeriodSeconds: utils.Int64(int64(input.TerminationGracePeriod)),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -1542,350 +1538,9 @@ func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []Co
 	return result
 }
 
-type ContainerAppHttpProbe struct {
-	Type                   string       `tfschema:"type"`
-	Scheme                 string       `tfschema:"scheme"` // http or https only? No enum / docs
-	Host                   string       `tfschema:"host"`
-	Port                   int          `tfschema:"port"`
-	Path                   string       `tfschema:"path"`
-	Headers                []HttpHeader `tfschema:"header"`
-	InitialDelay           int          `tfschema:"initial_delay"`
-	Interval               int          `tfschema:"interval"`
-	Timeout                int          `tfschema:"timeout"`
-	FailureThreshold       int          `tfschema:"failure_threshold"`
-	SuccessThreshold       int          `tfschema:"success_threshold"`
-	TerminationGracePeriod int          `tfschema:"termination_grace_period"` // Alpha feature requiring `ProbeTerminationGracePeriod` to be enabled on the subscription?
-}
-
-func ContainerAppHttpProbeSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MinItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice(
-						containerapps.PossibleValuesForType(),
-						true),
-					Description:      "Type of probe. Possible values include `liveness`, `readiness`, and `startup`.",
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
-
-				"scheme": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "HTTP",
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.SchemeHTTP),
-						string(containerapps.SchemeHTTPS),
-					}, false),
-					Description: "The URL scheme to use. Possible values include `http` and `https`.",
-				},
-
-				"host": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The HTTP probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this.",
-				},
-
-				"port": {
-					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The port number on which to connect. Possible values are between `1` and `65535`.",
-				},
-
-				"path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Description: "The http URI to use with the `host`.",
-				},
-
-				"header": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The HTTP Header Name.",
-							},
-
-							"value": {
-								Type:        pluginsdk.TypeString,
-								Required:    true,
-								Description: "The HTTP Header value.",
-							},
-						},
-					},
-				},
-
-				"initial_delay": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      1,
-					ValidateFunc: validation.IntBetween(1, 60),
-					Description:  "The time in seconds to wait after the container has started before the probe is started. Only valid when `type` is `liveness`",
-				},
-
-				"interval": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      10,
-					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`",
-				},
-
-				"timeout": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      1,
-					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
-				},
-
-				"failure_threshold": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
-				},
-
-				"success_threshold": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.",
-				},
-
-				"termination_grace_period": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(1, 3600),
-					Description:  "The time in seconds after the container is sent the termination signal before the process if forcibly killed. Defaults to the pod's `terminationGracePeriodSeconds` value.  Not valid for `Readiness` type probes. **NOTE:** This is a preview feature and requires the `ProbeTerminationGracePeriod` feature to be enabled on your pod to be used.",
-				},
-			},
-		},
-	}
-}
-
-func expandContainerAppHttpProbe(input ContainerAppHttpProbe) *containerapps.ContainerAppProbeHttpGet {
-	httpGet := containerapps.ContainerAppProbeHttpGet{
-		Path: utils.String(input.Path),
-		Port: int64(input.Port),
-	}
-
-	if input.Host != "" {
-		httpGet.Host = utils.String(input.Host)
-	}
-
-	if input.Headers != nil {
-		headers := make([]containerapps.ContainerAppProbeHttpGetHttpHeadersInlined, 0)
-
-		for _, v := range input.Headers {
-			headers = append(headers, containerapps.ContainerAppProbeHttpGetHttpHeadersInlined{
-				Name:  v.Name,
-				Value: v.Value,
-			})
-		}
-		httpGet.HttpHeaders = &headers
-	}
-
-	scheme := containerapps.Scheme(input.Scheme)
-	httpGet.Scheme = &scheme
-
-	return &httpGet
-}
-
-func flattenContainerAppHttpProbes(input *[]containerapps.ContainerAppProbe) []ContainerAppHttpProbe {
-	if input == nil {
-		return nil
-	}
-
-	result := make([]ContainerAppHttpProbe, 0)
-	for _, v := range *input {
-		if httpGet := v.HttpGet; httpGet != nil {
-			httpProbe := ContainerAppHttpProbe{
-				Host:                   utils.NormalizeNilableString(httpGet.Host),
-				Port:                   int(httpGet.Port),
-				Path:                   utils.NormalizeNilableString(httpGet.Path),
-				InitialDelay:           int(utils.NormaliseNilableInt64(v.InitialDelaySeconds)),
-				Interval:               int(utils.NormaliseNilableInt64(v.PeriodSeconds)),
-				Timeout:                int(utils.NormaliseNilableInt64(v.TimeoutSeconds)),
-				FailureThreshold:       int(utils.NormaliseNilableInt64(v.FailureThreshold)),
-				SuccessThreshold:       int(utils.NormaliseNilableInt64(v.SuccessThreshold)),
-				TerminationGracePeriod: int(utils.NormaliseNilableInt64(v.TerminationGracePeriodSeconds)),
-			}
-
-			if scheme := httpGet.Scheme; scheme != nil {
-				httpProbe.Scheme = string(*scheme)
-			}
-
-			if httpGet.HttpHeaders != nil {
-				headers := make([]HttpHeader, 0)
-				for _, h := range *httpGet.HttpHeaders {
-					headers = append(headers, HttpHeader{
-						Name:  h.Name,
-						Value: h.Value,
-					})
-				}
-				httpProbe.Headers = headers
-			}
-
-			if v.Type != nil {
-				httpProbe.Type = string(*v.Type)
-			}
-
-			result = append(result, httpProbe)
-		}
-	}
-
-	return result
-}
-
 type HttpHeader struct {
 	Name  string `tfschema:"name"`
 	Value string `tfschema:"value"`
-}
-
-type ContainerAppTcpProbe struct {
-	Type                   string `tfschema:"type"`
-	Host                   string `tfschema:"host"`
-	Port                   int    `tfschema:"port"`
-	InitialDelay           int    `tfschema:"initial_delay"`
-	Interval               int    `tfschema:"interval"`
-	Timeout                int    `tfschema:"timeout"`
-	FailureThreshold       int    `tfschema:"failure_threshold"`
-	SuccessThreshold       int    `tfschema:"success_threshold"`
-	TerminationGracePeriod int    `tfschema:"termination_grace_period"`
-}
-
-func ContainerAppTcpProbeSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MinItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice(
-						containerapps.PossibleValuesForType(),
-						true),
-					Description:      "Type of probe. Possible values include `liveness`, `readiness`, and `startup`.",
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
-
-				"host": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Computed:    true,
-					Description: "The TCP probe hostname. Defaults to the pod IP address.",
-				},
-
-				"port": {
-					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The port number on which to connect. Possible values are between `1` and `65535`.",
-				},
-
-				"initial_delay": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      1,
-					ValidateFunc: validation.IntBetween(1, 60),
-					Description:  "The time in seconds to wait after the container has started before the probe is started. Only valid when `type` is `liveness`",
-				},
-
-				"interval": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      10,
-					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`",
-				},
-
-				"timeout": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      1,
-					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
-				},
-
-				"failure_threshold": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
-				},
-
-				"success_threshold": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.",
-				},
-
-				"termination_grace_period": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 3600),
-					Description:  "The time in seconds after the container is sent the termination signal before the process if forcibly killed. Defaults to the pod's `terminationGracePeriodSeconds` value. **NOTE:** This is a preview feature and requires the `ProbeTerminationGracePeriod` feature to be enabled on your pod to be used.",
-				},
-			},
-		},
-	}
-}
-
-func expandContainerAppTcpProbe(input ContainerAppTcpProbe) *containerapps.ContainerAppProbeTcpSocket {
-	return &containerapps.ContainerAppProbeTcpSocket{
-		Host: utils.String(input.Host),
-		Port: int64(input.Port),
-	}
-}
-
-func flattenContainerAppTcpProbes(input *[]containerapps.ContainerAppProbe) []ContainerAppTcpProbe {
-	if input == nil {
-		return nil
-	}
-
-	result := make([]ContainerAppTcpProbe, 0)
-	for _, v := range *input {
-		if tcpSocket := v.TcpSocket; tcpSocket != nil {
-			tcpProbe := ContainerAppTcpProbe{
-				Host:                   utils.NormalizeNilableString(tcpSocket.Host),
-				Port:                   int(tcpSocket.Port),
-				InitialDelay:           int(utils.NormaliseNilableInt64(v.InitialDelaySeconds)),
-				Interval:               int(utils.NormaliseNilableInt64(v.PeriodSeconds)),
-				Timeout:                int(utils.NormaliseNilableInt64(v.TimeoutSeconds)),
-				FailureThreshold:       int(utils.NormaliseNilableInt64(v.FailureThreshold)),
-				SuccessThreshold:       int(utils.NormaliseNilableInt64(v.SuccessThreshold)),
-				TerminationGracePeriod: int(utils.NormaliseNilableInt64(v.TerminationGracePeriodSeconds)),
-			}
-
-			if v.Type != nil {
-				tcpProbe.Type = string(*v.Type)
-			}
-
-			result = append(result, tcpProbe)
-		}
-	}
-
-	return result
 }
 
 func expandContainerProbes(input Container) *[]containerapps.ContainerAppProbe {
@@ -1921,7 +1576,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: ValidateSecretName,
 					Sensitive:    true,
 					Description:  "The Secret name.",
 				},

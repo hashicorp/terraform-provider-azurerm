@@ -62,7 +62,7 @@ func TestValidateDaprComponentName(t *testing.T) {
 	}
 }
 
-func TestValidateDaprSecretNames(t *testing.T) {
+func TestValidateSecretNames(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -111,13 +111,11 @@ func TestValidateDaprSecretNames(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		m := make(map[string]string)
-		m[tc.Input] = ""
-		_, errors := ValidateDaprSecretNames(m, "test")
+		_, errors := ValidateSecretName(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
-			t.Fatalf("Expected %t but got %t for %s", tc.Valid, valid, tc.Input)
+			t.Fatalf("Expected %t but got %t for %s: %+v", tc.Valid, valid, tc.Input, errors)
 		}
 	}
 }
