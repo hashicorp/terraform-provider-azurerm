@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
+	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -156,7 +157,7 @@ type Client struct {
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
 	Disks                 *disks.Client
-	Dns                   *dns.Client
+	Dns                   *dns_v2018_05_01.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
 	EventGrid             *eventgrid.Client
