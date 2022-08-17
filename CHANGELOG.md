@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* **New Rersource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
+* **New Resource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
 * **New Data Source**: `azurerm_dns_a_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_aaaa_record` [GH-17477]
 * **New Data Source**: `azurerm_dns_caa_record` [GH-17477]
@@ -16,8 +16,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Dependencies: bump `go-azure-helpers` to `v0.39.0` [GH-17996]
-* Dependencies: bump `go-azure-sdk` to `v0.20220815.1092453` [GH-7998]
+* Dependencies: update `go-azure-helpers` to `v0.39.1` [GH-18015]
+* Dependencies: update `go-azure-sdk` to `v0.20220815.1092453` [GH-17998]
 * updating `dedicated_host_*` to use `hashicorp/go-azure-sdk` [GH-17616]
 * `dataprotection`: updating to use `hashicorp/go-azure-sdk` [GH-17700]
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
