@@ -889,6 +889,7 @@ func TestAccWindowsFunctionApp_appStackUpdateTags(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("Node|~14"),
 			),
 		},
 		data.ImportStep(),
@@ -897,6 +898,7 @@ func TestAccWindowsFunctionApp_appStackUpdateTags(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("Node|~14"),
 			),
 		},
 		data.ImportStep(),
