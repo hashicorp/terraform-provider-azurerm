@@ -59,50 +59,6 @@ func (c DisasterRecoveryConfigsClient) List(ctx context.Context, id NamespaceId)
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c DisasterRecoveryConfigsClient) ListComplete(ctx context.Context, id NamespaceId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, ArmDisasterRecoveryOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DisasterRecoveryConfigsClient) ListCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate ArmDisasterRecoveryOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]ArmDisasterRecovery, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c DisasterRecoveryConfigsClient) preparerForList(ctx context.Context, id NamespaceId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c DisasterRecoveryConfigsClient) responderForList(resp *http.Response) (re
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c DisasterRecoveryConfigsClient) ListComplete(ctx context.Context, id NamespaceId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, ArmDisasterRecoveryOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DisasterRecoveryConfigsClient) ListCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate ArmDisasterRecoveryOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]ArmDisasterRecovery, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

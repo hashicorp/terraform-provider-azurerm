@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -287,6 +287,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"default_to_oauth_authentication": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"network_rules": {
@@ -968,6 +974,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
+	defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
@@ -983,12 +990,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			EnableHTTPSTrafficOnly:      &enableHTTPSTrafficOnly,
-			NetworkRuleSet:              expandStorageAccountNetworkRules(d, tenantId),
-			IsHnsEnabled:                &isHnsEnabled,
-			EnableNfsV3:                 &nfsV3Enabled,
-			AllowSharedKeyAccess:        &allowSharedKeyAccess,
-			AllowCrossTenantReplication: &crossTenantReplication,
+			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
+			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
+			IsHnsEnabled:                 &isHnsEnabled,
+			EnableNfsV3:                  &nfsV3Enabled,
+			AllowSharedKeyAccess:         &allowSharedKeyAccess,
+			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
+			AllowCrossTenantReplication:  &crossTenantReplication,
 		},
 	}
 
@@ -1315,6 +1323,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			AllowSharedKeyAccess: &allowSharedKeyAccess,
 		},
+	}
+
+	if d.HasChange("default_to_oauth_authentication") {
+		defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
+		opts.AccountPropertiesUpdateParameters.DefaultToOAuthAuthentication = &defaultToOAuthAuthentication
 	}
 
 	if d.HasChange("cross_tenant_replication_enabled") {
@@ -1817,6 +1830,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			allowSharedKeyAccess = *props.AllowSharedKeyAccess
 		}
 		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
+
+		defaultToOAuthAuthentication := false
+		if props.DefaultToOAuthAuthentication != nil {
+			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
+		}
+		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
 		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.

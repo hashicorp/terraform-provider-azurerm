@@ -41,6 +41,22 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"private_endpoint_connection": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -76,5 +92,21 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("secondary_key", iresp.Keys.Secondary)
 	}
 	d.Set("endpoint", iresp.Endpoint)
+	if resp.Model != nil && resp.Model.Properties != nil {
+		d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(resp.Model.Properties.PrivateEndpointConnections))
+	}
 	return nil
+}
+
+func flattenPrivateEndpointConnections(conns *[]automationaccount.PrivateEndpointConnection) (res []interface{}) {
+	if conns == nil || len(*conns) == 0 {
+		return
+	}
+	for _, con := range *conns {
+		res = append(res, map[string]interface{}{
+			"id":   con.Id,
+			"name": con.Name,
+		})
+	}
+	return res
 }

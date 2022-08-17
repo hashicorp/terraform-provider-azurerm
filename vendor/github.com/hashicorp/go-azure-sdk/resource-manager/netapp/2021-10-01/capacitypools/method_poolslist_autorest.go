@@ -59,50 +59,6 @@ func (c CapacityPoolsClient) PoolsList(ctx context.Context, id NetAppAccountId) 
 	return
 }
 
-// PoolsListComplete retrieves all of the results into a single object
-func (c CapacityPoolsClient) PoolsListComplete(ctx context.Context, id NetAppAccountId) (PoolsListCompleteResult, error) {
-	return c.PoolsListCompleteMatchingPredicate(ctx, id, CapacityPoolOperationPredicate{})
-}
-
-// PoolsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c CapacityPoolsClient) PoolsListCompleteMatchingPredicate(ctx context.Context, id NetAppAccountId, predicate CapacityPoolOperationPredicate) (resp PoolsListCompleteResult, err error) {
-	items := make([]CapacityPool, 0)
-
-	page, err := c.PoolsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := PoolsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForPoolsList prepares the PoolsList request.
 func (c CapacityPoolsClient) preparerForPoolsList(ctx context.Context, id NetAppAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c CapacityPoolsClient) responderForPoolsList(resp *http.Response) (result 
 		}
 	}
 	return
+}
+
+// PoolsListComplete retrieves all of the results into a single object
+func (c CapacityPoolsClient) PoolsListComplete(ctx context.Context, id NetAppAccountId) (PoolsListCompleteResult, error) {
+	return c.PoolsListCompleteMatchingPredicate(ctx, id, CapacityPoolOperationPredicate{})
+}
+
+// PoolsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c CapacityPoolsClient) PoolsListCompleteMatchingPredicate(ctx context.Context, id NetAppAccountId, predicate CapacityPoolOperationPredicate) (resp PoolsListCompleteResult, err error) {
+	items := make([]CapacityPool, 0)
+
+	page, err := c.PoolsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := PoolsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

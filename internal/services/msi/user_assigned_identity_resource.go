@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentities"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/migration"
@@ -99,7 +99,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	identity := managedidentity.Identity{
+	identity := managedidentities.Identity{
 		Name:     utils.String(resourceId.ResourceName),
 		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(t),

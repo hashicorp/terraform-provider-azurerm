@@ -63,5 +63,6 @@ func (c ConsumerGroupsClient) responderForGet(resp *http.Response) (result GetOp
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

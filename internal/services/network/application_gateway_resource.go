@@ -325,6 +325,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"public_ip_address_id": {
@@ -966,7 +967,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"body": {
 										Type:     pluginsdk.TypeString,
-										Required: true,
+										Optional: true,
 									},
 
 									"status_code": {
@@ -1092,6 +1093,17 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
 												},
+
+												"components": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Computed: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														"path_only",
+														"query_string_only",
+													}, false),
+												},
+
 												"reroute": {
 													Type:     pluginsdk.TypeBool,
 													Optional: true,
@@ -3599,10 +3611,14 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]netw
 				if c["path"] == nil && c["query_string"] == nil {
 					return nil, fmt.Errorf("At least one of `path` or `query_string` must be set")
 				}
-				if c["path"] != nil {
+				components := ""
+				if c["components"] != nil {
+					components = c["components"].(string)
+				}
+				if c["path"] != nil && components != "query_string_only" {
 					urlConfiguration.ModifiedPath = utils.String(c["path"].(string))
 				}
-				if c["query_string"] != nil {
+				if c["query_string"] != nil && components != "path_only" {
 					urlConfiguration.ModifiedQueryString = utils.String(c["query_string"].(string))
 				}
 				if c["reroute"] != nil {
@@ -3733,20 +3749,36 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 						if actionSet.URLConfiguration != nil {
 							config := *actionSet.URLConfiguration
-							urlConfig := map[string]interface{}{}
-
+							components := ""
+							path := ""
 							if config.ModifiedPath != nil {
-								urlConfig["path"] = *config.ModifiedPath
+								path = *config.ModifiedPath
 							}
 
+							queryString := ""
 							if config.ModifiedQueryString != nil {
-								urlConfig["query_string"] = *config.ModifiedQueryString
+								queryString = *config.ModifiedQueryString
 							}
 
-							if config.Reroute != nil {
-								urlConfig["reroute"] = *config.Reroute
+							if path != queryString {
+								if path != "" && queryString == "" {
+									components = "path_only"
+								} else if queryString != "" && path == "" {
+									components = "query_string_only"
+								}
 							}
-							urlConfigs = append(urlConfigs, urlConfig)
+
+							reroute := false
+							if config.Reroute != nil {
+								reroute = *config.Reroute
+							}
+
+							urlConfigs = append(urlConfigs, map[string]interface{}{
+								"components":   components,
+								"query_string": queryString,
+								"path":         path,
+								"reroute":      reroute,
+							})
 						}
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs

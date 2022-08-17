@@ -361,7 +361,7 @@ An `ip_configuration` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Required) A snippet from the Response Body which must be present in the Response.
+* `body` - A snippet from the Response Body which must be present in the Response.
 
 * `status_code` - (Required) A list of allowed status codes for this Health Probe.
 
@@ -525,7 +525,7 @@ When using a `policy_type` of `Custom` the following fields are supported:
 
 A `waf_configuration` block supports the following:
 
-* `enabled` - (Required) Is the Web Application Firewall be enabled?
+* `enabled` - (Required) Is the Web Application Firewall enabled?
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
@@ -653,7 +653,9 @@ A `url` block supports the following:
 
 * `query_string` - (Optional) The query string to rewrite.
 
-~> **Note:** One or both of `path` and `query_string` must be specified.
+* `components` - (Optional) The components used to rewrite the URL. Possible values are `path_only` and `query_string_only` to limit the rewrite to the URL Path or URL Query String only.
+
+~> **Note:** One or both of `path` and `query_string` must be specified. If one of these is not specified, it means the value  will be empty. If you only want to rewrite `path` or `query_string`, use `components`.
 
 * `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 

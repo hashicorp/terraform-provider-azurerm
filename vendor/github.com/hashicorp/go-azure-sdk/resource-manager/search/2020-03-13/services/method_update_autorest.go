@@ -93,5 +93,6 @@ func (c ServicesClient) responderForUpdate(resp *http.Response) (result UpdateOp
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

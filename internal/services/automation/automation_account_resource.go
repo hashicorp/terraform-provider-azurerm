@@ -6,13 +6,17 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -58,6 +62,43 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+
+						"key_source": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice(
+								automationaccount.PossibleValuesForEncryptionKeySourceType(),
+								false,
+							),
+						},
+
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+					},
+				},
+			},
+
+			"local_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 
 			"dsc_server_endpoint": {
@@ -78,6 +119,22 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+			"private_endpoint_connection": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -113,6 +170,17 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
+	}
+
+	if localAuth := d.Get("local_authentication_enabled").(bool); localAuth == false {
+		parameters.Properties.DisableLocalAuth = utils.Bool(true)
+	}
+	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
+		enc, err := expandEncryption(encryption[0].(map[string]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `encryption`: %v", err)
+		}
+		parameters.Properties.Encryption = enc
 	}
 	// for create account do not set identity property (even TypeNone is not allowed), or api will response error
 	if identityVal.Type != identity.TypeNone {
@@ -152,6 +220,18 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
+	}
+
+	if localAuth := d.Get("local_authentication_enabled").(bool); localAuth == false {
+		parameters.Properties.DisableLocalAuth = utils.Bool(true)
+	}
+
+	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
+		enc, err := expandEncryption(encryption[0].(map[string]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `encryption`: %v", err)
+		}
+		parameters.Properties.Encryption = enc
 	}
 
 	if tagsVal := expandTags(d.Get("tags").(map[string]interface{})); tagsVal != nil {
@@ -217,6 +297,16 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	d.Set("sku_name", skuName)
 
+	localAuthEnabled := true
+	if val := prop.DisableLocalAuth; val != nil && *val == true {
+		localAuthEnabled = false
+	}
+	d.Set("local_authentication_enabled", localAuthEnabled)
+
+	if err := d.Set("encryption", flattenEncryption(prop.Encryption)); err != nil {
+		return fmt.Errorf("setting `encryption`: %+v", err)
+	}
+
 	d.Set("dsc_server_endpoint", keysResp.Endpoint)
 	if keys := keysResp.Keys; keys != nil {
 		d.Set("dsc_primary_access_key", keys.Primary)
@@ -229,6 +319,10 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if resp.Model != nil && resp.Model.Properties != nil {
+		d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(resp.Model.Properties.PrivateEndpointConnections))
 	}
 
 	if resp.Model.Tags != nil {
@@ -257,4 +351,52 @@ func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func expandEncryption(encMap map[string]interface{}) (*automationaccount.EncryptionProperties, error) {
+	var id interface{}
+	id, ok := encMap["user_assigned_identity_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("read encryption user identity id error")
+	}
+	prop := &automationaccount.EncryptionProperties{
+		Identity: &automationaccount.EncryptionPropertiesIdentity{
+			UserAssignedIdentity: &id,
+		},
+	}
+	if val, ok := encMap["key_source"].(string); ok && val != "" {
+		prop.KeySource = (*automationaccount.EncryptionKeySourceType)(&val)
+	}
+	if keyIdStr := encMap["key_vault_key_id"].(string); keyIdStr != "" {
+		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyIdStr)
+		if err != nil {
+			return nil, err
+		}
+		prop.KeyVaultProperties = &automationaccount.KeyVaultProperties{
+			KeyName:     utils.String(keyId.Name),
+			KeyVersion:  utils.String(keyId.Version),
+			KeyvaultUri: utils.String(keyId.KeyVaultBaseUrl),
+		}
+	}
+	return prop, nil
+}
+
+func flattenEncryption(encryption *automationaccount.EncryptionProperties) (res []interface{}) {
+	if encryption == nil {
+		return
+	}
+	item := map[string]interface{}{}
+	if encryption.KeySource != nil {
+		item["key_source"] = (string)(*encryption.KeySource)
+	}
+	if encryption.Identity != nil && encryption.Identity.UserAssignedIdentity != nil {
+		item["user_assigned_identity_id"] = (*encryption.Identity.UserAssignedIdentity).(string)
+	}
+	if keyProp := encryption.KeyVaultProperties; keyProp != nil {
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*keyProp.KeyvaultUri, "keys", *keyProp.KeyName, *keyProp.KeyVersion)
+		if err == nil {
+			item["key_vault_key_id"] = keyVaultKeyId.ID()
+		}
+	}
+	return []interface{}{item}
 }
