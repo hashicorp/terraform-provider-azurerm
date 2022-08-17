@@ -92,7 +92,7 @@ resource "azurerm_app_service_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
-  auth_info {
+  authentication {
     type = "systemAssignedIdentity"
   }
 }
@@ -139,7 +139,7 @@ resource "azurerm_app_service_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   app_service_id     = azurerm_linux_web_app.update.id
   target_resource_id = azurerm_cosmosdb_sql_database.update.id
-  auth_info {
+  authentication {
     type = "systemAssignedIdentity"
   }
 }
@@ -157,7 +157,7 @@ resource "azurerm_app_service_connection" "test" {
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
   vnet_solution      = "privateLink"
-  auth_info {
+  authentication {
     type = "systemAssignedIdentity"
   }
 }

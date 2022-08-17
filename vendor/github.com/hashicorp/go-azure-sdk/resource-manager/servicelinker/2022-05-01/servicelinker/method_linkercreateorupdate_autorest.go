@@ -19,16 +19,16 @@ type LinkerCreateOrUpdateOperationResponse struct {
 }
 
 // LinkerCreateOrUpdate ...
-func (c ServiceLinkerClient) LinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (result LinkerCreateOrUpdateOperationResponse, err error) {
+func (c ServicelinkerClient) LinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (result LinkerCreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForLinkerCreateOrUpdate(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerCreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerCreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = c.senderForLinkerCreateOrUpdate(ctx, req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerCreateOrUpdate", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerCreateOrUpdate", result.HttpResponse, "Failure sending request")
 		return
 	}
 
@@ -36,7 +36,7 @@ func (c ServiceLinkerClient) LinkerCreateOrUpdate(ctx context.Context, id Scoped
 }
 
 // LinkerCreateOrUpdateThenPoll performs LinkerCreateOrUpdate then polls until it's completed
-func (c ServiceLinkerClient) LinkerCreateOrUpdateThenPoll(ctx context.Context, id ScopedLinkerId, input LinkerResource) error {
+func (c ServicelinkerClient) LinkerCreateOrUpdateThenPoll(ctx context.Context, id ScopedLinkerId, input LinkerResource) error {
 	result, err := c.LinkerCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LinkerCreateOrUpdate: %+v", err)
@@ -50,7 +50,7 @@ func (c ServiceLinkerClient) LinkerCreateOrUpdateThenPoll(ctx context.Context, i
 }
 
 // preparerForLinkerCreateOrUpdate prepares the LinkerCreateOrUpdate request.
-func (c ServiceLinkerClient) preparerForLinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (*http.Request, error) {
+func (c ServicelinkerClient) preparerForLinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -67,7 +67,7 @@ func (c ServiceLinkerClient) preparerForLinkerCreateOrUpdate(ctx context.Context
 
 // senderForLinkerCreateOrUpdate sends the LinkerCreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (c ServiceLinkerClient) senderForLinkerCreateOrUpdate(ctx context.Context, req *http.Request) (future LinkerCreateOrUpdateOperationResponse, err error) {
+func (c ServicelinkerClient) senderForLinkerCreateOrUpdate(ctx context.Context, req *http.Request) (future LinkerCreateOrUpdateOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {

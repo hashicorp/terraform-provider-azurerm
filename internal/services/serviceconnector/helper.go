@@ -84,7 +84,7 @@ func authInfoSchema() *pluginsdk.Schema {
 
 func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthInfoBase, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("auth_info should be defined")
+		return nil, fmt.Errorf("authentication should be defined")
 	}
 	v := input[0]
 

@@ -92,7 +92,7 @@ resource "azurerm_spring_cloud_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
-  auth_info {
+  authentication {
     type = "systemAssignedIdentity"
   }
 }
@@ -144,7 +144,7 @@ resource "azurerm_spring_cloud_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.update.id
   target_resource_id = azurerm_cosmosdb_sql_database.update.id
-  auth_info {
+  authentication {
     type = "systemAssignedIdentity"
   }
 }
@@ -162,7 +162,7 @@ resource "azurerm_spring_cloud_connection" "test" {
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
   vnet_solution      = "privateLink"
-  auth_info {
+  authentication {
     type = "systemAssignedIdentity"
   }
 }

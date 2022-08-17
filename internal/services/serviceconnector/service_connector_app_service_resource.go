@@ -24,7 +24,7 @@ type AppServiceConnectorResourceModel struct {
 	AppServiceId     string          `tfschema:"app_service_id"`
 	TargetResourceId string          `tfschema:"target_resource_id"`
 	ClientType       string          `tfschema:"client_type"`
-	AuthInfo         []AuthInfoModel `tfschema:"auth_info"`
+	AuthInfo         []AuthInfoModel `tfschema:"authentication"`
 	VnetSolution     string          `tfschema:"vnet_solution"`
 }
 
@@ -77,7 +77,7 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 			}, false),
 		},
 
-		"auth_info": authInfoSchema(),
+		"authentication": authInfoSchema(),
 	}
 }
 
@@ -116,7 +116,7 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 
 			authInfo, err := expandServiceConnectorAuthInfo(model.AuthInfo)
 			if err != nil {
-				return fmt.Errorf("expanding `auth_info`: %+v", err)
+				return fmt.Errorf("expanding `authentication`: %+v", err)
 			}
 
 			serviceConnectorProperties := servicelinker.LinkerProperties{
@@ -254,7 +254,7 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 				linkerProps.VNetSolution = &vnetSolution
 			}
 
-			if d.HasChange("auth_info") {
+			if d.HasChange("authentication") {
 				linkerProps.AuthInfo = state.AuthInfo
 			}
 

@@ -17,22 +17,22 @@ type LinkerGetOperationResponse struct {
 }
 
 // LinkerGet ...
-func (c ServiceLinkerClient) LinkerGet(ctx context.Context, id ScopedLinkerId) (result LinkerGetOperationResponse, err error) {
+func (c ServicelinkerClient) LinkerGet(ctx context.Context, id ScopedLinkerId) (result LinkerGetOperationResponse, err error) {
 	req, err := c.preparerForLinkerGet(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerGet", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerGet", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerGet", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerGet", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForLinkerGet(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerGet", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerGet", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (c ServiceLinkerClient) LinkerGet(ctx context.Context, id ScopedLinkerId) (
 }
 
 // preparerForLinkerGet prepares the LinkerGet request.
-func (c ServiceLinkerClient) preparerForLinkerGet(ctx context.Context, id ScopedLinkerId) (*http.Request, error) {
+func (c ServicelinkerClient) preparerForLinkerGet(ctx context.Context, id ScopedLinkerId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -56,12 +56,13 @@ func (c ServiceLinkerClient) preparerForLinkerGet(ctx context.Context, id Scoped
 
 // responderForLinkerGet handles the response to the LinkerGet request. The method always
 // closes the http.Response Body.
-func (c ServiceLinkerClient) responderForLinkerGet(resp *http.Response) (result LinkerGetOperationResponse, err error) {
+func (c ServicelinkerClient) responderForLinkerGet(resp *http.Response) (result LinkerGetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

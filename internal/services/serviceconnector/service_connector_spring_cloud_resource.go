@@ -24,7 +24,7 @@ type SpringCloudConnectorResourceModel struct {
 	SpringCloudId    string          `tfschema:"spring_cloud_id"`
 	TargetResourceId string          `tfschema:"target_resource_id"`
 	ClientType       string          `tfschema:"client_type"`
-	AuthInfo         []AuthInfoModel `tfschema:"auth_info"`
+	AuthInfo         []AuthInfoModel `tfschema:"authentication"`
 	VnetSolution     string          `tfschema:"vnet_solution"`
 }
 
@@ -79,7 +79,7 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 			}, false),
 		},
 
-		"auth_info": authInfoSchema(),
+		"authentication": authInfoSchema(),
 	}
 }
 
@@ -257,7 +257,7 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 				linkerProps.VNetSolution = &vnetSolution
 			}
 
-			if d.HasChange("auth_info") {
+			if d.HasChange("authentication") {
 				linkerProps.AuthInfo = state.AuthInfo
 			}
 

@@ -39,34 +39,116 @@ func (r LinkerListOperationResponse) LoadMore(ctx context.Context) (resp LinkerL
 }
 
 // LinkerList ...
-func (c ServiceLinkerClient) LinkerList(ctx context.Context, id commonids.ScopeId) (resp LinkerListOperationResponse, err error) {
+func (c ServicelinkerClient) LinkerList(ctx context.Context, id commonids.ScopeId) (resp LinkerListOperationResponse, err error) {
 	req, err := c.preparerForLinkerList(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerList", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerList", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerList", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerList", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForLinkerList(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerList", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerList", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
+// preparerForLinkerList prepares the LinkerList request.
+func (c ServicelinkerClient) preparerForLinkerList(ctx context.Context, id commonids.ScopeId) (*http.Request, error) {
+	queryParameters := map[string]interface{}{
+		"api-version": defaultApiVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsGet(),
+		autorest.WithBaseURL(c.baseUri),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.ServiceLinker/linkers", id.ID())),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// preparerForLinkerListWithNextLink prepares the LinkerList request with the given nextLink token.
+func (c ServicelinkerClient) preparerForLinkerListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+	uri, err := url.Parse(nextLink)
+	if err != nil {
+		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
+	}
+	queryParameters := map[string]interface{}{}
+	for k, v := range uri.Query() {
+		if len(v) == 0 {
+			continue
+		}
+		val := v[0]
+		val = autorest.Encode("query", val)
+		queryParameters[k] = val
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsGet(),
+		autorest.WithBaseURL(c.baseUri),
+		autorest.WithPath(uri.Path),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// responderForLinkerList handles the response to the LinkerList request. The method always
+// closes the http.Response Body.
+func (c ServicelinkerClient) responderForLinkerList(resp *http.Response) (result LinkerListOperationResponse, err error) {
+	type page struct {
+		Values   []LinkerResource `json:"value"`
+		NextLink *string          `json:"nextLink"`
+	}
+	var respObj page
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&respObj),
+		autorest.ByClosing())
+	result.HttpResponse = resp
+	result.Model = &respObj.Values
+	result.nextLink = respObj.NextLink
+	if respObj.NextLink != nil {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result LinkerListOperationResponse, err error) {
+			req, err := c.preparerForLinkerListWithNextLink(ctx, nextLink)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerList", nil, "Failure preparing request")
+				return
+			}
+
+			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerList", result.HttpResponse, "Failure sending request")
+				return
+			}
+
+			result, err = c.responderForLinkerList(result.HttpResponse)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "servicelinker.ServicelinkerClient", "LinkerList", result.HttpResponse, "Failure responding to request")
+				return
+			}
+
+			return
+		}
+	}
+	return
+}
+
 // LinkerListComplete retrieves all of the results into a single object
-func (c ServiceLinkerClient) LinkerListComplete(ctx context.Context, id commonids.ScopeId) (LinkerListCompleteResult, error) {
+func (c ServicelinkerClient) LinkerListComplete(ctx context.Context, id commonids.ScopeId) (LinkerListCompleteResult, error) {
 	return c.LinkerListCompleteMatchingPredicate(ctx, id, LinkerResourceOperationPredicate{})
 }
 
 // LinkerListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ServiceLinkerClient) LinkerListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate LinkerResourceOperationPredicate) (resp LinkerListCompleteResult, err error) {
+func (c ServicelinkerClient) LinkerListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate LinkerResourceOperationPredicate) (resp LinkerListCompleteResult, err error) {
 	items := make([]LinkerResource, 0)
 
 	page, err := c.LinkerList(ctx, id)
@@ -102,86 +184,4 @@ func (c ServiceLinkerClient) LinkerListCompleteMatchingPredicate(ctx context.Con
 		Items: items,
 	}
 	return out, nil
-}
-
-// preparerForLinkerList prepares the LinkerList request.
-func (c ServiceLinkerClient) preparerForLinkerList(ctx context.Context, id commonids.ScopeId) (*http.Request, error) {
-	queryParameters := map[string]interface{}{
-		"api-version": defaultApiVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsGet(),
-		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.ServiceLinker/linkers", id.ID())),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// preparerForLinkerListWithNextLink prepares the LinkerList request with the given nextLink token.
-func (c ServiceLinkerClient) preparerForLinkerListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
-	uri, err := url.Parse(nextLink)
-	if err != nil {
-		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
-	}
-	queryParameters := map[string]interface{}{}
-	for k, v := range uri.Query() {
-		if len(v) == 0 {
-			continue
-		}
-		val := v[0]
-		val = autorest.Encode("query", val)
-		queryParameters[k] = val
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsGet(),
-		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(uri.Path),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// responderForLinkerList handles the response to the LinkerList request. The method always
-// closes the http.Response Body.
-func (c ServiceLinkerClient) responderForLinkerList(resp *http.Response) (result LinkerListOperationResponse, err error) {
-	type page struct {
-		Values   []LinkerResource `json:"value"`
-		NextLink *string          `json:"nextLink"`
-	}
-	var respObj page
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&respObj),
-		autorest.ByClosing())
-	result.HttpResponse = resp
-	result.Model = &respObj.Values
-	result.nextLink = respObj.NextLink
-	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result LinkerListOperationResponse, err error) {
-			req, err := c.preparerForLinkerListWithNextLink(ctx, nextLink)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerList", nil, "Failure preparing request")
-				return
-			}
-
-			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerList", result.HttpResponse, "Failure sending request")
-				return
-			}
-
-			result, err = c.responderForLinkerList(result.HttpResponse)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "servicelinker.ServiceLinkerClient", "LinkerList", result.HttpResponse, "Failure responding to request")
-				return
-			}
-
-			return
-		}
-	}
-	return
 }
