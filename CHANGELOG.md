@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * Dependencies: bump `go-azure-helpers` to `v0.39.0` [GH-17996]
 * Dependencies: bump `go-azure-sdk` to `v0.20220815.1092453` [GH-7998]
 * updating `dedicated_host_*` to use `hashicorp/go-azure-sdk` [GH-17616]
+* `dataprotection`: updating to use `hashicorp/go-azure-sdk` [GH-17700]
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * Data Source: `azurerm_management_group` - now exports the `management_group_ids`, `all_management_group_ids`, and `all_subscription_ids` attributes [GH-16208]
 * `azurerm_active_directory_domain_service` - support for the `kerberos_armoring_enabled` and `kerberos_rc4_encryption_enabled` properties [GH-17853]
