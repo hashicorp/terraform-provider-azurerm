@@ -95,6 +95,10 @@ A `replica_set` block exports the following:
 
 A `security` block exports the following:
 
+* `kerberos_armoring_enabled` - (Optional) Whether the Kerberos Armoring is enabled.
+
+* `kerberos_rc4_encryption_enabled` - (Optional) Whether the Kerberos RC4 Encryption is enabled.
+
 * `ntlm_v1_enabled` - Whether legacy NTLM v1 support is enabled.
 
 * `sync_kerberos_passwords` - Whether Kerberos password hashes are synchronized to the managed domain.
