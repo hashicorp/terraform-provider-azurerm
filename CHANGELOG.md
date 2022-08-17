@@ -38,6 +38,7 @@ ENHANCEMENTS:
 * `azurerm_shared_image_version` - support for `blob_uri` and `storage_account_id` [GH-17768]
 * `azurerm_windows_virtual_machine` - now supports delete Eviction policies [GH-17226]
 * `azurerm_windows_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
+* `azurerm_web_application_firewall_policy` - support for the `excluded_rule_set` property [GH-17757]
 * 
 Allow Delete eviction policy on Azure VMs #17226
 
