@@ -267,7 +267,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: ValidatePartnerID,
+				ValidateFunc: validation.Any(ValidatePartnerID, validation.StringIsEmpty),
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
