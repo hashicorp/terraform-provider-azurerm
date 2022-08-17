@@ -120,7 +120,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_size_in_gb": {
 			Type:         schema.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(32, 8192),
+			ValidateFunc: validation.IntBetween(32, 16384),
 		},
 
 		"subnet_id": {

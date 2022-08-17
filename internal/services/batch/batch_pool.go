@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -252,14 +253,12 @@ func flattenBatchPoolContainerRegistry(d *pluginsdk.ResourceData, armContainerRe
 	}
 	if userName := armContainerRegistry.UserName; userName != nil {
 		result["user_name"] = *userName
+		// Locate the password only if user_name is defined
+		result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
 	}
-
-	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
-	if len(result) != 2 {
-		return result
+	if identity := armContainerRegistry.IdentityReference; identity != nil {
+		result["user_assigned_identity_id"] = identity.ResourceID
 	}
-
-	result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
 
 	return result
 }
@@ -363,11 +362,23 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 		return nil, fmt.Errorf("Error: container registry reference should be defined")
 	}
 
-	containerRegistry := batch.ContainerRegistry{
-		RegistryServer: utils.String(ref["registry_server"].(string)),
-		UserName:       utils.String(ref["user_name"].(string)),
-		Password:       utils.String(ref["password"].(string)),
+	containerRegistry := batch.ContainerRegistry{}
+
+	if v := ref["registry_server"]; v != nil && v != "" {
+		containerRegistry.RegistryServer = pointer.FromString(v.(string))
 	}
+	if v := ref["user_name"]; v != nil && v != "" {
+		containerRegistry.UserName = pointer.FromString(v.(string))
+	}
+	if v := ref["password"]; v != nil && v != "" {
+		containerRegistry.Password = pointer.FromString(v.(string))
+	}
+	if v := ref["user_assigned_identity_id"]; v != nil && v != "" {
+		containerRegistry.IdentityReference = &batch.ComputeNodeIdentityReference{
+			ResourceID: pointer.FromString(v.(string)),
+		}
+	}
+
 	return &containerRegistry, nil
 }
 

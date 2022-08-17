@@ -151,6 +151,8 @@ A `container_registries` block exports the following:
 
 * `password` - The password to log into the registry server.
 
+* `user_assigned_identity_id` - The reference to the user assigned identity to use to access an Azure Container Registry instead of username and password.
+
 ---
 
 A `network_configuration` block exports the following:
@@ -185,6 +187,6 @@ A `network_security_group_rules` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.

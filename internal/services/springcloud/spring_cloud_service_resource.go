@@ -351,11 +351,18 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	d.SetId(id.ID())
 
-	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
-	if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
-		return err
+	skuName := d.Get("sku_name").(string)
+	if skuName == "E0" && gitProperty != nil {
+		return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 	}
-	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
+
+	if skuName != "E0" {
+		log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
+		if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
+	}
 
 	log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 	monitorSettings := appplatform.MonitoringSettingResource{
@@ -439,12 +446,17 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
-
-		log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
-		if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
-			return err
+		skuName := d.Get("sku_name").(string)
+		if skuName == "E0" && gitProperty != nil {
+			return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 		}
-		log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
+		if skuName != "E0" {
+			log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
+			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
+				return err
+			}
+			log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
+		}
 	}
 
 	if d.HasChange("trace") {
@@ -529,11 +541,6 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 	}
 
-	configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
-	if err != nil {
-		return fmt.Errorf("retrieving config server settings for %s: %+v", id, err)
-	}
-
 	monitoringSettings, err := monitoringSettingsClient.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("retrieving monitoring settings for %s: %+v", id, err)
@@ -574,8 +581,14 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("service_registry_id", "")
 	}
 
-	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
-		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+	if resp.Sku != nil && resp.Sku.Name != nil && *resp.Sku.Name != "E0" {
+		configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
+		if err != nil {
+			return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
+		}
+		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
+			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+		}
 	}
 
 	if err := d.Set("trace", flattenSpringCloudTrace(monitoringSettings.Properties)); err != nil {

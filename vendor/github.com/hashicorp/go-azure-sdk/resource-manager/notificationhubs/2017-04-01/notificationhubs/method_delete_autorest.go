@@ -61,5 +61,6 @@ func (c NotificationHubsClient) responderForDelete(resp *http.Response) (result 
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

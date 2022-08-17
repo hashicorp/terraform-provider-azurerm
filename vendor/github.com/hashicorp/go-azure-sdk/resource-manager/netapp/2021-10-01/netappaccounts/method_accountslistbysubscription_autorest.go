@@ -60,50 +60,6 @@ func (c NetAppAccountsClient) AccountsListBySubscription(ctx context.Context, id
 	return
 }
 
-// AccountsListBySubscriptionComplete retrieves all of the results into a single object
-func (c NetAppAccountsClient) AccountsListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (AccountsListBySubscriptionCompleteResult, error) {
-	return c.AccountsListBySubscriptionCompleteMatchingPredicate(ctx, id, NetAppAccountOperationPredicate{})
-}
-
-// AccountsListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c NetAppAccountsClient) AccountsListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate NetAppAccountOperationPredicate) (resp AccountsListBySubscriptionCompleteResult, err error) {
-	items := make([]NetAppAccount, 0)
-
-	page, err := c.AccountsListBySubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AccountsListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAccountsListBySubscription prepares the AccountsListBySubscription request.
 func (c NetAppAccountsClient) preparerForAccountsListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c NetAppAccountsClient) responderForAccountsListBySubscription(resp *http.
 		}
 	}
 	return
+}
+
+// AccountsListBySubscriptionComplete retrieves all of the results into a single object
+func (c NetAppAccountsClient) AccountsListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (AccountsListBySubscriptionCompleteResult, error) {
+	return c.AccountsListBySubscriptionCompleteMatchingPredicate(ctx, id, NetAppAccountOperationPredicate{})
+}
+
+// AccountsListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c NetAppAccountsClient) AccountsListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate NetAppAccountOperationPredicate) (resp AccountsListBySubscriptionCompleteResult, err error) {
+	items := make([]NetAppAccount, 0)
+
+	page, err := c.AccountsListBySubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AccountsListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

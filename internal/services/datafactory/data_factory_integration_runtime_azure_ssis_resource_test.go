@@ -147,6 +147,21 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_aadAuth(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_expressVnetInjection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.expressVnetInjection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (IntegrationRuntimeManagedSsisResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -706,6 +721,49 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   depends_on = [azurerm_sql_active_directory_administrator.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (IntegrationRuntimeManagedSsisResource) expressVnetInjection(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
+  express_vnet_integration {
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

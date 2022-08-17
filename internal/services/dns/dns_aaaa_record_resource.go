@@ -2,15 +2,15 @@ package dns
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,8 +33,14 @@ func resourceDnsAAAARecord() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AaaaRecordID(id)
-			return err
+			parsed, err := recordsets.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if parsed.RecordType != recordsets.RecordTypeAAAA {
+				return fmt.Errorf("this resource only supports 'AAAA' records")
+			}
+			return nil
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -44,11 +50,12 @@ func resourceDnsAAAARecord() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"zone_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"records": {
@@ -72,7 +79,7 @@ func resourceDnsAAAARecord() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"target_resource_id": {
 				Type:          pluginsdk.TypeString,
@@ -85,7 +92,7 @@ func resourceDnsAAAARecord() *pluginsdk.Resource {
 }
 
 func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
@@ -94,18 +101,17 @@ func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	resourceId := parse.NewAaaaRecordID(subscriptionId, resGroup, zoneName, name)
-
+	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeAAAA, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.AAAA)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing DNS AAAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_dns_aaaa_record", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dns_aaaa_record", id.ID())
 		}
 	}
 
@@ -114,18 +120,18 @@ func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	recordsRaw := d.Get("records").(*pluginsdk.Set).List()
 	targetResourceId := d.Get("target_resource_id").(string)
 
-	parameters := dns.RecordSet{
+	parameters := recordsets.RecordSet{
 		Name: &name,
-		RecordSetProperties: &dns.RecordSetProperties{
+		Properties: &recordsets.RecordSetProperties{
 			Metadata:       tags.Expand(t),
 			TTL:            &ttl,
-			AaaaRecords:    expandAzureRmDnsAaaaRecords(recordsRaw),
-			TargetResource: &dns.SubResource{},
+			AAAARecords:    expandAzureRmDnsAaaaRecords(recordsRaw),
+			TargetResource: &recordsets.SubResource{},
 		},
 	}
 
 	if targetResourceId != "" {
-		parameters.RecordSetProperties.TargetResource.ID = utils.String(targetResourceId)
+		parameters.Properties.TargetResource.Id = utils.String(targetResourceId)
 	}
 
 	// TODO: this can be removed when the provider SDK is upgraded
@@ -133,99 +139,103 @@ func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("One of either `records` or `target_resource_id` must be specified")
 	}
 
-	eTag := ""
-	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.AAAA, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("creating/updating DNS AAAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
-
+	d.SetId(id.ID())
 	return resourceDnsAaaaRecordRead(d, meta)
 }
 
 func resourceDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AaaaRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading DNS AAAA record %s: %v", id.AAAAName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.AAAAName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.DnszoneName)
+	d.Set("name", id.RelativeRecordSetName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("zone_name", id.ZoneName)
 
-	d.Set("fqdn", resp.Fqdn)
-	d.Set("ttl", resp.TTL)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("fqdn", props.Fqdn)
+			d.Set("ttl", props.TTL)
 
-	if err := d.Set("records", flattenAzureRmDnsAaaaRecords(resp.AaaaRecords)); err != nil {
-		return fmt.Errorf("setting `records`: %+v", err)
-	}
+			if err := d.Set("records", flattenAzureRmDnsAaaaRecords(props.AAAARecords)); err != nil {
+				return fmt.Errorf("setting `records`: %+v", err)
+			}
 
-	targetResourceId := ""
-	if resp.TargetResource != nil && resp.TargetResource.ID != nil {
-		targetResourceId = *resp.TargetResource.ID
-	}
-	d.Set("target_resource_id", targetResourceId)
+			targetResourceId := ""
+			if props.TargetResource != nil && props.TargetResource.Id != nil {
+				targetResourceId = *props.TargetResource.Id
+			}
+			d.Set("target_resource_id", targetResourceId)
 
-	return tags.FlattenAndSet(d, resp.Metadata)
-}
-
-func resourceDnsAaaaRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.AaaaRecordID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA, "")
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("deleting DNS AAAA Record %s: %+v", id.AAAAName, err)
+			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
 }
 
-func expandAzureRmDnsAaaaRecords(input []interface{}) *[]dns.AaaaRecord {
-	records := make([]dns.AaaaRecord, len(input))
+func resourceDnsAaaaRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Dns.RecordSets
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := recordsets.ParseRecordTypeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, *id, recordsets.DefaultDeleteOperationOptions()); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id.RelativeRecordSetName, err)
+	}
+
+	return nil
+}
+
+func expandAzureRmDnsAaaaRecords(input []interface{}) *[]recordsets.AaaaRecord {
+	records := make([]recordsets.AaaaRecord, len(input))
 
 	for i, v := range input {
 		ipv6 := NormalizeIPv6Address(v)
-		records[i] = dns.AaaaRecord{
-			Ipv6Address: &ipv6,
+		records[i] = recordsets.AaaaRecord{
+			IPv6Address: &ipv6,
 		}
 	}
 
 	return &records
 }
 
-func flattenAzureRmDnsAaaaRecords(records *[]dns.AaaaRecord) []string {
+func flattenAzureRmDnsAaaaRecords(records *[]recordsets.AaaaRecord) []string {
 	if records == nil {
 		return []string{}
 	}
 
 	results := make([]string, 0)
 	for _, record := range *records {
-		if record.Ipv6Address == nil {
+		if record.IPv6Address == nil {
 			continue
 		}
 
-		results = append(results, NormalizeIPv6Address(*record.Ipv6Address))
+		results = append(results, NormalizeIPv6Address(*record.IPv6Address))
 	}
 	return results
 }
