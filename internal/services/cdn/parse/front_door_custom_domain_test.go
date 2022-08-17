@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = FrontDoorOriginGroupId{}
+var _ resourceids.Id = FrontDoorCustomDomainId{}
 
-func TestFrontDoorOriginGroupIDFormatter(t *testing.T) {
-	actual := NewFrontDoorOriginGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "originGroup1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1"
+func TestFrontDoorCustomDomainIDFormatter(t *testing.T) {
+	actual := NewFrontDoorCustomDomainID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "customDomain1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFrontDoorOriginGroupID(t *testing.T) {
+func TestFrontDoorCustomDomainID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontDoorOriginGroupId
+		Expected *FrontDoorCustomDomainId
 	}{
 
 		{
@@ -68,31 +68,31 @@ func TestFrontDoorOriginGroupID(t *testing.T) {
 		},
 
 		{
-			// missing OriginGroupName
+			// missing CustomDomainName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for OriginGroupName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/",
+			// missing value for CustomDomainName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
+			Expected: &FrontDoorCustomDomainId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "resGroup1",
+				ProfileName:      "profile1",
+				CustomDomainName: "customDomain1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/ORIGINGROUPS/ORIGINGROUP1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOMDOMAIN1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestFrontDoorOriginGroupID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontDoorOriginGroupID(v.Input)
+		actual, err := FrontDoorCustomDomainID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,17 +121,17 @@ func TestFrontDoorOriginGroupID(t *testing.T) {
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
 		}
-		if actual.OriginGroupName != v.Expected.OriginGroupName {
-			t.Fatalf("Expected %q but got %q for OriginGroupName", v.Expected.OriginGroupName, actual.OriginGroupName)
+		if actual.CustomDomainName != v.Expected.CustomDomainName {
+			t.Fatalf("Expected %q but got %q for CustomDomainName", v.Expected.CustomDomainName, actual.CustomDomainName)
 		}
 	}
 }
 
-func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
+func TestFrontDoorCustomDomainIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontDoorOriginGroupId
+		Expected *FrontDoorCustomDomainId
 	}{
 
 		{
@@ -177,58 +177,58 @@ func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
 		},
 
 		{
-			// missing OriginGroupName
+			// missing CustomDomainName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for OriginGroupName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/",
+			// missing value for CustomDomainName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
+			Expected: &FrontDoorCustomDomainId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "resGroup1",
+				ProfileName:      "profile1",
+				CustomDomainName: "customDomain1",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/origingroups/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customdomains/customDomain1",
+			Expected: &FrontDoorCustomDomainId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "resGroup1",
+				ProfileName:      "profile1",
+				CustomDomainName: "customDomain1",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/ORIGINGROUPS/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/CUSTOMDOMAINS/customDomain1",
+			Expected: &FrontDoorCustomDomainId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "resGroup1",
+				ProfileName:      "profile1",
+				CustomDomainName: "customDomain1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/OrIgInGrOuPs/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/CuStOmDoMaInS/customDomain1",
+			Expected: &FrontDoorCustomDomainId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "resGroup1",
+				ProfileName:      "profile1",
+				CustomDomainName: "customDomain1",
 			},
 		},
 	}
@@ -236,7 +236,7 @@ func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontDoorOriginGroupIDInsensitively(v.Input)
+		actual, err := FrontDoorCustomDomainIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -257,8 +257,8 @@ func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
 		}
-		if actual.OriginGroupName != v.Expected.OriginGroupName {
-			t.Fatalf("Expected %q but got %q for OriginGroupName", v.Expected.OriginGroupName, actual.OriginGroupName)
+		if actual.CustomDomainName != v.Expected.CustomDomainName {
+			t.Fatalf("Expected %q but got %q for CustomDomainName", v.Expected.CustomDomainName, actual.CustomDomainName)
 		}
 	}
 }

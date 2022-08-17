@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = FrontDoorOriginGroupId{}
+var _ resourceids.Id = FrontDoorSecurityPolicyId{}
 
-func TestFrontDoorOriginGroupIDFormatter(t *testing.T) {
-	actual := NewFrontDoorOriginGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "originGroup1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1"
+func TestFrontDoorSecurityPolicyIDFormatter(t *testing.T) {
+	actual := NewFrontDoorSecurityPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "securityPolicy1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFrontDoorOriginGroupID(t *testing.T) {
+func TestFrontDoorSecurityPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontDoorOriginGroupId
+		Expected *FrontDoorSecurityPolicyId
 	}{
 
 		{
@@ -68,31 +68,31 @@ func TestFrontDoorOriginGroupID(t *testing.T) {
 		},
 
 		{
-			// missing OriginGroupName
+			// missing SecurityPolicyName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for OriginGroupName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/",
+			// missing value for SecurityPolicyName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
+			Expected: &FrontDoorSecurityPolicyId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				ProfileName:        "profile1",
+				SecurityPolicyName: "securityPolicy1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/ORIGINGROUPS/ORIGINGROUP1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/SECURITYPOLICIES/SECURITYPOLICY1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestFrontDoorOriginGroupID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontDoorOriginGroupID(v.Input)
+		actual, err := FrontDoorSecurityPolicyID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,17 +121,17 @@ func TestFrontDoorOriginGroupID(t *testing.T) {
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
 		}
-		if actual.OriginGroupName != v.Expected.OriginGroupName {
-			t.Fatalf("Expected %q but got %q for OriginGroupName", v.Expected.OriginGroupName, actual.OriginGroupName)
+		if actual.SecurityPolicyName != v.Expected.SecurityPolicyName {
+			t.Fatalf("Expected %q but got %q for SecurityPolicyName", v.Expected.SecurityPolicyName, actual.SecurityPolicyName)
 		}
 	}
 }
 
-func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
+func TestFrontDoorSecurityPolicyIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontDoorOriginGroupId
+		Expected *FrontDoorSecurityPolicyId
 	}{
 
 		{
@@ -177,58 +177,58 @@ func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
 		},
 
 		{
-			// missing OriginGroupName
+			// missing SecurityPolicyName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for OriginGroupName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/",
+			// missing value for SecurityPolicyName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
+			Expected: &FrontDoorSecurityPolicyId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				ProfileName:        "profile1",
+				SecurityPolicyName: "securityPolicy1",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/origingroups/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securitypolicies/securityPolicy1",
+			Expected: &FrontDoorSecurityPolicyId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				ProfileName:        "profile1",
+				SecurityPolicyName: "securityPolicy1",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/ORIGINGROUPS/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/SECURITYPOLICIES/securityPolicy1",
+			Expected: &FrontDoorSecurityPolicyId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				ProfileName:        "profile1",
+				SecurityPolicyName: "securityPolicy1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/OrIgInGrOuPs/originGroup1",
-			Expected: &FrontDoorOriginGroupId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "originGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/SeCuRiTyPoLiCiEs/securityPolicy1",
+			Expected: &FrontDoorSecurityPolicyId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				ProfileName:        "profile1",
+				SecurityPolicyName: "securityPolicy1",
 			},
 		},
 	}
@@ -236,7 +236,7 @@ func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontDoorOriginGroupIDInsensitively(v.Input)
+		actual, err := FrontDoorSecurityPolicyIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -257,8 +257,8 @@ func TestFrontDoorOriginGroupIDInsensitively(t *testing.T) {
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
 		}
-		if actual.OriginGroupName != v.Expected.OriginGroupName {
-			t.Fatalf("Expected %q but got %q for OriginGroupName", v.Expected.OriginGroupName, actual.OriginGroupName)
+		if actual.SecurityPolicyName != v.Expected.SecurityPolicyName {
+			t.Fatalf("Expected %q but got %q for SecurityPolicyName", v.Expected.SecurityPolicyName, actual.SecurityPolicyName)
 		}
 	}
 }

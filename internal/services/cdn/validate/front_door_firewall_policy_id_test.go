@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestFrontDoorProfileID(t *testing.T) {
+func TestFrontDoorFirewallPolicyID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -41,32 +41,32 @@ func TestFrontDoorProfileID(t *testing.T) {
 		},
 
 		{
-			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
+			// missing FrontDoorWebApplicationFirewallPolicyName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Valid: false,
 		},
 
 		{
-			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
+			// missing value for FrontDoorWebApplicationFirewallPolicyName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FRONTDOORWEBAPPLICATIONFIREWALLPOLICIES/POLICY1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := FrontDoorProfileID(tc.Input, "test")
+		_, errors := FrontDoorFirewallPolicyID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

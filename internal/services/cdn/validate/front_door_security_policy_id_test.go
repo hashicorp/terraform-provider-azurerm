@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestFrontDoorRuleID(t *testing.T) {
+func TestFrontDoorSecurityPolicyID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,44 +53,32 @@ func TestFrontDoorRuleID(t *testing.T) {
 		},
 
 		{
-			// missing RuleSetName
+			// missing SecurityPolicyName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for RuleSetName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/",
-			Valid: false,
-		},
-
-		{
-			// missing RuleName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/",
-			Valid: false,
-		},
-
-		{
-			// missing value for RuleName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/",
+			// missing value for SecurityPolicyName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/rule1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/RULESETS/RULESET1/RULES/RULE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/SECURITYPOLICIES/SECURITYPOLICY1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := FrontDoorRuleID(tc.Input, "test")
+		_, errors := FrontDoorSecurityPolicyID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
