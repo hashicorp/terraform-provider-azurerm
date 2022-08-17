@@ -64,5 +64,6 @@ func (c WorkspacesClient) responderForSchemaGet(resp *http.Response) (result Sch
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

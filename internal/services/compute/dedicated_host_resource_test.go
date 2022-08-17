@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -166,17 +167,17 @@ func TestAccDedicatedHost_requiresImport(t *testing.T) {
 }
 
 func (t DedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DedicatedHostID(state.ID)
+	id, err := dedicatedhosts.ParseHostID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.DedicatedHostsClient.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
+	resp, err := clients.Compute.DedicatedHostsClient.Get(ctx, *id, dedicatedhosts.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Dedicated Host %q", id.String())
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r DedicatedHostResource) basic(data acceptance.TestData) string {

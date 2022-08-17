@@ -1,20 +1,70 @@
-## 3.18.0 (Unreleased)
+## 3.19.0 (Unreleased)
 
-FEATURES: 
+FEATURES:
 
-* **New Resource**: `azurerm_monitor_data_collection_endpoint` [GH-17684]
+* **New Rersource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
+* **New Data Source**: `azurerm_dns_a_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_aaaa_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_caa_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_cname_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_mx_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_ns_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_ptr_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_soa_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_srv_record` [GH-17477]
+* **New Data Source**: `azurerm_dns_txt_record` [GH-17477]
 
 ENHANCEMENTS:
 
-* `azurerm_express_route_circuit_peering` - support for the `ipv4_enabled` and `gateway_manager_etag` properties [GH-17338]
-* `azurerm_site_recovery_replicated_vm` - support for the `target_disk_encryption` block [GH-15783]
-* `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` [GH-17464]
-* `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` [GH-17464]
-* `azurerm_servicebus_subscription` - support for the `client_scoped_subscription_enabled` property and the `client_scoped_subscription` block [GH-17101]
+* Dependencies: bump `go-azure-helpers` to `v0.39.0` [GH-17996]
+* Dependencies: bump `go-azure-sdk` to `v0.20220815.1092453` [GH-7998]
+* updating `dedicated_host_*` to use `hashicorp/go-azure-sdk` [GH-17616]
+* Data Source: `azurerm_images` - now uses a logical id [GH-17766]
+* Data Source: `azurerm_management_group` - now exports the `management_group_ids`, `all_management_group_ids`, and `all_subscription_ids` attributes [GH-16208]
+* `azurerm_active_directory_domain_service` - support for the `kerberos_armoring_enabled` and `kerberos_rc4_encryption_enabled` properties [GH-17853]
+* `azurerm_automation_account` - support for the `private_endpoint_connection` property [GH-17934]
+* `azurerm_automation_account` - support for the `encryption` block and `local_authentication_enabled` property [GH-17454]
+* `azurerm_batch_pool` - support for identity referencees in container registries [GH-17416]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `express_vnet_injection` property [GH-17756]
+* `azurerm_firewall_policy_resource` - support for the `private_ranges` and `allow_sql_redirect` properties [GH-17842]
+* `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
+* `azurerm_linux_virtual_machine` - now supports delete Eviction policies [GH-17226]
+* `azurerm_linux_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
+* `azurerm_mssql_elastic_pool` - support for the `maintenance_configuration_name` property [GH-17790]
+* `azurerm_mssql_server` - support `Disabled` for the `minimum_tls_version` property [GH-16595]
+* `azurerm_shared_image` - support for the `architecture` property [GH-17250]
+* `azurerm_storage_account` - support for the `default_to_oauth_authentication` property [GH-17116]
+* `azurerm_shared_image_version` - support for `blob_uri` and `storage_account_id` [GH-17768]
+* `azurerm_windows_virtual_machine` - now supports delete Eviction policies [GH-17226]
+* `azurerm_windows_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
+* 
+Allow Delete eviction policy on Azure VMs #17226
 
 BUG FIXES:
 
-`azurerm_backup_policy_vm` - now prevents crash when `frequency` is set to Hourly and, `hour_interval` and `hour_duration`are not set [GH-17880]
+* `azurerm_data_protection_backup_policy_postgresql_resource` - prevent a crash when given an empty criteria block [GH-17904]
+* `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
+
+## 3.18.0 (August 11, 2022)
+
+FEATURES: 
+
+* **New Resource**: `azurerm_monitor_data_collection_endpoint` ([#17684](https://github.com/hashicorp/terraform-provider-azurerm/issues/17684))
+
+ENHANCEMENTS:
+
+* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20220809.1122626` ([#17905](https://github.com/hashicorp/terraform-provider-azurerm/issues/17905))
+* storage: updating to use API Version `2021-09-01` ([#17523](https://github.com/hashicorp/terraform-provider-azurerm/issues/17523))
+* `azurerm_express_route_circuit_peering` - support for the `ipv4_enabled` and `gateway_manager_etag` properties ([#17338](https://github.com/hashicorp/terraform-provider-azurerm/issues/17338))
+* `azurerm_site_recovery_replicated_vm` - support for the `target_disk_encryption` block ([#15783](https://github.com/hashicorp/terraform-provider-azurerm/issues/15783))
+* `azurerm_subnet` - deprecate `enforce_private_link_endpoint_network_policies` property in favour of `private_endpoint_network_policies_enabled` ([#17464](https://github.com/hashicorp/terraform-provider-azurerm/issues/17464))
+* `azurerm_subnet` - deprecate `enforce_private_link_service_network_policies` property in favour of `private_link_service_network_policies_enabled` ([#17464](https://github.com/hashicorp/terraform-provider-azurerm/issues/17464))
+* `azurerm_servicebus_subscription` - support for the `client_scoped_subscription_enabled` property and the `client_scoped_subscription` block ([#17101](https://github.com/hashicorp/terraform-provider-azurerm/issues/17101))
+
+BUG FIXES:
+
+* `azurerm_backup_policy_vm` - now prevents crash when `frequency` is set to Hourly and, `hour_interval` and `hour_duration`are not set ([#17880](https://github.com/hashicorp/terraform-provider-azurerm/issues/17880))
+* Data Source: `azurerm_blueprint_definition` - Fix `version` property output ([#16299](https://github.com/hashicorp/terraform-provider-azurerm/issues/16299))
 
 ## 3.17.0 (August 04, 2022)
 

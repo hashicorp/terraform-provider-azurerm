@@ -61,5 +61,6 @@ func (c WorkspacesClient) responderForGatewaysDelete(resp *http.Response) (resul
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

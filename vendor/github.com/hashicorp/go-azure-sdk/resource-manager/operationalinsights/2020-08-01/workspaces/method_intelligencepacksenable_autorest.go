@@ -62,5 +62,6 @@ func (c WorkspacesClient) responderForIntelligencePacksEnable(resp *http.Respons
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

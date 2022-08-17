@@ -64,5 +64,6 @@ func (c WorkspacesClient) responderForUsagesList(resp *http.Response) (result Us
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

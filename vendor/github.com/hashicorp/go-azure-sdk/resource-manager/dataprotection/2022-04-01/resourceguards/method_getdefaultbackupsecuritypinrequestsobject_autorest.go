@@ -63,5 +63,6 @@ func (c ResourceGuardsClient) responderForGetDefaultBackupSecurityPINRequestsObj
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

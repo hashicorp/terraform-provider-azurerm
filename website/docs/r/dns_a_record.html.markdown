@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `records` - (Optional) List of IPv4 Addresses. Conflicts with `target_resource_id`.
 
-* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`
+* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -89,19 +89,21 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The DNS A Record ID.
+
 * `fqdn` - The FQDN of the DNS A Record.
 
 ~> **Note:** The FQDN of the DNS A Record which has a full-stop at the end is by design. Please [see the documentation](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) for more information.
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS A Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS A Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS A Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS A Record.
 
 ## Import

@@ -151,6 +151,8 @@ A `container_registries` block exports the following:
 
 * `password` - The password to log into the registry server.
 
+* `user_assigned_identity_id` - The reference to the user assigned identity to use to access an Azure Container Registry instead of username and password.
+
 ---
 
 A `network_configuration` block exports the following:

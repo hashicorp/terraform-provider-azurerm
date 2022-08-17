@@ -1,5 +1,9 @@
 ---
 name: 32 Bit Build
+
+permissions:
+  pull-requests: read
+
 on:
   pull_request:
     types: ['opened', 'synchronize']
