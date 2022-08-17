@@ -406,6 +406,11 @@ func TestAccApplicationGateway_rewriteRuleSets_rewriteUrl(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rewrite_rule_set.0.name").Exists(),
+				check.That(data.ResourceName).Key("rewrite_rule_set.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rewrite_rule_set.0.rewrite_rule.0.url.0.components").HasValue(""),
+				check.That(data.ResourceName).Key("rewrite_rule_set.1.rewrite_rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rewrite_rule_set.1.rewrite_rule.0.url.0.components").HasValue("path_only"),
+				check.That(data.ResourceName).Key("rewrite_rule_set.1.rewrite_rule.1.url.0.components").HasValue("query_string_only"),
 			),
 		},
 		data.ImportStep(),
@@ -6052,6 +6057,40 @@ resource "azurerm_application_gateway" "test" {
         path         = "/article.aspx"
         query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
         reroute      = false
+      }
+    }
+  }
+
+  rewrite_rule_set {
+    name = "${local.rewrite_rule_set_name}_1"
+
+    rewrite_rule {
+      name          = "${local.rewrite_rule_name}_1"
+      rule_sequence = 1
+
+      condition {
+        variable = "var_uri_path"
+        pattern  = ".*article/(.*)/(.*)"
+      }
+
+      url {
+        path       = "/article.aspx"
+        components = "path_only"
+      }
+    }
+
+    rewrite_rule {
+      name          = "${local.rewrite_rule_name}_2"
+      rule_sequence = 2
+
+      condition {
+        variable = "var_uri_path"
+        pattern  = ".*article2/(.*)/(.*)"
+      }
+
+      url {
+        query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
+        components   = "query_string_only"
       }
     }
   }
