@@ -60,50 +60,6 @@ func (c ContactProfileClient) ContactProfilesList(ctx context.Context, id common
 	return
 }
 
-// ContactProfilesListComplete retrieves all of the results into a single object
-func (c ContactProfileClient) ContactProfilesListComplete(ctx context.Context, id commonids.ResourceGroupId) (ContactProfilesListCompleteResult, error) {
-	return c.ContactProfilesListCompleteMatchingPredicate(ctx, id, ContactProfileOperationPredicate{})
-}
-
-// ContactProfilesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ContactProfileClient) ContactProfilesListCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ContactProfileOperationPredicate) (resp ContactProfilesListCompleteResult, err error) {
-	items := make([]ContactProfile, 0)
-
-	page, err := c.ContactProfilesList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ContactProfilesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForContactProfilesList prepares the ContactProfilesList request.
 func (c ContactProfileClient) preparerForContactProfilesList(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ContactProfileClient) responderForContactProfilesList(resp *http.Respons
 		}
 	}
 	return
+}
+
+// ContactProfilesListComplete retrieves all of the results into a single object
+func (c ContactProfileClient) ContactProfilesListComplete(ctx context.Context, id commonids.ResourceGroupId) (ContactProfilesListCompleteResult, error) {
+	return c.ContactProfilesListCompleteMatchingPredicate(ctx, id, ContactProfileOperationPredicate{})
+}
+
+// ContactProfilesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ContactProfileClient) ContactProfilesListCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ContactProfileOperationPredicate) (resp ContactProfilesListCompleteResult, err error) {
+	items := make([]ContactProfile, 0)
+
+	page, err := c.ContactProfilesList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ContactProfilesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

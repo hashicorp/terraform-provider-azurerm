@@ -84,50 +84,6 @@ func (c GroundStationClient) AvailableGroundStationsListByCapability(ctx context
 	return
 }
 
-// AvailableGroundStationsListByCapabilityComplete retrieves all of the results into a single object
-func (c GroundStationClient) AvailableGroundStationsListByCapabilityComplete(ctx context.Context, id commonids.SubscriptionId, options AvailableGroundStationsListByCapabilityOperationOptions) (AvailableGroundStationsListByCapabilityCompleteResult, error) {
-	return c.AvailableGroundStationsListByCapabilityCompleteMatchingPredicate(ctx, id, options, AvailableGroundStationOperationPredicate{})
-}
-
-// AvailableGroundStationsListByCapabilityCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c GroundStationClient) AvailableGroundStationsListByCapabilityCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options AvailableGroundStationsListByCapabilityOperationOptions, predicate AvailableGroundStationOperationPredicate) (resp AvailableGroundStationsListByCapabilityCompleteResult, err error) {
-	items := make([]AvailableGroundStation, 0)
-
-	page, err := c.AvailableGroundStationsListByCapability(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AvailableGroundStationsListByCapabilityCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAvailableGroundStationsListByCapability prepares the AvailableGroundStationsListByCapability request.
 func (c GroundStationClient) preparerForAvailableGroundStationsListByCapability(ctx context.Context, id commonids.SubscriptionId, options AvailableGroundStationsListByCapabilityOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -213,4 +169,48 @@ func (c GroundStationClient) responderForAvailableGroundStationsListByCapability
 		}
 	}
 	return
+}
+
+// AvailableGroundStationsListByCapabilityComplete retrieves all of the results into a single object
+func (c GroundStationClient) AvailableGroundStationsListByCapabilityComplete(ctx context.Context, id commonids.SubscriptionId, options AvailableGroundStationsListByCapabilityOperationOptions) (AvailableGroundStationsListByCapabilityCompleteResult, error) {
+	return c.AvailableGroundStationsListByCapabilityCompleteMatchingPredicate(ctx, id, options, AvailableGroundStationOperationPredicate{})
+}
+
+// AvailableGroundStationsListByCapabilityCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c GroundStationClient) AvailableGroundStationsListByCapabilityCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options AvailableGroundStationsListByCapabilityOperationOptions, predicate AvailableGroundStationOperationPredicate) (resp AvailableGroundStationsListByCapabilityCompleteResult, err error) {
+	items := make([]AvailableGroundStation, 0)
+
+	page, err := c.AvailableGroundStationsListByCapability(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AvailableGroundStationsListByCapabilityCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

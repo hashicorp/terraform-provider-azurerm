@@ -63,5 +63,6 @@ func (c GroundStationClient) responderForAvailableGroundStationsGet(resp *http.R
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
