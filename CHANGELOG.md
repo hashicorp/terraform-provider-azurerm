@@ -62,11 +62,19 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_windows_web_app` - add missing schema definition for 'virtual_network_subnet_id' [GH-18028]
 * `azurerm_data_protection_backup_policy_postgresql_resource` - prevent a crash when given an empty criteria block [GH-17904]
 * `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
 * `azurerm_windows_function_app` fix a bug with setting values for `WindowsFxString` [GH-18014]
 * `azurerm_windows_function_app_slot` - fix a bug with setting values for `WindowsFxString` [GH-18014]
-* Data Source: `azurerm_windows_web_app` - add missing schema definition for 'virtual_network_subnet_id' [GH-18028]
+* `azurerm_linux_function_app` - correctly send `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-18035]
+* `azurerm_linux_function_app` - fix content settings when `storage_uses_managed_identity` is set to `true` [GH-18035]
+* `azurerm_linux_function_app_slot` - correctly send `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-18035]
+* `azurerm_linux_function_app_slot` - fix content settings when `storage_uses_managed_identity` is set to `true` [GH-18035]
+* `azurerm_windows_function_app` - correctly send `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-18035]
+* `azurerm_windows_function_app` - fix content settings when `storage_uses_managed_identity` is set to `true` [GH-18035]
+* `azurerm_windows_function_app_slot` - correctly send `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-18035]
+* `azurerm_windows_function_app_slot` - fix content settings when `storage_uses_managed_identity` is set to `true` [GH-18035]
 
 ## 3.18.0 (August 11, 2022)
 
