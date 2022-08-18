@@ -72,12 +72,10 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 				},
 			},
 
-			"policy_definition_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.PolicyDefinitionID,
+			"policy_definition_reference_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.PolicySetDefinitionReferenceID,
 			},
 
 			"resource_discovery_mode": {
@@ -123,7 +121,7 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 			},
 			PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_id").(string)),
+			PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_reference_id").(string)),
 		},
 	}
 	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
@@ -173,7 +171,7 @@ func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, met
 		}
 
 		d.Set("policy_assignment_id", props.PolicyAssignmentId)
-		d.Set("policy_definition_id", props.PolicyDefinitionReferenceId)
+		d.Set("policy_definition_reference_id", props.PolicyDefinitionReferenceId)
 		d.Set("resource_discovery_mode", utils.NormalizeNilableString((*string)(props.ResourceDiscoveryMode)))
 	}
 
