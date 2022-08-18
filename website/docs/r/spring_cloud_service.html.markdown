@@ -62,15 +62,18 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `build_agent_pool_size` - (Optional) Specifies the size for this Spring Cloud Service's default build agent pool. Possible values are `S1`, `S2`, `S3`, `S4` and `S5`.
+* `log_stream_public_endpoint_enabled` - (Optional) Should the log stream in vnet injection instance could be accessed from Internet?
+
+* `build_agent_pool_size` - (Optional) Specifies the size for this Spring Cloud Service's default build agent pool. Possible values are `S1`, `S2`, `S3`, `S4` and `S5`. This field is applicable only for Spring Cloud Service with enterprise tier.
+
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
-* `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
+* `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below. This field is applicable only for Spring Cloud Service with basic and standard tier.
 
-* `service_registry_enabled` - (Optional) Whether enable the default Service Registry.
+* `service_registry_enabled` - (Optional) Whether enable the default Service Registry. This field is applicable only for Spring Cloud Service with enterprise tier.
 
 * `trace` - (Optional) A `trace` block as defined below.
 
@@ -89,6 +92,8 @@ The `network` block supports the following:
 * `cidr_ranges` - (Required) A list of (at least 3) CIDR ranges (at least /16) which are used to host the Spring Cloud infrastructure, which must not overlap with any existing CIDR ranges in the Subnet. Changing this forces a new resource to be created.
 
 * `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps. Changing this forces a new resource to be created.
+
+* `read_timeout_seconds` - (Optional) Ingress read time out in seconds. Changing this forces a new resource to be created.
 
 * `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime. Changing this forces a new resource to be created.
 
@@ -182,7 +187,7 @@ The `required_network_traffic_rules` supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Spring Cloud Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Service.

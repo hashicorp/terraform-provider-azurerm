@@ -84,50 +84,6 @@ func (c PrivateZonesClient) List(ctx context.Context, id commonids.SubscriptionI
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c PrivateZonesClient) ListComplete(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, options, PrivateZoneOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PrivateZonesClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions, predicate PrivateZoneOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]PrivateZone, 0)
-
-	page, err := c.List(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c PrivateZonesClient) preparerForList(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -213,4 +169,48 @@ func (c PrivateZonesClient) responderForList(resp *http.Response) (result ListOp
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c PrivateZonesClient) ListComplete(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, options, PrivateZoneOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c PrivateZonesClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions, predicate PrivateZoneOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]PrivateZone, 0)
+
+	page, err := c.List(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

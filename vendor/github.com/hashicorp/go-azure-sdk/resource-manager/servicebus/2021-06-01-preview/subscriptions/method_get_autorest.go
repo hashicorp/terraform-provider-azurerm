@@ -63,5 +63,6 @@ func (c SubscriptionsClient) responderForGet(resp *http.Response) (result GetOpe
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

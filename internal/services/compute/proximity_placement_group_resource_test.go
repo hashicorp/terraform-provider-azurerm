@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -88,30 +87,27 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 }
 
 func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProximityPlacementGroupID(state.ID)
+	id, err := proximityplacementgroups.ParseProximityPlacementGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.ProximityPlacementGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Compute.ProximityPlacementGroupsClient.Get(ctx, *id, proximityplacementgroups.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Proximity Placement Group %q", id)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ProximityPlacementGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProximityPlacementGroupID(state.ID)
+	id, err := proximityplacementgroups.ParseProximityPlacementGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Compute.ProximityPlacementGroupsClient.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return nil, fmt.Errorf("deleting Proximity Placement Group %q: %+v", id, err)
-		}
+	if _, err := client.Compute.ProximityPlacementGroupsClient.Delete(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

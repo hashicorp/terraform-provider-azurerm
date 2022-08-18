@@ -8,12 +8,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +36,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.BackupInstanceID(id)
+			_, err := backupinstances.ParseBackupInstanceID(id)
 			return err
 		}),
 
@@ -54,7 +53,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.BackupVaultID,
+				ValidateFunc: backupinstances.ValidateBackupVaultID,
 			},
 
 			"storage_account_id": {
@@ -67,7 +66,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.BackupPolicyID,
+				ValidateFunc: backuppolicies.ValidateBackupPoliciesID,
 			},
 		},
 	}
@@ -80,50 +79,46 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := parse.BackupVaultID(d.Get("vault_id").(string))
-	id := parse.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroup, vaultId.Name, name)
+	vaultId, _ := backupinstances.ParseBackupVaultID(d.Get("vault_id").(string))
+	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_data_protection_backup_instance_blob_storage", id.ID())
 		}
 	}
 
 	storageAccountId, _ := storageParse.StorageAccountID(d.Get("storage_account_id").(string))
 	location := location.Normalize(d.Get("location").(string))
-	policyId, _ := parse.BackupPolicyID(d.Get("backup_policy_id").(string))
+	policyId, _ := backuppolicies.ParseBackupPoliciesID(d.Get("backup_policy_id").(string))
 
-	parameters := dataprotection.BackupInstanceResource{
-		Properties: &dataprotection.BackupInstance{
-			DataSourceInfo: &dataprotection.Datasource{
+	parameters := backupinstances.BackupInstanceResource{
+		Properties: &backupinstances.BackupInstance{
+			DataSourceInfo: backupinstances.Datasource{
 				DatasourceType:   utils.String("Microsoft.Storage/storageAccounts/blobServices"),
 				ObjectType:       utils.String("Datasource"),
-				ResourceID:       utils.String(storageAccountId.ID()),
+				ResourceID:       storageAccountId.ID(),
 				ResourceLocation: utils.String(location),
 				ResourceName:     utils.String(storageAccountId.Name),
 				ResourceType:     utils.String("Microsoft.Storage/storageAccounts"),
-				ResourceURI:      utils.String(storageAccountId.ID()),
+				ResourceUri:      utils.String(storageAccountId.ID()),
 			},
-			FriendlyName: utils.String(id.Name),
-			PolicyInfo: &dataprotection.PolicyInfo{
-				PolicyID: utils.String(policyId.ID()),
+			FriendlyName: utils.String(id.BackupInstanceName),
+			PolicyInfo: backupinstances.PolicyInfo{
+				PolicyId: policyId.ID(),
 			},
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.BackupVaultName, id.ResourceGroup, id.Name, parameters)
+	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of the DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
 	deadline, ok := ctx.Deadline()
@@ -131,8 +126,8 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		return fmt.Errorf("context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(dataprotection.StatusConfiguringProtection), "UpdatingProtection"},
-		Target:     []string{string(dataprotection.StatusProtectionConfigured)},
+		Pending:    []string{string(backupinstances.StatusConfiguringProtection), "UpdatingProtection"},
+		Target:     []string{string(backupinstances.StatusProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
@@ -151,30 +146,29 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupInstanceID(d.Id())
+	id, err := backupinstances.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
-	vaultId := parse.NewBackupVaultID(id.SubscriptionId, id.ResourceGroup, id.BackupVaultName)
-	d.Set("name", id.Name)
+	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	d.Set("name", id.BackupInstanceName)
 	d.Set("vault_id", vaultId.ID())
-	if props := resp.Properties; props != nil {
-		if props.DataSourceInfo != nil {
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+
 			d.Set("storage_account_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
-		}
-		if props.PolicyInfo != nil {
-			d.Set("backup_policy_id", props.PolicyInfo.PolicyID)
+			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 		}
 	}
 	return nil
@@ -185,21 +179,15 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupInstanceID(d.Id())
+	id, err := backupinstances.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the DataProtection BackupInstance (%q): %+v", id.Name, err)
-	}
 	return nil
 }

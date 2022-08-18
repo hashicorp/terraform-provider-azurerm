@@ -60,50 +60,6 @@ func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeleted(ctx con
 	return
 }
 
-// ConfigurationStoresListDeletedComplete retrieves all of the results into a single object
-func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeletedComplete(ctx context.Context, id commonids.SubscriptionId) (ConfigurationStoresListDeletedCompleteResult, error) {
-	return c.ConfigurationStoresListDeletedCompleteMatchingPredicate(ctx, id, DeletedConfigurationStoreOperationPredicate{})
-}
-
-// ConfigurationStoresListDeletedCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeletedCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate DeletedConfigurationStoreOperationPredicate) (resp ConfigurationStoresListDeletedCompleteResult, err error) {
-	items := make([]DeletedConfigurationStore, 0)
-
-	page, err := c.ConfigurationStoresListDeleted(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ConfigurationStoresListDeletedCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForConfigurationStoresListDeleted prepares the ConfigurationStoresListDeleted request.
 func (c DeletedConfigurationStoresClient) preparerForConfigurationStoresListDeleted(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c DeletedConfigurationStoresClient) responderForConfigurationStoresListDel
 		}
 	}
 	return
+}
+
+// ConfigurationStoresListDeletedComplete retrieves all of the results into a single object
+func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeletedComplete(ctx context.Context, id commonids.SubscriptionId) (ConfigurationStoresListDeletedCompleteResult, error) {
+	return c.ConfigurationStoresListDeletedCompleteMatchingPredicate(ctx, id, DeletedConfigurationStoreOperationPredicate{})
+}
+
+// ConfigurationStoresListDeletedCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeletedCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate DeletedConfigurationStoreOperationPredicate) (resp ConfigurationStoresListDeletedCompleteResult, err error) {
+	items := make([]DeletedConfigurationStore, 0)
+
+	page, err := c.ConfigurationStoresListDeleted(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ConfigurationStoresListDeletedCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

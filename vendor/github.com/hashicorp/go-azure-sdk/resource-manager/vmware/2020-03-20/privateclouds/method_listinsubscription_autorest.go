@@ -60,50 +60,6 @@ func (c PrivateCloudsClient) ListInSubscription(ctx context.Context, id commonid
 	return
 }
 
-// ListInSubscriptionComplete retrieves all of the results into a single object
-func (c PrivateCloudsClient) ListInSubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListInSubscriptionCompleteResult, error) {
-	return c.ListInSubscriptionCompleteMatchingPredicate(ctx, id, PrivateCloudOperationPredicate{})
-}
-
-// ListInSubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PrivateCloudsClient) ListInSubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate PrivateCloudOperationPredicate) (resp ListInSubscriptionCompleteResult, err error) {
-	items := make([]PrivateCloud, 0)
-
-	page, err := c.ListInSubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListInSubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListInSubscription prepares the ListInSubscription request.
 func (c PrivateCloudsClient) preparerForListInSubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c PrivateCloudsClient) responderForListInSubscription(resp *http.Response)
 		}
 	}
 	return
+}
+
+// ListInSubscriptionComplete retrieves all of the results into a single object
+func (c PrivateCloudsClient) ListInSubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListInSubscriptionCompleteResult, error) {
+	return c.ListInSubscriptionCompleteMatchingPredicate(ctx, id, PrivateCloudOperationPredicate{})
+}
+
+// ListInSubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c PrivateCloudsClient) ListInSubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate PrivateCloudOperationPredicate) (resp ListInSubscriptionCompleteResult, err error) {
+	items := make([]PrivateCloud, 0)
+
+	page, err := c.ListInSubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListInSubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
