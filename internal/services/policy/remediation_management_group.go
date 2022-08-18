@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managmentGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmManagementGroupPolicyRemediationCreateUpdate,
 		Read:   resourceArmManagementGroupPolicyRemediationRead,
 		Update: resourceArmManagementGroupPolicyRemediationCreateUpdate,
@@ -80,18 +81,22 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.PolicyDefinitionID,
 			},
-
-			"resource_discovery_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-					string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
-				}, false),
-			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["resource_discovery_mode"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+				string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
+			}, false),
+			Deprecated: "`resource_discovery_mode` will be removed in version 4.0 of the AzureRM Provider as evaluating compliance before remediation is only supported at subscription scope and below.",
+		}
+	}
+	return resource
 }
 
 func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
