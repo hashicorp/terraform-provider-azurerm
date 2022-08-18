@@ -68,15 +68,12 @@ resource "azurerm_api_management_api_tag_description" "example" {
 The following arguments are supported:
 
 * `api_name` - (Required) The name of the API Management API. Changing this forces a new resource to be created.
- 
-* `api_name` - (Required) The name of the API within the API Management Service where this API Schema should be created.
-  Changing this forces a new resource to be created.
 
-* `api_management_name` - (Required) The Name of the API Management Service where the API exists. Changing this forces a
-  new resource to be created.
+* `api_management_name` - (Required) The Name of the API Management Service. Changing this forces a new resource to be created.
+  
+* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists. Changing
-  this forces a new resource to be created.
+* `tag_name` - (Required) The name of the tag. It must be known in the API Management instance. Changing this forces a new API Management API Tag to be created.
 
 * `description` - (Optional) The description of the Tag.
 
