@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -88,10 +88,10 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 		resource.Schema["resource_discovery_mode"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(policyinsights.ExistingNonCompliant),
+			Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(policyinsights.ExistingNonCompliant),
-				string(policyinsights.ReEvaluateCompliance),
+				string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+				string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
 			}, false),
 			Deprecated: "`resource_discovery_mode` will be removed in version 4.0 of the AzureRM Provider as evaluating compliance before remediation is only supported at subscription scope and below.",
 		}
