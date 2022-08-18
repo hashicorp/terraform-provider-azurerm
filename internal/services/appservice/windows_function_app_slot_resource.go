@@ -332,21 +332,14 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionAppSlot.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic":
-				case "elastic":
-				case "basic":
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
+			var planSKU *string
+			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+				planSKU = sku.Name
 			} else {
-				return fmt.Errorf("determining plan type for Windows %s: %v", id, err)
+				return fmt.Errorf("could not determine Service Plan SKU type")
 			}
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -422,12 +415,18 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				if functionAppSlot.AppSettings == nil {
 					functionAppSlot.AppSettings = make(map[string]string)
 				}
-				suffix := uuid.New().String()[0:4]
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
-				}
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if !functionAppSlot.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
+					}
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
 				}
 			}
 
@@ -684,7 +683,8 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			sendContentSettings := !helpers.PlanIsAppPlan(planSKU)
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("enabled") {
