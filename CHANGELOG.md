@@ -44,6 +44,7 @@ ENHANCEMENTS:
 * `azurerm_windows_virtual_machine` - now supports delete Eviction policies [GH-17226]
 * `azurerm_windows_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
 * `azurerm_web_application_firewall_policy` - support for the `excluded_rule_set` property [GH-17757]
+* `azurerm_log_analytics_workspace` - support for the `cmk_for_query_forced` property [GH-17365]
 * 
 Allow Delete eviction policy on Azure VMs #17226
 
