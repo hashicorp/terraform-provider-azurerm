@@ -1,5 +1,5 @@
 ---
-subcategory: "Network"
+subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_backend_address_pool"
 description: |-
