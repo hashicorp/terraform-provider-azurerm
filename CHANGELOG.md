@@ -45,6 +45,7 @@ ENHANCEMENTS:
 * `azurerm_windows_virtual_machine_scale_set` - now supports delete Eviction policies [GH-17226]
 * `azurerm_web_application_firewall_policy` - support for the `excluded_rule_set` property [GH-17757]
 * `azurerm_log_analytics_workspace` - support for the `cmk_for_query_forced` property [GH-17365]
+* `azurerm_lb_backend_address_pool_address` - support for the `backend_address_ip_configuration_id` property [GH-17770]
 * 
 Allow Delete eviction policy on Azure VMs #17226
 
