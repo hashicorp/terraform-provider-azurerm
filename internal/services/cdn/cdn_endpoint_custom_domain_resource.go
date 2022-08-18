@@ -110,7 +110,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			Computed:     true,
 			ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 			ExactlyOneOf: []string{"user_managed_https.0.key_vault_certificate_id", "user_managed_https.0.key_vault_secret_id"},
-			Deprecated:   "This is deprecated in favor of `key_vault_secret_id`",
+			Deprecated:   "This is deprecated in favor of `key_vault_secret_id` as the service is actually looking for a secret, not a certificate",
 		}
 
 		schema["user_managed_https"].Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"] = &pluginsdk.Schema{
