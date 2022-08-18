@@ -137,6 +137,8 @@ The following arguments are supported:
 
 * `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
 
+* `global` - (Optional) A `global` block as defined below.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
@@ -434,6 +436,14 @@ A `request_routing_rule` block supports the following:
 * `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. 
 
 -> **NOTE:** `priority` is required when `sku.0.tier` is set to `*_v2`.
+
+---
+
+A `global` block supports the following:
+
+* `request_buffering_enabled` - (Required) Whether Application Gateway's Request buffer is enabled.
+
+* `response_buffering_enabled` - (Required) Whether Application Gateway's Response buffer is enabled.
 
 ---
 

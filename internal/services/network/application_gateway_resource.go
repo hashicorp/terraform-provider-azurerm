@@ -410,6 +410,24 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"global": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"request_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"response_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			//lintignore:S016,S023
 			"http_listener": {
 				Type:     pluginsdk.TypeSet,
@@ -1573,6 +1591,11 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
+	globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `global`: %+v", err)
+	}
+
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
@@ -1597,6 +1620,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
+			GlobalConfiguration:           globalConfiguration,
 			HTTPListeners:                 httpListeners,
 			PrivateLinkConfigurations:     expandApplicationGatewayPrivateLinkConfigurations(d),
 			Probes:                        expandApplicationGatewayProbes(d),
@@ -1803,6 +1827,15 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 	if d.HasChange("gateway_ip_configuration") {
 		applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations = gatewayIPConfigurations
+	}
+
+	if d.HasChange("global") {
+		globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `global`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.GlobalConfiguration = globalConfiguration
 	}
 
 	if d.HasChange("http_listener") {
@@ -2062,6 +2095,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
 			return fmt.Errorf("setting `gateway_ip_configuration`: %+v", setErr)
+		}
+
+		if setErr := d.Set("global", flattenApplicationGatewayGlobalConfiguration(props.GlobalConfiguration)); setErr != nil {
+			return fmt.Errorf("setting `global`: %+v", setErr)
 		}
 
 		if setErr := d.Set("private_endpoint_connection", flattenApplicationGatewayPrivateEndpoints(props.PrivateEndpointConnections)); setErr != nil {
@@ -2976,6 +3013,36 @@ func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatew
 	}
 
 	return results
+}
+
+func expandApplicationGatewayGlobalConfiguration(input []interface{}) (*network.ApplicationGatewayGlobalConfiguration, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &network.ApplicationGatewayGlobalConfiguration{
+		EnableRequestBuffering:  utils.Bool(v["request_buffering_enabled"].(bool)),
+		EnableResponseBuffering: utils.Bool(v["response_buffering_enabled"].(bool)),
+	}, nil
+}
+
+func flattenApplicationGatewayGlobalConfiguration(input *network.ApplicationGatewayGlobalConfiguration) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	output := make(map[string]interface{})
+
+	if input.EnableRequestBuffering != nil {
+		output["request_buffering_enabled"] = *input.EnableRequestBuffering
+	}
+
+	if input.EnableResponseBuffering != nil {
+		output["response_buffering_enabled"] = *input.EnableResponseBuffering
+	}
+
+	return []interface{}{output}
 }
 
 func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayFrontendPort {
