@@ -31,6 +31,7 @@ ENHANCEMENTS:
 * `azurerm_application_gateway` - support for `components` in `rewrite_rule_set.rewrite_rule.url` [GH-13899]
 * `azurerm_automation_account` - support for the `private_endpoint_connection` property [GH-17934]
 * `azurerm_automation_account` - support for the `encryption` block and `local_authentication_enabled` property [GH-17454]
+* `azurerm_batch_account` - support for the `storage_account_authentication_mode`, `storage_account_node_identit`, and `allowed_authentication_modes` properties [GH-16758]
 * `azurerm_batch_pool` - support for identity referencees in container registries [GH-17416]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `express_vnet_injection` property [GH-17756]
 * `azurerm_firewall_policy_resource` - support for the `private_ranges` and `allow_sql_redirect` properties [GH-17842]
