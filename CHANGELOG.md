@@ -20,9 +20,9 @@ ENHANCEMENTS:
 
 * Dependencies: update `go-azure-helpers` to `v0.39.1` [GH-18015]
 * Dependencies: update `go-azure-sdk` to `v0.20220815.1092453` [GH-17998]
-* updating `dedicated_host_*` to use `hashicorp/go-azure-sdk` [GH-17616]
-* `dataprotection`: updating to use `hashicorp/go-azure-sdk` [GH-17700]
-* `dns` - updating to use `hashicorp/go-azure-sdk` [GH-17986]
+* Dependencies: `dedicated_host_*` to use `hashicorp/go-azure-sdk` [GH-17616]
+* Dependencies: `dataprotection`: updating to use `hashicorp/go-azure-sdk` [GH-17700]
+* Dependencies: `dns` - updating to use `hashicorp/go-azure-sdk` [GH-17986]
 * Data Source: `azurerm_images` - now uses a logical id [GH-17766]
 * Data Source: `azurerm_management_group` - now exports the `management_group_ids`, `all_management_group_ids`, and `all_subscription_ids` attributes [GH-16208]
 * `azurerm_active_directory_domain_service` - support for the `kerberos_armoring_enabled` and `kerberos_rc4_encryption_enabled` properties [GH-17853]
@@ -46,8 +46,6 @@ ENHANCEMENTS:
 * `azurerm_web_application_firewall_policy` - support for the `excluded_rule_set` property [GH-17757]
 * `azurerm_log_analytics_workspace` - support for the `cmk_for_query_forced` property [GH-17365]
 * `azurerm_lb_backend_address_pool_address` - support for the `backend_address_ip_configuration_id` property [GH-17770]
-* 
-Allow Delete eviction policy on Azure VMs #17226
 
 BUG FIXES:
 
@@ -55,7 +53,6 @@ BUG FIXES:
 * `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
 * `azurerm_windows_function_app` fix a bug with setting values for `WindowsFxString` [GH-18014]
 * `azurerm_windows_function_app_slot` - fix a bug with setting values for `WindowsFxString` [GH-18014]
-* Data Source: `azurerm_key_vault_access_policy` - fix lowercased return values for `(key|secret|certificate)_permissions` for provider v4.0 [GH-17137]
 
 ## 3.18.0 (August 11, 2022)
 
