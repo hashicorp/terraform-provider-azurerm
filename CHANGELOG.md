@@ -53,6 +53,7 @@ BUG FIXES:
 * `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
 * `azurerm_windows_function_app` fix a bug with setting values for `WindowsFxString` [GH-18014]
 * `azurerm_windows_function_app_slot` - fix a bug with setting values for `WindowsFxString` [GH-18014]
+* Data Source: `azurerm_key_vault_access_policy` - fix lowercased return values for `(key|secret|certificate)_permissions` for provider v4.0 [GH-17137]
 
 ## 3.18.0 (August 11, 2022)
 
