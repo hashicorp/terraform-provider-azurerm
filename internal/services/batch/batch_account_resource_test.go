@@ -174,6 +174,72 @@ func TestAccBatchAccount_cmk(t *testing.T) {
 	})
 }
 
+func TestAccBatchAccount_authenticationModes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationModes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("3"),
+			),
+		},
+	})
+}
+
+func TestAccBatchAccount_authenticationModesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationModes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("3"),
+			),
+		},
+		{
+			Config: r.authenticationModesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0")),
+		},
+	})
+}
+
+func TestAccBatchAccount_autoStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_authentication_mode").HasValue("StorageKeys"),
+			),
+		},
+	})
+}
+
+func TestAccBatchAccount_autoStorageBatchAuthMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoStorageBatchAuthMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_authentication_mode").HasValue("BatchAccountManagedIdentity"),
+			),
+		},
+	})
+}
+
 func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
@@ -303,11 +369,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
 
   public_network_access_enabled = false
 
@@ -338,11 +405,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
 
   public_network_access_enabled = false
 
@@ -461,11 +529,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -508,11 +577,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -603,4 +673,149 @@ resource "azurerm_batch_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) authenticationModes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+  allowed_authentication_modes = [
+    "AAD",
+    "SharedKey",
+    "TaskAuthenticationToken"
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) authenticationModesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                         = "testaccbatch%s"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  pool_allocation_mode         = "BatchService"
+  allowed_authentication_modes = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) autoStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
+  storage_account_node_identity       = azurerm_user_assigned_identity.test.id
+  pool_allocation_mode                = "BatchService"
+  allowed_authentication_modes = [
+    "AAD",
+    "SharedKey",
+    "TaskAuthenticationToken"
+  ]
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchAccountResource) autoStorageBatchAuthMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "BatchAccountManagedIdentity"
+  pool_allocation_mode                = "BatchService"
+  allowed_authentication_modes = [
+    "AAD",
+    "SharedKey",
+    "TaskAuthenticationToken"
+  ]
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString)
 }
