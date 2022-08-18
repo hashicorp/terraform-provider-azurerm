@@ -119,10 +119,9 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"reference_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validate.PolicySetDefinitionReferenceID,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
 					},
 
 					"policy_group_names": {

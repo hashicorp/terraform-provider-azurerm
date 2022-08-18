@@ -73,9 +73,8 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 			},
 
 			"policy_definition_reference_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.PolicySetDefinitionReferenceID,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"resource_discovery_mode": {
