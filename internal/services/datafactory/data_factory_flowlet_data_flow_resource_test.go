@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataFlowResource struct{}
+type FlowletDataFlowResource struct{}
 
-func TestAccDataFactoryDataFlow_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+func TestAccDataFactoryFlowletDataFlow_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
+	r := FlowletDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +30,9 @@ func TestAccDataFactoryDataFlow_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDataFlow_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+func TestAccDataFactoryFlowletDataFlow_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
+	r := FlowletDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,9 +45,9 @@ func TestAccDataFactoryDataFlow_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDataFlow_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+func TestAccDataFactoryFlowletDataFlow_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
+	r := FlowletDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,36 +60,7 @@ func TestAccDataFactoryDataFlow_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDataFlow_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func (t DataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t FlowletDataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataFlowID(state.ID)
 	if err != nil {
 		return nil, err
@@ -103,12 +74,12 @@ func (t DataFlowResource) Exists(ctx context.Context, clients *clients.Client, s
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r DataFlowResource) basic(data acceptance.TestData) string {
+func (r FlowletDataFlowResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_factory_data_flow" "test" {
-  name            = "acctestdf%d"
+resource "azurerm_data_factory_flowlet_data_flow" "test" {
+  name            = "acctesttdf%[2]d"
   data_factory_id = azurerm_data_factory.test.id
 
   source {
@@ -144,37 +115,37 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataFlowResource) requiresImport(data acceptance.TestData) string {
+func (r FlowletDataFlowResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_factory_data_flow" "import" {
-  name            = azurerm_data_factory_data_flow.test.name
-  data_factory_id = azurerm_data_factory_data_flow.test.data_factory_id
-  script          = azurerm_data_factory_data_flow.test.script
+resource "azurerm_data_factory_flowlet_data_flow" "import" {
+  name            = azurerm_data_factory_flowlet_data_flow.test.name
+  data_factory_id = azurerm_data_factory_flowlet_data_flow.test.data_factory_id
+  script          = azurerm_data_factory_flowlet_data_flow.test.script
   source {
-    name = azurerm_data_factory_data_flow.test.source.0.name
+    name = azurerm_data_factory_flowlet_data_flow.test.source.0.name
     linked_service {
-      name = azurerm_data_factory_data_flow.test.source.0.linked_service.0.name
+      name = azurerm_data_factory_flowlet_data_flow.test.source.0.linked_service.0.name
     }
   }
 
   sink {
-    name = azurerm_data_factory_data_flow.test.sink.0.name
+    name = azurerm_data_factory_flowlet_data_flow.test.sink.0.name
     linked_service {
-      name = azurerm_data_factory_data_flow.test.sink.0.linked_service.0.name
+      name = azurerm_data_factory_flowlet_data_flow.test.sink.0.linked_service.0.name
     }
   }
 }
 `, r.basic(data))
 }
 
-func (r DataFlowResource) complete(data acceptance.TestData) string {
+func (r FlowletDataFlowResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_factory_data_flow" "test" {
-  name            = "acctestdf3%[2]d"
+resource "azurerm_data_factory_flowlet_data_flow" "test" {
+  name            = "acctestfdf%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   description     = "description for data flow"
   annotations     = ["anno1", "anno2"]
@@ -374,7 +345,7 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (DataFlowResource) template(data acceptance.TestData) string {
+func (FlowletDataFlowResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

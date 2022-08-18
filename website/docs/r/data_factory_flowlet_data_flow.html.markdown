@@ -1,14 +1,14 @@
 ---
 subcategory: "Data Factory"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_data_factory_data_flow"
+page_title: "Azure Resource Manager: azurerm_data_factory_flowlet_data_flow"
 description: |-
-  Manages a Data Flow inside an Azure Data Factory.
+  Manages a Flowlet Data Flow inside an Azure Data Factory.
 ---
 
-# azurerm_data_factory_data_flow
+# azurerm_data_factory_flowlet_data_flow
 
-Manages a Data Flow inside an Azure Data Factory.
+Manages a Flowlet Data Flow inside an Azure Data Factory.
 
 ## Example Usage
 
@@ -71,7 +71,7 @@ resource "azurerm_data_factory_dataset_json" "example2" {
   encoding = "UTF-8"
 }
 
-resource "azurerm_data_factory_data_flow" "example" {
+resource "azurerm_data_factory_flowlet_data_flow" "example" {
   name            = "example"
   data_factory_id = azurerm_data_factory.example.id
 
@@ -80,13 +80,10 @@ resource "azurerm_data_factory_data_flow" "example" {
 
     flowlet {
       name = azurerm_data_factory_flowlet_data_flow.example1.name
-      parameters = {
-        "Key1" = "value1"
-      }
     }
 
-    dataset {
-      name = azurerm_data_factory_dataset_json.example1.name
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
     }
   }
 
@@ -95,13 +92,10 @@ resource "azurerm_data_factory_data_flow" "example" {
 
     flowlet {
       name = azurerm_data_factory_flowlet_data_flow.example2.name
-      parameters = {
-        "Key1" = "value1"
-      }
     }
 
-    dataset {
-      name = azurerm_data_factory_dataset_json.example2.name
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
     }
   }
 
@@ -195,57 +189,26 @@ EOT
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Data Flow. Changing this forces a new resource to be created.
+* `annotations` - (Optional) List of tags that can be used for describing the Data Factory Flowlet Data Flow.
 
 * `data_factory_id` - (Required) The ID of Data Factory in which to associate the Data Flow with. Changing this forces a new resource.
 
-* `script` - (Optional) The script for the Data Factory Data Flow.
+* `name` - (Required) Specifies the name of the Data Factory Flowlet Data Flow. Changing this forces a new resource to be created.
 
-* `script_lines` - (Optional) The script lines for the Data Factory Data Flow.
+* `description` - (Optional) The description for the Data Factory Flowlet Data Flow.
+
+* `folder` - (Optional) The folder that this Data Flow is in. If not specified, the Data Flow will appear at the 
+root level.
 
 * `source` - (Required) One or more `source` blocks as defined below.
 
 * `sink` - (Required) One or more `sink` blocks as defined below.
 
-* `annotations` - (Optional) List of tags that can be used for describing the Data Factory Data Flow.
+* `script` - (Optional) The script for the Data Factory Flowlet Data Flow.
 
-* `description` - (Optional) The description for the Data Factory Data Flow.
-
-* `folder` - (Optional) The folder that this Data Flow is in. If not specified, the Data Flow will appear at the root level.
+* `script_lines` - (Optional) The script lines for the Data Factory Flowlet Data Flow.
 
 * `transformation` - (Optional) One or more `transformation` blocks as defined below.
-
----
-
-A `source` block supports the following:
-
-* `name` - (Required) The name for the Data Flow Source.
-
-* `description` - (Optional) The description for the Data Flow Source.
-
-* `dataset` - (Optional) A `dataset` block as defined below.
-
-* `flowlet` - (Optional) A `flowlet` block as defined below.
-
-* `linked_service` - (Optional) A `linked_service` block as defined below.
-
-* `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
-
----
-
-A `sink` block supports the following:
-
-* `name` - (Required) The name for the Data Flow Source.
-
-* `description` - (Optional) The description for the Data Flow Source.
-
-* `dataset` - (Optional) A `dataset` block as defined below.
-
-* `flowlet` - (Optional) A `flowlet` block as defined below.
-
-* `linked_service` - (Optional) A `linked_service` block as defined below.
-
-* `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
 
 ---
 
@@ -273,6 +236,38 @@ A `linked_service` block supports the following:
 
 ---
 
+A `source` block supports the following:
+
+* `description` - (Optional) The description for the Data Flow Source.
+
+* `dataset` - (Optional) A `dataset` block as defined below.
+
+* `flowlet` - (Optional) A `flowlet` block as defined below.
+
+* `linked_service` - (Optional) A `linked_service` block as defined below.
+
+* `name` - (Required) The name for the Data Flow Source.
+
+* `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
+
+---
+
+A `sink` block supports the following:
+
+* `description` - (Optional) The description for the Data Flow Source.
+
+* `dataset` - (Optional) A `dataset` block as defined below.
+
+* `flowlet` - (Optional) A `flowlet` block as defined below.
+
+* `linked_service` - (Optional) A `linked_service` block as defined below.
+
+* `name` - (Required) The name for the Data Flow Source.
+
+* `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
+
+---
+
 A `schema_linked_service` block supports the following:
 
 * `name` - (Required) The name for the Data Factory Linked Service with schema.
@@ -282,8 +277,6 @@ A `schema_linked_service` block supports the following:
 ---
 
 A `transformation` block supports the following:
-
-* `name` - (Required) The name for the Data Flow transformation.
 
 * `description` - (Optional) The description for the Data Flow transformation.
 
@@ -297,21 +290,21 @@ A `transformation` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory Data Flow.
+* `id` - The ID of the Data Factory Flowlet Data Flow.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Data Flow.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Data Flow.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Data Flow.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Data Flow.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Flowlet Data Flow.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Flowlet Data Flow.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Flowlet Data Flow.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Flowlet Data Flow.
 
 ## Import
 
-Data Factory Data Flow can be imported using the `resource id`, e.g.
+Data Factory Flowlet Data Flow can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_data_flow.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/dataflows/example
+terraform import azurerm_data_factory_flowlet_data_flow.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/dataflows/example
 ```
