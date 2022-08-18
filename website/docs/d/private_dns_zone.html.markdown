@@ -27,6 +27,7 @@ output "private_dns_zone_id" {
 ## Argument Reference
 
 * `name` - The name of the Private DNS Zone.
+
 * `resource_group_name` - (Optional) The Name of the Resource Group where the Private DNS Zone exists.
 If the Name of the Resource Group is not provided, the first Private DNS Zone from the list of Private
 DNS Zones in your subscription that matches `name` will be returned.
@@ -36,9 +37,13 @@ DNS Zones in your subscription that matches `name` will be returned.
 * `id` - The ID of the Private DNS Zone.
 
 * `max_number_of_record_sets` - Maximum number of recordsets that can be created in this Private Zone.
+
 * `max_number_of_virtual_network_links` - Maximum number of Virtual Networks that can be linked to this Private Zone.
+
 * `max_number_of_virtual_network_links_with_registration` - Maximum number of Virtual Networks that can be linked to this Private Zone with registration enabled.
+
 * `number_of_record_sets` - The number of recordsets currently in the zone.
+
 * `tags` - A mapping of tags for the zone.
 
 ## Timeouts

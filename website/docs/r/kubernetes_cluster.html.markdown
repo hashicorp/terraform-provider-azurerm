@@ -440,6 +440,8 @@ The `kubelet_identity` block supports the following:
 
 * `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.
 
+-> **NOTE:** When `kubelet_identity` is enabled - The `type` field in the `identity` block must be set to `UserAssigned` and `identity_ids` must be set.
+
 ---
 
 A `linux_os_config` block supports the following:

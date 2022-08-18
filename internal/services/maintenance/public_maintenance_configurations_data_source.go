@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const recurMondayToThursday = "Monday-Thursday"
@@ -36,13 +37,12 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"All", // All is still accepted by the API
-					string(maintenance.ScopeExtension),
-					string(maintenance.ScopeHost),
-					string(maintenance.ScopeInGuestPatch),
-					string(maintenance.ScopeOSImage),
-					string(maintenance.ScopeSQLDB),
-					string(maintenance.ScopeSQLManagedInstance),
+					string(publicmaintenanceconfigurations.MaintenanceScopeExtension),
+					string(publicmaintenanceconfigurations.MaintenanceScopeHost),
+					string(publicmaintenanceconfigurations.MaintenanceScopeInGuestPatch),
+					string(publicmaintenanceconfigurations.MaintenanceScopeOSImage),
+					string(publicmaintenanceconfigurations.MaintenanceScopeSQLDB),
+					string(publicmaintenanceconfigurations.MaintenanceScopeSQLManagedInstance),
 				}, false),
 			},
 
@@ -108,12 +108,14 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 
 func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.PublicConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.List(ctx)
+	subId := commonids.NewSubscriptionID(subscriptionId)
+	resp, err := client.List(ctx, subId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("no Public Maintenance Configurations were found")
 		}
 		return fmt.Errorf("retrieving Public Maintenance Configurations: %+v", err)
@@ -131,36 +133,38 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 	locationFilter := azure.NormalizeLocation(d.Get("location").(string))
 	scopeFilter := d.Get("scope").(string)
 
-	if resp.Value != nil {
-		for _, maintenanceConfig := range *resp.Value {
+	if resp.Model != nil {
+		if resp.Model.Value != nil {
+			for _, maintenanceConfig := range *resp.Model.Value {
 
-			var configLocation, configRecurEvery, configScope string
-			if maintenanceConfig.Location != nil {
-				configLocation = azure.NormalizeLocation(*maintenanceConfig.Location)
-			}
-			if props := maintenanceConfig.ConfigurationProperties; props != nil {
-				if props.Window != nil && props.Window.RecurEvery != nil {
-					configRecurEvery = *props.Window.RecurEvery
+				var configLocation, configRecurEvery, configScope string
+				if maintenanceConfig.Location != nil {
+					configLocation = azure.NormalizeLocation(*maintenanceConfig.Location)
 				}
-				if string(props.MaintenanceScope) != "" {
-					configScope = string(props.MaintenanceScope)
+				if props := maintenanceConfig.Properties; props != nil {
+					if props.MaintenanceWindow != nil && props.MaintenanceWindow.RecurEvery != nil {
+						configRecurEvery = *props.MaintenanceWindow.RecurEvery
+					}
+
+					if props.MaintenanceScope != nil {
+						configScope = string(*props.MaintenanceScope)
+					}
 				}
-			}
 
-			if locationFilter != "" && locationFilter != configLocation {
-				continue
-			}
-			if recurEveryFilter != "" && recurEveryFilter != configRecurEvery {
-				continue
-			}
-			if scopeFilter != "" && scopeFilter != configScope {
-				continue
-			}
+				if locationFilter != "" && locationFilter != configLocation {
+					continue
+				}
+				if recurEveryFilter != "" && recurEveryFilter != configRecurEvery {
+					continue
+				}
+				if scopeFilter != "" && scopeFilter != configScope {
+					continue
+				}
 
-			filteredPublicConfigs = append(filteredPublicConfigs, flattenPublicMaintenanceConfiguration(maintenanceConfig))
+				filteredPublicConfigs = append(filteredPublicConfigs, flattenPublicMaintenanceConfiguration(maintenanceConfig))
+			}
 		}
 	}
-
 	if len(filteredPublicConfigs) == 0 {
 		return fmt.Errorf("no Public Maintenance Configurations were found")
 	}
@@ -173,7 +177,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map[string]interface{} {
+func flattenPublicMaintenanceConfiguration(config publicmaintenanceconfigurations.MaintenanceConfiguration) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = ""
@@ -182,8 +186,8 @@ func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map
 	}
 
 	output["id"] = ""
-	if config.ID != nil {
-		output["id"] = *config.ID
+	if config.Id != nil {
+		output["id"] = *config.Id
 	}
 
 	output["location"] = ""
@@ -191,24 +195,28 @@ func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map
 		output["location"] = azure.NormalizeLocation(*config.Location)
 	}
 
-	output["maintenance_scope"] = string(config.MaintenanceScope)
-
-	var description, recurEvery, timeZone, duration string
-	if props := config.ConfigurationProperties; props != nil {
+	var description, recurEvery, timeZone, duration, scope string
+	if props := config.Properties; props != nil {
 		if props.ExtensionProperties != nil {
-			if configDescription, ok := props.ExtensionProperties["description"]; ok {
-				description = *configDescription
+			extensionProperties := *props.ExtensionProperties
+			if configDescription, ok := extensionProperties["description"]; ok {
+				description = configDescription
 			}
 		}
-		if props.Window != nil {
-			if props.Window.RecurEvery != nil {
-				recurEvery = *props.Window.RecurEvery
+
+		if config.Properties.MaintenanceScope != nil {
+			scope = string(*config.Properties.MaintenanceScope)
+		}
+
+		if props.MaintenanceWindow != nil {
+			if props.MaintenanceWindow.RecurEvery != nil {
+				recurEvery = *props.MaintenanceWindow.RecurEvery
 			}
-			if props.Window.TimeZone != nil {
-				timeZone = *props.Window.TimeZone
+			if props.MaintenanceWindow.TimeZone != nil {
+				timeZone = *props.MaintenanceWindow.TimeZone
 			}
-			if props.Window.Duration != nil {
-				duration = *props.Window.Duration
+			if props.MaintenanceWindow.Duration != nil {
+				duration = *props.MaintenanceWindow.Duration
 			}
 		}
 	}
@@ -217,6 +225,7 @@ func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map
 	output["recur_every"] = recurEvery
 	output["time_zone"] = timeZone
 	output["duration"] = duration
+	output["maintenance_scope"] = scope
 
 	return output
 }

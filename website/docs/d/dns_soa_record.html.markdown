@@ -27,9 +27,9 @@ output "dns_soa_record_id" {
 
 ## Argument Reference
 
-* `resource_group_name` - Specifies the resource group where the resource exists.
+* `resource_group_name` - Specifies the resource group where the DNS Zone (parent resource) exists.
 
-* `zone_name` - Specifies the DNS Zone where the DNS Zone (parent resource) exists.
+* `zone_name` - Specifies the DNS Zone where the resource exists.
 
 ## Attributes Reference
 

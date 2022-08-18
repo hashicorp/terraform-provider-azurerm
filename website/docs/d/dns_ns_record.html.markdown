@@ -30,9 +30,9 @@ output "dns_ns_record_id" {
 
 * `name` - The name of the DNS NS Record.
 
-* `resource_group_name` - Specifies the resource group where the resource exists.
+* `resource_group_name` - Specifies the resource group where the DNS Zone (parent resource) exists.
 
-* `zone_name` - Specifies the DNS Zone where the DNS Zone (parent resource) exists.
+* `zone_name` - Specifies the DNS Zone where the resource exists.
 
 ## Attributes Reference
 

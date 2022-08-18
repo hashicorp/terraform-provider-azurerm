@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -57,7 +57,7 @@ func (ConfigurationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		name := rawState["name"].(string)
 		resourceGroup := rawState["resource_group_name"].(string)
-		id := parse.NewMaintenanceConfigurationID(subscriptionId, resourceGroup, name)
+		id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, resourceGroup, name)
 
 		rawState["id"] = id.ID()
 
