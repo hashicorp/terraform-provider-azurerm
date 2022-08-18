@@ -410,12 +410,18 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)
 				}
-				suffix := uuid.New().String()[0:4]
-				if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
-					functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-				}
-				if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
-					functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if !functionApp.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
+					}
+					if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := functionApp.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						functionApp.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
 				}
 			}
 

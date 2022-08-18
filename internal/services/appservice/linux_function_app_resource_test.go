@@ -1108,7 +1108,22 @@ func TestAccLinuxFunctionApp_updateStorageAccount(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_msiStorageAccount(t *testing.T) {
+func TestAccLinuxFunctionApp_msiStorageAccountElastic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func TestAccLinuxFunctionApp_msiStorageAccountStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
@@ -2941,7 +2956,11 @@ resource "azurerm_linux_function_app" "test" {
     type = "SystemAssigned"
   }
 
-  site_config {}
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
 }
 `, r.template(data, planSku), data.RandomInteger)
 }

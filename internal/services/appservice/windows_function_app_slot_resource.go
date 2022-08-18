@@ -415,12 +415,18 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				if functionAppSlot.AppSettings == nil {
 					functionAppSlot.AppSettings = make(map[string]string)
 				}
-				suffix := uuid.New().String()[0:4]
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
-				}
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if !functionAppSlot.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
+					}
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
 				}
 			}
 

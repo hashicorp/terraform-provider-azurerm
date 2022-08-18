@@ -913,7 +913,23 @@ func TestAccLinuxFunctionAppSlot_identityKeyVaultIdentity(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_msiStorageAccount(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_msiStorageAccountElastic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_msiStorageAccountStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -2336,7 +2352,11 @@ resource "azurerm_linux_function_app_slot" "test" {
     type = "SystemAssigned"
   }
 
-  site_config {}
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
