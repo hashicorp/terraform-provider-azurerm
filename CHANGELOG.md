@@ -23,6 +23,7 @@ FEATURES:
 * **New Resource**: `azurerm_eventhub_namespace_schema_group` [GH-17635]
 * **New Resource**: `azurerm_cdn_frontdoor_firewall_policy` [GH-17715]
 * **New Resource**: `azurerm_cdn_frontdoor_security_policy` [GH-17715]
+* **New Resource**: `azurerm_data_factory_flowlet_data_flow` [GH-16987]
 
 ENHANCEMENTS:
 
@@ -41,6 +42,7 @@ ENHANCEMENTS:
 * `azurerm_automation_account` - support for the `encryption` block and `local_authentication_enabled` property [GH-17454]
 * `azurerm_batch_account` - support for the `storage_account_authentication_mode`, `storage_account_node_identit`, and `allowed_authentication_modes` properties [GH-16758]
 * `azurerm_batch_pool` - support for identity referencees in container registries [GH-17416]
+* `azurerm_data_factory_data_flow` - support for the `flowlet` block [GH-16987]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `express_vnet_injection` property [GH-17756]
 * `azurerm_firewall_policy_resource` - support for the `private_ranges` and `allow_sql_redirect` properties [GH-17842]
 * `azurerm_key_vault` - support for the `public_network_access_enabled` property [GH-17552]
