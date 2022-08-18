@@ -329,11 +329,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, id)
-			if err != nil {
-				return err
+			var planSKU *string
+			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+				planSKU = sku.Name
 			}
-
 			// Only send for ElasticPremium
 			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionApp.ForceDisableContentShare
 

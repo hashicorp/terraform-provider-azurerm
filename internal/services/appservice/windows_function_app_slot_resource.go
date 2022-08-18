@@ -332,11 +332,12 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, id)
-			if err != nil {
-				return err
+			var planSKU *string
+			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+				planSKU = sku.Name
+			} else {
+				return fmt.Errorf("could not determine Service Plan SKU type")
 			}
-
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
