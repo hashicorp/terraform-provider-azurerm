@@ -923,6 +923,21 @@ func TestAccWindowsFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionAppSlotASEv3_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withASEV3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists
 
 func (r WindowsFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -2521,4 +2536,44 @@ resource "azurerm_windows_function_app_slot" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    vnet_route_all_enabled = true
+  }
+}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%[3]d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    vnet_route_all_enabled = true
+  }
+}
+
+`, ServicePlanResource{}.aseV3(data), data.RandomString, data.RandomInteger)
 }

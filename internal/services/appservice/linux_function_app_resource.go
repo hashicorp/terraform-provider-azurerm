@@ -329,22 +329,13 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionApp.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic": // Consumption Plan modifications to request
-					sendContentSettings = false
-				case "elastic": // ElasticPremium Plan modifications to request?
-				case "basic": // App Service Plan modifications to request?
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
-			} else {
-				return fmt.Errorf("determining plan type for Linux %s: %v", id, err)
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, id)
+			if err != nil {
+				return err
 			}
+
+			// Only send for ElasticPremium
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionApp.ForceDisableContentShare
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -713,7 +704,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// Only send for ElasticPremium
-			sendContentSettings := helpers.PlanIsElastic(planSKU)
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {

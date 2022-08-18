@@ -329,21 +329,13 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionApp.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic":
-				case "elastic":
-				case "basic":
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
-			} else {
-				return fmt.Errorf("determining plan type for Windows %s: %v", id, err)
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, id)
+			if err != nil {
+				return err
 			}
+
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionApp.ForceDisableContentShare
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -709,7 +701,9 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			sendContentSettings := !helpers.PlanIsAppPlan(planSKU)
+
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {

@@ -325,22 +325,13 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionAppSlot.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic": // Consumption Plan modifications to request
-					sendContentSettings = false
-				case "elastic": // ElasticPremium Plan modifications to request?
-				case "basic": // App Service Plan modifications to request?
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
-			} else {
-				return fmt.Errorf("determining plan type for Linux %s: %v", id, err)
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, id)
+			if err != nil {
+				return err
 			}
+
+			// Only send for ElasticPremium
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -678,7 +669,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			sendContentSettings := !helpers.PlanIsElastic(planSKU)
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
 
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
