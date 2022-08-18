@@ -492,14 +492,16 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_spring_cloud_service" "test" {
-  name                = "acctest-sc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                               = "acctest-sc-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  log_stream_public_endpoint_enabled = true
 
   network {
     app_subnet_id             = azurerm_subnet.test1.id
     service_runtime_subnet_id = azurerm_subnet.test2.id
     cidr_ranges               = ["10.4.0.0/16", "10.5.0.0/16", "10.3.0.1/16"]
+    read_timeout_seconds      = 2
   }
 
   config_server_git_setting {
