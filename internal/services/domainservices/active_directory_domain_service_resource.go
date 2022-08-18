@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -210,6 +210,18 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"kerberos_armoring_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"kerberos_rc4_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"ntlm_v1_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -565,7 +577,7 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 			case !strings.EqualFold(*repl.ServiceStatus, "Running"):
 				// If it's not yet running, it isn't ready
 				return resp, "pending", nil
-			case repl.DomainControllerIpAddress == nil || len(*repl.DomainControllerIpAddress) < 2:
+			case repl.DomainControllerIPAddress == nil || len(*repl.DomainControllerIPAddress) < 2:
 				// When a domain controller is online, its IP address will be returned. We're looking for 2 active domain controllers.
 				return resp, "pending", nil
 			}
@@ -634,12 +646,20 @@ func expandDomainServiceSecurity(input []interface{}) *domainservices.DomainSecu
 	}
 	v := input[0].(map[string]interface{})
 
+	kerberosRc4Encryption := domainservices.KerberosRc4EncryptionDisabled
+	kerberosArmoring := domainservices.KerberosArmoringDisabled
 	ntlmV1 := domainservices.NtlmV1Disabled
 	syncKerberosPasswords := domainservices.SyncKerberosPasswordsDisabled
 	syncNtlmPasswords := domainservices.SyncNtlmPasswordsDisabled
 	syncOnPremPasswords := domainservices.SyncOnPremPasswordsDisabled
 	tlsV1 := domainservices.TlsV1Disabled
 
+	if v["kerberos_armoring_enabled"].(bool) {
+		kerberosArmoring = domainservices.KerberosArmoringEnabled
+	}
+	if v["kerberos_rc4_encryption_enabled"].(bool) {
+		kerberosRc4Encryption = domainservices.KerberosRc4EncryptionEnabled
+	}
 	if v["ntlm_v1_enabled"].(bool) {
 		ntlmV1 = domainservices.NtlmV1Enabled
 	}
@@ -657,6 +677,8 @@ func expandDomainServiceSecurity(input []interface{}) *domainservices.DomainSecu
 	}
 
 	return &domainservices.DomainSecuritySettings{
+		KerberosArmoring:      &kerberosArmoring,
+		KerberosRc4Encryption: &kerberosRc4Encryption,
 		NtlmV1:                &ntlmV1,
 		SyncKerberosPasswords: &syncKerberosPasswords,
 		SyncNtlmPasswords:     &syncNtlmPasswords,
@@ -744,11 +766,11 @@ func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []
 			"service_status":                 "",
 			"subnet_id":                      "",
 		}
-		if in.DomainControllerIpAddress != nil {
-			repl["domain_controller_ip_addresses"] = *in.DomainControllerIpAddress
+		if in.DomainControllerIPAddress != nil {
+			repl["domain_controller_ip_addresses"] = *in.DomainControllerIPAddress
 		}
-		if in.ExternalAccessIpAddress != nil {
-			repl["external_access_ip_address"] = *in.ExternalAccessIpAddress
+		if in.ExternalAccessIPAddress != nil {
+			repl["external_access_ip_address"] = *in.ExternalAccessIPAddress
 		}
 		if in.ReplicaSetId != nil {
 			repl["id"] = *in.ReplicaSetId
@@ -771,11 +793,19 @@ func flattenDomainServiceSecurity(input *domainservices.DomainSecuritySettings) 
 	}
 
 	result := map[string]bool{
-		"ntlm_v1_enabled":         false,
-		"sync_kerberos_passwords": false,
-		"sync_ntlm_passwords":     false,
-		"sync_on_prem_passwords":  false,
-		"tls_v1_enabled":          false,
+		"kerberos_armoring_enabled":       false,
+		"kerberos_rc4_encryption_enabled": false,
+		"ntlm_v1_enabled":                 false,
+		"sync_kerberos_passwords":         false,
+		"sync_ntlm_passwords":             false,
+		"sync_on_prem_passwords":          false,
+		"tls_v1_enabled":                  false,
+	}
+	if input.KerberosArmoring != nil && *input.KerberosArmoring == domainservices.KerberosArmoringEnabled {
+		result["kerberos_armoring_enabled"] = true
+	}
+	if input.KerberosRc4Encryption != nil && *input.KerberosRc4Encryption == domainservices.KerberosRc4EncryptionEnabled {
+		result["kerberos_rc4_encryption_enabled"] = true
 	}
 	if input.NtlmV1 != nil && *input.NtlmV1 == domainservices.NtlmV1Enabled {
 		result["ntlm_v1_enabled"] = true

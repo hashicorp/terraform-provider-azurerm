@@ -47,6 +47,22 @@ func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	})
 }
 
+func TestAccSharedImage_basic_Arm(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithArch(data, "Arm64"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("architecture").HasValue("Arm64"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSharedImage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
@@ -341,6 +357,45 @@ resource "azurerm_shared_image" "test" {
   }
 }
 `, hyperVGen, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SharedImageResource) basicWithArch(data acceptance.TestData, arch string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+variable "architecture" {
+  default = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  architecture        = var.architecture != "" ? var.architecture : null
+  os_type             = "Linux"
+  hyper_v_generation  = "V2"
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, arch, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (SharedImageResource) specialized(data acceptance.TestData, hyperVGen string) string {

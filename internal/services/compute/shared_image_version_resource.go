@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -111,6 +112,23 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				},
 			},
 
+			"blob_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
+				RequiredWith: []string{"storage_account_id"},
+				ExactlyOneOf: []string{"blob_uri", "os_disk_snapshot_id", "managed_image_id"},
+			},
+
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"blob_uri"},
+				ValidateFunc: storageValidate.StorageAccountID,
+			},
+
 			"end_of_life_date": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -122,7 +140,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
+				ExactlyOneOf: []string{"blob_uri", "os_disk_snapshot_id", "managed_image_id"},
 				// TODO -- add a validation function when snapshot has its own validation function
 			},
 
@@ -134,7 +152,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 					validate.ImageID,
 					validate.VirtualMachineID,
 				),
-				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
+				ExactlyOneOf: []string{"blob_uri", "os_disk_snapshot_id", "managed_image_id"},
 			},
 
 			"replication_mode": {
@@ -225,6 +243,15 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	if v, ok := d.GetOk("blob_uri"); ok {
+		version.GalleryImageVersionProperties.StorageProfile.OsDiskImage = &compute.GalleryOSDiskImage{
+			Source: &compute.GalleryArtifactVersionSource{
+				ID:  utils.String(d.Get("storage_account_id").(string)),
+				URI: utils.String(v.(string)),
+			},
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, version)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -292,11 +319,24 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("managed_image_id", source.ID)
 			}
 
+			blobURI := ""
+			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.URI != nil {
+				blobURI = *profile.OsDiskImage.Source.URI
+			}
+			d.Set("blob_uri", blobURI)
+
 			osDiskSnapShotID := ""
+			storageAccountID := ""
 			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.ID != nil {
-				osDiskSnapShotID = *profile.OsDiskImage.Source.ID
+				sourceID := *profile.OsDiskImage.Source.ID
+				if blobURI == "" {
+					osDiskSnapShotID = sourceID
+				} else {
+					storageAccountID = sourceID
+				}
 			}
 			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
+			d.Set("storage_account_id", storageAccountID)
 		}
 	}
 

@@ -321,6 +321,17 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 			ApplicationType:      utils.String("CustomApplication"),
 		},
 	}
+
+	if v, ok := input["https_endpoints"]; ok {
+		httpsEndpoints := expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
+		application.Properties.HTTPSEndpoints = httpsEndpoints
+	}
+
+	if v, ok := input["uninstall_script_actions"]; ok {
+		uninstallScriptActions := expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
+		application.Properties.UninstallScriptActions = uninstallScriptActions
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, name, application)
 	if err != nil {
 		return fmt.Errorf("creating edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)

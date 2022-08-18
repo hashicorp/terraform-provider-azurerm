@@ -63,5 +63,6 @@ func (c ScheduledQueryRulesClient) responderForGet(resp *http.Response) (result 
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

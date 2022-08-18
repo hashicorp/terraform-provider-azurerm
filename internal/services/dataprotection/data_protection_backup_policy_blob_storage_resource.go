@@ -6,13 +6,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,7 +32,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.BackupPolicyID(id)
+			_, err := backuppolicies.ParseBackupPoliciesID(id)
 			return err
 		}),
 
@@ -52,7 +51,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.BackupVaultID,
+				ValidateFunc: backuppolicies.ValidateBackupVaultID,
 			},
 
 			"retention_duration": {
@@ -72,47 +71,44 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := parse.BackupVaultID(d.Get("vault_id").(string))
-	id := parse.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroup, vaultId.Name, name)
+	vaultId, _ := backuppolicies.ParseBackupVaultID(d.Get("vault_id").(string))
+	id := backuppolicies.NewBackupPoliciesID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
 
-	existing, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_blob_storage", id.ID())
 	}
 
-	parameters := dataprotection.BaseBackupPolicyResource{
-		Properties: &dataprotection.BackupPolicy{
-			PolicyRules: &[]dataprotection.BasicBasePolicyRule{
-				dataprotection.AzureRetentionRule{
-					Name:       utils.String("Default"),
-					ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule,
-					IsDefault:  utils.Bool(true),
-					Lifecycles: &[]dataprotection.SourceLifeCycle{
+	parameters := backuppolicies.BaseBackupPolicyResource{
+		Properties: &backuppolicies.BackupPolicy{
+			PolicyRules: []backuppolicies.BasePolicyRule{
+				backuppolicies.AzureRetentionRule{
+					Name:      "Default",
+					IsDefault: utils.Bool(true),
+					Lifecycles: []backuppolicies.SourceLifeCycle{
 						{
-							DeleteAfter: dataprotection.AbsoluteDeleteOption{
-								Duration:   utils.String(d.Get("retention_duration").(string)),
-								ObjectType: dataprotection.ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption,
+							DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+								Duration: d.Get("retention_duration").(string),
 							},
-							SourceDataStore: &dataprotection.DataStoreInfoBase{
+							SourceDataStore: backuppolicies.DataStoreInfoBase{
 								DataStoreType: "OperationalStore",
-								ObjectType:    utils.String("DataStoreInfoBase"),
+								ObjectType:    "DataStoreInfoBase",
 							},
-							TargetDataStoreCopySettings: &[]dataprotection.TargetCopySetting{},
+							TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
 						},
 					},
 				},
 			},
-			DatasourceTypes: &[]string{"Microsoft.Storage/storageAccounts/blobServices"},
-			ObjectType:      dataprotection.ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy,
+			DatasourceTypes: []string{"Microsoft.Storage/storageAccounts/blobServices"},
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.BackupVaultName, id.ResourceGroup, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
 	}
 
@@ -125,27 +121,29 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupPolicyID(d.Id())
+	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving DataProtection BackupPolicy (%q): %+v", id, err)
 	}
-	vaultId := parse.NewBackupVaultID(id.SubscriptionId, id.ResourceGroup, id.BackupVaultName)
-	d.Set("name", id.Name)
+	vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	d.Set("name", id.BackupPolicyName)
 	d.Set("vault_id", vaultId.ID())
-	if resp.Properties != nil {
-		if props, ok := resp.Properties.AsBackupPolicy(); ok {
-			if err := d.Set("retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules)); err != nil {
-				return fmt.Errorf("setting `default_retention_duration`: %+v", err)
+	if resp.Model != nil {
+		if resp.Model.Properties != nil {
+			if props, ok := resp.Model.Properties.(backuppolicies.BackupPolicy); ok {
+				if err := d.Set("retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules)); err != nil {
+					return fmt.Errorf("setting `default_retention_duration`: %+v", err)
+				}
 			}
 		}
 	}
@@ -157,13 +155,13 @@ func resourceDataProtectionBackupPolicyBlobStorageDelete(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupPolicyID(d.Id())
+	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.BackupVaultName, id.ResourceGroup, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
@@ -172,16 +170,16 @@ func resourceDataProtectionBackupPolicyBlobStorageDelete(d *schema.ResourceData,
 	return nil
 }
 
-func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input *[]dataprotection.BasicBasePolicyRule) interface{} {
+func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []backuppolicies.BasePolicyRule) interface{} {
 	if input == nil {
 		return nil
 	}
 
-	for _, item := range *input {
-		if retentionRule, ok := item.AsAzureRetentionRule(); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
-			if retentionRule.Lifecycles != nil && len(*retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (*retentionRule.Lifecycles)[0].DeleteAfter.AsAbsoluteDeleteOption(); ok {
-					return *deleteOption.Duration
+	for _, item := range input {
+		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
+			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
+				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+					return deleteOption.Duration
 				}
 			}
 		}
