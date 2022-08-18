@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	validateCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,10 +42,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 			"location": azure.SchemaLocation(),
 
 			"maintenance_configuration_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.MaintenanceConfigurationID,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0 with a work around or when https://github.com/Azure/azure-rest-api-specs/issues/8653 is fixed
 			},
 
 			"virtual_machine_scale_set_id": {
@@ -52,7 +54,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     validateCompute.VirtualMachineScaleSetID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 		},
 	}
@@ -63,52 +65,44 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineScaleSetIdRaw := d.Get("virtual_machine_scale_set_id").(string)
-	virtualMachineScaleSetId, _ := parseCompute.VirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
+	virtualMachineScaleSetId, err := parseCompute.VirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
+	if err != nil {
+		return err
+	}
 
-	existingList, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId, virtualMachineScaleSetIdRaw)
+	maintenanceConfigurationID, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
+	if err != nil {
+		return err
+	}
+
+	configAssignmentId := configurationassignments.NewConfigurationAssignmentID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, maintenanceConfigurationID.ResourceName)
+
+	existingList, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId)
 	if err != nil {
 		return err
 	}
 	if existingList != nil && len(*existingList) > 0 {
 		existing := (*existingList)[0]
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", *existing.ID)
+		if existing.Id != nil && *existing.Id != "" {
+			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", configAssignmentId.ID())
 		}
 	}
 
-	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
-	configurationId, _ := parse.MaintenanceConfigurationIDInsensitively(maintenanceConfigurationID)
-
-	// set assignment name to configuration name
-	assignmentName := configurationId.Name
-	configurationAssignment := maintenance.ConfigurationAssignment{
-		Name:     utils.String(assignmentName),
+	configurationAssignment := configurationassignments.ConfigurationAssignment{
+		Name:     utils.String(maintenanceConfigurationID.ResourceName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		ConfigurationAssignmentProperties: &maintenance.ConfigurationAssignmentProperties{
-			MaintenanceConfigurationID: utils.String(maintenanceConfigurationID),
-			ResourceID:                 utils.String(virtualMachineScaleSetIdRaw),
+		Properties: &configurationassignments.ConfigurationAssignmentProperties{
+			MaintenanceConfigurationId: utils.String(maintenanceConfigurationID.ID()),
+			ResourceId:                 utils.String(virtualMachineScaleSetId.ID()),
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, assignmentName, configurationAssignment)
+	_, err = client.CreateOrUpdate(ctx, configAssignmentId, configurationAssignment)
 	if err != nil {
 		return err
 	}
 
-	resp, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId, virtualMachineScaleSetIdRaw)
-	if err != nil {
-		return err
-	}
-	if resp == nil || len(*resp) == 0 {
-		return fmt.Errorf("could not find Maintenance assignment (virtual machine scale set ID: %q)", virtualMachineScaleSetIdRaw)
-	}
-	assignment := (*resp)[0]
-	if assignment.ID == nil || *assignment.ID == "" {
-		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine scale set ID %q)", virtualMachineScaleSetIdRaw)
-	}
-
-	d.SetId(*assignment.ID)
+	d.SetId(configAssignmentId.ID())
 	return resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d, meta)
 }
 
@@ -122,7 +116,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 		return err
 	}
 
-	resp, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, id.VirtualMachineScaleSetId, id.VirtualMachineScaleSetIdRaw)
+	resp, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, id.VirtualMachineScaleSetId)
 	if err != nil {
 		return err
 	}
@@ -131,7 +125,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 		return nil
 	}
 	assignment := (*resp)[0]
-	if assignment.ID == nil || *assignment.ID == "" {
+	if assignment.Id == nil || *assignment.Id == "" {
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine scale set ID id: %q", id.VirtualMachineScaleSetIdRaw)
 	}
 
@@ -141,8 +135,16 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 		virtualMachineScaleSetId = id.VirtualMachineScaleSetId.ID()
 	}
 	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
-	if props := assignment.ConfigurationAssignmentProperties; props != nil {
-		d.Set("maintenance_configuration_id", props.MaintenanceConfigurationID)
+	if props := assignment.Properties; props != nil {
+		maintenanceConfigurationId := ""
+		if props.MaintenanceConfigurationId != nil {
+			parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+			}
+			maintenanceConfigurationId = parsedId.ID()
+		}
+		d.Set("maintenance_configuration_id", maintenanceConfigurationId)
 	}
 	return nil
 }
@@ -152,25 +154,30 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetDelete(d *pluginsdk.R
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceAssignmentVirtualMachineScaleSetID(d.Id())
+	maintenanceAssignmentVmScaleSetId, err := parse.MaintenanceAssignmentVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.VirtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", id.VirtualMachineScaleSetId.Name, id.Name); err != nil {
-		return fmt.Errorf("deleting Maintenance Assignment to resource %q: %+v", id.VirtualMachineScaleSetIdRaw, err)
+	id := configurationassignments.NewConfigurationAssignmentID(maintenanceAssignmentVmScaleSetId.VirtualMachineScaleSetId.SubscriptionId, maintenanceAssignmentVmScaleSetId.VirtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", maintenanceAssignmentVmScaleSetId.VirtualMachineScaleSetId.Name, maintenanceAssignmentVmScaleSetId.Name)
+
+	if _, err := client.Delete(ctx, id); err != nil {
+		return fmt.Errorf("deleting Maintenance Assignment to resource %q: %+v", maintenanceAssignmentVmScaleSetId.VirtualMachineScaleSetIdRaw, err)
 	}
 
 	return nil
 }
 
-func getMaintenanceAssignmentVirtualMachineScaleSet(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parseCompute.VirtualMachineScaleSetId, virtualMachineScaleSetId string) (result *[]maintenance.ConfigurationAssignment, err error) {
-	resp, err := client.List(ctx, id.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", id.Name)
+func getMaintenanceAssignmentVirtualMachineScaleSet(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, vmScaleSetId *parseCompute.VirtualMachineScaleSetId) (result *[]configurationassignments.ConfigurationAssignment, err error) {
+
+	id := configurationassignments.NewProviderID(vmScaleSetId.SubscriptionId, vmScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", vmScaleSetId.Name)
+
+	resp, err := client.List(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			err = fmt.Errorf("checking for presence of existing Maintenance assignment (virtual machine scale set ID: %q): %+v", virtualMachineScaleSetId, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			err = fmt.Errorf("checking for presence of existing Maintenance assignment (virtual machine scale set ID: %q): %+v", vmScaleSetId.ID(), err)
 			return
 		}
 	}
-	return resp.Value, nil
+	return resp.Model.Value, nil
 }

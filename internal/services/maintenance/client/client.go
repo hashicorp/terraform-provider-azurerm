@@ -1,24 +1,26 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ConfigurationsClient           *maintenance.ConfigurationsClient
-	ConfigurationAssignmentsClient *maintenance.ConfigurationAssignmentsClient
-	PublicConfigurationsClient     *maintenance.PublicMaintenanceConfigurationsClient
+	ConfigurationsClient           *maintenanceconfigurations.MaintenanceConfigurationsClient
+	ConfigurationAssignmentsClient *configurationassignments.ConfigurationAssignmentsClient
+	PublicConfigurationsClient     *publicmaintenanceconfigurations.PublicMaintenanceConfigurationsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	configurationsClient := maintenance.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	configurationsClient := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	configurationAssignmentsClient := maintenance.NewConfigurationAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	configurationAssignmentsClient := configurationassignments.NewConfigurationAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&configurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	publicConfigurationsClient := maintenance.NewPublicMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	publicConfigurationsClient := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&publicConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

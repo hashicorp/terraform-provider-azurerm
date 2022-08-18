@@ -26,7 +26,7 @@ resource "azurerm_maintenance_configuration" "example" {
   name                = "example-mc"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  scope               = "All"
+  scope               = "SQLDB"
 
   tags = {
     Env = "prod"
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `scope` - (Optional) The scope of the Maintenance Configuration. Possible values are `All`, `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` or `SQLManagedInstance`. Defaults to `All`.
+* `scope` - (Required) The scope of the Maintenance Configuration. Possible values are `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` or `SQLManagedInstance`.
 
 * `visibility` - (Optional) The visibility of the Maintenance Configuration. The only allowable value is `Custom`.
 

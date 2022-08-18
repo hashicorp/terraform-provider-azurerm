@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	maintenanceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -224,7 +224,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	sku := expandMsSqlElasticPoolSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	maintenanceConfigId := maintenanceParse.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
+	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
 	elasticPool := sql.ElasticPool{
 		Name:     &id.Name,
 		Location: &location,
@@ -309,11 +309,11 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `per_database_settings`: %+v", err)
 		}
 
-		maintenanceConfigId, err := maintenanceParse.PublicMaintenanceConfigurationID(*properties.MaintenanceConfigurationID)
+		maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*properties.MaintenanceConfigurationID)
 		if err != nil {
 			return err
 		}
-		d.Set("maintenance_configuration_name", maintenanceConfigId.Name)
+		d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
