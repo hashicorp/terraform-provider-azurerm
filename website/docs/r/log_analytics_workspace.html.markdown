@@ -49,6 +49,8 @@ The following arguments are supported:
 
 ~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`. 
 
+* `cmk_for_query_forced` - (Optional) Is Customer Managed Storage mandatory for query management?
+
 * `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
