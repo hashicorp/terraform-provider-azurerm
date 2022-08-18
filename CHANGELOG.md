@@ -65,6 +65,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_windows_web_app` - add missing schema definition for 'virtual_network_subnet_id' [GH-18028]
+* `azurerm_cdn_endpoint_custom_domain` - deprecating the `key_vault_certificate_id` property in favour of the `key_vault_secret_id` property withing the `user_managed https_allows` block [GH-17114]
 * `azurerm_data_protection_backup_policy_postgresql_resource` - prevent a crash when given an empty criteria block [GH-17904]
 * `azurerm_disk_encryption_set` - prevent an issue during creation when the disk encryption set and key vault are in different subscriptions [GH-17964]
 * `azurerm_windows_function_app` fix a bug with setting values for `WindowsFxString` [GH-18014]
