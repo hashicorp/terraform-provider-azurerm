@@ -1,6 +1,7 @@
 package privatedns
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -239,4 +240,15 @@ func expandAzureRmPrivateDnsMxRecords(d *pluginsdk.ResourceData) *[]recordsets.M
 	}
 
 	return &records
+}
+
+func resourcePrivateDnsMxRecordHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["preference"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+	}
+
+	return pluginsdk.HashString(buf.String())
 }
