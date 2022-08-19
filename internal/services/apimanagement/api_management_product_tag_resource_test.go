@@ -24,7 +24,7 @@ func TestAccApiManagementProductTag_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("product_name").Exists(),
+				check.That(data.ResourceName).Key("api_management_product_id").Exists(),
 				check.That(data.ResourceName).Key("api_management_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
@@ -99,10 +99,10 @@ resource "azurerm_api_management_tag" "test" {
 }
 
 resource "azurerm_api_management_product_tag" "test" {
-  product_name        = azurerm_api_management_product.test.product_id
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  name                = azurerm_api_management_tag.test.name
+  api_management_product_id = azurerm_api_management_product.test.product_id
+  api_management_name       = azurerm_api_management.test.name
+  resource_group_name       = azurerm_resource_group.test.name
+  name                      = azurerm_api_management_tag.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -112,10 +112,10 @@ func (r ApiManagementProductTagResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_api_management_product_tag" "import" {
-  product_name        = azurerm_api_management_product_tag.test.product_name
-  api_management_name = azurerm_api_management_product_tag.test.api_management_name
-  resource_group_name = azurerm_api_management_product_tag.test.resource_group_name
-  name                = azurerm_api_management_product_tag.test.name
+  api_management_product_id = azurerm_api_management_product_tag.test.api_management_product_id
+  api_management_name       = azurerm_api_management_product_tag.test.api_management_name
+  resource_group_name       = azurerm_api_management_product_tag.test.resource_group_name
+  name                      = azurerm_api_management_product_tag.test.name
 }
 `, r.basic(data))
 }
