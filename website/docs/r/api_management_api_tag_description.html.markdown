@@ -77,9 +77,9 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Tag.
 
-* `external_docs_url` - (Optional) The URL of external resources describing the tag.
+* `external_documentation_url` - (Optional) The URL of external documentation resources describing the tag.
 
-* `external_docs_description` - (Optional) The description of the external resources describing the tag.
+* `external_documentation_description` - (Optional) The description of the external documentation resources describing the tag.
 
 ## Attributes Reference
 

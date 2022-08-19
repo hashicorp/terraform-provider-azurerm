@@ -44,7 +44,7 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tag_name": {
+			"tag_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -55,13 +55,13 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"external_docs_url": {
+			"external_documentation_url": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 
-			"external_docs_description": {
+			"external_documentation_description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
@@ -76,7 +76,7 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApiTagDescriptionsID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("tag_name").(string))
+	id := parse.NewApiTagDescriptionsID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("tag_id").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.TagDescriptionName)
@@ -96,11 +96,11 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 		tagDescParameter.Description = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("external_docs_url"); ok {
+	if v, ok := d.GetOk("external_documentation_url"); ok {
 		tagDescParameter.ExternalDocsURL = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("external_docs_description"); ok {
+	if v, ok := d.GetOk("external_documentation_description"); ok {
 		tagDescParameter.ExternalDocsDescription = utils.String(v.(string))
 	}
 
@@ -136,10 +136,10 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 	d.Set("api_name", id.ApiName)
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("tag_name", id.TagDescriptionName)
+	d.Set("tag_id", id.TagDescriptionName)
 	d.Set("description", resp.Description)
-	d.Set("external_docs_url", resp.ExternalDocsURL)
-	d.Set("external_docs_description", resp.ExternalDocsDescription)
+	d.Set("external_documentation_url", resp.ExternalDocsURL)
+	d.Set("external_documentation_description", resp.ExternalDocsDescription)
 
 	return nil
 }

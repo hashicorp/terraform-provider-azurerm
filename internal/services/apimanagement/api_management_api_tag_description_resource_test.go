@@ -90,13 +90,13 @@ resource "azurerm_api_management_tag" "test" {
 }
 
 resource "azurerm_api_management_api_tag_description" "test" {
-  api_name                  = azurerm_api_management_api.test.name
-  api_management_name       = azurerm_api_management.test.name
-  resource_group_name       = azurerm_resource_group.test.name
-  tag_name                  = azurerm_api_management_tag.test.name
-  description               = "tag description"
-  external_docs_url         = "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs"
-  external_docs_description = "external tag description"
+  api_name                           = azurerm_api_management_api.test.name
+  api_management_name                = azurerm_api_management.test.name
+  resource_group_name                = azurerm_resource_group.test.name
+  tag_id                             = azurerm_api_management_tag.test.name
+  description                        = "tag description"
+  external_documentation_url         = "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs"
+  external_documentation_description = "external tag description"
 }
 `, ApiManagementApiResource{}.basic(data), data.RandomInteger)
 }
@@ -105,13 +105,13 @@ func (r ApiManagementApiTagDescriptionResource) requiresImport(data acceptance.T
 	return fmt.Sprintf(`
 %s
 resource "azurerm_api_management_api_tag_description" "import" {
-  api_name                  = azurerm_api_management_api_tag_description.test.api_name
-  api_management_name       = azurerm_api_management_api_tag_description.test.api_management_name
-  resource_group_name       = azurerm_api_management_api_tag_description.test.resource_group_name
-  tag_name                  = azurerm_api_management_api_tag_description.test.tag_name
-  description               = azurerm_api_management_api_tag_description.test.description
-  external_docs_url         = azurerm_api_management_api_tag_description.test.external_docs_url
-  external_docs_description = azurerm_api_management_api_tag_description.test.external_docs_description
+  api_name                           = azurerm_api_management_api_tag_description.test.api_name
+  api_management_name                = azurerm_api_management_api_tag_description.test.api_management_name
+  resource_group_name                = azurerm_api_management_api_tag_description.test.resource_group_name
+  tag_id                             = azurerm_api_management_api_tag_description.test.tag_id
+  description                        = azurerm_api_management_api_tag_description.test.description
+  external_documentation_url         = azurerm_api_management_api_tag_description.test.external_documentation_url
+  external_documentation_description = azurerm_api_management_api_tag_description.test.external_documentation_description
 }
 `, r.basic(data))
 }
@@ -125,13 +125,13 @@ resource "azurerm_api_management_tag" "test" {
 }
 
 resource "azurerm_api_management_api_tag_description" "test" {
-  api_name                  = azurerm_api_management_api.test.name
-  api_management_name       = azurerm_api_management.test.name
-  resource_group_name       = azurerm_resource_group.test.name
-  tag_name                  = azurerm_api_management_tag.test.name
-  description               = "tag description update"
-  external_docs_url         = "https://registry.terraform.io/providers/hashicorp/azurerm"
-  external_docs_description = "external tag description update"
+  api_name                           = azurerm_api_management_api.test.name
+  api_management_name                = azurerm_api_management.test.name
+  resource_group_name                = azurerm_resource_group.test.name
+  tag_id                             = azurerm_api_management_tag.test.name
+  description                        = "tag description update"
+  external_documentation_url         = "https://registry.terraform.io/providers/hashicorp/azurerm"
+  external_documentation_description = "external tag description update"
 }
 `, ApiManagementApiResource{}.basic(data), data.RandomInteger)
 }
