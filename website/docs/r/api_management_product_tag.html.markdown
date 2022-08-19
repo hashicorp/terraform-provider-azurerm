@@ -48,7 +48,7 @@ resource "azurerm_api_management_product_tag" "example" {
   product_name        = azurerm_api_management_product.example.product_id
   api_management_name = data.azurerm_api_management.example.name
   resource_group_name = data.azurerm_resource_group.example.name
-  tag_name            = azurerm_api_management_tag.example1.name
+  name                = azurerm_api_management_tag.example1.name
 }
 ```
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
 
-* `tag_name` - (Required) The name which should be used for this API Management Tag. Changing this forces a new API Management Tag to be created.
+* `name` - (Required) The name which should be used for this API Management Tag. Changing this forces a new API Management Tag to be created.
 
 ## Attributes Reference
 

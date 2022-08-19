@@ -39,7 +39,7 @@ func resourceApiManagementProductTag() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tag_name": schemaz.SchemaApiManagementChildName(),
+			"name": schemaz.SchemaApiManagementChildName(),
 		},
 	}
 }
@@ -50,7 +50,7 @@ func resourceApiManagementProductTagCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProductTagID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_name").(string), d.Get("tag_name").(string))
+	id := parse.NewProductTagID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.GetByProduct(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.TagName)
@@ -103,7 +103,7 @@ func resourceApiManagementProductTagRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("product_name", productTagId.ProductName)
 	d.Set("api_management_name", productTagId.ServiceName)
 	d.Set("resource_group_name", productTagId.ResourceGroup)
-	d.Set("tag_name", productTagId.TagName)
+	d.Set("name", productTagId.TagName)
 
 	return nil
 }
