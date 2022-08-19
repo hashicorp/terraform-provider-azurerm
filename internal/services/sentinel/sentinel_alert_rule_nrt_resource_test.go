@@ -162,9 +162,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
       lookback_duration       = "P7D"
       reopen_closed_incidents = true
       entity_matching_method  = "Selected"
-      entities                = ["Host"]
-      alert_details           = ["DisplayName"]
-      custom_details          = ["OperatingSystemType", "OperatingSystemName"]
+      by_entities                = ["Host"]
+      by_alert_details           = ["DisplayName"]
+      by_custom_details          = ["OperatingSystemType", "OperatingSystemName"]
     }
   }
   query                = "Heartbeat"
