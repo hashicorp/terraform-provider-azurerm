@@ -54,7 +54,7 @@ func TestAccOpenShiftCluster_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).
-					Key("master_profile.0.vm_size").
+					Key("main_profile.0.vm_size").
 					HasValue("Standard_D8s_v3"),
 				check.That(data.ResourceName).
 					Key("worker_profile.0.vm_size").
@@ -82,7 +82,7 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).
-					Key("master_profile.0.vm_size").
+					Key("main_profile.0.vm_size").
 					HasValue("Standard_D8s_v3"),
 				check.That(data.ResourceName).
 					Key("worker_profile.0.vm_size").
@@ -110,7 +110,7 @@ func TestAccOpenShiftCluster_customDomain(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).
-					Key("master_profile.0.vm_size").
+					Key("main_profile.0.vm_size").
 					HasValue("Standard_D8s_v3"),
 				check.That(data.ResourceName).
 					Key("worker_profile.0.vm_size").
@@ -141,10 +141,10 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).
-					Key("master_profile.0.encryption_at_host_enabled").
+					Key("main_profile.0.encryption_at_host_enabled").
 					HasValue("true"),
 				check.That(data.ResourceName).
-					Key("master_profile.0.disk_encryption_set_id").
+					Key("main_profile.0.disk_encryption_set_id").
 					IsSet(),
 				check.That(data.ResourceName).
 					Key("worker_profile.0.encryption_at_host_enabled").
@@ -170,7 +170,7 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 					Key("cluster_profile.0.fips_enabled").
 					HasValue("true"),
 				check.That(data.ResourceName).
-					Key("master_profile.0.vm_size").
+					Key("main_profile.0.vm_size").
 					HasValue("Standard_D8s_v3"),
 				check.That(data.ResourceName).
 					Key("worker_profile.0.vm_size").
@@ -208,8 +208,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "master_subnet" {
-  name                                           = "master-subnet-%d"
+resource "azurerm_subnet" "main_subnet" {
+  name                                           = "main-subnet-%d"
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   address_prefixes                               = ["10.0.0.0/23"]
@@ -231,9 +231,9 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  master_profile {
+  main_profile {
     vm_size   = "Standard_D8s_v3"
-    subnet_id = azurerm_subnet.master_subnet.id
+    subnet_id = azurerm_subnet.main_subnet.id
   }
 
   worker_profile {
@@ -271,8 +271,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "master_subnet" {
-  name                                           = "master-subnet-%d"
+resource "azurerm_subnet" "main_subnet" {
+  name                                           = "main-subnet-%d"
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   address_prefixes                               = ["10.0.0.0/23"]
@@ -294,9 +294,9 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  master_profile {
+  main_profile {
     vm_size   = "Standard_D8s_v3"
-    subnet_id = azurerm_subnet.master_subnet.id
+    subnet_id = azurerm_subnet.main_subnet.id
   }
 
   worker_profile {
@@ -342,8 +342,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "master_subnet" {
-  name                                           = "master-subnet-%d"
+resource "azurerm_subnet" "main_subnet" {
+  name                                           = "main-subnet-%d"
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   address_prefixes                               = ["10.0.0.0/23"]
@@ -365,9 +365,9 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  master_profile {
+  main_profile {
     vm_size   = "Standard_D8s_v3"
-    subnet_id = azurerm_subnet.master_subnet.id
+    subnet_id = azurerm_subnet.main_subnet.id
   }
 
   worker_profile {
@@ -409,8 +409,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "master_subnet" {
-  name                                           = "master-subnet-%d"
+resource "azurerm_subnet" "main_subnet" {
+  name                                           = "main-subnet-%d"
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   address_prefixes                               = ["10.0.0.0/23"]
@@ -436,9 +436,9 @@ resource "azurerm_redhatopenshift_cluster" "test" {
     fips_enabled = true
   }
 
-  master_profile {
+  main_profile {
     vm_size   = "Standard_D8s_v3"
-    subnet_id = azurerm_subnet.master_subnet.id
+    subnet_id = azurerm_subnet.main_subnet.id
   }
 
   worker_profile {
@@ -484,8 +484,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "master_subnet" {
-  name                                           = "master-subnet-%d"
+resource "azurerm_subnet" "main_subnet" {
+  name                                           = "main-subnet-%d"
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   address_prefixes                               = ["10.0.0.0/23"]
@@ -575,9 +575,9 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  master_profile {
+  main_profile {
     vm_size                    = "Standard_D8s_v3"
-    subnet_id                  = azurerm_subnet.master_subnet.id
+    subnet_id                  = azurerm_subnet.main_subnet.id
     encryption_at_host_enabled = true
     disk_encryption_set_id     = azurerm_disk_encryption_set.test.id
   }
