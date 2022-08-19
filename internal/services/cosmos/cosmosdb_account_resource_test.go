@@ -61,7 +61,7 @@ func TestAccCosmosDBAccount_basic_mongo_strong(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_basic_mongo_strong_without_capability(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong)
+	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelStrong)
 }
 
 func TestAccCosmosDBAccount_basic_parse_boundedStaleness(t *testing.T) {
@@ -2140,10 +2140,10 @@ func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documen
 
 func checkAccCosmosDBAccount_sql(data acceptance.TestData) acceptance.TestCheckFunc {
 	return acceptance.ComposeTestCheckFunc(
-		check.That(data.ResourceName).Key("primary_connection_string").Exists(),
-		check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
-		check.That(data.ResourceName).Key("primary_readonly_connection_string").Exists(),
-		check.That(data.ResourceName).Key("secondary_readonly_connection_string").Exists(),
+		check.That(data.ResourceName).Key("primary_sql_connection_string").Exists(),
+		check.That(data.ResourceName).Key("secondary_sql_connection_string").Exists(),
+		check.That(data.ResourceName).Key("primary_readonly_sql_connection_string").Exists(),
+		check.That(data.ResourceName).Key("secondary_readonly_sql_connection_string").Exists(),
 	)
 }
 
