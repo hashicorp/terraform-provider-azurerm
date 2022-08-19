@@ -31,8 +31,8 @@ resource "azurerm_virtual_network" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "master_subnet" {
-  name                                           = "master-subnet"
+resource "azurerm_subnet" "main_subnet" {
+  name                                           = "main-subnet"
   resource_group_name                            = azurerm_resource_group.example.name
   virtual_network_name                           = azurerm_virtual_network.example.name
   address_prefixes                               = ["10.0.0.0/23"]
@@ -59,9 +59,9 @@ resource "azurerm_redhatopenshift_cluster" "example" {
     client_secret = "00000000000000000000000000000000"
   }
 
-  master_profile {
+  main_profile {
     vm_size   = "Standard_D8s_v3"
-    subnet_id = azurerm_subnet.master_subnet.id
+    subnet_id = azurerm_subnet.main_subnet.id
   }
 
   worker_profile {
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `service_principal` - (Required) A `service_principal` block as defined below.
 
-* `master_profile` - (Required) A `master_profile` block as defined below.
+* `main_profile` - (Required) A `main_profile` block as defined below.
 
 * `worker_profile` - (Required) A `worker_profile` block as defined below.
 
@@ -120,13 +120,13 @@ A `service_principal` block supports the following:
 
 ---
 
-A `master_profile` block supports the following:
+A `main_profile` block supports the following:
 
-* `subnet_id` - (Required) The ID of the subnet where master nodes will be hosted.
-* `vm_size` - (Required) The size of the Virtual Machines for the master nodes.
-* `encryption_at_host_enabled` - (Optional) Whether master virtual machines are encrypted at host. Defaults to `false`.
+* `subnet_id` - (Required) The ID of the subnet where main nodes will be hosted.
+* `vm_size` - (Required) The size of the Virtual Machines for the main nodes.
+* `encryption_at_host_enabled` - (Optional) Whether main virtual machines are encrypted at host. Defaults to `false`.
 * `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. The `encryption_at_host_enabled` argument must be set to 
--> **NOTE** The subnet which master nodes will be associated must met the following requirements:
+-> **NOTE** The subnet which main nodes will be associated must met the following requirements:
 
   * Private subnet access granted to `Microsoft.Storage` and `Microsoft.ContainerRegistry` service endpoints.
   * Subnet private endpoint policies disabled. For more info, see [Disable network policies for Private Link service source IP](https://docs.microsoft.com/azure/private-link/disable-private-link-service-network-policy).

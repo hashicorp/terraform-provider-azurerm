@@ -126,7 +126,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"master_profile": {
+			"main_profile": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -260,7 +260,12 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	existing, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Red Hat Openshift Cluster %q (Resource Group %q): %s", name, resourceGroupName, err)
+			return fmt.Errorf(
+				"checking for presence of existing Red Hat Openshift Cluster %q (Resource Group %q): %s",
+				name,
+				resourceGroupName,
+				err,
+			)
 		}
 	}
 
@@ -281,8 +286,8 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	networkProfileRaw := d.Get("network_profile").([]interface{})
 	networkProfile := expandOpenshiftNetworkProfile(networkProfileRaw)
 
-	masterProfileRaw := d.Get("master_profile").([]interface{})
-	masterProfile := expandOpenshiftMasterProfile(masterProfileRaw)
+	mainProfileRaw := d.Get("main_profile").([]interface{})
+	mainProfile := expandOpenshiftMasterProfile(mainProfileRaw)
 
 	workerProfilesRaw := d.Get("worker_profile").([]interface{})
 	workerProfiles := expandOpenshiftWorkerProfiles(workerProfilesRaw)
@@ -303,7 +308,7 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 			ConsoleProfile:          consoleProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			NetworkProfile:          networkProfile,
-			MasterProfile:           masterProfile,
+			MasterProfile:           mainProfile,
 			WorkerProfiles:          workerProfiles,
 			ApiserverProfile:        apiServerProfile,
 			IngressProfiles:         ingressProfiles,
@@ -313,20 +318,39 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf(
+			"creating Red Hat OpenShift Cluster %q (Resource Group %q): %+v",
+			name,
+			resourceGroupName,
+			err,
+		)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf(
+			"waiting for creation of Red Hat OpenShift Cluster %q (Resource Group %q): %+v",
+			name,
+			resourceGroupName,
+			err,
+		)
 	}
 
 	read, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf(
+			"retrieving Red Hat OpenShift Cluster %q (Resource Group %q): %+v",
+			name,
+			resourceGroupName,
+			err,
+		)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("cannot read ID for Red Hat OpenShift Cluster %q (Resource Group %q)", name, resourceGroupName)
+		return fmt.Errorf(
+			"cannot read ID for Red Hat OpenShift Cluster %q (Resource Group %q)",
+			name,
+			resourceGroupName,
+		)
 	}
 
 	d.SetId(*read.ID)
@@ -354,10 +378,19 @@ func resourceOpenShiftClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("retrieving existing Red Hat OpenShift Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf(
+			"retrieving existing Red Hat OpenShift Cluster %q (Resource Group %q): %+v",
+			id.ManagedClusterName,
+			id.ResourceGroup,
+			err,
+		)
 	}
 	if existing.OpenShiftClusterProperties == nil {
-		return fmt.Errorf("retrieving existing Red Hat OpenShift Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+		return fmt.Errorf(
+			"retrieving existing Red Hat OpenShift Cluster %q (Resource Group %q): `properties` was nil",
+			id.ManagedClusterName,
+			id.ResourceGroup,
+		)
 	}
 
 	if d.HasChange("cluster_profile") {
@@ -366,10 +399,10 @@ func resourceOpenShiftClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 		existing.OpenShiftClusterProperties.ClusterProfile = clusterProfile
 	}
 
-	if d.HasChange("master_profile") {
-		masterProfileRaw := d.Get("master_profile").([]interface{})
-		masterProfile := expandOpenshiftMasterProfile(masterProfileRaw)
-		existing.OpenShiftClusterProperties.MasterProfile = masterProfile
+	if d.HasChange("main_profile") {
+		mainProfileRaw := d.Get("main_profile").([]interface{})
+		mainProfile := expandOpenshiftMasterProfile(mainProfileRaw)
+		existing.OpenShiftClusterProperties.MasterProfile = mainProfile
 	}
 
 	if d.HasChange("worker_profile") {
@@ -396,12 +429,21 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Red Hat OpenShift Cluster %q was not found in Resource Group %q - removing from state!", id.ManagedClusterName, id.ResourceGroup)
+			log.Printf(
+				"[DEBUG] Red Hat OpenShift Cluster %q was not found in Resource Group %q - removing from state!",
+				id.ManagedClusterName,
+				id.ResourceGroup,
+			)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Red Hat OpenShift Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf(
+			"retrieving Red Hat OpenShift Cluster %q (Resource Group %q): %+v",
+			id.ManagedClusterName,
+			id.ResourceGroup,
+			err,
+		)
 	}
 
 	d.Set("name", resp.Name)
@@ -417,7 +459,10 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `cluster_profile`: %+v", err)
 		}
 
-		servicePrincipalProfile := flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, d)
+		servicePrincipalProfile := flattenOpenShiftServicePrincipalProfile(
+			props.ServicePrincipalProfile,
+			d,
+		)
 		if err := d.Set("service_principal", servicePrincipalProfile); err != nil {
 			return fmt.Errorf("setting `service_principal`: %+v", err)
 		}
@@ -427,9 +472,9 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `network_profile`: %+v", err)
 		}
 
-		masterProfile := flattenOpenShiftMasterProfile(props.MasterProfile)
-		if err := d.Set("master_profile", masterProfile); err != nil {
-			return fmt.Errorf("setting `master_profile`: %+v", err)
+		mainProfile := flattenOpenShiftMasterProfile(props.MasterProfile)
+		if err := d.Set("main_profile", mainProfile); err != nil {
+			return fmt.Errorf("setting `main_profile`: %+v", err)
 		}
 
 		workerProfiles := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
@@ -466,11 +511,21 @@ func resourceOpenShiftClusterDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("deleting Red Hat Openshift Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf(
+			"deleting Red Hat Openshift Cluster %q (Resource Group %q): %+v",
+			id.ManagedClusterName,
+			id.ResourceGroup,
+			err,
+		)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Red Hat Openshift Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+		return fmt.Errorf(
+			"waiting for the deletion of Red Hat Openshift Cluster %q (Resource Group %q): %+v",
+			id.ManagedClusterName,
+			id.ResourceGroup,
+			err,
+		)
 	}
 
 	return nil
@@ -502,7 +557,10 @@ func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []i
 	}
 }
 
-func flattenOpenShiftServicePrincipalProfile(profile *redhatopenshift.ServicePrincipalProfile, d *pluginsdk.ResourceData) []interface{} {
+func flattenOpenShiftServicePrincipalProfile(
+	profile *redhatopenshift.ServicePrincipalProfile,
+	d *pluginsdk.ResourceData,
+) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -655,7 +713,10 @@ func flattenOpenShiftIngressProfiles(profiles *[]redhatopenshift.IngressProfile)
 	return results
 }
 
-func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *redhatopenshift.ClusterProfile {
+func expandOpenshiftClusterProfile(
+	input []interface{},
+	subscriptionId string,
+) *redhatopenshift.ClusterProfile {
 	resourceGroupName := fmt.Sprintf("aro-%s", randomDomainName)
 	resourceGroupId := ResourceGroupID(subscriptionId, resourceGroupName)
 
@@ -690,7 +751,9 @@ func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *
 	}
 }
 
-func expandOpenshiftServicePrincipalProfile(input []interface{}) *redhatopenshift.ServicePrincipalProfile {
+func expandOpenshiftServicePrincipalProfile(
+	input []interface{},
+) *redhatopenshift.ServicePrincipalProfile {
 	if len(input) == 0 {
 		return nil
 	}
