@@ -63,11 +63,33 @@ func TestAccLogAnalyticsQueryPackQuery_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsQueryPackQuery_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
+	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogAnalyticsQueryPackQuery_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
 	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -97,8 +119,22 @@ resource "azurerm_log_analytics_query_pack" "test" {
 
 resource "azurerm_log_analytics_query_pack_query" "test" {
   query_pack_id = azurerm_log_analytics_query_pack.test.id
-  body          = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
   display_name  = "Exceptions - New in the last 24 hours"
+
+  body = <<BODY
+    let newExceptionsTimeRange = 1d;
+    let timeRangeToCheckBefore = 7d;
+    exceptions
+    | where timestamp < ago(timeRangeToCheckBefore)
+    | summarize count() by problemId
+    | join kind= rightanti (
+        exceptions
+        | where timestamp >= ago(newExceptionsTimeRange)
+        | extend stack = tostring(details[0].rawStack)
+        | summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId
+    ) on problemId
+    | order by count_ desc
+  BODY
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -116,12 +152,26 @@ resource "azurerm_log_analytics_query_pack" "test" {
 resource "azurerm_log_analytics_query_pack_query" "test" {
   name           = "%[3]s"
   query_pack_id  = azurerm_log_analytics_query_pack.test.id
-  body           = "let newExceptionsTimeRange = 1d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
   display_name   = "Exceptions - New in the last 24 hours"
   description    = "my description"
   categories     = ["network"]
   resource_types = ["microsoft.web/sites"]
   solutions      = ["LogManagement"]
+
+  body = <<BODY
+    let newExceptionsTimeRange = 1d;
+    let timeRangeToCheckBefore = 7d;
+    exceptions
+    | where timestamp < ago(timeRangeToCheckBefore)
+    | summarize count() by problemId
+    | join kind= rightanti (
+        exceptions
+        | where timestamp >= ago(newExceptionsTimeRange)
+        | extend stack = tostring(details[0].rawStack)
+        | summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId
+    ) on problemId
+    | order by count_ desc
+  BODY
 
   additional_settings_json = <<JSON
 {
@@ -150,12 +200,26 @@ resource "azurerm_log_analytics_query_pack" "test" {
 resource "azurerm_log_analytics_query_pack_query" "test" {
   name           = "%[3]s"
   query_pack_id  = azurerm_log_analytics_query_pack.test.id
-  body           = "let newExceptionsTimeRange = 2d;\nlet timeRangeToCheckBefore = 7d;\nexceptions\n| where timestamp < ago(timeRangeToCheckBefore)\n| summarize count() by problemId\n| join kind= rightanti (\nexceptions\n| where timestamp >= ago(newExceptionsTimeRange)\n| extend stack = tostring(details[0].rawStack)\n| summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId  \n) on problemId \n| order by  count_ desc\n"
   display_name   = "Exceptions - New in the last 48 hours"
   description    = "my test description"
   categories     = ["resources"]
   resource_types = ["microsoft.network/virtualnetworks"]
   solutions      = ["NetworkMonitoring"]
+
+  body = <<BODY
+    let newExceptionsTimeRange = 2d;
+    let timeRangeToCheckBefore = 7d;
+    exceptions
+    | where timestamp < ago(timeRangeToCheckBefore)
+    | summarize count() by problemId
+    | join kind= rightanti (
+        exceptions
+        | where timestamp >= ago(newExceptionsTimeRange)
+        | extend stack = tostring(details[0].rawStack)
+        | summarize count(), dcount(user_AuthenticatedId), min(timestamp), max(timestamp), any(stack) by problemId
+    ) on problemId
+    | order by count_ desc
+  BODY
 
   additional_settings_json = <<JSON
 {
