@@ -36,7 +36,7 @@ func (id SoaRecordId) String() string {
 }
 
 func (id SoaRecordId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/SOA/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnsZones/%s/SOA/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.SOAName)
 }
 
