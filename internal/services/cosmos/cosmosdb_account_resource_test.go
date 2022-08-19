@@ -185,6 +185,7 @@ func testAccCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAcco
 			Config: r.basic(data, kind, consistency),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, consistency, 1),
+				checkAccCosmosDBAccount_sql(data),
 			),
 		},
 		data.ImportStep(),
@@ -2134,6 +2135,11 @@ func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documen
 		check.That(data.ResourceName).Key("secondary_key").Exists(),
 		check.That(data.ResourceName).Key("primary_readonly_key").Exists(),
 		check.That(data.ResourceName).Key("secondary_readonly_key").Exists(),
+	)
+}
+
+func checkAccCosmosDBAccount_sql(data acceptance.TestData) acceptance.TestCheckFunc {
+	return acceptance.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 		check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 		check.That(data.ResourceName).Key("primary_readonly_connection_string").Exists(),
