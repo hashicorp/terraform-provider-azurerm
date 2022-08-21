@@ -3670,22 +3670,6 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		} else {
 			winAppStack.DockerContainerName = docker[urlIndex+1:]
 		}
-		//if userInputRegistry := d.ResourceData.Get("site_config.0.application_stack.0.docker_container_registry").(string); userInputRegistry != "" {
-		//	urlIndex := strings.Index(dockerRegistry, "/")
-		//	if features.FourPointOhBeta() {
-		//		urlPrefix := "https://"
-		//		if strings.Contains(dockerRegistryUrl, "http://") {
-		//			urlPrefix = "http://"
-		//		}
-		//		winAppStack.DockerContainerRegistry = urlPrefix + dockerRegistry[:urlIndex]
-		//		winAppStack.DockerContainerName = dockerRegistry[urlIndex+1:]
-		//	} else {
-		//		winAppStack.DockerContainerRegistry = userInputRegistry
-		//		winAppStack.DockerContainerName = dockerRegistry[urlIndex+1:]
-		//	}
-		//} else {
-		//	winAppStack.DockerContainerName = dockerRegistry
-		//}
 	}
 	winAppStack.CurrentStack = currentStack
 
@@ -3841,27 +3825,6 @@ func ExpandAppSettingsForUpdate(settings map[string]string) (*web.StringDictiona
 	return &web.StringDictionary{
 		Properties: appSettings,
 	}, registryUrl
-
-	//if len(settings) == 0 {
-	//	if dockerURLValue != "" {
-	//		key := "DOCKER_REGISTRY_SERVER_URL"
-	//		value := dockerURLValue
-	//		appSettings[key] = utils.String(value)
-	//	}
-	//} else {
-	//	if settings["DOCKER_REGISTRY_SERVER_URL"] == "" {
-	//		settings["DOCKER_REGISTRY_SERVER_URL"] = dockerURLValue
-	//	} else if features.FourPointOhBeta() && dockerURLValue != "" && settings["DOCKER_REGISTRY_SERVER_URL"] != "" && dockerURLValue != settings["DOCKER_REGISTRY_SERVER_URL"] {
-	//		return nil, fmt.Errorf("Docker Registry URL should be the same as the one specified in application_stack")
-	//	}
-	//	for k, v := range settings {
-	//		appSettings[k] = utils.String(v)
-	//	}
-	//}
-	//
-	//return &web.StringDictionary{
-	//	Properties: appSettings,
-	//}, nil
 }
 
 func ExpandAppSettingsForCreate(settings map[string]string) (*[]web.NameValuePair, string) {
@@ -3880,31 +3843,6 @@ func ExpandAppSettingsForCreate(settings map[string]string) (*[]web.NameValuePai
 		return &result, registryUrl
 	}
 	return nil, ""
-
-	//result := make([]web.NameValuePair, 0)
-	//if len(settings) == 0 {
-	//	if dockerURLValue != "" {
-	//		key := "DOCKER_REGISTRY_SERVER_URL"
-	//		value := dockerURLValue
-	//		result = append(result, web.NameValuePair{
-	//			Name:  utils.String(key),
-	//			Value: utils.String(value),
-	//		})
-	//	} else {
-	//		if dockerURLValue != "" && settings["DOCKER_REGISTRY_SERVER_URL"] == "" {
-	//			settings["DOCKER_REGISTRY_SERVER_URL"] = dockerURLValue
-	//		} else if features.FourPointOhBeta() && dockerURLValue != "" && settings["DOCKER_REGISTRY_SERVER_URL"] != "" && dockerURLValue != settings["DOCKER_REGISTRY_SERVER_URL"] {
-	//			return nil, fmt.Errorf("Docker Registry URL should be the same as the one specified in application_stack")
-	//		}
-	//		for k, v := range settings {
-	//			result = append(result, web.NameValuePair{
-	//				Name:  utils.String(k),
-	//				Value: utils.String(v),
-	//			})
-	//		}
-	//	}
-	//}
-	//return &result, nil
 }
 
 func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, string) {
@@ -3918,33 +3856,22 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, st
 		maxPingFailures,
 	}
 
-	// if the docker registry isn't specified by user explicitly, instead filled by the property docker_registry_url in site_config, we won't set the property back to state
-	//userInputAppSetting := d.ResourceData.Get("app_settings").(map[string]interface{})
-	//if userInputAppSetting != nil {
-	//	if userInputAppSetting["DOCKER_REGISTRY_SERVER_URL"] == nil {
-	//		unmanagedSettings = append(unmanagedSettings, "DOCKER_REGISTRY_SERVER_URL")
-	//	}
-	//} else {
-	//	unmanagedSettings = append(unmanagedSettings, "DOCKER_REGISTRY_SERVER_URL")
-	//}
-
 	var healthCheckCount *int
 	appSettings := FlattenWebStringDictionary(input)
 	if v, ok := appSettings[maxPingFailures]; ok {
 		h, _ := strconv.Atoi(v)
 		healthCheckCount = &h
 	}
-	dockerUrl := appSettings["DOCKER_REGISTRY_SERVER_URL"]
 
-	//var dockerRegistryUrl string
-	//if v, ok := appSettings["DOCKER_REGISTRY_SERVER_URL"]; ok {
-	//	urlPrefix := "http://"
-	//	if strings.Contains(v, "https://") {
-	//		urlPrefix = "https://"
-	//	}
-	//	url := strings.TrimPrefix(v, urlPrefix)
-	//	dockerRegistryUrl = url
-	//}
+	urlPrefixs := []string{"https://", "http://"}
+	dockerUrl := appSettings["DOCKER_REGISTRY_SERVER_URL"]
+	if dockerUrl != "" {
+		for _, urlPrefix := range urlPrefixs {
+			if strings.Contains(dockerUrl, urlPrefix) {
+				dockerUrl = strings.TrimPrefix(dockerUrl, urlPrefix)
+			}
+		}
+	}
 
 	// Remove the settings the service adds for legacy reasons.
 	for _, v := range unmanagedSettings { //nolint:typecheck
