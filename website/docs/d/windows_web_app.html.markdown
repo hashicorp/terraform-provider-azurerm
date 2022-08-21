@@ -129,6 +129,8 @@ An `application_stack` block exports the following:
 
 * `docker_container_registry` - The Container Registry where the Docker Container is pulled from.
 
+~> **Note:** This property will be deprecated and removed in version 4.0 of the provider.
+
 * `docker_container_tag` - The Docker Container Tag of the Container in use.
 
 * `dotnet_version` - The version of .NET in use.

@@ -142,6 +142,8 @@ An `application_stack` block supports the following:
 
 * `docker_container_registry` - (Optional) The registry Host on which the specified Docker Container can be located. For example `mcr.microsoft.com`
 
+~> **Note:** This property will be deprecated and removed in version 4.0 of the provider. Please set the docker registry url using the key `DOCKER_REGISTRY_SERVER_URL` in `app_settings` block.
+
 * `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
 
 * `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include  `v2.0`,`v3.0`,`core3.1`, `v4.0`, `v5.0`, and `v6.0`.
