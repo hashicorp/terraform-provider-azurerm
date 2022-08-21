@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
+func decodeApplicationStackLinux(fxString string, dockerRegistryURL string) ApplicationStackLinux {
 	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
 	if len(parts) != 2 {
@@ -44,7 +44,13 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 	default: // DOCKER is the expected default here as "custom" images require it
 		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
-			result.DockerImage = dockerParts[0]
+			dockerData := dockerParts[0]
+			if strings.Contains(dockerData, dockerRegistryURL) {
+				urlIndex := strings.Index(dockerData, "/")
+				result.DockerImage = dockerData[urlIndex+1:]
+			} else {
+				result.DockerImage = dockerData
+			}
 			result.DockerImageTag = dockerParts[1]
 		}
 	}

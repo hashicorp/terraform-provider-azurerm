@@ -894,6 +894,21 @@ func TestAccLinuxWebApp_withDocker(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withDockerFromAcr(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerPullFromAcr(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Change Application stack of an app?
 
 func TestAccLinuxWebApp_updateAppStack(t *testing.T) {
@@ -2467,6 +2482,56 @@ resource "azurerm_linux_web_app" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
+}
+
+func (r LinuxWebAppResource) dockerPullFromAcr(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    "DOCKER_REGISTRY_SERVER_URL"          = "https://${azurerm_container_registry.test.name}.azurecr.io"
+    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
+    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  }
+
+  site_config {
+    application_stack {
+      docker_image     = "test"
+      docker_image_tag = "test"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) autoHealRules(data acceptance.TestData) string {

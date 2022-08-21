@@ -259,13 +259,14 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxWebAppSlot(webAppSlot.SiteConfig, nil, metadata)
+			appSettingsForCreate, dockerUrlInAppSettings := helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
+
+			siteConfig, err := helpers.ExpandSiteConfigLinuxWebAppSlot(webAppSlot.SiteConfig, nil, metadata, dockerUrlInAppSettings)
 			if err != nil {
 				return err
 			}
 
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
-
+			siteConfig.AppSettings = appSettingsForCreate
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -305,13 +306,14 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
+			appSettingsForUpdate, _ := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
+
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsForUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
 			}
 
-			if appSettings.Properties != nil {
-				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettings, id.SlotName); err != nil {
+			if appSettingsForUpdate.Properties != nil {
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsForUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
 				}
 			}
@@ -459,7 +461,8 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			var dockerRegistryUrl string
+			state.AppSettings, healthCheckCount, dockerRegistryUrl = helpers.FlattenAppSettings(appSettings)
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -477,7 +480,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinuxWebAppSlot(webAppSiteConfig.SiteConfig, healthCheckCount)
+			state.SiteConfig = helpers.FlattenSiteConfigLinuxWebAppSlot(webAppSiteConfig.SiteConfig, healthCheckCount, dockerRegistryUrl)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -584,8 +587,22 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
+			dockerUrlInAppSettings := ""
+			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
+			if metadata.ResourceData.HasChange("app_settings") {
+				appSettingsUpdate, dockerUrl := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+
+				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+				}
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
+				}
+				dockerUrlInAppSettings = dockerUrl
+			}
+
 			if metadata.ResourceData.HasChange("site_config") {
-				siteConfig, err := helpers.ExpandSiteConfigLinuxWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata)
+				siteConfig, err := helpers.ExpandSiteConfigLinuxWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata, dockerUrlInAppSettings)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
@@ -611,17 +628,6 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
-			}
-
-			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
-				}
-				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
-					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
-				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {

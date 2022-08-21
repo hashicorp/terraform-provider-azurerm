@@ -294,7 +294,9 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinux(webApp.SiteConfig, nil, metadata, servicePlan)
+			appSettings, dockerRegistryURL := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+
+			siteConfig, err := helpers.ExpandSiteConfigLinux(webApp.SiteConfig, nil, metadata, servicePlan, dockerRegistryURL)
 			if err != nil {
 				return err
 			}
@@ -338,7 +340,6 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
@@ -511,7 +512,8 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			var dockerRegistryUrl string
+			state.AppSettings, healthCheckCount, dockerRegistryUrl = helpers.FlattenAppSettings(appSettings)
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -529,7 +531,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, dockerRegistryUrl)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -661,8 +663,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
+			appSettings, dockerRegistryURL := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+
 			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
-				siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
+				siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig, existing.SiteConfig, metadata, servicePlan, dockerRegistryURL)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
@@ -690,17 +694,6 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
 			}
 
-			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
-				}
-				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
-					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
-				}
-			}
-
 			if metadata.ResourceData.HasChange("connection_string") {
 				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
 				if connectionStringUpdate.Properties == nil {
@@ -708,6 +701,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if appSettings.Properties != nil {
+				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
+					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
 				}
 			}
 

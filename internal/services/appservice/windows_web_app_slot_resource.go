@@ -249,12 +249,17 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(webAppSlot.SiteConfig, nil, metadata)
+			appSettingsForCreate, dockerUrl := helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
+			if err != nil {
+				return fmt.Errorf("setting app_setting for %s error: %+v", id, err)
+			}
+
+			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(webAppSlot.SiteConfig, nil, metadata, dockerUrl)
 			if err != nil {
 				return err
 			}
 
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
+			siteConfig.AppSettings = appSettingsForCreate
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -303,9 +308,9 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
-			if appSettings != nil {
-				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettings, id.SlotName); err != nil {
+			appSettingsForUpdate, _ := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
+			if appSettingsForUpdate != nil {
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsForUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
 				}
 			}
@@ -467,7 +472,8 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			var dockerRegistryUrl string
+			state.AppSettings, healthCheckCount, dockerRegistryUrl = helpers.FlattenAppSettings(appSettings)
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -485,7 +491,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount, dockerRegistryUrl)
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -592,8 +598,18 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				currentStack = stateConfig.ApplicationStack[0].CurrentStack
 			}
 
+			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
+			dockerUrlInAppSettings := ""
+			if metadata.ResourceData.HasChange("app_settings") {
+				appSettingsUpdate, dockerUrl := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
+				}
+				dockerUrlInAppSettings = dockerUrl
+			}
+
 			if metadata.ResourceData.HasChange("site_config") {
-				siteConfig, stack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata)
+				siteConfig, stack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata, dockerUrlInAppSettings)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
 				}
@@ -626,14 +642,6 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			siteMetadata.Properties["CURRENT_STACK"] = utils.String(currentStack)
 			if _, err := client.UpdateMetadataSlot(ctx, id.ResourceGroup, id.SiteName, siteMetadata, id.SlotName); err != nil {
 				return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
-			}
-
-			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
-					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
-				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {

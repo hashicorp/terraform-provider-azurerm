@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
@@ -538,7 +539,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, error) {
+func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData, dockerRegistryURL string) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
@@ -603,7 +604,19 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 			}
 
 			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				if dockerRegistryURL != "" {
+					urlPrefix := "https://"
+					if strings.Contains(dockerRegistryURL, "http://") {
+						urlPrefix = "http://"
+					}
+					dockerRegistryToFill := dockerRegistryURL
+					if strings.Contains(dockerRegistryURL, urlPrefix) {
+						dockerRegistryToFill = strings.TrimPrefix(dockerRegistryToFill, urlPrefix)
+					}
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerRegistryToFill, linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				} else {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				}
 			}
 		} else {
 			expanded.LinuxFxVersion = utils.String("")
@@ -719,7 +732,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinuxWebAppSlot {
+func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int, dockerRegistryURL string) []SiteConfigLinuxWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -770,7 +783,7 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		var linuxAppStack ApplicationStackLinux
 		siteConfig.LinuxFxVersion = *appSiteSlotConfig.LinuxFxVersion
 		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
+		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, dockerRegistryURL)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 
@@ -790,7 +803,7 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 	return []SiteConfigLinuxWebAppSlot{siteConfig}
 }
 
-func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, *string, error) {
+func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData, dockerContainerURL string) (*web.SiteConfig, *string, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil, nil
 	}
@@ -836,11 +849,29 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 			expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
 			expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
 			if winAppStack.DockerContainerName != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				if !features.FourPointOhBeta() {
+					if winAppStack.DockerContainerRegistry != "" {
+						if dockerContainerURL != "" && !strings.Contains(dockerContainerURL, winAppStack.DockerContainerRegistry) {
+							return nil, nil, fmt.Errorf("The container registry host should be the same as the registry url set in app_setting")
+						} else {
+							expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+						}
+					} else {
+						expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+					}
 				} else {
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+					urlPrefix := "https://"
+					if strings.Contains(dockerContainerURL, "http://") {
+						urlPrefix = "http://"
+					}
+					dockerRegistryToFill := dockerContainerURL
+					if strings.Contains(dockerContainerURL, urlPrefix) {
+						dockerRegistryToFill = strings.TrimPrefix(dockerContainerURL, urlPrefix)
+					}
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerRegistryToFill, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 				}
+				// For dotnet app, this property needs to be set to nil so service can grant a default value to it.
+				expanded.NetFrameworkVersion = nil
 			}
 			currentStack = winAppStack.CurrentStack
 		} else {
@@ -967,7 +998,7 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
+func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int, dockerRegistryUrl string) []SiteConfigWindowsWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -1030,17 +1061,23 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	}
 
 	siteConfig.WindowsFxVersion = utils.NormalizeNilableString(appSiteSlotConfig.WindowsFxVersion)
+
 	if siteConfig.WindowsFxVersion != "" {
 		// Decode the string to docker values
 		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
-		if len(parts) == 2 {
-			winAppStack.DockerContainerTag = parts[1]
-			path := strings.Split(parts[0], "/")
-			if len(path) > 2 {
-				winAppStack.DockerContainerRegistry = path[0]
-				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+		dockerRegistry := parts[0]
+		winAppStack.DockerContainerTag = parts[1]
+		urlIndex := strings.Index(dockerRegistry, "/")
+		if features.FourPointOhBeta() {
+			winAppStack.DockerContainerRegistry = dockerRegistry[:urlIndex]
+			winAppStack.DockerContainerName = dockerRegistry[urlIndex+1:]
+		} else {
+			if strings.Contains(dockerRegistry, dockerRegistryUrl) {
+				winAppStack.DockerContainerRegistry = dockerRegistry[:urlIndex]
+				winAppStack.DockerContainerName = dockerRegistry[urlIndex+1:]
+			} else {
+				winAppStack.DockerContainerName = dockerRegistry
 			}
-			winAppStack.DockerContainerName = path[0]
 		}
 	}
 	winAppStack.CurrentStack = currentStack

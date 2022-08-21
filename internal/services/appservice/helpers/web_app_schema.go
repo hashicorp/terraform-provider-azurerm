@@ -876,174 +876,175 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-						if !features.FourPointOh() {
+			Schema: func() map[string]*pluginsdk.Schema {
+				s := map[string]*pluginsdk.Schema{
+					"dotnet_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+							if !features.FourPointOh() {
+								return validation.StringInSlice([]string{
+									"v2.0",
+									"v3.0",
+									"core3.1",
+									"v4.0",
+									"v5.0",
+									"v6.0"}, false)
+							}
 							return validation.StringInSlice([]string{
 								"v2.0",
-								"v3.0",
 								"core3.1",
 								"v4.0",
 								"v5.0",
-								"v6.0"}, false)
-						}
-						return validation.StringInSlice([]string{
-							"v2.0",
-							"core3.1",
-							"v4.0",
-							"v5.0",
-							"v6.0",
-						}, false)
-					}(),
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
+								"v6.0",
+							}, false)
+						}(),
+						AtLeastOneOf: []string{
+							"site_config.0.application_stack.0.docker_container_name",
+							"site_config.0.application_stack.0.dotnet_version",
+							"site_config.0.application_stack.0.java_version",
+							"site_config.0.application_stack.0.node_version",
+							"site_config.0.application_stack.0.php_version",
+							"site_config.0.application_stack.0.python_version",
+						},
 					},
-				},
 
-				"php_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"7.4",
-					}, false),
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
+					"php_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"7.4",
+						}, false),
+						AtLeastOneOf: []string{
+							"site_config.0.application_stack.0.docker_container_name",
+							"site_config.0.application_stack.0.dotnet_version",
+							"site_config.0.application_stack.0.java_version",
+							"site_config.0.application_stack.0.node_version",
+							"site_config.0.application_stack.0.php_version",
+							"site_config.0.application_stack.0.python_version",
+						},
 					},
-				},
 
-				"python_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"3.4.0", // Note: The portal only lists `3.6`, however, the service only uses the value `3.4.0`. Anything else is silently discarded
-					}, false),
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
+					"python_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"3.4.0", // Note: The portal only lists `3.6`, however, the service only uses the value `3.4.0`. Anything else is silently discarded
+						}, false),
+						AtLeastOneOf: []string{
+							"site_config.0.application_stack.0.docker_container_name",
+							"site_config.0.application_stack.0.dotnet_version",
+							"site_config.0.application_stack.0.java_version",
+							"site_config.0.application_stack.0.node_version",
+							"site_config.0.application_stack.0.php_version",
+							"site_config.0.application_stack.0.python_version",
+						},
 					},
-				},
 
-				"node_version": { // Discarded by service if JavaVersion is specified
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"12-LTS",
-						"14-LTS",
-						"16-LTS",
-					}, false),
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
+					"node_version": { // Discarded by service if JavaVersion is specified
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"12-LTS",
+							"14-LTS",
+							"16-LTS",
+						}, false),
+						AtLeastOneOf: []string{
+							"site_config.0.application_stack.0.docker_container_name",
+							"site_config.0.application_stack.0.dotnet_version",
+							"site_config.0.application_stack.0.java_version",
+							"site_config.0.application_stack.0.node_version",
+							"site_config.0.application_stack.0.php_version",
+							"site_config.0.application_stack.0.python_version",
+						},
+						ConflictsWith: []string{
+							"site_config.0.application_stack.0.java_version",
+						},
 					},
-					ConflictsWith: []string{
-						"site_config.0.application_stack.0.java_version",
-					},
-				},
 
-				"java_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"1.8",
-						"11",
-					}, false),
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
+					"java_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"1.8",
+							"11",
+						}, false),
+						AtLeastOneOf: []string{
+							"site_config.0.application_stack.0.docker_container_name",
+							"site_config.0.application_stack.0.dotnet_version",
+							"site_config.0.application_stack.0.java_version",
+							"site_config.0.application_stack.0.node_version",
+							"site_config.0.application_stack.0.php_version",
+							"site_config.0.application_stack.0.python_version",
+						},
 					},
-				},
 
-				"java_container": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"JAVA",
-						"JETTY",
-						"TOMCAT",
-					}, false),
-					RequiredWith: []string{
-						"site_config.0.application_stack.0.java_container_version",
+					"java_container": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"JAVA",
+							"JETTY",
+							"TOMCAT",
+						}, false),
+						RequiredWith: []string{
+							"site_config.0.application_stack.0.java_container_version",
+						},
 					},
-				},
 
-				"java_container_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					RequiredWith: []string{
-						"site_config.0.application_stack.0.java_container",
+					"java_container_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						RequiredWith: []string{
+							"site_config.0.application_stack.0.java_container",
+						},
 					},
-				},
 
-				"docker_container_name": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
+					"docker_container_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{
+							"site_config.0.application_stack.0.docker_container_name",
+							"site_config.0.application_stack.0.dotnet_version",
+							"site_config.0.application_stack.0.java_version",
+							"site_config.0.application_stack.0.node_version",
+							"site_config.0.application_stack.0.php_version",
+							"site_config.0.application_stack.0.python_version",
+						},
+						RequiredWith: []string{"site_config.0.application_stack.0.docker_container_tag"},
 					},
-					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_container_tag",
+
+					"docker_container_tag": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						RequiredWith: []string{"site_config.0.application_stack.0.docker_container_name"},
 					},
-				},
 
-				"docker_container_registry": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"docker_container_tag": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_container_name",
+					"current_stack": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"dotnet",
+							"dotnetcore",
+							"node",
+							"python",
+							"php",
+							"java",
+						}, false),
 					},
-				},
-
-				"current_stack": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"dotnet",
-						"dotnetcore",
-						"node",
-						"python",
-						"php",
-						"java",
-					}, false),
-				},
-			},
+				}
+				if !features.FourPointOhBeta() {
+					s["docker_container_registry"] = &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					}
+				}
+				return s
+			}(),
 		},
 	}
 }
@@ -2870,7 +2871,7 @@ func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, *string, error) {
+func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan, dockerContainerURL string) (*web.SiteConfig, *string, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil, nil
 	}
@@ -2926,11 +2927,29 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 			expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
 			expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
 			if winAppStack.DockerContainerName != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				if !features.FourPointOhBeta() {
+					if winAppStack.DockerContainerRegistry != "" {
+						if dockerContainerURL != "" && !strings.Contains(dockerContainerURL, winAppStack.DockerContainerRegistry) {
+							return nil, nil, fmt.Errorf("The container registry host should be the same as the registry url set in app_setting")
+						} else {
+							expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+						}
+					} else {
+						expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+					}
 				} else {
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+					urlPrefix := "https://"
+					if strings.Contains(dockerContainerURL, "http://") {
+						urlPrefix = "http://"
+					}
+					dockerRegistryToFill := dockerContainerURL
+					if strings.Contains(dockerContainerURL, urlPrefix) {
+						dockerRegistryToFill = strings.TrimPrefix(dockerContainerURL, urlPrefix)
+					}
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerRegistryToFill, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 				}
+				// For dotnet app, this property needs to be set to nil so service can grant a default value to it.
+				expanded.NetFrameworkVersion = nil
 			}
 			currentStack = winAppStack.CurrentStack
 		} else {
@@ -3039,7 +3058,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, error) {
+func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan, dockerRegistryURL string) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
@@ -3112,7 +3131,19 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 			}
 
 			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				if dockerRegistryURL != "" {
+					urlPrefix := "https://"
+					if strings.Contains(dockerRegistryURL, "http://") {
+						urlPrefix = "http://"
+					}
+					dockerRegistryToFill := dockerRegistryURL
+					if strings.Contains(dockerRegistryURL, urlPrefix) {
+						dockerRegistryToFill = strings.TrimPrefix(dockerRegistryToFill, urlPrefix)
+					}
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerRegistryToFill, linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				} else {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				}
 			}
 		} else {
 			expanded.LinuxFxVersion = utils.String("")
@@ -3562,7 +3593,7 @@ func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 	return true
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindows {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int, dockerRegistryUrl string) []SiteConfigWindows {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3626,15 +3657,35 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	if siteConfig.WindowsFxVersion != "" {
 		// Decode the string to docker values
 		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
-		if len(parts) == 2 {
-			winAppStack.DockerContainerTag = parts[1]
-			path := strings.Split(parts[0], "/")
-			if len(path) > 2 {
-				winAppStack.DockerContainerRegistry = path[0]
-				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+		docker := parts[0]
+		winAppStack.DockerContainerTag = parts[1]
+		urlIndex := strings.Index(docker, "/")
+		if !features.FourPointOhBeta() {
+			if strings.Contains(docker, dockerRegistryUrl) {
+				winAppStack.DockerContainerRegistry = docker[:urlIndex]
+				winAppStack.DockerContainerName = docker[urlIndex+1:]
+			} else {
+				winAppStack.DockerContainerName = docker
 			}
-			winAppStack.DockerContainerName = path[0]
+		} else {
+			winAppStack.DockerContainerName = docker[urlIndex+1:]
 		}
+		//if userInputRegistry := d.ResourceData.Get("site_config.0.application_stack.0.docker_container_registry").(string); userInputRegistry != "" {
+		//	urlIndex := strings.Index(dockerRegistry, "/")
+		//	if features.FourPointOhBeta() {
+		//		urlPrefix := "https://"
+		//		if strings.Contains(dockerRegistryUrl, "http://") {
+		//			urlPrefix = "http://"
+		//		}
+		//		winAppStack.DockerContainerRegistry = urlPrefix + dockerRegistry[:urlIndex]
+		//		winAppStack.DockerContainerName = dockerRegistry[urlIndex+1:]
+		//	} else {
+		//		winAppStack.DockerContainerRegistry = userInputRegistry
+		//		winAppStack.DockerContainerName = dockerRegistry[urlIndex+1:]
+		//	}
+		//} else {
+		//	winAppStack.DockerContainerName = dockerRegistry
+		//}
 	}
 	winAppStack.CurrentStack = currentStack
 
@@ -3656,7 +3707,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	return []SiteConfigWindows{siteConfig}
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, dockerRegistryURL string) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3706,7 +3757,7 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		var linuxAppStack ApplicationStackLinux
 		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
 		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
+		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, dockerRegistryURL)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 
@@ -3777,32 +3828,86 @@ func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionar
 	return connectionStrings
 }
 
-func ExpandAppSettingsForUpdate(settings map[string]string) *web.StringDictionary {
+func ExpandAppSettingsForUpdate(settings map[string]string) (*web.StringDictionary, string) {
 	appSettings := make(map[string]*string)
+	registryUrl := ""
 	for k, v := range settings {
 		appSettings[k] = utils.String(v)
 	}
 
+	if settings["DOCKER_REGISTRY_SERVER_URL"] != "" {
+		registryUrl = settings["DOCKER_REGISTRY_SERVER_URL"]
+	}
 	return &web.StringDictionary{
 		Properties: appSettings,
-	}
+	}, registryUrl
+
+	//if len(settings) == 0 {
+	//	if dockerURLValue != "" {
+	//		key := "DOCKER_REGISTRY_SERVER_URL"
+	//		value := dockerURLValue
+	//		appSettings[key] = utils.String(value)
+	//	}
+	//} else {
+	//	if settings["DOCKER_REGISTRY_SERVER_URL"] == "" {
+	//		settings["DOCKER_REGISTRY_SERVER_URL"] = dockerURLValue
+	//	} else if features.FourPointOhBeta() && dockerURLValue != "" && settings["DOCKER_REGISTRY_SERVER_URL"] != "" && dockerURLValue != settings["DOCKER_REGISTRY_SERVER_URL"] {
+	//		return nil, fmt.Errorf("Docker Registry URL should be the same as the one specified in application_stack")
+	//	}
+	//	for k, v := range settings {
+	//		appSettings[k] = utils.String(v)
+	//	}
+	//}
+	//
+	//return &web.StringDictionary{
+	//	Properties: appSettings,
+	//}, nil
 }
 
-func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair {
+func ExpandAppSettingsForCreate(settings map[string]string) (*[]web.NameValuePair, string) {
 	if len(settings) > 0 {
 		result := make([]web.NameValuePair, 0)
+		registryUrl := ""
 		for k, v := range settings {
 			result = append(result, web.NameValuePair{
 				Name:  utils.String(k),
 				Value: utils.String(v),
 			})
 		}
-		return &result
+		if settings["DOCKER_REGISTRY_SERVER_URL"] != "" {
+			registryUrl = settings["DOCKER_REGISTRY_SERVER_URL"]
+		}
+		return &result, registryUrl
 	}
-	return nil
+	return nil, ""
+
+	//result := make([]web.NameValuePair, 0)
+	//if len(settings) == 0 {
+	//	if dockerURLValue != "" {
+	//		key := "DOCKER_REGISTRY_SERVER_URL"
+	//		value := dockerURLValue
+	//		result = append(result, web.NameValuePair{
+	//			Name:  utils.String(key),
+	//			Value: utils.String(value),
+	//		})
+	//	} else {
+	//		if dockerURLValue != "" && settings["DOCKER_REGISTRY_SERVER_URL"] == "" {
+	//			settings["DOCKER_REGISTRY_SERVER_URL"] = dockerURLValue
+	//		} else if features.FourPointOhBeta() && dockerURLValue != "" && settings["DOCKER_REGISTRY_SERVER_URL"] != "" && dockerURLValue != settings["DOCKER_REGISTRY_SERVER_URL"] {
+	//			return nil, fmt.Errorf("Docker Registry URL should be the same as the one specified in application_stack")
+	//		}
+	//		for k, v := range settings {
+	//			result = append(result, web.NameValuePair{
+	//				Name:  utils.String(k),
+	//				Value: utils.String(v),
+	//			})
+	//		}
+	//	}
+	//}
+	//return &result, nil
 }
 
-func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
+func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, string) {
 	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURE"
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
@@ -3813,19 +3918,40 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		maxPingFailures,
 	}
 
+	// if the docker registry isn't specified by user explicitly, instead filled by the property docker_registry_url in site_config, we won't set the property back to state
+	//userInputAppSetting := d.ResourceData.Get("app_settings").(map[string]interface{})
+	//if userInputAppSetting != nil {
+	//	if userInputAppSetting["DOCKER_REGISTRY_SERVER_URL"] == nil {
+	//		unmanagedSettings = append(unmanagedSettings, "DOCKER_REGISTRY_SERVER_URL")
+	//	}
+	//} else {
+	//	unmanagedSettings = append(unmanagedSettings, "DOCKER_REGISTRY_SERVER_URL")
+	//}
+
 	var healthCheckCount *int
 	appSettings := FlattenWebStringDictionary(input)
 	if v, ok := appSettings[maxPingFailures]; ok {
 		h, _ := strconv.Atoi(v)
 		healthCheckCount = &h
 	}
+	dockerUrl := appSettings["DOCKER_REGISTRY_SERVER_URL"]
+
+	//var dockerRegistryUrl string
+	//if v, ok := appSettings["DOCKER_REGISTRY_SERVER_URL"]; ok {
+	//	urlPrefix := "http://"
+	//	if strings.Contains(v, "https://") {
+	//		urlPrefix = "https://"
+	//	}
+	//	url := strings.TrimPrefix(v, urlPrefix)
+	//	dockerRegistryUrl = url
+	//}
 
 	// Remove the settings the service adds for legacy reasons.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}
 
-	return appSettings, healthCheckCount
+	return appSettings, healthCheckCount, dockerUrl
 }
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {

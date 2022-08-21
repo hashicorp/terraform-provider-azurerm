@@ -260,7 +260,8 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			var dockerRegistryUrl string
+			webApp.AppSettings, healthCheckCount, dockerRegistryUrl = helpers.FlattenAppSettings(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -299,7 +300,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount, dockerRegistryUrl)
 
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 

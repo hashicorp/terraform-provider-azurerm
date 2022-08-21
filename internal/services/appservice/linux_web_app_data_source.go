@@ -275,7 +275,8 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			var dockerRegistryUrl string
+			webApp.AppSettings, healthCheckCount, dockerRegistryUrl = helpers.FlattenAppSettings(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -308,7 +309,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, dockerRegistryUrl)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
