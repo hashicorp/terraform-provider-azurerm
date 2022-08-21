@@ -63,5 +63,6 @@ func (c EndpointsClient) responderForDelete(resp *http.Response) (result DeleteO
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

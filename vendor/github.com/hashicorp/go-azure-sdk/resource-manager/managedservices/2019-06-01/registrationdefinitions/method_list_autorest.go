@@ -60,50 +60,6 @@ func (c RegistrationDefinitionsClient) List(ctx context.Context, id commonids.Sc
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c RegistrationDefinitionsClient) ListComplete(ctx context.Context, id commonids.ScopeId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, RegistrationDefinitionOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c RegistrationDefinitionsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate RegistrationDefinitionOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]RegistrationDefinition, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c RegistrationDefinitionsClient) preparerForList(ctx context.Context, id commonids.ScopeId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c RegistrationDefinitionsClient) responderForList(resp *http.Response) (re
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c RegistrationDefinitionsClient) ListComplete(ctx context.Context, id commonids.ScopeId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, RegistrationDefinitionOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c RegistrationDefinitionsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate RegistrationDefinitionOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]RegistrationDefinition, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

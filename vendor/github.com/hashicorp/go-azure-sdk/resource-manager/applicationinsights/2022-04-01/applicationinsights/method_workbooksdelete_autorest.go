@@ -61,5 +61,6 @@ func (c ApplicationInsightsClient) responderForWorkbooksDelete(resp *http.Respon
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

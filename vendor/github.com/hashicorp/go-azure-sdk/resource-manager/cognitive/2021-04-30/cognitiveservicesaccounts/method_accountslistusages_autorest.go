@@ -93,5 +93,6 @@ func (c CognitiveServicesAccountsClient) responderForAccountsListUsages(resp *ht
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

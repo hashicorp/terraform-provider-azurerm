@@ -90,5 +90,6 @@ func (c RecordSetsClient) responderForDelete(resp *http.Response) (result Delete
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

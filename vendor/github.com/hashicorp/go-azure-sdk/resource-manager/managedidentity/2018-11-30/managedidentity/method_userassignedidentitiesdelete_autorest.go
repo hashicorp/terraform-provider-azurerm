@@ -62,5 +62,6 @@ func (c ManagedIdentityClient) responderForUserAssignedIdentitiesDelete(resp *ht
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

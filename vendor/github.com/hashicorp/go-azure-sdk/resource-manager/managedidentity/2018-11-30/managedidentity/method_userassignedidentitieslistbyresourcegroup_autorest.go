@@ -60,50 +60,6 @@ func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroup(ctx con
 	return
 }
 
-// UserAssignedIdentitiesListByResourceGroupComplete retrieves all of the results into a single object
-func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (UserAssignedIdentitiesListByResourceGroupCompleteResult, error) {
-	return c.UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
-}
-
-// UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate IdentityOperationPredicate) (resp UserAssignedIdentitiesListByResourceGroupCompleteResult, err error) {
-	items := make([]Identity, 0)
-
-	page, err := c.UserAssignedIdentitiesListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := UserAssignedIdentitiesListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForUserAssignedIdentitiesListByResourceGroup prepares the UserAssignedIdentitiesListByResourceGroup request.
 func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListByResourceG
 		}
 	}
 	return
+}
+
+// UserAssignedIdentitiesListByResourceGroupComplete retrieves all of the results into a single object
+func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (UserAssignedIdentitiesListByResourceGroupCompleteResult, error) {
+	return c.UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
+}
+
+// UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate IdentityOperationPredicate) (resp UserAssignedIdentitiesListByResourceGroupCompleteResult, err error) {
+	items := make([]Identity, 0)
+
+	page, err := c.UserAssignedIdentitiesListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := UserAssignedIdentitiesListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

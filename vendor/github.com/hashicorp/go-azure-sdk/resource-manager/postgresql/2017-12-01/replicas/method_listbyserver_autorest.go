@@ -64,5 +64,6 @@ func (c ReplicasClient) responderForListByServer(resp *http.Response) (result Li
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

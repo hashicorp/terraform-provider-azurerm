@@ -83,50 +83,6 @@ func (c VideoAnalyzerClient) AccessPoliciesList(ctx context.Context, id VideoAna
 	return
 }
 
-// AccessPoliciesListComplete retrieves all of the results into a single object
-func (c VideoAnalyzerClient) AccessPoliciesListComplete(ctx context.Context, id VideoAnalyzerId, options AccessPoliciesListOperationOptions) (AccessPoliciesListCompleteResult, error) {
-	return c.AccessPoliciesListCompleteMatchingPredicate(ctx, id, options, AccessPolicyEntityOperationPredicate{})
-}
-
-// AccessPoliciesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c VideoAnalyzerClient) AccessPoliciesListCompleteMatchingPredicate(ctx context.Context, id VideoAnalyzerId, options AccessPoliciesListOperationOptions, predicate AccessPolicyEntityOperationPredicate) (resp AccessPoliciesListCompleteResult, err error) {
-	items := make([]AccessPolicyEntity, 0)
-
-	page, err := c.AccessPoliciesList(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AccessPoliciesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAccessPoliciesList prepares the AccessPoliciesList request.
 func (c VideoAnalyzerClient) preparerForAccessPoliciesList(ctx context.Context, id VideoAnalyzerId, options AccessPoliciesListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c VideoAnalyzerClient) responderForAccessPoliciesList(resp *http.Response)
 		}
 	}
 	return
+}
+
+// AccessPoliciesListComplete retrieves all of the results into a single object
+func (c VideoAnalyzerClient) AccessPoliciesListComplete(ctx context.Context, id VideoAnalyzerId, options AccessPoliciesListOperationOptions) (AccessPoliciesListCompleteResult, error) {
+	return c.AccessPoliciesListCompleteMatchingPredicate(ctx, id, options, AccessPolicyEntityOperationPredicate{})
+}
+
+// AccessPoliciesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c VideoAnalyzerClient) AccessPoliciesListCompleteMatchingPredicate(ctx context.Context, id VideoAnalyzerId, options AccessPoliciesListOperationOptions, predicate AccessPolicyEntityOperationPredicate) (resp AccessPoliciesListCompleteResult, err error) {
+	items := make([]AccessPolicyEntity, 0)
+
+	page, err := c.AccessPoliciesList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AccessPoliciesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

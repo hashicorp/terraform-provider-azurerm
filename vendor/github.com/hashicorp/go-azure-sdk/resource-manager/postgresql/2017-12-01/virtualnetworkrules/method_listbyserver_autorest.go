@@ -59,50 +59,6 @@ func (c VirtualNetworkRulesClient) ListByServer(ctx context.Context, id ServerId
 	return
 }
 
-// ListByServerComplete retrieves all of the results into a single object
-func (c VirtualNetworkRulesClient) ListByServerComplete(ctx context.Context, id ServerId) (ListByServerCompleteResult, error) {
-	return c.ListByServerCompleteMatchingPredicate(ctx, id, VirtualNetworkRuleOperationPredicate{})
-}
-
-// ListByServerCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c VirtualNetworkRulesClient) ListByServerCompleteMatchingPredicate(ctx context.Context, id ServerId, predicate VirtualNetworkRuleOperationPredicate) (resp ListByServerCompleteResult, err error) {
-	items := make([]VirtualNetworkRule, 0)
-
-	page, err := c.ListByServer(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByServerCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByServer prepares the ListByServer request.
 func (c VirtualNetworkRulesClient) preparerForListByServer(ctx context.Context, id ServerId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c VirtualNetworkRulesClient) responderForListByServer(resp *http.Response)
 		}
 	}
 	return
+}
+
+// ListByServerComplete retrieves all of the results into a single object
+func (c VirtualNetworkRulesClient) ListByServerComplete(ctx context.Context, id ServerId) (ListByServerCompleteResult, error) {
+	return c.ListByServerCompleteMatchingPredicate(ctx, id, VirtualNetworkRuleOperationPredicate{})
+}
+
+// ListByServerCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c VirtualNetworkRulesClient) ListByServerCompleteMatchingPredicate(ctx context.Context, id ServerId, predicate VirtualNetworkRuleOperationPredicate) (resp ListByServerCompleteResult, err error) {
+	items := make([]VirtualNetworkRule, 0)
+
+	page, err := c.ListByServer(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByServerCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

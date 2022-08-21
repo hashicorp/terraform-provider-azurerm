@@ -88,50 +88,6 @@ func (c OperationalInsightsClient) QueriesList(ctx context.Context, id QueryPack
 	return
 }
 
-// QueriesListComplete retrieves all of the results into a single object
-func (c OperationalInsightsClient) QueriesListComplete(ctx context.Context, id QueryPackId, options QueriesListOperationOptions) (QueriesListCompleteResult, error) {
-	return c.QueriesListCompleteMatchingPredicate(ctx, id, options, LogAnalyticsQueryPackQueryOperationPredicate{})
-}
-
-// QueriesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c OperationalInsightsClient) QueriesListCompleteMatchingPredicate(ctx context.Context, id QueryPackId, options QueriesListOperationOptions, predicate LogAnalyticsQueryPackQueryOperationPredicate) (resp QueriesListCompleteResult, err error) {
-	items := make([]LogAnalyticsQueryPackQuery, 0)
-
-	page, err := c.QueriesList(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := QueriesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForQueriesList prepares the QueriesList request.
 func (c OperationalInsightsClient) preparerForQueriesList(ctx context.Context, id QueryPackId, options QueriesListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c OperationalInsightsClient) responderForQueriesList(resp *http.Response) 
 		}
 	}
 	return
+}
+
+// QueriesListComplete retrieves all of the results into a single object
+func (c OperationalInsightsClient) QueriesListComplete(ctx context.Context, id QueryPackId, options QueriesListOperationOptions) (QueriesListCompleteResult, error) {
+	return c.QueriesListCompleteMatchingPredicate(ctx, id, options, LogAnalyticsQueryPackQueryOperationPredicate{})
+}
+
+// QueriesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c OperationalInsightsClient) QueriesListCompleteMatchingPredicate(ctx context.Context, id QueryPackId, options QueriesListOperationOptions, predicate LogAnalyticsQueryPackQueryOperationPredicate) (resp QueriesListCompleteResult, err error) {
+	items := make([]LogAnalyticsQueryPackQuery, 0)
+
+	page, err := c.QueriesList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := QueriesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

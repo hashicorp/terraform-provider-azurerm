@@ -64,5 +64,6 @@ func (c PolicyInsightsClient) responderForRemediationsCreateOrUpdateAtResource(r
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

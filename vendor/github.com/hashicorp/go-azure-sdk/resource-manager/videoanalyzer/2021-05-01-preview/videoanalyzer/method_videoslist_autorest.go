@@ -83,50 +83,6 @@ func (c VideoAnalyzerClient) VideosList(ctx context.Context, id VideoAnalyzerId,
 	return
 }
 
-// VideosListComplete retrieves all of the results into a single object
-func (c VideoAnalyzerClient) VideosListComplete(ctx context.Context, id VideoAnalyzerId, options VideosListOperationOptions) (VideosListCompleteResult, error) {
-	return c.VideosListCompleteMatchingPredicate(ctx, id, options, VideoEntityOperationPredicate{})
-}
-
-// VideosListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c VideoAnalyzerClient) VideosListCompleteMatchingPredicate(ctx context.Context, id VideoAnalyzerId, options VideosListOperationOptions, predicate VideoEntityOperationPredicate) (resp VideosListCompleteResult, err error) {
-	items := make([]VideoEntity, 0)
-
-	page, err := c.VideosList(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := VideosListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForVideosList prepares the VideosList request.
 func (c VideoAnalyzerClient) preparerForVideosList(ctx context.Context, id VideoAnalyzerId, options VideosListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c VideoAnalyzerClient) responderForVideosList(resp *http.Response) (result
 		}
 	}
 	return
+}
+
+// VideosListComplete retrieves all of the results into a single object
+func (c VideoAnalyzerClient) VideosListComplete(ctx context.Context, id VideoAnalyzerId, options VideosListOperationOptions) (VideosListCompleteResult, error) {
+	return c.VideosListCompleteMatchingPredicate(ctx, id, options, VideoEntityOperationPredicate{})
+}
+
+// VideosListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c VideoAnalyzerClient) VideosListCompleteMatchingPredicate(ctx context.Context, id VideoAnalyzerId, options VideosListOperationOptions, predicate VideoEntityOperationPredicate) (resp VideosListCompleteResult, err error) {
+	items := make([]VideoEntity, 0)
+
+	page, err := c.VideosList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := VideosListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

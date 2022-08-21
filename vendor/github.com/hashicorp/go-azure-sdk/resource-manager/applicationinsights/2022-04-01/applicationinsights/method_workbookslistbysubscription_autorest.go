@@ -94,50 +94,6 @@ func (c ApplicationInsightsClient) WorkbooksListBySubscription(ctx context.Conte
 	return
 }
 
-// WorkbooksListBySubscriptionComplete retrieves all of the results into a single object
-func (c ApplicationInsightsClient) WorkbooksListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (WorkbooksListBySubscriptionCompleteResult, error) {
-	return c.WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx, id, options, WorkbookOperationPredicate{})
-}
-
-// WorkbooksListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ApplicationInsightsClient) WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions, predicate WorkbookOperationPredicate) (resp WorkbooksListBySubscriptionCompleteResult, err error) {
-	items := make([]Workbook, 0)
-
-	page, err := c.WorkbooksListBySubscription(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := WorkbooksListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForWorkbooksListBySubscription prepares the WorkbooksListBySubscription request.
 func (c ApplicationInsightsClient) preparerForWorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -223,4 +179,48 @@ func (c ApplicationInsightsClient) responderForWorkbooksListBySubscription(resp 
 		}
 	}
 	return
+}
+
+// WorkbooksListBySubscriptionComplete retrieves all of the results into a single object
+func (c ApplicationInsightsClient) WorkbooksListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (WorkbooksListBySubscriptionCompleteResult, error) {
+	return c.WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx, id, options, WorkbookOperationPredicate{})
+}
+
+// WorkbooksListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ApplicationInsightsClient) WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions, predicate WorkbookOperationPredicate) (resp WorkbooksListBySubscriptionCompleteResult, err error) {
+	items := make([]Workbook, 0)
+
+	page, err := c.WorkbooksListBySubscription(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := WorkbooksListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

@@ -63,5 +63,6 @@ func (c PolicyInsightsClient) responderForRemediationsGetAtManagementGroup(resp 
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
