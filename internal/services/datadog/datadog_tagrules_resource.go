@@ -65,17 +65,17 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"send_aad_logs": {
+						"aad_log_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
-						"send_subscription_logs": {
+						"subscription_log_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
-						"send_resource_logs": {
+						"resource_log_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -264,9 +264,9 @@ func expandLogRules(input []interface{}) *datadog.LogRules {
 	filteringTag := v["filtering_tag"].([]interface{})
 
 	return &datadog.LogRules{
-		SendAadLogs:          utils.Bool(v["send_aad_logs"].(bool)),
-		SendSubscriptionLogs: utils.Bool(v["send_subscription_logs"].(bool)),
-		SendResourceLogs:     utils.Bool(v["send_resource_logs"].(bool)),
+		SendAadLogs:          utils.Bool(v["aad_log_enabled"].(bool)),
+		SendSubscriptionLogs: utils.Bool(v["subscription_log_enabled"].(bool)),
+		SendResourceLogs:     utils.Bool(v["resource_log_enabled"].(bool)),
 		FilteringTags:        expandFilteringTag(filteringTag),
 	}
 }
@@ -314,15 +314,15 @@ func flattenLogRules(input *datadog.LogRules) []interface{} {
 	result := make(map[string]interface{})
 
 	if input.SendAadLogs != nil {
-		result["send_aad_logs"] = *input.SendAadLogs
+		result["aad_log_enabled"] = *input.SendAadLogs
 	}
 
 	if input.SendSubscriptionLogs != nil {
-		result["send_subscription_logs"] = *input.SendSubscriptionLogs
+		result["subscription_log_enabled"] = *input.SendSubscriptionLogs
 	}
 
 	if input.SendResourceLogs != nil {
-		result["send_resource_logs"] = *input.SendResourceLogs
+		result["resource_log_enabled"] = *input.SendResourceLogs
 	}
 
 	result["filtering_tag"] = flattenFilteringTags(input.FilteringTags)

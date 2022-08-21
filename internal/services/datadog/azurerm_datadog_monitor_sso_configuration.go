@@ -49,7 +49,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 				Default:  utils.String("default"),
 			},
 
-			"enterpriseapp_id": {
+			"enterprise_application_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -90,8 +90,8 @@ func resourceDatadogSingleSignOnConfigurationsCreateorUpdate(d *pluginsdk.Resour
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	configurationName := d.Get("configuration_name").(string)
-	enterpriseAppID := d.Get("enterpriseapp_id").(string)
+	configurationName := d.Get("name").(string)
+	enterpriseAppID := d.Get("enterprise_application_id").(string)
 
 	id := parse.NewDatadogSingleSignOnConfigurationsID(subscriptionId, resourceGroup, name, configurationName).ID()
 
@@ -142,13 +142,13 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	d.Set("name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("configuration_name", id.SingleSignOnConfigurationName)
+	d.Set("name", id.SingleSignOnConfigurationName)
 
 	if props := resp.Properties; props != nil {
 		d.Set("singlesignon_state", props.SingleSignOnState)
 		d.Set("provisioning_state", props.ProvisioningState)
 		d.Set("singlesignon_url", props.SingleSignOnURL)
-		d.Set("enterpriseapp_id", props.EnterpriseAppID)
+		d.Set("enterprise_application_id", props.EnterpriseAppID)
 	}
 
 	d.Set("type", resp.Type)
@@ -176,8 +176,8 @@ func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	d.Set("enterpriseapp_id", nil)
-	enterpriseAppID := d.Get("enterpriseapp_id").(string)
+	d.Set("enterprise_application_id", nil)
+	enterpriseAppID := d.Get("enterprise_application_id").(string)
 
 	body := datadog.SingleSignOnResource{
 		Properties: &datadog.SingleSignOnProperties{

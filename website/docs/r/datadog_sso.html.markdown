@@ -1,12 +1,12 @@
 ---
 subcategory: "Datadog"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_datadog_monitor_sso"
+page_title: "Azure Resource Manager: azurerm_datadog_monitor_sso_configuration"
 description: |-
   Manages SingleSignOn on the datadog Monitor.
 ---
 
-# azurerm_datadog_monitor_sso
+# azurerm_datadog_monitor_sso_configuration
 
 Manages SingleSignOn on the datadog Monitor.
 
@@ -18,11 +18,11 @@ resource "azurerm_resource_group" "example" {
   name     = "example-datadog"
   location = "West US 2"
 }
-resource "azurerm_datadog_monitor_sso" "test" {
+resource "azurerm_datadog_monitor_sso_configuration" "test" {
     name = "example-monitor"
     resource_group_name = azurerm_resource_group.example.name
     singlesignon_state = "Enable"
-    enterpriseapp_id = "XXXX"
+    enterprise_application_id = "XXXX"
 }
 ```
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `singlesignon_state` - (Required) The state of SingleSignOn configuration.
 
-* `enterpriseapp_id` - (Required) The application Id to perform SSO operation.
+* `enterprise_application_id` - (Required) The application Id to perform SSO operation.
 
 --- 
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Tagrules on datadog monitor.
+* `id` - The ID of the SingleSignOn on datadog monitor.
 
 * `type` - The type of the monitor resource.
 

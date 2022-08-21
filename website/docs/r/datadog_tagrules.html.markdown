@@ -3,7 +3,7 @@ subcategory: "Datadog"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_datadog_monitor_tagrules"
 description: |-
-  Manages TagRules on the datadog Monitor.
+  Manages Tag Rules on the datadog Monitor.
 ---
 
 # azurerm_datadog_monitor_tagrules
@@ -22,7 +22,7 @@ resource "azurerm_datadog_monitor_tagrules" "example" {
   name                = "example-monitor"
   resource_group_name = azurerm_resource_group.example.name
   log_rules{
-    send_subscription_logs = true
+    subscription_log_enabled = true
   }
   metric_rules{
     filtering_tag {
@@ -54,11 +54,11 @@ The following arguments are supported:
 
 An `log_rules` block supports the following:
 
-* `send_aad_logs` - (Optional) Boolean flag specifying if AAD logs should be sent for the Monitor resource.
+* `aad_log_enabled` - (Optional) Boolean flag specifying if AAD logs should be sent for the Monitor resource.
 
-* `send_subscription_logs` - (Optional) Boolean flag specifying if Azure subscription logs should be sent for the Monitor resource.
+* `subscription_log_enabled` - (Optional) Boolean flag specifying if Azure subscription logs should be sent for the Monitor resource.
 
-* `send_resource_logs` - (Optional) Boolean flag specifying if Azure resource logs should be sent for the Monitor resource.
+* `resource_log_enabled` - (Optional) Boolean flag specifying if Azure resource logs should be sent for the Monitor resource.
 
 * `filtering_tag` - (Optional) A `filtering_tag` block as defined below.
 

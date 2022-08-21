@@ -77,56 +77,57 @@ func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clie
 
 func (r TagRulesDatadogMonitorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-	features {}
-	}
-	data "azurerm_resource_group" "test" {
-	name     = "acctest-datadog"
-	}
+provider "azurerm" {
+  features {}
+}
+data "azurerm_resource_group" "test" {
+  name = "acctest-datadog"
+}
 	`)
 }
 
 func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	
-	resource "azurerm_datadog_monitor_tagrules" "test" {
-		name = "test-terraform-acctests"
-		resource_group_name = "acctest-datadog"
-		log_rules{
-			send_subscription_logs = true
-		}
-		metric_rules{
-			filtering_tag {
-				name = "Vidhi"
-				value = "Testing-Logs"
-				action = "Include"
-			}
-		}
-	}
+
+resource "azurerm_datadog_monitor_tagrules" "test" {
+  name                = "test-terraform-acctests"
+  resource_group_name = "acctest-datadog"
+  log_rules {
+    subscription_log_enabled = true
+  }
+  metric_rules {
+    filtering_tag {
+      name   = "Test"
+      value  = "Testing-Logs"
+      action = "Include"
+    }
+  }
+}
 `)
 }
 
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	resource "azurerm_datadog_monitor_tagrules" "test" {
-		name = "test-terraform-acctests"
-		resource_group_name = "acctest-datadog"
-		log_rules{
-			send_subscription_logs = false
-			send_resource_logs = true
-			filtering_tag {
-				name = "Vidhi"
-				value = "Testing-Logs"
-				action = "Include"
-			}
-		}
-		metric_rules{
-			filtering_tag {
-				name = "Vidhi"
-				value = "Testing-Logs"
-				action = "Include"
-			}
-		}
-	}
+resource "azurerm_datadog_monitor_tagrules" "test" {
+  name                = "test-terraform-acctests"
+  resource_group_name = "acctest-datadog"
+  log_rules {
+    subscription_log_enabled = false
+    resource_log_enabled     = true
+    filtering_tag {
+      name   = "Test"
+      value  = "Testing-Logs"
+      action = "Include"
+    }
+  }
+  metric_rules {
+    filtering_tag {
+      name   = "Test"
+      value  = "Testing-Logs"
+      action = "Include"
+    }
+  }
+}
 `)
 }

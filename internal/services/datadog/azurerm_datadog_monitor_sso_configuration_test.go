@@ -16,7 +16,7 @@ import (
 type SSODatadogMonitorResource struct{}
 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso", "test")
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 }
 
 func TestAccDatadogMonitorSSO_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso", "test")
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,22 +82,23 @@ func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.C
 func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	
-	resource "azurerm_datadog_monitor_sso" "test" {
-		name = "test-terraform-acctests"
-		resource_group_name = "acctest-datadog"
-		singlesignon_state = "Enable"
-		enterpriseapp_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
-	}
+
+resource "azurerm_datadog_monitor_sso_configuration" "test" {
+  name                = "test-terraform-acctests"
+  resource_group_name = "acctest-datadog"
+  singlesignon_state  = "Enable"
+  enterpriseapp_id    = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
+}
 `)
 }
 
 func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	resource "azurerm_datadog_monitor_sso" "test" {
-		name = "test-terraform-acctests"
-		resource_group_name = "acctest-datadog"
-		singlesignon_state = "Disable"
-		enterpriseapp_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
-	}
+resource "azurerm_datadog_monitor_sso_configuration" "test" {
+  name                = "test-terraform-acctests"
+  resource_group_name = "acctest-datadog"
+  singlesignon_state  = "Disable"
+  enterpriseapp_id    = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
+}
 `)
 }
