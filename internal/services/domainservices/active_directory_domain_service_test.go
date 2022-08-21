@@ -125,6 +125,8 @@ func TestAccActiveDirectoryDomainService_updateWithDatasource(t *testing.T) {
 				check.That(dataSourceData.ResourceName).Key("secure_ldap.0.external_access_enabled").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("secure_ldap.0.public_certificate").Exists(),
 				check.That(dataSourceData.ResourceName).Key("security.#").HasValue("1"),
+				check.That(dataSourceData.ResourceName).Key("security.0.kerberos_armoring_enabled").HasValue("true"),
+				check.That(dataSourceData.ResourceName).Key("security.0.kerberos_rc4_encryption_enabled").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("security.0.ntlm_v1_enabled").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("security.0.sync_kerberos_passwords").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("security.0.sync_ntlm_passwords").HasValue("true"),
@@ -354,11 +356,13 @@ resource "azurerm_active_directory_domain_service" "test" {
   }
 
   security {
-    ntlm_v1_enabled         = true
-    sync_kerberos_passwords = true
-    sync_ntlm_passwords     = true
-    sync_on_prem_passwords  = true
-    tls_v1_enabled          = true
+    kerberos_armoring_enabled       = true
+    kerberos_rc4_encryption_enabled = true
+    ntlm_v1_enabled                 = true
+    sync_kerberos_passwords         = true
+    sync_ntlm_passwords             = true
+    sync_on_prem_passwords          = true
+    tls_v1_enabled                  = true
   }
 
   tags = {

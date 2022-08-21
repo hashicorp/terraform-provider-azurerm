@@ -679,6 +679,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	model.Username = properties.AdminUserName
 
 	if aad := properties.AzureActiveDirectory; aad != nil {
+		model.Authentication = append(model.Authentication, Authentication{})
 		adModel := ADAuthentication{}
 		adModel.ClientApp = utils.NormalizeNilableString(aad.ClientApplication)
 		adModel.ClusterApp = utils.NormalizeNilableString(aad.ClusterApplication)
@@ -698,6 +699,9 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 				CommonName:      utils.NormalizeNilableString(client.CommonName),
 				Thumbprint:      utils.NormalizeNilableString(client.Thumbprint),
 			}
+		}
+		if len(model.Authentication) == 0 {
+			model.Authentication = append(model.Authentication, Authentication{})
 		}
 		model.Authentication[0].CertAuthentication = certs
 	}

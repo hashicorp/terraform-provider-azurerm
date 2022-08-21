@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	queryPacks "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/operationalinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,7 +36,7 @@ func (r LogAnalyticsQueryPackResource) ModelObject() interface{} {
 }
 
 func (r LogAnalyticsQueryPackResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return queryPacks.ValidateQueryPackID
+	return querypacks.ValidateQueryPackID
 }
 
 func (r LogAnalyticsQueryPackResource) Arguments() map[string]*pluginsdk.Schema {
@@ -72,7 +72,7 @@ func (r LogAnalyticsQueryPackResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.QueryPacksClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := queryPacks.NewQueryPackID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := querypacks.NewQueryPackID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.QueryPacksGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -83,9 +83,9 @@ func (r LogAnalyticsQueryPackResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &queryPacks.LogAnalyticsQueryPack{
+			properties := &querypacks.LogAnalyticsQueryPack{
 				Location:   location.Normalize(model.Location),
-				Properties: queryPacks.LogAnalyticsQueryPackProperties{},
+				Properties: querypacks.LogAnalyticsQueryPackProperties{},
 				Tags:       &model.Tags,
 			}
 
@@ -108,7 +108,7 @@ func (r LogAnalyticsQueryPackResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.QueryPacksClient
 
-			id, err := queryPacks.ParseQueryPackID(metadata.ResourceData.Id())
+			id, err := querypacks.ParseQueryPackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -150,7 +150,7 @@ func (r LogAnalyticsQueryPackResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.QueryPacksClient
 
-			id, err := queryPacks.ParseQueryPackID(metadata.ResourceData.Id())
+			id, err := querypacks.ParseQueryPackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -190,7 +190,7 @@ func (r LogAnalyticsQueryPackResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.QueryPacksClient
 
-			id, err := queryPacks.ParseQueryPackID(metadata.ResourceData.Id())
+			id, err := querypacks.ParseQueryPackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

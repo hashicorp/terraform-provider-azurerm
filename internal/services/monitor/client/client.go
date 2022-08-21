@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
 	diagnosticSettingClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	diagnosticCategoryClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
@@ -28,6 +29,7 @@ type Client struct {
 	ActivityLogAlertsClient          *insights.ActivityLogAlertsClient
 	AlertRulesClient                 *classic.AlertRulesClient
 	DataCollectionRulesClient        *datacollectionrules.DataCollectionRulesClient
+	DataCollectionEndpointsClient    *datacollectionendpoints.DataCollectionEndpointsClient
 	DiagnosticSettingsClient         *diagnosticSettingClient.DiagnosticSettingsClient
 	DiagnosticSettingsCategoryClient *diagnosticCategoryClient.DiagnosticSettingsCategoriesClient
 	LogProfilesClient                *classic.LogProfilesClient

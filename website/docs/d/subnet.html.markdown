@@ -33,14 +33,12 @@ output "subnet_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Subnet.
-* `address_prefix` - (Deprecated) The address prefix used for the subnet.
 * `address_prefixes` - The address prefixes for the subnet.
-* `enforce_private_link_service_network_policies` - Enable or Disable network policies on private link service in the subnet.
 * `network_security_group_id` - The ID of the Network Security Group associated with the subnet.
 * `route_table_id` - The ID of the Route Table associated with this subnet.
 * `service_endpoints` - A list of Service Endpoints within this subnet.
-* `enforce_private_link_endpoint_network_policies` - Enable or Disable network policies for the private link endpoint on the subnet.
-* `enforce_private_link_service_network_policies` - Enable or Disable network policies for the private link service on the subnet.
+* `private_endpoint_network_policies_enabled` - Enable or Disable network policies for the private endpoint on the subnet.
+* `private_link_service_network_policies_enabled` - Enable or Disable network policies for the private link service on the subnet.
 
 ## Timeouts
 

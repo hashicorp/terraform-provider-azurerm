@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Gateway Route Config.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 ## Example Usage
 
 ```hcl
@@ -70,6 +72,8 @@ The following arguments are supported:
 
 * `route` - (Optional) One or more `route` blocks as defined below.
 
+* `open_api` - (Optional) One or more `open_api` blocks as defined below.
+
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 
 ---
@@ -93,6 +97,12 @@ A `route` block supports the following:
 * `token_relay` - (Optional) Should pass currently-authenticated user's identity token to application service?
 
 * `uri` - (Optional) Specifies the full uri which will override `appName`.
+
+---
+
+A `open_api` block supports the following:
+
+* `uri` - (Optional) The URI of OpenAPI specification.
 
 ## Attributes Reference
 

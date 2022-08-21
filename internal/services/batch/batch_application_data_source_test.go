@@ -44,11 +44,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "acctestba%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "acctestba%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
 }
 
 resource "azurerm_batch_application" "test" {

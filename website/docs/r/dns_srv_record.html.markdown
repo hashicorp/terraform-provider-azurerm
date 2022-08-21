@@ -43,21 +43,24 @@ resource "azurerm_dns_srv_record" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the DNS SRV Record.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
-* `zone_name` - (Required) Specifies the DNS Zone where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
+* `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
 
 The `record` block supports:
 
@@ -69,23 +72,24 @@ The `record` block supports:
 
 * `target` - (Required) FQDN of the service.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The DNS SRV Record ID.
+
 * `fqdn` - The FQDN of the DNS SRV Record.
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS SRV Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS SRV Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS SRV Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS SRV Record.
 
 ## Import

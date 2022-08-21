@@ -129,6 +129,16 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"kerberos_armoring_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"kerberos_rc4_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
 						"ntlm_v1_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
