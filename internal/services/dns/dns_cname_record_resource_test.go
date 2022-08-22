@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -183,17 +182,17 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 }
 
 func (DnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CnameRecordID(state.ID)
+	id, err := recordsets.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CNAMEName, dns.CNAME)
+	resp, err := clients.Dns.RecordSets.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS CNAME record %s (resource group: %s): %v", id.CNAMEName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.RecordSetProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DnsCNameRecordResource) basic(data acceptance.TestData) string {

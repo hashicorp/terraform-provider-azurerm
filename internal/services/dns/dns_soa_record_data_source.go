@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceDnsSoaRecord() *pluginsdk.Resource {
@@ -81,46 +80,50 @@ func dataSourceDnsSoaRecord() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceDnsSoaRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
+	recordSetsClient := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	zoneName := d.Get("zone_name").(string)
-
-	resp, err := recordSetsClient.Get(ctx, resourceGroup, zoneName, "@", dns.SOA)
+	id := recordsets.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), recordsets.RecordTypeSOA, "@")
+	resp, err := recordSetsClient.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: DNS SOA record (zone %s) was not found", zoneName)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading DNS SOA record (zone %s): %+v", zoneName, err)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	resourceId := parse.NewSoaRecordID(subscriptionId, resourceGroup, zoneName, "@")
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("zone_name", id.ZoneName)
 
-	d.Set("ttl", resp.TTL)
-	d.Set("fqdn", resp.Fqdn)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("ttl", props.TTL)
+			d.Set("fqdn", props.Fqdn)
 
-	if soaRecord := resp.SoaRecord; soaRecord != nil {
-		d.Set("email", soaRecord.Email)
-		d.Set("host_name", soaRecord.Host)
-		d.Set("expire_time", soaRecord.ExpireTime)
-		d.Set("minimum_ttl", soaRecord.MinimumTTL)
-		d.Set("refresh_time", soaRecord.RefreshTime)
-		d.Set("retry_time", soaRecord.RetryTime)
-		d.Set("serial_number", soaRecord.SerialNumber)
+			if soaRecord := props.SOARecord; soaRecord != nil {
+				d.Set("email", soaRecord.Email)
+				d.Set("host_name", soaRecord.Host)
+				d.Set("expire_time", soaRecord.ExpireTime)
+				d.Set("minimum_ttl", soaRecord.MinimumTTL)
+				d.Set("refresh_time", soaRecord.RefreshTime)
+				d.Set("retry_time", soaRecord.RetryTime)
+				d.Set("serial_number", soaRecord.SerialNumber)
+			}
+
+			return tags.FlattenAndSet(d, props.Metadata)
+		}
+
 	}
 
-	return tags.FlattenAndSet(d, resp.Metadata)
+	return nil
 }
