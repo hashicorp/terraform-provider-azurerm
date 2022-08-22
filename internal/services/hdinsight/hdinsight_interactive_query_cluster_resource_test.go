@@ -1921,7 +1921,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }

@@ -1518,7 +1518,6 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
