@@ -56,7 +56,7 @@ func FlattenCosmosDbAutoscaleSettings(throughputResponse documentdb.ThroughputSe
 func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettingsResource {
 	autoscaleSettings := ExpandCosmosDbAutoscaleSettings(d)
 
-	if autoscaleSettings != nil {
+	if autoscaleSettings == nil {
 		return nil
 	}
 
