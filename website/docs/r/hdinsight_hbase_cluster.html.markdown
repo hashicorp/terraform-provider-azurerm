@@ -231,8 +231,6 @@ A `worker_node` block supports the following:
 
 * `autoscale` - (Optional) A `autoscale` block as defined below.
 
--> **NOTE:** The `target_instance_count` cannot be changed anymore and has to be removed from TF configuration to avoid TF difference because `target_instance_count` would be automatically changed per auto scale settings while updating and `autoscale` is enabled.
-
 ---
 
 A `zookeeper_node` block supports the following:
