@@ -31,6 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
@@ -129,6 +130,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		keyvault.Registration{},
 		loadbalancer.Registration{},
 		loadtest.Registration{},
+		loganalytics.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
@@ -168,6 +170,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			cosmos.Registration{},
 			customproviders.Registration{},
 			databricks.Registration{},
+			datadog.Registration{},
 			datafactory.Registration{},
 			databasemigration.Registration{},
 			databoxedge.Registration{},

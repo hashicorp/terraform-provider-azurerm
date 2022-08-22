@@ -173,11 +173,11 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 			return fmt.Errorf("parsing ID %q from Template Output to delete it: %+v", *nestedResource.ID, err)
 		}
 
-		resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[parsedId.Provider]
+		resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[strings.ToLower(parsedId.Provider)]
 		if !ok {
-			resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[parsedId.SecondaryProvider]
+			resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[strings.ToLower(parsedId.SecondaryProvider)]
 			if !ok {
-				return fmt.Errorf("API version information for RP %q was not found", parsedId.Provider)
+				return fmt.Errorf("API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
 			}
 		}
 
@@ -244,7 +244,7 @@ func determineResourceProviderAPIVersionsForResources(ctx context.Context, clien
 
 			// NOTE: there's an enhancement in that not all RP's necessarily offer everything in every version
 			// but the majority do, so this is likely sufficient for now
-			resourceProviderApiVersions[resourceProviderName] = *apiVersion
+			resourceProviderApiVersions[strings.ToLower(resourceProviderName)] = *apiVersion
 			break
 		}
 	}

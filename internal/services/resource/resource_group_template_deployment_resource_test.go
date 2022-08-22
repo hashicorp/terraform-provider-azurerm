@@ -72,7 +72,24 @@ func TestAccResourceGroupTemplateDeployment_singleItemIncorrectCasing(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_inconsistentProviderCasing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.inconsistentProviderCasing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
+		{ // delete item
+			Config: r.inconsistentProviderCasingEmpty(data),
+		},
 	})
 }
 
@@ -450,6 +467,83 @@ TEMPLATE
 PARAM
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, value)
+}
+
+func (ResourceGroupTemplateDeploymentResource) inconsistentProviderCasing(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = %q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+    {
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {},
+      "variables": {},
+      "resources": [
+        {
+          "type": "Microsoft.Insights/actionGroups",
+          "apiVersion": "2019-06-01",
+          "name": "acctestTemplateDeployAG1-%d",
+          "location": "Global",
+          "dependsOn": [],
+          "tags": {},
+          "properties": {
+            "groupShortName": "rick-c137",
+            "enabled": true,
+            "emailReceivers": [
+              {
+                "name": "Rick Sanchez",
+                "emailAddress": "rick@example.com"
+              }
+            ],
+            "smsReceivers": [],
+            "webhookReceivers": []
+          }
+        },
+        {
+          "type": "microsoft.insights/actionGroups",
+          "apiVersion": "2019-06-01",
+          "name": "acctestTemplateDeployAG2-%d",
+          "location": "Global",
+          "dependsOn": [],
+          "tags": {},
+          "properties": {
+            "groupShortName": "rick-c138",
+            "enabled": true,
+            "emailReceivers": [
+              {
+                "name": "Rick Sanchez",
+                "emailAddress": "rick@example.com"
+              }
+            ],
+            "smsReceivers": [],
+            "webhookReceivers": []
+          }
+        }
+      ]
+    }
+TEMPLATE
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+func (ResourceGroupTemplateDeploymentResource) inconsistentProviderCasingEmpty(data acceptance.TestData) string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
 }
 
 func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfigAndVariable(data acceptance.TestData, templateVar string, paramVal string) string {

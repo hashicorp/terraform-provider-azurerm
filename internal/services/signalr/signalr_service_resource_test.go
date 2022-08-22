@@ -611,11 +611,11 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  service_mode              = "%s"
+  service_mode              = "%[3]s"
   connectivity_logs_enabled = false
   messaging_logs_enabled    = false
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, serviceMode)
 }
 
 func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {

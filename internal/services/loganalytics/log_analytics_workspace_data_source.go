@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -65,7 +66,7 @@ func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -79,32 +80,42 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	id := workspaces.NewWorkspaceID(subscriptionId, resGroup, name)
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("log analytics workspaces %q (Resource Group %q) was not found", name, resGroup)
 		}
 		return fmt.Errorf("making Read request on AzureRM Log Analytics workspaces '%s': %+v", name, err)
 	}
 
-	id := parse.NewLogAnalyticsWorkspaceID(subscriptionId, resGroup, name)
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.WorkspaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("workspace_id", resp.CustomerID)
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", sku.Name)
-	}
-	d.Set("retention_in_days", resp.RetentionInDays)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
 
-	if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
-		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
-	} else {
-		d.Set("daily_quota_gb", utils.Float(-1))
+		if props := model.Properties; props != nil {
+			d.Set("workspace_id", props.CustomerId)
+
+			if sku := props.Sku; sku != nil {
+				d.Set("sku", sku.Name)
+			}
+			d.Set("retention_in_days", props.RetentionInDays)
+
+			if workspaceCapping := props.WorkspaceCapping; workspaceCapping != nil {
+				d.Set("daily_quota_gb", workspaceCapping.DailyQuotaGb)
+			} else {
+				d.Set("daily_quota_gb", utils.Float(-1))
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
 	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, resGroup, name)
@@ -115,5 +126,5 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

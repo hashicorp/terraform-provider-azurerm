@@ -21,6 +21,7 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
 				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
+				check.That(data.ResourceName).Key("versions.#").HasValue("2"),
 				check.That(data.ResourceName).Key("last_modified").Exists(),
 				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
 				check.That(data.ResourceName).Key("time_created").Exists(),

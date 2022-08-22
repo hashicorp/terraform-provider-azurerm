@@ -20,7 +20,7 @@ func (p CachedImagesOperationPredicate) Matches(input CachedImages) bool {
 
 type CapabilitiesOperationPredicate struct {
 	Gpu           *string
-	IpAddressType *string
+	IPAddressType *string
 	Location      *string
 	OsType        *string
 	ResourceType  *string
@@ -32,7 +32,7 @@ func (p CapabilitiesOperationPredicate) Matches(input Capabilities) bool {
 		return false
 	}
 
-	if p.IpAddressType != nil && (input.IpAddressType == nil && *p.IpAddressType != *input.IpAddressType) {
+	if p.IPAddressType != nil && (input.IPAddressType == nil && *p.IPAddressType != *input.IPAddressType) {
 		return false
 	}
 

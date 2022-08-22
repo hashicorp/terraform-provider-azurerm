@@ -64,5 +64,6 @@ func (c SignalRClient) responderForListKeys(resp *http.Response) (result ListKey
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -37,18 +37,22 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
+			// TODO Remove in 4.0
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.NamespaceName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
+			// TODO Remove in 4.0
 			"resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: resourcegroups.ValidateName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"auto_delete_on_idle": {
@@ -135,14 +139,24 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
-	if err != nil {
-		return err
+	var resourceGroup string
+	var namespaceName string
+	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
+		namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
+		if err != nil {
+			return err
+		}
+		resourceGroup = namespaceId.ResourceGroupName
+		namespaceName = namespaceId.NamespaceName
+	} else {
+		resourceGroup = d.Get("resource_group_name").(string)
+		namespaceName = d.Get("namespace_name").(string)
 	}
 
-	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
+	id := queues.NewQueueID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
@@ -178,7 +192,8 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 				// then the max size returned by the API will be 16 times greater than the value set.
 				if *props.EnablePartitioning {
 					namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-					namespace, err := namespacesClient.Get(ctx, *namespaceId)
+					namespaceId := namespaces.NewNamespaceID(subscriptionId, resourceGroup, namespaceName)
+					namespace, err := namespacesClient.Get(ctx, namespaceId)
 					if err != nil {
 						return err
 					}

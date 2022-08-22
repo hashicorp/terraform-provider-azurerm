@@ -26,7 +26,6 @@ var appServicePlanSkus = []string{
 
 var freeSkus = []string{
 	"F1",
-	"FREE",
 }
 
 var sharedSkus = []string{

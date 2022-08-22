@@ -63,5 +63,6 @@ func (c NotificationHubsClient) responderForGet(resp *http.Response) (result Get
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

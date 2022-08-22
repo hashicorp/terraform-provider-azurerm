@@ -74,7 +74,6 @@ func resourceFirewall() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.AzureFirewallSkuTierPremium),
 					string(network.AzureFirewallSkuTierStandard),

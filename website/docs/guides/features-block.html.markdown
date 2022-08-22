@@ -28,8 +28,8 @@ Each of the blocks defined below can be optionally specified to configure the be
 provider "azurerm" {
   features {
     api_management {
-      purge_soft_delete_on_destroy         = true
-      recover_soft_deleted_api_managements = true
+      purge_soft_delete_on_destroy = true
+      recover_soft_deleted         = true
     }
 
     application_insights {
@@ -100,7 +100,7 @@ The `api_management` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
-* `recover_soft_deleted_api_managements` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
+* `recover_soft_deleted` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
 
 ---
 
