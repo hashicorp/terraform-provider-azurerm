@@ -83,50 +83,6 @@ func (c SharedPrivateLinkResourcesClient) ListByService(ctx context.Context, id 
 	return
 }
 
-// ListByServiceComplete retrieves all of the results into a single object
-func (c SharedPrivateLinkResourcesClient) ListByServiceComplete(ctx context.Context, id SearchServiceId, options ListByServiceOperationOptions) (ListByServiceCompleteResult, error) {
-	return c.ListByServiceCompleteMatchingPredicate(ctx, id, options, SharedPrivateLinkResourceOperationPredicate{})
-}
-
-// ListByServiceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SharedPrivateLinkResourcesClient) ListByServiceCompleteMatchingPredicate(ctx context.Context, id SearchServiceId, options ListByServiceOperationOptions, predicate SharedPrivateLinkResourceOperationPredicate) (resp ListByServiceCompleteResult, err error) {
-	items := make([]SharedPrivateLinkResource, 0)
-
-	page, err := c.ListByService(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByServiceCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByService prepares the ListByService request.
 func (c SharedPrivateLinkResourcesClient) preparerForListByService(ctx context.Context, id SearchServiceId, options ListByServiceOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c SharedPrivateLinkResourcesClient) responderForListByService(resp *http.R
 		}
 	}
 	return
+}
+
+// ListByServiceComplete retrieves all of the results into a single object
+func (c SharedPrivateLinkResourcesClient) ListByServiceComplete(ctx context.Context, id SearchServiceId, options ListByServiceOperationOptions) (ListByServiceCompleteResult, error) {
+	return c.ListByServiceCompleteMatchingPredicate(ctx, id, options, SharedPrivateLinkResourceOperationPredicate{})
+}
+
+// ListByServiceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SharedPrivateLinkResourcesClient) ListByServiceCompleteMatchingPredicate(ctx context.Context, id SearchServiceId, options ListByServiceOperationOptions, predicate SharedPrivateLinkResourceOperationPredicate) (resp ListByServiceCompleteResult, err error) {
+	items := make([]SharedPrivateLinkResource, 0)
+
+	page, err := c.ListByService(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByServiceCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
