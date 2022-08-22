@@ -62,5 +62,6 @@ func (c ServersClient) responderForDissociateGateway(resp *http.Response) (resul
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

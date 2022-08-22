@@ -64,5 +64,6 @@ func (c SnapshotsClient) responderForList(resp *http.Response) (result ListOpera
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

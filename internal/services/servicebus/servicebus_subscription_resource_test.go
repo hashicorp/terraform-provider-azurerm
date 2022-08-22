@@ -45,6 +45,21 @@ func TestAccServiceBusSubscription_complete(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusSubscription_clientScopedEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clientScopedSubscriptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServiceBusSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
@@ -368,4 +383,37 @@ func (ServiceBusSubscriptionResource) status(data acceptance.TestData, status st
 func (ServiceBusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"dead_lettering_on_filter_evaluation_error = false\n")
+}
+
+func (ServiceBusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestsbn-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Premium"
+  capacity            = 1
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+}
+
+resource "azurerm_servicebus_subscription" "test" {
+  name                               = "_acctestsub-%[1]d_"
+  topic_id                           = azurerm_servicebus_topic.test.id
+  max_delivery_count                 = 10
+  client_scoped_subscription_enabled = true
+  client_scoped_subscription {
+    client_id                               = "123456"
+    is_client_scoped_subscription_shareable = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

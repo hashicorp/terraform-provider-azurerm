@@ -2,7 +2,7 @@
 
 Firstly all contributions are welcome!
 
-There is no change to small for us to accept and minor formatting, consistency and documentation PRs are very welcome! However, before making any large or structural changes it is recommended to seek feedback (preferably by reaching out in our community slack) to prevent wasted time and effort. We may already be working on a solution, or have a different direction we would like to take.
+There is no change too small for us to accept and minor formatting, consistency and documentation PRs are very welcome! However, before making any large or structural changes it is recommended to seek feedback (preferably by reaching out in our community slack) to prevent wasted time and effort. We may already be working on a solution, or have a different direction we would like to take.
 
 If you are ever unsure please just reach out, we are more than happy to guide you in the right direction!
 
@@ -54,6 +54,7 @@ Examples of good PR titles:
 
 - `azurerm_storage_management_policy - Mark rule.filters.blob_type as required`
 - `azurerm_container_registry - support updating replications on demand`
+- `azurerm_automation_account - support for the encrytion, local_authentication_enabled, and tags properties`
 - `Data Source: azurerm_automation_account - prevent panic (#15474) by adding a nil check`
 - `Upgrade bot API version from 2021-03-01 to 2021-05-01-preview`
 - `New Resource: azurerm_managed_disk_sas_token`
@@ -68,6 +69,7 @@ Examples of poorly written PR titles:
 - `upgrade sdk`
 - `upgrade compute api`
 - `add cosmos property`
+- `support encryption, local_authentication_enabled properties`
 
 ### Description
 

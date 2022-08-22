@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -47,17 +48,19 @@ func TestAccMaintenanceAssignmentVirtualMachine_requiresImport(t *testing.T) {
 }
 
 func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
+	maintenanceAssignmentVirtualMachineId, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", id.VirtualMachineId.Name)
+	id := configurationassignments.NewProviderID(maintenanceAssignmentVirtualMachineId.VirtualMachineId.SubscriptionId, maintenanceAssignmentVirtualMachineId.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", maintenanceAssignmentVirtualMachineId.VirtualMachineId.Name)
+
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", id.VirtualMachineIdRaw, err)
+		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", maintenanceAssignmentVirtualMachineId.VirtualMachineIdRaw, err)
 	}
 
-	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineResource) basic(data acceptance.TestData) string {
@@ -99,7 +102,7 @@ resource "azurerm_maintenance_configuration" "test" {
   name                = "acctest-MC%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  scope               = "All"
+  scope               = "SQLDB"
 }
 
 resource "azurerm_virtual_network" "test" {

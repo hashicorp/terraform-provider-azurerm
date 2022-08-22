@@ -60,50 +60,6 @@ func (c DataCollectionRulesClient) ListByResourceGroup(ctx context.Context, id c
 	return
 }
 
-// ListByResourceGroupComplete retrieves all of the results into a single object
-func (c DataCollectionRulesClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, DataCollectionRuleResourceOperationPredicate{})
-}
-
-// ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DataCollectionRulesClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate DataCollectionRuleResourceOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
-	items := make([]DataCollectionRuleResource, 0)
-
-	page, err := c.ListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByResourceGroup prepares the ListByResourceGroup request.
 func (c DataCollectionRulesClient) preparerForListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c DataCollectionRulesClient) responderForListByResourceGroup(resp *http.Re
 		}
 	}
 	return
+}
+
+// ListByResourceGroupComplete retrieves all of the results into a single object
+func (c DataCollectionRulesClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, DataCollectionRuleResourceOperationPredicate{})
+}
+
+// ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DataCollectionRulesClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate DataCollectionRuleResourceOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
+	items := make([]DataCollectionRuleResource, 0)
+
+	page, err := c.ListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

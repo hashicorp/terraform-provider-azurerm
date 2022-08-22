@@ -59,50 +59,6 @@ func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjects(ctx context.
 	return
 }
 
-// GetUpdateProtectedItemRequestsObjectsComplete retrieves all of the results into a single object
-func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetUpdateProtectedItemRequestsObjectsCompleteResult, error) {
-	return c.GetUpdateProtectedItemRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
-}
-
-// GetUpdateProtectedItemRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetUpdateProtectedItemRequestsObjectsCompleteResult, err error) {
-	items := make([]DppBaseResource, 0)
-
-	page, err := c.GetUpdateProtectedItemRequestsObjects(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetUpdateProtectedItemRequestsObjectsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetUpdateProtectedItemRequestsObjects prepares the GetUpdateProtectedItemRequestsObjects request.
 func (c ResourceGuardsClient) preparerForGetUpdateProtectedItemRequestsObjects(ctx context.Context, id ResourceGuardId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ResourceGuardsClient) responderForGetUpdateProtectedItemRequestsObjects(
 		}
 	}
 	return
+}
+
+// GetUpdateProtectedItemRequestsObjectsComplete retrieves all of the results into a single object
+func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetUpdateProtectedItemRequestsObjectsCompleteResult, error) {
+	return c.GetUpdateProtectedItemRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
+}
+
+// GetUpdateProtectedItemRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetUpdateProtectedItemRequestsObjectsCompleteResult, err error) {
+	items := make([]DppBaseResource, 0)
+
+	page, err := c.GetUpdateProtectedItemRequestsObjects(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetUpdateProtectedItemRequestsObjectsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

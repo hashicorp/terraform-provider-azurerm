@@ -63,11 +63,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"ip_address_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(containerinstance.ContainerGroupIpAddressTypePublic),
+				Default:  string(containerinstance.ContainerGroupIPAddressTypePublic),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.ContainerGroupIpAddressTypePublic),
-					string(containerinstance.ContainerGroupIpAddressTypePrivate),
+					string(containerinstance.ContainerGroupIPAddressTypePublic),
+					string(containerinstance.ContainerGroupIPAddressTypePrivate),
 					"None",
 				}, false),
 			},
@@ -678,13 +678,13 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if IPAddressType != "None" {
-		containerGroup.Properties.IpAddress = &containerinstance.IpAddress{
+		containerGroup.Properties.IPAddress = &containerinstance.IPAddress{
 			Ports: containerGroupPorts,
-			Type:  containerinstance.ContainerGroupIpAddressType(IPAddressType),
+			Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
 		}
 
 		if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
-			containerGroup.Properties.IpAddress.DnsNameLabel = &dnsNameLabel
+			containerGroup.Properties.IPAddress.DnsNameLabel = &dnsNameLabel
 		}
 	}
 
@@ -800,9 +800,9 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `image_registry_credential`: %+v", err)
 		}
 
-		if address := props.IpAddress; address != nil {
+		if address := props.IPAddress; address != nil {
 			d.Set("ip_address_type", address.Type)
-			d.Set("ip_address", address.Ip)
+			d.Set("ip_address", address.IP)
 			exposedPorts := make([]interface{}, len(address.Ports))
 			for i := range address.Ports {
 				exposedPorts[i] = (address.Ports)[i]

@@ -9,7 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/authorizationrulesnamespaces"
+	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -195,7 +195,7 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", fmt.Sprintf("%s|%s", actualResourceId, name))
 		}
 	}
 

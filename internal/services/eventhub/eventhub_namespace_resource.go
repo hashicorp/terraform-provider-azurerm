@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/networkrulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -190,6 +190,29 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				},
 			},
 
+			"local_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(namespaces.TlsVersionOnePointZero),
+					string(namespaces.TlsVersionOnePointOne),
+					string(namespaces.TlsVersionOnePointTwo),
+				}, false),
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"default_primary_connection_string_alias": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -228,22 +251,26 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			oldSku, newSku := d.GetChange("sku")
-			if d.HasChange("sku") {
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
-					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
-					d.ForceNew("sku")
-				}
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
-					zoneRedundant := d.Get("zone_redundant").(bool)
-					if !zoneRedundant {
-						return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				oldSku, newSku := d.GetChange("sku")
+				if d.HasChange("sku") {
+					if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
+						log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
+						d.ForceNew("sku")
+					}
+					if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
+						zoneRedundant := d.Get("zone_redundant").(bool)
+						if !zoneRedundant {
+							return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
+						}
 					}
 				}
-			}
-			return nil
-		}),
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
+		),
 	}
 }
 
@@ -278,6 +305,16 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+	}
+
+	disableLocalAuth := false
+	if !d.Get("local_authentication_enabled").(bool) {
+		disableLocalAuth = true
+	}
+
 	parameters := namespaces.EHNamespace{
 		Location: &location,
 		Sku: &namespaces.Sku{
@@ -292,12 +329,19 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
+			DisableLocalAuth:     utils.Bool(disableLocalAuth),
+			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
 		parameters.Properties.ClusterArmId = utils.String(v)
+	}
+
+	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
+		minimumTls := namespaces.TlsVersion(tlsValue)
+		parameters.Properties.MinimumTlsVersion = &minimumTls
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
@@ -312,25 +356,19 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
 	if hasRuleSets {
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name == namespaces.SkuNameBasic {
+			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+		}
+
 		rulesets := networkrulesets.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
 
-		// cannot use network rulesets with the basic SKU
-		if parameters.Sku.Name != namespaces.SkuNameBasic {
-			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
-			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
-				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
-			}
-		} else if rulesets.Properties != nil {
-			props := rulesets.Properties
-			// so if the user has specified the non default rule sets throw a validation error
-			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
-				(props.IpRules != nil && len(*props.IpRules) > 0) ||
-				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
-				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
-			}
+		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+		namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
+			return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 		}
 	}
 
@@ -353,6 +391,16 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 	zoneRedundant := d.Get("zone_redundant").(bool)
 
+	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+	}
+
+	disableLocalAuth := false
+	if !d.Get("local_authentication_enabled").(bool) {
+		disableLocalAuth = true
+	}
+
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -372,12 +420,19 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
+			DisableLocalAuth:     utils.Bool(disableLocalAuth),
+			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
 		parameters.Properties.ClusterArmId = utils.String(v)
+	}
+
+	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
+		minimumTls := namespaces.TlsVersion(tlsValue)
+		parameters.Properties.MinimumTlsVersion = &minimumTls
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
@@ -397,30 +452,35 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.HasChange("network_rulesets") {
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name == namespaces.SkuNameBasic {
+			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+		}
 
-	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
-	if hasRuleSets {
+		ruleSets := d.Get("network_rulesets")
 		rulesets := networkrulesets.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
 
-		// cannot use network rulesets with the basic SKU
-		if parameters.Sku.Name != namespaces.SkuNameBasic {
-			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
-			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
-				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
-			}
-		} else if rulesets.Properties != nil {
-			props := rulesets.Properties
-			// so if the user has specified the non default rule sets throw a validation error
-			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
-				(props.IpRules != nil && len(*props.IpRules) > 0) ||
-				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
-				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
-			}
+		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+		namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
+			return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 		}
+	}
+
+	deadline, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:      []string{"Activating", "ActivatingIdentity", "Updating", "Pending"},
+		Target:       []string{"Succeeded"},
+		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(deadline),
+		PollInterval: 10 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be updated: %+v", id, err)
 	}
 
 	return resourceEventHubNamespaceRead(d, meta)
@@ -472,6 +532,22 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
+
+			localAuthDisabled := false
+			if props.DisableLocalAuth != nil {
+				localAuthDisabled = *props.DisableLocalAuth
+			}
+			d.Set("local_authentication_enabled", !localAuthDisabled)
+
+			publicNetworkAccess := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
+				publicNetworkAccess = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+
+			if props.MinimumTlsVersion != nil {
+				d.Set("minimum_tls_version", *props.MinimumTlsVersion)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -568,6 +644,26 @@ func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *na
 	}
 }
 
+func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+
+		provisioningState := "Pending"
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
+			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = *res.Model.Properties.ProvisioningState
+		}
+
+		return res, provisioningState, nil
+	}
+}
+
 func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets.NetworkRuleSetProperties {
 	if len(input) == 0 {
 		return nil
@@ -606,11 +702,11 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 
 	if v, ok := block["ip_rule"].([]interface{}); ok {
 		if len(v) > 0 {
-			var rules []networkrulesets.NWRuleSetIpRules
+			var rules []networkrulesets.NWRuleSetIPRules
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
-				rules = append(rules, networkrulesets.NWRuleSetIpRules{
-					IpMask: utils.String(rblock["ip_mask"].(string)),
+				rules = append(rules, networkrulesets.NWRuleSetIPRules{
+					IPMask: utils.String(rblock["ip_mask"].(string)),
 					Action: func() *networkrulesets.NetworkRuleIPAction {
 						v := networkrulesets.NetworkRuleIPAction(rblock["action"].(string))
 						return &v
@@ -618,7 +714,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 				})
 			}
 
-			ruleset.IpRules = &rules
+			ruleset.IPRules = &rules
 		}
 	}
 
@@ -649,7 +745,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 		}
 	}
 	ipBlocks := make([]interface{}, 0)
-	if ipRules := ruleset.Model.Properties.IpRules; ipRules != nil {
+	if ipRules := ruleset.Model.Properties.IPRules; ipRules != nil {
 		for _, ipRule := range *ipRules {
 			block := make(map[string]interface{})
 
@@ -660,7 +756,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 			block["action"] = action
 
-			if v := ipRule.IpMask; v != nil {
+			if v := ipRule.IPMask; v != nil {
 				block["ip_mask"] = *v
 			}
 
@@ -692,4 +788,12 @@ func resourceVnetRuleHash(v interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
+}
+
+func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+	old, new := d.GetChange("minimum_tls_version")
+	if old != "" && new == "" {
+		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
+	}
+	return
 }

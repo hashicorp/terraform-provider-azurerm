@@ -5,7 +5,7 @@ package volumes
 
 type MountTargetProperties struct {
 	FileSystemId  string  `json:"fileSystemId"`
-	IpAddress     *string `json:"ipAddress,omitempty"`
+	IPAddress     *string `json:"ipAddress,omitempty"`
 	MountTargetId *string `json:"mountTargetId,omitempty"`
 	SmbServerFqdn *string `json:"smbServerFqdn,omitempty"`
 }
