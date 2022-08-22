@@ -192,11 +192,11 @@ func flattenAzureRmPrivateDnsARecords(records *[]recordsets.ARecord) []string {
 	}
 
 	for _, record := range *records {
-		if record.Ipv4Address == nil {
+		if record.IPv4Address == nil {
 			continue
 		}
 
-		results = append(results, *record.Ipv4Address)
+		results = append(results, *record.IPv4Address)
 	}
 
 	return results
@@ -209,7 +209,7 @@ func expandAzureRmPrivateDnsARecords(d *pluginsdk.ResourceData) *[]recordsets.AR
 	for i, v := range recordStrings {
 		ipv4 := v.(string)
 		records[i] = recordsets.ARecord{
-			Ipv4Address: &ipv4,
+			IPv4Address: &ipv4,
 		}
 	}
 

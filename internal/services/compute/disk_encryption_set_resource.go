@@ -114,11 +114,14 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 	}
-	if !keyVaultDetails.softDeleteEnabled {
-		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-	}
-	if !keyVaultDetails.purgeProtectionEnabled {
-		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+
+	if keyVaultDetails != nil {
+		if !keyVaultDetails.softDeleteEnabled {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+		if !keyVaultDetails.purgeProtectionEnabled {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -136,15 +139,18 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		EncryptionSetProperties: &compute.EncryptionSetProperties{
 			ActiveKey: &compute.KeyForDiskEncryptionSet{
 				KeyURL: utils.String(keyVaultKeyId),
-				SourceVault: &compute.SourceVault{
-					ID: utils.String(keyVaultDetails.keyVaultId),
-				},
 			},
 			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 			EncryptionType:                    compute.DiskEncryptionSetType(encryptionType),
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(t),
+	}
+
+	if keyVaultDetails != nil {
+		params.EncryptionSetProperties.ActiveKey.SourceVault = &compute.SourceVault{
+			ID: utils.String(keyVaultDetails.keyVaultId),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
@@ -231,19 +237,26 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if err != nil {
 			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 		}
-		if !keyVaultDetails.softDeleteEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+
+		if keyVaultDetails != nil {
+			if !keyVaultDetails.softDeleteEnabled {
+				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			}
+			if !keyVaultDetails.purgeProtectionEnabled {
+				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			}
 		}
-		if !keyVaultDetails.purgeProtectionEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-		}
+
 		update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{
 			ActiveKey: &compute.KeyForDiskEncryptionSet{
 				KeyURL: utils.String(keyVaultKeyId),
-				SourceVault: &compute.SourceVault{
-					ID: utils.String(keyVaultDetails.keyVaultId),
-				},
 			},
+		}
+
+		if keyVaultDetails != nil {
+			update.DiskEncryptionSetUpdateProperties.ActiveKey.SourceVault = &compute.SourceVault{
+				ID: utils.String(keyVaultDetails.keyVaultId),
+			}
 		}
 	}
 
@@ -335,7 +348,7 @@ func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *cli
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
 	}
 	if keyVaultID == nil {
-		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
+		return nil, nil
 	}
 
 	parsedKeyVaultID, err := keyVaultParse.VaultID(*keyVaultID)

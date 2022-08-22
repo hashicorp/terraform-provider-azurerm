@@ -136,7 +136,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Monitor Azure Active Directory Diagnostic Setting.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Azure Active Directory Diagnostic Setting.

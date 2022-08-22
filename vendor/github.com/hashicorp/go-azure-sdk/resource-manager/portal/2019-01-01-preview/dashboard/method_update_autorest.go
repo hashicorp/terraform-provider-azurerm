@@ -64,5 +64,6 @@ func (c DashboardClient) responderForUpdate(resp *http.Response) (result UpdateO
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

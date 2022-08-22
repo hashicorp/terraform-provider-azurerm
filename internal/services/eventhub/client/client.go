@@ -1,15 +1,16 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/authorizationruleseventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/consumergroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/networkrulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationruleseventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/checknameavailabilitydisasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/consumergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/schemaregistry"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -23,6 +24,7 @@ type Client struct {
 	NamespacesClient                       *namespaces.NamespacesClient
 	NamespaceAuthorizationRulesClient      *authorizationrulesnamespaces.AuthorizationRulesNamespacesClient
 	NetworkRuleSetsClient                  *networkrulesets.NetworkRuleSetsClient
+	SchemaRegistryClient                   *schemaregistry.SchemaRegistryClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -53,6 +55,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	networkRuleSetsClient := networkrulesets.NewNetworkRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&networkRuleSetsClient.Client, o.ResourceManagerAuthorizer)
 
+	schemaRegistryClient := schemaregistry.NewSchemaRegistryClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&schemaRegistryClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ClusterClient:                          &clustersClient,
 		ConsumerGroupClient:                    &consumerGroupsClient,
@@ -63,5 +68,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		NamespacesClient:                       &namespacesClient,
 		NamespaceAuthorizationRulesClient:      &namespaceAuthorizationRulesClient,
 		NetworkRuleSetsClient:                  &networkRuleSetsClient,
+		SchemaRegistryClient:                   &schemaRegistryClient,
 	}
 }

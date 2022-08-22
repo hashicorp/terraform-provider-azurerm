@@ -175,7 +175,7 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Properties: &services.SearchServiceProperties{
 			PublicNetworkAccess: &publicNetworkAccess,
 			NetworkRuleSet: &services.NetworkRuleSet{
-				IpRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
+				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
 			},
 		},
 		Identity: expandedIdentity,
@@ -335,15 +335,15 @@ func flattenSearchQueryKeys(input []querykeys.QueryKey) []interface{} {
 	return results
 }
 
-func expandSearchServiceIPRules(input []interface{}) *[]services.IpRule {
-	output := make([]services.IpRule, 0)
+func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
+	output := make([]services.IPRule, 0)
 	if input == nil {
 		return &output
 	}
 
 	for _, rule := range input {
 		if rule != nil {
-			output = append(output, services.IpRule{
+			output = append(output, services.IPRule{
 				Value: utils.String(rule.(string)),
 			})
 		}
@@ -353,11 +353,11 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IpRule {
 }
 
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
-	if input == nil || *input.IpRules == nil || len(*input.IpRules) == 0 {
+	if input == nil || *input.IPRules == nil || len(*input.IPRules) == 0 {
 		return nil
 	}
 	result := make([]interface{}, 0)
-	for _, rule := range *input.IpRules {
+	for _, rule := range *input.IPRules {
 		result = append(result, rule.Value)
 	}
 	return result

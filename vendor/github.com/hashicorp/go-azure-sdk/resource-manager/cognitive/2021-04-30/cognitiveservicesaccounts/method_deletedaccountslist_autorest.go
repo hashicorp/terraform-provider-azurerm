@@ -60,50 +60,6 @@ func (c CognitiveServicesAccountsClient) DeletedAccountsList(ctx context.Context
 	return
 }
 
-// DeletedAccountsListComplete retrieves all of the results into a single object
-func (c CognitiveServicesAccountsClient) DeletedAccountsListComplete(ctx context.Context, id commonids.SubscriptionId) (DeletedAccountsListCompleteResult, error) {
-	return c.DeletedAccountsListCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
-}
-
-// DeletedAccountsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c CognitiveServicesAccountsClient) DeletedAccountsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AccountOperationPredicate) (resp DeletedAccountsListCompleteResult, err error) {
-	items := make([]Account, 0)
-
-	page, err := c.DeletedAccountsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := DeletedAccountsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForDeletedAccountsList prepares the DeletedAccountsList request.
 func (c CognitiveServicesAccountsClient) preparerForDeletedAccountsList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c CognitiveServicesAccountsClient) responderForDeletedAccountsList(resp *h
 		}
 	}
 	return
+}
+
+// DeletedAccountsListComplete retrieves all of the results into a single object
+func (c CognitiveServicesAccountsClient) DeletedAccountsListComplete(ctx context.Context, id commonids.SubscriptionId) (DeletedAccountsListCompleteResult, error) {
+	return c.DeletedAccountsListCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
+}
+
+// DeletedAccountsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c CognitiveServicesAccountsClient) DeletedAccountsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AccountOperationPredicate) (resp DeletedAccountsListCompleteResult, err error) {
+	items := make([]Account, 0)
+
+	page, err := c.DeletedAccountsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := DeletedAccountsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

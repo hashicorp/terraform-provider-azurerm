@@ -39,7 +39,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_count                       = 16
+    sample_size                        = 16
     successful_samples_required        = 3
   }
 }
@@ -94,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Origin Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Origin Group.

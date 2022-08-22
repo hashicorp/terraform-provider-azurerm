@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/videoanalyzer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/edgemodules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,12 +48,12 @@ func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
 }
 
 func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := videoanalyzer.ParseEdgeModuleID(state.ID)
+	id, err := edgemodules.ParseEdgeModuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.VideoAnalyzer.VideoAnalyzersClient.EdgeModulesGet(ctx, *id)
+	resp, err := clients.VideoAnalyzer.EdgeModuleClient.EdgeModulesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

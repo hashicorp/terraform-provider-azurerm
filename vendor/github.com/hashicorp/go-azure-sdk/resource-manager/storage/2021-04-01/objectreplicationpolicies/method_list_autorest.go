@@ -64,5 +64,6 @@ func (c ObjectReplicationPoliciesClient) responderForList(resp *http.Response) (
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

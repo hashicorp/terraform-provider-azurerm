@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
@@ -132,7 +132,7 @@ func (r DomainServiceTrustResource) Create() sdk.ResourceFunc {
 				TrustedDomainFqdn: utils.String(plan.TrustedDomainFqdn),
 				TrustDirection:    utils.String("Inbound"),
 				FriendlyName:      utils.String(id.TrustName),
-				RemoteDnsIps:      utils.String(strings.Join(plan.TrustedDomainDnsIPs, ",")),
+				RemoteDnsIPs:      utils.String(strings.Join(plan.TrustedDomainDnsIPs, ",")),
 				TrustPassword:     utils.String(plan.Password),
 			})
 			params := domainservices.DomainService{
@@ -227,8 +227,8 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 				data.TrustedDomainFqdn = *trust.TrustedDomainFqdn
 			}
 
-			if trust.RemoteDnsIps != nil {
-				data.TrustedDomainDnsIPs = strings.Split(*trust.RemoteDnsIps, ",")
+			if trust.RemoteDnsIPs != nil {
+				data.TrustedDomainDnsIPs = strings.Split(*trust.RemoteDnsIPs, ",")
 			}
 
 			return metadata.Encode(&data)
@@ -352,7 +352,7 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 						trust.TrustedDomainFqdn = utils.String(plan.TrustedDomainFqdn)
 					}
 					if metadata.ResourceData.HasChange("trusted_domain_dns_ips") {
-						trust.RemoteDnsIps = utils.String(strings.Join(plan.TrustedDomainDnsIPs, ","))
+						trust.RemoteDnsIPs = utils.String(strings.Join(plan.TrustedDomainDnsIPs, ","))
 					}
 					trust.TrustPassword = utils.String(plan.Password)
 				}

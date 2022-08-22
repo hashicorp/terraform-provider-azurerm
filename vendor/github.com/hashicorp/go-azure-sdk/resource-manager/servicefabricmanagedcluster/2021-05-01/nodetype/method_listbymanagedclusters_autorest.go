@@ -59,50 +59,6 @@ func (c NodeTypeClient) ListByManagedClusters(ctx context.Context, id ManagedClu
 	return
 }
 
-// ListByManagedClustersComplete retrieves all of the results into a single object
-func (c NodeTypeClient) ListByManagedClustersComplete(ctx context.Context, id ManagedClusterId) (ListByManagedClustersCompleteResult, error) {
-	return c.ListByManagedClustersCompleteMatchingPredicate(ctx, id, NodeTypeOperationPredicate{})
-}
-
-// ListByManagedClustersCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c NodeTypeClient) ListByManagedClustersCompleteMatchingPredicate(ctx context.Context, id ManagedClusterId, predicate NodeTypeOperationPredicate) (resp ListByManagedClustersCompleteResult, err error) {
-	items := make([]NodeType, 0)
-
-	page, err := c.ListByManagedClusters(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByManagedClustersCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByManagedClusters prepares the ListByManagedClusters request.
 func (c NodeTypeClient) preparerForListByManagedClusters(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c NodeTypeClient) responderForListByManagedClusters(resp *http.Response) (
 		}
 	}
 	return
+}
+
+// ListByManagedClustersComplete retrieves all of the results into a single object
+func (c NodeTypeClient) ListByManagedClustersComplete(ctx context.Context, id ManagedClusterId) (ListByManagedClustersCompleteResult, error) {
+	return c.ListByManagedClustersCompleteMatchingPredicate(ctx, id, NodeTypeOperationPredicate{})
+}
+
+// ListByManagedClustersCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c NodeTypeClient) ListByManagedClustersCompleteMatchingPredicate(ctx context.Context, id ManagedClusterId, predicate NodeTypeOperationPredicate) (resp ListByManagedClustersCompleteResult, err error) {
+	items := make([]NodeType, 0)
+
+	page, err := c.ListByManagedClusters(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByManagedClustersCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
