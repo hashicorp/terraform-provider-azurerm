@@ -343,8 +343,6 @@ The deprecated field `security.enabled_triple_des_ciphers` will be removed in fa
 
 ### Resource: `azurerm_application_gateway`
 
-The field `probe.match.body` will become Required.
-
 The field `probe.match.status_code` will become Required.
 
 ### Resource: `azurerm_app_service`

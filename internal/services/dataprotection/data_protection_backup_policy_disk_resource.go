@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,7 +33,7 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.BackupPolicyID(id)
+			_, err := backuppolicies.ParseBackupPoliciesID(id)
 			return err
 		}),
 
@@ -53,7 +52,7 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.BackupVaultID,
+				ValidateFunc: backuppolicies.ValidateBackupVaultID,
 			},
 
 			"backup_repeating_time_intervals": {
@@ -104,8 +103,8 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(dataprotection.AbsoluteMarkerFirstOfDay),
-											string(dataprotection.AbsoluteMarkerFirstOfWeek),
+											string(backuppolicies.AbsoluteMarkerFirstOfDay),
+											string(backuppolicies.AbsoluteMarkerFirstOfWeek),
 										}, false),
 									},
 								},
@@ -131,33 +130,32 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := parse.BackupVaultID(d.Get("vault_id").(string))
-	id := parse.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroup, vaultId.Name, name)
+	vaultId, _ := backuppolicies.ParseBackupVaultID(d.Get("vault_id").(string))
+	id := backuppolicies.NewBackupPoliciesID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
 
-	existing, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_disk", id.ID())
 	}
 
 	taggingCriteria := expandBackupPolicyDiskTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
-	policyRules := make([]dataprotection.BasicBasePolicyRule, 0)
+	policyRules := make([]backuppolicies.BasePolicyRule, 0)
 	policyRules = append(policyRules, expandBackupPolicyDiskAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), taggingCriteria)...)
 	policyRules = append(policyRules, expandBackupPolicyDiskDefaultAzureRetentionRule(d.Get("default_retention_duration")))
 	policyRules = append(policyRules, expandBackupPolicyDiskAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
-	parameters := dataprotection.BaseBackupPolicyResource{
-		Properties: &dataprotection.BackupPolicy{
-			PolicyRules:     &policyRules,
-			DatasourceTypes: &[]string{"Microsoft.Compute/disks"},
-			ObjectType:      dataprotection.ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy,
+	parameters := backuppolicies.BaseBackupPolicyResource{
+		Properties: &backuppolicies.BackupPolicy{
+			PolicyRules:     policyRules,
+			DatasourceTypes: []string{"Microsoft.Compute/disks"},
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.BackupVaultName, id.ResourceGroup, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
 	}
 
@@ -170,33 +168,35 @@ func resourceDataProtectionBackupPolicyDiskRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupPolicyID(d.Id())
+	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving DataProtection BackupPolicy (%q): %+v", id, err)
 	}
-	vaultId := parse.NewBackupVaultID(id.SubscriptionId, id.ResourceGroup, id.BackupVaultName)
-	d.Set("name", id.Name)
+	vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	d.Set("name", id.BackupPolicyName)
 	d.Set("vault_id", vaultId.ID())
-	if resp.Properties != nil {
-		if props, ok := resp.Properties.AsBackupPolicy(); ok {
-			if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyDiskBackupRuleArray(props.PolicyRules)); err != nil {
-				return fmt.Errorf("setting `backup_repeating_time_intervals`: %+v", err)
-			}
-			if err := d.Set("default_retention_duration", flattenBackupPolicyDiskDefaultRetentionRuleDuration(props.PolicyRules)); err != nil {
-				return fmt.Errorf("setting `default_retention_duration`: %+v", err)
-			}
-			if err := d.Set("retention_rule", flattenBackupPolicyDiskRetentionRuleArray(props.PolicyRules)); err != nil {
-				return fmt.Errorf("setting `retention_rule`: %+v", err)
+	if resp.Model != nil {
+		if resp.Model.Properties != nil {
+			if props, ok := resp.Model.Properties.(backuppolicies.BackupPolicy); ok {
+				if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyDiskBackupRuleArray(&props.PolicyRules)); err != nil {
+					return fmt.Errorf("setting `backup_repeating_time_intervals`: %+v", err)
+				}
+				if err := d.Set("default_retention_duration", flattenBackupPolicyDiskDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
+					return fmt.Errorf("setting `default_retention_duration`: %+v", err)
+				}
+				if err := d.Set("retention_rule", flattenBackupPolicyDiskRetentionRuleArray(&props.PolicyRules)); err != nil {
+					return fmt.Errorf("setting `retention_rule`: %+v", err)
+				}
 			}
 		}
 	}
@@ -208,13 +208,13 @@ func resourceDataProtectionBackupPolicyDiskDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupPolicyID(d.Id())
+	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.BackupVaultName, id.ResourceGroup, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
@@ -223,50 +223,45 @@ func resourceDataProtectionBackupPolicyDiskDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, taggingCriteria *[]dataprotection.TaggingCriteria) []dataprotection.BasicBasePolicyRule {
-	results := make([]dataprotection.BasicBasePolicyRule, 0)
+func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, taggingCriteria *[]backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
+	results := make([]backuppolicies.BasePolicyRule, 0)
 
-	results = append(results, dataprotection.AzureBackupRule{
-		Name:       utils.String("BackupIntervals"),
-		ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureBackupRule,
-		DataStore: &dataprotection.DataStoreInfoBase{
-			DataStoreType: dataprotection.DataStoreTypesOperationalStore,
-			ObjectType:    utils.String("DataStoreInfoBase"),
+	results = append(results, backuppolicies.AzureBackupRule{
+		Name: "BackupIntervals",
+		DataStore: backuppolicies.DataStoreInfoBase{
+			DataStoreType: backuppolicies.DataStoreTypesOperationalStore,
+			ObjectType:    "DataStoreInfoBase",
 		},
-		BackupParameters: &dataprotection.AzureBackupParams{
-			BackupType: utils.String("Incremental"),
-			ObjectType: dataprotection.ObjectTypeBasicBackupParametersObjectTypeAzureBackupParams,
+		BackupParameters: &backuppolicies.AzureBackupParams{
+			BackupType: "Incremental",
 		},
-		Trigger: dataprotection.ScheduleBasedTriggerContext{
-			Schedule: &dataprotection.BackupSchedule{
-				RepeatingTimeIntervals: utils.ExpandStringSlice(input),
+		Trigger: backuppolicies.ScheduleBasedTriggerContext{
+			Schedule: backuppolicies.BackupSchedule{
+				RepeatingTimeIntervals: *utils.ExpandStringSlice(input),
 			},
-			TaggingCriteria: taggingCriteria,
-			ObjectType:      dataprotection.ObjectTypeBasicTriggerContextObjectTypeScheduleBasedTriggerContext,
+			TaggingCriteria: *taggingCriteria,
 		},
 	})
 	return results
 }
 
-func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []dataprotection.BasicBasePolicyRule {
-	results := make([]dataprotection.BasicBasePolicyRule, 0)
+func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []backuppolicies.BasePolicyRule {
+	results := make([]backuppolicies.BasePolicyRule, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		results = append(results, dataprotection.AzureRetentionRule{
-			Name:       utils.String(v["name"].(string)),
-			ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule,
-			IsDefault:  utils.Bool(false),
-			Lifecycles: &[]dataprotection.SourceLifeCycle{
+		results = append(results, backuppolicies.AzureRetentionRule{
+			Name:      v["name"].(string),
+			IsDefault: utils.Bool(false),
+			Lifecycles: []backuppolicies.SourceLifeCycle{
 				{
-					DeleteAfter: dataprotection.AbsoluteDeleteOption{
-						Duration:   utils.String(v["duration"].(string)),
-						ObjectType: dataprotection.ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption,
+					DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+						Duration: v["duration"].(string),
 					},
-					SourceDataStore: &dataprotection.DataStoreInfoBase{
+					SourceDataStore: backuppolicies.DataStoreInfoBase{
 						DataStoreType: "OperationalStore",
-						ObjectType:    utils.String("DataStoreInfoBase"),
+						ObjectType:    "DataStoreInfoBase",
 					},
-					TargetDataStoreCopySettings: &[]dataprotection.TargetCopySetting{},
+					TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
 				},
 			},
 		})
@@ -274,81 +269,76 @@ func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []datapr
 	return results
 }
 
-func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) dataprotection.BasicBasePolicyRule {
-	return dataprotection.AzureRetentionRule{
-		Name:       utils.String("Default"),
-		ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule,
-		IsDefault:  utils.Bool(true),
-		Lifecycles: &[]dataprotection.SourceLifeCycle{
+func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) backuppolicies.BasePolicyRule {
+	return backuppolicies.AzureRetentionRule{
+		Name:      "Default",
+		IsDefault: utils.Bool(true),
+		Lifecycles: []backuppolicies.SourceLifeCycle{
 			{
-				DeleteAfter: dataprotection.AbsoluteDeleteOption{
-					Duration:   utils.String(input.(string)),
-					ObjectType: dataprotection.ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption,
+				DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+					Duration: input.(string),
 				},
-				SourceDataStore: &dataprotection.DataStoreInfoBase{
+				SourceDataStore: backuppolicies.DataStoreInfoBase{
 					DataStoreType: "OperationalStore",
-					ObjectType:    utils.String("DataStoreInfoBase"),
+					ObjectType:    "DataStoreInfoBase",
 				},
-				TargetDataStoreCopySettings: &[]dataprotection.TargetCopySetting{},
+				TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
 			},
 		},
 	}
 }
 
-func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]dataprotection.TaggingCriteria {
-	results := []dataprotection.TaggingCriteria{
+func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]backuppolicies.TaggingCriteria {
+	results := []backuppolicies.TaggingCriteria{
 		{
 			Criteria:        nil,
-			IsDefault:       utils.Bool(true),
-			TaggingPriority: utils.Int64(99),
-			TagInfo: &dataprotection.RetentionTag{
-				ID:      utils.String("Default_"),
-				TagName: utils.String("Default"),
+			IsDefault:       true,
+			TaggingPriority: 99,
+			TagInfo: backuppolicies.RetentionTag{
+				Id:      utils.String("Default_"),
+				TagName: "Default",
 			},
 		},
 	}
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		results = append(results, dataprotection.TaggingCriteria{
+		results = append(results, backuppolicies.TaggingCriteria{
 			Criteria:        expandBackupPolicyDiskCriteriaArray(v["criteria"].([]interface{})),
-			IsDefault:       utils.Bool(false),
-			TaggingPriority: utils.Int64(int64(v["priority"].(int))),
-			TagInfo: &dataprotection.RetentionTag{
-				ID:      utils.String(v["name"].(string) + "_"),
-				TagName: utils.String(v["name"].(string)),
+			IsDefault:       false,
+			TaggingPriority: int64(v["priority"].(int)),
+			TagInfo: backuppolicies.RetentionTag{
+				Id:      utils.String(v["name"].(string) + "_"),
+				TagName: v["name"].(string),
 			},
 		})
 	}
 	return &results
 }
 
-func expandBackupPolicyDiskCriteriaArray(input []interface{}) *[]dataprotection.BasicBackupCriteria {
-	results := make([]dataprotection.BasicBackupCriteria, 0)
+func expandBackupPolicyDiskCriteriaArray(input []interface{}) *[]backuppolicies.BackupCriteria {
+	results := make([]backuppolicies.BackupCriteria, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		var absoluteCriteria []dataprotection.AbsoluteMarker
+		var absoluteCriteria []backuppolicies.AbsoluteMarker
 		if absoluteCriteriaRaw := v["absolute_criteria"].(string); len(absoluteCriteriaRaw) > 0 {
-			absoluteCriteria = []dataprotection.AbsoluteMarker{dataprotection.AbsoluteMarker(absoluteCriteriaRaw)}
+			absoluteCriteria = []backuppolicies.AbsoluteMarker{backuppolicies.AbsoluteMarker(absoluteCriteriaRaw)}
 		}
-		results = append(results, dataprotection.ScheduleBasedBackupCriteria{
+		results = append(results, backuppolicies.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
-			ObjectType:       dataprotection.ObjectTypeBasicBackupCriteriaObjectTypeScheduleBasedBackupCriteria,
 		})
 	}
 	return &results
 }
 
-func flattenBackupPolicyDiskBackupRuleArray(input *[]dataprotection.BasicBasePolicyRule) []interface{} {
+func flattenBackupPolicyDiskBackupRuleArray(input *[]backuppolicies.BasePolicyRule) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 	for _, item := range *input {
-		if backupRule, ok := item.AsAzureBackupRule(); ok {
+		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
-				if scheduleBasedTrigger, ok := backupRule.Trigger.AsScheduleBasedTriggerContext(); ok {
-					if scheduleBasedTrigger.Schedule != nil {
-						return utils.FlattenStringSlice(scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
-					}
+				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+					return utils.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
 				}
 			}
 		}
@@ -356,16 +346,16 @@ func flattenBackupPolicyDiskBackupRuleArray(input *[]dataprotection.BasicBasePol
 	return make([]interface{}, 0)
 }
 
-func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]dataprotection.BasicBasePolicyRule) interface{} {
+func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]backuppolicies.BasePolicyRule) interface{} {
 	if input == nil {
 		return nil
 	}
 
 	for _, item := range *input {
-		if retentionRule, ok := item.AsAzureRetentionRule(); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
-			if retentionRule.Lifecycles != nil && len(*retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (*retentionRule.Lifecycles)[0].DeleteAfter.AsAbsoluteDeleteOption(); ok {
-					return *deleteOption.Duration
+		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
+			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
+				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+					return deleteOption.Duration
 				}
 			}
 		}
@@ -373,41 +363,38 @@ func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]dataprotection
 	return nil
 }
 
-func flattenBackupPolicyDiskRetentionRuleArray(input *[]dataprotection.BasicBasePolicyRule) []interface{} {
+func flattenBackupPolicyDiskRetentionRuleArray(input *[]backuppolicies.BasePolicyRule) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	var taggingCriterias []dataprotection.TaggingCriteria
+	var taggingCriterias []backuppolicies.TaggingCriteria
 	for _, item := range *input {
-		if backupRule, ok := item.AsAzureBackupRule(); ok {
-			if trigger, ok := backupRule.Trigger.AsScheduleBasedTriggerContext(); ok {
+		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+			if trigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
 				if trigger.TaggingCriteria != nil {
-					taggingCriterias = *trigger.TaggingCriteria
+					taggingCriterias = trigger.TaggingCriteria
 				}
 			}
 		}
 	}
 
 	for _, item := range *input {
-		if retentionRule, ok := item.AsAzureRetentionRule(); ok && (retentionRule.IsDefault == nil || !*retentionRule.IsDefault) {
-			var name string
-			if retentionRule.Name != nil {
-				name = *retentionRule.Name
-			}
+		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && (retentionRule.IsDefault == nil || !*retentionRule.IsDefault) {
+			name := retentionRule.Name
 			var taggingPriority int64
 			var taggingCriteria []interface{}
 			for _, criteria := range taggingCriterias {
-				if criteria.TagInfo != nil && criteria.TagInfo.TagName != nil && strings.EqualFold(*criteria.TagInfo.TagName, name) {
-					taggingPriority = *criteria.TaggingPriority
+				if strings.EqualFold(criteria.TagInfo.TagName, name) {
+					taggingPriority = criteria.TaggingPriority
 					taggingCriteria = flattenBackupPolicyDiskBackupCriteriaArray(criteria.Criteria)
 				}
 			}
 			var duration string
-			if retentionRule.Lifecycles != nil && len(*retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (*retentionRule.Lifecycles)[0].DeleteAfter.AsAbsoluteDeleteOption(); ok {
-					duration = *deleteOption.Duration
+			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
+				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+					duration = deleteOption.Duration
 				}
 			}
 			results = append(results, map[string]interface{}{
@@ -421,14 +408,14 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]dataprotection.BasicBase
 	return results
 }
 
-func flattenBackupPolicyDiskBackupCriteriaArray(input *[]dataprotection.BasicBackupCriteria) []interface{} {
+func flattenBackupPolicyDiskBackupCriteriaArray(input *[]backuppolicies.BackupCriteria) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if criteria, ok := item.AsScheduleBasedBackupCriteria(); ok {
+		if criteria, ok := item.(backuppolicies.ScheduleBasedBackupCriteria); ok {
 			var absoluteCriteria string
 			if criteria.AbsoluteCriteria != nil && len(*criteria.AbsoluteCriteria) > 0 {
 				absoluteCriteria = string((*criteria.AbsoluteCriteria)[0])

@@ -60,50 +60,6 @@ func (c EventHubsClustersClient) ClustersListBySubscription(ctx context.Context,
 	return
 }
 
-// ClustersListBySubscriptionComplete retrieves all of the results into a single object
-func (c EventHubsClustersClient) ClustersListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ClustersListBySubscriptionCompleteResult, error) {
-	return c.ClustersListBySubscriptionCompleteMatchingPredicate(ctx, id, ClusterOperationPredicate{})
-}
-
-// ClustersListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c EventHubsClustersClient) ClustersListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ClusterOperationPredicate) (resp ClustersListBySubscriptionCompleteResult, err error) {
-	items := make([]Cluster, 0)
-
-	page, err := c.ClustersListBySubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ClustersListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForClustersListBySubscription prepares the ClustersListBySubscription request.
 func (c EventHubsClustersClient) preparerForClustersListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c EventHubsClustersClient) responderForClustersListBySubscription(resp *ht
 		}
 	}
 	return
+}
+
+// ClustersListBySubscriptionComplete retrieves all of the results into a single object
+func (c EventHubsClustersClient) ClustersListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ClustersListBySubscriptionCompleteResult, error) {
+	return c.ClustersListBySubscriptionCompleteMatchingPredicate(ctx, id, ClusterOperationPredicate{})
+}
+
+// ClustersListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c EventHubsClustersClient) ClustersListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ClusterOperationPredicate) (resp ClustersListBySubscriptionCompleteResult, err error) {
+	items := make([]Cluster, 0)
+
+	page, err := c.ClustersListBySubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ClustersListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

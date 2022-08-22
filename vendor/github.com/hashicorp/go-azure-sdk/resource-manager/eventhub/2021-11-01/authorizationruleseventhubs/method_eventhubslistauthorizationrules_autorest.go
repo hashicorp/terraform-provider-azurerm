@@ -59,50 +59,6 @@ func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRules(ctx c
 	return
 }
 
-// EventHubsListAuthorizationRulesComplete retrieves all of the results into a single object
-func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesComplete(ctx context.Context, id EventhubId) (EventHubsListAuthorizationRulesCompleteResult, error) {
-	return c.EventHubsListAuthorizationRulesCompleteMatchingPredicate(ctx, id, AuthorizationRuleOperationPredicate{})
-}
-
-// EventHubsListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id EventhubId, predicate AuthorizationRuleOperationPredicate) (resp EventHubsListAuthorizationRulesCompleteResult, err error) {
-	items := make([]AuthorizationRule, 0)
-
-	page, err := c.EventHubsListAuthorizationRules(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := EventHubsListAuthorizationRulesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForEventHubsListAuthorizationRules prepares the EventHubsListAuthorizationRules request.
 func (c AuthorizationRulesEventHubsClient) preparerForEventHubsListAuthorizationRules(ctx context.Context, id EventhubId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c AuthorizationRulesEventHubsClient) responderForEventHubsListAuthorizatio
 		}
 	}
 	return
+}
+
+// EventHubsListAuthorizationRulesComplete retrieves all of the results into a single object
+func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesComplete(ctx context.Context, id EventhubId) (EventHubsListAuthorizationRulesCompleteResult, error) {
+	return c.EventHubsListAuthorizationRulesCompleteMatchingPredicate(ctx, id, AuthorizationRuleOperationPredicate{})
+}
+
+// EventHubsListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id EventhubId, predicate AuthorizationRuleOperationPredicate) (resp EventHubsListAuthorizationRulesCompleteResult, err error) {
+	items := make([]AuthorizationRule, 0)
+
+	page, err := c.EventHubsListAuthorizationRules(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := EventHubsListAuthorizationRulesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

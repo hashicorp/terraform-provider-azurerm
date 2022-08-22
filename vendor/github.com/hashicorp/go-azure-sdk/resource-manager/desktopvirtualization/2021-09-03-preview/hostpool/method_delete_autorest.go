@@ -90,5 +90,6 @@ func (c HostPoolClient) responderForDelete(resp *http.Response) (result DeleteOp
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

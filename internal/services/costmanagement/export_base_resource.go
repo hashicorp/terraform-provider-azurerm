@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement"
-	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,10 +30,10 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(costmanagement.RecurrenceTypeDaily),
-				string(costmanagement.RecurrenceTypeWeekly),
-				string(costmanagement.RecurrenceTypeMonthly),
-				string(costmanagement.RecurrenceTypeAnnually),
+				string(exports.RecurrenceTypeDaily),
+				string(exports.RecurrenceTypeWeekly),
+				string(exports.RecurrenceTypeMonthly),
+				string(exports.RecurrenceTypeAnnually),
 			}, false),
 		},
 
@@ -82,9 +81,9 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(costmanagement.ExportTypeActualCost),
-							string(costmanagement.ExportTypeAmortizedCost),
-							string(costmanagement.ExportTypeUsage),
+							string(exports.ExportTypeActualCost),
+							string(exports.ExportTypeAmortizedCost),
+							string(exports.ExportTypeUsage),
 						}, false),
 					},
 
@@ -92,12 +91,12 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(costmanagement.Custom),
-							string(costmanagement.BillingMonthToDate),
-							string(costmanagement.TheLastBillingMonth),
-							string(costmanagement.TheLastMonth),
-							string(costmanagement.WeekToDate),
-							string(costmanagement.MonthToDate),
+							string(exports.TimeframeTypeCustom),
+							string(exports.TimeframeTypeBillingMonthToDate),
+							string(exports.TimeframeTypeTheLastBillingMonth),
+							string(exports.TimeframeTypeTheLastMonth),
+							string(exports.TimeframeTypeWeekToDate),
+							string(exports.TimeframeTypeMonthToDate),
 						}, false),
 					},
 				},
@@ -121,15 +120,16 @@ func (br costManagementExportBaseResource) createFunc(resourceName, scopeFieldNa
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ExportClient
-			id := parse.NewCostManagementExportId(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			existing, err := client.Get(ctx, id.Scope, id.Name, "")
+			id := exports.NewScopedExportID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
+			var opts exports.GetOperationOptions
+			existing, err := client.Get(ctx, id, opts)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
@@ -149,46 +149,48 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ExportClient
 
-			id, err := parse.CostManagementExportID(metadata.ResourceData.Id())
+			id, err := exports.ParseScopedExportID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.Scope, id.Name, "")
+			var opts exports.GetOperationOptions
+			resp, err := client.Get(ctx, *id, opts)
 			if err != nil {
-				if !utils.ResponseWasNotFound(resp.Response) {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			metadata.ResourceData.Set("name", id.Name)
+			metadata.ResourceData.Set("name", id.ExportName)
 			//lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
-			if schedule := resp.Schedule; schedule != nil {
-				if recurrencePeriod := schedule.RecurrencePeriod; recurrencePeriod != nil {
-					metadata.ResourceData.Set("recurrence_period_start_date", recurrencePeriod.From.Format(time.RFC3339))
-					metadata.ResourceData.Set("recurrence_period_end_date", recurrencePeriod.To.Format(time.RFC3339))
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if schedule := props.Schedule; schedule != nil {
+						if recurrencePeriod := schedule.RecurrencePeriod; recurrencePeriod != nil {
+							metadata.ResourceData.Set("recurrence_period_start_date", recurrencePeriod.From)
+							metadata.ResourceData.Set("recurrence_period_end_date", recurrencePeriod.To)
+						}
+						status := *schedule.Status == exports.StatusTypeActive
+
+						metadata.ResourceData.Set("active", status)
+						metadata.ResourceData.Set("recurrence_type", schedule.Recurrence)
+					}
+
+					exportDeliveryInfo, err := flattenExportDataStorageLocation(&props.DeliveryInfo)
+					if err != nil {
+						return fmt.Errorf("flattening `export_data_storage_location`: %+v", err)
+					}
+					if err := metadata.ResourceData.Set("export_data_storage_location", exportDeliveryInfo); err != nil {
+						return fmt.Errorf("setting `export_data_storage_location`: %+v", err)
+					}
+					if err := metadata.ResourceData.Set("export_data_options", flattenExportDefinition(&props.Definition)); err != nil {
+						return fmt.Errorf("setting `export_data_options`: %+v", err)
+					}
 				}
-
-				status := schedule.Status == costmanagement.Active
-
-				metadata.ResourceData.Set("active", status)
-				metadata.ResourceData.Set("recurrence_type", schedule.Recurrence)
-			}
-
-			exportDeliveryInfo, err := flattenExportDataStorageLocation(resp.DeliveryInfo)
-			if err != nil {
-				return fmt.Errorf("flattening `export_data_storage_location`: %+v", err)
-			}
-
-			if err := metadata.ResourceData.Set("export_data_storage_location", exportDeliveryInfo); err != nil {
-				return fmt.Errorf("setting `export_data_storage_location`: %+v", err)
-			}
-
-			if err := metadata.ResourceData.Set("export_data_options", flattenExportDefinition(resp.Definition)); err != nil {
-				return fmt.Errorf("setting `export_data_options`: %+v", err)
 			}
 
 			return nil
@@ -202,12 +204,12 @@ func (br costManagementExportBaseResource) deleteFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ExportClient
 
-			id, err := parse.CostManagementExportID(metadata.ResourceData.Id())
+			id, err := exports.ParseScopedExportID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err = client.Delete(ctx, id.Scope, id.Name); err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -222,20 +224,25 @@ func (br costManagementExportBaseResource) updateFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ExportClient
 
-			id, err := parse.CostManagementExportID(metadata.ResourceData.Id())
+			id, err := exports.ParseScopedExportID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			// Update operation requires latest eTag to be set in the request.
-			resp, err := client.Get(ctx, id.Scope, id.Name, "")
+			var opts exports.GetOperationOptions
+			resp, err := client.Get(ctx, *id, opts)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
-			if resp.ETag == nil {
-				return fmt.Errorf("add %s: etag was nil", *id)
+
+			if model := resp.Model; model != nil {
+				if model.ETag == nil {
+					return fmt.Errorf("add %s: etag was nil", *id)
+				}
 			}
-			if err := createOrUpdateCostManagementExport(ctx, client, metadata, *id, resp.ETag); err != nil {
+
+			if err := createOrUpdateCostManagementExport(ctx, client, metadata, *id, resp.Model.ETag); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -244,13 +251,10 @@ func (br costManagementExportBaseResource) updateFunc() sdk.ResourceFunc {
 	}
 }
 
-func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagement.ExportsClient, metadata sdk.ResourceMetaData, id parse.CostManagementExportId, etag *string) error {
-	from, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_start_date").(string))
-	to, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_end_date").(string))
-
-	status := costmanagement.Active
+func createOrUpdateCostManagementExport(ctx context.Context, client *exports.ExportsClient, metadata sdk.ResourceMetaData, id exports.ScopedExportId, etag *string) error {
+	status := exports.StatusTypeActive
 	if v := metadata.ResourceData.Get("active"); !v.(bool) {
-		status = costmanagement.Inactive
+		status = exports.StatusTypeInactive
 	}
 
 	deliveryInfo, err := expandExportDataStorageLocation(metadata.ResourceData.Get("export_data_storage_location").([]interface{}))
@@ -258,29 +262,31 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagem
 		return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
 	}
 
-	props := costmanagement.Export{
+	format := exports.FormatTypeCsv
+	recurrenceType := exports.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string))
+	props := exports.Export{
 		ETag: etag,
-		ExportProperties: &costmanagement.ExportProperties{
-			Schedule: &costmanagement.ExportSchedule{
-				Recurrence: costmanagement.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string)),
-				RecurrencePeriod: &costmanagement.ExportRecurrencePeriod{
-					From: &date.Time{Time: from},
-					To:   &date.Time{Time: to},
+		Properties: &exports.ExportProperties{
+			Schedule: &exports.ExportSchedule{
+				Recurrence: &recurrenceType,
+				RecurrencePeriod: &exports.ExportRecurrencePeriod{
+					From: metadata.ResourceData.Get("recurrence_period_start_date").(string),
+					To:   utils.String(metadata.ResourceData.Get("recurrence_period_end_date").(string)),
 				},
-				Status: status,
+				Status: &status,
 			},
-			DeliveryInfo: deliveryInfo,
-			Format:       costmanagement.Csv,
-			Definition:   expandExportDefinition(metadata.ResourceData.Get("export_data_options").([]interface{})),
+			DeliveryInfo: *deliveryInfo,
+			Format:       &format,
+			Definition:   *expandExportDefinition(metadata.ResourceData.Get("export_data_options").([]interface{})),
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.Scope, id.Name, props)
+	_, err = client.CreateOrUpdate(ctx, id, props)
 
 	return err
 }
 
-func expandExportDataStorageLocation(input []interface{}) (*costmanagement.ExportDeliveryInfo, error) {
+func expandExportDataStorageLocation(input []interface{}) (*exports.ExportDeliveryInfo, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -293,10 +299,10 @@ func expandExportDataStorageLocation(input []interface{}) (*costmanagement.Expor
 
 	storageId := storageParse.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroup, containerId.StorageAccountName)
 
-	deliveryInfo := &costmanagement.ExportDeliveryInfo{
-		Destination: &costmanagement.ExportDeliveryDestination{
-			ResourceID:     utils.String(storageId.ID()),
-			Container:      utils.String(containerId.ContainerName),
+	deliveryInfo := &exports.ExportDeliveryInfo{
+		Destination: exports.ExportDeliveryDestination{
+			ResourceId:     utils.String(storageId.ID()),
+			Container:      containerId.ContainerName,
 			RootFolderPath: utils.String(attrs["root_folder_path"].(string)),
 		},
 	}
@@ -304,22 +310,22 @@ func expandExportDataStorageLocation(input []interface{}) (*costmanagement.Expor
 	return deliveryInfo, nil
 }
 
-func expandExportDefinition(input []interface{}) *costmanagement.ExportDefinition {
+func expandExportDefinition(input []interface{}) *exports.ExportDefinition {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	attrs := input[0].(map[string]interface{})
-	definitionInfo := &costmanagement.ExportDefinition{
-		Type:      costmanagement.ExportType(attrs["type"].(string)),
-		Timeframe: costmanagement.TimeframeType(attrs["time_frame"].(string)),
+	definitionInfo := &exports.ExportDefinition{
+		Type:      exports.ExportType(attrs["type"].(string)),
+		Timeframe: exports.TimeframeType(attrs["time_frame"].(string)),
 	}
 
 	return definitionInfo
 }
 
-func flattenExportDataStorageLocation(input *costmanagement.ExportDeliveryInfo) ([]interface{}, error) {
-	if input == nil || input.Destination == nil {
+func flattenExportDataStorageLocation(input *exports.ExportDeliveryInfo) ([]interface{}, error) {
+	if input == nil {
 		return []interface{}{}, nil
 	}
 
@@ -327,7 +333,7 @@ func flattenExportDataStorageLocation(input *costmanagement.ExportDeliveryInfo) 
 	var err error
 	var storageAccountId *storageParse.StorageAccountId
 
-	if v := destination.ResourceID; v != nil {
+	if v := destination.ResourceId; v != nil {
 		storageAccountId, err = storageParse.StorageAccountID(*v)
 		if err != nil {
 			return nil, err
@@ -335,8 +341,8 @@ func flattenExportDataStorageLocation(input *costmanagement.ExportDeliveryInfo) 
 	}
 
 	containerId := ""
-	if v := destination.Container; v != nil && storageAccountId != nil {
-		containerId = storageParse.NewStorageContainerResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default", *v).ID()
+	if v := destination.Container; v != "" && storageAccountId != nil {
+		containerId = storageParse.NewStorageContainerResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default", v).ID()
 	}
 
 	rootFolderPath := ""
@@ -352,7 +358,7 @@ func flattenExportDataStorageLocation(input *costmanagement.ExportDeliveryInfo) 
 	}, nil
 }
 
-func flattenExportDefinition(input *costmanagement.ExportDefinition) []interface{} {
+func flattenExportDefinition(input *exports.ExportDefinition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

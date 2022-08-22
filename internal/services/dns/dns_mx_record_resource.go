@@ -3,19 +3,17 @@ package dns
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDnsMxRecord() *pluginsdk.Resource {
@@ -33,8 +31,14 @@ func resourceDnsMxRecord() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MxRecordID(id)
-			return err
+			parsed, err := recordsets.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if parsed.RecordType != recordsets.RecordTypeMX {
+				return fmt.Errorf("this resource only supports 'MX' records")
+			}
+			return nil
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -45,11 +49,12 @@ func resourceDnsMxRecord() *pluginsdk.Resource {
 				Default:  "@",
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"zone_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"record": {
@@ -82,13 +87,13 @@ func resourceDnsMxRecord() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
@@ -97,87 +102,92 @@ func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	resourceId := parse.NewMxRecordID(subscriptionId, resGroup, zoneName, name)
-
+	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeMX, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.MX)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_dns_mx_record", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dns_mx_record", id.ID())
 		}
 	}
 
 	ttl := int64(d.Get("ttl").(int))
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := dns.RecordSet{
+	parameters := recordsets.RecordSet{
 		Name: &name,
-		RecordSetProperties: &dns.RecordSetProperties{
+		Properties: &recordsets.RecordSetProperties{
 			Metadata:  tags.Expand(t),
 			TTL:       &ttl,
-			MxRecords: expandAzureRmDnsMxRecords(d),
+			MXRecords: expandAzureRmDnsMxRecords(d),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.MX, parameters, "", ""); err != nil {
-		return fmt.Errorf("creating/updating DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
-
+	d.SetId(id.ID())
 	return resourceDnsMxRecordRead(d, meta)
 }
 
 func resourceDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MxRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.MXName, dns.MX)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading DNS MX record %s: %v", id.MXName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.MXName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.DnszoneName)
+	d.Set("name", id.RelativeRecordSetName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("zone_name", id.ZoneName)
 
-	d.Set("ttl", resp.TTL)
-	d.Set("fqdn", resp.Fqdn)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("ttl", props.TTL)
+			d.Set("fqdn", props.Fqdn)
 
-	if err := d.Set("record", flattenAzureRmDnsMxRecords(resp.MxRecords)); err != nil {
-		return err
+			if err := d.Set("record", flattenAzureRmDnsMxRecords(props.MXRecords)); err != nil {
+				return err
+			}
+			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
+				return err
+			}
+		}
 	}
-	return tags.FlattenAndSet(d, resp.Metadata)
+
+	return nil
 }
 
 func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MxRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.MXName, dns.MX, "")
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("deleting DNS MX Record %s: %+v", id.MXName, err)
+	if _, err := client.Delete(ctx, *id, recordsets.DefaultDeleteOperationOptions()); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
@@ -186,16 +196,25 @@ func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 // flatten creates an array of map where preference is a string to suit
 // the expectations of the ResourceData schema, so that this data can be
 // managed by Terradata state.
-func flattenAzureRmDnsMxRecords(records *[]dns.MxRecord) []map[string]interface{} {
+func flattenAzureRmDnsMxRecords(records *[]recordsets.MxRecord) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {
-			preferenceI32 := *record.Preference
-			preference := strconv.Itoa(int(preferenceI32))
+			// TODO: convert this to use an int64
+			preference := ""
+			if record.Preference != nil {
+				preference = strconv.Itoa(int(*record.Preference))
+			}
+
+			exchange := ""
+			if record.Exchange != nil {
+				exchange = *record.Exchange
+			}
+
 			results = append(results, map[string]interface{}{
 				"preference": preference,
-				"exchange":   *record.Exchange,
+				"exchange":   exchange,
 			})
 		}
 	}
@@ -206,19 +225,18 @@ func flattenAzureRmDnsMxRecords(records *[]dns.MxRecord) []map[string]interface{
 // expand creates an array of dns.MxRecord, that is, the array needed
 // by azure-sdk-for-go to manipulate azure resources, hence Preference
 // is an int32
-func expandAzureRmDnsMxRecords(d *pluginsdk.ResourceData) *[]dns.MxRecord {
+func expandAzureRmDnsMxRecords(d *pluginsdk.ResourceData) *[]recordsets.MxRecord {
 	recordStrings := d.Get("record").(*pluginsdk.Set).List()
-	records := make([]dns.MxRecord, len(recordStrings))
+	records := make([]recordsets.MxRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
 		mxrecord := v.(map[string]interface{})
 		preference := mxrecord["preference"].(string)
 		i64, _ := strconv.ParseInt(preference, 10, 32)
-		i32 := int32(i64)
 		exchange := mxrecord["exchange"].(string)
 
-		records[i] = dns.MxRecord{
-			Preference: &i32,
+		records[i] = recordsets.MxRecord{
+			Preference: &i64,
 			Exchange:   &exchange,
 		}
 	}

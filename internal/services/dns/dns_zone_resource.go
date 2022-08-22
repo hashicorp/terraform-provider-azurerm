@@ -5,14 +5,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -39,7 +41,7 @@ func resourceDnsZone() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DnsZoneID(id)
+			_, err := zones.ParseDnsZoneID(id)
 			return err
 		}),
 		Schema: map[string]*pluginsdk.Schema{
@@ -49,7 +51,7 @@ func resourceDnsZone() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"number_of_record_sets": {
 				Type:     pluginsdk.TypeInt,
@@ -130,7 +132,7 @@ func resourceDnsZone() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 2147483647),
 						},
 
-						"tags": tags.Schema(),
+						"tags": commonschema.Tags(),
 
 						"fqdn": {
 							Type:     pluginsdk.TypeString,
@@ -140,145 +142,142 @@ func resourceDnsZone() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.ZonesClient
-	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
+	client := meta.(*clients.Client).Dns.Zones
+	recordSetsClient := meta.(*clients.Client).Dns.RecordSets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-
-	resourceId := parse.NewDnsZoneID(subscriptionId, resGroup, name)
-
+	id := zones.NewDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_dns_zone", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dns_zone", id.ID())
 		}
 	}
 
-	location := "global"
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := dns.Zone{
-		Location: &location,
+	parameters := zones.Zone{
+		Location: location.Normalize("global"),
 		Tags:     tags.Expand(t),
 	}
 
-	etag := ""
-	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch); err != nil {
-		return fmt.Errorf("creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, zones.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
-		rsParameters := dns.RecordSet{
-			RecordSetProperties: &dns.RecordSetProperties{
+		rsParameters := recordsets.RecordSet{
+			Properties: &recordsets.RecordSetProperties{
 				TTL:       utils.Int64(int64(soaRecord["ttl"].(int))),
 				Metadata:  tags.Expand(soaRecord["tags"].(map[string]interface{})),
-				SoaRecord: expandArmDNSZoneSOARecord(soaRecord),
+				SOARecord: expandArmDNSZoneSOARecord(soaRecord),
 			},
 		}
 
-		if len(name+strings.TrimSuffix(*rsParameters.RecordSetProperties.SoaRecord.Email, ".")) > 253 {
+		if len(id.ZoneName+strings.TrimSuffix(*rsParameters.Properties.SOARecord.Email, ".")) > 253 {
 			return fmt.Errorf("`email` which is concatenated with DNS Zone `name` cannot exceed 253 characters excluding a trailing period")
 		}
 
-		if _, err := recordSetsClient.CreateOrUpdate(ctx, resGroup, name, "@", dns.SOA, rsParameters, etag, ifNoneMatch); err != nil {
-			return fmt.Errorf("creating/updating DNS SOA Record @ (Zone %q / Resource Group %q): %s", name, resGroup, err)
+		soaRecordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.ZoneName, recordsets.RecordTypeSOA, "@")
+		if _, err := recordSetsClient.CreateOrUpdate(ctx, soaRecordId, rsParameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("creating/updating %s: %+v", soaRecordId, err)
 		}
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
 	return resourceDnsZoneRead(d, meta)
 }
 
 func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	zonesClient := meta.(*clients.Client).Dns.ZonesClient
-	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
+	zonesClient := meta.(*clients.Client).Dns.Zones
+	recordSetsClient := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsZoneID(d.Id())
+	id, err := zones.ParseDnsZoneID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := zonesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := zonesClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-
-	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
-	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
-
-	nameServers := make([]string, 0)
-	if s := resp.NameServers; s != nil {
-		nameServers = *s
-	}
-	if err := d.Set("name_servers", nameServers); err != nil {
-		return err
-	}
-
-	rsResp, err := recordSetsClient.Get(ctx, id.ResourceGroup, id.Name, "@", dns.SOA)
+	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.ZoneName, recordsets.RecordTypeSOA, "@")
+	soaRecordResp, err := recordSetsClient.Get(ctx, soaRecord)
 	if err != nil {
-		return fmt.Errorf("reading DNS SOA record @: %v", err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := d.Set("soa_record", flattenArmDNSZoneSOARecord(&rsResp)); err != nil {
+	if err := d.Set("soa_record", flattenArmDNSZoneSOARecord(soaRecordResp.Model)); err != nil {
 		return fmt.Errorf("setting `soa_record`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
-}
+	d.Set("name", id.ZoneName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.ZonesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("number_of_record_sets", props.NumberOfRecordSets)
+			d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
 
-	id, err := parse.DnsZoneID(d.Id())
-	if err != nil {
-		return err
-	}
+			nameServers := make([]string, 0)
+			if s := props.NameServers; s != nil {
+				nameServers = *s
+			}
+			if err := d.Set("name_servers", nameServers); err != nil {
+				return err
+			}
+		}
 
-	etag := ""
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, etag)
-	if err != nil {
-		return fmt.Errorf("deleting DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func expandArmDNSZoneSOARecord(input map[string]interface{}) *dns.SoaRecord {
-	return &dns.SoaRecord{
+func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Dns.Zones
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := zones.ParseDnsZoneID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err := client.DeleteThenPoll(ctx, *id, zones.DefaultDeleteOperationOptions()); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func expandArmDNSZoneSOARecord(input map[string]interface{}) *recordsets.SoaRecord {
+	return &recordsets.SoaRecord{
 		Email:        utils.String(input["email"].(string)),
 		Host:         utils.String(input["host_name"].(string)),
 		ExpireTime:   utils.Int64(int64(input["expire_time"].(int))),
@@ -289,75 +288,76 @@ func expandArmDNSZoneSOARecord(input map[string]interface{}) *dns.SoaRecord {
 	}
 }
 
-func flattenArmDNSZoneSOARecord(input *dns.RecordSet) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
+func flattenArmDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
+	output := make([]interface{}, 0)
+	if input != nil {
+		if props := input.Properties; props != nil {
+			ttl := 0
+			if props.TTL != nil {
+				ttl = int(*props.TTL)
+			}
+
+			metaData := make(map[string]interface{})
+			if props.Metadata != nil {
+				metaData = tags.Flatten(props.Metadata)
+			}
+
+			fqdn := ""
+			if props.Fqdn != nil {
+				fqdn = *props.Fqdn
+			}
+
+			email := ""
+			hostName := ""
+			expireTime := 0
+			minimumTTL := 0
+			refreshTime := 0
+			retryTime := 0
+			serialNumber := 0
+			if record := props.SOARecord; record != nil {
+				if record.Email != nil {
+					email = *record.Email
+				}
+
+				if record.Host != nil {
+					hostName = *record.Host
+				}
+
+				if record.ExpireTime != nil {
+					expireTime = int(*record.ExpireTime)
+				}
+
+				if record.MinimumTTL != nil {
+					minimumTTL = int(*record.MinimumTTL)
+				}
+
+				if record.RefreshTime != nil {
+					refreshTime = int(*record.RefreshTime)
+				}
+
+				if record.RetryTime != nil {
+					retryTime = int(*record.RetryTime)
+				}
+
+				if record.SerialNumber != nil {
+					serialNumber = int(*record.SerialNumber)
+				}
+			}
+
+			output = append(output, map[string]interface{}{
+				"email":         email,
+				"host_name":     hostName,
+				"expire_time":   expireTime,
+				"minimum_ttl":   minimumTTL,
+				"refresh_time":  refreshTime,
+				"retry_time":    retryTime,
+				"serial_number": serialNumber,
+				"ttl":           ttl,
+				"tags":          metaData,
+				"fqdn":          fqdn,
+			})
+		}
 	}
 
-	ttl := 0
-	if input.TTL != nil {
-		ttl = int(*input.TTL)
-	}
-
-	metaData := make(map[string]interface{})
-	if input.Metadata != nil {
-		metaData = tags.Flatten(input.Metadata)
-	}
-
-	fqdn := ""
-	if input.Fqdn != nil {
-		fqdn = *input.Fqdn
-	}
-
-	email := ""
-	hostName := ""
-	expireTime := 0
-	minimumTTL := 0
-	refreshTime := 0
-	retryTime := 0
-	serialNumber := 0
-	if input.SoaRecord != nil {
-		if input.SoaRecord.Email != nil {
-			email = *input.SoaRecord.Email
-		}
-
-		if input.SoaRecord.Host != nil {
-			hostName = *input.SoaRecord.Host
-		}
-
-		if input.SoaRecord.ExpireTime != nil {
-			expireTime = int(*input.SoaRecord.ExpireTime)
-		}
-
-		if input.SoaRecord.MinimumTTL != nil {
-			minimumTTL = int(*input.SoaRecord.MinimumTTL)
-		}
-
-		if input.SoaRecord.RefreshTime != nil {
-			refreshTime = int(*input.SoaRecord.RefreshTime)
-		}
-
-		if input.SoaRecord.RetryTime != nil {
-			retryTime = int(*input.SoaRecord.RetryTime)
-		}
-
-		if input.SoaRecord.SerialNumber != nil {
-			serialNumber = int(*input.SoaRecord.SerialNumber)
-		}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"email":         email,
-			"host_name":     hostName,
-			"expire_time":   expireTime,
-			"minimum_ttl":   minimumTTL,
-			"refresh_time":  refreshTime,
-			"retry_time":    retryTime,
-			"serial_number": serialNumber,
-			"ttl":           ttl,
-			"tags":          metaData,
-			"fqdn":          fqdn,
-		},
-	}
+	return output
 }

@@ -64,5 +64,6 @@ func (c SnapshotPolicyClient) responderForSnapshotPoliciesList(resp *http.Respon
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

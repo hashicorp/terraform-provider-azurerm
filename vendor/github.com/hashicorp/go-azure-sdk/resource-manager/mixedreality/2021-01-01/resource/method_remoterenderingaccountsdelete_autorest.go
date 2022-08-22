@@ -61,5 +61,6 @@ func (c ResourceClient) responderForRemoteRenderingAccountsDelete(resp *http.Res
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

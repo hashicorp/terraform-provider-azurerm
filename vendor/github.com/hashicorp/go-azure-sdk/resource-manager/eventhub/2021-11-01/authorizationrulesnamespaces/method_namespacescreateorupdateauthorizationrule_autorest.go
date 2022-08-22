@@ -64,5 +64,6 @@ func (c AuthorizationRulesNamespacesClient) responderForNamespacesCreateOrUpdate
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

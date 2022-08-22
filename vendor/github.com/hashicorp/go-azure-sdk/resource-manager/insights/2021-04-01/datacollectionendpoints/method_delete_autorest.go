@@ -61,5 +61,6 @@ func (c DataCollectionEndpointsClient) responderForDelete(resp *http.Response) (
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

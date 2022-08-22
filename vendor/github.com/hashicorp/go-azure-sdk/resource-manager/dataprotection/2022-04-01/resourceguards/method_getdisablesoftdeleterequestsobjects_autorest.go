@@ -59,50 +59,6 @@ func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjects(ctx context.Co
 	return
 }
 
-// GetDisableSoftDeleteRequestsObjectsComplete retrieves all of the results into a single object
-func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetDisableSoftDeleteRequestsObjectsCompleteResult, error) {
-	return c.GetDisableSoftDeleteRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
-}
-
-// GetDisableSoftDeleteRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetDisableSoftDeleteRequestsObjectsCompleteResult, err error) {
-	items := make([]DppBaseResource, 0)
-
-	page, err := c.GetDisableSoftDeleteRequestsObjects(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetDisableSoftDeleteRequestsObjectsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetDisableSoftDeleteRequestsObjects prepares the GetDisableSoftDeleteRequestsObjects request.
 func (c ResourceGuardsClient) preparerForGetDisableSoftDeleteRequestsObjects(ctx context.Context, id ResourceGuardId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ResourceGuardsClient) responderForGetDisableSoftDeleteRequestsObjects(re
 		}
 	}
 	return
+}
+
+// GetDisableSoftDeleteRequestsObjectsComplete retrieves all of the results into a single object
+func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjectsComplete(ctx context.Context, id ResourceGuardId) (GetDisableSoftDeleteRequestsObjectsCompleteResult, error) {
+	return c.GetDisableSoftDeleteRequestsObjectsCompleteMatchingPredicate(ctx, id, DppBaseResourceOperationPredicate{})
+}
+
+// GetDisableSoftDeleteRequestsObjectsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjectsCompleteMatchingPredicate(ctx context.Context, id ResourceGuardId, predicate DppBaseResourceOperationPredicate) (resp GetDisableSoftDeleteRequestsObjectsCompleteResult, err error) {
+	items := make([]DppBaseResource, 0)
+
+	page, err := c.GetDisableSoftDeleteRequestsObjects(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetDisableSoftDeleteRequestsObjectsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
