@@ -267,7 +267,7 @@ resource "azurerm_eventhub_namespace" "test" {
   name                = "acctest-EHN-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku = "Basic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_eventhub" "test" {
