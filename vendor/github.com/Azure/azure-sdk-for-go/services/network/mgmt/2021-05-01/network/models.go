@@ -15653,7 +15653,7 @@ type ExpressRouteGatewayList struct {
 type ExpressRouteGatewayProperties struct {
 	// AutoScaleConfiguration - Configuration for auto scaling.
 	AutoScaleConfiguration *ExpressRouteGatewayPropertiesAutoScaleConfiguration `json:"autoScaleConfiguration,omitempty"`
-	// ExpressRouteConnections - READ-ONLY; List of ExpressRoute connections to the ExpressRoute gateway.
+	// ExpressRouteConnections - List of ExpressRoute connections to the ExpressRoute gateway.
 	ExpressRouteConnections *[]ExpressRouteConnection `json:"expressRouteConnections,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the express route gateway resource. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateUpdating', 'ProvisioningStateDeleting', 'ProvisioningStateFailed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
@@ -15666,6 +15666,9 @@ func (ergp ExpressRouteGatewayProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ergp.AutoScaleConfiguration != nil {
 		objectMap["autoScaleConfiguration"] = ergp.AutoScaleConfiguration
+	}
+	if ergp.ExpressRouteConnections != nil {
+		objectMap["expressRouteConnections"] = ergp.ExpressRouteConnections
 	}
 	if ergp.VirtualHub != nil {
 		objectMap["virtualHub"] = ergp.VirtualHub

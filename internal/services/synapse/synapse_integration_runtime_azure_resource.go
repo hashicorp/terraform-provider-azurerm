@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2021-06-01-preview/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -118,7 +118,7 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 		Name: utils.String(id.Name),
 		Properties: synapse.ManagedIntegrationRuntime{
 			Description: utils.String(d.Get("description").(string)),
-			Type:        synapse.TypeManaged,
+			Type:        synapse.TypeBasicIntegrationRuntimeTypeManaged,
 			ManagedIntegrationRuntimeTypeProperties: &synapse.ManagedIntegrationRuntimeTypeProperties{
 				ComputeProperties: &synapse.IntegrationRuntimeComputeProperties{
 					Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),

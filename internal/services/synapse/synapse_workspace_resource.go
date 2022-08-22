@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2021-06-01-preview/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -593,6 +593,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
+		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+		}
+
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, workspacePatchInfo)
 		if err != nil {
 			return fmt.Errorf("updating Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -606,14 +610,14 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
 
-		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-		}
 	}
 
 	if d.HasChange("aad_admin") {
 		aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
 		if aadAdmin != nil {
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 			workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
 			if err != nil {
 				return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -622,11 +626,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
-
+		} else {
 			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
 				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 			}
-		} else {
 			workspaceAadAdminsDeleteFuture, err := aadAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -635,16 +638,15 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = workspaceAadAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
-
-			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-			}
 		}
 	}
 
 	if d.HasChange("sql_aad_admin") {
 		sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
 		if sqlAdmin != nil {
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 			workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
 			if err != nil {
 				return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -653,11 +655,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = workspaceSqlAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
-
+		} else {
 			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
 				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 			}
-		} else {
 			workspaceSqlAdminsDeleteFuture, err := sqlAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -666,15 +667,14 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = workspaceSqlAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
-
-			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-			}
 		}
 	}
 
 	if d.HasChange("sql_identity_control_enabled") {
 		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
+		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+		}
 		future, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
 		if err != nil {
 			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
@@ -682,9 +682,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for update workspace identity control for SQL pool of %q: %+v", id, err)
 		}
-		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-		}
+	}
+
+	if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 	}
 
 	return resourceSynapseWorkspaceRead(d, meta)
