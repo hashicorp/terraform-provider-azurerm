@@ -1921,7 +1921,6 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1988,7 +1987,6 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
