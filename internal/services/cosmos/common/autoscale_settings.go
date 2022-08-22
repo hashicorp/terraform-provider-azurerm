@@ -57,6 +57,9 @@ func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *documen
 	autoscaleSettings := ExpandCosmosDbAutoscaleSettings(d)
 	autoscaleSettingResource := documentdb.AutoscaleSettingsResource{}
 
-	autoscaleSettingResource.MaxThroughput = autoscaleSettings.MaxThroughput
+	if autoscaleSettings != nil {
+		autoscaleSettingResource.MaxThroughput = autoscaleSettings.MaxThroughput
+	}
+
 	return &autoscaleSettingResource
 }
