@@ -184,7 +184,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						},
 						"subresource_name": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
