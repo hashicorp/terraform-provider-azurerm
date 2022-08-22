@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
@@ -36,9 +37,7 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 
 			"encryption": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_identifier": {
@@ -53,7 +52,7 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -241,6 +240,14 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("primary_write_key", accessKeys.primaryWriteKey)
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
+
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
