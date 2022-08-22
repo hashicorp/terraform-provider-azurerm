@@ -30,7 +30,6 @@ type SharedPrivateLinkServiceModel struct {
 	TargetResourceId string `tfschema:"target_resource_id"`
 	RequestMessage   string `tfschema:"request_message"`
 	Status           string `tfschema:"status"`
-	ResourceRegion   string `tfschema:"resource_region"`
 }
 
 func (r SharedPrivateLinkServiceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -64,12 +63,6 @@ func (r SharedPrivateLinkServiceResource) Arguments() map[string]*pluginsdk.Sche
 		},
 
 		"request_message": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"resource_region": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -135,10 +128,6 @@ func (r SharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 				parameters.Properties.RequestMessage = utils.String(model.RequestMessage)
 			}
 
-			if model.ResourceRegion != "" {
-				parameters.Properties.ResourceRegion = utils.String(model.ResourceRegion)
-			}
-
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("creating/ updating %s: %+v", id, err)
 			}
@@ -190,10 +179,6 @@ func (r SharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
 
 					if props.Status != nil {
 						state.Status = string(*props.Status)
-					}
-
-					if props.ResourceRegion != nil {
-						state.ResourceRegion = *props.ResourceRegion
 					}
 				}
 			}

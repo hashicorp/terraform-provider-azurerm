@@ -55,8 +55,6 @@ The following arguments are supported:
 
 * `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
-* `resource_region` - (Optional) Specify the resource region of the resource to which a shared private link is to be created. This is only required for those resources whose DNS configuration are regional (such as Azure Kubernetes Service).
-
 ## Attributes Reference:
 
 The following attributes are exported:
