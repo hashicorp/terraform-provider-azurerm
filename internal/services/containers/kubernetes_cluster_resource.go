@@ -1342,6 +1342,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 		existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
+		// updateChangedAddonProfiles(addonProfiles, existing)
 	}
 
 	if d.HasChange("api_server_authorized_ip_ranges") {
@@ -1675,6 +1676,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	d.Partial(false)
 
 	return resourceKubernetesClusterRead(d, meta)
+}
+
+func updateChangedAddonProfiles(addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile, clusterConfig containerservice.ManagedCluster) {
+	for addonKey, addonConfig := range *addonProfiles {
+		clusterConfig.ManagedClusterProperties.AddonProfiles[addonKey] = addonConfig
+	}
 }
 
 func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
