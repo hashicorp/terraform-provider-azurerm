@@ -21,23 +21,23 @@ type ScheduledQueryRulesAlertV2Model struct {
 	ResourceGroupName                     string                                    `tfschema:"resource_group_name"`
 	Actions                               []ScheduledQueryRulesAlertV2ActionsModel  `tfschema:"action"`
 	AutoMitigate                          bool                                      `tfschema:"auto_mitigation_enabled"`
-	CheckWorkspaceAlertsStorageConfigured bool                                      `tfschema:"check_workspace_alerts_storage_configured"`
+	CheckWorkspaceAlertsStorageConfigured bool                                      `tfschema:"workspace_alerts_storage_enabled"`
 	Criteria                              []ScheduledQueryRulesAlertV2CriteriaModel `tfschema:"criteria"`
 	Description                           string                                    `tfschema:"description"`
 	DisplayName                           string                                    `tfschema:"display_name"`
 	Enabled                               bool                                      `tfschema:"enabled"`
 	EvaluationFrequency                   string                                    `tfschema:"evaluation_frequency"`
 	Location                              string                                    `tfschema:"location"`
-	MuteActionsDuration                   string                                    `tfschema:"mute_actions_duration"`
-	OverrideQueryTimeRange                string                                    `tfschema:"override_query_time_range"`
+	MuteActionsDuration                   string                                    `tfschema:"mute_actions_after_alert_duration"`
+	OverrideQueryTimeRange                string                                    `tfschema:"query_time_range_override"`
 	Scopes                                []string                                  `tfschema:"scopes"`
 	Severity                              scheduledqueryrules.AlertSeverity         `tfschema:"severity"`
 	SkipQueryValidation                   bool                                      `tfschema:"skip_query_validation"`
 	Tags                                  map[string]string                         `tfschema:"tags"`
 	TargetResourceTypes                   []string                                  `tfschema:"target_resource_types"`
-	WindowSize                            string                                    `tfschema:"window_size"`
+	WindowSize                            string                                    `tfschema:"window_duration"`
 	CreatedWithApiVersion                 string                                    `tfschema:"created_with_api_version"`
-	IsLegacyLogAnalyticsRule              bool                                      `tfschema:"is_legacy_log_analytics_rule"`
+	IsLegacyLogAnalyticsRule              bool                                      `tfschema:"is_a_legacy_log_analytics_rule"`
 	IsWorkspaceAlertsStorageConfigured    bool                                      `tfschema:"is_workspace_alerts_storage_configured"`
 }
 
@@ -54,7 +54,7 @@ type ScheduledQueryRulesAlertV2CriteriaModel struct {
 	Query               string                                          `tfschema:"query"`
 	ResourceIdColumn    string                                          `tfschema:"resource_id_column"`
 	Threshold           float64                                         `tfschema:"threshold"`
-	TimeAggregation     scheduledqueryrules.TimeAggregation             `tfschema:"time_aggregation"`
+	TimeAggregation     scheduledqueryrules.TimeAggregation             `tfschema:"time_aggregation_method"`
 }
 
 type ScheduledQueryRulesAlertV2DimensionModel struct {
@@ -64,7 +64,7 @@ type ScheduledQueryRulesAlertV2DimensionModel struct {
 }
 
 type ScheduledQueryRulesAlertV2FailingPeriodsModel struct {
-	MinFailingPeriodsToAlert  int64 `tfschema:"min_failing_periods_to_alert"`
+	MinFailingPeriodsToAlert  int64 `tfschema:"minimum_failing_periods_to_trigger_alert"`
 	NumberOfEvaluationPeriods int64 `tfschema:"number_of_evaluation_periods"`
 }
 
@@ -122,7 +122,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 						}, false),
 					},
 
-					"time_aggregation": {
+					"time_aggregation_method": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
@@ -177,7 +177,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"min_failing_periods_to_alert": {
+								"minimum_failing_periods_to_trigger_alert": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntBetween(1, 6),
@@ -231,7 +231,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.IntBetween(0, 4),
 		},
 
-		"window_size": {
+		"window_duration": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: helperValidate.ISO8601Duration,
@@ -269,7 +269,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Default:  false,
 		},
 
-		"check_workspace_alerts_storage_configured": {
+		"workspace_alerts_storage_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -292,13 +292,13 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Default:  true,
 		},
 
-		"mute_actions_duration": {
+		"mute_actions_after_alert_duration": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: helperValidate.ISO8601Duration,
 		},
 
-		"override_query_time_range": {
+		"query_time_range_override": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: helperValidate.ISO8601Duration,
@@ -329,7 +329,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Attributes() map[string]*pluginsdk.S
 			Computed: true,
 		},
 
-		"is_legacy_log_analytics_rule": {
+		"is_a_legacy_log_analytics_rule": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -467,7 +467,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				model.Properties.AutoMitigate = &resourceModel.AutoMitigate
 			}
 
-			if metadata.ResourceData.HasChange("check_workspace_alerts_storage_configured") {
+			if metadata.ResourceData.HasChange("workspace_alerts_storage_enabled") {
 				model.Properties.CheckWorkspaceAlertsStorageConfigured = &resourceModel.CheckWorkspaceAlertsStorageConfigured
 			}
 
@@ -500,7 +500,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				model.Properties.EvaluationFrequency = &resourceModel.EvaluationFrequency
 			}
 
-			if metadata.ResourceData.HasChange("mute_actions_duration") {
+			if metadata.ResourceData.HasChange("mute_actions_after_alert_duration") {
 				if resourceModel.MuteActionsDuration != "" {
 					if resourceModel.AutoMitigate {
 						return fmt.Errorf("auto mitigation must be disabled when mute action duration is set")
@@ -511,7 +511,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("override_query_time_range") {
+			if metadata.ResourceData.HasChange("query_time_range_override") {
 				if resourceModel.OverrideQueryTimeRange != "" {
 					model.Properties.OverrideQueryTimeRange = &resourceModel.OverrideQueryTimeRange
 				} else {
@@ -531,7 +531,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				model.Properties.TargetResourceTypes = &resourceModel.TargetResourceTypes
 			}
 
-			if metadata.ResourceData.HasChange("window_size") {
+			if metadata.ResourceData.HasChange("window_duration") {
 				if resourceModel.WindowSize != "" {
 					model.Properties.WindowSize = &resourceModel.WindowSize
 				} else {

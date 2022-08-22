@@ -24,17 +24,17 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
   location            = azurerm_resource_group.example.location
 
   evaluation_frequency = "PT10M"
-  window_size          = "PT10M"
+  window_duration      = "PT10M"
   scopes               = [azurerm_application_insights.example.id]
   severity             = 4
   criteria {
-    query            = <<-QUERY
+    query                   = <<-QUERY
       requests
         | summarize CountByCountry=count() by client_CountryOrRegion
       QUERY
-    time_aggregation = "Maximum"
-    threshold        = 17.5
-    operator         = "LessThan"
+    time_aggregation_method = "Maximum"
+    threshold               = 17.5
+    operator                = "LessThan"
 
     resource_id_column    = "client_CountryOrRegion"
     metric_measure_column = "CountByCountry"
@@ -44,18 +44,18 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
       values   = ["123"]
     }
     failing_periods {
-      min_failing_periods_to_alert = 1
-      number_of_evaluation_periods = 1
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
     }
   }
 
-  auto_mitigation_enabled                   = true
-  check_workspace_alerts_storage_configured = false
-  description                               = "example sqr"
-  display_name                              = "example-sqr"
-  enabled                                   = true
-  override_query_time_range                 = "PT1H"
-  skip_query_validation                     = true
+  auto_mitigation_enabled          = true
+  workspace_alerts_storage_enabled = false
+  description                      = "example sqr"
+  display_name                     = "example-sqr"
+  enabled                          = true
+  override_query_time_range        = "PT1H"
+  skip_query_validation            = true
   action {
     action_groups = [azurerm_monitor_action_group.example.id]
     custom_properties = {
@@ -89,25 +89,25 @@ The following arguments are supported:
 
 * `severity` - (Required) Severity of the alert. Should be an integer between 0 and 4. Value of 0 is severest. 
 
-* `window_size` - (Required) Specifies the period of time in ISO 8601 duration format on which the Scheduled Query Rule will be executed (bin size).
+* `window_duration` - (Required) Specifies the period of time in ISO 8601 duration format on which the Scheduled Query Rule will be executed (bin size).
 
 * `action` - (Optional) An `action` block as defined below.
 
-* `auto_mitigation_enabled` - (Optional) Specifies the flag that indicates whether the alert should be automatically resolved or not. Value should be true or false. The default is false.
+* `auto_mitigation_enabled` - (Optional) Specifies the flag that indicates whether the alert should be automatically resolved or not. Value should be `true` or `false`. The default is `false`.
 
-* `check_workspace_alerts_storage_configured` - (Optional) Specifies the flag which indicates whether this scheduled query rule should be stored in the customer's storage. Value should be true or false. The default is false. 
+* `workspace_alerts_storage_enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule check if storage is configured. Value should be `true` or `false`. The default is `false`. 
 
 * `description` - (Optional) Specifies the description of the scheduled query rule.
 
 * `display_name` - (Optional) Specifies the display name of the alert rule.
 
-* `enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule is enabled. Value should be true or false. The default is true.
+* `enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule is enabled. Value should be `true` or `false`. The default is `true`.
 
-* `mute_actions_duration` - (Optional) Mute actions for the chosen period of time in ISO 8601 duration format after the alert is fired. 
+* `mute_actions_after_alert_duration` - (Optional) Mute actions for the chosen period of time in ISO 8601 duration format after the alert is fired. 
 
--> **NOTE** `auto_mitigation_enabled` and `mute_actions_duration` are mutually exclusive and cannot both be set.
+-> **NOTE** `auto_mitigation_enabled` and `mute_actions_after_alert_duration` are mutually exclusive and cannot both be set.
 
-* `override_query_time_range` - (Optional) If specified then overrides the query time range, default is `window_size`*`number_of_evaluation_periods`.
+* `override_query_time_range` - (Optional) If specified then overrides the query time range, default is `window_duration`*`number_of_evaluation_periods`.
 
 * `skip_query_validation` - (Optional) Specifies the flag which indicates whether the provided query should be validated or not. The default is false.
 
@@ -133,7 +133,7 @@ A `criteria` block supports the following:
 
 * `threshold` - (Required) Specifies the criteria threshold value that activates the alert.
 
-* `time_aggregation` - (Required) The type of aggregation to apply to the data points in aggregation granularity. Possible values are `Average`, `Count`, `Maximum`, `Minimum`,and `Total`.
+* `time_aggregation_method` - (Required) The type of aggregation to apply to the data points in aggregation granularity. Possible values are `Average`, `Count`, `Maximum`, `Minimum`,and `Total`.
 
 * `dimension` - (Optional) A `dimension` block as defined below.
 
@@ -157,9 +157,9 @@ A `dimension` block supports the following:
 
 A `failing_periods` block supports the following:
 
-* `min_failing_periods_to_alert` - (Required) Specifies the number of violations to trigger an alert. Should be smaller or equal to `number_of_evaluation_periods`. Possible value is integer between 1 and 6.
+* `minimum_failing_periods_to_trigger_alert` - (Required) Specifies the number of violations to trigger an alert. Should be smaller or equal to `number_of_evaluation_periods`. Possible value is integer between 1 and 6.
 
-* `number_of_evaluation_periods` - (Required) Specifies the number of aggregated look-back points. The look-back time window is calculated based on the aggregation granularity `window_size` and the selected number of aggregated points. Possible value is integer between 1 and 6. 
+* `number_of_evaluation_periods` - (Required) Specifies the number of aggregated look-back points. The look-back time window is calculated based on the aggregation granularity `window_duration` and the selected number of aggregated points. Possible value is integer between 1 and 6. 
 
 ## Attributes Reference
 
@@ -169,7 +169,7 @@ The following Attributes are exported:
 
 * `created_with_api_version` - The api-version used when creating this alert rule.
 
-* `is_legacy_log_analytics_rule` - True if this alert rule is a legacy Log Analytic Rule.
+* `is_a_legacy_log_analytics_rule` - True if this alert rule is a legacy Log Analytic Rule.
 
 * `is_workspace_alerts_storage_configured` - The flag indicates whether this Scheduled Query Rule has been configured to be stored in the customer's storage.
 

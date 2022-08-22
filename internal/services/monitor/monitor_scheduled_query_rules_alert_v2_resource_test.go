@@ -139,17 +139,17 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   location             = "%s"
   evaluation_frequency = "PT5M"
-  window_size          = "PT5M"
+  window_duration      = "PT5M"
   scopes               = [azurerm_application_insights.test.id]
   severity             = 3
   criteria {
-    query            = <<-QUERY
+    query                   = <<-QUERY
       requests
 	    | summarize CountByCountry=count() by client_CountryOrRegion
 	  QUERY
-    time_aggregation = "Count"
-    threshold        = 5.0
-    operator         = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 5.0
+    operator                = "GreaterThan"
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -165,14 +165,14 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "import" {
   resource_group_name  = azurerm_resource_group.test.name
   location             = "%s"
   evaluation_frequency = azurerm_monitor_scheduled_query_rules_alert_v2.test.evaluation_frequency
-  window_size          = azurerm_monitor_scheduled_query_rules_alert_v2.test.window_size
+  window_duration      = azurerm_monitor_scheduled_query_rules_alert_v2.test.window_duration
   scopes               = azurerm_monitor_scheduled_query_rules_alert_v2.test.scopes
   severity             = azurerm_monitor_scheduled_query_rules_alert_v2.test.severity
   criteria {
-    query            = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.query
-    time_aggregation = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.time_aggregation
-    threshold        = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.threshold
-    operator         = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.operator
+    query                   = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.query
+    time_aggregation_method = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.time_aggregation_method
+    threshold               = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.threshold
+    operator                = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.operator
   }
 }
 `, config, data.Locations.Primary)
@@ -189,17 +189,17 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
   location            = "%s"
 
   evaluation_frequency = "PT5M"
-  window_size          = "PT5M"
+  window_duration      = "PT5M"
   scopes               = [azurerm_application_insights.test.id]
   severity             = 3
   criteria {
-    query            = <<-QUERY
+    query                   = <<-QUERY
       requests
 	    | summarize CountByCountry=count() by client_CountryOrRegion
 	  QUERY
-    time_aggregation = "Count"
-    threshold        = 5.0
-    operator         = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 5.0
+    operator                = "GreaterThan"
 
     resource_id_column = "client_CountryOrRegion"
     dimension {
@@ -208,20 +208,20 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
       values   = ["*"]
     }
     failing_periods {
-      min_failing_periods_to_alert = 1
-      number_of_evaluation_periods = 1
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
     }
   }
 
-  auto_mitigation_enabled                   = false
-  check_workspace_alerts_storage_configured = false
-  description                               = "test sqr"
-  display_name                              = "acctest-sqr"
-  enabled                                   = false
-  mute_actions_duration                     = "PT10M"
-  override_query_time_range                 = "PT10M"
-  skip_query_validation                     = false
-  target_resource_types                     = ["microsoft.insights/components"]
+  auto_mitigation_enabled           = false
+  workspace_alerts_storage_enabled  = false
+  description                       = "test sqr"
+  display_name                      = "acctest-sqr"
+  enabled                           = false
+  mute_actions_after_alert_duration = "PT10M"
+  query_time_range_override         = "PT10M"
+  skip_query_validation             = false
+  target_resource_types             = ["microsoft.insights/components"]
   action {
     action_groups = [azurerm_monitor_action_group.test.id]
     custom_properties = {
@@ -247,17 +247,17 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
   location            = "%s"
 
   evaluation_frequency = "PT10M"
-  window_size          = "PT10M"
+  window_duration      = "PT10M"
   scopes               = [azurerm_application_insights.test.id]
   severity             = 4
   criteria {
-    query            = <<-QUERY
+    query                   = <<-QUERY
       requests
         | summarize CountByCountry=count() by client_CountryOrRegion
       QUERY
-    time_aggregation = "Maximum"
-    threshold        = 17.5
-    operator         = "LessThan"
+    time_aggregation_method = "Maximum"
+    threshold               = 17.5
+    operator                = "LessThan"
 
     resource_id_column    = "client_CountryOrRegion"
     metric_measure_column = "CountByCountry"
@@ -267,18 +267,18 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
       values   = ["123"]
     }
     failing_periods {
-      min_failing_periods_to_alert = 1
-      number_of_evaluation_periods = 1
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
     }
   }
 
-  auto_mitigation_enabled                   = true
-  check_workspace_alerts_storage_configured = false
-  description                               = "test sqr"
-  display_name                              = "acctest-sqr"
-  enabled                                   = true
-  override_query_time_range                 = "PT1H"
-  skip_query_validation                     = true
+  auto_mitigation_enabled          = true
+  workspace_alerts_storage_enabled = false
+  description                      = "test sqr"
+  display_name                     = "acctest-sqr"
+  enabled                          = true
+  query_time_range_override        = "PT1H"
+  skip_query_validation            = true
   action {
     action_groups = [azurerm_monitor_action_group.test.id]
     custom_properties = {
