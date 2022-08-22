@@ -362,7 +362,7 @@ func TestAccAppConfiguration_purgeProtectionAttemptToDisable(t *testing.T) {
 	})
 }
 
-func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurationstores.ParseConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err

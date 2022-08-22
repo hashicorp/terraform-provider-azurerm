@@ -539,16 +539,10 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		log.Printf("[DEBUG]  %q marked for purge - executing purge", id.ConfigStoreName)
-		future, err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeleted(ctx, deletedId)
-		if err != nil {
-			return err
+		if err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeletedThenPoll(ctx, deletedId); err != nil {
+			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
 
-		log.Printf("[DEBUG] Waiting for purge of App Configuration %q..", id.ConfigStoreName)
-
-		if err := future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for purging of %s: %+v", *id, err)
-		}
 		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigStoreName)
 	}
 
