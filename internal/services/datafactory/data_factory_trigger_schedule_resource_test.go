@@ -30,6 +30,21 @@ func TestAccDataFactoryTriggerSchedule_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryTriggerSchedule_pipeline(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
+	r := TriggerScheduleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pipeline(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryTriggerSchedule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
 	r := TriggerScheduleResource{}
@@ -126,6 +141,60 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
   name            = "acctestdf%[1]d"
   data_factory_id = azurerm_data_factory.test.id
   pipeline_name   = azurerm_data_factory_pipeline.test.name
+
+  annotations = ["test1", "test2", "test3"]
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (TriggerScheduleResource) pipeline(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_pipeline" "test1" {
+  name            = "acctest%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  parameters = {
+    test = "testparameter1"
+  }
+}
+
+resource "azurerm_data_factory_pipeline" "test2" {
+  name            = "acctests%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  parameters = {
+    test = "testparameter2"
+  }
+}
+
+resource "azurerm_data_factory_trigger_schedule" "test" {
+  name            = "acctestdf%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  pipeline {
+    name       = azurerm_data_factory_pipeline.test1.name
+    parameters = azurerm_data_factory_pipeline.test1.parameters
+  }
+
+  pipeline {
+    name       = azurerm_data_factory_pipeline.test2.name
+    parameters = azurerm_data_factory_pipeline.test2.parameters
+  }
 
   annotations = ["test1", "test2", "test3"]
 }

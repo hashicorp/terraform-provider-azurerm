@@ -5,7 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -1121,7 +1121,7 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*conta
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}

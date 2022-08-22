@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -741,7 +740,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("retrieving InstanceView for Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 		}
 
-		shouldTurnBackOn := true
+		shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
 		shouldDeallocate := true
 
 		if instanceView.Statuses != nil {
@@ -759,14 +758,16 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				state = strings.TrimPrefix(state, "powerstate/")
 				switch strings.ToLower(state) {
 				case "deallocated":
-				case "deallocating":
-					shouldTurnBackOn = false
+					// VM already deallocated, no shutdown and deallocation needed anymore
 					shouldShutDown = false
 					shouldDeallocate = false
-				case "stopping":
+				case "deallocating":
+					// VM is deallocating
+					// To make sure we do not start updating before this action has finished,
+					// only skip the shutdown and send another deallocation request if shouldDeallocate == true
+					shouldShutDown = false
 				case "stopped":
 					shouldShutDown = false
-					shouldTurnBackOn = false
 				}
 			}
 		}
@@ -812,7 +813,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("waiting for update of Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if shouldTurnBackOn {
+		if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
 			log.Printf("[DEBUG] Starting Linux Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
 			future, err := vmClient.Start(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 			if err != nil {

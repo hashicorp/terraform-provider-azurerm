@@ -27,11 +27,11 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
     ]
 
   }
@@ -41,9 +41,9 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "get",
-      "unwrapKey",
-      "wrapKey",
+      "Get",
+      "UnwrapKey",
+      "WrapKey",
     ]
   }
 }

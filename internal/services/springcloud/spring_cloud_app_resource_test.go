@@ -78,6 +78,21 @@ func TestAccSpringCloudApp_addon(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudApp_vnetAddon(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vnetAddon(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudApp_customPersistentDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 	r := SpringCloudAppResource{}
@@ -348,6 +363,16 @@ resource "azurerm_spring_cloud_service" "test" {
 resource "azurerm_spring_cloud_configuration_service" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  repository {
+    name                     = "fake"
+    label                    = "master"
+    patterns                 = ["app/dev", "app/prod"]
+    uri                      = "https://github.com/Azure-Samples/piggymetrics"
+    search_paths             = ["dir1", "dir2"]
+    strict_host_key_checking = false
+    username                 = "adminuser"
+    password                 = "H@Sh1CoR3!"
+  }
 }
 
 resource "azurerm_spring_cloud_app" "test" {
@@ -364,6 +389,19 @@ resource "azurerm_spring_cloud_app" "test" {
   })
 }
 `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SpringCloudAppResource) vnetAddon(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                    = "acctest-sca-%[2]d"
+  resource_group_name     = azurerm_spring_cloud_service.test.resource_group_name
+  service_name            = azurerm_spring_cloud_service.test.name
+  public_endpoint_enabled = true
+}
+`, SpringCloudServiceResource{}.virtualNetwork(data), data.RandomInteger)
 }
 
 func (r SpringCloudAppResource) customPersistentDisksWith(data acceptance.TestData, storageLabel string) string {

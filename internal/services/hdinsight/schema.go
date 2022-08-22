@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -272,7 +273,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				},
 
 				"cluster_users_group_dns": {
@@ -287,6 +288,86 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"uri": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+
+				"parameters": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"access_modes": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"destination_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: azValidate.PortNumber,
+				},
+
+				"disable_gateway_auth": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"private_ip_address": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsIPAddress,
+				},
+
+				"sub_domain_suffix": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+type HttpEndpointModel struct {
+	AccessModes        []string `tfschema:"access_modes"`
+	DestinationPort    int32    `tfschema:"destination_port"`
+	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
+	PrivateIpAddress   string   `tfschema:"private_ip_address"`
+	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
 }
 
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {

@@ -29,6 +29,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   private_dns_zone_name = azurerm_private_dns_zone.example.name
   virtual_network_id    = azurerm_virtual_network.example.id
 }
+
+resource "azurerm_virtual_network" "example" {
+  name                = "test-network"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
 ```
 
 ## Argument Reference
@@ -55,7 +62,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Private DNS Zone Virtual Network Link.
 * `update` - (Defaults to 30 minutes) Used when updating the Private DNS Zone Virtual Network Link.

@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
 
-* `delivery_property` - (Optional) A `delivery_property` block as defined below.
+* `delivery_property` - (Optional) One or more `delivery_property` blocks as defined below.
 
 * `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
 
@@ -195,7 +195,7 @@ A `delivery_identity` supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`, `UserAssigned`.
 
-* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
+* `user_assigned_identity` - (Optional) The user identity associated with the resource.
 
 ---
 
@@ -219,7 +219,7 @@ A `dead_letter_identity` supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`, `UserAssigned`.
 
-* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
+* `user_assigned_identity` - (Optional) The user identity associated with the resource.
 
 ---
 
@@ -245,7 +245,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Messaging.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Messaging.

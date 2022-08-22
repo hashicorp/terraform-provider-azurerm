@@ -1,5 +1,8 @@
 name: Issue Opened Triage
 
+permissions:
+  issues: write
+
 on:
   issues:
     types: [opened]

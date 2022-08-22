@@ -5,16 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
@@ -24,7 +23,7 @@ func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
 		Update: resourceNotificationHubAuthorizationRuleCreateUpdate,
 		Delete: resourceNotificationHubAuthorizationRuleDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NotificationHubAuthorizationRuleID(id)
+			_, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(id)
 			return err
 		}),
 		// TODO: customizeDiff for send+listen when manage selected
@@ -99,16 +98,16 @@ func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNotificationHubAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("notification_hub_name").(string), d.Get("name").(string))
+	id := notificationhubs.NewNotificationHubAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("notification_hub_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
+		existing, err := client.GetAuthorizationRule(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_notification_hub_authorization_rule", id.ID())
 		}
 	}
@@ -123,12 +122,12 @@ func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	send := d.Get("send").(bool)
 	listen := d.Get("listen").(bool)
 	parameters := notificationhubs.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
-		Properties: &notificationhubs.SharedAccessAuthorizationRuleProperties{
+		Properties: notificationhubs.SharedAccessAuthorizationRuleProperties{
 			Rights: expandNotificationHubAuthorizationRuleRights(manage, send, listen),
 		},
 	}
 
-	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName, parameters); err != nil {
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -141,14 +140,14 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NotificationHubAuthorizationRuleID(d.Id())
+	id, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
+	resp, err := client.GetAuthorizationRule(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -157,7 +156,7 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
+	keysResp, err := client.ListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing access keys for %s: %+v", *id, err)
 	}
@@ -165,17 +164,21 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	d.Set("name", id.AuthorizationRuleName)
 	d.Set("notification_hub_name", id.NotificationHubName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.SharedAccessAuthorizationRuleProperties; props != nil {
-		manage, send, listen := flattenNotificationHubAuthorizationRuleRights(props.Rights)
-		d.Set("manage", manage)
-		d.Set("send", send)
-		d.Set("listen", listen)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			manage, send, listen := flattenNotificationHubAuthorizationRuleRights(props.Rights)
+			d.Set("manage", manage)
+			d.Set("send", send)
+			d.Set("listen", listen)
+		}
 	}
 
-	d.Set("primary_access_key", keysResp.PrimaryKey)
-	d.Set("secondary_access_key", keysResp.SecondaryKey)
+	if keysModel := keysResp.Model; keysModel != nil {
+		d.Set("primary_access_key", keysModel.PrimaryKey)
+		d.Set("secondary_access_key", keysModel.SecondaryKey)
+	}
 
 	return nil
 }
@@ -185,7 +188,7 @@ func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NotificationHubAuthorizationRuleID(d.Id())
+	id, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -196,9 +199,9 @@ func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 	locks.ByName(id.NamespaceName, notificationHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, notificationHubNamespaceResourceName)
 
-	resp, err := client.DeleteAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
+	resp, err := client.DeleteAuthorizationRule(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

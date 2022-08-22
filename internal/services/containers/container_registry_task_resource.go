@@ -897,9 +897,18 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
 				existing.TaskProperties.Step = expandRegistryTaskStep(model)
 			}
+
 			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {
 				existing.TaskProperties.Trigger = expandRegistryTaskTrigger(model)
 			}
+
+			if existing.TaskProperties.Trigger != nil {
+				if !metadata.ResourceData.HasChange("source_triggers") && existing.TaskProperties.Trigger.SourceTriggers != nil {
+					// For update that is not affecting source_triggers, we need to patch the source_triggers to include the properties missing in the response of GET.
+					existing.TaskProperties.Trigger.SourceTriggers = patchRegistryTaskTriggerSourceTrigger(*existing.TaskProperties.Trigger.SourceTriggers, model)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := expandRegistryTaskIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
@@ -1617,4 +1626,26 @@ func flattenRegistryTaskAgentProperties(input *legacyacr.AgentProperties) []Agen
 		cpu = int(*input.CPU)
 	}
 	return []AgentConfig{{CPU: cpu}}
+}
+
+func patchRegistryTaskTriggerSourceTrigger(triggers []legacyacr.SourceTrigger, model ContainerRegistryTaskModel) *[]legacyacr.SourceTrigger {
+	if len(triggers) != len(model.SourceTrigger) {
+		return &triggers
+	}
+
+	result := make([]legacyacr.SourceTrigger, len(triggers))
+	for i, trigger := range model.SourceTrigger {
+		t := (triggers)[i]
+		if len(trigger.Auth) == 0 {
+			result[i] = t
+			continue
+		}
+		if t.SourceRepository == nil {
+			result[i] = t
+			continue
+		}
+		t.SourceRepository.SourceControlAuthProperties = expandRegistryTaskAuthInfo(trigger.Auth[0])
+		result[i] = t
+	}
+	return &result
 }

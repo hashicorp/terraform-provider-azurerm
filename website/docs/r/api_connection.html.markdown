@@ -13,6 +13,10 @@ Manages an API Connection.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -21,6 +25,13 @@ resource "azurerm_resource_group" "example" {
 data "azurerm_managed_api" "example" {
   name     = "servicebus"
   location = azurerm_resource_group.example.location
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestsbn-conn-example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "Basic"
 }
 
 resource "azurerm_api_connection" "example" {
@@ -72,7 +83,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Connection.

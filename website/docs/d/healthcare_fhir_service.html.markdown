@@ -14,8 +14,8 @@ Use this data source to access information about an existing Healthcare FHIR Ser
 
 ```hcl
 data "azurerm_healthcare_fhir_service" "example" {
-  name         = "example-healthcare_fhir_service"
-  workspace_id = "example-workspace"
+  name         = "example-healthcare"
+  workspace_id = data.azurerm_healthcare_fhir_service.example.workspace_id
 }
 
 output "healthcare_fhir_service_id" {
@@ -82,7 +82,7 @@ An `authentication` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
 

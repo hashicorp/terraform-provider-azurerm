@@ -94,6 +94,22 @@ func TestAccDataFactoryLinkedServiceAzureFileStorage_KeyVaultReference(t *testin
 	})
 }
 
+func TestAccDataFactoryLinkedServiceAzureFileStorage_UserId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
+	r := LinkedServiceAzureFileStorageResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userIdAndPassword(data, "admin"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("user_id").HasValue("admin"),
+			),
+		},
+		data.ImportStep("connection_string"),
+	})
+}
+
 func (t LinkedServiceAzureFileStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
@@ -232,6 +248,32 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
   file_share        = "myshare"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureFileStorageResource) userIdAndPassword(data acceptance.TestData, userId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  user_id           = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, userId)
 }
 
 func (LinkedServiceAzureFileStorageResource) key_vault_reference(data acceptance.TestData) string {

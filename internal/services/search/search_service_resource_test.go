@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/services"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

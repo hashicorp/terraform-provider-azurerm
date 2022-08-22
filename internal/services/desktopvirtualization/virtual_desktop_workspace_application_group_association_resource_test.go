@@ -3,7 +3,6 @@ package desktopvirtualization_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"testing"
 
@@ -92,26 +91,23 @@ func (t VirtualDesktopWorkspaceApplicationGroupAssociationResource) Exists(ctx c
 		return nil, err
 	}
 
-	resp, err := clients.DesktopVirtualization.WorkspacesClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name)
+	resp, err := clients.DesktopVirtualization.WorkspacesClient.Get(ctx, id.Workspace)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Virtual Desktop Workspace Application Group Association %q (Resource Group: %q) does not exist", id.Workspace.Name, id.Workspace.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.Workspace, err)
 	}
 
-	if resp.StatusCode == http.StatusNotFound {
-		return utils.Bool(false), nil
-	}
-
-	if resp.WorkspaceProperties == nil || resp.ApplicationGroupReferences == nil {
-		return utils.Bool(false), nil
-	}
-
-	for _, app := range *resp.ApplicationGroupReferences {
-		if strings.EqualFold(app, id.ApplicationGroup.ID()) {
-			return utils.Bool(true), nil
+	found := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil && props.ApplicationGroupReferences != nil {
+			for _, app := range *props.ApplicationGroupReferences {
+				if strings.EqualFold(app, id.ApplicationGroup.ID()) {
+					found = true
+				}
+			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return utils.Bool(found), nil
 }
 
 func (VirtualDesktopWorkspaceApplicationGroupAssociationResource) basic(data acceptance.TestData) string {

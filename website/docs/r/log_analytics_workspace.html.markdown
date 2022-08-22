@@ -49,9 +49,11 @@ The following arguments are supported:
 
 ~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`. 
 
-* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
+* `cmk_for_query_forced` - (Optional) Is Customer Managed Storage mandatory for query management?
 
-* `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
+
+* `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
 
 * `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
 
@@ -59,7 +61,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` it will not be able to be modified until link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource.
+~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster. 
 
 ## Attributes Reference
 
@@ -75,7 +77,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace.
 * `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.

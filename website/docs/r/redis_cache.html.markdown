@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
 * `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
@@ -88,6 +90,16 @@ The following arguments are supported:
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Redis Cache should be located. Changing this forces a new Redis Cache to be created.
 
 -> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](https://aka.ms/azenroll).
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -125,7 +137,7 @@ redis_configuration {
 * `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKUs.
 * `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKUs. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.example.primary_blob_endpoint};AccountName=${azurerm_storage_account.example.name};AccountKey=${azurerm_storage_account.example.primary_access_key}`.
 
-~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) e.g.:
+~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
 
 ```
 resource "azurerm_redis_cache" "example" {
@@ -202,7 +214,7 @@ A `redis_configuration` block exports the following:
 
 ## Timeouts
 
- The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
  * `create` - (Defaults to 90 minutes) Used when creating the Redis Cache.
  * `update` - (Defaults to 90 minutes) Used when updating the Redis Cache.

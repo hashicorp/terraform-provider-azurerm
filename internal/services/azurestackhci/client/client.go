@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ClusterClient *azurestackhci.ClustersClient
+	ClusterClient *clusters.ClustersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	clusterClient := azurestackhci.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	clusterClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&clusterClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

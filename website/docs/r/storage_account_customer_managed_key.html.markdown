@@ -38,8 +38,8 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.example.identity.0.principal_id
 
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -47,8 +47,8 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 
@@ -109,7 +109,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Account Customer Managed Keys.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Account Customer Managed Keys.

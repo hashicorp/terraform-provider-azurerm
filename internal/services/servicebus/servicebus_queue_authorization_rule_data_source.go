@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queuesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
@@ -32,7 +32,7 @@ func dataSourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
 			"queue_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.QueueID,
+				ValidateFunc: queues.ValidateQueueID,
 				AtLeastOneOf: []string{"queue_id", "resource_group_name", "namespace_name", "queue_name"},
 			},
 
@@ -112,7 +112,7 @@ func dataSourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesClient
+	client := meta.(*clients.Client).ServiceBus.QueuesAuthClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,53 +121,57 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	var nsName string
 	var queueName string
 	if v, ok := d.Get("queue_id").(string); ok && v != "" {
-		queueId, err := parse.QueueID(v)
+		queueId, err := queuesauthorizationrule.ParseQueueID(v)
 		if err != nil {
 			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
 		}
-		rgName = queueId.ResourceGroup
+		rgName = queueId.ResourceGroupName
 		nsName = queueId.NamespaceName
-		queueName = queueId.Name
+		queueName = queueId.QueueName
 	} else {
 		rgName = d.Get("resource_group_name").(string)
 		nsName = d.Get("namespace_name").(string)
 		queueName = d.Get("queue_name").(string)
 	}
 
-	id := parse.NewQueueAuthorizationRuleID(subscriptionId, rgName, nsName, queueName, d.Get("name").(string))
-	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.QueueName, id.AuthorizationRuleName)
+	id := queuesauthorizationrule.NewQueueAuthorizationRuleID(subscriptionId, rgName, nsName, queueName, d.Get("name").(string))
+	resp, err := client.QueuesGetAuthorizationRule(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.QueueName, id.AuthorizationRuleName)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	d.Set("name", id.AuthorizationRuleName)
 	d.Set("queue_name", id.QueueName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("queue_id", parse.NewQueueID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.QueueName).ID())
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("queue_id", queuesauthorizationrule.NewQueueID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.QueueName).ID())
 
-	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
-		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)
-		d.Set("listen", listen)
-		d.Set("send", send)
-		d.Set("manage", manage)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			listen, send, manage := flattenQueueAuthorizationRuleRights(&props.Rights)
+			d.Set("manage", manage)
+			d.Set("listen", listen)
+			d.Set("send", send)
+		}
 	}
 
-	d.Set("primary_key", keysResp.PrimaryKey)
-	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
-	d.Set("secondary_key", keysResp.SecondaryKey)
-	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
-	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
-	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
+	keysResp, err := client.QueuesListKeys(ctx, id)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", id, err)
+	}
+
+	if keysModel := keysResp.Model; keysModel != nil {
+		d.Set("primary_key", keysModel.PrimaryKey)
+		d.Set("primary_connection_string", keysModel.PrimaryConnectionString)
+		d.Set("secondary_key", keysModel.SecondaryKey)
+		d.Set("secondary_connection_string", keysModel.SecondaryConnectionString)
+		d.Set("primary_connection_string_alias", keysModel.AliasPrimaryConnectionString)
+		d.Set("secondary_connection_string_alias", keysModel.AliasSecondaryConnectionString)
+	}
 
 	return nil
 }

@@ -19,7 +19,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_server" "example" {
-  # ...
+  name                    = "example-postgre-server"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  sku_name                = "GP_Gen5_2"
+  version                 = "11"
+  ssl_enforcement_enabled = true
 }
 
 resource "azurerm_postgresql_firewall_rule" "example" {
@@ -78,7 +83,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Firewall Rule.
 * `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Firewall Rule.

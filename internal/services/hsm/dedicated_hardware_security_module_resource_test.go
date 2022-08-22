@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -102,17 +102,17 @@ resource "azurerm_dedicated_hardware_security_module" "import" {
 }
 
 func (DedicatedHardwareSecurityModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DedicatedHardwareSecurityModuleID(state.ID)
+	id, err := dedicatedhsms.ParseDedicatedHSMID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.HSM.DedicatedHsmClient.Get(ctx, id.ResourceGroup, id.DedicatedHSMName)
+	resp, err := clients.HSM.DedicatedHsmClient.DedicatedHsmGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Dedicated HardwareSecurityModule %q (resource group: %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DedicatedHsmProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DedicatedHardwareSecurityModuleResource) template(data acceptance.TestData) string {

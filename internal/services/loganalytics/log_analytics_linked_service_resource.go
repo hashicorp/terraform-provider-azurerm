@@ -79,17 +79,17 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 
 	workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
 	if err != nil {
-		return fmt.Errorf("Linked Service (Resource Group %q) unable to parse workspace id: %+v", resourceGroup, err)
+		return fmt.Errorf("linked service (Resource Group %q) unable to parse workspace id: %+v", resourceGroup, err)
 	}
 
 	id := parse.NewLogAnalyticsLinkedServiceID(subscriptionId, resourceGroup, workspace.WorkspaceName, LogAnalyticsLinkedServiceType(readAccess))
 
 	if strings.EqualFold(id.LinkedServiceName, "Cluster") && writeAccess == "" {
-		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Log Analytics Cluster requires the 'write_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
+		return fmt.Errorf("linked service '%s/%s' (Resource Group %q): A linked Log Analytics Cluster requires the 'write_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
 	}
 
 	if strings.EqualFold(id.LinkedServiceName, "Automation") && readAccess == "" {
-		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Automation Account requires the 'read_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
+		return fmt.Errorf("linked service '%s/%s' (Resource Group %q): A linked Automation Account requires the 'read_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
 	}
 
 	if d.IsNewResource() {

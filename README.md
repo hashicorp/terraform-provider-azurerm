@@ -58,6 +58,6 @@ resource "azurerm_virtual_network" "example" {
 * [Learn more about Terraform and the AzureRM Provider on HashiCorp Learn](https://learn.hashicorp.com/collections/terraform/azure-get-started).
 * [Additional examples can be found in the `./examples` folder within this repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples).
 
-## Developing the Provider
+## Developing & Contributing to the Provider
 
-See [DEVELOPER.md](DEVELOPER.md).
+The [DEVELOPER.md](DEVELOPER.md) file is a basic outline on how to build and develop the provider while more detailed guides geared towards contributors can be found in the [`/contributing`] (https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory of this repository.

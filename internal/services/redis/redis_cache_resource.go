@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -295,6 +296,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 			"replicas_per_primary": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -370,6 +373,11 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		publicNetworkAccess = redis.PublicNetworkAccessDisabled
 	}
 
+	redisIdentity, err := expandRedisIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+
 	parameters := redis.CreateParameters{
 		Location: utils.String(location),
 		CreateProperties: &redis.CreateProperties{
@@ -383,7 +391,8 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			RedisConfiguration:  redisConfiguration,
 			PublicNetworkAccess: publicNetworkAccess,
 		},
-		Tags: expandedTags,
+		Identity: redisIdentity,
+		Tags:     expandedTags,
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
@@ -564,6 +573,26 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
 	}
 
+	// identity cannot be updated with sku,publicNetworkAccess,redisVersion etc.
+	if d.HasChange("identity") {
+		redisIdentity, err := expandRedisIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf(`expanding "identity": %v`, err)
+		}
+
+		identityParameter := redis.UpdateParameters{
+			Identity: redisIdentity,
+		}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.RediName, identityParameter); err != nil {
+			return fmt.Errorf("updating Redis Cache identity %q identity (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
+		}
+
+		log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RediName, id.ResourceGroup)
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
+		}
+	}
+
 	patchSchedule := expandRedisPatchSchedule(d)
 
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
@@ -612,6 +641,14 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err = d.Set("patch_schedule", patchSchedule); err != nil {
 			return fmt.Errorf("setting `patch_schedule`: %+v", err)
 		}
+	}
+
+	redisIdentity, err := flattenRedisIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", redisIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	d.Set("name", id.RediName)
@@ -988,4 +1025,48 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 
 func getRedisConnectionString(redisHostName string, sslPort int32, accessKey string, enableSslPort bool) string {
 	return fmt.Sprintf("%s:%d,password=%s,ssl=%t,abortConnect=False", redisHostName, sslPort, accessKey, enableSslPort)
+}
+
+func expandRedisIdentity(input []interface{}) (*redis.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := redis.ManagedServiceIdentity{
+		Type: redis.ManagedServiceIdentityType(expanded.Type),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*redis.UserAssignedIdentity)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &redis.UserAssignedIdentity{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
+}
+
+func flattenRedisIdentity(input *redis.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(input.Type),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    utils.String(v.ClientID.String()),
+				PrincipalId: utils.String(v.PrincipalID.String()),
+			}
+		}
+	}
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

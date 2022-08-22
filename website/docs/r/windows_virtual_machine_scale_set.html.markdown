@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `instances` - (Required) The number of Virtual Machines in the Scale Set.
 
--> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
+-> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
 * `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
 
@@ -120,6 +120,12 @@ The following arguments are supported:
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
+* `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
+
+~> **NOTE:** `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
+
+~> **NOTE:** `single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified
+
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine Scale Set.
@@ -140,7 +146,7 @@ The following arguments are supported:
 
 * `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between `15` minutes and `120` minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `90` minutes (`PT1H30M`).
 
-* `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
+* `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
@@ -294,7 +300,9 @@ A `data_disk` block supports the following:
 
 A `diff_disk_settings` block supports the following:
 
-`option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
+* `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
+
+* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk` and `ResourceDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
 
 ---
 
@@ -540,7 +548,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Windows Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when reading the Windows Virtual Machine Scale Set.

@@ -3,7 +3,7 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_diagnostic_categories"
 description: |-
-  Gets information about an the Monitor Diagnostics Categories supported by an existing Resource.
+  Gets information about the Monitor Diagnostics Categories supported by an existing Resource.
 
 ---
 
@@ -38,6 +38,6 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Diagnostics Categories.

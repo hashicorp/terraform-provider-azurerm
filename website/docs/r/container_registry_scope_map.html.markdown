@@ -18,17 +18,23 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_container_registry" "example" {
-  name                = "example-registry"
+  name                = "exampleregistry"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku                 = "Premium"
   admin_enabled       = false
-  georeplications     = ["East US", "West Europe"]
+
+  georeplications {
+    location = "East US"
+  }
+  georeplications {
+    location = "West Europe"
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "example" {
   name                    = "example-scope-map"
-  container_registry_name = azurerm_container_registry.acr.name
+  container_registry_name = azurerm_container_registry.example.name
   resource_group_name     = azurerm_resource_group.example.name
   actions = [
     "repositories/repo1/content/read",
@@ -59,7 +65,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry scope map.
 * `update` - (Defaults to 30 minutes) Used when updating the Container Registry scope map.

@@ -13,6 +13,10 @@ Manages a API Management Email Template.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -30,7 +34,7 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_email_template" "example" {
   template_name       = "ConfirmSignUpIdentityDefault"
-  resource_group_name = azurerm_resource_group.example.resource_group_name
+  resource_group_name = azurerm_resource_group.example.name
   api_management_name = azurerm_api_management.example.name
   subject             = "Customized confirmation email for your new $OrganizationName API account"
   body                = <<EOF
@@ -76,7 +80,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Email Template.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Email Template.

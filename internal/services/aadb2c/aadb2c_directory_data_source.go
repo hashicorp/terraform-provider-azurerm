@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -39,7 +38,7 @@ func (r AadB2cDirectoryDataSource) ModelObject() interface{} {
 }
 
 func (r AadB2cDirectoryDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.B2CDirectoryID
+	return tenants.ValidateB2CDirectoryID
 }
 
 func (r AadB2cDirectoryDataSource) Arguments() map[string]*pluginsdk.Schema {

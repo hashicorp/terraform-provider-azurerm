@@ -26,7 +26,7 @@ resource "azurerm_confidential_ledger" "ledger" {
   location            = azurerm_resource_group.example.location
   ledger_type         = "Private"
 
-  aad_based_security_principals {
+  azuread_based_service_principal {
     principal_id     = data.azurerm_client_config.current.object_id
     tenant_id        = data.azurerm_client_config.current.tenant_id
     ledger_role_name = "Administrator"
@@ -84,7 +84,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Confidential Ledger.
 * `update` - (Defaults to 30 minutes) Used when updating the Confidential Ledger.

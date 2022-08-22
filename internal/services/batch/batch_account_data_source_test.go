@@ -125,11 +125,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
 
   tags = {
     env = "test"
@@ -188,7 +189,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_role_assignment" "contribrole" {
   scope                = "/subscriptions/%s"
-  role_definition_name = "Contributor"
+  role_definition_name = "Reader"
   principal_id         = "${data.azuread_service_principal.test.object_id}"
 }
 
@@ -246,11 +247,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]

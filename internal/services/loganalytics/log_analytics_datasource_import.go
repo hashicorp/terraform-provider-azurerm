@@ -24,7 +24,7 @@ func importLogAnalyticsDataSource(kind operationalinsights.DataSourceKind) plugi
 		}
 
 		if resp.Kind != kind {
-			return nil, fmt.Errorf(`Log Analytics Data Source "kind" mismatch, expected "%s", got "%s"`, kind, resp.Kind)
+			return nil, fmt.Errorf(`log analytics Data Source "kind" mismatch, expected "%s", got "%s"`, kind, resp.Kind)
 		}
 		return []*pluginsdk.ResourceData{d}, nil
 	}

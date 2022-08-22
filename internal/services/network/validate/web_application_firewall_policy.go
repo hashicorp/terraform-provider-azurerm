@@ -16,7 +16,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"crs_42_tight_security",
 	"crs_45_trojans",
 	"General",
-	"KNOWN-CVES",
+	"Known-CVEs",
 	"REQUEST-911-METHOD-ENFORCEMENT",
 	"REQUEST-913-SCANNER-DETECTION",
 	"REQUEST-920-PROTOCOL-ENFORCEMENT",
@@ -43,4 +43,12 @@ var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlic
 var ValidateWebApplicationFirewallPolicyRuleSetType = validation.StringInSlice([]string{
 	"OWASP",
 	"Microsoft_BotManagerRuleSet",
+}, false)
+
+var ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion = validation.StringInSlice([]string{
+	"3.2",
+}, false)
+
+var ValidateWebApplicationFirewallPolicyExclusionRuleSetType = validation.StringInSlice([]string{
+	"OWASP",
 }, false)

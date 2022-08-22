@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -88,21 +89,21 @@ func TestAccCommunicationService_update(t *testing.T) {
 
 func (r CommunicationServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	clusterClient := client.Communication.ServiceClient
-	id, err := parse.CommunicationServiceID(state.ID)
+	id, err := communicationservice.ParseCommunicationServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clusterClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clusterClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving Communication Service %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.ServiceProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r CommunicationServiceResource) basic(data acceptance.TestData) string {

@@ -137,6 +137,8 @@ The following arguments are supported:
 
 * `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
 
+* `global` - (Optional) A `global` block as defined below.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
@@ -241,7 +243,7 @@ A `backend_http_settings` block supports the following:
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
-* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
+* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
 * `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
 
@@ -361,7 +363,7 @@ An `ip_configuration` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Required) A snippet from the Response Body which must be present in the Response.
+* `body` - A snippet from the Response Body which must be present in the Response.
 
 * `status_code` - (Required) A list of allowed status codes for this Health Probe.
 
@@ -399,7 +401,7 @@ A `probe` block support the following:
 
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
-* `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+* `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
 
 * `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
 
@@ -431,9 +433,17 @@ A `request_routing_rule` block supports the following:
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
-* `priority` - (Required) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. 
 
-~> **NOTE:** The `priority` field is mandatory with AzureRM release 3.6.0 and later. 
+-> **NOTE:** `priority` is required when `sku.0.tier` is set to `*_v2`.
+
+---
+
+A `global` block supports the following:
+
+* `request_buffering_enabled` - (Required) Whether Application Gateway's Request buffer is enabled.
+
+* `response_buffering_enabled` - (Required) Whether Application Gateway's Response buffer is enabled.
 
 ---
 
@@ -525,7 +535,7 @@ When using a `policy_type` of `Custom` the following fields are supported:
 
 A `waf_configuration` block supports the following:
 
-* `enabled` - (Required) Is the Web Application Firewall be enabled?
+* `enabled` - (Required) Is the Web Application Firewall enabled?
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
@@ -653,7 +663,9 @@ A `url` block supports the following:
 
 * `query_string` - (Optional) The query string to rewrite.
 
-~> **Note:** One or both of `path` and `query_string` must be specified.
+* `components` - (Optional) The components used to rewrite the URL. Possible values are `path_only` and `query_string_only` to limit the rewrite to the URL Path or URL Query String only.
+
+~> **Note:** One or both of `path` and `query_string` must be specified. If one of these is not specified, it means the value  will be empty. If you only want to rewrite `path` or `query_string`, use `components`.
 
 * `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 
@@ -849,7 +861,7 @@ A `rewrite_rule_set` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
 * `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.

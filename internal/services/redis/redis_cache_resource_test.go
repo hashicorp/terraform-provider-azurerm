@@ -474,6 +474,28 @@ func TestAccRedisCache_redisConfiguration(t *testing.T) {
 	})
 }
 
+func TestAccRedisCache_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CacheID(state.ID)
 	if err != nil {
@@ -1209,6 +1231,80 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, maxMemoryPolicy)
+}
+
+func (RedisCacheResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  capacity            = 1
+  family              = "C"
+  sku_name            = "Standard"
+  enable_non_ssl_port = false
+  redis_configuration {
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+
+}
+
+func (RedisCacheResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  capacity            = 1
+  family              = "C"
+  sku_name            = "Standard"
+  enable_non_ssl_port = false
+  redis_configuration {
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) acceptance.TestCheckFunc {

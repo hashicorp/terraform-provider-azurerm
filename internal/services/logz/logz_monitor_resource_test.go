@@ -3,11 +3,9 @@ package logz_test
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,7 +20,7 @@ func TestAccLogzMonitor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "9d186100-1e0f-4b4a-bb10-753d2d52b750@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
@@ -38,7 +36,7 @@ func TestAccLogzMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "88841ffe-6376-487c-950c-1c3318f63dc5@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
@@ -57,7 +55,7 @@ func TestAccLogzMonitor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "37d395aa-4b30-4566-b141-72ea4bf84e11@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, effectiveDate, email),
@@ -73,7 +71,7 @@ func TestAccLogzMonitor_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "d5d750ce-94fd-475d-816f-48110e1ca04a@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
@@ -133,7 +131,7 @@ func (r LogzMonitorResource) basic(data acceptance.TestData, effectiveDate strin
 %s
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "%s"
+  name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
@@ -144,13 +142,13 @@ resource "azurerm_logz_monitor" "test" {
   }
 
   user {
-    email        = "%s@example.com"
+    email        = "%s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
   }
 }
-`, template, getLogzInstanceName(data.RandomInteger), effectiveDate, email)
+`, template, data.RandomInteger, effectiveDate, email)
 }
 
 func (r LogzMonitorResource) update(data acceptance.TestData, effectiveDate string, email string) string {
@@ -159,7 +157,7 @@ func (r LogzMonitorResource) update(data acceptance.TestData, effectiveDate stri
 %s
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "%s"
+  name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
@@ -170,14 +168,14 @@ resource "azurerm_logz_monitor" "test" {
   }
 
   user {
-    email        = "%s@example.com"
+    email        = "%s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
   }
   enabled = false
 }
-`, template, getLogzInstanceName(data.RandomInteger), effectiveDate, email)
+`, template, data.RandomInteger, effectiveDate, email)
 }
 
 func (r LogzMonitorResource) requiresImport(data acceptance.TestData, effectiveDate string, email string) string {
@@ -197,7 +195,7 @@ resource "azurerm_logz_monitor" "import" {
   }
 
   user {
-    email        = "%s@example.com"
+    email        = "%s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
@@ -212,7 +210,7 @@ func (r LogzMonitorResource) complete(data acceptance.TestData, effectiveDate st
 %s
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "%s"
+  name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -226,19 +224,15 @@ resource "azurerm_logz_monitor" "test" {
   }
 
   user {
-    email        = "%s@example.com"
+    email        = "%s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
   }
-  enabled = false
+  enabled = true
   tags = {
     ENV = "Test"
   }
 }
-`, template, getLogzInstanceName(data.RandomInteger), effectiveDate, email)
-}
-
-func getLogzInstanceName(randomInteger int) string {
-	return "liftr_test_only_" + strconv.Itoa(randomInteger)[2:]
+`, template, data.RandomInteger, effectiveDate, email)
 }

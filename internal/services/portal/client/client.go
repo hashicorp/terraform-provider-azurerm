@@ -1,20 +1,21 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	DashboardsClient           *portal.DashboardsClient
-	TenantConfigurationsClient *portal.TenantConfigurationsClient
+	DashboardsClient           *dashboard.DashboardClient
+	TenantConfigurationsClient *tenantconfiguration.TenantConfigurationClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	dashboardsClient := portal.NewDashboardsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	dashboardsClient := dashboard.NewDashboardClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dashboardsClient.Client, o.ResourceManagerAuthorizer)
 
-	tenantConfigurationsClient := portal.NewTenantConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	tenantConfigurationsClient := tenantconfiguration.NewTenantConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&tenantConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

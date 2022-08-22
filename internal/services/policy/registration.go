@@ -17,7 +17,9 @@ func (r Registration) AssociatedGitHubLabel() string {
 type Registration struct{}
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		AssignmentDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

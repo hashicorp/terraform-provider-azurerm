@@ -72,7 +72,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestDat
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
-  resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -95,7 +94,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) update(data acceptance.TestDa
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
-  resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id

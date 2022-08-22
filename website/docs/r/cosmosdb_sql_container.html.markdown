@@ -13,17 +13,28 @@ Manages a SQL Container within a Cosmos DB Account.
 ## Example Usage
 
 ```hcl
+data "azurerm_cosmosdb_account" "example" {
+  name                = "tfex-cosmosdb-account"
+  resource_group_name = "tfex-cosmosdb-account-rg"
+}
+
+resource "azurerm_cosmosdb_sql_database" "example" {
+  name                = "example-acsd"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
+}
+
 resource "azurerm_cosmosdb_sql_container" "example" {
   name                  = "example-container"
-  resource_group_name   = azurerm_cosmosdb_account.example.resource_group_name
-  account_name          = azurerm_cosmosdb_account.example.name
+  resource_group_name   = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name          = data.azurerm_cosmosdb_account.example.name
   database_name         = azurerm_cosmosdb_sql_database.example.name
   partition_key_path    = "/definition/id"
   partition_key_version = 1
   throughput            = 400
 
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -156,7 +167,7 @@ A `spatial_index` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Container.
 * `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.

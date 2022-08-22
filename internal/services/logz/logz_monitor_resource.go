@@ -3,7 +3,6 @@ package logz
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -42,13 +42,10 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[\w\-]{1,32}$`),
-					`The name length must be from 1 to 32 characters. The name can only contain letters, numbers, hyphens and underscore.`,
-				),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.LogzMonitorName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -126,43 +123,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 				},
 			},
 
-			"user": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"email": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"first_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringLenBetween(1, 50),
-						},
-
-						"last_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringLenBetween(1, 50),
-						},
-
-						"phone_number": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringLenBetween(1, 40),
-						},
-					},
-				},
-			},
+			"user": SchemaUserInfo(),
 
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -204,7 +165,7 @@ func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &logz.MonitorProperties{
 			LogzOrganizationProperties: expandMonitorOrganizationProperties(d),
 			PlanData:                   expandMonitorPlanData(d.Get("plan").([]interface{})),
-			UserInfo:                   expandMonitorUserInfo(d.Get("user").([]interface{})),
+			UserInfo:                   expandUserInfo(d.Get("user").([]interface{})),
 			MonitoringStatus:           monitoringStatus,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -255,7 +216,9 @@ func resourceLogzMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `plan`: %+v", err)
 		}
 
-		d.Set("user", d.Get("user"))
+		if err := d.Set("user", flattenUserInfo(expandUserInfo(d.Get("user").([]interface{})))); err != nil {
+			return fmt.Errorf("setting `user`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -343,20 +306,6 @@ func expandMonitorPlanData(input []interface{}) *logz.PlanData {
 		BillingCycle:  utils.String(v["billing_cycle"].(string)),
 		PlanDetails:   utils.String(v["plan_id"].(string)),
 		EffectiveDate: &date.Time{Time: effectiveDate},
-	}
-}
-
-func expandMonitorUserInfo(input []interface{}) *logz.UserInfo {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	return &logz.UserInfo{
-		FirstName:    utils.String(v["first_name"].(string)),
-		LastName:     utils.String(v["last_name"].(string)),
-		EmailAddress: utils.String(v["email"].(string)),
-		PhoneNumber:  utils.String(v["phone_number"].(string)),
 	}
 }
 

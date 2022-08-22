@@ -12,7 +12,7 @@ var _ resourceids.Id = WebPubsubId{}
 
 func TestWebPubsubIDFormatter(t *testing.T) {
 	actual := NewWebPubsubID("12345678-1234-9876-4563-123456789012", "resGroup1", "Webpubsub1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/webPubSub/Webpubsub1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -63,13 +63,13 @@ func TestWebPubsubID(t *testing.T) {
 
 		{
 			// missing value for WebPubSubName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/webPubSub/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/webPubSub/Webpubsub1",
 			Expected: &WebPubsubId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",

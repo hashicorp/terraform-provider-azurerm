@@ -334,13 +334,13 @@ func TestAccBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	})
 }
 
-func TestAccBatchPool_container(t *testing.T) {
+func TestAccBatchPool_containerWithUser(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.containerConfiguration(data),
+			Config: r.containerConfigurationWithRegistryUser(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_configuration.0.type").HasValue("DockerCompatible"),
@@ -349,11 +349,35 @@ func TestAccBatchPool_container(t *testing.T) {
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.user_name").HasValue("myUserName"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.password").HasValue("myPassword"),
+				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.user_assigned_identity_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(
 			"stop_pending_resize_operation",
 			"container_configuration.0.container_registries.0.password",
+		),
+	})
+}
+
+func TestAccBatchPool_containerWithUAMI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerConfigurationWithRegistryUAMI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_configuration.0.type").HasValue("DockerCompatible"),
+				check.That(data.ResourceName).Key("container_configuration.0.container_image_names.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container_configuration.0.container_registries.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
+				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.user_name").IsEmpty(),
+				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.user_assigned_identity_id").IsSet(),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
 		),
 	})
 }
@@ -502,11 +526,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
 
   tags = {
     env = "test"
@@ -562,11 +587,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
 
   tags = {
     env = "test"
@@ -620,11 +646,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
 
   tags = {
     env = "test"
@@ -1268,7 +1295,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (BatchPoolResource) containerConfiguration(data acceptance.TestData) string {
+func (BatchPoolResource) containerConfigurationWithRegistryUser(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1321,6 +1348,73 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) containerConfigurationWithRegistryUAMI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "testaccuami%d"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testregistry%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
+    version   = "latest"
+  }
+
+  container_configuration {
+    type                  = "DockerCompatible"
+    container_image_names = ["centos7"]
+    container_registries {
+      registry_server           = "myContainerRegistry.azurecr.io"
+      user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) customImageConfiguration(data acceptance.TestData) string {

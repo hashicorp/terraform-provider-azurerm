@@ -6,17 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -201,7 +199,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -234,7 +232,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -290,7 +288,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
-		flattenedIdentity, err := flattenAppConfigurationIdentity(model.Identity)
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -389,51 +387,4 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 			"secret":            secret,
 		},
 	}
-}
-
-func expandAppConfigurationIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	transform := legacyIdentity.ExpandedConfig{
-		Type:        legacyIdentity.Type(string(expanded.Type)),
-		PrincipalId: expanded.PrincipalId,
-		TenantId:    expanded.TenantId,
-	}
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		transform.UserAssignedIdentityIds = make([]string, 0)
-		for k := range expanded.IdentityIds {
-			transform.UserAssignedIdentityIds = append(transform.UserAssignedIdentityIds, k)
-		}
-	}
-	out := legacyIdentity.SystemUserAssignedIdentityMap{}
-	out.FromExpandedConfig(transform)
-	return &out, nil
-}
-
-func flattenAppConfigurationIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) (*[]interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		if input.PrincipalId != nil {
-			transform.PrincipalId = *input.PrincipalId
-		}
-		if input.TenantId != nil {
-			transform.TenantId = *input.TenantId
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientId,
-				PrincipalId: v.PrincipalId,
-			}
-		}
-	}
-
-	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

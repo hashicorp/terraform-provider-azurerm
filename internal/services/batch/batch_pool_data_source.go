@@ -144,6 +144,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
+									"user_assigned_identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
 									"user_name": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
@@ -206,6 +210,17 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"public_ips": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"public_address_provisioning_type": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},

@@ -218,6 +218,21 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 			"source_trigger.0.authentication.0.token",
 		),
 		{
+			Config: r.dockerStepSourceTriggerUpdateDockerStep(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"docker_step.0.context_access_token",
+			"source_trigger.0.authentication.#",
+			"source_trigger.0.authentication.0.%",
+			"source_trigger.0.authentication.0.expire_in_seconds",
+			"source_trigger.0.authentication.0.refresh_token",
+			"source_trigger.0.authentication.0.scope",
+			"source_trigger.0.authentication.0.token",
+		),
+		{
 			Config: r.dockerStepSourceTriggerUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -690,6 +705,38 @@ resource "azurerm_container_registry_task" "test" {
     context_path         = "%s"
     context_access_token = "%s"
     image_names          = ["helloworld:{{.Run.ID}}"]
+  }
+  source_trigger {
+    name           = "default"
+    events         = ["commit"]
+    source_type    = "Github"
+    repository_url = "%s"
+    branch         = "main"
+    authentication {
+      token_type = "PAT"
+      token      = "%s"
+    }
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
+}
+
+func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdateDockerStep(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform {
+    os = "Linux"
+  }
+  docker_step {
+    dockerfile_path      = "Dockerfile"
+    context_path         = "%s"
+    context_access_token = "%s"
+    image_names          = ["helloworld2:{{.Run.ID}}"]
   }
   source_trigger {
     name           = "default"
