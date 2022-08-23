@@ -249,17 +249,17 @@ func TestAccKubernetesCluster_addonProfileConflictingChanges(t *testing.T) {
 			Config: r.addonProfilesConflictingConfig(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addonProfiles.azurepolicy.enabled").HasValue("true"),
-        check.That(data.ResourceName).Key("addonProfiles.openServiceMesh").DoesNotExist(),
+				check.That(data.ResourceName).Key("addonProfiles.openServiceMesh").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
 		{
 			// Leave policy enabled and add OSM addon
-      // Issue 17843 caused that policy addon is removed as it did not change
+			// Issue 17843 caused that policy addon is removed as it did not change
 			Config: r.addonProfilesConflictingConfig(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addonProfiles.azurepolicy.enabled").HasValue("true"),
-        check.That(data.ResourceName).Key("addonProfiles.openServiceMesh.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addonProfiles.openServiceMesh.enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
