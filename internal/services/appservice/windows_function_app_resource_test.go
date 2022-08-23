@@ -792,6 +792,7 @@ func TestAccWindowsFunctionApp_appStackDotNet31(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.dotnet_version").HasValue("3.1"),
 			),
 		},
 		data.ImportStep(),
@@ -915,6 +916,7 @@ func TestAccWindowsFunctionApp_appStackJava(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.java_version").HasValue("11"),
 			),
 		},
 		data.ImportStep(),
@@ -927,7 +929,7 @@ func TestAccWindowsFunctionApp_appStackJavaUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackJava(data, SkuBasicPlan, "8"),
+			Config: r.appStackJava(data, SkuBasicPlan, "1.8"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -955,6 +957,7 @@ func TestAccWindowsFunctionApp_appStackPowerShellCore(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.powershell_core_version").HasValue("7"),
 			),
 		},
 		data.ImportStep(),

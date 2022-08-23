@@ -617,13 +617,22 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 			}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig)
+			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
+			isCustomHandler := false
+			nodeVersion := ""
+			appSetting := state.AppSettings
+			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "custom" {
+				isCustomHandler = true
+			}
+			if appSetting["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
+				nodeVersion = appSetting["WEBSITE_NODE_DEFAULT_VERSION"]
+			}
+
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig, isCustomHandler, nodeVersion)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
-
-			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
@@ -1001,7 +1010,11 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_NODE_DEFAULT_VERSION"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)

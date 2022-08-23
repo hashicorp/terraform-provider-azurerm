@@ -221,18 +221,6 @@ func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsF
 	case "dotnet-isolated":
 		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1], DotNetIsolated: true}
 		result = append(result, appStack)
-
-	case "node":
-		appStack := ApplicationStackWindowsFunctionApp{NodeVersion: parts[1]}
-		result = append(result, appStack)
-
-	case "java":
-		appStack := ApplicationStackWindowsFunctionApp{JavaVersion: parts[1]}
-		result = append(result, appStack)
-
-	case "powershell":
-		appStack := ApplicationStackWindowsFunctionApp{PowerShellCoreVersion: parts[1]}
-		result = append(result, appStack)
 	}
 
 	return result, nil

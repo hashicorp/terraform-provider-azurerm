@@ -593,13 +593,22 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 			}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig)
+			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
+			isCustomHandler := false
+			nodeVersion := ""
+			appSetting := state.AppSettings
+			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "custom" {
+				isCustomHandler = true
+			}
+			if appSetting["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
+				nodeVersion = appSetting["WEBSITE_NODE_DEFAULT_VERSION"]
+			}
+
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig, isCustomHandler, nodeVersion)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
-
-			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 

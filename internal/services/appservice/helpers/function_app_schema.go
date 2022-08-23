@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 
@@ -1278,10 +1279,18 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"3.1",
-						"6",
-					}, false),
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						if !features.FourPointOh() {
+							return validation.StringInSlice([]string{
+								"3.1",
+								"core3.1",
+								"6"}, false)
+						}
+						return validation.StringInSlice([]string{
+							"core3.1",
+							"v6.0",
+						}, false)
+					}(),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
@@ -1327,7 +1336,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"8",
+						"1.8",
 						"11",
 					}, false),
 					ExactlyOneOf: []string{
@@ -1337,7 +1346,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `8`, and `11`",
+					Description: "The version of Java to use. Possible values are `1.8`, and `11`",
 				},
 
 				"powershell_core_version": {
@@ -1803,6 +1812,11 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
 				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
 			}
+			if windowsAppStack.DotNetVersion == "3.1" || windowsAppStack.DotNetVersion == "core3.1" {
+				expanded.NetFrameworkVersion = nil
+			} else {
+				expanded.NetFrameworkVersion = utils.String(windowsAppStack.DotNetVersion)
+			}
 		}
 
 		if windowsAppStack.NodeVersion != "" {
@@ -1814,11 +1828,13 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		if windowsAppStack.JavaVersion != "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
 			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion))
+			expanded.JavaVersion = utils.String(windowsAppStack.JavaVersion)
 		}
 
 		if windowsAppStack.PowerShellCoreVersion != "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
 			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion))
+			expanded.PowerShellVersion = utils.String(windowsAppStack.PowerShellCoreVersion)
 		}
 
 		if windowsAppStack.CustomHandler {
@@ -2007,7 +2023,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	return result, nil
 }
 
-func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionApp, error) {
+func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, isCustomHandler bool, nodeVersion string) (*SiteConfigWindowsFunctionApp, error) {
 	if functionAppSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -2071,15 +2087,23 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		}
 	}
 
-	var appStack []ApplicationStackWindowsFunctionApp
+	var winFunctionAppStack ApplicationStackWindowsFunctionApp
+	winFunctionAppStack.JavaVersion = utils.NormalizeNilableString(functionAppSiteConfig.JavaVersion)
+	winFunctionAppStack.PowerShellCoreVersion = utils.NormalizeNilableString(functionAppSiteConfig.PowerShellVersion)
+	// we need to target the Node versions in app_setting {WEBSITE_NODE_DEFAULT_VERSION}
+	if nodeVersion != "" {
+		winFunctionAppStack.NodeVersion = nodeVersion
+	}
 	if functionAppSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSiteConfig.WindowsFxVersion)
 		if err != nil {
 			return nil, fmt.Errorf("flattening site config: %s", err)
 		}
-		appStack = decoded
+		if len(decoded) > 0 {
+			winFunctionAppStack = decoded[0]
+		}
 	}
-	result.ApplicationStack = appStack
+	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{winFunctionAppStack}
 
 	return result, nil
 }

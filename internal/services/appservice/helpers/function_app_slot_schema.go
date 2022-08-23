@@ -869,7 +869,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, isCustomHandler bool, nodeVersion string) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -934,15 +934,24 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 		}
 	}
 
-	var appStack []ApplicationStackWindowsFunctionApp
+	var winFunctionAppStack ApplicationStackWindowsFunctionApp
+	winFunctionAppStack.JavaVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.JavaVersion)
+	winFunctionAppStack.PowerShellCoreVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.PowerShellVersion)
+
+	// we need to target the Node versions in app_setting {WEBSITE_NODE_DEFAULT_VERSION}
+	if nodeVersion != "" {
+		winFunctionAppStack.NodeVersion = nodeVersion
+	}
 	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
 		if err != nil {
 			return nil, fmt.Errorf("flattening site config: %s", err)
 		}
-		appStack = decoded
+		if len(decoded) > 0 {
+			winFunctionAppStack = decoded[0]
+		}
 	}
-	result.ApplicationStack = appStack
+	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{winFunctionAppStack}
 
 	return result, nil
 }
