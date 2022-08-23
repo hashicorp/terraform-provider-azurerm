@@ -1,5 +1,11 @@
 ## 3.19.1 (August 19, 2022)
 
+FEATURES:
+
+* **New Resource**: `azurerm_monitor_scheduled_query_rules_alert_v2` [GH-17772]
+
+## 3.19.1 (August 19, 2022)
+
 BUG FIXES:
 
 * `azurerm_dns_a_record` - parse resource IDs insensitively in the read functions due to casing on the dnsZones segment ([#18048](https://github.com/hashicorp/terraform-provider-azurerm/issues/18048))
