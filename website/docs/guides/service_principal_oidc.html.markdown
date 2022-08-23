@@ -19,7 +19,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 
 We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
 
-~> **Note:**  WARNING: the current implementation of OIDC authentication only works in GitHub actions. A generic implementation where a token can be provided is being tracked in [this issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/16901)
+~> **Note:** WARNING: the current implementation of OIDC authentication only works in GitHub actions. A generic implementation where a token can be provided is being tracked in [this issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/16901)
 
 ## Setting up an Application and Service Principal
 
