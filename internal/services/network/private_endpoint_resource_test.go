@@ -712,7 +712,7 @@ resource "azurerm_private_endpoint" "test" {
       private_ip_address = "10.6.1.100"
    }
 }
-`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateEndpointResource) privateDnsZoneGroupRename(data acceptance.TestData) string {
