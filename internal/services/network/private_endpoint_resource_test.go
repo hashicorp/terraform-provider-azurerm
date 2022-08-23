@@ -721,10 +721,10 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.1.0/24"]
+  name                                           = "acctestsnetendpoint-%d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefixes                               = ["10.6.1.0/24"]
   enforce_private_link_endpoint_network_policies = true
 }
 
@@ -741,9 +741,9 @@ resource "azurerm_private_endpoint" "test" {
   }
 
   ip_configuration {
-      name               = "acctest-ip-privatelink-%d"
-      private_ip_address = "10.6.1.100"
-   }
+    name               = "acctest-ip-privatelink-%d"
+    private_ip_address = "10.6.1.100"
+  }
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
