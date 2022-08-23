@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_backup_policy_vm_workload` [GH-17765]
 * **New Resource**: `azurerm_monitor_scheduled_query_rules_alert_v2` [GH-17772]
 
 ## 3.19.1 (August 19, 2022)
