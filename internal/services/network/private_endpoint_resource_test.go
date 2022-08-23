@@ -706,13 +706,11 @@ resource "azurerm_private_endpoint" "test" {
 
 func (r PrivateEndpointResource) staticIpAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-privatelink-%d"
-  location = "%s"
+  location = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -747,7 +745,7 @@ resource "azurerm_private_endpoint" "test" {
       private_ip_address = "10.6.1.100"
    }
 }
-`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateEndpointResource) privateDnsZoneGroupRename(data acceptance.TestData) string {
