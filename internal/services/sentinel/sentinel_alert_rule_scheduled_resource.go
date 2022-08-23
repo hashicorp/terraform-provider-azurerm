@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,12 +129,16 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 						string(securityinsight.AttackTacticDiscovery),
 						string(securityinsight.AttackTacticExecution),
 						string(securityinsight.AttackTacticExfiltration),
+						string(securityinsight.AttackTacticImpairProcessControl),
+						string(securityinsight.AttackTacticInhibitResponseFunction),
 						string(securityinsight.AttackTacticImpact),
 						string(securityinsight.AttackTacticInitialAccess),
 						string(securityinsight.AttackTacticLateralMovement),
 						string(securityinsight.AttackTacticPersistence),
 						string(securityinsight.AttackTacticPrivilegeEscalation),
 						string(securityinsight.AttackTacticPreAttack),
+						string(securityinsight.AttackTacticReconnaissance),
+						string(securityinsight.AttackTacticResourceDevelopment),
 					}, false),
 				},
 			},
