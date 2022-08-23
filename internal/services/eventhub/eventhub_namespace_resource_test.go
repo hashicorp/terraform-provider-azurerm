@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -326,6 +326,21 @@ func TestAccEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespace_BasicWithLocalAuthProperty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localAuthProperty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
 func TestAccEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -423,6 +438,50 @@ func TestAccEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("maximum_throughput_units").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.publicNetworkAccessUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
+func TestAccEventHubNamespace_minimumTLSUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+			),
+		},
+		{
+			Config: r.minimumTLSUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
 			),
 		},
 	})
@@ -922,6 +981,69 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity            = %d
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
+}
+
+func (EventHubNamespaceResource) localAuthProperty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                         = "acctesteventhubnamespace-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Basic"
+  local_authentication_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) publicNetworkAccessUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                          = "acctesteventhubnamespace-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "Basic"
+  public_network_access_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  minimum_tls_version = "1.1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (EventHubNamespaceResource) maximumThroughputUnitsUpdate(data acceptance.TestData) string {

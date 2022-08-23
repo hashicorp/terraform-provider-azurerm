@@ -88,50 +88,6 @@ func (c RecordSetsClient) ListByType(ctx context.Context, id PrivateZoneId, opti
 	return
 }
 
-// ListByTypeComplete retrieves all of the results into a single object
-func (c RecordSetsClient) ListByTypeComplete(ctx context.Context, id PrivateZoneId, options ListByTypeOperationOptions) (ListByTypeCompleteResult, error) {
-	return c.ListByTypeCompleteMatchingPredicate(ctx, id, options, RecordSetOperationPredicate{})
-}
-
-// ListByTypeCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c RecordSetsClient) ListByTypeCompleteMatchingPredicate(ctx context.Context, id PrivateZoneId, options ListByTypeOperationOptions, predicate RecordSetOperationPredicate) (resp ListByTypeCompleteResult, err error) {
-	items := make([]RecordSet, 0)
-
-	page, err := c.ListByType(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByTypeCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByType prepares the ListByType request.
 func (c RecordSetsClient) preparerForListByType(ctx context.Context, id PrivateZoneId, options ListByTypeOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c RecordSetsClient) responderForListByType(resp *http.Response) (result Li
 		}
 	}
 	return
+}
+
+// ListByTypeComplete retrieves all of the results into a single object
+func (c RecordSetsClient) ListByTypeComplete(ctx context.Context, id PrivateZoneId, options ListByTypeOperationOptions) (ListByTypeCompleteResult, error) {
+	return c.ListByTypeCompleteMatchingPredicate(ctx, id, options, RecordSetOperationPredicate{})
+}
+
+// ListByTypeCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c RecordSetsClient) ListByTypeCompleteMatchingPredicate(ctx context.Context, id PrivateZoneId, options ListByTypeOperationOptions, predicate RecordSetOperationPredicate) (resp ListByTypeCompleteResult, err error) {
+	items := make([]RecordSet, 0)
+
+	page, err := c.ListByType(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByTypeCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

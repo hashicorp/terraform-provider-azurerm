@@ -64,5 +64,6 @@ func (c AccountsClient) responderForListKeys(resp *http.Response) (result ListKe
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

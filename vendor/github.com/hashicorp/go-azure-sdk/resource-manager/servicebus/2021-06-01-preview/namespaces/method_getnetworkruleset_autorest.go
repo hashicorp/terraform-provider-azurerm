@@ -64,5 +64,6 @@ func (c NamespacesClient) responderForGetNetworkRuleSet(resp *http.Response) (re
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

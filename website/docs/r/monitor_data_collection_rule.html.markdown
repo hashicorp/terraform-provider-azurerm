@@ -72,7 +72,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
       sampling_frequency_in_seconds = 10
-      counter_specifiers            = ["Processor(*)\\%% Processor Time"]
+      counter_specifiers            = ["Processor(*)\\% Processor Time"]
       name                          = "test-datasource-perfcounter"
     }
 
@@ -98,7 +98,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
   tags = {
     foo = "bar"
   }
-  depend_on = [
+  depends_on = [
     azurerm_log_analytics_solution.example
   ]
 }

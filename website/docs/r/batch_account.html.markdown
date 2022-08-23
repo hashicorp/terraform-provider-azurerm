@@ -66,6 +66,14 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
 
+* `storage_account_authentication_mode` - (Optional) Specifies the storage account authentication mode. Possible values include `StorageKeys`, `BatchAccountManagedIdentity`.
+
+~> **NOTE:** When using `BatchAccountManagedIdentity` mod, the `identity.type` must set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+* `storage_account_node_identity` - (Optional) Specifies the user assigned identity for the storage account.
+
+* `allowed_authentication_modes` - (Optional) Specifies the allowed authentication mode for the Batch account. Possible values include `AAD`, `SharedKey` or `TaskAuthenticationToken`.
+
 * `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -108,7 +116,7 @@ The following attributes are exported:
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
-~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/azure/batch/batch-api-basics) for more information.
+~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService` and `allowed_authentication_modes` contains `SharedKey`. See [documentation](https://docs.microsoft.com/azure/batch/batch-api-basics) for more information.
 
 ---
 

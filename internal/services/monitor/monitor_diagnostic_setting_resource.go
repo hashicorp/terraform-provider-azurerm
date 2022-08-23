@@ -195,7 +195,7 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", fmt.Sprintf("%s|%s", actualResourceId, name))
 		}
 	}
 

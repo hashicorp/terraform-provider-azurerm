@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	maintenanceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -120,7 +120,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_size_in_gb": {
 			Type:         schema.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(32, 8192),
+			ValidateFunc: validation.IntBetween(32, 16384),
 		},
 
 		"subnet_id": {
@@ -293,7 +293,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `sku_name` for SQL Managed Instance Server %q: %v", id.ID(), err)
 			}
 
-			maintenanceConfigId := maintenanceParse.NewPublicMaintenanceConfigurationID(subscriptionId, model.MaintenanceConfigurationName)
+			maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, model.MaintenanceConfigurationName)
 
 			parameters := sql.ManagedInstance{
 				Sku:      sku,
@@ -380,7 +380,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("maintenance_configuration_name") {
-				maintenanceConfigId := maintenanceParse.NewPublicMaintenanceConfigurationID(id.SubscriptionId, state.MaintenanceConfigurationName)
+				maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(id.SubscriptionId, state.MaintenanceConfigurationName)
 				properties.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
 			}
 
@@ -461,11 +461,11 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.Fqdn = *props.FullyQualifiedDomainName
 				}
 				if props.MaintenanceConfigurationID != nil {
-					maintenanceConfigId, err := maintenanceParse.PublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
+					maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
 					if err != nil {
 						return err
 					}
-					model.MaintenanceConfigurationName = maintenanceConfigId.Name
+					model.MaintenanceConfigurationName = maintenanceConfigId.ResourceName
 				}
 				if props.MinimalTLSVersion != nil {
 					model.MinimumTlsVersion = *props.MinimalTLSVersion

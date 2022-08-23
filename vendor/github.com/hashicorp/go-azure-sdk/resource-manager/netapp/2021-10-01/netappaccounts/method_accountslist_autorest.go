@@ -60,50 +60,6 @@ func (c NetAppAccountsClient) AccountsList(ctx context.Context, id commonids.Res
 	return
 }
 
-// AccountsListComplete retrieves all of the results into a single object
-func (c NetAppAccountsClient) AccountsListComplete(ctx context.Context, id commonids.ResourceGroupId) (AccountsListCompleteResult, error) {
-	return c.AccountsListCompleteMatchingPredicate(ctx, id, NetAppAccountOperationPredicate{})
-}
-
-// AccountsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c NetAppAccountsClient) AccountsListCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate NetAppAccountOperationPredicate) (resp AccountsListCompleteResult, err error) {
-	items := make([]NetAppAccount, 0)
-
-	page, err := c.AccountsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := AccountsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForAccountsList prepares the AccountsList request.
 func (c NetAppAccountsClient) preparerForAccountsList(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c NetAppAccountsClient) responderForAccountsList(resp *http.Response) (res
 		}
 	}
 	return
+}
+
+// AccountsListComplete retrieves all of the results into a single object
+func (c NetAppAccountsClient) AccountsListComplete(ctx context.Context, id commonids.ResourceGroupId) (AccountsListCompleteResult, error) {
+	return c.AccountsListCompleteMatchingPredicate(ctx, id, NetAppAccountOperationPredicate{})
+}
+
+// AccountsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c NetAppAccountsClient) AccountsListCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate NetAppAccountOperationPredicate) (resp AccountsListCompleteResult, err error) {
+	items := make([]NetAppAccount, 0)
+
+	page, err := c.AccountsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := AccountsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

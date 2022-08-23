@@ -61,5 +61,6 @@ func (c AuthorizationRulesNamespacesClient) responderForNamespacesDeleteAuthoriz
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

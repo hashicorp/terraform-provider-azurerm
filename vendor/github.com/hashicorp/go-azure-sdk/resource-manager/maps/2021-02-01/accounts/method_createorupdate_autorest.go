@@ -64,5 +64,6 @@ func (c AccountsClient) responderForCreateOrUpdate(resp *http.Response) (result 
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

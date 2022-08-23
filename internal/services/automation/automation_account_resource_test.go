@@ -70,6 +70,24 @@ func TestAccAutomationAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAutomationAccount_encryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("encryption.0.key_source").HasValue("Microsoft.Keyvault"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAutomationAccount_identityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
 	r := AutomationAccountResource{}
@@ -252,6 +270,123 @@ resource "azurerm_automation_account" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (AutomationAccountResource) encryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "ManageContacts",
+    ]
+
+    key_permissions = [
+      "Create",
+      "Get",
+      "List",
+      "Delete",
+      "Purge",
+    ]
+
+    secret_permissions = [
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    certificate_permissions = []
+
+    key_permissions = [
+      "Get",
+      "Recover",
+      "WrapKey",
+      "UnwrapKey",
+    ]
+
+    secret_permissions = []
+  }
+}
+
+data "azurerm_key_vault" "test" {
+  name                = azurerm_key_vault.test.name
+  resource_group_name = azurerm_key_vault.test.resource_group_name
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acckvkey-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  local_authentication_enabled = false
+
+  encryption {
+    key_source                = "Microsoft.Keyvault"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    key_vault_key_id          = azurerm_key_vault_key.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

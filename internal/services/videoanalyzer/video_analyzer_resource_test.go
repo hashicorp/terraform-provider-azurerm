@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/videoanalyzer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/videoanalyzers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,7 +70,7 @@ func TestAccVideoAnalyzer_complete(t *testing.T) {
 }
 
 func (VideoAnalyzerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := videoanalyzer.ParseVideoAnalyzerID(state.ID)
+	id, err := videoanalyzers.ParseVideoAnalyzerID(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -40,6 +40,10 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringDoesNotContainAny("/"),
+				),
 			},
 
 			"virtual_machine_id": {

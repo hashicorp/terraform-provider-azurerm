@@ -60,50 +60,6 @@ func (c EventHubsClustersClient) ClustersListByResourceGroup(ctx context.Context
 	return
 }
 
-// ClustersListByResourceGroupComplete retrieves all of the results into a single object
-func (c EventHubsClustersClient) ClustersListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ClustersListByResourceGroupCompleteResult, error) {
-	return c.ClustersListByResourceGroupCompleteMatchingPredicate(ctx, id, ClusterOperationPredicate{})
-}
-
-// ClustersListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c EventHubsClustersClient) ClustersListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ClusterOperationPredicate) (resp ClustersListByResourceGroupCompleteResult, err error) {
-	items := make([]Cluster, 0)
-
-	page, err := c.ClustersListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ClustersListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForClustersListByResourceGroup prepares the ClustersListByResourceGroup request.
 func (c EventHubsClustersClient) preparerForClustersListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c EventHubsClustersClient) responderForClustersListByResourceGroup(resp *h
 		}
 	}
 	return
+}
+
+// ClustersListByResourceGroupComplete retrieves all of the results into a single object
+func (c EventHubsClustersClient) ClustersListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ClustersListByResourceGroupCompleteResult, error) {
+	return c.ClustersListByResourceGroupCompleteMatchingPredicate(ctx, id, ClusterOperationPredicate{})
+}
+
+// ClustersListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c EventHubsClustersClient) ClustersListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ClusterOperationPredicate) (resp ClustersListByResourceGroupCompleteResult, err error) {
+	items := make([]Cluster, 0)
+
+	page, err := c.ClustersListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ClustersListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

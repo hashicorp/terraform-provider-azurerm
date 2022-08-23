@@ -76,6 +76,9 @@ resource "azurerm_monitor_scheduled_query_rules_log" "example" {
   data_source_id = azurerm_log_analytics_workspace.example.id
   description    = "Scheduled query rule LogToMetric example"
   enabled        = true
+  tags = {
+    foo = "bar"
+  }
 }
 ```
 
@@ -89,6 +92,7 @@ The following arguments are supported:
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
 * `description` - (Optional) The description of the scheduled query rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
