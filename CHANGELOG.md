@@ -1,9 +1,13 @@
-## 3.19.1 (August 19, 2022)
+## 3.20.0 (Unreleased)
 
 FEATURES:
 
 * **New Resource**: `azurerm_backup_policy_vm_workload` [GH-17765]
 * **New Resource**: `azurerm_monitor_scheduled_query_rules_alert_v2` [GH-17772]
+
+ENHANCEMENTS:
+
+* `azurerm_data_factory_dataset_json` - `filename` and `path` in `azure_blob_storage_location` block can now be empty [GH-18061]
 
 ## 3.19.1 (August 19, 2022)
 
