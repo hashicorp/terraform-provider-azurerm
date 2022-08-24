@@ -918,7 +918,7 @@ func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
 
 func expandUpgradeSettings(input []interface{}) *containerservice.AgentPoolUpgradeSettings {
 	setting := &containerservice.AgentPoolUpgradeSettings{}
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return setting
 	}
 
