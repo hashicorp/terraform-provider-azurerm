@@ -125,7 +125,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"subnet": {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
-			Computed:   true,
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
