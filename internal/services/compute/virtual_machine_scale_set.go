@@ -48,8 +48,8 @@ func ExpandVirtualMachineScaleSetHardwareProfile(input []interface{}) *compute.V
 		return nil
 	}
 
-	vCPUsAvailable := input[0].(map[string]interface{})["virtual_cpus_available"].(int32)
-	vCPUsPerCore := input[0].(map[string]interface{})["virtual_cpus_per_core"].(int32)
+	vCPUsAvailable := input[0].(map[string]interface{})["virtual_cpus_available"].(int)
+	vCPUsPerCore := input[0].(map[string]interface{})["virtual_cpus_per_core"].(int)
 
 	if vCPUsAvailable > 0 || vCPUsPerCore > 0 {
 		hardwareProfile := &compute.VirtualMachineScaleSetHardwareProfile{
@@ -57,11 +57,11 @@ func ExpandVirtualMachineScaleSetHardwareProfile(input []interface{}) *compute.V
 		}
 
 		if vCPUsAvailable > 0 {
-			hardwareProfile.VMSizeProperties.VCPUsAvailable = utils.Int32(vCPUsAvailable)
+			hardwareProfile.VMSizeProperties.VCPUsAvailable = utils.Int32(int32(vCPUsAvailable))
 		}
 
 		if vCPUsPerCore > 0 {
-			hardwareProfile.VMSizeProperties.VCPUsPerCore = utils.Int32(vCPUsPerCore)
+			hardwareProfile.VMSizeProperties.VCPUsPerCore = utils.Int32(int32(vCPUsPerCore))
 		}
 
 		return hardwareProfile
