@@ -85,7 +85,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				"patch_assessment_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
+					Default:  string(compute.WindowsPatchAssessmentModeImageDefault),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
 						string(compute.WindowsPatchAssessmentModeImageDefault),
@@ -159,7 +159,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				"patch_assessment_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
+					Default:  string(compute.LinuxPatchAssessmentModeImageDefault),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
 						string(compute.LinuxPatchAssessmentModeImageDefault),

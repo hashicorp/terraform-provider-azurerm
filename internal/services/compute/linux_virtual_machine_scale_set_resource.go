@@ -225,10 +225,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		_, extensionsExists := d.GetOk("extension")
-		if v && !extensionsExists {
-			return fmt.Errorf("%q can not be set to %q if the %q field does not contain any extensions", "extension_operations_enabled", "true", "extension")
-		}
 		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
 	}
 
@@ -1229,7 +1225,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
+			Default:  true,
 			ForceNew: true,
 		},
 
@@ -1399,7 +1395,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		resourceSchema["scale_in_policy"] = &schema.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+			Computed: !features.FourPointOhBeta(),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(compute.VirtualMachineScaleSetScaleInRulesDefault),
 				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),

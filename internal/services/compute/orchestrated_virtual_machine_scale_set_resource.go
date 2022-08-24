@@ -126,7 +126,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"extension_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 				ForceNew: true,
 			},
 
@@ -348,14 +348,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", id.Name, id.ResourceGroup)
 	}
 
-	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		_, extensionsExists := d.GetOk("extension")
-		if v && !extensionsExists {
-			return fmt.Errorf("%q can not be set to %q if the %q field does not contain any extensions", "extension_operations_enabled", "true", "extension")
-		}
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
-	}
-
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
 		if virtualMachineProfile.ExtensionProfile == nil {
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
@@ -485,6 +477,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		virtualMachineProfile.OsProfile = vmssOsProfile
+	}
+
+	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
+		if virtualMachineProfile.OsProfile == nil {
+			virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{}
+		}
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
 	}
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
