@@ -77,7 +77,7 @@ resource "azurerm_spring_cloud_connection" "example" {
   name               = "example-serviceconnector"
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.example.id
   target_resource_id = azurerm_cosmosdb_sql_database.example.id
-  auth_info {
+  authentication {
     type = "systemAssignedIdentity"
   }
 }
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the target resource. Changing this forces a new resource to be created. Possible values are `Postgres`, `PostgresFlexible`, `Mysql`, `Sql`, `Redis`, `RedisEnterprise`, `CosmosCassandra`, `CosmosGremlin`, `CosmosMongo`, `CosmosSql`, `CosmosTable`, `StorageBlob`, `StorageQueue`, `StorageFile`, `StorageTable`, `AppConfig`, `EventHub`, `ServiceBus`, `SignalR`, `WebPubSub`, `ConfluentKafka`.
 
-* `auth_info` - (Required) The authentication info. An `auth_info` block as defined below.
+* `authentication` - (Required) The authentication info. An `authentication` block as defined below.
 ---
 * `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`.
 
