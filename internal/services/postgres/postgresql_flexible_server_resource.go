@@ -315,7 +315,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if err != nil {
 			return fmt.Errorf("unable to parse `point_in_time_restore_time_in_utc` value")
 		}
-		parameters.Properties.PointInTimeUTC = utils.String(v.String())
+		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
 	}
 
 	if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
