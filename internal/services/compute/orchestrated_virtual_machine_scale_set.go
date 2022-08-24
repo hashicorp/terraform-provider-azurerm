@@ -1633,7 +1633,7 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input compute.Virt
 	}
 
 	var sku string
-	if input.Sku.Name != "" && input.Sku.Tier != "" {
+	if input.Sku != nil && input.Sku.Name != "" && input.Sku.Tier != "" {
 		sku = flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input.Sku)
 	}
 
