@@ -9,6 +9,10 @@ ENHANCEMENTS:
 
 * `azurerm_data_factory_dataset_json` - `filename` and `path` in `azure_blob_storage_location` block can now be empty [GH-18061]
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster_node_pool` - fix a crash in expanding upgrade settings [GH-18074]
+
 ## 3.19.1 (August 19, 2022)
 
 BUG FIXES:
