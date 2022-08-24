@@ -357,11 +357,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
+	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
+		sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		if err != nil {
+			return err
+		}
+		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 	}
-	virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 
 	osType := compute.OperatingSystemTypesWindows
 	var winConfigRaw []interface{}
@@ -881,14 +883,17 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 				sourceImageId := d.Get("source_image_id").(string)
-				sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-				if err != nil {
-					return err
+
+				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
+					sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+					if err != nil {
+						return err
+					}
+					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 				}
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 				updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
-				updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 				updateProps.VirtualMachineProfile.StorageProfile.OsDisk = &compute.VirtualMachineScaleSetUpdateOSDisk{
 					Caching:                 existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Caching,
 					WriteAcceleratorEnabled: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.WriteAcceleratorEnabled,
