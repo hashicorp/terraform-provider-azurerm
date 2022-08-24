@@ -37,7 +37,7 @@ func (r ContainerRegistryTaskScheduleResource) Attributes() map[string]*pluginsd
 }
 
 func (r ContainerRegistryTaskScheduleResource) ResourceType() string {
-	return "azurerm_container_registry_task_schedule"
+	return "azurerm_container_registry_task_schedule_run_now"
 }
 
 func (r ContainerRegistryTaskScheduleResource) ModelObject() interface{} {

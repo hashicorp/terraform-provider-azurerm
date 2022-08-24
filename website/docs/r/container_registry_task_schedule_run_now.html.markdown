@@ -1,14 +1,14 @@
 ---
 subcategory: "Container"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_container_registry_task_schedule"
+page_title: "Azure Resource Manager: azurerm_container_registry_task_schedule_run_now"
 description: |-
-  Manages a Container Registry Task Schedule.
+  Runs a Container Registry Task Schedule.
 ---
 
-# azurerm_container_registry_task_schedule
+# azurerm_container_registry_task_schedule_run_now
 
-Manages a Container Registry Task Schedule.
+Runs a Container Registry Task Schedule.
 
 ## Example Usage
 
@@ -40,7 +40,7 @@ resource "azurerm_container_registry_task" "example" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-resource "azurerm_container_registry_task_schedule" "example" {
+resource "azurerm_container_registry_task_schedule_run_now" "example" {
   container_registry_task_id = azurerm_container_registry_task.example.id
 }
 ```
@@ -64,11 +64,3 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry Task Schedule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Task Schedule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry Task Schedule.
-
-## Import
-
-Container Registry Task Schedules can be imported using the `resource id`, e.g.
-
-```shell
-terraform import azurerm_container_registry_task_schedule.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/tasks/task1/schedule/schedule
-```

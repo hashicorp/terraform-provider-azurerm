@@ -17,7 +17,7 @@ type ContainerRegistryTaskScheduleResource struct {
 }
 
 func TestAccContainerRegistryTaskSchedule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_task_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_task_schedule_run_now", "test")
 
 	preCheckGithubRepo(t)
 
@@ -44,26 +44,6 @@ func TestAccContainerRegistryTaskSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestAccContainerRegistryTaskSchedule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_task_schedule", "test")
-
-	preCheckGithubRepo(t)
-
-	r := ContainerRegistryTaskScheduleResource{
-		githubRepo: githubRepo{
-			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
-			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
-		},
-	}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data, r.dockerTaskStep),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
 func (r ContainerRegistryTaskScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	ret := false
 	return &ret, nil
@@ -74,7 +54,7 @@ func (r ContainerRegistryTaskScheduleResource) basic(data acceptance.TestData, t
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_container_registry_task_schedule" "test" {
+resource "azurerm_container_registry_task_schedule_run_now" "test" {
   container_registry_task_id = azurerm_container_registry_task.test.id
 }
 `, template)
@@ -146,17 +126,6 @@ EOF
   }
 }
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
-}
-
-func (r ContainerRegistryTaskScheduleResource) requiresImport(data acceptance.TestData) string {
-	template := r.dockerTaskStep(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_container_registry_task_schedule" "import" {
-  container_registry_task_id = azurerm_container_registry_task_schedule.test.container_registry_task_id
-}
-`, template)
 }
 
 func (r ContainerRegistryTaskScheduleResource) template(data acceptance.TestData) string {
