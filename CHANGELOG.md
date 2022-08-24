@@ -11,6 +11,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cosmosdb_sql_database` - prevent panic in autoacale settings [GH-18070]
 * `azurerm_kubernetes_cluster_node_pool` - fix a crash in expanding upgrade settings [GH-18074]
 
 ## 3.19.1 (August 19, 2022)
