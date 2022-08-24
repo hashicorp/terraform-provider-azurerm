@@ -106,8 +106,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// TODO: API supports UserAssigned & SystemAssignedUserAssigned too?
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
