@@ -116,6 +116,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Data Collection Rule. Changing this forces a new Data Collection Rule to be created.
 
+-> **NOTE** If `data_collection_endpoint_id` is specified, this Data Collection Rule Association must be named 'configurationAccessEndpoint'. If `data_collection_rule_id` is specified, the name can be customized. 
+
 * `target_resource_id` - (Required) The ID of the Azure Resource which to associate to a Data Collection Rule or a Data Collection Endpoint. Changing this forces a new resource to be created.
 
 ---
@@ -125,8 +127,6 @@ The following arguments are supported:
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule which will be associated to the target resource.
  
 -> **NOTE** Exactly one of `data_collection_endpoint_id` and `data_collection_rule_id` blocks must be specified.
-
--> **NOTE** An association of Data Collection Endpoint must be named 'configurationAccessEndpoint'. 
 
 * `description` - (Optional) The description of the Data Collection Rule Association.
 
