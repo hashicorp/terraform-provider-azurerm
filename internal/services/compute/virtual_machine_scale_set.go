@@ -1333,8 +1333,8 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
 		}
 
-		if name := raw["name"].(string); name != "" {
-			disk.Name = utils.String(name)
+		if name := raw["name"]; name != nil && name.(string) != "" {
+			disk.Name = utils.String(name.(string))
 		}
 
 		if id := raw["disk_encryption_set_id"].(string); id != "" {
