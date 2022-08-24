@@ -236,12 +236,6 @@ func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.Resourc
 	d.SetId(id.ID())
 	d.Set("name", id.BudgetName)
 	if model := resp.Model; model != nil {
-		eTag := ""
-		if v := model.ETag; v != nil {
-			eTag = *v
-		}
-		d.Set("etag", eTag)
-
 		if props := model.Properties; props != nil {
 			d.Set("amount", props.Amount)
 			d.Set("time_grain", string(props.TimeGrain))
