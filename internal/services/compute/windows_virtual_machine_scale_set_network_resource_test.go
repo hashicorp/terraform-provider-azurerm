@@ -382,6 +382,29 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkPublicIP(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.networkPublicIPVersionUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -1572,6 +1595,51 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
           tag  = "/Sql"
           type = "FirstPartyUsage"
         }
+      }
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) networkPublicIPVersionUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "primary"
+    primary = true
+
+    ip_configuration {
+      name      = "first"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "first"
+        idle_timeout_in_minutes = 4
+        version                 = "IPv6"
       }
     }
   }
