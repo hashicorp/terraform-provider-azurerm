@@ -15,6 +15,7 @@ BUG FIXES:
 
 * `azurerm_cosmosdb_sql_database` - prevent panic in autoacale settings [GH-18070]
 * `azurerm_kubernetes_cluster_node_pool` - fix a crash in expanding upgrade settings [GH-18074]
+* `azurerm_postgresql_flexible_server` - `point_in_time_restore_time_in_utc` correctly converts to RFC3339 [GH-18106]
 
 ## 3.19.1 (August 19, 2022)
 
