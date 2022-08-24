@@ -25,6 +25,7 @@ func (r Registration) Resources() []sdk.Resource {
 		DataCollectionEndpointResource{},
 		DataCollectionRuleAssociationResource{},
 		DataCollectionRuleResource{},
+		ScheduledQueryRulesAlertV2Resource{},
 	}
 }
 
