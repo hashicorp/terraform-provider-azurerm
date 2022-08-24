@@ -345,12 +345,13 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("retention_in_days", retentionInDays)
 
-			if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumFree)) {
+			switch {
+			case strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumFree)):
 				// Special case for "Free" tier
 				d.Set("daily_quota_gb", utils.Float(0.5))
-			} else if props.WorkspaceCapping != nil && props.WorkspaceCapping.DailyQuotaGb != nil {
+			case props.WorkspaceCapping != nil && props.WorkspaceCapping.DailyQuotaGb != nil:
 				d.Set("daily_quota_gb", *props.WorkspaceCapping.DailyQuotaGb)
-			} else {
+			default:
 				d.Set("daily_quota_gb", utils.Float(-1))
 			}
 
