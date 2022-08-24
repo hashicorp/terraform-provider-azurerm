@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* Dependencies: update `go-azure-sdk` to `v0.20220824.1090858` [GH-18100]
 * Dependencies: `consumption` - updating to use `hashicorp/go-azure-sdk` [GH-18101]
 * `azurerm_data_factory_dataset_json` - `filename` and `path` in `azure_blob_storage_location` block can now be empty [GH-18061]
 
