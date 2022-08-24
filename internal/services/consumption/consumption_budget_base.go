@@ -3,14 +3,13 @@ package consumption
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -439,25 +438,11 @@ func (br consumptionBudgetBaseResource) updateFunc() sdk.ResourceFunc {
 	}
 }
 
-func (br consumptionBudgetBaseResource) importerFunc(expectScope string) sdk.ResourceRunFunc {
+func (br consumptionBudgetBaseResource) importerFunc() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		var err error
-		id, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id())
+		_, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
-		}
-
-		switch expectScope {
-		case "subscription":
-			_, err = parse.ConsumptionBudgetSubscriptionID(metadata.ResourceData.Id())
-		case "resource_group":
-			_, err = parse.ConsumptionBudgetResourceGroupID(metadata.ResourceData.Id())
-		case "management_group":
-			_, err = parse.ConsumptionBudgetManagementGroupID(metadata.ResourceData.Id())
-		}
-
-		if err != nil {
-			return fmt.Errorf("budget has mismatched scope, expected a budget with %s scope, got %s", expectScope, id.Scope)
 		}
 
 		return nil

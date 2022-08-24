@@ -3,7 +3,6 @@ package consumption
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	validateManagementGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -104,7 +103,7 @@ func (r ManagementGroupConsumptionBudget) ResourceType() string {
 }
 
 func (r ManagementGroupConsumptionBudget) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ConsumptionBudgetManagementGroupID
+	return budgets.ValidateScopedBudgetID
 }
 
 func (r ManagementGroupConsumptionBudget) Create() sdk.ResourceFunc {
@@ -124,5 +123,5 @@ func (r ManagementGroupConsumptionBudget) Update() sdk.ResourceFunc {
 }
 
 func (r ManagementGroupConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
-	return r.base.importerFunc("management_group")
+	return r.base.importerFunc()
 }
