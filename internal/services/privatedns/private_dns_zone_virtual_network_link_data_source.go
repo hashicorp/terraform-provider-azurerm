@@ -61,11 +61,12 @@ func dataSourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, m
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	d.Set("name", id.VirtualNetworkLinkName)
 	d.Set("private_dns_zone_name", id.PrivateZoneName)
