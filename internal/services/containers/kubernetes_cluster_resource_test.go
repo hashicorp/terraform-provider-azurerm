@@ -23,7 +23,7 @@ var (
 	currentKubernetesVersionAlias = "1.23"
 )
 
-func TestAccKubernetesCluster2_hostEncryption(t *testing.T) {
+func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -38,7 +38,7 @@ func TestAccKubernetesCluster2_hostEncryption(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster2_dedicatedHost(t *testing.T) {
+func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -52,7 +52,7 @@ func TestAccKubernetesCluster2_dedicatedHost(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster2_runCommand(t *testing.T) {
+func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -74,7 +74,7 @@ func TestAccKubernetesCluster2_runCommand(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster2_edgeZone(t *testing.T) {
+func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
