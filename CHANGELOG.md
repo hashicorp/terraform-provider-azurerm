@@ -17,6 +17,7 @@ BUG FIXES:
 * `data.azurerm_kubernetes_cluster` - `kube_config` is now set when AAD is enabled for a v1.24 cluster [GH-18131]
 * `azurerm_cosmosdb_sql_database` - prevent panic in autoacale settings [GH-18070]
 * `azurerm_kubernetes_cluster_node_pool` - fix a crash in expanding upgrade settings [GH-18074]
+* `azurerm_mssql_elastic_pool` - list of values for `maintenance_configuration_name` is now correct [GH-18041]
 * `azurerm_postgresql_flexible_server` - `point_in_time_restore_time_in_utc` correctly converts to RFC3339 [GH-18106]
 
 ## 3.19.1 (August 19, 2022)
