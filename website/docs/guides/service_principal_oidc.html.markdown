@@ -92,15 +92,7 @@ Secondly, search for and select the name of the Service Principal created in Azu
 
 On the Azure Active Directory application page, go to **Certificates and secrets**.
 
-In the Federated credentials tab, select Add credential. The Add a credential blade opens. In the **Federated credential scenario** drop-down box select **Other issuer**.
-
-Specify the **Issuer URL** and **Subject Identifier** for your OIDC provider. For GitLab use your GitLab instance URL and the project/branch specifier as defined in the [GitLab OIDC documentation](https://docs.gitlab.com/ee/ci/cloud_services/) (e.g. `"project_path:user/my-repo:ref_type:branch:ref:main"`).
-
-Add a **Name** for the federated credential.
-
-For GitLab you will need to set the value for **Audience** to your GitLab instance ("https://gitlab.com" or "https://gitlab.example.com").
-
-Click **Add** to configure the federated credential.
+In the Federated credentials tab, select **Add credential**. The 'Add a credential' blade opens. Refer to the instructions from your OIDC provider for completing the form, before choosing a **Name** for the federated credential and clicking the **Add** button.
 
 ## Configuring the Service Principal in Terraform
 
@@ -116,16 +108,9 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The provider will use the `ARM_OIDC_TOKEN` environment variable as an OIDC token. 
+The provider will use the `ARM_OIDC_TOKEN` environment variable as an OIDC token. You can use this variable to specify the token provided by your OIDC provider.
 
-GitLab CI provides a valid OIDC token as an environment variable with the name `CI_JOB_JWT_V2` - you will have to set the ARM_OIDC_TOKEN in the GitLab CI variables:
-
-```yaml
-variables:
-  ARM_OIDC_TOKEN: $CI_JOB_JWT_V2
-```
-
-For GitHub provider will detect the `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables set by the GitHub Actions runtim. You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables. 
+When running Terraform in GitHub Actions, the provider will detect the `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables set by the GitHub Actions runtime. You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables.
 
 For GitHub Actions workflows, you'll need to ensure the workflow has `write` permissions for the `id-token`.
 
@@ -195,10 +180,12 @@ provider "azurerm" {
   subscription_id = "00000000-0000-0000-0000-000000000000"
   client_id       = "00000000-0000-0000-0000-000000000000"
   use_oidc        = true
-  # for GitHub actions
+
+  # for GitHub Actions
   oidc_request_token = var.oidc_request_token
   oidc_request_url   = var.oidc_request_url
-  # for GitLab or generic OIDC
+
+  # for other generic OIDC providers
   oidc_token = var.oidc_token
   tenant_id  = "00000000-0000-0000-0000-000000000000"
 }
