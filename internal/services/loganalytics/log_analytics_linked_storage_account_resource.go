@@ -134,7 +134,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if props := resp.LinkedStorageAccountsProperties; props != nil {
-		d.Set("data_source_type", string(props.DataSourceType))
+		d.Set("data_source_type", strings.ToLower(string(props.DataSourceType)))
 		d.Set("storage_account_ids", utils.FlattenStringSlice(props.StorageAccountIds))
 	}
 
