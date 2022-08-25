@@ -126,7 +126,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"extension_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 				ForceNew: true,
 			},
 
@@ -348,14 +348,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", id.Name, id.ResourceGroup)
 	}
 
-	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		_, extensionsExists := d.GetOk("extension")
-		if v && !extensionsExists {
-			return fmt.Errorf("%q can not be set to %q if the %q field does not contain any extensions", "extension_operations_enabled", "true", "extension")
-		}
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
-	}
-
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
 		if virtualMachineProfile.ExtensionProfile == nil {
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
@@ -365,11 +357,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
+	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
+		sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		if err != nil {
+			return err
+		}
+		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 	}
-	virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 
 	osType := compute.OperatingSystemTypesWindows
 	var winConfigRaw []interface{}
@@ -485,6 +479,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		virtualMachineProfile.OsProfile = vmssOsProfile
+	}
+
+	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
+		if virtualMachineProfile.OsProfile == nil {
+			virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{}
+		}
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
 	}
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
@@ -882,14 +883,17 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 				sourceImageId := d.Get("source_image_id").(string)
-				sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-				if err != nil {
-					return err
+
+				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
+					sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+					if err != nil {
+						return err
+					}
+					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 				}
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 				updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
-				updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 				updateProps.VirtualMachineProfile.StorageProfile.OsDisk = &compute.VirtualMachineScaleSetUpdateOSDisk{
 					Caching:                 existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Caching,
 					WriteAcceleratorEnabled: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.WriteAcceleratorEnabled,

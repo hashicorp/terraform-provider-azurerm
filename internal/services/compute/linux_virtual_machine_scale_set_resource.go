@@ -119,12 +119,16 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
 	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
-	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
+	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0)
+	if err != nil {
+		return err
+	}
 
 	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
@@ -225,10 +229,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		_, extensionsExists := d.GetOk("extension")
-		if v && !extensionsExists {
-			return fmt.Errorf("%q can not be set to %q if the %q field does not contain any extensions", "extension_operations_enabled", "true", "extension")
-		}
 		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
 	}
 
@@ -405,7 +405,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		props.SpotRestorePolicy = spotRestorePolicy
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -518,7 +517,12 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		if d.HasChange("rolling_upgrade_policy") {
 			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
-			upgradePolicy.RollingUpgradePolicy = ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw)
+			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+			rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0)
+			if err != nil {
+				return err
+			}
+			upgradePolicy.RollingUpgradePolicy = rollingUpgradePolicy
 		}
 
 		updateProps.UpgradePolicy = &upgradePolicy
@@ -1229,7 +1233,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
+			Default:  true,
 			ForceNew: true,
 		},
 
@@ -1399,7 +1403,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		resourceSchema["scale_in_policy"] = &schema.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+			Computed: !features.FourPointOhBeta(),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(compute.VirtualMachineScaleSetScaleInRulesDefault),
 				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),

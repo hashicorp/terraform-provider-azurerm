@@ -85,7 +85,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				"patch_assessment_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
+					Default:  string(compute.WindowsPatchAssessmentModeImageDefault),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
 						string(compute.WindowsPatchAssessmentModeImageDefault),
@@ -159,7 +159,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				"patch_assessment_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
+					Default:  string(compute.LinuxPatchAssessmentModeImageDefault),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
 						string(compute.LinuxPatchAssessmentModeImageDefault),
@@ -449,7 +449,6 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 				"sku_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Default:      fmt.Sprintf("%s_%s", string(compute.PublicIPAddressSkuNameBasic), string(compute.PublicIPAddressSkuTierRegional)),
 					ValidateFunc: validate.OrchestratedVirtualMachineScaleSetPublicIPSku,
 				},
 
@@ -1633,7 +1632,7 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input compute.Virt
 	}
 
 	var sku string
-	if input.Sku.Name != "" && input.Sku.Tier != "" {
+	if input.Sku != nil && input.Sku.Name != "" && input.Sku.Tier != "" {
 		sku = flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input.Sku)
 	}
 

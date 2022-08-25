@@ -48,8 +48,8 @@ func ExpandVirtualMachineScaleSetHardwareProfile(input []interface{}) *compute.V
 		return nil
 	}
 
-	vCPUsAvailable := input[0].(map[string]interface{})["virtual_cpus_available"].(int32)
-	vCPUsPerCore := input[0].(map[string]interface{})["virtual_cpus_per_core"].(int32)
+	vCPUsAvailable := input[0].(map[string]interface{})["virtual_cpus_available"].(int)
+	vCPUsPerCore := input[0].(map[string]interface{})["virtual_cpus_per_core"].(int)
 
 	if vCPUsAvailable > 0 || vCPUsPerCore > 0 {
 		hardwareProfile := &compute.VirtualMachineScaleSetHardwareProfile{
@@ -57,11 +57,11 @@ func ExpandVirtualMachineScaleSetHardwareProfile(input []interface{}) *compute.V
 		}
 
 		if vCPUsAvailable > 0 {
-			hardwareProfile.VMSizeProperties.VCPUsAvailable = utils.Int32(vCPUsAvailable)
+			hardwareProfile.VMSizeProperties.VCPUsAvailable = utils.Int32(int32(vCPUsAvailable))
 		}
 
 		if vCPUsPerCore > 0 {
-			hardwareProfile.VMSizeProperties.VCPUsPerCore = utils.Int32(vCPUsPerCore)
+			hardwareProfile.VMSizeProperties.VCPUsPerCore = utils.Int32(int32(vCPUsPerCore))
 		}
 
 		return hardwareProfile
@@ -72,12 +72,7 @@ func ExpandVirtualMachineScaleSetHardwareProfile(input []interface{}) *compute.V
 
 func FlattenVirtualMachineScaleSetHardwareProfile(input *compute.VirtualMachineScaleSetHardwareProfile) []interface{} {
 	if input == nil || input.VMSizeProperties == nil {
-		return []interface{}{
-			map[string]interface{}{
-				"virtual_cpus_available": 0,
-				"virtual_cpus_per_core":  0,
-			},
-		}
+		return []interface{}{}
 	}
 
 	vCPUsAvailable := 0
@@ -240,16 +235,6 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
-				"delete_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(compute.DeleteOptionsDelete),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.DeleteOptionsDelete),
-						string(compute.DeleteOptionsDetach),
-					}, false),
-				},
-
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -301,7 +286,7 @@ func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.GalleryApplicationID,
+					ValidateFunc: validate.GalleryApplicationVersionID,
 				},
 
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
@@ -403,6 +388,7 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 		return &pluginsdk.Schema{
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
+			Computed:      !features.FourPointOhBeta(),
 			MaxItems:      1,
 			ConflictsWith: []string{"scale_in_policy"},
 			Elem: &pluginsdk.Resource{
@@ -471,12 +457,7 @@ func ExpandVirtualMachineScaleSetScaleInPolicy(input []interface{}) *compute.Sca
 
 func FlattenVirtualMachineScaleSetScaleInPolicy(input *compute.ScaleInPolicy) []interface{} {
 	if input == nil {
-		return []interface{}{
-			map[string]interface{}{
-				"rule":                   string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-				"force_deletion_enabled": false,
-			},
-		}
+		return []interface{}{}
 	}
 
 	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
@@ -752,16 +733,6 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				// Optional
-				"delete_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(compute.DeleteOptionsDelete),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.DeleteOptionsDelete),
-						string(compute.DeleteOptionsDetach),
-					}, false),
-				},
 				"domain_name_label": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -888,7 +859,6 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compu
 		config := compute.VirtualMachineScaleSetNetworkConfiguration{
 			Name: utils.String(raw["name"].(string)),
 			VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
-				DeleteOption: compute.DeleteOptions(raw["delete_action"].(string)),
 				DNSSettings: &compute.VirtualMachineScaleSetNetworkConfigurationDNSSettings{
 					DNSServers: dnsServers,
 				},
@@ -977,10 +947,6 @@ func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *co
 			IPTags:                 &ipTags,
 			PublicIPAddressVersion: version,
 		},
-	}
-
-	if deleteOption := raw["delete_action"].(string); deleteOption != "" {
-		publicIPAddressConfig.DeleteOption = compute.DeleteOptions(deleteOption)
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
@@ -1123,15 +1089,12 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		var name, networkSecurityGroupId, deleteOption string
+		var name, networkSecurityGroupId string
 		if v.Name != nil {
 			name = *v.Name
 		}
 		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
 			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
-		}
-		if v.DeleteOption != "" {
-			deleteOption = string(v.DeleteOption)
 		}
 		var enableAcceleratedNetworking, enableIPForwarding, primary, fpgaEnabled bool
 		if v.EnableAcceleratedNetworking != nil {
@@ -1162,7 +1125,6 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 
 		results = append(results, map[string]interface{}{
 			"name":                          name,
-			"delete_action":                 deleteOption,
 			"dns_servers":                   dnsServers,
 			"enable_accelerated_networking": enableAcceleratedNetworking,
 			"enable_ip_forwarding":          enableIPForwarding,
@@ -1234,7 +1196,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 		}
 	}
 
-	var domainNameLabel, name, publicIPPrefixId, version, deleteOption string
+	var domainNameLabel, name, publicIPPrefixId, version string
 	if input.DNSSettings != nil && input.DNSSettings.DomainNameLabel != nil {
 		domainNameLabel = *input.DNSSettings.DomainNameLabel
 	}
@@ -1251,10 +1213,6 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 		version = string(input.PublicIPAddressVersion)
 	}
 
-	if input.DeleteOption != "" {
-		deleteOption = string(input.DeleteOption)
-	}
-
 	var idleTimeoutInMinutes int
 	if input.IdleTimeoutInMinutes != nil {
 		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
@@ -1262,7 +1220,6 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 
 	return map[string]interface{}{
 		"name":                    name,
-		"delete_action":           deleteOption,
 		"domain_name_label":       domainNameLabel,
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
 		"ip_tag":                  ipTags,
@@ -1376,8 +1333,8 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
 		}
 
-		if name := raw["name"].(string); name != "" {
-			disk.Name = utils.String(name)
+		if name := raw["name"]; name != nil && name.(string) != "" {
+			disk.Name = utils.String(name.(string))
 		}
 
 		if id := raw["disk_encryption_set_id"].(string); id != "" {
@@ -1832,21 +1789,30 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}) *compute.RollingUpgradePolicy {
+func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal bool) (*compute.RollingUpgradePolicy, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	raw := input[0].(map[string]interface{})
 
-	return &compute.RollingUpgradePolicy{
-		EnableCrossZoneUpgrade:              utils.Bool(raw["cross_zone_upgrades_enabled"].(bool)),
+	rollingUpgradePolicy := &compute.RollingUpgradePolicy{
 		MaxBatchInstancePercent:             utils.Int32(int32(raw["max_batch_instance_percent"].(int))),
 		MaxUnhealthyInstancePercent:         utils.Int32(int32(raw["max_unhealthy_instance_percent"].(int))),
 		MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             utils.String(raw["pause_time_between_batches"].(string)),
 		PrioritizeUnhealthyInstances:        utils.Bool(raw["prioritize_unhealthy_instances_enabled"].(bool)),
 	}
+
+	enableCrossZoneUpgrade := raw["cross_zone_upgrades_enabled"].(bool)
+	if isZonal {
+		// EnableCrossZoneUpgrade can only be set when for zonal scale set
+		rollingUpgradePolicy.EnableCrossZoneUpgrade = utils.Bool(enableCrossZoneUpgrade)
+	} else if enableCrossZoneUpgrade {
+		return nil, fmt.Errorf("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
+	}
+
+	return rollingUpgradePolicy, nil
 }
 
 func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpgradePolicy) []interface{} {

@@ -448,8 +448,6 @@ A `network_interface` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
 
-* `delete_action` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
-
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
 * `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
@@ -521,8 +519,6 @@ A `scale_in` block supports the following:
 A `public_ip_address` block supports the following:
 
 * `name` - (Required) The Name of the Public IP Address Configuration.
-
-* `delete_action` - (Optional) Specifies what happens to the network interface when the VM is deleted. Possible values include `Delete` or `Detach`. Defaults to `Delete`.
 
 * `domain_name_label` - (Optional) The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance. Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine.
 
