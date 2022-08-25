@@ -95,6 +95,10 @@ A `replica_set` block exports the following:
 
 A `security` block exports the following:
 
+* `kerberos_armoring_enabled` - (Optional) Whether the Kerberos Armoring is enabled.
+
+* `kerberos_rc4_encryption_enabled` - (Optional) Whether the Kerberos RC4 Encryption is enabled.
+
 * `ntlm_v1_enabled` - Whether legacy NTLM v1 support is enabled.
 
 * `sync_kerberos_passwords` - Whether Kerberos password hashes are synchronized to the managed domain.
@@ -107,6 +111,6 @@ A `security` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.

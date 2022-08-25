@@ -158,7 +158,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 		Properties: &namespaces.NetworkRuleSetProperties{
 			DefaultAction:               &defaultAction,
 			VirtualNetworkRules:         vnetRule,
-			IpRules:                     ipRule,
+			IPRules:                     ipRule,
 			PublicNetworkAccess:         &publicNetworkAccess,
 			TrustedServiceAccessEnabled: utils.Bool(d.Get("trusted_services_allowed").(bool)),
 		},
@@ -212,7 +212,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 				return fmt.Errorf("failed to set `network_rules`: %+v", err)
 			}
 
-			if err := d.Set("ip_rules", flattenServiceBusNamespaceIPRules(props.IpRules)); err != nil {
+			if err := d.Set("ip_rules", flattenServiceBusNamespaceIPRules(props.IPRules)); err != nil {
 				return fmt.Errorf("failed to set `ip_rules`: %+v", err)
 			}
 		}
@@ -293,16 +293,16 @@ func flattenServiceBusNamespaceVirtualNetworkRules(input *[]namespaces.NWRuleSet
 	return result
 }
 
-func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleSetIpRules {
+func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleSetIPRules {
 	if len(input) == 0 {
 		return nil
 	}
 
 	action := namespaces.NetworkRuleIPActionAllow
-	result := make([]namespaces.NWRuleSetIpRules, 0)
+	result := make([]namespaces.NWRuleSetIPRules, 0)
 	for _, v := range input {
-		result = append(result, namespaces.NWRuleSetIpRules{
-			IpMask: utils.String(v.(string)),
+		result = append(result, namespaces.NWRuleSetIPRules{
+			IPMask: utils.String(v.(string)),
 			Action: &action,
 		})
 	}
@@ -310,15 +310,15 @@ func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleS
 	return &result
 }
 
-func flattenServiceBusNamespaceIPRules(input *[]namespaces.NWRuleSetIpRules) []interface{} {
+func flattenServiceBusNamespaceIPRules(input *[]namespaces.NWRuleSetIPRules) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {
 		return result
 	}
 
 	for _, v := range *input {
-		if v.IpMask != nil {
-			result = append(result, *v.IpMask)
+		if v.IPMask != nil {
+			result = append(result, *v.IPMask)
 		}
 	}
 
@@ -347,7 +347,7 @@ func CheckNetworkRuleNullified(resp namespaces.NetworkRuleSet) bool {
 			return false
 		}
 
-		if props.IpRules != nil && len(*props.IpRules) > 0 {
+		if props.IPRules != nil && len(*props.IPRules) > 0 {
 			return false
 		}
 	}

@@ -82,7 +82,9 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
 
-* `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V2`.
+* `engine` - (Optional). The engine type that will be used in the backend. Possible values are `V2` and `V3`. Defaults to `V2`. Changing this forces a new Kusto Cluster to be created.
+
+~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, default engine type will be changed to `V3`. 
 
 ---
 
@@ -147,7 +149,7 @@ An `identity` block exports the following:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kusto Cluster.
 * `update` - (Defaults to 60 minutes) Used when updating the Kusto Cluster.

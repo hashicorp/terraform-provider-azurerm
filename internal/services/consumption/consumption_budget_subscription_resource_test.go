@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -116,17 +116,17 @@ func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 }
 
 func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetID(state.ID)
+	id, err := budgets.ParseScopedBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.BudgetProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ConsumptionBudgetSubscriptionResource) basic(data acceptance.TestData) string {

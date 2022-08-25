@@ -89,6 +89,16 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeMsi),
+					string(streamanalytics.AuthenticationModeConnectionString),
+				}, false),
+			},
+
 			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
@@ -127,6 +137,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 		SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 		ConsumerGroupName:      utils.String(d.Get("eventhub_consumer_group_name").(string)),
+		AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 	}
 
 	props := streamanalytics.Input{
@@ -194,6 +205,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 		d.Set("eventhub_name", eventHub.EventHubName)
 		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
+		d.Set("authentication_mode", eventHub.AuthenticationMode)
 
 		consumerGroupName := ""
 		if eventHub.ConsumerGroupName != nil {

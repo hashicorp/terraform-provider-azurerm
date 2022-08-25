@@ -66,12 +66,10 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	id := privatezones.NewPrivateDnsZoneID(subscriptionId, resourceGroup, name)
+	id := privatezones.NewPrivateDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	var resp *privatezones.PrivateZone
-	if resourceGroup != "" {
+	if id.ResourceGroupName != "" {
 		zone, err := client.Get(ctx, id)
 		if err != nil || zone.Model == nil {
 			if response.WasNotFound(zone.HttpResponse) {
@@ -83,23 +81,23 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	} else {
 		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
-		zone, err := findPrivateZone(ctx, client, resourcesClient, name)
+		zone, err := findPrivateZone(ctx, client, resourcesClient, id.PrivateZoneName)
 		if err != nil {
 			return err
 		}
 
 		if zone == nil {
-			return fmt.Errorf("Private DNS Zone %q was not found", name)
+			return fmt.Errorf("%s was not found", id)
 		}
 
 		resp = &zone.zone
-		resourceGroup = zone.resourceGroup
+		id.ResourceGroupName = zone.resourceGroup
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.PrivateZoneName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.Properties; props != nil {
 		d.Set("number_of_record_sets", props.NumberOfRecordSets)

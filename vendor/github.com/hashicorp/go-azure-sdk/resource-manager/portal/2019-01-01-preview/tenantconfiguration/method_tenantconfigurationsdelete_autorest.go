@@ -61,5 +61,6 @@ func (c TenantConfigurationClient) responderForTenantConfigurationsDelete(resp *
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -57,6 +57,8 @@ The following attributes are exported:
 
 * `purge_protection_enabled` - Is purge protection enabled on this Key Vault?
 
+* `public_network_access_enabled` - Is public network access enabled on this Key Vault?
+
 * `tags` - A mapping of tags assigned to the Key Vault.
 
 A `access_policy` block supports the following:
@@ -77,6 +79,6 @@ A `access_policy` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.

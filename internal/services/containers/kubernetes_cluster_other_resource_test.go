@@ -166,7 +166,7 @@ func TestAccKubernetesCluster_nodeLabels(t *testing.T) {
 			Config: r.nodeLabelsConfig(data, labels3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "default_node_pool.0.node_labels"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_labels.%").HasValue("0"),
 			),
 		},
 	})

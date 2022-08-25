@@ -3,9 +3,12 @@ package loganalytics
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -107,14 +110,28 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 		}
 	}
 
+	destinationId := d.Get("destination_resource_id").(string)
+
 	parameters := operationalinsights.DataExport{
 		DataExportProperties: &operationalinsights.DataExportProperties{
 			Destination: &operationalinsights.Destination{
-				ResourceID: utils.String(d.Get("destination_resource_id").(string)),
+				ResourceID: utils.String(destinationId),
 			},
 			TableNames: utils.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List()),
 			Enable:     utils.Bool(d.Get("enabled").(bool)),
 		},
+	}
+
+	if strings.Contains(destinationId, "Microsoft.EventHub") {
+		eventhubId, err := eventhubs.ParseEventhubID(destinationId)
+		if err != nil {
+			return fmt.Errorf("parsing destination eventhub id error: %+v", err)
+		}
+		destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
+		parameters.DataExportProperties.Destination.ResourceID = utils.String(destinationId)
+		parameters.DataExportProperties.Destination.DestinationMetaData = &operationalinsights.DestinationMetaData{
+			EventHubName: utils.String(eventhubId.EventHubName),
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName, parameters); err != nil {
@@ -149,7 +166,12 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if props := resp.DataExportProperties; props != nil {
 		d.Set("export_rule_id", props.DataExportID)
-		d.Set("destination_resource_id", flattenDataExportDestination(props.Destination))
+
+		destinationId, err := flattenDataExportDestination(props.Destination)
+		if err != nil {
+			return fmt.Errorf("flattening destination ID error: %+v", err)
+		}
+		d.Set("destination_resource_id", destinationId)
 		d.Set("enabled", props.Enable)
 		d.Set("table_names", utils.FlattenStringSlice(props.TableNames))
 	}
@@ -172,15 +194,26 @@ func resourceOperationalinsightsDataExportDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func flattenDataExportDestination(input *operationalinsights.Destination) string {
+func flattenDataExportDestination(input *operationalinsights.Destination) (string, error) {
 	if input == nil {
-		return ""
+		return "", nil
 	}
 
 	var resourceID string
 	if input.ResourceID != nil {
 		resourceID = *input.ResourceID
+		if input.Type == operationalinsights.TypeEventHub {
+			if input.DestinationMetaData != nil && input.DestinationMetaData.EventHubName != nil {
+				eventhubName := *input.DestinationMetaData.EventHubName
+				eventhubNamespaceId, err := eventhubs.ParseNamespaceID(resourceID)
+				eventhubId := eventhubs.NewEventhubID(eventhubNamespaceId.SubscriptionId, eventhubNamespaceId.ResourceGroupName, eventhubNamespaceId.NamespaceName, eventhubName)
+				if err != nil {
+					return "", fmt.Errorf("parsing destination eventhub namespace ID error")
+				}
+				resourceID = eventhubId.ID()
+			}
+		}
 	}
 
-	return resourceID
+	return resourceID, nil
 }

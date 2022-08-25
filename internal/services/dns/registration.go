@@ -28,7 +28,17 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_dns_zone": dataSourceDnsZone(),
+		"azurerm_dns_a_record":     dataSourceDnsARecord(),
+		"azurerm_dns_aaaa_record":  dataSourceDnsAAAARecord(),
+		"azurerm_dns_caa_record":   dataSourceDnsCaaRecord(),
+		"azurerm_dns_cname_record": dataSourceDnsCNameRecord(),
+		"azurerm_dns_mx_record":    dataSourceDnsMxRecord(),
+		"azurerm_dns_ns_record":    dataSourceDnsNsRecord(),
+		"azurerm_dns_ptr_record":   dataSourceDnsPtrRecord(),
+		"azurerm_dns_soa_record":   dataSourceDnsSoaRecord(),
+		"azurerm_dns_srv_record":   dataSourceDnsSrvRecord(),
+		"azurerm_dns_txt_record":   dataSourceDnsTxtRecord(),
+		"azurerm_dns_zone":         dataSourceDnsZone(),
 	}
 }
 

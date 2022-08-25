@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = FrontDoorRuleSetId{}
 
 func TestFrontDoorRuleSetIDFormatter(t *testing.T) {
-	actual := NewFrontDoorRuleSetID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1", "ruleSet1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1"
+	actual := NewFrontDoorRuleSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "ruleSet1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,34 +57,34 @@ func TestFrontDoorRuleSetID(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// missing RuleSetName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
 			// missing value for RuleSetName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1",
 			Expected: &FrontDoorRuleSetId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 				RuleSetName:    "ruleSet1",
 			},
@@ -92,7 +92,7 @@ func TestFrontDoorRuleSetID(t *testing.T) {
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/RULESETS/RULESET1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/RULESETS/RULESET1",
 			Error: true,
 		},
 	}
@@ -166,34 +166,34 @@ func TestFrontDoorRuleSetIDInsensitively(t *testing.T) {
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// missing RuleSetName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
 			// missing value for RuleSetName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1",
 			Expected: &FrontDoorRuleSetId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 				RuleSetName:    "ruleSet1",
 			},
@@ -201,10 +201,10 @@ func TestFrontDoorRuleSetIDInsensitively(t *testing.T) {
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/rulesets/ruleSet1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/rulesets/ruleSet1",
 			Expected: &FrontDoorRuleSetId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 				RuleSetName:    "ruleSet1",
 			},
@@ -212,10 +212,10 @@ func TestFrontDoorRuleSetIDInsensitively(t *testing.T) {
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PROFILES/profile1/RULESETS/ruleSet1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/RULESETS/ruleSet1",
 			Expected: &FrontDoorRuleSetId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 				RuleSetName:    "ruleSet1",
 			},
@@ -223,10 +223,10 @@ func TestFrontDoorRuleSetIDInsensitively(t *testing.T) {
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/RuLeSeTs/ruleSet1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/RuLeSeTs/ruleSet1",
 			Expected: &FrontDoorRuleSetId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
+				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
 				RuleSetName:    "ruleSet1",
 			},
