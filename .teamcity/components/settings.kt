@@ -39,6 +39,9 @@ var serviceTestConfigurationOverrides = mapOf(
         //Blueprints are constrained on the number of targets available - these execute quickly, so can be serialised
         "blueprints" to testConfiguration(parallelism = 1),
 
+        // CDN is only available in certain locations
+        "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true)),
+
         // "cognitive" is expensive - Monday, Wednesday, Friday
         "cognitive" to testConfiguration(daysOfWeek = "2,4,6"),
 
@@ -50,6 +53,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
+
+        // Custom Providers is only available in certain locations
+        "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),

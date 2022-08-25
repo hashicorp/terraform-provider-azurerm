@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 
 	providers "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
@@ -172,16 +173,31 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 			return fmt.Errorf("parsing ID %q from Template Output to delete it: %+v", *nestedResource.ID, err)
 		}
 
-		resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[parsedId.Provider]
+		resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[strings.ToLower(parsedId.Provider)]
 		if !ok {
-			resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[parsedId.SecondaryProvider]
+			resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[strings.ToLower(parsedId.SecondaryProvider)]
 			if !ok {
-				return fmt.Errorf("API version information for RP %q was not found", parsedId.Provider)
+				return fmt.Errorf("API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
 			}
 		}
 
 		log.Printf("[DEBUG] Deleting Nested Resource %q..", *nestedResource.ID)
 		future, err := resourcesClient.DeleteByID(ctx, *nestedResource.ID, resourceProviderApiVersion)
+
+		// NOTE: resourceProviderApiVersion is gotten from one of resource types of the provider.
+		// When the provider has multiple resource types, it may cause API version mismatched.
+		// For such error, try to get available API version from error code. Ugly but this seems sufficient for now
+		if err != nil && strings.Contains(err.Error(), `Code="NoRegisteredProviderFound"`) {
+			apiPat := regexp.MustCompile(`\d{4}-\d{2}-\d{2}(-preview)*`)
+			matches := apiPat.FindAllStringSubmatch(err.Error(), -1)
+			for _, match := range matches {
+				if resourceProviderApiVersion != match[0] {
+					future, err = resourcesClient.DeleteByID(ctx, *nestedResource.ID, match[0])
+					break
+				}
+			}
+		}
+
 		if err != nil {
 			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 				log.Printf("[DEBUG] Nested Resource %q has been deleted.. continuing..", *nestedResource.ID)
@@ -228,7 +244,7 @@ func determineResourceProviderAPIVersionsForResources(ctx context.Context, clien
 
 			// NOTE: there's an enhancement in that not all RP's necessarily offer everything in every version
 			// but the majority do, so this is likely sufficient for now
-			resourceProviderApiVersions[resourceProviderName] = *apiVersion
+			resourceProviderApiVersions[strings.ToLower(resourceProviderName)] = *apiVersion
 			break
 		}
 	}

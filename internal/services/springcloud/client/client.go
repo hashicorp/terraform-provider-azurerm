@@ -1,12 +1,13 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	APIPortalClient             *appplatform.APIPortalsClient
+	APIPortalCustomDomainClient *appplatform.APIPortalCustomDomainsClient
 	AppsClient                  *appplatform.AppsClient
 	BindingsClient              *appplatform.BindingsClient
 	BuildPackBindingClient      *appplatform.BuildpackBindingClient
@@ -29,6 +30,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	apiPortalClient := appplatform.NewAPIPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiPortalClient.Client, o.ResourceManagerAuthorizer)
+
+	apiPortalCustomDomainClient := appplatform.NewAPIPortalCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiPortalCustomDomainClient.Client, o.ResourceManagerAuthorizer)
 
 	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
@@ -83,6 +87,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		APIPortalClient:             &apiPortalClient,
+		APIPortalCustomDomainClient: &apiPortalCustomDomainClient,
 		AppsClient:                  &appsClient,
 		BindingsClient:              &bindingsClient,
 		BuildPackBindingClient:      &buildpackBindingClient,

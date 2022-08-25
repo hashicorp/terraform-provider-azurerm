@@ -6,12 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -158,7 +157,7 @@ func (DiskPoolResource) Read() sdk.ResourceFunc {
 				if model.Sku != nil {
 					m.Sku = model.Sku.Name
 				}
-				m.Tags = flattenTags(model.Tags)
+				m.Tags = tags.Flatten(model.Tags)
 
 				m.Location = location.Normalize(model.Location)
 				m.SubnetId = model.Properties.SubnetId

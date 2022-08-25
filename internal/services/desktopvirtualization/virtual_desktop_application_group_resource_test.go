@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -93,17 +93,17 @@ func TestAccVirtualDesktopApplicationGroup_requiresImport(t *testing.T) {
 }
 
 func (VirtualDesktopApplicationGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationGroupID(state.ID)
+	id, err := applicationgroup.ParseApplicationGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DesktopVirtualization.ApplicationGroupsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.DesktopVirtualization.ApplicationGroupsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Virtual Desktop Application Group %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ApplicationGroupProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (VirtualDesktopApplicationGroupResource) basic(data acceptance.TestData) string {

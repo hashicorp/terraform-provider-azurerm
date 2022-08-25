@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -56,7 +55,7 @@ func dataSourcePrivateDnsZone() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -67,12 +66,10 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	id := privatezones.NewPrivateDnsZoneID(subscriptionId, resourceGroup, name)
+	id := privatezones.NewPrivateDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	var resp *privatezones.PrivateZone
-	if resourceGroup != "" {
+	if id.ResourceGroupName != "" {
 		zone, err := client.Get(ctx, id)
 		if err != nil || zone.Model == nil {
 			if response.WasNotFound(zone.HttpResponse) {
@@ -84,23 +81,23 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	} else {
 		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
-		zone, err := findPrivateZone(ctx, client, resourcesClient, name)
+		zone, err := findPrivateZone(ctx, client, resourcesClient, id.PrivateZoneName)
 		if err != nil {
 			return err
 		}
 
 		if zone == nil {
-			return fmt.Errorf("Private DNS Zone %q was not found", name)
+			return fmt.Errorf("%s was not found", id)
 		}
 
 		resp = &zone.zone
-		resourceGroup = zone.resourceGroup
+		id.ResourceGroupName = zone.resourceGroup
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.PrivateZoneName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.Properties; props != nil {
 		d.Set("number_of_record_sets", props.NumberOfRecordSets)
@@ -109,7 +106,7 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
 	}
 
-	return tags.FlattenAndSet(d, flattenTags(resp.Tags))
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 type privateDnsZone struct {

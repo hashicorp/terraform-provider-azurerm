@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -71,12 +72,18 @@ func (VirtualDesktopHostPoolRegistrationInfoResource) Exists(ctx context.Context
 		return nil, err
 	}
 
-	resp, err := clients.DesktopVirtualization.HostPoolsClient.Get(ctx, id.ResourceGroup, id.HostPoolName)
-	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
-	}
-	exists := resp.ID != nil && resp.HostPoolProperties != nil && resp.HostPoolProperties.RegistrationInfo != nil && len(*resp.HostPoolProperties.RegistrationInfo.Token) > 0
+	hostPoolId := hostpool.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
 
+	resp, err := clients.DesktopVirtualization.HostPoolsClient.Get(ctx, hostPoolId)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %+v", hostPoolId, err)
+	}
+	exists := false
+	if model := resp.Model; model != nil {
+		if info := model.Properties.RegistrationInfo; info != nil {
+			exists = info.Token != nil && len(*info.Token) > 0
+		}
+	}
 	return utils.Bool(exists), nil
 }
 

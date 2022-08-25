@@ -53,6 +53,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 	if props := resp.RegistryProperties; props != nil {
 		d.Set("admin_enabled", resp.AdminUserEnabled)
 		d.Set("login_server", resp.LoginServer)
+		d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -102,6 +103,11 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"admin_username": {
 			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"data_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 

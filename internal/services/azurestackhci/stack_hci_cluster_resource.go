@@ -5,18 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmStackHCICluster() *pluginsdk.Resource {
@@ -34,7 +33,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ClusterID(id)
+			_, err := clusters.ParseClusterID(id)
 			return err
 		}),
 
@@ -46,9 +45,9 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				ValidateFunc: validate.ClusterName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"client_id": {
 				Type:         pluginsdk.TypeString,
@@ -65,7 +64,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -73,42 +72,38 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	tenantId := meta.(*clients.Client).Account.TenantId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Azure Stack HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID())
 	}
 
-	cluster := azurestackhci.Cluster{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		ClusterProperties: &azurestackhci.ClusterProperties{
-			AadClientID: utils.String(d.Get("client_id").(string)),
+	cluster := clusters.Cluster{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &clusters.ClusterProperties{
+			AadClientId: d.Get("client_id").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
-		cluster.ClusterProperties.AadTenantID = utils.String(v.(string))
+		cluster.Properties.AadTenantId = v.(string)
 	} else {
-		cluster.ClusterProperties.AadTenantID = utils.String(tenantId)
+		tenantId := meta.(*clients.Client).Account.TenantId
+		cluster.Properties.AadTenantId = tenantId
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, cluster); err != nil {
-		return fmt.Errorf("creating Azure Stack HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Create(ctx, id, cluster); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -121,32 +116,39 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Azure Stack HCI Cluster %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Azure Stack HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.ClusterName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ClusterProperties; props != nil {
-		d.Set("client_id", props.AadClientID)
-		d.Set("tenant_id", props.AadTenantID)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("client_id", props.AadClientId)
+			d.Set("tenant_id", props.AadTenantId)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -154,19 +156,19 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	cluster := azurestackhci.ClusterUpdate{}
+	cluster := clusters.ClusterUpdate{}
 
 	if d.HasChange("tags") {
 		cluster.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, cluster); err != nil {
-		return fmt.Errorf("updating Azure Stack HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, *id, cluster); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceArmStackHCIClusterRead(d, meta)
@@ -177,13 +179,13 @@ func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Azure Stack HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -212,21 +212,21 @@ resource "azurerm_key_vault_access_policy" "example-identity" {
 
   // default set by service
   key_permissions = [
-    "wrapKey",
-    "unwrapKey",
-    "get",
-    "recover",
+    "WrapKey",
+    "UnwrapKey",
+    "Get",
+    "Recover",
   ]
 
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "delete",
-    "recover",
-    "backup",
-    "restore"
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore"
   ]
 }
 
@@ -420,7 +420,7 @@ An `identity` block exports the following:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace.
 * `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.

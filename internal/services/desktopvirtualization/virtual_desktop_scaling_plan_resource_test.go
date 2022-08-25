@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -98,17 +98,17 @@ func TestAccVirtualDesktopScalingPlan_requiresImport(t *testing.T) {
 }
 
 func (VirtualDesktopScalingPlanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ScalingPlanID(state.ID)
+	id, err := scalingplan.ParseScalingPlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DesktopVirtualization.ScalingPlansClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.DesktopVirtualization.ScalingPlansClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Virtual Desktop Scaling Plan %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ScalingPlanProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (VirtualDesktopScalingPlanResource) basic(data acceptance.TestData, roleAssignmentId string) string {

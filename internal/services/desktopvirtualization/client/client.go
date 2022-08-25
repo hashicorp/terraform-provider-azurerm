@@ -1,55 +1,55 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/application"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/desktop"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/sessionhost"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ApplicationGroupsClient *desktopvirtualization.ApplicationGroupsClient
-	ApplicationsClient      *desktopvirtualization.ApplicationsClient
-	DesktopsClient          *desktopvirtualization.DesktopsClient
-	HostPoolsClient         *desktopvirtualization.HostPoolsClient
-	OperationsClient        *desktopvirtualization.OperationsClient
-	SessionHostsClient      *desktopvirtualization.SessionHostsClient
-	ScalingPlansClient      *desktopvirtualization.ScalingPlansClient
-	WorkspacesClient        *desktopvirtualization.WorkspacesClient
+	ApplicationGroupsClient *applicationgroup.ApplicationGroupClient
+	ApplicationsClient      *application.ApplicationClient
+	DesktopsClient          *desktop.DesktopClient
+	HostPoolsClient         *hostpool.HostPoolClient
+	SessionHostsClient      *sessionhost.SessionHostClient
+	ScalingPlansClient      *scalingplan.ScalingPlanClient
+	WorkspacesClient        *workspace.WorkspaceClient
 }
 
-// NewClient - New client for desktop virtualization
 func NewClient(o *common.ClientOptions) *Client {
-	ApplicationGroupsClient := desktopvirtualization.NewApplicationGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ApplicationGroupsClient.Client, o.ResourceManagerAuthorizer)
+	applicationGroupsClient := applicationgroup.NewApplicationGroupClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&applicationGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	ApplicationsClient := desktopvirtualization.NewApplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ApplicationsClient.Client, o.ResourceManagerAuthorizer)
+	applicationsClient := application.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&applicationsClient.Client, o.ResourceManagerAuthorizer)
 
-	DesktopsClient := desktopvirtualization.NewDesktopsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&DesktopsClient.Client, o.ResourceManagerAuthorizer)
+	desktopsClient := desktop.NewDesktopClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&desktopsClient.Client, o.ResourceManagerAuthorizer)
 
-	HostPoolsClient := desktopvirtualization.NewHostPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HostPoolsClient.Client, o.ResourceManagerAuthorizer)
+	hostPoolsClient := hostpool.NewHostPoolClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&hostPoolsClient.Client, o.ResourceManagerAuthorizer)
 
-	OperationsClient := desktopvirtualization.NewOperationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&OperationsClient.Client, o.ResourceManagerAuthorizer)
+	sessionHostsClient := sessionhost.NewSessionHostClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&sessionHostsClient.Client, o.ResourceManagerAuthorizer)
 
-	SessionHostsClient := desktopvirtualization.NewSessionHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SessionHostsClient.Client, o.ResourceManagerAuthorizer)
+	scalingPlansClient := scalingplan.NewScalingPlanClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&scalingPlansClient.Client, o.ResourceManagerAuthorizer)
 
-	ScalingPlansClient := desktopvirtualization.NewScalingPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ScalingPlansClient.Client, o.ResourceManagerAuthorizer)
-
-	WorkspacesClient := desktopvirtualization.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+	workspacesClient := workspace.NewWorkspaceClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&workspacesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ApplicationGroupsClient: &ApplicationGroupsClient,
-		ApplicationsClient:      &ApplicationsClient,
-		DesktopsClient:          &DesktopsClient,
-		HostPoolsClient:         &HostPoolsClient,
-		OperationsClient:        &OperationsClient,
-		SessionHostsClient:      &SessionHostsClient,
-		ScalingPlansClient:      &ScalingPlansClient,
-		WorkspacesClient:        &WorkspacesClient,
+		ApplicationGroupsClient: &applicationGroupsClient,
+		ApplicationsClient:      &applicationsClient,
+		DesktopsClient:          &desktopsClient,
+		HostPoolsClient:         &hostPoolsClient,
+		SessionHostsClient:      &sessionHostsClient,
+		ScalingPlansClient:      &scalingPlansClient,
+		WorkspacesClient:        &workspacesClient,
 	}
 }

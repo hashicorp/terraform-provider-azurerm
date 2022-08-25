@@ -4068,6 +4068,8 @@ func (agrr *ApplicationGatewayRoutingRule) UnmarshalJSON(body []byte) error {
 type ApplicationGatewayRoutingRulePropertiesFormat struct {
 	// RuleType - Rule type. Possible values include: 'ApplicationGatewayRequestRoutingRuleTypeBasic', 'ApplicationGatewayRequestRoutingRuleTypePathBasedRouting'
 	RuleType ApplicationGatewayRequestRoutingRuleType `json:"ruleType,omitempty"`
+	// Priority - Priority of the routing rule.
+	Priority *int32 `json:"priority,omitempty"`
 	// BackendAddressPool - Backend address pool resource of the application gateway.
 	BackendAddressPool *SubResource `json:"backendAddressPool,omitempty"`
 	// BackendSettings - Backend settings resource of the application gateway.
@@ -4083,6 +4085,9 @@ func (agrrpf ApplicationGatewayRoutingRulePropertiesFormat) MarshalJSON() ([]byt
 	objectMap := make(map[string]interface{})
 	if agrrpf.RuleType != "" {
 		objectMap["ruleType"] = agrrpf.RuleType
+	}
+	if agrrpf.Priority != nil {
+		objectMap["priority"] = agrrpf.Priority
 	}
 	if agrrpf.BackendAddressPool != nil {
 		objectMap["backendAddressPool"] = agrrpf.BackendAddressPool

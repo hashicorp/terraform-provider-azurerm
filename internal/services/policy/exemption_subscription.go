@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,7 +107,7 @@ func resourceArmSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subscriptionId, err := tenants.ParseSubscriptionID(d.Get("subscription_id").(string))
+	subscriptionId, err := commonids.ParseSubscriptionID(d.Get("subscription_id").(string))
 	if err != nil {
 		return err
 	}
@@ -177,7 +176,7 @@ func resourceArmSubscriptionPolicyExemptionRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("reading Policy Exemption: %+v", err)
 	}
 
-	subscriptionId := tenants.NewSubscriptionID(id.SubscriptionId)
+	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
 
 	resp, err := client.Get(ctx, subscriptionId.ID(), id.PolicyExemptionName)
 	if err != nil {
@@ -226,7 +225,7 @@ func resourceArmSubscriptionPolicyExemptionDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	subscriptionId := tenants.NewSubscriptionID(id.SubscriptionId)
+	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
 
 	if _, err := client.Delete(ctx, subscriptionId.ID(), id.PolicyExemptionName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id.ID(), err)
