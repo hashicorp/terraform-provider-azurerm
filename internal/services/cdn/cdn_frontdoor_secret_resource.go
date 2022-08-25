@@ -62,7 +62,6 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							ForceNew: true,
-
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"key_vault_certificate_id": {
@@ -72,11 +71,9 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 										ValidateFunc: keyValutValidation.KeyVaultChildIDWithOptionalVersion,
 									},
 
-									// This is a READ-ONLY field as the secret resource is reading these from the certificate in the key vault...
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
-
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
@@ -108,17 +105,15 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := parse.NewFrontDoorSecretID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_secret", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_secret", id.ID())
 	}
 
 	secretParams, err := expandCdnFrontDoorBasicSecretParameters(ctx, d.Get("secret_parameters").([]interface{}), meta.(*clients.Client))
@@ -169,7 +164,7 @@ func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.SecretProperties; props != nil {
 		var customerCertificate []interface{}
-		if customerCertificate, err = flattenSecretSecretParameters(ctx, props.Parameters, meta); err != nil {
+		if customerCertificate, err = flattenSecretParameters(ctx, props.Parameters, meta); err != nil {
 			return fmt.Errorf("flattening 'secret_parameters': %+v", err)
 		}
 
@@ -222,7 +217,7 @@ func expandCdnFrontDoorBasicSecretParameters(ctx context.Context, input []interf
 	return customerCertificate, nil
 }
 
-func flattenSecretSecretParameters(ctx context.Context, input cdn.BasicSecretParameters, meta interface{}) ([]interface{}, error) {
+func flattenSecretParameters(ctx context.Context, input cdn.BasicSecretParameters, meta interface{}) ([]interface{}, error) {
 	client := meta.(*clients.Client).KeyVault
 
 	results := make([]interface{}, 0)
@@ -238,17 +233,10 @@ func flattenSecretSecretParameters(ctx context.Context, input cdn.BasicSecretPar
 		return nil, fmt.Errorf("expected a Customer Certificate Parameter")
 	}
 
-	// Secret Source ID is what comes back from Frontdoor, now I need to build the URL from that...
-	// secretSourceId: /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/keyVaultName1/secrets/certificateName1
-	// id            : "https://[vaultName].vault.azure.net/certificates/[certificateName]/[certificateVersion]"
-	// versionless id: "https://[vaultName].vault.azure.net/certificates/[certificateName]"
-
 	secretSourceId, err := keyVaultParse.SecretVersionlessID(*customerCertificate.SecretSource.ID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse the 'Secret Source' field of the 'Customer Certificate', got %q", *customerCertificate.SecretSource.ID)
 	}
-
-	var keyVaultCertificateId string
 
 	if customerCertificate.UseLatestVersion != nil {
 		// The API always sends back the version...
@@ -269,16 +257,17 @@ func flattenSecretSecretParameters(ctx context.Context, input cdn.BasicSecretPar
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
 		}
 
+		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, "certificates", secretSourceId.SecretName, certificateVersion)
+		if err != nil {
+			return nil, err
+		}
+
 		if useLatest {
-			// Build the versionless certificate id
-			keyVaultCertificateId = fmt.Sprintf("%scertificates/%s", *keyVaultBaseUri, secretSourceId.SecretName)
+			fields["key_vault_certificate_id"] = keyVaultCertificateId.VersionlessID()
 		} else {
-			// Build the certificate id with the version information
-			keyVaultCertificateId = fmt.Sprintf("%scertificates/%s/%s", *keyVaultBaseUri, secretSourceId.SecretName, certificateVersion)
+			fields["key_vault_certificate_id"] = keyVaultCertificateId.ID()
 		}
 	}
-
-	fields["key_vault_certificate_id"] = keyVaultCertificateId
 
 	if customerCertificate.SubjectAlternativeNames != nil {
 		fields["subject_alternative_names"] = utils.FlattenStringSlice(customerCertificate.SubjectAlternativeNames)

@@ -256,17 +256,14 @@ func checkForCIDROverlap(matchValues []interface{}) error {
 }
 
 // evaluates if the passed CIDR is a valid IPv4 or IPv6 CIDR or not.
-func isValidCidr(cidr interface{}) bool {
-	if strings.Contains(cidr.(string), ":") {
-		// evaluates if the passed CIDR is a valid IPv6 CIDR or not.
-		ok, _ := validate.RegExHelper(cidr, "match_values", `^s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:)))(%.+)?s*(\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$`)
-		return ok
+func isValidCIDR(cidr interface{}) bool {
+	var isValid bool
+
+	if _, _, err := net.ParseCIDR(cidr.(string)); err == nil {
+		isValid = true
 	}
 
-	// evaluates if the passed CIDR is a valid IPv4 CIDR or not.
-	ok, _ := validate.RegExHelper(cidr, "match_values", `^([0-9]{1,3}\.){3}[0-9]{1,3}(/([0-9]|[1-2][0-9]|3[0-2]))?$`)
-	return ok
-
+	return isValid
 }
 
 func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
@@ -417,7 +414,7 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]cdn.Basic
 					address = matchValue.(string)
 				}
 
-				if !isValidCidr(address) {
+				if !isValidCIDR(address) {
 					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the value must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, address)
 				}
 			}
@@ -877,7 +874,7 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]cdn.Basic
 					address = matchValue.(string)
 				}
 
-				if !isValidCidr(address) {
+				if !isValidCIDR(address) {
 					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, address)
 				}
 			}

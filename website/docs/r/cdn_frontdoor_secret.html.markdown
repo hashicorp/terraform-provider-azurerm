@@ -54,7 +54,7 @@ resource "azurerm_key_vault" "example" {
   # Terraform Service Principal
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id of the Service Principal that Terraform is running as
+    object_id = data.azurerm_client_config.current.object_id # <- Object Id of the Service Principal that Terraform is running as
 
     certificate_permissions = [
       "Get",

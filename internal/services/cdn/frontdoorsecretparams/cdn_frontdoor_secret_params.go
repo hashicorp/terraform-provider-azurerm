@@ -52,7 +52,6 @@ func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input 
 	m := InitializeCdnFrontDoorSecretMappings()
 	item := input[0].(map[string]interface{})
 
-	// New Direction: Parse the certificate id (e.g. URL) and derive the rest of the information from there...
 	certificateBaseURL := item["key_vault_certificate_id"].(string)
 	certificateId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(certificateBaseURL)
 	if err != nil {

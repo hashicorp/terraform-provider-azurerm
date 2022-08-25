@@ -75,9 +75,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
-						// Name: UrlRedirect
-						// DeliveryRuleUrlRedirectActionParameters
 						"url_redirect_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -136,8 +133,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// Name: URLRewrite
-						// URLRewriteAction
 						"url_rewrite_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -167,8 +162,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// Name: ModifyRequestHeader
-						// DeliveryRuleRequestHeaderAction
 						"request_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -201,8 +194,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// Name: ModifyResponseHeader (NameBasicDeliveryRuleActionNameModifyResponseHeader)
-						// DeliveryRuleResponseHeaderAction
 						"response_header_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -235,12 +226,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// 'Cache_Expiration’, ‘Cache_Key_Query_String’ and ‘Origin_Group_Override' Actions
-						// are only supported in the 2020-09-01 API version. All calls for these Actions
-						// will fail 90 days after GA of the AFDx service.
-
-						// Name: RouteConfigurationOverride (NameBasicDeliveryRuleActionNameRouteConfigurationOverride)
-						// DeliveryRuleRouteConfigurationOverrideAction
 						"route_configuration_override_action": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -278,7 +263,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// CSV implemented as a list, code alread written for the expaned and flatten to CSV
+									// NOTE: CSV implemented as a list, code alread written for the expaned and flatten to CSV
 									// not valid when IncludeAll or ExcludeAll behavior is defined
 									"query_string_parameters": {
 										Type:     pluginsdk.TypeList,
@@ -290,7 +275,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										},
 									},
 
-									// Content won't be compressed on AzureFrontDoor when requested content is smaller than 1 byte or larger than 1 MB.
 									"compression_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
@@ -308,8 +292,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// Allowed format is d.HH:MM:SS or HH:MM:SS if duration is less than a day
-									// maximum duration is 366 days(e.g. 365.23:59:59)
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -544,7 +526,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// DeliveryRuleSocketAddrCondition
 						"socket_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -558,7 +539,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// DeliveryRuleClientPortCondition
 						"client_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -572,7 +552,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// DeliveryRuleServerPortCondition
 						"server_port_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -586,10 +565,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// DeliveryRuleHostNameCondition
-						// NOTE: The match values do not have to adhere to RFC 1123 standards
-						// for valid hostnames. Service team delegates that responsibility
-						// to the author of the rule and does not validate passed match values.
 						"host_name_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -604,7 +579,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 							},
 						},
 
-						// DeliveryRuleSslProtocolCondition
 						"ssl_protocol_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -641,17 +615,15 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := parse.NewFrontDoorRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroup, ruleSetId.ProfileName, ruleSetId.RuleSetName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule", id.ID())
 	}
 
 	matchProcessingBehaviorValue := cdn.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
@@ -757,7 +729,7 @@ func resourceCdnFrontDoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		props.RuleUpdatePropertiesParameters.MatchProcessingBehavior = matchProcessingBehaviorValue
 	}
 
-	if d.HasChange("behavior_on_match") {
+	if d.HasChange("order") {
 		order := d.Get("order").(int)
 		props.RuleUpdatePropertiesParameters.Order = utils.Int32(int32(order))
 	}
@@ -846,15 +818,15 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 
 		if expanded != nil {
 			if actionName == m.URLRewrite.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_rewrite_action' is only allow once in the 'actions' match block, got %d", len(*expanded))
+				return nil, fmt.Errorf("the 'url_rewrite_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
 			}
 
 			if actionName == m.URLRedirect.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_redirect_action' is only allow once in the 'actions' match block, got %d", len(*expanded))
+				return nil, fmt.Errorf("the 'url_redirect_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
 			}
 
 			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allow once in the 'actions' match block, got %d", len(*expanded))
+				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
 			}
 
 			results = append(results, *expanded...)
@@ -865,7 +837,6 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 		return nil, fmt.Errorf("the 'actions' match block may only contain upto 5 match actions, got %d", len(results))
 	}
 
-	// validate action block
 	if err := validate.CdnFrontDoorActionsBlock(results); err != nil {
 		return nil, err
 	}
@@ -956,7 +927,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 	urlPathCondition := make([]interface{}, 0)
 
 	for _, BasicDeliveryRuleCondition := range *input {
-		// Client Port
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleClientPortCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorClientPortCondition(condition)
 			if err != nil {
@@ -967,7 +937,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Cookies
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorCookiesCondition(condition)
 			if err != nil {
@@ -978,7 +947,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Host Name
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHostNameCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorHostNameCondition(condition)
 			if err != nil {
@@ -989,7 +957,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// HTTP Version
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorHttpVersionCondition(condition)
 			if err != nil {
@@ -999,7 +966,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Is Device
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorIsDeviceCondition(condition)
 			if err != nil {
@@ -1010,7 +976,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Post Args
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorPostArgsCondition(condition)
 			if err != nil {
@@ -1021,7 +986,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Query String
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorQueryStringCondition(condition)
 			if err != nil {
@@ -1032,7 +996,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Remote Address
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRemoteAddressCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRemoteAddressCondition(condition)
 			if err != nil {
@@ -1043,7 +1006,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Request Body
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestBodyCondition(condition)
 			if err != nil {
@@ -1054,7 +1016,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Request Header
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestHeaderCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestHeaderCondition(condition)
 			if err != nil {
@@ -1065,7 +1026,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Request Method
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestMethodCondition(condition)
 			if err != nil {
@@ -1076,7 +1036,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Request Scheme
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestSchemeCondition(condition)
 			if err != nil {
@@ -1087,7 +1046,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Request URI
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestUriCondition(condition)
 			if err != nil {
@@ -1098,7 +1056,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Server Port
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleServerPortCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorServerPortCondition(condition)
 			if err != nil {
@@ -1109,7 +1066,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Socket Address
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSocketAddrCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorSocketAddressCondition(condition)
 			if err != nil {
@@ -1120,7 +1076,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// Ssl Protocol
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSslProtocolCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorSslProtocolCondition(condition)
 			if err != nil {
@@ -1131,7 +1086,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// URL File Extension
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlFileExtensionCondition(condition)
 			if err != nil {
@@ -1142,7 +1096,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// URL Filename
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlFileNameCondition(condition)
 			if err != nil {
@@ -1153,7 +1106,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 			continue
 		}
 
-		// URL Path
 		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); ok {
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlPathCondition(condition)
 			if err != nil {
@@ -1189,7 +1141,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 		c.UrlPath.ConfigName:          urlPathCondition,
 	}
 
-	// WS: Since we are always returning something no matter what this causes
+	// NOTE: Since we are always returning something no matter what this causes
 	// a perpetual diff during plan. Only return the conditions map if
 	// it actually has a condition defined within it, else return an empty
 	// slice
@@ -1216,14 +1168,12 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 	urlRewriteActions := make([]interface{}, 0)
 
 	for _, item := range *input {
-		// Route Configuration
 		if action, ok := item.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
 			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
 			routeConfigOverrideActions = append(routeConfigOverrideActions, flattened)
 			continue
 		}
 
-		// Request Header
 		if action, ok := item.AsDeliveryRuleRequestHeaderAction(); ok {
 			if action.Parameters == nil {
 				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Request Header")
@@ -1233,7 +1183,6 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 			continue
 		}
 
-		// Response Header
 		if action, ok := item.AsDeliveryRuleResponseHeaderAction(); ok {
 			if action.Parameters == nil {
 				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Response Header")
@@ -1243,21 +1192,17 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 			continue
 		}
 
-		// URL Redirect
 		if action, ok := item.AsURLRedirectAction(); ok {
 			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRedirectAction(*action)
 			urlRedirectActions = append(urlRedirectActions, flattened)
 			continue
 		}
 
-		// URL Rewrite
 		if action, ok := item.AsURLRewriteAction(); ok {
 			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRewriteAction(*action)
 			urlRewriteActions = append(urlRewriteActions, flattened)
 			continue
 		}
-
-		// this would be an unknown DeliveryRuleAction type, but since we're only flattening the above, we can ignore it
 	}
 
 	if len(requestHeaderActions) == 0 && len(responseHeaderActions) == 0 && len(routeConfigOverrideActions) == 0 && len(urlRedirectActions) == 0 && len(urlRewriteActions) == 0 {

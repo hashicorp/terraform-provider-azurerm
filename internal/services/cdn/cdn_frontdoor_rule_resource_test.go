@@ -94,7 +94,6 @@ func TestAccCdnFrontDoorRule_update(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_invalidCacheDuration(t *testing.T) {
-	// TODO: can't this be a unit test?
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

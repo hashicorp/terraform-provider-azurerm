@@ -151,11 +151,11 @@ The following arguments are supported:
 
 * `order` - (Required) The order in which the rules will be applied for the Frontdoor Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Frontdoor Rule with a lesser order value will be applied before a rule with a greater order value.
 
-~>**NOTE:** If the Frontdoor Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
-
-* `behavior_on_match` - (Optional) If this rule is a match should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
+->**NOTE:** If the Frontdoor Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
 
 * `actions` - (Required) An `actions` block as defined below.
+
+* `behavior_on_match` - (Optional) If this rule is a match should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
 
 * `conditions` - (Optional) An `conditions` block as defined below.
 
@@ -163,7 +163,7 @@ The following arguments are supported:
 
 A `actions` block supports the following:
 
-~>**NOTE:** You may include upto 5 separate actions in the `actions` block.
+->**NOTE:** You may include upto 5 separate actions in the `actions` block.
 
 Some actions support `Action Server Variables` which provide access to structured information about the request. For more information about `Action Server Variables` see the `Action Server Variables` as defined below.
 
@@ -183,11 +183,11 @@ A `url_redirect_action` block supports the following:
 
 * `redirect_type` - (Required) The response type to return to the requestor. Possible values include `Moved`, `Found` , `TemporaryRedirect` or `PermanentRedirect`.
 
+* `destination_hostname` - (Required) The host name you want the request to be redirected to. Leave blank to preserve the incoming host.
+
 * `redirect_protocol` - (Optional) The protocol the request will be redirected as. Possible values include `MatchRequest`, `Http` or `Https`. Defaults to `MatchRequest`.
 
 * `destination_path` - (Optional) The path to use in the redirect. Include the leading `/`. Leave blank to preserve the incoming path.
-
-* `destination_hostname` - (Required) The host name you want the request to be redirected to. Leave blank to preserve the incoming host.
 
 * `query_string` - (Optional) The query string used in the redirect URL. Don't include the leading `?`. Leave blank to preserve the incoming query string.
 
@@ -199,29 +199,29 @@ A `route_configuration_override_action` block supports the following:
 
 * `cdn_frontdoor_origin_group_id` - (Required) The origin group resource ID that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
 
+* `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
+
 * `forwarding_protocol` - (Optional)  The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
 * `query_string_caching_behavior` - (Optional)  `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` query strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`. Defaults to `IgnoreQueryString`.
 
 * `query_string_parameters` - (Optional) A list of query string parameter names.
 
-~>**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
+->**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
 
 * `compression_enabled` - (Optional) Should Frontdoor dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
 
-~>**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
+->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
 * `cache_behavior` - (Optional) `HonorOrigin` Frontdoor will always honor origin response header directive. If the origin directive is missing, Frontdoor will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
-
-* `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
 
 ---
 
 A `url_rewrite_action` block supports the following:
 
-* `source_pattern` - (Required) Define the source pattern in the URL path to replace. Currently, source pattern uses a prefix-based match. To match all URL paths, use a forward slash (/) as the source pattern value.
+* `source_pattern` - (Required) The source pattern in the URL path to replace. This uses prefix-based matching. For example, to match all URL paths use a forward slash `"/"` as the source pattern value.
 
-* `destination` - (Required) Define the destination path to use in the rewrite. The destination path overwrites the source pattern.
+* `destination` - (Required) The destination path to use in the rewrite. The destination path overwrites the source pattern.
 
 * `preserve_unmatched_path` - (Optional) Append the remaining path after the source pattern to the new destination path? Possible values `true` or `false`. Defaults to `false`.
 
@@ -229,31 +229,35 @@ A `url_rewrite_action` block supports the following:
 
 A `request_header_action` block supports the following:
 
-* `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values inclued `Append`, `Overwrite` or `Delete`. `Append` the specified header gets added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` action the specified header gets added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` action if the header specified in the rule is present, the header gets deleted from the request.
+* `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
+
+-> **NOTE:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
 
 * `header_name` - (Required) The name of the header to modify.
 
 * `value` - (Optional) The value to append or overwrite.
 
-~>**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
+->**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 
 * A `response_header_action` block supports the following:
 
-* `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values inclued `Append`, `Overwrite` or `Delete`. `Append` the specified header gets added to the response with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` the specified header gets added to the response with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` if the header specified in the rule is present, the header gets deleted from the response.
+* `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
+
+-> **NOTE:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
 
 * `header_name` - (Required) The name of the header to modify.
 
 * `value` - (Optional) The value to append or overwrite.
 
-~>**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
+->**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 
 A `conditions` block supports the following:
 
-~>**NOTE:** You may include upto 10 separate conditions in the `conditions` block.
+->**NOTE:** You may include upto 10 separate conditions in the `conditions` block.
 
 * `remote_address_condition` - (Optional) A `remote_address_condition` block as defined below.
 
@@ -297,47 +301,47 @@ A `conditions` block supports the following:
 
 A `ssl_protocol_condition` block supports the following:
 
-The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
+->The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
+
+* `match_values` - (Required) A list of one or more HTTP methods. Possible values include `TLSv1.0`, `TLSv1.1` or `TLS1.2`. If multiple values are specified, they're evaluated using `OR` logic.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
-
-* `match_values` - (Required) One or more HTTP methods. Possible values include `TLSv1.0`, `TLSv1.1` or `TLS1.2`. If multiple values are specified, they're evaluated using `OR` logic.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 ---
 
 A `host_name_condition` block supports the following:
 
-The `host_name_condition` identifies requests based on the specified hostname in the request from client.
+->The `host_name_condition` identifies requests based on the specified hostname in the request from client.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `match_values` - (Required) One or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
+* `match_values` - (Required) A list of one or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `server_port_condition` block supports the following:
 
-The `server_port_condition` identifies requests based on which port of the Frontdoor server accepted the request on.
+->The `server_port_condition` identifies requests based on which port of the Frontdoor server accepted the request on.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `match_values` - (Required) A list of one or more integer values(e.g. "1") representing the value of the client port to match. Possible values include `80` or `443`. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `match_values` - (Required) One or more integer values(e.g. "1") representing the value of the client port to match. Possible values include `80` or `443`. If multiple values are specified, they're evaluated using `OR` logic.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 ---
 
 A `client_port_condition` block supports the following:
 
-The `client_port_condition` identifies requests based on the port of the client which made the request.
+->The `client_port_condition` identifies requests based on the port of the client which made the request.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) One or more integer values(e.g. "1") representing the value of the client port to match. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -345,129 +349,131 @@ The `client_port_condition` identifies requests based on the port of the client 
 
 A `socket_address_condition` block supports the following:
 
-The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Frontdoors edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
+->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Frontdoors edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer. 
 
-Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
+->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
-* `operator` - (Optional) The type of match. The Possible value is `IpMatch`. Defaults to `IpMatch`.
+* `operator` - (Optional) The type of match. The Possible values are `IpMatch` or `Any`. Defaults to `IpMatch`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+->**NOTE:** If the value of the `operator` field is set to `IpMatch` then the `match_values` field is also required.
 
-* `match_values` - (Optional) Specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-~>**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
+* `match_values` - (Optional) Specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic.
+
+->**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
 
 ---
 
 A `remote_address_condition` block supports the following:
 
-Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
+->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
 * `operator` - (Required) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) For the IP Match or IP Not Match operators: specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
 
-~>**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
+->**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
 
 ---
 
 A `request_method_condition` block supports the following:
 
-The `request_method_condition` identifies requests that use the specified HTTP request method. 
+->The `request_method_condition` identifies requests that use the specified HTTP request method. 
+
+* `match_values` - (Required) A list of one or more HTTP methods. Possible values include `GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS` or `TRACE`. If multiple values are specified, they're evaluated using `OR` logic.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
-
-* `match_values` - (Required) One or more HTTP methods. Possible values include `GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS` or `TRACE`. If multiple values are specified, they're evaluated using `OR` logic.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 ---
 
 A `query_string_condition` block supports the following:
 
-Use the `query_string_condition` to identify requests that contain a specific query string.
+->Use the `query_string_condition` to identify requests that contain a specific query string.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the query string to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `post_args_condition` block supports the following:
 
-Use the `post_args_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
+->Use the `post_args_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
 
 * `post_args_name` - (Required) A string value representing the name of the `POST` argument.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the `POST` argument to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `request_uri_condition` block supports the following:
 
- The `request_uri_condition` identifies requests that match the specified URL. The entire URL is evaluated, including the protocol and query string, but not the fragment. When you use this rule condition, be sure to include the protocol(e.g. For example, use `https://www.contoso.com` instead of just `www.contoso.com`).
+->The `request_uri_condition` identifies requests that match the specified URL. The entire URL is evaluated, including the protocol and query string, but not the fragment. When you use this rule condition, be sure to include the protocol(e.g. For example, use `https://www.contoso.com` instead of just `www.contoso.com`).
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request URL to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `request_header_condition` block supports the following:
 
-The `request_header_condition` identifies requests that include a specific header in the request. You can use this match condition to check if a header exists whatever its value, or to check if the header matches a specified value.
+->The `request_header_condition` identifies requests that include a specific header in the request. You can use this match condition to check if a header exists whatever its value, or to check if the header matches a specified value.
 
 * `header_name` - (Required) A string value representing the name of the `POST` argument.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `request_body_condition` block supports the following:
 
-The `request_body_condition` identifies requests based on specific text that appears in the body of the request.
+->The `request_body_condition` identifies requests based on specific text that appears in the body of the request.
 
-~>**NOTE:** If a request body exceeds `64 KB` in size, only the first `64 KB` will be considered for the request body match condition.
+->**NOTE:** If a request body exceeds `64 KB` in size, only the first `64 KB` will be considered for the request body match condition.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `match_values` - (Required) A list of one or more string or integer values(e.g. "1") representing the value of the request body text to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `match_values` - (Required) One or more string or integer values(e.g. "1") representing the value of the request body text to match. If multiple values are specified, they're evaluated using `OR` logic.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `request_scheme_condition` block supports the following:
 
-The `request_scheme_condition` identifies requests that use the specified protocol.
+->The `request_scheme_condition` identifies requests that use the specified protocol.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) The requests protocol to match. Possible values include `HTTP` or `HTTPS`. Defaults to `HTTP`.
 
@@ -475,81 +481,81 @@ The `request_scheme_condition` identifies requests that use the specified protoc
 
 A `url_path_condition` block supports the following:
 
-The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
+->The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request path to match. Don't include the leading slash (`/`). If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `url_file_extension_condition` block supports the following:
 
-The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
+->The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-* `match_values` - (Required) One or more string or integer values(e.g. "1") representing the value of the request file extension to match. If multiple values are specified, they're evaluated using `OR` logic.
+* `match_values` - (Required) A list of one or more string or integer values(e.g. "1") representing the value of the request file extension to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `url_filename_condition` block supports the following:
 
-The `url_filename_condition` identifies requests that include the specified file name in the request URL.
+->The `url_filename_condition` identifies requests that include the specified file name in the request URL.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `match_values` - (Required) A list of one or more string or integer values(e.g. "1") representing the value of the request file name to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `match_values` - (Required) One or more string or integer values(e.g. "1") representing the value of the request file name to match. If multiple values are specified, they're evaluated using `OR` logic.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `http_version_condition` block supports the following:
 
-Use the HTTP version match condition to identify requests that have been made by using a specific version of the HTTP protocol.
+->Use the HTTP version match condition to identify requests that have been made by using a specific version of the HTTP protocol.
+
+* `match_values` - (Required) What HTTP version should this condition match? Possible values `2.0`, `1.1`, `1.0` or `0.9`.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
-
-* `match_values` - (Optional) What HTTP version should this condition match? Possible values `2.0`, `1.1`, `1.0` or `0.9`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 ---
 
 A `cookies_condition` block supports the following:
 
-Use the `cookies_condition` to identify requests that have include a specific cookie.
+->Use the `cookies_condition` to identify requests that have include a specific cookie.
 
-* `cookie_name` -	(Required) A string value representing the name of the cookie.
+* `cookie_name` - (Required) A string value representing the name of the cookie.
 
-* `operator` - (Required)	Any operator from the `Condition Operator list` as defined below. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional)	Any transform from the `Condition Transform List` as defined below. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.
+* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `is_device_condition` block supports the following:
 
-Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
+->Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
-* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) Which device should this rule match on? Possible values `Mobile` or `Desktop`. Defaults to `Mobile`.
 
@@ -621,14 +627,14 @@ For rules that accept values from the standard operator list, the following oper
 
 | Operator                   | Description | Condition Value |
 |----------------------------|-------------|-----------------|
-| Any                        |Matches when there is any value, regardless of what it is.	| Any |
+| Any                        |Matches when there is any value, regardless of what it is. | Any |
 | Equal                      | Matches when the value exactly matches the specified string. | Equal |
 | Contains                   | Matches when the value contains the specified string. | Contains |
 | Less Than                  | Matches when the length of the value is less than the specified integer. | LessThan |
-| Greater Than               | Matches when the length of the value is greater than the specified integer.	 | GreaterThan |
+| Greater Than               | Matches when the length of the value is greater than the specified integer. | GreaterThan |
 | Less Than or Equal         | Matches when the length of the value is less than or equal to the specified integer. | LessThanOrEqual |
 | Greater Than or Equal      | Matches when the length of the value is greater than or equal to the specified integer. | GreaterThanOrEqual |
-| Begins With	               | Matches when the value begins with the specified string. | BeginsWith |
+| Begins With                | Matches when the value begins with the specified string. | BeginsWith |
 | Ends With                  | Matches when the value ends with the specified string. | EndsWith |
 | RegEx                      | Matches when the value matches the specified regular expression. See below for further details. | RegEx |
 | Not Any                    | Matches when there is no value. | Any and negateCondition = true |

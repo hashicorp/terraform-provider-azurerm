@@ -225,7 +225,6 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
 		}
 
-		// RuleQueryStringCachingBehavior
 		cacheConfiguration := &cdn.CacheConfiguration{
 			QueryStringCachingBehavior: cdn.RuleQueryStringCachingBehavior(item["query_string_caching_behavior"].(string)),
 			QueryParameters:            expandStringSliceToCsvFormat(item["query_string_parameters"].([]interface{})),
@@ -236,9 +235,6 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 
 		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
 			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
-				// TODO: appears this is an SDK bug, the field 'TypeName' has a single parameter defined and so should be fixed to that value in the Marshal function
-				// https://github.com/Azure/azure-rest-api-specs/blob/271c819e255b6e437fd84a429c0d7b480052e6ab/specification/cdn/resource-manager/Microsoft.Cdn/stable/2021-06-01/cdn.json#L4708-L4712
-				// we should confirm if the API sets this by default or not?
 				TypeName:            utils.String(m.RouteConfigurationOverride.TypeName),
 				OriginGroupOverride: originGroupOverride,
 				CacheConfiguration:  cacheConfiguration,

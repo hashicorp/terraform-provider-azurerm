@@ -76,8 +76,8 @@ func schemaCdnFrontDoorMatchValues() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 25,
 
-		// In some cases it is valid for this to be an empty string
 		Elem: &pluginsdk.Schema{
+			// In some cases it is valid for this to be an empty string
 			Type: pluginsdk.TypeString,
 		},
 	}
@@ -89,7 +89,6 @@ func schemaCdnFrontDoorServerPortMatchValues() *pluginsdk.Schema {
 		Required: true,
 		MaxItems: 2,
 
-		// In some cases it is valid for this to be an empty string
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
