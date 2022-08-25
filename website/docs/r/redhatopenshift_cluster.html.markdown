@@ -14,6 +14,8 @@ Manages a fully managed Azure Red Hat Openshift Cluster (also known as ARO).
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
+~> **Note:** Currently a service principal cannot be associated with two or more ARO clusters on the Azure subscription.
+
 ## Example Usage
 
 This example provisions a basic Azure Red Hat Openshift Cluster. Other examples of the `azurerm_redhatopenshift_cluster` resource can be found in [the `./examples/redhatopenshift` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redhatopenshift).
