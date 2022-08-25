@@ -183,7 +183,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"oidc_token": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_TOKEN"}, ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN", ""),
 				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
