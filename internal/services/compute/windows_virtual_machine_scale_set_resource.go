@@ -117,12 +117,16 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
 	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
-	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
+	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0)
+	if err != nil {
+		return err
+	}
 
 	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
@@ -402,7 +406,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -515,7 +518,12 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 		if d.HasChange("rolling_upgrade_policy") {
 			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
-			upgradePolicy.RollingUpgradePolicy = ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw)
+			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+			rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0)
+			if err != nil {
+				return err
+			}
+			upgradePolicy.RollingUpgradePolicy = rollingUpgradePolicy
 		}
 
 		updateProps.UpgradePolicy = &upgradePolicy

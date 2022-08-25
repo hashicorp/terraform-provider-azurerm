@@ -1789,21 +1789,30 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}) *compute.RollingUpgradePolicy {
+func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal bool) (*compute.RollingUpgradePolicy, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	raw := input[0].(map[string]interface{})
 
-	return &compute.RollingUpgradePolicy{
-		EnableCrossZoneUpgrade:              utils.Bool(raw["cross_zone_upgrades_enabled"].(bool)),
+	rollingUpgradePolicy := &compute.RollingUpgradePolicy{
 		MaxBatchInstancePercent:             utils.Int32(int32(raw["max_batch_instance_percent"].(int))),
 		MaxUnhealthyInstancePercent:         utils.Int32(int32(raw["max_unhealthy_instance_percent"].(int))),
 		MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             utils.String(raw["pause_time_between_batches"].(string)),
 		PrioritizeUnhealthyInstances:        utils.Bool(raw["prioritize_unhealthy_instances_enabled"].(bool)),
 	}
+
+	enableCrossZoneUpgrade := raw["cross_zone_upgrades_enabled"].(bool)
+	if isZonal {
+		// EnableCrossZoneUpgrade can only be set when for zonal scale set
+		rollingUpgradePolicy.EnableCrossZoneUpgrade = utils.Bool(enableCrossZoneUpgrade)
+	} else if enableCrossZoneUpgrade {
+		return nil, fmt.Errorf("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
+	}
+
+	return rollingUpgradePolicy, nil
 }
 
 func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpgradePolicy) []interface{} {
