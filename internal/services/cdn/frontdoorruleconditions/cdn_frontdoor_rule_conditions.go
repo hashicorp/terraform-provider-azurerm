@@ -182,7 +182,7 @@ func checkForDuplicateCIDRs(input []interface{}) error {
 		if _, value := tmp[CIDR.(string)]; !value {
 			tmp[CIDR.(string)] = true
 		} else {
-			return fmt.Errorf("%q CIDRs must be unique, there is a duplicate entry for CIDR %q in the %[1]q field. Please remove the duplicate entry and re-apply", "match_values", CIDR)
+			return fmt.Errorf("'match_values' CIDRs must be unique, there is a duplicate entry for CIDR %q in the 'match_values' field. Please remove the duplicate entry and re-apply", CIDR)
 		}
 	}
 
@@ -227,7 +227,7 @@ func checkForCIDROverlap(matchValues []interface{}) error {
 				}
 
 				if cidrOverlaps {
-					return fmt.Errorf("the IPv4 %q CIDR %q address range overlaps with %q IPv4 CIDR address range", "match_values", sourceCIDR, checkCIDR)
+					return fmt.Errorf("the IPv4 'match_values' CIDR %q address range overlaps with %q IPv4 CIDR address range", sourceCIDR, checkCIDR)
 				}
 			}
 		}
@@ -246,7 +246,7 @@ func checkForCIDROverlap(matchValues []interface{}) error {
 				}
 
 				if cidrOverlaps {
-					return fmt.Errorf("the %q IPv6 CIDR %q address range overlaps with %q IPv6 CIDR address range", "match_values", sourceCIDR, checkCIDR)
+					return fmt.Errorf("the 'match_values' IPv6 CIDR %q address range overlaps with %q IPv6 CIDR address range", sourceCIDR, checkCIDR)
 				}
 			}
 		}
@@ -373,11 +373,11 @@ func flattenCdnFrontDoorNormalizedCondition(condition normalizedCondition) map[s
 
 func validateCdnFrontDoorExpandConditionOperatorValues(operator string, matchValues *[]string, m CdnFrontDoorConditionParameters) error {
 	if operator == "" {
-		return fmt.Errorf("%q is invalid: no %q value has been set, got %q", m.ConfigName, "operator", operator)
+		return fmt.Errorf("%q is invalid: no 'operator' value has been set, got %q", m.ConfigName, operator)
 	}
 
 	if operator == string(cdn.OperatorAny) && len(*matchValues) > 0 {
-		return fmt.Errorf("%q is invalid: the %q field must not be set if the conditions %q is set to %q", m.ConfigName, "match_values", "operator", cdn.OperatorAny)
+		return fmt.Errorf("%q is invalid: the 'match_values' field must not be set if the conditions 'operator' is set to 'Any'", m.ConfigName)
 	}
 
 	return nil
@@ -404,7 +404,7 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]cdn.Basic
 			for _, matchValue := range item["match_values"].([]interface{}) {
 				if matchValue != nil {
 					if ok, _ := validate.RegExHelper(matchValue, "match_values", `^[A-Z]{2}$`); !ok {
-						return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid country code consisting of 2 uppercase characters, got %q", conditionMapping.ConfigName, "operator", cdn.RemoteAddressOperatorGeoMatch, matchValue)
+						return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'GeoMatch' the value must be a valid country code consisting of 2 uppercase characters, got %q", conditionMapping.ConfigName, matchValue)
 					}
 				}
 			}
@@ -418,7 +418,7 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]cdn.Basic
 				}
 
 				if !isValidCidr(address) {
-					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", cdn.RemoteAddressOperatorIPMatch, address)
+					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the value must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, address)
 				}
 			}
 
@@ -878,7 +878,7 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]cdn.Basic
 				}
 
 				if !isValidCidr(address) {
-					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the %q must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", cdn.SocketAddrOperatorIPMatch, "match_values", address)
+					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, address)
 				}
 			}
 

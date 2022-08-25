@@ -123,7 +123,7 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 
 	secretParams, err := expandCdnFrontDoorBasicSecretParameters(ctx, d.Get("secret_parameters").([]interface{}), meta.(*clients.Client))
 	if err != nil {
-		return fmt.Errorf("expanding %q: %+v", "secret_parameters", err)
+		return fmt.Errorf("expanding 'secret_parameters': %+v", err)
 	}
 
 	props := cdn.Secret{
@@ -170,11 +170,11 @@ func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 	if props := resp.SecretProperties; props != nil {
 		var customerCertificate []interface{}
 		if customerCertificate, err = flattenSecretSecretParameters(ctx, props.Parameters, meta); err != nil {
-			return fmt.Errorf("flattening `secret_parameters`: %+v", err)
+			return fmt.Errorf("flattening 'secret_parameters': %+v", err)
 		}
 
 		if err := d.Set("secret_parameters", customerCertificate); err != nil {
-			return fmt.Errorf("setting `secret_parameters`: %+v", err)
+			return fmt.Errorf("setting 'secret_parameters': %+v", err)
 		}
 
 		d.Set("cdn_frontdoor_profile_name", props.ProfileName)
@@ -207,7 +207,7 @@ func resourceCdnFrontDoorSecretDelete(d *pluginsdk.ResourceData, meta interface{
 
 func expandCdnFrontDoorBasicSecretParameters(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicSecretParameters, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("%[1]q is invalid, expected to receive a %q, got %d", "secret_parameter", "Customer Certificate Parameter", len(input))
+		return nil, fmt.Errorf("'secret_parameter' is invalid, expected to receive a 'Customer Certificate Parameter', got %d", len(input))
 	}
 
 	secretParameters := input[0].(map[string]interface{})
@@ -245,7 +245,7 @@ func flattenSecretSecretParameters(ctx context.Context, input cdn.BasicSecretPar
 
 	secretSourceId, err := keyVaultParse.SecretVersionlessID(*customerCertificate.SecretSource.ID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse the %q field of the %q, got %q", "Secret Source", "Customer Certificate", *customerCertificate.SecretSource.ID)
+		return nil, fmt.Errorf("unable to parse the 'Secret Source' field of the 'Customer Certificate', got %q", *customerCertificate.SecretSource.ID)
 	}
 
 	var keyVaultCertificateId string

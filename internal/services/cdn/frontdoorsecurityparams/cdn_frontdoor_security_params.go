@@ -43,11 +43,11 @@ func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 		if isStandardSku {
 			if len(*domains) > 100 {
-				return &results, fmt.Errorf("the %q sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", cdn.SkuNameStandardAzureFrontDoor, len(*domains))
+				return &results, fmt.Errorf("the 'Standard_AzureFrontDoor' sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", len(*domains))
 			}
 		} else {
 			if len(*domains) > 500 {
-				return &results, fmt.Errorf("the %q sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", cdn.SkuNamePremiumAzureFrontDoor, len(*domains))
+				return &results, fmt.Errorf("the 'Premium_AzureFrontDoor' sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", len(*domains))
 			}
 		}
 

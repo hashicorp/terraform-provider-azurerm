@@ -659,12 +659,12 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding %q: %+v", "actions", err)
+		return fmt.Errorf("expanding 'actions': %+v", err)
 	}
 
 	conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding %q: %+v", "conditions", err)
+		return fmt.Errorf("expanding 'conditions': %+v", err)
 	}
 
 	props := cdn.Rule{
@@ -724,13 +724,13 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)
 		if err != nil {
-			return fmt.Errorf("setting %q: %+v", "actions", err)
+			return fmt.Errorf("setting 'actions': %+v", err)
 		}
 		d.Set("actions", actions)
 
 		conditions, err := flattenFrontdoorDeliveryRuleConditions(props.Conditions)
 		if err != nil {
-			return fmt.Errorf("setting %q: %+v", "conditions", err)
+			return fmt.Errorf("setting 'conditions': %+v", err)
 		}
 		d.Set("conditions", conditions)
 	}
@@ -765,7 +765,7 @@ func resourceCdnFrontDoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("actions") {
 		actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding %q: %+v", "actions", err)
+			return fmt.Errorf("expanding 'actions': %+v", err)
 		}
 
 		props.RuleUpdatePropertiesParameters.Actions = &actions
@@ -774,11 +774,11 @@ func resourceCdnFrontDoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("conditions") {
 		conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding %q: %+v", "conditions", err)
+			return fmt.Errorf("expanding 'conditions': %+v", err)
 		}
 
 		if len(conditions) > 10 {
-			return fmt.Errorf("expanding %q: configuration file exceeds the maximum of 10 match conditions, got %d", "conditions", len(conditions))
+			return fmt.Errorf("expanding 'conditions': configuration file exceeds the maximum of 10 match conditions, got %d", len(conditions))
 		}
 
 		props.RuleUpdatePropertiesParameters.Conditions = &conditions
@@ -846,15 +846,15 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 
 		if expanded != nil {
 			if actionName == m.URLRewrite.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the %q is only allow once in the %q match block, got %d", m.URLRewrite.ConfigName, "actions", len(*expanded))
+				return nil, fmt.Errorf("the 'url_rewrite_action' is only allow once in the 'actions' match block, got %d", len(*expanded))
 			}
 
 			if actionName == m.URLRedirect.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the %q is only allow once in the %q match block, got %d", m.URLRedirect.ConfigName, "actions", len(*expanded))
+				return nil, fmt.Errorf("the 'url_redirect_action' is only allow once in the 'actions' match block, got %d", len(*expanded))
 			}
 
 			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the %q is only allow once in the %q match block, got %d", m.RouteConfigurationOverride.ConfigName, "actions", len(*expanded))
+				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allow once in the 'actions' match block, got %d", len(*expanded))
 			}
 
 			results = append(results, *expanded...)
@@ -862,7 +862,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 	}
 
 	if len(results) > 5 {
-		return nil, fmt.Errorf("the %q match block may only contain upto 5 match actions, got %d", "actions", len(results))
+		return nil, fmt.Errorf("the 'actions' match block may only contain upto 5 match actions, got %d", len(results))
 	}
 
 	// validate action block
@@ -921,7 +921,7 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeli
 	}
 
 	if len(results) > 10 {
-		return nil, fmt.Errorf("the %q match block may only contain upto 10 match conditions, got %d", "conditions", len(results))
+		return nil, fmt.Errorf("the 'conditions' match block may only contain upto 10 match conditions, got %d", len(results))
 	}
 
 	return results, nil
@@ -1226,7 +1226,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 		// Request Header
 		if action, ok := item.AsDeliveryRuleRequestHeaderAction(); ok {
 			if action.Parameters == nil {
-				return nil, fmt.Errorf("`parameters` was nil for Delivery Rule Request Header")
+				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Request Header")
 			}
 			flattened := cdnFrontDoorRuleActions.FlattenHeaderActionParameters(action.Parameters)
 			requestHeaderActions = append(requestHeaderActions, flattened)
@@ -1236,7 +1236,7 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 		// Response Header
 		if action, ok := item.AsDeliveryRuleResponseHeaderAction(); ok {
 			if action.Parameters == nil {
-				return nil, fmt.Errorf("`parameters` was nil for Delivery Rule Response Header")
+				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Response Header")
 			}
 			flattened := cdnFrontDoorRuleActions.FlattenHeaderActionParameters(action.Parameters)
 			responseHeaderActions = append(responseHeaderActions, flattened)

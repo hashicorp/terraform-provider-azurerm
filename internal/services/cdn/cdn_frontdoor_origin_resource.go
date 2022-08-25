@@ -183,7 +183,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if profile.Sku == nil {
-		return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
+		return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
 	}
 	skuName := profile.Sku.Name
 
@@ -249,7 +249,7 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.AFDOriginProperties; props != nil {
 		if err := d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource)); err != nil {
-			return fmt.Errorf("setting `private_link`: %+v", err)
+			return fmt.Errorf("setting 'private_link': %+v", err)
 		}
 
 		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
@@ -309,7 +309,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 		}
 		if profile.Sku == nil {
-			return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
+			return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
 		}
 		skuName := profile.Sku.Name
 
@@ -389,11 +389,11 @@ func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableC
 	}
 
 	if skuName != cdn.SkuNamePremiumAzureFrontDoor {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when the Frontdoor Profile is using a %q SKU, got %q", cdn.SkuNamePremiumAzureFrontDoor, skuName)
+		return nil, fmt.Errorf("the 'private_link' field can only be configured when the Frontdoor Profile is using a 'Premium_AzureFrontDoor' SKU, got %q", skuName)
 	}
 
 	if !enableCertNameCheck {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when `certificate_name_check_enabled` is set to `true`")
+		return nil, fmt.Errorf("the 'private_link' field can only be configured when 'certificate_name_check_enabled' is set to 'true'")
 	}
 
 	// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
@@ -404,7 +404,7 @@ func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableC
 	_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
 	if err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
-		return nil, fmt.Errorf("either `private_link` or `target_type` must be specified")
+		return nil, fmt.Errorf("either 'private_link' or 'target_type' must be specified")
 	}
 
 	config := input[0].(map[string]interface{})

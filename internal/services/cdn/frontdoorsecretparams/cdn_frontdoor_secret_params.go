@@ -70,7 +70,7 @@ func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input 
 	}
 
 	if keyVaultBaseId == nil {
-		return nil, fmt.Errorf("unexpected %q Key Vault Resource ID retrieved from the Key Vault Base URL %q", "nil", certificateId.KeyVaultBaseUrl)
+		return nil, fmt.Errorf("unexpected nil Key Vault Resource ID retrieved from the Key Vault Base URL %q", certificateId.KeyVaultBaseUrl)
 	}
 
 	keyVaultId, err := keyVaultParse.VaultID(*keyVaultBaseId)

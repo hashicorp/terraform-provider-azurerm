@@ -106,11 +106,11 @@ func ExpandCdnFrontDoorRequestHeaderAction(input []interface{}) (*[]cdn.BasicDel
 
 		if value == "" {
 			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
-				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.RequestHeader.ConfigName, "value", "header_action", "Append", "Overwrite")
+				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' can not be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
 			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
-				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", m.RequestHeader.ConfigName, "value", "header_action", "Delete")
+				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' must be empty if the 'header_action' is set to 'Delete'")
 			}
 		}
 
@@ -140,11 +140,11 @@ func ExpandCdnFrontDoorResponseHeaderAction(input []interface{}) (*[]cdn.BasicDe
 
 		if headerValue := *responseHeaderAction.Parameters.Value; headerValue == "" {
 			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
-				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.ResponseHeader.ConfigName, "value", "header_action", "Append", "Overwrite")
+				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' can not be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
 			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
-				return nil, fmt.Errorf("the %q block is not valid, %q must be empty if the %q is set to %q", m.ResponseHeader.ConfigName, "value", "header_action", "Delete")
+				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' must be empty if the 'header_action' is set to 'Delete'")
 			}
 		}
 
@@ -236,7 +236,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 
 		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
 			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
-				// TODO: appears this is an SDK bug, the field `TypeName` has a single parameter defined and so should be fixed to that value in the Marshal function
+				// TODO: appears this is an SDK bug, the field 'TypeName' has a single parameter defined and so should be fixed to that value in the Marshal function
 				// https://github.com/Azure/azure-rest-api-specs/blob/271c819e255b6e437fd84a429c0d7b480052e6ab/specification/cdn/resource-manager/Microsoft.Cdn/stable/2021-06-01/cdn.json#L4708-L4712
 				// we should confirm if the API sets this by default or not?
 				TypeName:            utils.String(m.RouteConfigurationOverride.TypeName),
@@ -248,11 +248,11 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 		queryStringCachingBehavior := cacheConfiguration.QueryStringCachingBehavior
 		if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
 			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
-				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.RouteConfigurationOverride.ConfigName, "query_string_parameters", "query_string_caching_behavior", "IncludeSpecifiedQueryStrings", "IgnoreSpecifiedQueryStrings")
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' can not be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
 			}
 		} else {
 			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorUseQueryString || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreQueryString {
-				return nil, fmt.Errorf("the %q block is not valid, %q must not be set if the %q is set to %q or %q", m.RouteConfigurationOverride.ConfigName, "query_string_parameters", "query_string_caching_behavior", "UseQueryStrings", "IgnoreQueryStrings")
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
 			}
 		}
 
