@@ -449,7 +449,6 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 				"sku_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Default:      fmt.Sprintf("%s_%s", string(compute.PublicIPAddressSkuNameBasic), string(compute.PublicIPAddressSkuTierRegional)),
 					ValidateFunc: validate.OrchestratedVirtualMachineScaleSetPublicIPSku,
 				},
 
