@@ -99,7 +99,7 @@ func (c ZonesClient) preparerForList(ctx context.Context, id commonids.Subscript
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithHeaders(options.toHeaders()),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.Network/dnszones", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.Network/dnsZones", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
