@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **Provider:** support for generic OIDC authentication providers [GH-18118]
 * **New Resource**: `azurerm_backup_policy_vm_workload` [GH-17765]
 * **New Resource**: `azurerm_monitor_scheduled_query_rules_alert_v2` [GH-17772]
 
