@@ -251,7 +251,7 @@ func flattenVirtualMachineScaleSetGalleryApplications(input *[]compute.VMGallery
 		return nil
 	}
 
-	out := make([]map[string]interface{}, 0)
+	out := make([]interface{}, 0)
 
 	for _, v := range *input {
 		var packageReferenceId, configurationReference, tag string
@@ -283,7 +283,7 @@ func flattenVirtualMachineScaleSetGalleryApplications(input *[]compute.VMGallery
 		out = append(out, app)
 	}
 
-	return []interface{}{out}
+	return out
 }
 
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
