@@ -938,13 +938,14 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			d.Set("source_image_id", storageImageId)
 		}
 
+		extensionOperationsEnabled := true
 		if osProfile := profile.OsProfile; osProfile != nil {
 			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
 			d.Set("admin_username", osProfile.AdminUsername)
 			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
 
 			if osProfile.AllowExtensionOperations != nil {
-				d.Set("extension_operations_enabled", *osProfile.AllowExtensionOperations)
+				extensionOperationsEnabled = *osProfile.AllowExtensionOperations
 			}
 
 			if linux := osProfile.LinuxConfiguration; linux != nil {
@@ -964,6 +965,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				return fmt.Errorf("setting `secret`: %+v", err)
 			}
 		}
+		d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)

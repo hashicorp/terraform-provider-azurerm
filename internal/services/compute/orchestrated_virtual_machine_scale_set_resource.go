@@ -1160,15 +1160,17 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			d.Set("source_image_id", storageImageId)
 		}
 
+		extensionOperationsEnabled := true
 		if osProfile := profile.OsProfile; osProfile != nil {
 			if err := d.Set("os_profile", FlattenOrchestratedVirtualMachineScaleSetOSProfile(osProfile, d)); err != nil {
 				return fmt.Errorf("setting `os_profile`: %+v", err)
 			}
 
 			if osProfile.AllowExtensionOperations != nil {
-				d.Set("extension_operations_enabled", *osProfile.AllowExtensionOperations)
+				extensionOperationsEnabled = *osProfile.AllowExtensionOperations
 			}
 		}
+		d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
