@@ -3641,7 +3641,7 @@ resource "azurerm_gallery_application" "test" {
   name              = "acctest-app-%[3]d"
   gallery_id        = azurerm_shared_image_gallery.test.id
   location          = azurerm_shared_image_gallery.test.location
-  supported_os_type = "Linux"
+  supported_os_type = "Windows"
 }
 
 resource "azurerm_gallery_application_version" "test" {
