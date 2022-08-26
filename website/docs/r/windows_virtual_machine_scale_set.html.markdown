@@ -230,8 +230,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 A `additional_capabilities` block supports the following:
 
-* `hibernation_enabled` - (Optional) Should the VM be allowed to enter hibernation mode? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
-
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---

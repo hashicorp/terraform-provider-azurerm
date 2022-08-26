@@ -25,13 +25,6 @@ func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 				// NOTE: requires registration to use:
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
-				"hibernation_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-					ForceNew: true,
-				},
-
 				"ultra_ssd_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -49,7 +42,6 @@ func ExpandVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *co
 	if len(input) > 0 {
 		raw := input[0].(map[string]interface{})
 
-		capabilities.HibernationEnabled = utils.Bool(raw["hibernation_enabled"].(bool))
 		capabilities.UltraSSDEnabled = utils.Bool(raw["ultra_ssd_enabled"].(bool))
 	}
 
@@ -61,11 +53,6 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 		return []interface{}{}
 	}
 
-	hibernationEnabled := false
-	if input.HibernationEnabled != nil {
-		hibernationEnabled = *input.HibernationEnabled
-	}
-
 	ultraSsdEnabled := false
 	if input.UltraSSDEnabled != nil {
 		ultraSsdEnabled = *input.UltraSSDEnabled
@@ -73,7 +60,6 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 
 	return []interface{}{
 		map[string]interface{}{
-			"hibernation_enabled": hibernationEnabled,
 			"ultra_ssd_enabled":   ultraSsdEnabled,
 		},
 	}
