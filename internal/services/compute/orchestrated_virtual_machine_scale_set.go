@@ -303,12 +303,6 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					Default:  false,
 				},
 
-				"fpga_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -1007,8 +1001,6 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 			ipConfigurations = append(ipConfigurations, *ipConfiguration)
 		}
 
-		fpgaEnabled := raw["fpga_enabled"].(bool)
-
 		config := compute.VirtualMachineScaleSetNetworkConfiguration{
 			Name: utils.String(raw["name"].(string)),
 			VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
@@ -1016,7 +1008,6 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 					DNSServers: dnsServers,
 				},
 				EnableAcceleratedNetworking: utils.Bool(raw["enable_accelerated_networking"].(bool)),
-				EnableFpga:                  utils.Bool(fpgaEnabled),
 				EnableIPForwarding:          utils.Bool(raw["enable_ip_forwarding"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     utils.Bool(raw["primary"].(bool)),
@@ -1154,7 +1145,6 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 				},
 				EnableAcceleratedNetworking: utils.Bool(raw["enable_accelerated_networking"].(bool)),
 				EnableIPForwarding:          utils.Bool(raw["enable_ip_forwarding"].(bool)),
-				EnableFpga:                  utils.Bool(raw["fpga_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     utils.Bool(raw["primary"].(bool)),
 			},
@@ -1806,17 +1796,11 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]compute.
 			}
 		}
 
-		var fpgaEnabled bool
-		if v.EnableFpga != nil {
-			fpgaEnabled = *v.EnableFpga
-		}
-
 		results = append(results, map[string]interface{}{
 			"name":                          name,
 			"dns_servers":                   dnsServers,
 			"enable_accelerated_networking": enableAcceleratedNetworking,
 			"enable_ip_forwarding":          enableIPForwarding,
-			"fpga_enabled":                  fpgaEnabled,
 			"ip_configuration":              ipConfigurations,
 			"network_security_group_id":     networkSecurityGroupId,
 			"primary":                       primary,

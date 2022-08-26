@@ -442,8 +442,6 @@ A `network_interface` block supports the following:
 
 * `enable_ip_forwarding` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
 
-* `fpga_enabled` - (Optional) Is this network interface FPGA networking-enabled? Possible values include `true` or `false`. Defaults to `false`.
-
 * `network_security_group_id` - (Optional) The ID of a Network Security Group which should be assigned to this Network Interface.
 
 * `primary` - (Optional) Is this the Primary IP Configuration?

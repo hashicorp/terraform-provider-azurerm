@@ -255,11 +255,6 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
-				"fpga_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -864,7 +859,6 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compu
 				},
 				EnableAcceleratedNetworking: utils.Bool(raw["enable_accelerated_networking"].(bool)),
 				EnableIPForwarding:          utils.Bool(raw["enable_ip_forwarding"].(bool)),
-				EnableFpga:                  utils.Bool(raw["fpga_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     utils.Bool(raw["primary"].(bool)),
 			},
@@ -1096,7 +1090,7 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
 			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
 		}
-		var enableAcceleratedNetworking, enableIPForwarding, primary, fpgaEnabled bool
+		var enableAcceleratedNetworking, enableIPForwarding, primary bool
 		if v.EnableAcceleratedNetworking != nil {
 			enableAcceleratedNetworking = *v.EnableAcceleratedNetworking
 		}
@@ -1105,9 +1099,6 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 		}
 		if v.Primary != nil {
 			primary = *v.Primary
-		}
-		if v.EnableFpga != nil {
-			fpgaEnabled = *v.EnableFpga
 		}
 
 		var dnsServers []interface{}
@@ -1128,7 +1119,6 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 			"dns_servers":                   dnsServers,
 			"enable_accelerated_networking": enableAcceleratedNetworking,
 			"enable_ip_forwarding":          enableIPForwarding,
-			"fpga_enabled":                  fpgaEnabled,
 			"ip_configuration":              ipConfigurations,
 			"network_security_group_id":     networkSecurityGroupId,
 			"primary":                       primary,
