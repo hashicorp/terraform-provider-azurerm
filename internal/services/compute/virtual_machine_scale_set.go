@@ -60,7 +60,7 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled":   ultraSsdEnabled,
+			"ultra_ssd_enabled": ultraSsdEnabled,
 		},
 	}
 }
