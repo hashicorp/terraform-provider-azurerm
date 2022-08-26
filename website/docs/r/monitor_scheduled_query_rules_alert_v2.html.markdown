@@ -120,7 +120,7 @@ The following arguments are supported:
 
 -> **NOTE** `auto_mitigation_enabled` and `mute_actions_after_alert_duration` are mutually exclusive and cannot both be set.
 
-* `override_query_time_range` - (Optional) If specified then overrides the query time range, default is `window_duration`*`number_of_evaluation_periods`.
+* `query_time_range_override` - (Optional) If specified then overrides the query time range, default is `window_duration`*`number_of_evaluation_periods`.
 
 * `skip_query_validation` - (Optional) Specifies the flag which indicates whether the provided query should be validated or not. The default is false.
 
