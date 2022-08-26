@@ -1,24 +1,24 @@
-## 3.20.0 (Unreleased)
+## 3.20.0 (August 25, 2022)
 
 FEATURES:
 
-* **Provider:** support for generic OIDC authentication providers [GH-18118]
-* **New Resource**: `azurerm_backup_policy_vm_workload` [GH-17765]
-* **New Resource**: `azurerm_monitor_scheduled_query_rules_alert_v2` [GH-17772]
+* **Provider:** support for generic OIDC authentication providers ([#18118](https://github.com/hashicorp/terraform-provider-azurerm/issues/18118))
+* **New Resource**: `azurerm_backup_policy_vm_workload` ([#17765](https://github.com/hashicorp/terraform-provider-azurerm/issues/17765))
+* **New Resource**: `azurerm_monitor_scheduled_query_rules_alert_v2` ([#17772](https://github.com/hashicorp/terraform-provider-azurerm/issues/17772))
 
 ENHANCEMENTS:
 
-* Dependencies: update `go-azure-sdk` to `v0.20220824.1090858` [GH-18100]
-* Dependencies: `consumption` - updating to use `hashicorp/go-azure-sdk` [GH-18101]
-* `azurerm_data_factory_dataset_json` - `filename` and `path` in `azure_blob_storage_location` block can now be empty [GH-18061]
+* Dependencies: update `go-azure-sdk` to `v0.20220824.1090858` ([#18100](https://github.com/hashicorp/terraform-provider-azurerm/issues/18100))
+* Dependencies: `consumption` - updating to use `hashicorp/go-azure-sdk` ([#18101](https://github.com/hashicorp/terraform-provider-azurerm/issues/18101))
+* `azurerm_data_factory_dataset_json` - `filename` and `path` in `azure_blob_storage_location` block can now be empty ([#18061](https://github.com/hashicorp/terraform-provider-azurerm/issues/18061))
 
 BUG FIXES:
 
-* `data.azurerm_kubernetes_cluster` - `kube_config` is now set when AAD is enabled for a v1.24 cluster [GH-18131]
-* `azurerm_cosmosdb_sql_database` - prevent panic in autoacale settings [GH-18070]
-* `azurerm_kubernetes_cluster_node_pool` - fix a crash in expanding upgrade settings [GH-18074]
-* `azurerm_mssql_elastic_pool` - list of values for `maintenance_configuration_name` is now correct [GH-18041]
-* `azurerm_postgresql_flexible_server` - `point_in_time_restore_time_in_utc` correctly converts to RFC3339 [GH-18106]
+* `data.azurerm_kubernetes_cluster` - `kube_config` is now set when AAD is enabled for a v1.24 cluster ([#18131](https://github.com/hashicorp/terraform-provider-azurerm/issues/18131))
+* `azurerm_cosmosdb_sql_database` - prevent panic in autoacale settings ([#18070](https://github.com/hashicorp/terraform-provider-azurerm/issues/18070))
+* `azurerm_kubernetes_cluster_node_pool` - fix a crash in expanding upgrade settings ([#18074](https://github.com/hashicorp/terraform-provider-azurerm/issues/18074))
+* `azurerm_mssql_elastic_pool` - list of values for `maintenance_configuration_name` is now correct ([#18041](https://github.com/hashicorp/terraform-provider-azurerm/issues/18041))
+* `azurerm_postgresql_flexible_server` - `point_in_time_restore_time_in_utc` correctly converts to RFC3339 ([#18106](https://github.com/hashicorp/terraform-provider-azurerm/issues/18106))
 
 ## 3.19.1 (August 19, 2022)
 
