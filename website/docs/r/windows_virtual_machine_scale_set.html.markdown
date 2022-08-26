@@ -154,8 +154,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `gallery_applications` - (Optional) A `gallery_applications` block as defined below.
 
-* `hardware_profile` - (Optional) A `hardware_profile` block as defined below.
-
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
 * `host_group_id` - (Optional) Specifies the ID of the dedicated host group that the virtual machine scale set resides in. Changing this forces a new resource to be created.
@@ -365,18 +363,6 @@ A `gallery_applications` block supports the following:
 * `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`. Changing this forces a new resource to be created.
 
 * `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value. Changing this forces a new resource to be created.
-
----
-
-A `hardware_profile` block supports the following:
-
-* `virtual_cpus_available` - (Optional) Specifies the number of virtual CPUs available for the VM. Possible values are between `0` and `100`. Default is `0`. Changing this forces a new resource to be created.
-
--> **NOTE:** When `virtual_cpus_available` is set to `0` the Virtual Machine Scale Set will use the default number of vCPUs available for the VM size in the deployed region.
-
-* `virtual_cpus_per_core` - (Optional) Specifies the virtual CPUs to physical CPU core ratio. Possible values are between `0` and `100`. Default is `0`. Changing this forces a new resource to be created.
-
--> **NOTE:** When `virtual_cpus_per_core` field is set to `0` the Virtual Machine Scale Set will use the default number of vCPUsPerCore available for the VM Size in the deployed region. Setting `virtual_cpus_per_core` to `1` means that hyper-threading will be `disabled`.
 
 ---
 

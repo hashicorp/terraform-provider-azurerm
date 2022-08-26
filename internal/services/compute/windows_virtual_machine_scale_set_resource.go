@@ -201,12 +201,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	// NOTE: Hardware Profile is currently only supported in Uniform
-	hardwareProfileRaw := d.Get("hardware_profile").([]interface{})
-	if hardwareProfile := ExpandVirtualMachineScaleSetHardwareProfile(hardwareProfileRaw); hardwareProfile != nil {
-		virtualMachineProfile.HardwareProfile = hardwareProfile
-	}
-
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
 		if d.Get("single_placement_group").(bool) {
 			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
@@ -1064,7 +1058,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			}
 		}
 
-		d.Set("hardware_profile", FlattenVirtualMachineScaleSetHardwareProfile(profile.HardwareProfile))
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
@@ -1271,8 +1264,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
-
-		"hardware_profile": VirtualMachineScaleSetHardwareProfileSchema(),
 
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,
