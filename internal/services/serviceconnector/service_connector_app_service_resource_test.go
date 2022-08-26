@@ -123,7 +123,7 @@ resource "azurerm_service_plan" "update" {
   location            = azurerm_resource_group.test.location
   name                = "testserviceplanupdate%[2]s"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "P1v3"
+  sku_name            = "P1v2"
   os_type             = "Linux"
 }
 
