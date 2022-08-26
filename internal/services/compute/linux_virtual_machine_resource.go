@@ -650,6 +650,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		// Check whether the error occurs after the VM is created, if so, we shall store it to state.
+		if _, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData); err == nil {
+			d.SetId(id.ID())
+		}
 		return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 	}
 
