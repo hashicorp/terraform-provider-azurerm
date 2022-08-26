@@ -1925,7 +1925,7 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 			rawConfig := string(*kubeConfigRaw)
 			var flattenedKubeConfig []interface{}
 
-			if strings.Contains(rawConfig, "apiserver-id:") {
+			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
 				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
 				if err != nil {
 					return utils.String(rawConfig), []interface{}{}
