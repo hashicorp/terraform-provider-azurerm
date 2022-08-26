@@ -383,20 +383,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthWindows"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = "80"
-      "requestPath" = "/healthEndpoint"
-    })
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
@@ -463,20 +449,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthWindows"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = "80"
-      "requestPath" = "/healthEndpoint"
-    })
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, patchMode, r.natgateway_template(data))
 }
@@ -540,20 +512,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     offer     = "WindowsServer"
     sku       = "2016-Datacenter"
     version   = "latest"
-  }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthWindows"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = "80"
-      "requestPath" = "/healthEndpoint"
-    })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
@@ -620,20 +578,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     offer     = "WindowsServer"
     sku       = "2016-Datacenter"
     version   = "latest"
-  }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthWindows"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = "80"
-      "requestPath" = "/healthEndpoint"
-    })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
@@ -705,20 +649,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthLinux"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = 80
-      "requestPath" = "/healthEndpoint"
-    })
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, patchMode, r.natgateway_template(data))
 }
@@ -786,20 +716,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
-  }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthLinux"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = 80
-      "requestPath" = "/healthEndpoint"
-    })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
@@ -870,20 +786,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
-  }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthLinux"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = 80
-      "requestPath" = "/healthEndpoint"
-    })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
@@ -1274,21 +1176,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthLinux"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = 80
-      "requestPath" = "/healthEndpoint"
-    })
-  }
-
 
   depends_on = [
     azurerm_capacity_reservation.test,
