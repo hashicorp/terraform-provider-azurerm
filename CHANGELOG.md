@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
+* **New Resource**: `azurerm_dashboard_grafana` [GH-17840]
 
 
 ## 3.20.0 (August 25, 2022)
