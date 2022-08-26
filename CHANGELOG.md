@@ -5,6 +5,9 @@ FEATURES:
 * **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
 * **New Resource**: `azurerm_dashboard_grafana` [GH-17840]
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - `kube_config` is now set when AAD is enabled for a v1.24 cluster [GH-18142]
 
 ## 3.20.0 (August 25, 2022)
 
