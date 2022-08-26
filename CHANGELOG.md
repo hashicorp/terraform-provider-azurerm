@@ -1,3 +1,10 @@
+## 3.21.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
+
+
 ## 3.20.0 (August 25, 2022)
 
 FEATURES:
