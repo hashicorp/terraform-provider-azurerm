@@ -44,7 +44,7 @@ resource "azurerm_analysis_services_server" "server" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Analysis Services Server. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Analysis Services Server. Only lowercase Alphanumeric characters allowed, starting with a letter. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure location where the Analysis Services Server exists. Changing this forces a new resource to be created.
 
