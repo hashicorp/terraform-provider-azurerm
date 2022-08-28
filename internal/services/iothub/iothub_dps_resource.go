@@ -170,6 +170,13 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"data_residency_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -229,6 +236,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: &iothub.IotDpsPropertiesDescription{
 			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
 			AllocationPolicy:    iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
+			EnableDataResidency: utils.Bool(d.Get("data_residency_enabled").(bool)),
 			IPFilterRules:       expandDpsIPFilterRules(d),
 			PublicNetworkAccess: publicNetworkAccess,
 		},
@@ -293,6 +301,13 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
 		d.Set("id_scope", props.IDScope)
 		d.Set("allocation_policy", string(props.AllocationPolicy))
+
+		enableDataResidency := false
+		if props.EnableDataResidency != nil {
+			enableDataResidency = *props.EnableDataResidency
+		}
+		d.Set("data_residency_enabled", enableDataResidency)
+
 		publicNetworkAccess := true
 		if props.PublicNetworkAccess != "" {
 			publicNetworkAccess = strings.EqualFold("Enabled", string(props.PublicNetworkAccess))
