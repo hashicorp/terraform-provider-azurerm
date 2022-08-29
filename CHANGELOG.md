@@ -2,8 +2,9 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
 * **New Resource**: `azurerm_dashboard_grafana` [GH-17840]
+* **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
+* **New Resource**: `azurerm_healthcare_medtech_service` [GH-15967]
 
 BUG FIXES:
 
