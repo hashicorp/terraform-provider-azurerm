@@ -51,6 +51,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old == "msi" || old == ""
 			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) != 0 && len(new.([]interface{})) == 0
+			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.dns_server", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.root_domain", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -840,13 +849,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
-										AtLeastOneOf: []string{"windows_profile.0.gmsa.0.dns_server"},
+										AtLeastOneOf: []string{"windows_profile.0.gmsa.0.dns_server", "windows_profile.0.gmsa.0.root_domain"},
 									},
 									"root_domain": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
-										AtLeastOneOf: []string{"windows_profile.0.gmsa.0.root_domain"},
+										AtLeastOneOf: []string{"windows_profile.0.gmsa.0.dns_server", "windows_profile.0.gmsa.0.root_domain"},
 									},
 								},
 							},
