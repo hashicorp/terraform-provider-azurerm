@@ -23,14 +23,30 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 	case "JAVA", "TOMCAT", "JBOSSEAP":
 		result.JavaServer = parts[0]
-		javaParts := strings.Split(parts[1], "-")
+		javaData := parts[1]
+		javaParts := strings.Split(javaData, "-")
 		if len(javaParts) == 2 {
-			// e.g. 8-jre8
-			result.JavaServerVersion = javaParts[0]
-			result.JavaVersion = javaParts[1]
+			javaPrefix := []string{"java", "jre"}
+			if len(strings.Split(javaParts[0], ".")) < 3 {
+				result.JavaServerVersion = javaParts[0] + "-AUTO-UPDATE"
+			} else {
+				result.JavaServerVersion = javaParts[0]
+			}
+			for _, prefix := range javaPrefix {
+				if strings.Contains(javaParts[1], prefix) {
+					result.JavaVersion = strings.TrimPrefix(javaParts[1], prefix)
+					break
+				}
+			}
 		} else {
 			// e.g. 8u242 or 11.0.9
-			result.JavaVersion = parts[1]
+			for i, r := range javaData {
+				if r == '.' || 'a' <= r && r <= 'z' || 'A' <= r && r <= 'Z' {
+					result.JavaVersion = javaData[:i]
+					break
+				}
+			}
+			result.JavaServerVersion = javaData
 		}
 
 	case "PHP":
@@ -236,4 +252,34 @@ func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsF
 	}
 
 	return result, nil
+}
+
+func EncodeWebAppLinuxFxVersionForJava(input ApplicationStackLinux) *string {
+	var javaServer, javaMajorVersion, javaServerVersion string
+
+	javaServer = input.JavaServer
+	javaMajorVersion = input.JavaVersion
+	javaServerVersion = input.JavaServerVersion
+
+	switch {
+	case javaMajorVersion == "8":
+		if strings.Contains(javaServerVersion, "AUTO-UPDATE") {
+			javaServerVersion = strings.TrimSuffix(javaServerVersion, "-AUTO-UPDATE")
+			if javaServer == "JAVA" || javaServer == "TOMCAT" {
+				return utils.String(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, "jre8"))
+			} else {
+				return utils.String(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, "java8"))
+			}
+		}
+
+	case javaMajorVersion == "11" || javaMajorVersion == "17":
+		if strings.Contains(javaServerVersion, "AUTO-UPDATE") || javaServer == "TOMCAT" || javaServer == "JBOSSEAP" {
+			javaServerVersion = strings.TrimSuffix(javaServerVersion, "-AUTO-UPDATE")
+			javaSuffix := "java" + javaMajorVersion
+			return utils.String(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaSuffix))
+		}
+	}
+
+	// defaults to: java|version
+	return utils.String(fmt.Sprintf("%s|%s", javaServer, javaServerVersion))
 }

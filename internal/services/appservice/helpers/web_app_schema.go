@@ -1263,10 +1263,15 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					},
 				},
 
+				// java major version
 				"java_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // There a significant number of variables here, and the versions are not uniformly formatted.
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"8",
+						"11",
+						"17",
+					}, false),
 					// TODO - Needs notes in the docs for this to help users navigate the inconsistencies in the service. e.g. jre8 va java8 etc
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -1284,6 +1289,10 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.ruby_version",
 					},
+					RequiredWith: []string{
+						"site_config.0.application_stack.0.java_server",
+						"site_config.0.application_stack.0.java_server_version",
+					},
 				},
 
 				"java_server": {
@@ -1294,11 +1303,19 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"TOMCAT",
 						"JBOSSEAP",
 					}, false),
+					RequiredWith: []string{
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.java_server_version",
+					},
 				},
 
 				"java_server_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					RequiredWith: []string{
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.java_server",
+					},
 				},
 
 				"docker_image": {
@@ -3101,14 +3118,11 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 			}
 
-			if linuxAppStack.JavaServer != "" {
-				// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
-				// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
-				if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
-					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
-				} else {
-					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+			if linuxAppStack.JavaVersion != "" {
+				if linuxAppStack.JavaVersion == "17" && (linuxAppStack.JavaServer == "JBOSSEAP" || linuxAppStack.JavaServer == "JBOSSEAP-AUTO-UPDATE") {
+					return nil, fmt.Errorf("Red Hat (JBOSSEAP) sever is not supported in java 17 yet")
 				}
+				expanded.LinuxFxVersion = EncodeWebAppLinuxFxVersionForJava(linuxAppStack)
 			}
 
 			if linuxAppStack.DockerImage != "" {

@@ -39,6 +39,18 @@ resource "azurerm_linux_web_app" "example" {
   site_config {}
 }
 
+resource "azurerm_linux_web_app" "java-example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {
+    java_version        = "11"
+    java_server         = "TOMCAT"
+    java_server_version = "9.0-AUTO-UPDATE"
+  }
+}
 ```
 
 ## Arguments Reference
@@ -145,7 +157,9 @@ An `application_stack` block supports the following:
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions of Java vary depending on the `java_server` and `java_server_version`, as well as security and fixes to major versions. Please see Azure documentation for the latest information.
+* `java_version` - (Optional) The Version of Java to use. The currently supported java major versions are `8`, `11`, `17`. 
+
+~> **NOTE:** `java_server`, `java_server_version`, `java_version` needs to be used together. Please append `-AUTO-UPDATE` to the value of `java_server_version` if you would like to use the auto-update feature, e.g. `java_server_version = "10.0-AUTO-UPDATE"`.
 
 ~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from command line via `az webapp list-runtimes --linux`. 
 
