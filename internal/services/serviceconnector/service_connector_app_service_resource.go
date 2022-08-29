@@ -72,6 +72,7 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 		"vnet_solution": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(servicelinker.VNetSolutionTypePrivateLink),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servicelinker.VNetSolutionTypeServiceEndpoint),
 				string(servicelinker.VNetSolutionTypePrivateLink),
