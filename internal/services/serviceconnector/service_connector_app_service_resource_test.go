@@ -127,17 +127,9 @@ resource "azurerm_service_plan" "update" {
   os_type             = "Linux"
 }
 
-resource "azurerm_linux_web_app" "update" {
-  location            = azurerm_resource_group.test.location
-  name                = "linuxwebappupdate%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.update.id
-  site_config {}
-}
-
 resource "azurerm_app_service_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
-  app_service_id     = azurerm_linux_web_app.update.id
+  app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.update.id
   authentication {
     type = "systemAssignedIdentity"
