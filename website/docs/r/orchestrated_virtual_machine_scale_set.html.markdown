@@ -233,8 +233,6 @@ A `automatic_instance_repair` block supports the following:
 
 * `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `30` and `90` minutes. Defaults to `30` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT30M` to `PT90M`).
 
-* `repair_action` - (Optional) The repair action that will be taken for repairing unhealthy virtual machines in the scale set. Possible values are `Replace`, `Restart` and `Reimage`. Defaults to `Replace`.
-
 ---
 
 A `boot_diagnostics` block supports the following:

@@ -1870,16 +1870,6 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
-				"repair_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(compute.RepairActionReplace),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.RepairActionReplace),
-						string(compute.RepairActionReimage),
-						string(compute.RepairActionRestart),
-					}, false),
-				},
 			},
 		},
 	}
@@ -1893,9 +1883,8 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *co
 	raw := input[0].(map[string]interface{})
 
 	return &compute.AutomaticRepairsPolicy{
-		Enabled:      utils.Bool(raw["enabled"].(bool)),
-		GracePeriod:  utils.String(raw["grace_period"].(string)),
-		RepairAction: compute.RepairAction(raw["repair_action"].(string)),
+		Enabled:     utils.Bool(raw["enabled"].(bool)),
+		GracePeriod: utils.String(raw["grace_period"].(string)),
 	}
 }
 
@@ -1913,16 +1902,10 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 		gracePeriod = *input.GracePeriod
 	}
 
-	repairAction := "Replace"
-	if input != nil && input.RepairAction != "" {
-		repairAction = string(input.RepairAction)
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":       enabled,
-			"grace_period":  gracePeriod,
-			"repair_action": repairAction,
+			"enabled":      enabled,
+			"grace_period": gracePeriod,
 		},
 	}
 }

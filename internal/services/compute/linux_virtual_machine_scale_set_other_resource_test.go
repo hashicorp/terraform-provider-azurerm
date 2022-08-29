@@ -2407,9 +2407,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   automatic_instance_repair {
-    enabled       = true
-    grace_period  = "PT1H"
-    repair_action = "Restart"
+    enabled      = true
+    grace_period = "PT1H"
   }
 
   depends_on = [azurerm_lb_rule.test]

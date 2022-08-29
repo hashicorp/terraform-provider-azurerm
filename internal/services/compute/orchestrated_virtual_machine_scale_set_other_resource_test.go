@@ -930,9 +930,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   automatic_instance_repair {
-    enabled       = true
-    grace_period  = "PT1H"
-    repair_action = "Restart"
+    enabled      = true
+    grace_period = "PT1H"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
