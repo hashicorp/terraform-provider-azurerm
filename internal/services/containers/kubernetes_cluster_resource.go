@@ -477,7 +477,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -496,7 +496,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
