@@ -110,6 +110,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 			"hours_between_backups": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
+				Default:  24,
 			},
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
@@ -170,6 +171,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 			AuthenticationMethod:          &authenticationMethod,
 			CassandraVersion:              utils.String(d.Get("version").(string)),
 			DelegatedManagementSubnetId:   utils.String(d.Get("delegated_management_subnet_id").(string)),
+			HoursBetweenBackups:           utils.Int64(int64(d.Get("hours_between_backups").(int))),
 			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
 			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
 		},
@@ -186,10 +188,6 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("external_seed_node_ip_addresses"); ok {
 		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("hours_between_backups"); ok {
-		body.Properties.HoursBetweenBackups = utils.Int64(int64(v.(int)))
 	}
 
 	err = client.CassandraClustersCreateUpdateThenPoll(ctx, id, body)
@@ -290,6 +288,7 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AuthenticationMethod:          &authenticationMethod,
 			CassandraVersion:              utils.String(d.Get("version").(string)),
 			DelegatedManagementSubnetId:   utils.String(d.Get("delegated_management_subnet_id").(string)),
+			HoursBetweenBackups:           utils.Int64(int64(d.Get("hours_between_backups").(int))),
 			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
 			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
 		},
@@ -306,10 +305,6 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("external_seed_node_ip_addresses"); ok {
 		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("hours_between_backups"); ok {
-		body.Properties.HoursBetweenBackups = utils.Int64(int64(v.(int)))
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
