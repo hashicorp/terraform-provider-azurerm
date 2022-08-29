@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -629,11 +630,13 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
-					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
-				}
+
+			appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+			}
+			if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
+				return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
