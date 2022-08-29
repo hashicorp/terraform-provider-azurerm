@@ -1699,6 +1699,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       public_ip_address {
         name                    = "first"
         idle_timeout_in_minutes = 4
+      }
+    }
+
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
+        idle_timeout_in_minutes = 4
         version                 = "IPv6"
       }
     }

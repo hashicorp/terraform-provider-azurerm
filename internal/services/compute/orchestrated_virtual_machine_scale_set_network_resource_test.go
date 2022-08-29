@@ -198,7 +198,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_publicIPSkuName(t *testing.T) {
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_publicIPVersion(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
@@ -1172,6 +1172,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
         domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
         idle_timeout_in_minutes = 4
         version                 = "IPv6"
       }
