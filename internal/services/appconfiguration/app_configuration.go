@@ -16,15 +16,3 @@ func flattenAppConfigurationEncryption(input *configurationstores.EncryptionProp
 		},
 	}
 }
-
-func flattenAppConfigurationPublicNetworkAccess(input *configurationstores.PublicNetworkAccess) bool {
-	if input == nil {
-		return false
-	}
-
-	result := true
-	if *input == configurationstores.PublicNetworkAccessDisabled {
-		result = false
-	}
-	return result
-}
