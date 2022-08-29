@@ -63,5 +63,6 @@ func (c ResourceGuardsClient) responderForGetDefaultDeleteProtectedItemRequestsO
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -59,50 +59,6 @@ func (c SqlVirtualMachinesClient) ListBySqlVmGroup(ctx context.Context, id SqlVi
 	return
 }
 
-// ListBySqlVmGroupComplete retrieves all of the results into a single object
-func (c SqlVirtualMachinesClient) ListBySqlVmGroupComplete(ctx context.Context, id SqlVirtualMachineGroupId) (ListBySqlVmGroupCompleteResult, error) {
-	return c.ListBySqlVmGroupCompleteMatchingPredicate(ctx, id, SqlVirtualMachineOperationPredicate{})
-}
-
-// ListBySqlVmGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SqlVirtualMachinesClient) ListBySqlVmGroupCompleteMatchingPredicate(ctx context.Context, id SqlVirtualMachineGroupId, predicate SqlVirtualMachineOperationPredicate) (resp ListBySqlVmGroupCompleteResult, err error) {
-	items := make([]SqlVirtualMachine, 0)
-
-	page, err := c.ListBySqlVmGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListBySqlVmGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListBySqlVmGroup prepares the ListBySqlVmGroup request.
 func (c SqlVirtualMachinesClient) preparerForListBySqlVmGroup(ctx context.Context, id SqlVirtualMachineGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c SqlVirtualMachinesClient) responderForListBySqlVmGroup(resp *http.Respon
 		}
 	}
 	return
+}
+
+// ListBySqlVmGroupComplete retrieves all of the results into a single object
+func (c SqlVirtualMachinesClient) ListBySqlVmGroupComplete(ctx context.Context, id SqlVirtualMachineGroupId) (ListBySqlVmGroupCompleteResult, error) {
+	return c.ListBySqlVmGroupCompleteMatchingPredicate(ctx, id, SqlVirtualMachineOperationPredicate{})
+}
+
+// ListBySqlVmGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SqlVirtualMachinesClient) ListBySqlVmGroupCompleteMatchingPredicate(ctx context.Context, id SqlVirtualMachineGroupId, predicate SqlVirtualMachineOperationPredicate) (resp ListBySqlVmGroupCompleteResult, err error) {
+	items := make([]SqlVirtualMachine, 0)
+
+	page, err := c.ListBySqlVmGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListBySqlVmGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

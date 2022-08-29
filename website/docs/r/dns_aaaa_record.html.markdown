@@ -74,11 +74,11 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Optional) List of IPv6 Addresses. Conflicts with `target_resource_id`.
 
-* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`
+* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -89,17 +89,19 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The DNS AAAA Record ID.
+
 * `fqdn` - The FQDN of the DNS AAAA Record.
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS AAAA Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS AAAA Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS AAAA Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS AAAA Record.
 
 ## Import

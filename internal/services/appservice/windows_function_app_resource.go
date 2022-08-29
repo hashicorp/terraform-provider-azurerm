@@ -329,21 +329,12 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionApp.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic":
-				case "elastic":
-				case "basic":
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
-			} else {
-				return fmt.Errorf("determining plan type for Windows %s: %v", id, err)
+			var planSKU *string
+			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+				planSKU = sku.Name
 			}
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionApp.ForceDisableContentShare
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -419,12 +410,18 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)
 				}
-				suffix := uuid.New().String()[0:4]
-				if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
-					functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-				}
-				if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
-					functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if !functionApp.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
+					}
+					if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := functionApp.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						functionApp.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
 				}
 			}
 
@@ -605,6 +602,16 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 			}
 
+			if v := props.OutboundIPAddresses; v != nil {
+				state.OutboundIPAddresses = *v
+				state.OutboundIPAddressList = strings.Split(*v, ",")
+			}
+
+			if v := props.PossibleOutboundIPAddresses; v != nil {
+				state.PossibleOutboundIPAddresses = *v
+				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
+			}
+
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
@@ -699,7 +706,9 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			sendContentSettings := !helpers.PlanIsAppPlan(planSKU)
+
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {

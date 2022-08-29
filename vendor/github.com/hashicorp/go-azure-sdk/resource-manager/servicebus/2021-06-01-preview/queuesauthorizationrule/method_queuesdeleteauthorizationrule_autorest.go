@@ -61,5 +61,6 @@ func (c QueuesAuthorizationRuleClient) responderForQueuesDeleteAuthorizationRule
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

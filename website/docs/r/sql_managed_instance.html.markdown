@@ -236,7 +236,7 @@ The following arguments are supported:
 
 * `timezone_id` - (Optional) The TimeZone ID that the SQL Managed Instance will be operating in. Default value is `UTC`. Changing this forces a new resource to be created.
 
-* `dns_zone_partner_id` - (Optional) The ID of the Managed Instance which will share the DNS zone. This is a prerequisite for creating a `azurerm_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
+* `dns_zone_partner_id` - (Optional) The ID of the Managed Instance which will share the DNS zone. This is a prerequisite for creating a `azurerm_sql_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

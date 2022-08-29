@@ -23,6 +23,7 @@ resource "azurerm_dns_zone" "example-public" {
   resource_group_name = azurerm_resource_group.example.name
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -62,19 +63,23 @@ The `soa_record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS Zone ID.
+
 * `max_number_of_record_sets` - (Optional) Maximum number of Records in the zone. Defaults to `1000`.
+
 * `number_of_record_sets` - (Optional) The number of records already in the zone.
+
 * `name_servers` - (Optional) A list of values that make up the NS record for the zone.
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS Zone.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS Zone.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS Zone.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS Zone.
 
 ## Import

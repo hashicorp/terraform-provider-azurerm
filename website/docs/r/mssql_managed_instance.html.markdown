@@ -228,7 +228,7 @@ The following arguments are supported:
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `dns_zone_partner_id` - (Optional) The ID of the SQL Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
+* `dns_zone_partner_id` - (Optional) The ID of the SQL Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_sql_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

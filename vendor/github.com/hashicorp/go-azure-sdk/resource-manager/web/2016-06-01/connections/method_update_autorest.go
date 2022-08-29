@@ -64,5 +64,6 @@ func (c ConnectionsClient) responderForUpdate(resp *http.Response) (result Updat
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

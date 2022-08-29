@@ -3,7 +3,9 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
-	queryPacks "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/operationalinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -13,12 +15,13 @@ type Client struct {
 	DataSourcesClient          *operationalinsights.DataSourcesClient
 	LinkedServicesClient       *operationalinsights.LinkedServicesClient
 	LinkedStorageAccountClient *operationalinsights.LinkedStorageAccountsClient
-	QueryPacksClient           *queryPacks.OperationalInsightsClient
+	QueryPacksClient           *querypacks.QueryPacksClient
+	QueryPackQueriesClient     *querypackqueries.QueryPackQueriesClient
 	SavedSearchesClient        *operationalinsights.SavedSearchesClient
 	SharedKeysClient           *operationalinsights.SharedKeysClient
 	SolutionsClient            *operationsmanagement.SolutionsClient
 	StorageInsightsClient      *operationalinsights.StorageInsightConfigsClient
-	WorkspacesClient           *operationalinsights.WorkspacesClient
+	WorkspacesClient           *workspaces.WorkspacesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -31,7 +34,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	DataSourcesClient := operationalinsights.NewDataSourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataSourcesClient.Client, o.ResourceManagerAuthorizer)
 
-	WorkspacesClient := operationalinsights.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	WorkspacesClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
 	SavedSearchesClient := operationalinsights.NewSavedSearchesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -52,8 +55,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	LinkedStorageAccountClient := operationalinsights.NewLinkedStorageAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
 
-	QueryPacksClient := queryPacks.NewOperationalInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
+	QueryPacksClient := querypacks.NewQueryPacksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&QueryPacksClient.Client, o.ResourceManagerAuthorizer)
+
+	QueryPackQueriesClient := querypackqueries.NewQueryPackQueriesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&QueryPackQueriesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		ClusterClient:              &ClusterClient,
@@ -62,6 +68,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		LinkedServicesClient:       &LinkedServicesClient,
 		LinkedStorageAccountClient: &LinkedStorageAccountClient,
 		QueryPacksClient:           &QueryPacksClient,
+		QueryPackQueriesClient:     &QueryPackQueriesClient,
 		SavedSearchesClient:        &SavedSearchesClient,
 		SharedKeysClient:           &SharedKeysClient,
 		SolutionsClient:            &SolutionsClient,

@@ -292,9 +292,12 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
-	_, err = client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
+	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
 	if err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %q: %+v", id, err)
 	}
 
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/19021

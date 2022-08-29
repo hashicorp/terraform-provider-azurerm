@@ -64,5 +64,6 @@ func (c QueuesClient) responderForCreateOrUpdate(resp *http.Response) (result Cr
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

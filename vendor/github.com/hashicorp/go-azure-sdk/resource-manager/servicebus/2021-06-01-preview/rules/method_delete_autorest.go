@@ -61,5 +61,6 @@ func (c RulesClient) responderForDelete(resp *http.Response) (result DeleteOpera
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

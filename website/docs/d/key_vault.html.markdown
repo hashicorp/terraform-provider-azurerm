@@ -57,6 +57,8 @@ The following attributes are exported:
 
 * `purge_protection_enabled` - Is purge protection enabled on this Key Vault?
 
+* `public_network_access_enabled` - Is public network access enabled on this Key Vault?
+
 * `tags` - A mapping of tags assigned to the Key Vault.
 
 A `access_policy` block supports the following:
