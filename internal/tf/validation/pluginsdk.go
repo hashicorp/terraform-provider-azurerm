@@ -3,6 +3,7 @@ package validation
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -71,6 +72,28 @@ func IntDivisibleBy(divisor int) func(interface{}, string) ([]string, []error) {
 // is of type int and matches the value of an element in the valid slice
 func IntInSlice(valid []int) func(interface{}, string) ([]string, []error) {
 	return validation.IntInSlice(valid)
+}
+
+// IsIpOrCIDRRange is a SchemaValidateFunc which tests if the provided value is of type string and a valid IP/CIDR range
+func IsIpOrCIDRRange(i interface{}, k string) ([]string, []error) {
+	var allWarnings []string
+	var allErrors []error
+	v, ok := i.(string)
+	if !ok {
+		allErrors = append(allErrors, fmt.Errorf("expected type of %s to be string", k))
+		return allWarnings, allErrors
+	}
+	validator := Any(IsCIDR, IsIPAddress)
+	for _, elem := range strings.Split(v, ",") {
+		warnings, errors := validator(elem, k)
+		if len(warnings) > 0 {
+			allWarnings = append(allWarnings, warnings...)
+		}
+		if len(errors) > 0 {
+			allErrors = append(allErrors, errors...)
+		}
+	}
+	return allWarnings, allErrors
 }
 
 // IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid CIDR
