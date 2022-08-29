@@ -1274,10 +1274,13 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"host_group_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: computeValidate.HostGroupID,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     computeValidate.HostGroupID,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
