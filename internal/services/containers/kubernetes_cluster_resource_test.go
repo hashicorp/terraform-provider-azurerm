@@ -17,8 +17,8 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.21.7"
-	currentKubernetesVersion      = "1.22.4"
+	olderKubernetesVersion        = "1.22.11"
+	currentKubernetesVersion      = "1.23.5"
 	olderKubernetesVersionAlias   = "1.22"
 	currentKubernetesVersionAlias = "1.23"
 )
@@ -285,4 +285,19 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, maxSurge)
+}
+
+func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotThree(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),
+			),
+		},
+	})
 }

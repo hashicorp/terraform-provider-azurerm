@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -241,13 +241,13 @@ func (SubscriptionConsumptionBudgetV1ToV2) UpgradeFunc() pluginsdk.StateUpgrader
 		// since the `subscription_id` field gets incorrectly mutated in the V0 -> V1 upgrade
 		// we have to parse it from the ID instead to correct this
 		idRaw := rawState["id"].(string)
-		id, err := parse.ConsumptionBudgetSubscriptionID(idRaw)
+		id, err := budgets.ParseScopedBudgetID(idRaw)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q: %+v", idRaw, err)
 		}
 
 		oldSubscriptionId := rawState["subscription_id"].(commonids.SubscriptionId)
-		newSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId).ID()
+		newSubscriptionId := commonids.NewSubscriptionID(id.Scope).ID()
 		log.Printf("[DEBUG] Updating subscription_id from %q to %q", oldSubscriptionId, newSubscriptionId)
 		rawState["subscription_id"] = newSubscriptionId
 

@@ -60,50 +60,6 @@ func (c ContainerInstanceClient) ContainerGroupsListByResourceGroup(ctx context.
 	return
 }
 
-// ContainerGroupsListByResourceGroupComplete retrieves all of the results into a single object
-func (c ContainerInstanceClient) ContainerGroupsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ContainerGroupsListByResourceGroupCompleteResult, error) {
-	return c.ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx, id, ContainerGroupOperationPredicate{})
-}
-
-// ContainerGroupsListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ContainerInstanceClient) ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ContainerGroupOperationPredicate) (resp ContainerGroupsListByResourceGroupCompleteResult, err error) {
-	items := make([]ContainerGroup, 0)
-
-	page, err := c.ContainerGroupsListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ContainerGroupsListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForContainerGroupsListByResourceGroup prepares the ContainerGroupsListByResourceGroup request.
 func (c ContainerInstanceClient) preparerForContainerGroupsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ContainerInstanceClient) responderForContainerGroupsListByResourceGroup(
 		}
 	}
 	return
+}
+
+// ContainerGroupsListByResourceGroupComplete retrieves all of the results into a single object
+func (c ContainerInstanceClient) ContainerGroupsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ContainerGroupsListByResourceGroupCompleteResult, error) {
+	return c.ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx, id, ContainerGroupOperationPredicate{})
+}
+
+// ContainerGroupsListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ContainerInstanceClient) ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ContainerGroupOperationPredicate) (resp ContainerGroupsListByResourceGroupCompleteResult, err error) {
+	items := make([]ContainerGroup, 0)
+
+	page, err := c.ContainerGroupsListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ContainerGroupsListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

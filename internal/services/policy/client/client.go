@@ -4,7 +4,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	policyPreview "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/policyinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -13,7 +13,7 @@ type Client struct {
 	DefinitionsClient                   *policy.DefinitionsClient
 	ExemptionsClient                    *policyPreview.ExemptionsClient
 	SetDefinitionsClient                *policy.SetDefinitionsClient
-	PolicyInsightsClient                *policyinsights.PolicyInsightsClient
+	RemediationsClient                  *remediations.RemediationsClient
 	GuestConfigurationAssignmentsClient *guestconfiguration.AssignmentsClient
 }
 
@@ -30,8 +30,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	setDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&setDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	policyInsightsClient := policyinsights.NewPolicyInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&policyInsightsClient.Client, o.ResourceManagerAuthorizer)
+	remediationsClient := remediations.NewRemediationsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&remediationsClient.Client, o.ResourceManagerAuthorizer)
 
 	guestConfigurationAssignmentsClient := guestconfiguration.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&guestConfigurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
@@ -41,7 +41,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DefinitionsClient:                   &definitionsClient,
 		ExemptionsClient:                    &exemptionsClient,
 		SetDefinitionsClient:                &setDefinitionsClient,
-		PolicyInsightsClient:                &policyInsightsClient,
+		RemediationsClient:                  &remediationsClient,
 		GuestConfigurationAssignmentsClient: &guestConfigurationAssignmentsClient,
 	}
 }

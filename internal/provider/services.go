@@ -28,9 +28,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
@@ -122,6 +124,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		consumption.Registration{},
 		containers.Registration{},
 		costmanagement.Registration{},
+		dashboard.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
@@ -129,8 +132,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		keyvault.Registration{},
 		loadbalancer.Registration{},
 		loadtest.Registration{},
+		loganalytics.Registration{},
+		monitor.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
+		recoveryservices.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},
 		servicefabricmanaged.Registration{},
@@ -166,7 +172,9 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			consumption.Registration{},
 			cosmos.Registration{},
 			customproviders.Registration{},
+			dashboard.Registration{},
 			databricks.Registration{},
+			datadog.Registration{},
 			datafactory.Registration{},
 			databasemigration.Registration{},
 			databoxedge.Registration{},

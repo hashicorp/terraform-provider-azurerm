@@ -1,65 +1,81 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/replicas"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
+	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
+	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
+	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
+	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ConfigurationsClient                *postgresql.ConfigurationsClient
-	DatabasesClient                     *postgresql.DatabasesClient
-	FirewallRulesClient                 *postgresql.FirewallRulesClient
-	FlexibleServersClient               *postgresqlflexibleservers.ServersClient
-	FlexibleServersConfigurationsClient *postgresqlflexibleservers.ConfigurationsClient
-	FlexibleServerFirewallRuleClient    *postgresqlflexibleservers.FirewallRulesClient
-	FlexibleServerDatabaseClient        *postgresqlflexibleservers.DatabasesClient
-	ServersClient                       *postgresql.ServersClient
-	ServerKeysClient                    *postgresql.ServerKeysClient
-	ServerSecurityAlertPoliciesClient   *postgresql.ServerSecurityAlertPoliciesClient
-	VirtualNetworkRulesClient           *postgresql.VirtualNetworkRulesClient
-	ServerAdministratorsClient          *postgresql.ServerAdministratorsClient
-	ReplicasClient                      *postgresql.ReplicasClient
+	ConfigurationsClient                *configurations.ConfigurationsClient
+	DatabasesClient                     *databases.DatabasesClient
+	FirewallRulesClient                 *firewallrules.FirewallRulesClient
+	FlexibleServersClient               *flexibleservers.ServersClient
+	FlexibleServersConfigurationsClient *flexibleserverconfigurations.ConfigurationsClient
+	FlexibleServerFirewallRuleClient    *flexibleserverfirewallrules.FirewallRulesClient
+	FlexibleServerDatabaseClient        *flexibleserverdatabases.DatabasesClient
+	ServersClient                       *servers.ServersClient
+	ServerRestartClient                 *serverrestart.ServerRestartClient
+	ServerKeysClient                    *serverkeys.ServerKeysClient
+	ServerSecurityAlertPoliciesClient   *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
+	VirtualNetworkRulesClient           *virtualnetworkrules.VirtualNetworkRulesClient
+	ServerAdministratorsClient          *serveradministrators.ServerAdministratorsClient
+	ReplicasClient                      *replicas.ReplicasClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	configurationsClient := postgresql.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	configurationsClient := configurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	databasesClient := postgresql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	databasesClient := databases.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&databasesClient.Client, o.ResourceManagerAuthorizer)
 
-	firewallRulesClient := postgresql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	firewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	serversClient := postgresql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serversClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
 
-	serverKeysClient := postgresql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serverKeysClient := serverkeys.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&serverKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	serverSecurityAlertPoliciesClient := postgresql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serverSecurityAlertPoliciesClient := serversecurityalertpolicies.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	virtualNetworkRulesClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	virtualNetworkRulesClient := virtualnetworkrules.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&virtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	serverAdministratorsClient := postgresql.NewServerAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serverAdministratorsClient := serveradministrators.NewServerAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 
-	replicasClient := postgresql.NewReplicasClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	replicasClient := replicas.NewReplicasClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&replicasClient.Client, o.ResourceManagerAuthorizer)
 
-	flexibleServersClient := postgresqlflexibleservers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	flexibleServersClient := flexibleservers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&flexibleServersClient.Client, o.ResourceManagerAuthorizer)
 
-	flexibleServerFirewallRuleClient := postgresqlflexibleservers.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	restartServerClient := serverrestart.NewServerRestartClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&restartServerClient.Client, o.ResourceManagerAuthorizer)
+
+	flexibleServerFirewallRuleClient := flexibleserverfirewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&flexibleServerFirewallRuleClient.Client, o.ResourceManagerAuthorizer)
 
-	flexibleServerDatabaseClient := postgresqlflexibleservers.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	flexibleServerDatabaseClient := flexibleserverdatabases.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&flexibleServerDatabaseClient.Client, o.ResourceManagerAuthorizer)
 
-	flexibleServerConfigurationsClient := postgresqlflexibleservers.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	flexibleServerConfigurationsClient := flexibleserverconfigurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&flexibleServerConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
@@ -68,6 +84,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		FirewallRulesClient:                 &firewallRulesClient,
 		FlexibleServersConfigurationsClient: &flexibleServerConfigurationsClient,
 		FlexibleServersClient:               &flexibleServersClient,
+		ServerRestartClient:                 &restartServerClient,
 		FlexibleServerFirewallRuleClient:    &flexibleServerFirewallRuleClient,
 		FlexibleServerDatabaseClient:        &flexibleServerDatabaseClient,
 		ServersClient:                       &serversClient,

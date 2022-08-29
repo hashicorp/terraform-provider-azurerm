@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/policyinsights"
+	policyinsights "github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -52,7 +52,7 @@ func (r ResourcePolicyRemediationResource) Exists(ctx context.Context, client *c
 		return nil, err
 	}
 
-	resp, err := client.Policy.PolicyInsightsClient.RemediationsGetAtResource(ctx, *id)
+	resp, err := client.Policy.RemediationsClient.RemediationsGetAtResource(ctx, *id)
 	if err != nil || resp.Model == nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

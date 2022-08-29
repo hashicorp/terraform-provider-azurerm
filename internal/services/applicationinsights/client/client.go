@@ -2,7 +2,8 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
-	workbookTemplate "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/applicationinsights"
+	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
+	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/azuresdkhacks"
 )
@@ -14,7 +15,8 @@ type Client struct {
 	WebTestsClient           *azuresdkhacks.WebTestsClient
 	BillingClient            *insights.ComponentCurrentBillingFeaturesClient
 	SmartDetectionRuleClient *insights.ProactiveDetectionConfigurationsClient
-	WorkbookTemplateClient   *workbookTemplate.ApplicationInsightsClient
+	WorkbookClient           *workbooks.WorkbooksAPIsClient
+	WorkbookTemplateClient   *workbooktemplates.WorkbookTemplatesAPIsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -37,7 +39,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	smartDetectionRuleClient := insights.NewProactiveDetectionConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&smartDetectionRuleClient.Client, o.ResourceManagerAuthorizer)
 
-	workbookTemplateClient := workbookTemplate.NewApplicationInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
+	workbookClient := workbooks.NewWorkbooksAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&workbookClient.Client, o.ResourceManagerAuthorizer)
+
+	workbookTemplateClient := workbooktemplates.NewWorkbookTemplatesAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&workbookTemplateClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
@@ -47,6 +52,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WebTestsClient:           &webTestsWorkaroundClient,
 		BillingClient:            &billingClient,
 		SmartDetectionRuleClient: &smartDetectionRuleClient,
+		WorkbookClient:           &workbookClient,
 		WorkbookTemplateClient:   &workbookTemplateClient,
 	}
 }

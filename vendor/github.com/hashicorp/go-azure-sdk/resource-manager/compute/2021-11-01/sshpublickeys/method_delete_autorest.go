@@ -61,5 +61,6 @@ func (c SshPublicKeysClient) responderForDelete(resp *http.Response) (result Del
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

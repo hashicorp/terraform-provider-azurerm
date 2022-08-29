@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -70,7 +70,7 @@ func (NamespaceNetworkRuleSetV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			oldId = strings.TrimSuffix(oldId, "/networkrulesets/default")
 		}
 
-		id, err := parse.NamespaceID(oldId)
+		id, err := namespaces.ParseNamespaceID(oldId)
 		if err != nil {
 			return nil, err
 		}

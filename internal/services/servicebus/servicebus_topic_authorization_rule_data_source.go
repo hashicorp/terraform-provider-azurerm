@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topicsauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
@@ -32,7 +33,7 @@ func dataSourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 			"topic_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.TopicID,
+				ValidateFunc: topics.ValidateTopicID,
 				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "queue_name"},
 			},
 
@@ -119,7 +120,7 @@ func dataSourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsClient
+	client := meta.(*clients.Client).ServiceBus.TopicsAuthClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,29 +129,29 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	var nsName string
 	var topicName string
 	if v, ok := d.Get("topic_id").(string); ok && v != "" {
-		topicId, err := parse.TopicID(v)
+		topicId, err := topicsauthorizationrule.ParseTopicID(v)
 		if err != nil {
 			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
 		}
-		rgName = topicId.ResourceGroup
+		rgName = topicId.ResourceGroupName
 		nsName = topicId.NamespaceName
-		topicName = topicId.Name
+		topicName = topicId.TopicName
 	} else {
 		rgName = d.Get("resource_group_name").(string)
 		nsName = d.Get("namespace_name").(string)
 		topicName = d.Get("topic_name").(string)
 	}
 
-	id := parse.NewTopicAuthorizationRuleID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
-	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.AuthorizationRuleName)
+	id := topicsauthorizationrule.NewTopicAuthorizationRuleID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
+	resp, err := client.TopicsGetAuthorizationRule(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.AuthorizationRuleName)
+	keysResp, err := client.TopicsListKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
@@ -159,21 +160,25 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	d.Set("name", id.AuthorizationRuleName)
 	d.Set("topic_name", id.TopicName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
-		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)
-		d.Set("listen", listen)
-		d.Set("send", send)
-		d.Set("manage", manage)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			listen, send, manage := flattenTopicAuthorizationRuleRights(&props.Rights)
+			d.Set("listen", listen)
+			d.Set("send", send)
+			d.Set("manage", manage)
+		}
 	}
 
-	d.Set("primary_key", keysResp.PrimaryKey)
-	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
-	d.Set("secondary_key", keysResp.SecondaryKey)
-	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
-	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
-	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
+	if model := keysResp.Model; model != nil {
+		d.Set("primary_key", model.PrimaryKey)
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("secondary_key", model.SecondaryKey)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+		d.Set("primary_connection_string_alias", model.AliasPrimaryConnectionString)
+		d.Set("secondary_connection_string_alias", model.AliasSecondaryConnectionString)
+	}
 
 	return nil
 }

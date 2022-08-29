@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -207,17 +207,17 @@ func TestAccAzureRMServiceBusNamespace_customerManagedKey(t *testing.T) {
 }
 
 func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceID(state.ID)
+	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.ServiceBus.NamespacesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Service Bus NameSpace (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ServiceBusNamespaceResource) basic(data acceptance.TestData) string {

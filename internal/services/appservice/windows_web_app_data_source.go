@@ -46,6 +46,7 @@ type WindowsWebAppDataSourceModel struct {
 	PossibleOutboundIPAddressList []string                    `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential    `tfschema:"site_credential"`
 	Tags                          map[string]string           `tfschema:"tags"`
+	VirtualNetworkSubnetID        string                      `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = WindowsWebAppDataSource{}
@@ -171,6 +172,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
 
 		"storage_account": helpers.StorageAccountSchemaComputed(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 
 		"tags": tags.SchemaDataSource(),
 	}

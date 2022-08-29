@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
+	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -32,9 +33,11 @@ import (
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 	customproviders "github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders/client"
+	dashboard "github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard/client"
 	datamigration "github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/client"
 	databoxedge "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/client"
 	databricks "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
+	datadog "github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/client"
 	datafactory "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
@@ -144,9 +147,11 @@ type Client struct {
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
 	CustomProviders       *customproviders.Client
+	Dashboard             *dashboard.Client
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
+	Datadog               *datadog.Client
 	DataFactory           *datafactory.Client
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
@@ -154,7 +159,7 @@ type Client struct {
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
 	Disks                 *disks.Client
-	Dns                   *dns.Client
+	Dns                   *dns_v2018_05_01.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
 	EventGrid             *eventgrid.Client
@@ -258,9 +263,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
+	client.Dashboard = dashboard.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataboxEdge = databoxedge.NewClient(o)
+	client.Datadog = datadog.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)

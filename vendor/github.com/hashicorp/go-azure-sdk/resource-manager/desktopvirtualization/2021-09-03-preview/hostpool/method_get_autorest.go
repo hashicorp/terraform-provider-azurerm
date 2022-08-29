@@ -63,5 +63,6 @@ func (c HostPoolClient) responderForGet(resp *http.Response) (result GetOperatio
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

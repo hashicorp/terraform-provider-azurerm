@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -111,24 +113,32 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 
 func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.FlexibleServerID(state.ID)
+		id, err := configurations.ParseFlexibleServerID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
+		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, configurationName)
+
+		resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, configurationId)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Azure Postgresql Flexible Server configuration %q (server %q resource group: %q) does not exist", configurationName, id.Name, id.ResourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("%s does not exist", id)
 			}
 			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
 		}
 
-		actualValue := *resp.Value
-		defaultValue := *resp.DefaultValue
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if props.Value != nil && props.DefaultValue != nil {
+					actualValue := *props.Value
+					defaultValue := *props.DefaultValue
 
-		if defaultValue != actualValue {
-			return fmt.Errorf("Azure Postgresql Flexible Server configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
+					if defaultValue != actualValue {
+						return fmt.Errorf("Azure Postgresql Flexible Server configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
+					}
+				}
+			}
 		}
 
 		return nil
@@ -152,17 +162,17 @@ func TestAccFlexibleServerConfiguration_multiplePostgresqlFlexibleServerConfigur
 
 // Helper functions for verification
 func (r PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlexibleServerConfigurationID(state.ID)
+	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, state.Attributes["name"])
+	resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql Configuration (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PostgresqlFlexibleServerConfigurationResource) template(data acceptance.TestData) string {

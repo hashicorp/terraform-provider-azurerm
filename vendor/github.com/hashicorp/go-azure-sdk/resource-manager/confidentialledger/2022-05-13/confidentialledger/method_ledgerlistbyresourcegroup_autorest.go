@@ -84,50 +84,6 @@ func (c ConfidentialLedgerClient) LedgerListByResourceGroup(ctx context.Context,
 	return
 }
 
-// LedgerListByResourceGroupComplete retrieves all of the results into a single object
-func (c ConfidentialLedgerClient) LedgerListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (LedgerListByResourceGroupCompleteResult, error) {
-	return c.LedgerListByResourceGroupCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerOperationPredicate{})
-}
-
-// LedgerListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions, predicate ConfidentialLedgerOperationPredicate) (resp LedgerListByResourceGroupCompleteResult, err error) {
-	items := make([]ConfidentialLedger, 0)
-
-	page, err := c.LedgerListByResourceGroup(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := LedgerListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForLedgerListByResourceGroup prepares the LedgerListByResourceGroup request.
 func (c ConfidentialLedgerClient) preparerForLedgerListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -213,4 +169,48 @@ func (c ConfidentialLedgerClient) responderForLedgerListByResourceGroup(resp *ht
 		}
 	}
 	return
+}
+
+// LedgerListByResourceGroupComplete retrieves all of the results into a single object
+func (c ConfidentialLedgerClient) LedgerListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (LedgerListByResourceGroupCompleteResult, error) {
+	return c.LedgerListByResourceGroupCompleteMatchingPredicate(ctx, id, options, ConfidentialLedgerOperationPredicate{})
+}
+
+// LedgerListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions, predicate ConfidentialLedgerOperationPredicate) (resp LedgerListByResourceGroupCompleteResult, err error) {
+	items := make([]ConfidentialLedger, 0)
+
+	page, err := c.LedgerListByResourceGroup(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := LedgerListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

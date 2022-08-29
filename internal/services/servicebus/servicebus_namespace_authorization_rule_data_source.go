@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
@@ -31,7 +31,7 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NamespaceID,
+				ValidateFunc: namespaces.ValidateNamespaceID,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
@@ -89,7 +89,7 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClient
+	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,40 +97,42 @@ func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceDat
 	var resourceGroup string
 	var namespaceName string
 	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
-		namespaceId, err := parse.NamespaceID(v)
+		namespaceId, err := namespacesauthorizationrule.ParseNamespaceID(v)
 		if err != nil {
-			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+			return err
 		}
-		resourceGroup = namespaceId.ResourceGroup
-		namespaceName = namespaceId.Name
+		resourceGroup = namespaceId.ResourceGroupName
+		namespaceName = namespaceId.NamespaceName
 	} else {
 		resourceGroup = d.Get("resource_group_name").(string)
 		namespaceName = d.Get("namespace_name").(string)
 	}
-	name := d.Get("name").(string)
 
-	id := parse.NewNamespaceAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, name)
+	id := namespacesauthorizationrule.NewAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
 
-	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
+	resp, err := client.NamespacesGetAuthorizationRule(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
+	keysResp, err := client.NamespacesListKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
+	if model := keysResp.Model; model != nil {
+		d.Set("primary_key", model.PrimaryKey)
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("secondary_key", model.SecondaryKey)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+		d.Set("primary_connection_string_alias", model.AliasPrimaryConnectionString)
+		d.Set("secondary_connection_string_alias", model.AliasSecondaryConnectionString)
+	}
+
 	d.SetId(id.ID())
-	d.Set("primary_key", keysResp.PrimaryKey)
-	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
-	d.Set("secondary_key", keysResp.SecondaryKey)
-	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
-	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
-	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }

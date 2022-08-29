@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,6 +48,7 @@ type LinuxFunctionAppSlotModel struct {
 	KeyVaultReferenceIdentityID   string                                   `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                    []helpers.SiteConfigLinuxFunctionAppSlot `tfschema:"site_config"`
 	Tags                          map[string]string                        `tfschema:"tags"`
+	VirtualNetworkSubnetID        string                                   `tfschema:"virtual_network_subnet_id"`
 	CustomDomainVerificationId    string                                   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                                   `tfschema:"default_hostname"`
 	Kind                          string                                   `tfschema:"kind"`
@@ -224,6 +226,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
 	}
 }
 
@@ -317,22 +325,12 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionAppSlot.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic": // Consumption Plan modifications to request
-					sendContentSettings = false
-				case "elastic": // ElasticPremium Plan modifications to request?
-				case "basic": // App Service Plan modifications to request?
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
-			} else {
-				return fmt.Errorf("determining plan type for Linux %s: %v", id, err)
+			var planSKU *string
+			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+				planSKU = sku.Name
 			}
+			// Only send for ElasticPremium
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -408,12 +406,18 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				if functionAppSlot.AppSettings == nil {
 					functionAppSlot.AppSettings = make(map[string]string)
 				}
-				suffix := uuid.New().String()[0:4]
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
-				}
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if !functionAppSlot.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
+					}
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
 				}
 			}
 
@@ -443,6 +447,10 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionAppSlot.KeyVaultReferenceIdentityID)
+			}
+
+			if functionAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionAppSlot.VirtualNetworkSubnetID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -597,6 +605,10 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
 
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
+			}
+
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
 			}
@@ -662,7 +674,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			sendContentSettings := !helpers.PlanIsElastic(planSKU)
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
 
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
@@ -694,6 +706,19 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Tags = tags.FromTypedObject(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
+					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
+					existing.SiteProperties.VirtualNetworkSubnetID = empty
+				} else {
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
 			}
 
 			storageString := state.StorageAccountName

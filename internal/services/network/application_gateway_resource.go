@@ -325,6 +325,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"public_ip_address_id": {
@@ -404,6 +405,24 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"global": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"request_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"response_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
 						},
 					},
 				},
@@ -966,7 +985,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"body": {
 										Type:     pluginsdk.TypeString,
-										Required: true,
+										Optional: true,
 									},
 
 									"status_code": {
@@ -1092,6 +1111,17 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
 												},
+
+												"components": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Computed: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														"path_only",
+														"query_string_only",
+													}, false),
+												},
+
 												"reroute": {
 													Type:     pluginsdk.TypeBool,
 													Optional: true,
@@ -1561,6 +1591,11 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
+	globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `global`: %+v", err)
+	}
+
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
@@ -1585,6 +1620,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
+			GlobalConfiguration:           globalConfiguration,
 			HTTPListeners:                 httpListeners,
 			PrivateLinkConfigurations:     expandApplicationGatewayPrivateLinkConfigurations(d),
 			Probes:                        expandApplicationGatewayProbes(d),
@@ -1791,6 +1827,15 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 	if d.HasChange("gateway_ip_configuration") {
 		applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations = gatewayIPConfigurations
+	}
+
+	if d.HasChange("global") {
+		globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `global`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.GlobalConfiguration = globalConfiguration
 	}
 
 	if d.HasChange("http_listener") {
@@ -2050,6 +2095,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
 			return fmt.Errorf("setting `gateway_ip_configuration`: %+v", setErr)
+		}
+
+		if setErr := d.Set("global", flattenApplicationGatewayGlobalConfiguration(props.GlobalConfiguration)); setErr != nil {
+			return fmt.Errorf("setting `global`: %+v", setErr)
 		}
 
 		if setErr := d.Set("private_endpoint_connection", flattenApplicationGatewayPrivateEndpoints(props.PrivateEndpointConnections)); setErr != nil {
@@ -2966,6 +3015,36 @@ func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatew
 	return results
 }
 
+func expandApplicationGatewayGlobalConfiguration(input []interface{}) (*network.ApplicationGatewayGlobalConfiguration, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &network.ApplicationGatewayGlobalConfiguration{
+		EnableRequestBuffering:  utils.Bool(v["request_buffering_enabled"].(bool)),
+		EnableResponseBuffering: utils.Bool(v["response_buffering_enabled"].(bool)),
+	}, nil
+}
+
+func flattenApplicationGatewayGlobalConfiguration(input *network.ApplicationGatewayGlobalConfiguration) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	output := make(map[string]interface{})
+
+	if input.EnableRequestBuffering != nil {
+		output["request_buffering_enabled"] = *input.EnableRequestBuffering
+	}
+
+	if input.EnableResponseBuffering != nil {
+		output["response_buffering_enabled"] = *input.EnableResponseBuffering
+	}
+
+	return []interface{}{output}
+}
+
 func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayFrontendPort {
 	vs := d.Get("frontend_port").(*pluginsdk.Set).List()
 	results := make([]network.ApplicationGatewayFrontendPort, 0)
@@ -3599,10 +3678,14 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]netw
 				if c["path"] == nil && c["query_string"] == nil {
 					return nil, fmt.Errorf("At least one of `path` or `query_string` must be set")
 				}
-				if c["path"] != nil {
+				components := ""
+				if c["components"] != nil {
+					components = c["components"].(string)
+				}
+				if c["path"] != nil && components != "query_string_only" {
 					urlConfiguration.ModifiedPath = utils.String(c["path"].(string))
 				}
-				if c["query_string"] != nil {
+				if c["query_string"] != nil && components != "path_only" {
 					urlConfiguration.ModifiedQueryString = utils.String(c["query_string"].(string))
 				}
 				if c["reroute"] != nil {
@@ -3733,20 +3816,36 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 						if actionSet.URLConfiguration != nil {
 							config := *actionSet.URLConfiguration
-							urlConfig := map[string]interface{}{}
-
+							components := ""
+							path := ""
 							if config.ModifiedPath != nil {
-								urlConfig["path"] = *config.ModifiedPath
+								path = *config.ModifiedPath
 							}
 
+							queryString := ""
 							if config.ModifiedQueryString != nil {
-								urlConfig["query_string"] = *config.ModifiedQueryString
+								queryString = *config.ModifiedQueryString
 							}
 
-							if config.Reroute != nil {
-								urlConfig["reroute"] = *config.Reroute
+							if path != queryString {
+								if path != "" && queryString == "" {
+									components = "path_only"
+								} else if queryString != "" && path == "" {
+									components = "query_string_only"
+								}
 							}
-							urlConfigs = append(urlConfigs, urlConfig)
+
+							reroute := false
+							if config.Reroute != nil {
+								reroute = *config.Reroute
+							}
+
+							urlConfigs = append(urlConfigs, map[string]interface{}{
+								"components":   components,
+								"query_string": queryString,
+								"path":         path,
+								"reroute":      reroute,
+							})
 						}
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs

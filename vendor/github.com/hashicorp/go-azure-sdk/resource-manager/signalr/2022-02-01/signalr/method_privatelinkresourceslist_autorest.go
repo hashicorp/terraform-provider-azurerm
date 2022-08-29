@@ -59,50 +59,6 @@ func (c SignalRClient) PrivateLinkResourcesList(ctx context.Context, id SignalRI
 	return
 }
 
-// PrivateLinkResourcesListComplete retrieves all of the results into a single object
-func (c SignalRClient) PrivateLinkResourcesListComplete(ctx context.Context, id SignalRId) (PrivateLinkResourcesListCompleteResult, error) {
-	return c.PrivateLinkResourcesListCompleteMatchingPredicate(ctx, id, PrivateLinkResourceOperationPredicate{})
-}
-
-// PrivateLinkResourcesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SignalRClient) PrivateLinkResourcesListCompleteMatchingPredicate(ctx context.Context, id SignalRId, predicate PrivateLinkResourceOperationPredicate) (resp PrivateLinkResourcesListCompleteResult, err error) {
-	items := make([]PrivateLinkResource, 0)
-
-	page, err := c.PrivateLinkResourcesList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := PrivateLinkResourcesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForPrivateLinkResourcesList prepares the PrivateLinkResourcesList request.
 func (c SignalRClient) preparerForPrivateLinkResourcesList(ctx context.Context, id SignalRId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c SignalRClient) responderForPrivateLinkResourcesList(resp *http.Response)
 		}
 	}
 	return
+}
+
+// PrivateLinkResourcesListComplete retrieves all of the results into a single object
+func (c SignalRClient) PrivateLinkResourcesListComplete(ctx context.Context, id SignalRId) (PrivateLinkResourcesListCompleteResult, error) {
+	return c.PrivateLinkResourcesListCompleteMatchingPredicate(ctx, id, PrivateLinkResourceOperationPredicate{})
+}
+
+// PrivateLinkResourcesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SignalRClient) PrivateLinkResourcesListCompleteMatchingPredicate(ctx context.Context, id SignalRId, predicate PrivateLinkResourceOperationPredicate) (resp PrivateLinkResourcesListCompleteResult, err error) {
+	items := make([]PrivateLinkResource, 0)
+
+	page, err := c.PrivateLinkResourcesList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := PrivateLinkResourcesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

@@ -59,50 +59,6 @@ func (c DesktopClient) List(ctx context.Context, id ApplicationGroupId) (resp Li
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c DesktopClient) ListComplete(ctx context.Context, id ApplicationGroupId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, DesktopOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DesktopClient) ListCompleteMatchingPredicate(ctx context.Context, id ApplicationGroupId, predicate DesktopOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]Desktop, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c DesktopClient) preparerForList(ctx context.Context, id ApplicationGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c DesktopClient) responderForList(resp *http.Response) (result ListOperati
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c DesktopClient) ListComplete(ctx context.Context, id ApplicationGroupId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, DesktopOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DesktopClient) ListCompleteMatchingPredicate(ctx context.Context, id ApplicationGroupId, predicate DesktopOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]Desktop, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

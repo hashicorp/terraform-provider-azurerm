@@ -44,3 +44,11 @@ var ValidateWebApplicationFirewallPolicyRuleSetType = validation.StringInSlice([
 	"OWASP",
 	"Microsoft_BotManagerRuleSet",
 }, false)
+
+var ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion = validation.StringInSlice([]string{
+	"3.2",
+}, false)
+
+var ValidateWebApplicationFirewallPolicyExclusionRuleSetType = validation.StringInSlice([]string{
+	"OWASP",
+}, false)

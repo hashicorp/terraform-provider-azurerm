@@ -5,14 +5,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceServiceBusNamespace() *pluginsdk.Resource {
@@ -82,15 +83,15 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 
 func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
-	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespaceAuthClient := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -98,25 +99,31 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
-		d.Set("capacity", sku.Capacity)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", string(sku.Name))
+			d.Set("capacity", sku.Capacity)
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("zone_redundant", props.ZoneRedundant)
+		}
 	}
 
-	if properties := resp.SBNamespaceProperties; properties != nil {
-		d.Set("zone_redundant", properties.ZoneRedundant)
-	}
+	authRuleId := namespacesauthorizationrule.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)
 
-	keys, err := clientStable.ListKeys(ctx, id.ResourceGroup, id.Name, serviceBusNamespaceDefaultAuthorizationRule)
+	keys, err := namespaceAuthClient.NamespacesListKeys(ctx, authRuleId)
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
 	} else {
-		d.Set("default_primary_connection_string", keys.PrimaryConnectionString)
-		d.Set("default_secondary_connection_string", keys.SecondaryConnectionString)
-		d.Set("default_primary_key", keys.PrimaryKey)
-		d.Set("default_secondary_key", keys.SecondaryKey)
+		if keysModel := keys.Model; keysModel != nil {
+			d.Set("default_primary_connection_string", keysModel.PrimaryConnectionString)
+			d.Set("default_secondary_connection_string", keysModel.SecondaryConnectionString)
+			d.Set("default_primary_key", keysModel.PrimaryKey)
+			d.Set("default_secondary_key", keysModel.SecondaryKey)
+		}
 	}
 
 	return nil
