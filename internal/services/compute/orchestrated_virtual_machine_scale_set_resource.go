@@ -1105,6 +1105,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
 
+	extensionOperationsEnabled := true
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
 			return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
@@ -1160,7 +1161,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			d.Set("source_image_id", storageImageId)
 		}
 
-		extensionOperationsEnabled := true
 		if osProfile := profile.OsProfile; osProfile != nil {
 			if err := d.Set("os_profile", FlattenOrchestratedVirtualMachineScaleSetOSProfile(osProfile, d)); err != nil {
 				return fmt.Errorf("setting `os_profile`: %+v", err)
@@ -1170,7 +1170,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				extensionOperationsEnabled = *osProfile.AllowExtensionOperations
 			}
 		}
-		d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
@@ -1203,6 +1202,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		}
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 	}
+	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
