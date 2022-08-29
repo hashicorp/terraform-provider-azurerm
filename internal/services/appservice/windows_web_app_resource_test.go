@@ -1628,7 +1628,7 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20"
+      ip_address = "13.107.6.152/31,13.107.128.0/22"
       name       = "test-restriction"
       priority   = 123
       action     = "Allow"
