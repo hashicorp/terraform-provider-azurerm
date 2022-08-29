@@ -317,6 +317,23 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_otherSpotRestoreDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSpotRestoreDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("spot_restore.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("spot_restore.0.timeout").HasValue("PT1H"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_otherSpotRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -1572,6 +1589,53 @@ resource "azurerm_key_vault_certificate" "second" {
 `, r.template(data), data.RandomString)
 }
 
+func (r LinuxVirtualMachineScaleSetResource) otherSpotRestoreDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  priority        = "Spot"
+  eviction_policy = "Deallocate"
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  spot_restore {
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r LinuxVirtualMachineScaleSetResource) otherSpotRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1586,6 +1650,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
 
   disable_password_authentication = false
+
+  priority        = "Spot"
+  eviction_policy = "Deallocate"
 
   source_image_reference {
     publisher = "Canonical"

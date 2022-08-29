@@ -385,6 +385,7 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -398,7 +399,7 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Default:      "PT1H30M",
+					Default:      "PT1H",
 					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 				},
