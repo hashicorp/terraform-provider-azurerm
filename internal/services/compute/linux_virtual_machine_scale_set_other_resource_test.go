@@ -2654,21 +2654,16 @@ locals {
   frontend_ip_configuration_name = "internal"
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "actestvmsspip-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allocation_method   = "Static"
-}
-
 resource "azurerm_lb" "test" {
   name                = "actestvmsslb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 
   frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
+    name      = local.frontend_ip_configuration_name
+    subnet_id = azurerm_subnet.test.id
+    zones     = ["1"]
   }
 }
 
@@ -2705,6 +2700,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
 
   disable_password_authentication = false
+
+  zones = ["1"]
 
   upgrade_mode    = "Rolling"
   health_probe_id = azurerm_lb_probe.test.id
