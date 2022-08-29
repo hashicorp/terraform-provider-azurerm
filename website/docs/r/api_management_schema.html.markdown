@@ -3,7 +3,7 @@ subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_schema"
 description: |-
-Manages a Global Schema within an API Management Service.
+  Manages a Global Schema within an API Management Service.
 ---
 
 # azurerm_api_management_schema
