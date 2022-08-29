@@ -328,7 +328,7 @@ func TestAccKustoCluster_newSkus(t *testing.T) {
 			Config: r.newSkus(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0").HasValue("Standard_L8s_v3"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_L8s_v3"),
 				check.That(data.ResourceName).Key("allowed_fqdns.#").HasValue("1"),
 				check.That(data.ResourceName).Key("allowed_fqdns.0").HasValue("255.255.255.0/24"),
 				check.That(data.ResourceName).Key("allowed_ip_ranges.#").HasValue("1"),
