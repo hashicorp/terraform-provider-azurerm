@@ -456,7 +456,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   disable_password_authentication = false
 
-  host_group_id = azurerm_dedicated_host_group.test.id
+  platform_fault_domain_count = 1
+  host_group_id               = azurerm_dedicated_host_group.test.id
 
   source_image_reference {
     publisher = "Canonical"
