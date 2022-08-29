@@ -81,11 +81,11 @@ resource "azurerm_subscription_policy_assignment" "test" {
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[2]s"]
+      "value" = ["%[2]s", "%[3]s", "%[4]s"]
     }
   })
 }
-`, data.RandomInteger, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r SubscriptionPolicyRemediationResource) basic(data acceptance.TestData) string {
