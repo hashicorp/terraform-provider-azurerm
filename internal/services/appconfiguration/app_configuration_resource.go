@@ -110,6 +110,9 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:      7,
 				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(1, 7),
+				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+					return old == "0"
+				},
 			},
 
 			"endpoint": {
@@ -449,11 +452,8 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("purge_protection_enabled", purgeProtectionEnabled)
 
-			// In 2022-05-01 version API, for standard sku, service will return soft_delete_retention_days=7,
-			// even if it is not set in PUT method. But for free sku, service will return
-			// soft_delete_retention_days=0. To be consistent, here we set 0 values to 7.
-			softDeleteRetentionDays := 7
-			if props.SoftDeleteRetentionInDays != nil && *props.SoftDeleteRetentionInDays != 0 {
+			softDeleteRetentionDays := 0
+			if props.SoftDeleteRetentionInDays != nil {
 				softDeleteRetentionDays = int(*props.SoftDeleteRetentionInDays)
 			}
 			d.Set("soft_delete_retention_days", softDeleteRetentionDays)

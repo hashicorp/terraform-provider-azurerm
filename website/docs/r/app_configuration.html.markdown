@@ -48,9 +48,13 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to `true`.
 
-* `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. Defaults to `false`. Changing this forces a new resource to be created.
+* `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. This field only works for `standard` sku. Defaults to `false`. 
 
-* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
+!> **Note:** Once Purge Protection has been enabled it's not possible to disable it. Deleting the App Configuration with Purge Protection enabled will schedule the App Configuration to be deleted (which will happen by Azure in the configured number of days).
+
+* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
+
+~> **Note:** If Purge Protection is enabled, this field can only be configured one time and cannot be updated.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
