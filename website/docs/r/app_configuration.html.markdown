@@ -36,8 +36,6 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`.
-
 * `identity` - (Optional) An `identity` block as defined below.
 
 ~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
@@ -46,11 +44,15 @@ The following arguments are supported:
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. 
 
-* `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to `true`.
+* `public_network_access` - (Optional) The Public Network Access setting of the App Configuration. Possible values are `Enabled` and `Disabled`.
+
+~> **NOTE:** If `public_network_access` is not specified, the App Configuration will be created as  `Automatic`. However, once a different value is defined, can not be set again as automatic.
 
 * `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. This field only works for `standard` sku. Defaults to `false`. 
 
 !> **Note:** Once Purge Protection has been enabled it's not possible to disable it. Deleting the App Configuration with Purge Protection enabled will schedule the App Configuration to be deleted (which will happen by Azure in the configured number of days).
+
+* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
 

@@ -171,13 +171,20 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, ""),
-				Description: "The bearer token for the request to the OIDC provider. For use When authenticating as a Service Principal using OpenID Connect.",
+				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
 			"oidc_request_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, ""),
-				Description: "The URL for the OIDC provider from which to request an ID token. For use When authenticating as a Service Principal using OpenID Connect.",
+				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
+			},
+
+			"oidc_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN", ""),
+				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			"use_oidc": {
@@ -279,6 +286,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			ClientCertPath:      d.Get("client_certificate_path").(string),
 			IDTokenRequestToken: d.Get("oidc_request_token").(string),
 			IDTokenRequestURL:   d.Get("oidc_request_url").(string),
+			IDToken:             d.Get("oidc_token").(string),
 
 			// Feature Toggles
 			SupportsClientCertAuth:         true,

@@ -83,11 +83,6 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"purge_protection_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -118,6 +113,13 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      nil,
+				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
 			},
 
 			"primary_read_key": {
@@ -277,17 +279,19 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		parameters.Properties.SoftDeleteRetentionInDays = utils.Int64(int64(v))
 	}
 
-	if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
-		publicNetworkAccess := configurationstores.PublicNetworkAccessEnabled
-		if v.False() {
-			publicNetworkAccess = configurationstores.PublicNetworkAccessDisabled
-		}
-		parameters.Properties.PublicNetworkAccess = &publicNetworkAccess
-	}
-
 	if recoverSoftDeleted {
 		t := configurationstores.CreateModeRecover
 		parameters.Properties.CreateMode = &t
+	}
+
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+
+	if publicNetworkAccessNotEmpty {
+		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse public_network_access: %+v", err)
+		}
+		parameters.Properties.PublicNetworkAccess = publicNetworkAccess
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -361,12 +365,27 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		update.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
 	}
 
+	if d.HasChange("public_network_access") {
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+
+		publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+		if publicNetworkAccessNotEmpty {
+			publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+			if err != nil {
+				return fmt.Errorf("unable to parse public_network_access: %+v", err)
+			}
+			update.Properties.PublicNetworkAccess = publicNetworkAccess
+		}
+	}
+
 	if d.HasChange("purge_protection_enabled") {
 		if update.Properties == nil {
 			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
 		}
-		newValue := d.Get("purge_protection_enabled").(bool)
 
+		newValue := d.Get("purge_protection_enabled").(bool)
 		oldValue := false
 		if existing.Model.Properties.EnablePurgeProtection != nil {
 			oldValue = *existing.Model.Properties.EnablePurgeProtection
@@ -437,7 +456,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
 			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
-			d.Set("public_network_access_enabled", flattenAppConfigurationPublicNetworkAccess(props.PublicNetworkAccess))
+			d.Set("public_network_access", props.PublicNetworkAccess)
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -652,4 +671,18 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
 Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
 this into Terraform via "terraform import", or pick a different name/location.
 `, name, location)
+}
+
+func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
+	vals := map[string]configurationstores.PublicNetworkAccess{
+		"disabled": configurationstores.PublicNetworkAccessDisabled,
+		"enabled":  configurationstores.PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := configurationstores.PublicNetworkAccess(input)
+	return &out, nil
 }

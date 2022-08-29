@@ -49,8 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
-* `public_network_access_enabled` - Whether public network access is enabled.
-
+* `public_network_access` - The Public Network Access setting of this App Configuration.
+ 
 * `purge_protection_enabled` - Whether Purge Protection is enabled.
 
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
