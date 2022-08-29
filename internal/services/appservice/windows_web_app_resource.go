@@ -532,7 +532,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings, metadata)
+			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
