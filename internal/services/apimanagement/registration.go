@@ -78,6 +78,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_product_policy":              resourceApiManagementProductPolicy(),
 		"azurerm_api_management_redis_cache":                 resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                resourceApiManagementSubscription(),
+		"azurerm_api_management_schema":                      resourceApiManagementGlobalSchema(),
 		"azurerm_api_management_tag":                         resourceApiManagementTag(),
 		"azurerm_api_management_user":                        resourceApiManagementUser(),
 	}

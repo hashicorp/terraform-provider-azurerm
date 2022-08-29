@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	pandoraAPIMGlobalSchema "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -23,6 +24,7 @@ type Client struct {
 	EmailTemplateClient              *apimanagement.EmailTemplateClient
 	GatewayClient                    *apimanagement.GatewayClient
 	GatewayApisClient                *apimanagement.GatewayAPIClient
+	GlobalSchemaClient               *pandoraAPIMGlobalSchema.SchemaClient
 	GroupClient                      *apimanagement.GroupClient
 	GroupUsersClient                 *apimanagement.GroupUserClient
 	IdentityProviderClient           *apimanagement.IdentityProviderClient
@@ -96,6 +98,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	gatewayApisClient := apimanagement.NewGatewayAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayApisClient.Client, o.ResourceManagerAuthorizer)
+
+	globalSchemaClient := pandoraAPIMGlobalSchema.NewSchemaClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&globalSchemaClient.Client, o.ResourceManagerAuthorizer)
 
 	groupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupClient.Client, o.ResourceManagerAuthorizer)
@@ -175,6 +180,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		EmailTemplateClient:              &emailTemplateClient,
 		GatewayClient:                    &gatewayClient,
 		GatewayApisClient:                &gatewayApisClient,
+		GlobalSchemaClient:               &globalSchemaClient,
 		GroupClient:                      &groupClient,
 		GroupUsersClient:                 &groupUsersClient,
 		IdentityProviderClient:           &identityProviderClient,
