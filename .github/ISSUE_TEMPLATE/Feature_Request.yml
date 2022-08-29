@@ -45,6 +45,14 @@ body:
       label: Potential Terraform Configuration
       description: Please provide an example of what the new resource or enhancement could look like in a Terraform config.
       render: hcl
+  - type: dropdown
+  id: selfcontributing
+  attributes:
+    label: Are you or your team interested in contributing this feature to the provider?
+    options:
+      - Yes
+      - No
+      - Maybe
   - type: textarea
     id: references
     attributes:
