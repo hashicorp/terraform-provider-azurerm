@@ -61,5 +61,6 @@ func (c HybridRunbookWorkerGroupClient) responderForDelete(resp *http.Response) 
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

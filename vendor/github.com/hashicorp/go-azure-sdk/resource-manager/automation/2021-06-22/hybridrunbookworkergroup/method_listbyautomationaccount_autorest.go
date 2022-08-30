@@ -83,50 +83,6 @@ func (c HybridRunbookWorkerGroupClient) ListByAutomationAccount(ctx context.Cont
 	return
 }
 
-// ListByAutomationAccountComplete retrieves all of the results into a single object
-func (c HybridRunbookWorkerGroupClient) ListByAutomationAccountComplete(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (ListByAutomationAccountCompleteResult, error) {
-	return c.ListByAutomationAccountCompleteMatchingPredicate(ctx, id, options, HybridRunbookWorkerGroupOperationPredicate{})
-}
-
-// ListByAutomationAccountCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c HybridRunbookWorkerGroupClient) ListByAutomationAccountCompleteMatchingPredicate(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions, predicate HybridRunbookWorkerGroupOperationPredicate) (resp ListByAutomationAccountCompleteResult, err error) {
-	items := make([]HybridRunbookWorkerGroup, 0)
-
-	page, err := c.ListByAutomationAccount(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByAutomationAccountCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByAutomationAccount prepares the ListByAutomationAccount request.
 func (c HybridRunbookWorkerGroupClient) preparerForListByAutomationAccount(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c HybridRunbookWorkerGroupClient) responderForListByAutomationAccount(resp
 		}
 	}
 	return
+}
+
+// ListByAutomationAccountComplete retrieves all of the results into a single object
+func (c HybridRunbookWorkerGroupClient) ListByAutomationAccountComplete(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (ListByAutomationAccountCompleteResult, error) {
+	return c.ListByAutomationAccountCompleteMatchingPredicate(ctx, id, options, HybridRunbookWorkerGroupOperationPredicate{})
+}
+
+// ListByAutomationAccountCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c HybridRunbookWorkerGroupClient) ListByAutomationAccountCompleteMatchingPredicate(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions, predicate HybridRunbookWorkerGroupOperationPredicate) (resp ListByAutomationAccountCompleteResult, err error) {
+	items := make([]HybridRunbookWorkerGroup, 0)
+
+	page, err := c.ListByAutomationAccount(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByAutomationAccountCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
