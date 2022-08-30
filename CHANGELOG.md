@@ -20,14 +20,15 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_container_registry` - support for the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties [GH-17926]
-* `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
 * `azurerm_hdinsight_kafka_cluster` - add support for the `disk_encryption` property [GH-17351]
 * `azurerm_hdinsight_spark_cluster` - add support for the `disk_encryption` property [GH-17351]
 * `azurerm_hdinsight_interactive_query_cluster` - add support for the `disk_encryption` property [GH-17351]
 * `azurerm_hdinsight_hbase_cluster` - add support for the `disk_encryption` property [GH-17351]
 * `azurerm_hdinsight_hadoop_cluster` - add support for the `disk_encryption` property [GH-17351]
 * `azurerm_iothub_dps` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-18151]
+* `azurerm_kubernetes_node_pool` - spot node pools can now be upgraded [GH-18124]
 * `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
 * `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_servicebus_namespace` - support for the `public_network_access_enabled` and `minimum_tls_version` properties [GH-17805]
