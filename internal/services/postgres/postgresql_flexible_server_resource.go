@@ -276,15 +276,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
-	createModeAttr := servers.CreateMode(createMode)
-	version := servers.ServerVersion(d.Get("version").(string))
-
 	parameters := servers.Server{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &servers.ServerProperties{
-			CreateMode:       &createModeAttr,
 			Network:          expandArmServerNetwork(d),
-			Version:          &version,
 			Storage:          expandArmServerStorage(d),
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
@@ -301,6 +296,16 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
+	if createMode != "" {
+		createModeAttr := servers.CreateMode(createMode)
+		parameters.Properties.CreateMode = &createModeAttr
+	}
+
+	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
+		version := servers.ServerVersion(v.(string))
+		parameters.Properties.Version = &version
+	}
+
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
 		parameters.Properties.AvailabilityZone = utils.String(v.(string))
 	}
@@ -315,7 +320,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if err != nil {
 			return fmt.Errorf("unable to parse `point_in_time_restore_time_in_utc` value")
 		}
-		parameters.Properties.PointInTimeUTC = utils.String(v.String())
+		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
 	}
 
 	if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
