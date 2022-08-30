@@ -1355,6 +1355,8 @@ The default value for the field `min_tls_version` will change from `TLS1_0` to `
 
 The field `allow_blob_public_access` will be removed in favour of the `allow_nested_items_to_be_public` property.
 
+The field `customer_managed_key` is no longer Computed - this means that if you wish to manage CMK via the `azurerm_storage_account_customer_managed_key` resource, you must use `ignore_changes` on the `customer_managed_key` field.
+
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
 The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
