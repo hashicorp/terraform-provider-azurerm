@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managmentGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -19,11 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmManagementGroupPolicyRemediationCreateUpdate,
 		Read:   resourceArmManagementGroupPolicyRemediationRead,
 		Update: resourceArmManagementGroupPolicyRemediationCreateUpdate,
@@ -64,6 +65,24 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 				ValidateFunc:     validate.PolicyAssignmentID,
 			},
 
+			"failure_percentage": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validate2.FloatInRange(0, 1.0),
+			},
+
+			"parallel_deployments": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate2.IntegerPositive,
+			},
+
+			"resource_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate2.IntegerPositive,
+			},
+
 			"location_filters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -80,18 +99,22 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.PolicyDefinitionID,
 			},
-
-			"resource_discovery_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-					string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
-				}, false),
-			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["resource_discovery_mode"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+				string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
+			}, false),
+			Deprecated: "`resource_discovery_mode` will be removed in version 4.0 of the AzureRM Provider as evaluating compliance before remediation is only supported at subscription scope and below.",
+		}
+	}
+	return resource
 }
 
 func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -118,16 +141,8 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 	}
 
 	parameters := remediations.Remediation{
-		Properties: &remediations.RemediationProperties{
-			Filters: &remediations.RemediationFilters{
-				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
-			},
-			PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_id").(string)),
-		},
+		Properties: readRemediationProperties(d),
 	}
-	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
-	parameters.Properties.ResourceDiscoveryMode = &mode
 
 	if _, err := client.RemediationsCreateOrUpdateAtManagementGroup(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
@@ -162,21 +177,7 @@ func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, 
 	managementGroupID := managmentGroupParse.NewManagementGroupId(id.ManagementGroupId)
 	d.Set("management_group_id", managementGroupID.ID())
 
-	if props := resp.Model.Properties; props != nil {
-		locations := []interface{}{}
-		if filters := props.Filters; filters != nil {
-			locations = utils.FlattenStringSlice(filters.Locations)
-		}
-		if err := d.Set("location_filters", locations); err != nil {
-			return fmt.Errorf("setting `location_filters`: %+v", err)
-		}
-
-		d.Set("policy_assignment_id", props.PolicyAssignmentId)
-		d.Set("policy_definition_id", props.PolicyDefinitionReferenceId)
-		d.Set("resource_discovery_mode", props.ResourceDiscoveryMode)
-	}
-
-	return nil
+	return setRemediationProperties(d, resp.Model.Properties)
 }
 
 func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -539,7 +539,7 @@ func TestAccHDInsightHadoopCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightHadoopCluster_autoscale(t *testing.T) {
+func TestAccAzureRMHDInsightHadoopCluster_autoscaleWithSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	r := HDInsightHadoopClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -558,6 +558,28 @@ func TestAccAzureRMHDInsightHadoopCluster_autoscale(t *testing.T) {
 			"roles.0.zookeeper_node.0.password",
 			"roles.0.zookeeper_node.0.vm_size",
 			"storage_account"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_autoscaleWithCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	r := HDInsightHadoopClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoscale_capacity(data),
 			Check: acceptance.ComposeTestCheckFunc(

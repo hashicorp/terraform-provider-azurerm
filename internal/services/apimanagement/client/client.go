@@ -23,6 +23,7 @@ type Client struct {
 	DeletedServicesClient            *apimanagement.DeletedServicesClient
 	EmailTemplateClient              *apimanagement.EmailTemplateClient
 	GatewayClient                    *apimanagement.GatewayClient
+	GatewayCertificateAuthorityClient *apimanagement.GatewayCertificateAuthorityClient
 	GatewayApisClient                *apimanagement.GatewayAPIClient
 	GroupClient                      *apimanagement.GroupClient
 	GroupUsersClient                 *apimanagement.GroupUserClient
@@ -97,6 +98,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	gatewayClient := apimanagement.NewGatewayClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
+
+	gatewayCertificateAuthorityClient := apimanagement.NewGatewayCertificateAuthorityClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayCertificateAuthorityClient.Client, o.ResourceManagerAuthorizer)
 
 	gatewayApisClient := apimanagement.NewGatewayAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayApisClient.Client, o.ResourceManagerAuthorizer)
@@ -179,6 +183,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DeletedServicesClient:            &deletedServicesClient,
 		EmailTemplateClient:              &emailTemplateClient,
 		GatewayClient:                    &gatewayClient,
+		GatewayCertificateAuthorityClient: &gatewayCertificateAuthorityClient,
 		GatewayApisClient:                &gatewayApisClient,
 		GroupClient:                      &groupClient,
 		GroupUsersClient:                 &groupUsersClient,

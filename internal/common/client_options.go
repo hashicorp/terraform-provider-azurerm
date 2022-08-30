@@ -82,6 +82,7 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableT
 	}
 
 	if partnerID != "" {
-		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
+		// Tolerate partnerID UUIDs without the "pid-" prefix
+		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, strings.TrimPrefix(partnerID, "pid-"))
 	}
 }
