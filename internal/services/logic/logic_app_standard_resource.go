@@ -286,6 +286,8 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	appSettings := expandAppSettings(d)
 	appSettings = append(appSettings, basicAppSettings...)
 
+	appSettings = addDefaultWorkerRuntime(d, appSettings)
+
 	siteConfig.AppSettings = &appSettings
 
 	siteEnvelope := web.Site{
@@ -1247,7 +1249,7 @@ func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix st
 	if err != nil {
 		return nil, err
 	}
-	for _, p := range append(basicAppSettings, appSettings...) {
+	for _, p := range addDefaultWorkerRuntime(d, append(basicAppSettings, appSettings...)) {
 		output[*p.Name] = p.Value
 	}
 
@@ -1411,4 +1413,50 @@ func expandHeaders(input interface{}) map[string][]string {
 	}
 
 	return output
+}
+
+func addDefaultWorkerRuntime(d *pluginsdk.ResourceData, appSettings []web.NameValuePair) []web.NameValuePair {
+	functionVersion := d.Get("version").(string)
+	functionWorkerRuntimeName := "FUNCTIONS_WORKER_RUNTIME"
+	nodeDefaultVersionName := "WEBSITE_NODE_DEFAULT_VERSION"
+	functionWorkerRuntime, nodeDefaultVersion := expandWorkerRuntime(functionVersion)
+
+	appSettings = appendIfNotExist(appSettings, web.NameValuePair{Name: &functionWorkerRuntimeName, Value: &functionWorkerRuntime})
+	appSettings = appendIfNotExist(appSettings, web.NameValuePair{Name: &nodeDefaultVersionName, Value: &nodeDefaultVersion})
+
+	return appSettings
+}
+
+func appendIfNotExist(appSettings []web.NameValuePair, toAddSettings web.NameValuePair) []web.NameValuePair {
+	exist := false
+	for _, pair := range appSettings {
+		if strings.EqualFold(*pair.Name, *toAddSettings.Name) {
+			exist = true
+		}
+	}
+	if !exist {
+		appSettings = append(appSettings, toAddSettings)
+	}
+	return appSettings
+}
+
+func expandWorkerRuntime(version string) (worker string, nodeVersion string) {
+	switch version {
+	case "~1":
+		{
+			worker = "node"
+			nodeVersion = "~6"
+		}
+	case "~2":
+		{
+			worker = "node"
+			nodeVersion = "~8"
+		}
+	case "~3":
+		{
+			worker = "node"
+			nodeVersion = "~14"
+		}
+	}
+	return
 }

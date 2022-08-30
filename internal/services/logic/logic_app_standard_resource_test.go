@@ -101,6 +101,23 @@ func TestAccLogicAppStandard_appSettingsVnetRouteAllEnabled(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_appSettingsWorkerRuntime(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.FUNCTIONS_WORKER_RUNTIME").HasValue("node"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_NODE_DEFAULT_VERSION").HasValue("~14"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
