@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -334,12 +334,12 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("eventhub_authorization_rule_id", eventhubAuthorizationRuleId)
 
-      workspaceId := ""
-      if resp.WorkspaceID != nil && *resp.WorkspaceID != "" {
-        parsedId, err := workspaces.ParseWorkspaceID(*props.WorkspaceID)
-        if err != nil {
-          return err
-        }
+			workspaceId := ""
+			if props.WorkspaceId != nil && *props.WorkspaceId != "" {
+				parsedId, err := workspaces.ParseWorkspaceID(*props.WorkspaceId)
+				if err != nil {
+					return err
+				}
 
 				workspaceId = parsedId.ID()
 			}
