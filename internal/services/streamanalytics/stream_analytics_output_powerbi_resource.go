@@ -21,12 +21,14 @@ type OutputPowerBIResource struct{}
 var _ sdk.ResourceWithCustomImporter = OutputPowerBIResource{}
 
 type OutputPowerBIResourceModel struct {
-	Name               string `tfschema:"name"`
-	StreamAnalyticsJob string `tfschema:"stream_analytics_job_id"`
-	DataSet            string `tfschema:"dataset"`
-	Table              string `tfschema:"table"`
-	GroupID            string `tfschema:"group_id"`
-	GroupName          string `tfschema:"group_name"`
+	Name                   string `tfschema:"name"`
+	StreamAnalyticsJob     string `tfschema:"stream_analytics_job_id"`
+	DataSet                string `tfschema:"dataset"`
+	Table                  string `tfschema:"table"`
+	GroupID                string `tfschema:"group_id"`
+	GroupName              string `tfschema:"group_name"`
+	TokenUserPrincipalName string `tfschema:"token_user_principal_name"`
+	TokenUserDisplayName   string `tfschema:"token_user_display_name"`
 }
 
 func (r OutputPowerBIResource) Arguments() map[string]*pluginsdk.Schema {
@@ -66,6 +68,18 @@ func (r OutputPowerBIResource) Arguments() map[string]*pluginsdk.Schema {
 		"group_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"token_user_principal_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"token_user_display_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
@@ -115,7 +129,16 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 				Table:              utils.String(model.Table),
 				GroupID:            utils.String(model.GroupID),
 				GroupName:          utils.String(model.GroupName),
+				RefreshToken:       utils.String("someRefreshToken"),          // A valid refresh token is currently only obtainable via the Azure Portal. Put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token.
 				AuthenticationMode: streamanalytics.AuthenticationMode("Msi"), // Set authentication mode as "Msi" here since other modes requires params obtainable from portal only.
+			}
+
+			if model.TokenUserDisplayName != "" {
+				powerbiOutputProps.TokenUserDisplayName = utils.String(model.TokenUserDisplayName)
+			}
+
+			if model.TokenUserPrincipalName != "" {
+				powerbiOutputProps.TokenUserPrincipalName = utils.String(model.TokenUserPrincipalName)
 			}
 
 			props := streamanalytics.Output{
@@ -176,6 +199,16 @@ func (r OutputPowerBIResource) Update() sdk.ResourceFunc {
 			if d.HasChange("group_id") {
 				needUpdateDataSourceProps = true
 				dataSourceProps.GroupID = &state.GroupID
+			}
+
+			if d.HasChange("token_user_principal_name") {
+				needUpdateDataSourceProps = true
+				dataSourceProps.TokenUserPrincipalName = &state.TokenUserPrincipalName
+			}
+
+			if d.HasChange("token_user_display_name") {
+				needUpdateDataSourceProps = true
+				dataSourceProps.TokenUserDisplayName = &state.TokenUserDisplayName
 			}
 
 			if !needUpdateDataSourceProps {
@@ -248,6 +281,9 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 				if v.GroupName != nil {
 					state.GroupName = *v.GroupName
 				}
+
+				state.TokenUserDisplayName = metadata.ResourceData.Get("token_user_display_name").(string)
+				state.TokenUserPrincipalName = metadata.ResourceData.Get("token_user_principal_name").(string)
 
 				return metadata.Encode(&state)
 			}

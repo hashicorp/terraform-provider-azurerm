@@ -78,7 +78,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpa-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({

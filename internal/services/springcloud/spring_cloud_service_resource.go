@@ -703,9 +703,11 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 		ServiceRuntimeSubnetID: utils.String(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            utils.String(v["app_subnet_id"].(string)),
 		ServiceCidr:            utils.String(strings.Join(*cidrRanges, ",")),
-		IngressConfig: &appplatform.IngressConfig{
-			ReadTimeoutInSeconds: utils.Int32(int32(v["read_timeout_seconds"].(int))),
-		},
+	}
+	if readTimeoutInSeconds := v["read_timeout_seconds"].(int); readTimeoutInSeconds != 0 {
+		network.IngressConfig = &appplatform.IngressConfig{
+			ReadTimeoutInSeconds: utils.Int32(int32(readTimeoutInSeconds)),
+		}
 	}
 	if serviceRuntimeNetworkResourceGroup := v["service_runtime_network_resource_group"].(string); serviceRuntimeNetworkResourceGroup != "" {
 		network.ServiceRuntimeNetworkResourceGroup = utils.String(serviceRuntimeNetworkResourceGroup)

@@ -2,9 +2,43 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
+* **New Data Source**: `azurerm_monitor_data_collection_endpoint` [GH-17992]
+* **New Resource**: `azurerm_app_service_connection` [GH-16907]
+* **New Resource**: `azurerm_api_management_gateway_certificate_authority` [GH-17879]
+* **New Resource**: `azurerm_api_management_product_tag` [GH-17798]
+* **New Resource**: `azurerm_automation_connection_type` [GH-17538]
+* **New Resource**: `azurerm_automation_hybrid_runbook_worker_group` [GH-17881]
+* **New Resource**: `azurerm_container_registry_task_schedule_run_now` [GH-15120]
+* **New Resource**: `azurerm_cosmosdb_sql_dedicated_gateway` [GH-18133]
 * **New Resource**: `azurerm_dashboard_grafana` [GH-17840]
+* **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
+* **New Resource**: `azurerm_healthcare_medtech_service` [GH-15967]
+* **New Resource**: `azurerm_spring_cloud_connection` [GH-16907]
+* **New Resource**: `azurerm_search_shared_private_link_service` [GH-17744]
+* **New Resource**: `azurerm_sentinel_alert_rule_nrt` [GH-15999]
 
+ENHANCEMENTS:
+
+* `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
+* `azurerm_iothub_dps` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-18151]
+* `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_servicebus_namespace` - support for the `public_network_access_enabled` and `minimum_tls_version` properties [GH-17805]
+* `azurerm_storage_account` - support for the `public_network_access_enabled` property [GH-18005]
+* `azurerm_stream_analytics_output_eventhub` - support for the `authentication_mode` property [GH-18096]
+* `azurerm_stream_analytics_output_mssql` - support for the `authentication_mode` property [GH-18096]
+* `azurerm_stream_analytics_output_servicebus_topic` - support for the `authentication_mode` property [GH-18096]
+* `azurerm_stream_analytics_output_powerbi` - support for the `token_user_principal_name` and `token_user_display_name` properties [GH-18117]
+* `azurerm_stream_analytics_output_cosmosdb` - support for the `partition_key` property [GH-18120]
+* `azurerm_stream_analytics_reference_input_blob` - support for the `authentication_mode` property [GH-18137]
+* `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - `kube_config` is now set when AAD is enabled for a v1.24 cluster [GH-18142]
+* `azurerm_redis_cache` - will now recreate the cache when downgrading the SKU [GH-17767]
+* `azurerm_spring_cloud_service` - ignore default zero value for `read_timeout_seconds` [GH-18161]
 
 ## 3.20.0 (August 25, 2022)
 
