@@ -831,9 +831,13 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					linuxConfig.SSH.PublicKeys = &sshPublicKeys
 				}
 
-				if d.HasChange("os_profile.0.windows_configuration.0.patch_assessment_mode") {
+				if d.HasChange("os_profile.0.linux_configuration.0.patch_assessment_mode") {
 					if !provisionVMAgent && (patchAssessmentMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform)) {
 						return fmt.Errorf("when the %q field is set to %q the %q must always be set to %q", "patch_assessment_mode", compute.LinuxPatchAssessmentModeAutomaticByPlatform, "provision_vm_agent", "true")
+					}
+
+					if linuxConfig.PatchSettings == nil {
+						linuxConfig.PatchSettings = &compute.LinuxPatchSettings{}
 					}
 					linuxConfig.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(patchAssessmentMode)
 				}
