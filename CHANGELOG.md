@@ -15,12 +15,16 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
 * `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_servicebus_namespace` - support for the `public_network_access_enabled` and `minimum_tls_version` properties [GH-17805]
 * `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
-* `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
+* `azurerm_stream_analytics_output_eventhub` - support for the `authentication_mode` property [GH-18096]
+* `azurerm_stream_analytics_output_mssql` - support for the `authentication_mode` property [GH-18096]
+* `azurerm_stream_analytics_output_servicebus_topic` - support for the `authentication_mode` property [GH-18096]
+
 
 BUG FIXES:
 
