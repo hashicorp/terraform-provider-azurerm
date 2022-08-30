@@ -103,7 +103,7 @@ resource "azurerm_spacecraft" "test" {
   }
 
   two_line_elements = ["1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621", "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"]
-  title_line = "AQUA"
+  title_line        = "AQUA"
 }
 `, template, data.RandomInteger)
 }
@@ -128,7 +128,7 @@ resource "azurerm_spacecraft" "test" {
   }
 
   two_line_elements = ["1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621", "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"]
-  title_line = "AQUB"
+  title_line        = "AQUB"
 }
 `, template, data.RandomInteger)
 }
@@ -153,7 +153,7 @@ resource "azurerm_spacecraft" "test" {
   }
 
   two_line_elements = ["1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621", "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"]
-  title_line = "AQUA"
+  title_line        = "AQUA"
 
   tags = {
     aks-managed-cluster-name = "9a57225d-a405-4d40-aa46-f13d2342abef"
