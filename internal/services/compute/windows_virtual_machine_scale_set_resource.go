@@ -411,6 +411,11 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
+	spotRestoreRaw := d.Get("spot_restore").([]interface{})
+	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(spotRestoreRaw); spotRestorePolicy != nil {
+		props.SpotRestorePolicy = spotRestorePolicy
+	}
+
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -896,6 +901,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		d.Set("scale_in_policy", rule)
+	}
+
+	if props.SpotRestorePolicy != nil {
+		d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 	}
 
 	var upgradeMode compute.UpgradeMode
