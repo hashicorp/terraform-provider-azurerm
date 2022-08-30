@@ -144,6 +144,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
 		streamanalytics.Registration{},
+		search.Registration{},
 		web.Registration{},
 	}
 }
