@@ -204,15 +204,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_networkPublicIPVersion(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicEmptyPublicIP(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.basicEmptyPublicIPVersionUpdated(data),
+			Config: r.networkPublicIPVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1122,7 +1114,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIPVersionUpdated(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {

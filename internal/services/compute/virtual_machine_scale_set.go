@@ -673,6 +673,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					Default:  string(compute.IPVersionIPv4),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.IPVersionIPv4),

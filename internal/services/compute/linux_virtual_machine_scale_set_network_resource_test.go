@@ -392,17 +392,10 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkPublicIP(data),
+			Config: r.networkPublicIPVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.networkPublicIPVersionUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1660,7 +1653,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersionUpdated(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
