@@ -360,8 +360,9 @@ resource "azurerm_iothub_shared_access_policy" "test" {
   iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
-  registry_read  = true
-  registry_write = true
+  registry_read   = true
+  registry_write  = true
+  service_connect = true
 }
 
 resource "azurerm_iothub" "test2" {
@@ -384,8 +385,9 @@ resource "azurerm_iothub_shared_access_policy" "test2" {
   iothub_name         = azurerm_iothub.test2.name
   name                = "acctest2"
 
-  registry_read  = true
-  registry_write = true
+  registry_read   = true
+  registry_write  = true
+  service_connect = true
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
