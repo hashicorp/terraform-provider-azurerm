@@ -337,7 +337,7 @@ func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings").DoesNotExist(),
-				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+				check.That(data.ResourceName).Key("sticky_settings.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -382,7 +382,7 @@ func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+				check.That(data.ResourceName).Key("sticky_settings.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
