@@ -211,12 +211,12 @@ resource "azurerm_api_management_gateway_host_name_configuration" "test" {
   api_management_id = azurerm_api_management.test.id
   gateway_name      = azurerm_api_management_gateway.test.name
 
-  certificate_id                  = azurerm_api_management_certificate.test.id
-  host_name                       = "host-name-%d"
-  is_client_certificate_requested = false
-  is_http2_enabled                = false
-  is_tls10_enabled                = false
-  is_tls11_enabled                = true
+  certificate_id                     = azurerm_api_management_certificate.test.id
+  host_name                          = "host-name-%d"
+  request_client_certificate_enabled = false
+  http2_enabled                      = false
+  tls10_enabled                      = false
+  tls11_enabled                      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -264,12 +264,12 @@ resource "azurerm_api_management_gateway_host_name_configuration" "test" {
   api_management_id = azurerm_api_management.test.id
   gateway_name      = azurerm_api_management_gateway.test.name
 
-  certificate_id                  = azurerm_api_management_certificate.test.id
-  host_name                       = "host-name-%d"
-  is_client_certificate_requested = true
-  is_http2_enabled                = true
-  is_tls10_enabled                = true
-  is_tls11_enabled                = false
+  certificate_id                     = azurerm_api_management_certificate.test.id
+  host_name                          = "host-name-%d"
+  request_client_certificate_enabled = true
+  http2_enabled                      = true
+  tls10_enabled                      = true
+  tls11_enabled                      = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

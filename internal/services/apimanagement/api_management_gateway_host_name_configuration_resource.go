@@ -60,23 +60,23 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"is_client_certificate_requested": {
+			"request_client_certificate_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
-			"is_http2_enabled": {
+			"http2_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Default:  true,
 				Optional: true,
 			},
 
-			"is_tls10_enabled": {
+			"tls10_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
-			"is_tls11_enabled": {
+			"tls11_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -113,10 +113,10 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 		GatewayHostnameConfigurationContractProperties: &apimanagement.GatewayHostnameConfigurationContractProperties{
 			Hostname:                   utils.String(d.Get("host_name").(string)),
 			CertificateID:              utils.String(d.Get("certificate_id").(string)),
-			NegotiateClientCertificate: utils.Bool(d.Get("is_client_certificate_requested").(bool)),
-			TLS10Enabled:               utils.Bool(d.Get("is_tls10_enabled").(bool)),
-			TLS11Enabled:               utils.Bool(d.Get("is_tls11_enabled").(bool)),
-			HTTP2Enabled:               utils.Bool(d.Get("is_http2_enabled").(bool)),
+			NegotiateClientCertificate: utils.Bool(d.Get("request_client_certificate_enabled").(bool)),
+			TLS10Enabled:               utils.Bool(d.Get("tls10_enabled").(bool)),
+			TLS11Enabled:               utils.Bool(d.Get("tls11_enabled").(bool)),
+			HTTP2Enabled:               utils.Bool(d.Get("http2_enabled").(bool)),
 		},
 	}
 
@@ -160,10 +160,10 @@ func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.Resource
 	if properties := resp.GatewayHostnameConfigurationContractProperties; properties != nil {
 		d.Set("host_name", properties.Hostname)
 		d.Set("certificate_id", properties.CertificateID)
-		d.Set("is_client_certificate_requested", properties.NegotiateClientCertificate)
-		d.Set("is_tls10_enabled", properties.TLS10Enabled)
-		d.Set("is_tls11_enabled", properties.TLS11Enabled)
-		d.Set("is_http2_enabled", properties.HTTP2Enabled)
+		d.Set("request_client_certificate_enabled", properties.NegotiateClientCertificate)
+		d.Set("tls10_enabled", properties.TLS10Enabled)
+		d.Set("tls11_enabled", properties.TLS11Enabled)
+		d.Set("http2_enabled", properties.HTTP2Enabled)
 	}
 
 	return nil

@@ -52,12 +52,12 @@ resource "azurerm_api_management_gateway_host_name_configuration" "example" {
   api_management_id = azurerm_api_management.example.id
   gateway_name      = azurerm_api_management_gateway.example.name
 
-  certificate_id                  = azurerm_api_management_certificate.example.id
-  host_name                       = "example-host-name"
-  is_client_certificate_requested = true
-  is_http2_enabled                = true
-  is_tls10_enabled                = true
-  is_tls11_enabled                = false
+  certificate_id                     = azurerm_api_management_certificate.example.id
+  host_name                          = "example-host-name"
+  request_client_certificate_enabled = true
+  http2_enabled                      = true
+  tls10_enabled                      = true
+  tls11_enabled                      = false
 }
 ```
 
@@ -75,13 +75,13 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name to use for the API Management Gateway Host Name Configuration.
 
-* `is_client_certificate_requested` - (Optional) Whether the API Management Gateway requests a client certificate.
+* `request_client_certificate_enabled` - (Optional) Whether the API Management Gateway requests a client certificate.
 
-* `is_http2_enabled` - (Optional) Whether HTTP/2.0 is supported.
+* `http2_enabled` - (Optional) Whether HTTP/2.0 is supported.
 
-* `is_tls10_enabled` - (Optional) Whether TLS 1.0 is supported.
+* `tls10_enabled` - (Optional) Whether TLS 1.0 is supported.
 
-* `is_tls11_enabled` - (Optional) Whether TLS 1.1 is supported.
+* `tls11_enabled` - (Optional) Whether TLS 1.1 is supported.
 
 ## Attributes Reference
 
