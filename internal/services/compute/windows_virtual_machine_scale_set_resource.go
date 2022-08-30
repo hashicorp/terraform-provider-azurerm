@@ -117,6 +117,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
+	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
@@ -181,7 +182,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			AdminUsername:      utils.String(d.Get("admin_username").(string)),
 			ComputerNamePrefix: utils.String(computerNamePrefix),
 			WindowsConfiguration: &compute.WindowsConfiguration{
-				ProvisionVMAgent: utils.Bool(d.Get("provision_vm_agent").(bool)),
+				ProvisionVMAgent: utils.Bool(provisionVMAgent),
 				WinRM:            winRmListeners,
 			},
 			Secrets: secrets,
@@ -221,7 +222,17 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		if v && !provisionVMAgent {
+			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		if !features.FourPointOhBeta() {
+			if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
+				virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+			}
+		} else {
+			virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		}
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -1252,7 +1263,13 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			Default: func() interface{} {
+				if !features.FourPointOhBeta() {
+					return nil
+				}
+				return true
+			}(),
+			Computed: !features.FourPointOhBeta(),
 			ForceNew: true,
 		},
 

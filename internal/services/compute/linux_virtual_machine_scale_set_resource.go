@@ -120,6 +120,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
+	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
@@ -182,7 +183,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			ComputerNamePrefix: utils.String(computerNamePrefix),
 			LinuxConfiguration: &compute.LinuxConfiguration{
 				DisablePasswordAuthentication: utils.Bool(disablePasswordAuthentication),
-				ProvisionVMAgent:              utils.Bool(d.Get("provision_vm_agent").(bool)),
+				ProvisionVMAgent:              utils.Bool(provisionVMAgent),
 				SSH: &compute.SSHConfiguration{
 					PublicKeys: &sshKeys,
 				},
@@ -224,7 +225,17 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		if v && !provisionVMAgent {
+			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		if !features.FourPointOhBeta() {
+			if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
+				virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+			}
+		} else {
+			virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		}
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -1230,7 +1241,13 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			Default: func() interface{} {
+				if !features.FourPointOhBeta() {
+					return nil
+				}
+				return true
+			}(),
+			Computed: !features.FourPointOhBeta(),
 			ForceNew: true,
 		},
 

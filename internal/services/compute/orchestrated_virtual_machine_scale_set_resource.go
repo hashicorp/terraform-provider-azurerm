@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -126,7 +127,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"extension_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return true
+				}(),
+				Computed: !features.FourPointOhBeta(),
 				ForceNew: true,
 			},
 
@@ -354,6 +361,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	var winConfigRaw []interface{}
 	var linConfigRaw []interface{}
 	var vmssOsProfile *compute.VirtualMachineScaleSetOSProfile
+	extensionOperationsEnabled := d.Get("extension_operations_enabled").(bool)
 	osProfileRaw := d.Get("os_profile").([]interface{})
 
 	if len(osProfileRaw) > 0 {
@@ -381,6 +389,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 				}
 				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
+			}
+
+			if extensionOperationsEnabled && !provisionVMAgent {
+				return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 			}
 
 			if patchAssessmentMode == string(compute.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
@@ -445,6 +457,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
 			}
 
+			if extensionOperationsEnabled && !provisionVMAgent {
+				return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+			}
+
 			if patchAssessmentMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
 				return fmt.Errorf("when the %q field is set to %q the %q must always be set to %q", "patch_assessment_mode", compute.LinuxPatchAssessmentModeAutomaticByPlatform, "provision_vm_agent", "true")
 			}
@@ -466,11 +482,18 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
 
-	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
+	if !features.FourPointOhBeta() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
+			if virtualMachineProfile.OsProfile == nil {
+				virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{}
+			}
+			virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(extensionOperationsEnabled)
+		}
+	} else {
 		if virtualMachineProfile.OsProfile == nil {
 			virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{}
 		}
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(extensionOperationsEnabled)
 	}
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
