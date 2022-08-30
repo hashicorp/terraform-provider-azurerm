@@ -423,12 +423,12 @@ func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_autoscale(t *testing.T) {
+func TestAccAzureRMHDInsightSparkCluster_autoscaleWithSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoscale_capacity(data),
+			Config: r.autoscale_schedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -443,7 +443,29 @@ func TestAccAzureRMHDInsightSparkCluster_autoscale(t *testing.T) {
 			"roles.0.zookeeper_node.0.vm_size",
 			"storage_account"),
 		{
-			Config: r.autoscale_schedule(data),
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccAzureRMHDInsightSparkCluster_autoscaleWithCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+	r := HDInsightSparkClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscale_capacity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
