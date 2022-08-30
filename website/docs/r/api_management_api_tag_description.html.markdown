@@ -54,7 +54,7 @@ resource "azurerm_api_management_tag" "example" {
 
 resource "azurerm_api_management_api_tag_description" "example" {
   api_name                  = azurerm_api_management_api.example.name
-  tag_id                  = azurerm_api_management_tag.example.id
+  tag_id                    = azurerm_api_management_tag.example.id
   description               = "This is an example description"
   external_docs_url         = "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs"
   external_docs_description = "This is an example external docs description"
