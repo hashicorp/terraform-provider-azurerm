@@ -1204,13 +1204,6 @@ resource "azurerm_resource_group" "test" {
 
 %[3]s
 
-resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  name = "acctest%[4]s"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1221,7 +1214,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   sku_name  = "Standard_D2s_v3"
   instances = 1
 
-  platform_fault_domain_count = 2
+  platform_fault_domain_count = 1
 
   os_profile {
     linux_configuration {
@@ -1266,7 +1259,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     ultra_ssd_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) otherCapacityReservationGroupId(data acceptance.TestData) string {
