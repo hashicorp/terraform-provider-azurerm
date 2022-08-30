@@ -3620,14 +3620,10 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		dotnetVersion = *appSiteConfig.NetFrameworkVersion
 	}
 	if currentStack == "dotnetcore" {
-		if !features.FourPointOh() {
-			if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) == "v3.0" {
-				dotnetVersion = "v3.0"
-			} else if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) == "core3.1" {
-				dotnetVersion = "core3.1"
-			}
-		} else {
-			dotnetVersion = "core3.1"
+		dotnetVersion = "core3.1"
+		v := metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string)
+		if !features.FourPointOh() && v == "v3.0" {
+			dotnetVersion = "v3.0"
 		}
 	}
 	winAppStack.NetFrameworkVersion = dotnetVersion
