@@ -65,6 +65,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 -> **NOTE:** `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
 
+~> **NOTE:** `single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified.
+
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the name field. If the value of the name field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
@@ -88,6 +90,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 * `plan` - (Optional) A `plan` block as documented below.
 
 * `priority` - (Optional) The Priority of this Orchestrated Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
+
+* `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `false`.
 
 * `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
