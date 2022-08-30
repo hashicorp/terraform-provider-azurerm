@@ -40,6 +40,7 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_output_cosmosdb` - support for the `partition_key` property [GH-18120]
 * `azurerm_stream_analytics_reference_input_blob` - support for the `authentication_mode` property [GH-18137]
 * `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* Dependencies: `log_analytics` - update to use hashicorp/go-azure-sdk [GH-18098]
 
 BUG FIXES:
 
