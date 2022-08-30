@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_servicebus_namespace` - support for the `public_network_access_enabled` and `minimum_tls_version` properties [GH-17805]
 * `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
 
 BUG FIXES:
 
