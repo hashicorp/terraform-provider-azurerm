@@ -19,7 +19,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 
 We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
 
-## Setting up an Application and Service Principal
+## Setting up an Application and Service Principal in Azure
 
 A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html), [a Client Certificate](service_principal_client_certificate.html), or OpenID Connect (which is documented in this guide). This can be done using the Azure Portal.
 
@@ -88,7 +88,13 @@ Firstly, specify a Role which grants the appropriate permissions needed for the 
 
 Secondly, search for and select the name of the Service Principal created in Azure Active Directory to assign it this role - then press **Save**.
 
-### Configuring the Service Principal in Terraform
+### Configure Azure Active Directory Application to Trust a Generic Issuer
+
+On the Azure Active Directory application page, go to **Certificates and secrets**.
+
+In the Federated credentials tab, select **Add credential**. The 'Add a credential' blade opens. Refer to the instructions from your OIDC provider for completing the form, before choosing a **Name** for the federated credential and clicking the **Add** button.
+
+## Configuring the Service Principal in Terraform
 
 ~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information.
 
@@ -102,7 +108,9 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The provider will detect the `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables set by GitHub. You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables.
+The provider will use the `ARM_OIDC_TOKEN` environment variable as an OIDC token. You can use this variable to specify the token provided by your OIDC provider.
+
+When running Terraform in GitHub Actions, the provider will detect the `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables set by the GitHub Actions runtime. You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables.
 
 For GitHub Actions workflows, you'll need to ensure the workflow has `write` permissions for the `id-token`.
 
@@ -145,11 +153,12 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 ---
 
-It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_request_token` and `oidc_request_url` are in this example), like so:
+It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_token` or `oidc_request_token` and `oidc_request_url` are in this example), like so:
 
 ~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
+variable "oidc_token" {}
 variable "oidc_request_token" {}
 variable "oidc_request_url" {}
 
@@ -168,12 +177,17 @@ terraform {
 provider "azurerm" {
   features {}
 
-  subscription_id    = "00000000-0000-0000-0000-000000000000"
-  client_id          = "00000000-0000-0000-0000-000000000000"
-  use_oidc           = true
+  subscription_id = "00000000-0000-0000-0000-000000000000"
+  client_id       = "00000000-0000-0000-0000-000000000000"
+  use_oidc        = true
+
+  # for GitHub Actions
   oidc_request_token = var.oidc_request_token
   oidc_request_url   = var.oidc_request_url
-  tenant_id          = "00000000-0000-0000-0000-000000000000"
+
+  # for other generic OIDC providers
+  oidc_token = var.oidc_token
+  tenant_id  = "00000000-0000-0000-0000-000000000000"
 }
 ```
 

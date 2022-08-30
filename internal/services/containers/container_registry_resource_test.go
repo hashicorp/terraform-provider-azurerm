@@ -338,41 +338,6 @@ func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.networkAccessProfile_vnet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
-				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkAccessProfile_both(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
-				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccContainerRegistry_networkAccessProfileVnet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
-	r := ContainerRegistryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.networkAccessProfile_vnet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
-				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -394,6 +359,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.policies(data, 20),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -407,6 +373,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.policies_downgradeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -901,108 +868,6 @@ resource "azurerm_container_registry" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
-func (ContainerRegistryResource) networkAccessProfile_vnet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "virtualNetwork1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  service_endpoints = ["Microsoft.ContainerRegistry"]
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  admin_enabled       = false
-
-  network_rule_set {
-    default_action = "Deny"
-
-    ip_rule {
-      action   = "Allow"
-      ip_range = "8.8.8.8/32"
-    }
-
-    virtual_network {
-      action    = "Allow"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (ContainerRegistryResource) networkAccessProfile_both(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "virtualNetwork1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  service_endpoints = ["Microsoft.ContainerRegistry"]
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  admin_enabled       = false
-
-  network_rule_set {
-    default_action = "Deny"
-
-    ip_rule {
-      action   = "Allow"
-      ip_range = "8.8.8.8/32"
-    }
-
-    virtual_network {
-      action    = "Allow"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
 func (ContainerRegistryResource) policies(data acceptance.TestData, days int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1028,18 +893,24 @@ resource "azurerm_container_registry" "test" {
     enabled = true
   }
 
+  soft_delete_policy {
+    retention_days = %d
+    enabled        = true
+  }
+
   trust_policy {
     enabled = true
   }
 
-  export_policy_enabled         = false
-  public_network_access_enabled = false
+  export_policy_enabled                        = false
+  azuread_authentication_as_arm_policy_enabled = false
+  public_network_access_enabled                = false
 
   tags = {
     Environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, days)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, days, days)
 }
 
 func (ContainerRegistryResource) policies_downgradeUpdate(data acceptance.TestData) string {
@@ -1063,6 +934,7 @@ resource "azurerm_container_registry" "test" {
 
   retention_policy {}
   trust_policy {}
+  soft_delete_policy {}
 
   tags = {
     Environment = "Production"

@@ -12,8 +12,8 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-azure-helpers v0.39.1
-	github.com/hashicorp/go-azure-sdk v0.20220815.1092453
+	github.com/hashicorp/go-azure-helpers v0.40.0
+	github.com/hashicorp/go-azure-sdk v0.20220824.1090858
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
@@ -23,7 +23,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
-	github.com/shopspring/decimal v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
 	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2

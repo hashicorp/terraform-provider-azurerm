@@ -93,6 +93,8 @@ A `serialization` block supports the following:
 
 -> **NOTE:** This is required when `type` is set to `Csv`.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Analytics Reference Input. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:

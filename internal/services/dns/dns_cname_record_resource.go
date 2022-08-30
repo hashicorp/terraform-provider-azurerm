@@ -150,7 +150,7 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := recordsets.ParseRecordTypeID(d.Id())
+	id, err := recordsets.ParseRecordTypeIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
