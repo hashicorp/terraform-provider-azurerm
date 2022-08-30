@@ -50,17 +50,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 				Default:  utils.String("default"),
 			},
 
-			"id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"log_rules": {
+			"log": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -108,7 +98,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 				},
 			},
 
-			"metric_rules": {
+			"metric": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -140,11 +130,6 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -170,8 +155,8 @@ func resourceDatadogTagRulesCreateorUpdate(d *pluginsdk.ResourceData, meta inter
 
 	body := datadog.MonitoringTagRules{
 		Properties: &datadog.MonitoringTagRulesProperties{
-			LogRules:    expandLogRules(d.Get("log_rules").([]interface{})),
-			MetricRules: expandMetricRules(d.Get("metric_rules").([]interface{})),
+			LogRules:    expandLogRules(d.Get("log").([]interface{})),
+			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, ruleSetName, &body); err != nil {
@@ -206,16 +191,13 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("rule_set_name", id.TagRuleName)
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("log_rules", flattenLogRules(props.LogRules)); err != nil {
-			return fmt.Errorf("setting `log_rules`: %+v", err)
+		if err := d.Set("log", flattenLogRules(props.LogRules)); err != nil {
+			return fmt.Errorf("setting `log`: %+v", err)
 		}
-		if err := d.Set("metric_rules", flattenMetricRules(props.MetricRules)); err != nil {
-			return fmt.Errorf("setting `metric_rules`: %+v", err)
+		if err := d.Set("metric", flattenMetricRules(props.MetricRules)); err != nil {
+			return fmt.Errorf("setting `metric`: %+v", err)
 		}
-		d.Set("provisioning_state", props.ProvisioningState)
 	}
-	d.Set("type", resp.Type)
-	d.Set("id", resp.ID)
 
 	return nil
 }
@@ -239,13 +221,13 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	d.Set("log_rules", nil)
-	d.Set("metric_rules", nil)
+	d.Set("log", nil)
+	d.Set("metric", nil)
 
 	body := datadog.MonitoringTagRules{
 		Properties: &datadog.MonitoringTagRulesProperties{
-			LogRules:    expandLogRules(d.Get("log_rules").([]interface{})),
-			MetricRules: expandMetricRules(d.Get("metric_rules").([]interface{})),
+			LogRules:    expandLogRules(d.Get("log").([]interface{})),
+			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
 		},
 	}
 

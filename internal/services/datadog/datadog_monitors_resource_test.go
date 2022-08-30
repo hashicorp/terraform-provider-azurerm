@@ -195,11 +195,11 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_datadog_monitor" "test" {
   name                = "acctest-datadog-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "WEST US 2"
+  resource_group_name = "bug-test"
+  location            = "Central US Euap"
   datadog_organization {
-    api_key         = %q
-    application_key = %q
+    api_key         = "c756275ca011275c33e0124d0e9e6c5f"
+    application_key = "2bb3068ebeecdc26cb8eae14e078f5f1629ae102"
   }
   user {
     name  = "Test Datadog"
@@ -210,7 +210,7 @@ resource "azurerm_datadog_monitor" "test" {
     type = "SystemAssigned"
   }
 }
-`, r.template(data), data.RandomInteger%100, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
+`, r.template(data), data.RandomInteger%100)
 }
 
 func (r DatadogMonitorResource) update(data acceptance.TestData) string {

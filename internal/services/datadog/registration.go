@@ -25,7 +25,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_datadog_monitor":                   resourceDatadogMonitor(),
-		"azurerm_datadog_monitor_tagrules":          resourceDatadogTagRules(),
+		"azurerm_datadog_monitor_tagrule":           resourceDatadogTagRules(),
 		"azurerm_datadog_monitor_sso_configuration": resourceDatadogSingleSignOnConfigurations(),
 	}
 }

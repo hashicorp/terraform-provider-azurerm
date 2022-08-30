@@ -63,21 +63,6 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-
-			"id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -146,13 +131,9 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	if props := resp.Properties; props != nil {
 		d.Set("singlesignon_state", props.SingleSignOnState)
-		d.Set("provisioning_state", props.ProvisioningState)
 		d.Set("singlesignon_url", props.SingleSignOnURL)
 		d.Set("enterprise_application_id", props.EnterpriseAppID)
 	}
-
-	d.Set("type", resp.Type)
-	d.Set("id", resp.ID)
 
 	return nil
 }

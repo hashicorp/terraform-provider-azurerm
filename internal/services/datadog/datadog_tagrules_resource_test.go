@@ -16,7 +16,7 @@ import (
 type TagRulesDatadogMonitorResource struct{}
 
 func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrules", "test")
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrule", "test")
 	r := TagRulesDatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,7 +30,7 @@ func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 }
 
 func TestAccDatadogMonitorTagRules_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrules", "test")
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrule", "test")
 	r := TagRulesDatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,13 +90,13 @@ func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	
 
-resource "azurerm_datadog_monitor_tagrules" "test" {
+resource "azurerm_datadog_monitor_tagrule" "test" {
   name                = "test-terraform-acctests"
   resource_group_name = "acctest-datadog"
-  log_rules {
+  log {
     subscription_log_enabled = true
   }
-  metric_rules {
+  metric {
     filtering_tag {
       name   = "Test"
       value  = "Testing-Logs"
@@ -109,10 +109,10 @@ resource "azurerm_datadog_monitor_tagrules" "test" {
 
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_datadog_monitor_tagrules" "test" {
+resource "azurerm_datadog_monitor_tagrule" "test" {
   name                = "test-terraform-acctests"
   resource_group_name = "acctest-datadog"
-  log_rules {
+  log {
     subscription_log_enabled = false
     resource_log_enabled     = true
     filtering_tag {
@@ -121,7 +121,7 @@ resource "azurerm_datadog_monitor_tagrules" "test" {
       action = "Include"
     }
   }
-  metric_rules {
+  metric {
     filtering_tag {
       name   = "Test"
       value  = "Testing-Logs"

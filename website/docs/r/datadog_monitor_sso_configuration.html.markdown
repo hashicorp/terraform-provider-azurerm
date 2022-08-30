@@ -46,12 +46,6 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the SingleSignOn on datadog monitor.
-
-* `type` - The type of the monitor resource.
-
-* `provisioning_state` - The state of Datadog monitor.
-
 * `singlesignon_url` - The SingleSignOn URL to login to Datadog org.
 
 ## Timeouts
