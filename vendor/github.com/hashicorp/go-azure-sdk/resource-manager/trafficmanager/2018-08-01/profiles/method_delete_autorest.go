@@ -63,5 +63,6 @@ func (c ProfilesClient) responderForDelete(resp *http.Response) (result DeleteOp
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

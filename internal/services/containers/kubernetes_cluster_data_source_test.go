@@ -70,6 +70,21 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotThree(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -566,6 +581,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.roleBasedAccessControlConfig(data))
+}
+
+func (KubernetesClusterDataSource) roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data, ""))
 }
 
 func (KubernetesClusterDataSource) localAccountDisabled(data acceptance.TestData, tenantId string) string {

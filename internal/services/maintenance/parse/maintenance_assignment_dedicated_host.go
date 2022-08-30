@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"regexp"
 
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 )
 
 type MaintenanceAssignmentDedicatedHostId struct {
-	DedicatedHostId    *parseCompute.DedicatedHostId
+	DedicatedHostId    dedicatedhosts.HostId
 	DedicatedHostIdRaw string
 	Name               string
 }
@@ -20,13 +20,13 @@ func MaintenanceAssignmentDedicatedHostID(input string) (*MaintenanceAssignmentD
 	}
 
 	targetResourceId, name := groups[1], groups[2]
-	dedicatedHostID, err := parseCompute.DedicatedHostID(targetResourceId)
+	dedicatedHostID, err := dedicatedhosts.ParseHostIDInsensitively(targetResourceId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Maintenance Assignment Dedicated Host ID: %q: Expected valid Dedicated Host ID", input)
 	}
 
 	return &MaintenanceAssignmentDedicatedHostId{
-		DedicatedHostId:    dedicatedHostID,
+		DedicatedHostId:    *dedicatedHostID,
 		DedicatedHostIdRaw: targetResourceId,
 		Name:               name,
 	}, nil

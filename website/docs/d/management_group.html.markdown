@@ -40,7 +40,13 @@ The following attributes are exported:
 
 * `parent_management_group_id` - The ID of any Parent Management Group.
 
-* `subscription_ids` - A list of Subscription IDs which are assigned to the Management Group.
+* `management_group_ids` - A list of Management Group IDs which directly belong to this Management Group.
+
+* `subscription_ids` - A list of Subscription IDs which are directly assigned to this Management Group.
+
+* `all_management_group_ids` - A list of Management Group IDs which directly or indirectly belong to this Management Group.
+
+* `all_subscription_ids` - A list of Subscription IDs which are assigned to this Management Group or its children Management Groups.
 
 ## Timeouts
 

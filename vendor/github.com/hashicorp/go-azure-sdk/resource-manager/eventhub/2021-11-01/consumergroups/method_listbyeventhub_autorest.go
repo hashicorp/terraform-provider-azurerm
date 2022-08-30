@@ -88,50 +88,6 @@ func (c ConsumerGroupsClient) ListByEventHub(ctx context.Context, id EventhubId,
 	return
 }
 
-// ListByEventHubComplete retrieves all of the results into a single object
-func (c ConsumerGroupsClient) ListByEventHubComplete(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions) (ListByEventHubCompleteResult, error) {
-	return c.ListByEventHubCompleteMatchingPredicate(ctx, id, options, ConsumerGroupOperationPredicate{})
-}
-
-// ListByEventHubCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ConsumerGroupsClient) ListByEventHubCompleteMatchingPredicate(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions, predicate ConsumerGroupOperationPredicate) (resp ListByEventHubCompleteResult, err error) {
-	items := make([]ConsumerGroup, 0)
-
-	page, err := c.ListByEventHub(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByEventHubCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByEventHub prepares the ListByEventHub request.
 func (c ConsumerGroupsClient) preparerForListByEventHub(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c ConsumerGroupsClient) responderForListByEventHub(resp *http.Response) (r
 		}
 	}
 	return
+}
+
+// ListByEventHubComplete retrieves all of the results into a single object
+func (c ConsumerGroupsClient) ListByEventHubComplete(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions) (ListByEventHubCompleteResult, error) {
+	return c.ListByEventHubCompleteMatchingPredicate(ctx, id, options, ConsumerGroupOperationPredicate{})
+}
+
+// ListByEventHubCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ConsumerGroupsClient) ListByEventHubCompleteMatchingPredicate(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions, predicate ConsumerGroupOperationPredicate) (resp ListByEventHubCompleteResult, err error) {
+	items := make([]ConsumerGroup, 0)
+
+	page, err := c.ListByEventHub(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByEventHubCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

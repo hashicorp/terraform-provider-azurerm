@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -85,7 +86,7 @@ func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 	})
 }
 
-func TestAccCdnEndpointCustomDomain_httpsUserManaged(t *testing.T) {
+func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
@@ -95,15 +96,56 @@ func TestAccCdnEndpointCustomDomain_httpsUserManaged(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.httpsUserManaged(data),
+			Config: r.httpsUserManagedCertificate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// The "key_vault_certificate_id" is skipped here since during import, there is no knowledge about whether users want
-		// versioned or versionless certificate id. That means the imported "key_vault_certificate_id" is what it is at the
+		// The "key_vault_secret_id" is skipped here since during import, there is no knowledge about whether users want
+		// versioned or versionless certificate id. That means the imported "key_vault_secret_id" is what it is at the
 		// remote API representation, which might be different than it as defined in the configuration.
-		data.ImportStep("user_managed_https.0.key_vault_certificate_id"),
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
+	})
+}
+
+func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificateDeprecated(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("This test is skipped since v4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
+
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
+	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
+	r.preCheckUserManagedCertificate(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpsUserManagedCertificateDeprecated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
+	})
+}
+
+func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
+
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
+	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
+	r.preCheckUserManagedCertificate(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpsUserManagedSecret(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
 	})
 }
 
@@ -131,12 +173,12 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.httpsUserManaged(data),
+			Config: r.httpsUserManagedCertificate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_managed_https.0.key_vault_certificate_id"),
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -241,7 +283,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r CdnEndpointCustomDomainResource) httpsUserManaged(data acceptance.TestData) string {
+func (r CdnEndpointCustomDomainResource) httpsUserManagedBase(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -275,6 +317,8 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "Get",
       "Set",
+      "Delete",
+      "Purge",
     ]
   }
   access_policy {
@@ -290,6 +334,52 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r CdnEndpointCustomDomainResource) httpsUserManagedCertificate(data acceptance.TestData) string {
+	template := r.httpsUserManagedBase(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "testkeyvaultcert-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  certificate {
+    contents = file("%[3]s")
+    password = ""
+  }
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = false
+    }
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+  }
+}
+resource "azurerm_cdn_endpoint_custom_domain" "test" {
+  name            = "testcustomdomain-%[2]d"
+  cdn_endpoint_id = azurerm_cdn_endpoint.test.id
+  host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
+  user_managed_https {
+    key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, template, data.RandomIntOfLength(8), r.CertificateP12)
+}
+
+func (r CdnEndpointCustomDomainResource) httpsUserManagedCertificateDeprecated(data acceptance.TestData) string {
+	template := r.httpsUserManagedBase(data)
+	return fmt.Sprintf(`
+%[1]s
+
 resource "azurerm_key_vault_certificate" "test" {
   name         = "testkeyvaultcert-%[2]d"
   key_vault_id = azurerm_key_vault.test.id
@@ -318,6 +408,28 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   user_managed_https {
     key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+  }
+}
+`, template, data.RandomIntOfLength(8), r.CertificateP12)
+}
+
+func (r CdnEndpointCustomDomainResource) httpsUserManagedSecret(data acceptance.TestData) string {
+	template := r.httpsUserManagedBase(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "testkeyvaultsecret-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  content_type = "application/x-pkcs12"
+  value        = file("%[3]s")
+}
+resource "azurerm_cdn_endpoint_custom_domain" "test" {
+  name            = "testcustomdomain-%[2]d"
+  cdn_endpoint_id = azurerm_cdn_endpoint.test.id
+  host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
+  user_managed_https {
+    key_vault_secret_id = azurerm_key_vault_secret.test.id
   }
 }
 `, template, data.RandomIntOfLength(8), r.CertificateP12)

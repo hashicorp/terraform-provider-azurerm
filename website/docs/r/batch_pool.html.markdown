@@ -281,6 +281,7 @@ A `container_registries` block supports the following:
 
 * `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
 
+* `user_assigned_identity_id` - (Optional) The reference to the user assigned identity to use to access an Azure Container Registry instead of username and password. Changing this forces a new resource to be created.
 ---
 
 A `network_configuration` block supports the following:

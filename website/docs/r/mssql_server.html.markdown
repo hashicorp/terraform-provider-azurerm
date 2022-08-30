@@ -41,6 +41,7 @@ resource "azurerm_mssql_server" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -63,15 +64,15 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `minimum_tls_version` - (Optional) The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` and `1.2`.
+* `minimum_tls_version` - (Optional) The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` , `1.2` and `Disabled`. Defaults to `1.2`.
 
-~> **NOTE:** Once `minimum_tls_version` is set it is not possible to remove this setting and must be given a valid value for any further updates to the resource.
+~> **NOTE:** The `minimum_tls_version` is set to `Disabled` means all TLS versions are allowed. After you enforce a version of `minimum_tls_version`, it's not possible to revert to `Disabled`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
 * `outbound_network_restriction_enabled` - (Optional) Whether outbound network traffic is restricted for this server. Defaults to `false`.
 
-* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id. Required if `type` is `UserAssigned` and should be combined with `user_assigned_identity_ids`.
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id. Required if `type` is `UserAssigned` and should be combined with `identity_ids`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -79,9 +80,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Server. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Server.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`
 

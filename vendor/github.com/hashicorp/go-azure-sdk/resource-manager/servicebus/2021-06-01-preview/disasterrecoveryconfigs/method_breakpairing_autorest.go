@@ -62,5 +62,6 @@ func (c DisasterRecoveryConfigsClient) responderForBreakPairing(resp *http.Respo
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

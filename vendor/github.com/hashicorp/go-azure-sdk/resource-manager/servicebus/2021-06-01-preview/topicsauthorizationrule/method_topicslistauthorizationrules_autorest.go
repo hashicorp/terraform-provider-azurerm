@@ -59,50 +59,6 @@ func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRules(ctx context.
 	return
 }
 
-// TopicsListAuthorizationRulesComplete retrieves all of the results into a single object
-func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesComplete(ctx context.Context, id TopicId) (TopicsListAuthorizationRulesCompleteResult, error) {
-	return c.TopicsListAuthorizationRulesCompleteMatchingPredicate(ctx, id, SBAuthorizationRuleOperationPredicate{})
-}
-
-// TopicsListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id TopicId, predicate SBAuthorizationRuleOperationPredicate) (resp TopicsListAuthorizationRulesCompleteResult, err error) {
-	items := make([]SBAuthorizationRule, 0)
-
-	page, err := c.TopicsListAuthorizationRules(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := TopicsListAuthorizationRulesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForTopicsListAuthorizationRules prepares the TopicsListAuthorizationRules request.
 func (c TopicsAuthorizationRuleClient) preparerForTopicsListAuthorizationRules(ctx context.Context, id TopicId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c TopicsAuthorizationRuleClient) responderForTopicsListAuthorizationRules(
 		}
 	}
 	return
+}
+
+// TopicsListAuthorizationRulesComplete retrieves all of the results into a single object
+func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesComplete(ctx context.Context, id TopicId) (TopicsListAuthorizationRulesCompleteResult, error) {
+	return c.TopicsListAuthorizationRulesCompleteMatchingPredicate(ctx, id, SBAuthorizationRuleOperationPredicate{})
+}
+
+// TopicsListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesCompleteMatchingPredicate(ctx context.Context, id TopicId, predicate SBAuthorizationRuleOperationPredicate) (resp TopicsListAuthorizationRulesCompleteResult, err error) {
+	items := make([]SBAuthorizationRule, 0)
+
+	page, err := c.TopicsListAuthorizationRules(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := TopicsListAuthorizationRulesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

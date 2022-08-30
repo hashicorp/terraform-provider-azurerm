@@ -60,6 +60,21 @@ func TestAccSiteRecoveryReplicatedVm_zone2zone(t *testing.T) {
 	})
 }
 
+func TestAccSiteRecoveryReplicatedVm_targetDiskEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.targetDiskEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -880,6 +895,265 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+}
+
+func (SiteRecoveryReplicatedVmResource) targetDiskEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%[1]d-1"
+  location = "%[2]s"
+}
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-recovery-%[1]d-2"
+  location = "%[3]s"
+}
+
+resource "azurerm_key_vault" "test1" {
+  name                        = "acckv-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  enabled_for_disk_encryption = true
+  purge_protection_enabled    = true
+}
+
+resource "azurerm_key_vault_access_policy" "service-principal" {
+  key_vault_id = azurerm_key_vault.test1.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Update",
+  ]
+
+  secret_permissions = [
+    "Get",
+    "Delete",
+    "Set",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test1" {
+  name         = "examplekey"
+  key_vault_id = azurerm_key_vault.test1.id
+  key_type     = "RSA"
+  key_size     = 3072
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.service-principal
+  ]
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-vault-%[1]d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+  sku                 = "Standard"
+  soft_delete_enabled = false
+}
+resource "azurerm_site_recovery_fabric" "test1" {
+  resource_group_name = azurerm_resource_group.test2.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  name                = "acctest-fabric1-%[1]d"
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_site_recovery_protection_container" "test1" {
+  resource_group_name  = azurerm_resource_group.test2.name
+  recovery_vault_name  = azurerm_recovery_services_vault.test.name
+  recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
+  name                 = "acctest-protection-cont1-%[1]d"
+}
+resource "azurerm_site_recovery_protection_container" "test2" {
+  resource_group_name  = azurerm_resource_group.test2.name
+  recovery_vault_name  = azurerm_recovery_services_vault.test.name
+  recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
+  name                 = "acctest-protection-cont2-t-%[1]d"
+}
+resource "azurerm_site_recovery_replication_policy" "test" {
+  resource_group_name                                  = azurerm_resource_group.test2.name
+  recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
+  name                                                 = "acctest-policy-%[1]d"
+  recovery_point_retention_in_minutes                  = 24 * 60
+  application_consistent_snapshot_frequency_in_minutes = 4 * 60
+}
+resource "azurerm_site_recovery_protection_container_mapping" "test" {
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  recovery_fabric_name                      = azurerm_site_recovery_fabric.test1.name
+  recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+  recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  name                                      = "mapping-%[1]d"
+}
+resource "azurerm_virtual_network" "test1" {
+  name                = "net-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.1.0/24"]
+  location            = azurerm_site_recovery_fabric.test1.location
+}
+resource "azurerm_subnet" "test1" {
+  name                 = "snet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefixes     = ["192.168.1.0/24"]
+}
+resource "azurerm_network_interface" "test" {
+  name                = "vm-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_configuration {
+    name                          = "vm-%[1]d"
+    subnet_id                     = azurerm_subnet.test1.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "vm" {
+  name                = "acctvm%[4]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"
+  admin_password      = "P@ssw0rd1234!"
+  zone                = "1"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+}
+
+resource "azurerm_virtual_machine_extension" "test" {
+  name                       = "AzureDiskEncryption"
+  publisher                  = "Microsoft.Azure.Security"
+  type                       = "AzureDiskEncryption"
+  type_handler_version       = "2.2"
+  auto_upgrade_minor_version = false
+  virtual_machine_id         = azurerm_windows_virtual_machine.vm.id
+
+  settings = <<SETTINGS
+{
+  "EncryptionOperation": "EnableEncryption",
+  "KeyEncryptionAlgorithm": "RSA-OAEP",
+  "KeyVaultURL": "${azurerm_key_vault.test1.vault_uri}",
+  "KeyVaultResourceId": "${azurerm_key_vault.test1.id}",
+  "KeyEncryptionKeyURL": "${azurerm_key_vault_key.test1.id}",
+  "KekVaultResourceId": "${azurerm_key_vault.test1.id}",
+  "VolumeType": "All"
+}
+SETTINGS
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acct%[1]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+data "azurerm_managed_disk" "test" {
+  name                = azurerm_windows_virtual_machine.vm.os_disk[0].name
+  resource_group_name = azurerm_windows_virtual_machine.vm.resource_group_name
+
+  depends_on = [
+    azurerm_virtual_machine_extension.test
+  ]
+}
+
+// Use snapshot as a workaround of encryption_settings not yet supported on managed_disk
+resource "azurerm_snapshot" "test" {
+  name                = "snapshot-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  create_option       = "Copy"
+  source_resource_id  = data.azurerm_managed_disk.test.id
+  lifecycle {
+    ignore_changes = [
+      encryption_settings
+    ]
+  }
+}
+
+data "azurerm_snapshot" "test" {
+  name                = azurerm_snapshot.test.name
+  resource_group_name = azurerm_snapshot.test.resource_group_name
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[1]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_windows_virtual_machine.vm.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+  target_zone                               = "2"
+  target_resource_group_id                  = azurerm_resource_group.test2.id
+  target_recovery_fabric_id                 = azurerm_site_recovery_fabric.test1.id
+  target_recovery_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
+  target_network_id                         = azurerm_virtual_network.test1.id
+  managed_disk {
+    disk_id                    = data.azurerm_managed_disk.test.id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+    target_disk_encryption {
+      disk_encryption_key {
+        secret_url = data.azurerm_snapshot.test.encryption_settings[0].disk_encryption_key[0].secret_url
+        vault_id   = azurerm_key_vault.test1.id
+      }
+      key_encryption_key {
+        key_url  = azurerm_key_vault_key.test1.id
+        vault_id = azurerm_key_vault.test1.id
+      }
+    }
+  }
+  network_interface {
+    source_network_interface_id = azurerm_network_interface.test.id
+    target_subnet_name          = "snet-%[1]d"
+  }
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (t SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

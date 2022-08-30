@@ -69,6 +69,13 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      nil,
+				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
+			},
+
 			"primary_read_key": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -199,6 +206,20 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+
+	if publicNetworkAccessNotEmpty {
+
+		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse public_network_access: %+v", err)
+		}
+		properties := &configurationstores.ConfigurationStoreProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+		}
+		parameters.Properties = properties
+	}
+
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -229,6 +250,18 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 			Name: d.Get("sku").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+	if publicNetworkAccessNotEmpty {
+		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse public_network_access: %+v", err)
+		}
+		properties := &configurationstores.ConfigurationStorePropertiesUpdateParameters{
+			PublicNetworkAccess: publicNetworkAccess,
+		}
+		parameters.Properties = properties
 	}
 
 	if d.HasChange("identity") {
@@ -280,6 +313,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("public_network_access", props.PublicNetworkAccess)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
@@ -387,4 +421,18 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 			"secret":            secret,
 		},
 	}
+}
+
+func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
+	vals := map[string]configurationstores.PublicNetworkAccess{
+		"disabled": configurationstores.PublicNetworkAccessDisabled,
+		"enabled":  configurationstores.PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := configurationstores.PublicNetworkAccess(input)
+	return &out, nil
 }
