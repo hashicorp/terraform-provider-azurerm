@@ -2,13 +2,14 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_automation_connection_type` [GH-17538]
 * **New Resource**: `azurerm_app_service_connection` [GH-16907]
 * **New Resource**: `azurerm_dashboard_grafana` [GH-17840]
 * **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
 * **New Resource**: `azurerm_healthcare_medtech_service` [GH-15967]
 * **New Resource**: `azurerm_spring_cloud_connection` [GH-16907]
 * **New Resource**: `azurerm_sentinel_alert_rule_nrt` [GH-15999]
-
+ 
 ENHANCEMENTS:
 
 * `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
