@@ -21,6 +21,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - `kube_config` is now set when AAD is enabled for a v1.24 cluster [GH-18142]
+* `azurerm_redis_cache` - will now recreate the cache when downgrading the SKU [GH-17767]
 * `azurerm_spring_cloud_service` - ignore default zero value for `read_timeout_seconds` [GH-18161]
 
 ## 3.20.0 (August 25, 2022)
