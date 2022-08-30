@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -19,6 +20,7 @@ type Client struct {
 	ModuleClient                *automation.ModuleClient
 	RunbookClient               *automation.RunbookClient
 	RunbookDraftClient          *automation.RunbookDraftClient
+	RunBookWgClient             *hybridrunbookworkergroup.HybridRunbookWorkerGroupClient
 	ScheduleClient              *automation.ScheduleClient
 	VariableClient              *automation.VariableClient
 	WebhookClient               *automation.WebhookClient
@@ -61,6 +63,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&runbookDraftClient.Client, o.ResourceManagerAuthorizer)
 
+	runbookWgClient := hybridrunbookworkergroup.NewHybridRunbookWorkerGroupClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&runbookWgClient.Client, o.ResourceManagerAuthorizer)
+
 	scheduleClient := automation.NewScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&scheduleClient.Client, o.ResourceManagerAuthorizer)
 
@@ -83,6 +88,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ModuleClient:                &moduleClient,
 		RunbookClient:               &runbookClient,
 		RunbookDraftClient:          &runbookDraftClient,
+		RunBookWgClient:             &runbookWgClient,
 		ScheduleClient:              &scheduleClient,
 		VariableClient:              &variableClient,
 		WebhookClient:               &webhookClient,

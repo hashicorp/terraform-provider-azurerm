@@ -54,7 +54,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 resource "azurerm_cdn_frontdoor_security_policy" "example" {
   name                     = "Example-Security-Policy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.example.id
 
   security_policies {
     firewall {

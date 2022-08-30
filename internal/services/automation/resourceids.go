@@ -1,6 +1,7 @@
 package automation
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Connection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/connections/connection1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ConnectionType -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/connectionTypes/type1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AutomationAccount -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Certificate -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/certificates/cert1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Credential -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/credentials/cred1

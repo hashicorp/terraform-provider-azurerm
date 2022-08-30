@@ -91,6 +91,16 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+				}, false),
+			},
 		},
 	}
 }
@@ -192,6 +202,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 		d.Set("path_pattern", blobInputDataSource.PathPattern)
 		d.Set("storage_container_name", blobInputDataSource.Container)
 		d.Set("time_format", blobInputDataSource.TimeFormat)
+		d.Set("authentication_mode", blobInputDataSource.AuthenticationMode)
 
 		if accounts := blobInputDataSource.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 			account := (*accounts)[0]
@@ -233,6 +244,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 	storageAccountKey := d.Get("storage_account_key").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
+	authenticationMode := d.Get("authentication_mode").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
@@ -257,6 +269,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 							AccountKey:  utils.String(storageAccountKey),
 						},
 					},
+					AuthenticationMode: streamanalytics.AuthenticationMode(authenticationMode),
 				},
 			},
 			Serialization: serialization,
