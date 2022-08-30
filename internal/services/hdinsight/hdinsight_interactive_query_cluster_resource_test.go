@@ -244,6 +244,26 @@ func TestAccHDInsightInteractiveQueryCluster_encryption_in_transit(t *testing.T)
 	})
 }
 
+func TestAccHDInsightInteractiveQueryCluster_diskEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
 func TestAccHDInsightInteractiveQueryCluster_allMetastores(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	r := HDInsightInteractiveQueryClusterResource{}
@@ -1444,6 +1464,61 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
     zookeeper_node {
       vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightInteractiveQueryClusterResource) diskEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  tls_min_version     = "1.2"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  disk_encryption {
+    encryption_at_host_enabled = true
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D8a_V4"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D16a_V4"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_DS2_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
