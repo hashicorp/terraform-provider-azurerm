@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `max_tasks_per_node` - The maximum number of tasks that can run concurrently on a single compute node in the pool.
 
-* `mount_configuration` - A `mount_configuration` block that describes mount configuration.
+* `mount` - A `mount` block that describes mount configuration.
 
 * `certificate` - One or more `certificate` blocks that describe the certificates installed on each compute node in the pool.
 
@@ -157,21 +157,21 @@ A `container_registries` block exports the following:
 
 ---
 
-An `mount_configuration` exports the following:
+An `mount` exports the following:
 
 Any property below is mutually exclusive with all other properties.
 
-* `azure_blob_file_system_configuration` - A `azure_blob_file_system_configuration` block defined as below.
+* `azure_blob_file_system` - A `azure_blob_file_system` block defined as below.
 
-* `azure_file_share_configuration` - A `azure_file_share_configuration` block defined as below.
+* `azure_file_share` - A `azure_file_share` block defined as below.
 
-* `cifs_mount_configuration` - A `cifs_mount_configuration` block defined as below.
+* `cifs_mount` - A `cifs_mount` block defined as below.
 
-* `nfs_mount_configuration` - A `nfs_mount_configuration` block defined as below.
+* `nfs_mount` - A `nfs_mount` block defined as below.
 
 ---
 
-An `azure_blob_file_system_configuration` block exports the following:
+An `azure_blob_file_system` block exports the following:
 
 * `account_name` - The Azure Storage Account name.
 
@@ -189,7 +189,7 @@ An `azure_blob_file_system_configuration` block exports the following:
 
 ---
 
-An `azure_file_share_configuration` block exports the following:
+An `azure_file_share` block exports the following:
 
 * `account_name` - The Azure Storage Account name.
 
@@ -203,7 +203,7 @@ An `azure_file_share_configuration` block exports the following:
 
 ---
 
-A `cifs_mount_configuration` block exports the following:
+A `cifs_mount` block exports the following:
 
 * `user_name` - The user to use for authentication against the CIFS file system.
 
@@ -217,7 +217,7 @@ A `cifs_mount_configuration` block exports the following:
 
 ---
 
-A `nfs_mount_configuration` block exports the following:
+A `nfs_mount` block exports the following:
 
 * `source` - The URI of the file system to mount.
 

@@ -204,12 +204,12 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
-			"mount_configuration": {
+			"mount": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"azure_blob_file_system_configuration": {
+						"azure_blob_file_system": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -245,7 +245,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 								},
 							},
 						},
-						"azure_file_share_configuration": {
+						"azure_file_share": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -273,7 +273,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 								},
 							},
 						},
-						"cifs_mount_configuration": {
+						"cifs_mount": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
@@ -301,7 +301,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 								},
 							},
 						},
-						"nfs_mount_configuration": {
+						"nfs_mount": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{

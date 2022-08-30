@@ -309,12 +309,12 @@ func resourceBatchPool() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
-			"mount_configuration": {
+			"mount": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"azure_blob_file_system_configuration": {
+						"azure_blob_file_system": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -360,7 +360,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 								},
 							},
 						},
-						"azure_file_share_configuration": {
+						"azure_file_share": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -394,7 +394,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 								},
 							},
 						},
-						"cifs_mount_configuration": {
+						"cifs_mount": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -428,7 +428,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 								},
 							},
 						},
-						"nfs_mount_configuration": {
+						"nfs_mount": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -668,7 +668,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	if err != nil {
-		log.Printf(`[DEBUG] expanding "mount_configuration": %v`, err)
+		log.Printf(`[DEBUG] expanding "mount": %v`, err)
 	}
 	parameters.PoolProperties.MountConfiguration = mountConfiguration
 
@@ -786,7 +786,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	if err != nil {
-		log.Printf(`[DEBUG] expanding "mount_configuration": %v`, err)
+		log.Printf(`[DEBUG] expanding "mount": %v`, err)
 	}
 	parameters.PoolProperties.MountConfiguration = mountConfiguration
 
@@ -877,7 +877,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			for _, mountConfig := range *props.MountConfiguration {
 				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
 			}
-			d.Set("mount_configuration", mountConfigs)
+			d.Set("mount", mountConfigs)
 		}
 
 		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {

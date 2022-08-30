@@ -501,13 +501,13 @@ func TestAccBatchPool_mountConfigurationAzureBlobFileSystem(t *testing.T) {
 			Config: r.mountConfigurationAzureBlobFileSystem(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_configuration.0.azure_blob_file_system_configuration.#").HasValue("1"),
-				check.That(data.ResourceName).Key("mount_configuration.0.azure_blob_file_system_configuration.0.relative_mount_path").HasValue("/mnt/"),
+				check.That(data.ResourceName).Key("mount.0.azure_blob_file_system.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.azure_blob_file_system.0.relative_mount_path").HasValue("/mnt/"),
 			),
 		},
 		data.ImportStep(
 			"stop_pending_resize_operation",
-			"mount_configuration.0.azure_blob_file_system_configuration.0.account_key",
+			"mount.0.azure_blob_file_system.0.account_key",
 		),
 	})
 }
@@ -521,13 +521,13 @@ func TestAccBatchPool_mountConfigurationAzureFileShare(t *testing.T) {
 			Config: r.mountConfigurationAzureFileShare(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_configuration.0.azure_file_share_configuration.#").HasValue("1"),
-				check.That(data.ResourceName).Key("mount_configuration.0.azure_file_share_configuration.0.relative_mount_path").HasValue("/mnt/"),
+				check.That(data.ResourceName).Key("mount.0.azure_file_share.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.azure_file_share.0.relative_mount_path").HasValue("/mnt/"),
 			),
 		},
 		data.ImportStep(
 			"stop_pending_resize_operation",
-			"mount_configuration.0.azure_file_share_configuration.0.account_key",
+			"mount.0.azure_file_share.0.account_key",
 		),
 	})
 }
@@ -541,17 +541,17 @@ func TestAccBatchPool_mountConfigurationCIFS(t *testing.T) {
 			Config: r.mountConfigurationCIFS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_configuration.0.cifs_mount_configuration.#").HasValue("1"),
-				check.That(data.ResourceName).Key("mount_configuration.0.cifs_mount_configuration.0.user_name").HasValue("myUserName"),
-				check.That(data.ResourceName).Key("mount_configuration.0.cifs_mount_configuration.0.password").HasValue("myPassword"),
-				check.That(data.ResourceName).Key("mount_configuration.0.cifs_mount_configuration.0.source").HasValue("https://testaccount.file.core.windows.net/"),
-				check.That(data.ResourceName).Key("mount_configuration.0.cifs_mount_configuration.0.relative_mount_path").HasValue("/mnt/"),
-				check.That(data.ResourceName).Key("mount_configuration.0.cifs_mount_configuration.0.mount_options").HasValue("sampleops"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.password").HasValue("myPassword"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.source").HasValue("https://testaccount.file.core.windows.net/"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.relative_mount_path").HasValue("/mnt/"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.mount_options").HasValue("sampleops"),
 			),
 		},
 		data.ImportStep(
 			"stop_pending_resize_operation",
-			"mount_configuration.0.cifs_mount_configuration.0.password",
+			"mount.0.cifs_mount.0.password",
 		),
 	})
 }
@@ -565,10 +565,10 @@ func TestAccBatchPool_mountConfigurationNFS(t *testing.T) {
 			Config: r.mountConfigurationNFS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_configuration.0.nfs_mount_configuration.#").HasValue("1"),
-				check.That(data.ResourceName).Key("mount_configuration.0.nfs_mount_configuration.0.source").HasValue("https://testaccount.file.core.windows.net/"),
-				check.That(data.ResourceName).Key("mount_configuration.0.nfs_mount_configuration.0.relative_mount_path").HasValue("/mnt/"),
-				check.That(data.ResourceName).Key("mount_configuration.0.nfs_mount_configuration.0.mount_options").HasValue("sampleops"),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.0.source").HasValue("https://testaccount.file.core.windows.net/"),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.0.relative_mount_path").HasValue("/mnt/"),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.0.mount_options").HasValue("sampleops"),
 			),
 		},
 		data.ImportStep(
@@ -1779,8 +1779,8 @@ resource "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
   vm_size             = "Standard_A1"
-  mount_configuration {
-    azure_blob_file_system_configuration {
+  mount {
+    azure_blob_file_system {
       account_name        = azurerm_storage_account.test.name
       container_name      = azurerm_storage_container.test.name
       account_key         = azurerm_storage_account.test.primary_access_key
@@ -1827,8 +1827,8 @@ resource "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
   vm_size             = "Standard_A1"
-  mount_configuration {
-    azure_file_share_configuration {
+  mount {
+    azure_file_share {
       account_name        = azurerm_storage_account.test.name
       account_key         = azurerm_storage_account.test.primary_access_key
       azure_file_url      = "https://testaccount.file.core.windows.net/"
@@ -1863,8 +1863,8 @@ resource "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
   vm_size             = "Standard_A1"
-  mount_configuration {
-    cifs_mount_configuration {
+  mount {
+    cifs_mount {
       user_name           = "myUserName"
       password            = "myPassword"
       source              = "https://testaccount.file.core.windows.net/"
@@ -1900,8 +1900,8 @@ resource "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
   vm_size             = "Standard_A1"
-  mount_configuration {
-    nfs_mount_configuration {
+  mount {
+    nfs_mount {
       source              = "https://testaccount.file.core.windows.net/"
       relative_mount_path = "/mnt/"
       mount_options       = "sampleops"

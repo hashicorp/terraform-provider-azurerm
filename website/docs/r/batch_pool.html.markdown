@@ -144,7 +144,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A map of custom batch pool metadata.
 
-* `mount_configuration` - (Optional) A `mount_configuration` block defined as below.
+* `mount` - (Optional) A `mount` block defined as below.
 
 * `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool.
 
@@ -287,21 +287,21 @@ A `container_registries` block supports the following:
 
 ---
 
-An `mount_configuration` block supports the following:
+An `mount` block supports the following:
 
 Any property below is mutually exclusive with all other properties.
 
-* `azure_blob_file_system_configuration` - (Optional) A `azure_blob_file_system_configuration` block defined as below.
+* `azure_blob_file_system` - (Optional) A `azure_blob_file_system` block defined as below.
 
-* `azure_file_share_configuration` - (Optional) A `azure_file_share_configuration` block defined as below.
+* `azure_file_share` - (Optional) A `azure_file_share` block defined as below.
 
-* `cifs_mount_configuration` - (Optional) A `cifs_mount_configuration` block defined as below.
+* `cifs_mount` - (Optional) A `cifs_mount` block defined as below.
 
-* `nfs_mount_configuration` - (Optional) A `nfs_mount_configuration` block defined as below.
+* `nfs_mount` - (Optional) A `nfs_mount` block defined as below.
 
 ---
 
-An `azure_blob_file_system_configuration` block supports the following:
+An `azure_blob_file_system` block supports the following:
 
 * `account_name` - (Required) The Azure Storage Account name.
 
@@ -319,7 +319,7 @@ An `azure_blob_file_system_configuration` block supports the following:
 
 ---
 
-An `azure_file_share_configuration` block supports the following:
+An `azure_file_share` block supports the following:
 
 * `account_name` - (Required) The Azure Storage Account name.
 
@@ -333,7 +333,7 @@ An `azure_file_share_configuration` block supports the following:
 
 ---
 
-A `cifs_mount_configuration` block supports the following:
+A `cifs_mount` block supports the following:
 
 * `user_name` - (Required) The user to use for authentication against the CIFS file system.
 
@@ -347,7 +347,7 @@ A `cifs_mount_configuration` block supports the following:
 
 ---
 
-A `nfs_mount_configuration` block supports the following:
+A `nfs_mount` block supports the following:
 
 * `source` - (Required) The URI of the file system to mount.
 
