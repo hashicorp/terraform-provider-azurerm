@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_monitor_data_collection_endpoint` [GH-17992]
 * **New Resource**: `azurerm_app_service_connection` [GH-16907]
 * **New Resource**: `azurerm_api_management_product_tag` [GH-17798]
 * **New Resource**: `azurerm_automation_connection_type` [GH-17538]
