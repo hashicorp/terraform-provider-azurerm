@@ -21,15 +21,14 @@ type SpacecraftResource struct{}
 var _ sdk.ResourceWithUpdate = SpacecraftResource{}
 
 type SpacecraftResourceModel struct {
-	Name          string                `tfschema:"name"`
-	ResourceGroup string                `tfschema:"resource_group_name"`
-	Location      string                `tfschema:"location"`
-	NoradId       string                `tfschema:"norad_id"`
-	Links         []SpacecraftLinkModel `tfschema:"links"`
-	TitleLine     string                `tfschema:"title_line"`
-	TleLine1      string                `tfschema:"tle_line_1"`
-	TleLine2      string                `tfschema:"tle_line_2"`
-	Tags          map[string]string     `tfschema:"tags"`
+	Name            string                `tfschema:"name"`
+	ResourceGroup   string                `tfschema:"resource_group_name"`
+	Location        string                `tfschema:"location"`
+	NoradId         string                `tfschema:"norad_id"`
+	Links           []SpacecraftLinkModel `tfschema:"links"`
+	TitleLine       string                `tfschema:"title_line"`
+	TwoLineElements []string              `tfschema:"two_line_elements"`
+	Tags            map[string]string     `tfschema:"tags"`
 }
 
 func (r SpacecraftResource) Arguments() map[string]*pluginsdk.Schema {
@@ -53,18 +52,16 @@ func (r SpacecraftResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"links": SpacecraftLinkSchema(),
 
-		"tle_line_1": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(69, 69),
-		},
-
-		"tle_line_2": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(69, 69),
+		"two_line_elements": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MinItems: 2,
+			MaxItems: 2,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringLenBetween(69, 69),
+			},
 		},
 
 		"title_line": {
@@ -116,8 +113,8 @@ func (r SpacecraftResource) Create() sdk.ResourceFunc {
 			spacecraftProperties := spacecraft.SpacecraftsProperties{
 				Links:     &links,
 				NoradId:   model.NoradId,
-				TleLine1:  &model.TleLine1,
-				TleLine2:  &model.TleLine2,
+				TleLine1:  &model.TwoLineElements[0],
+				TleLine2:  &model.TwoLineElements[1],
 				TitleLine: &model.TitleLine,
 			}
 
@@ -157,14 +154,14 @@ func (r SpacecraftResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				props := model.Properties
+				twoLineElements := []string{*props.TleLine1, *props.TleLine2}
 				state := SpacecraftResourceModel{
-					Name:          id.SpacecraftName,
-					ResourceGroup: id.ResourceGroupName,
-					Location:      model.Location,
-					NoradId:       props.NoradId,
-					TleLine1:      *props.TleLine1,
-					TleLine2:      *props.TleLine2,
-					TitleLine:     *props.TitleLine,
+					Name:            id.SpacecraftName,
+					ResourceGroup:   id.ResourceGroupName,
+					Location:        model.Location,
+					NoradId:         props.NoradId,
+					TwoLineElements: twoLineElements,
+					TitleLine:       *props.TitleLine,
 				}
 				if model.Tags != nil {
 					state.Tags = *model.Tags
@@ -235,8 +232,8 @@ func (r SpacecraftResource) Update() sdk.ResourceFunc {
 						Links:     &spacecraftLinks,
 						NoradId:   state.NoradId,
 						TitleLine: &state.TitleLine,
-						TleLine1:  &state.TleLine1,
-						TleLine2:  &state.TleLine2,
+						TleLine1:  &state.TwoLineElements[0],
+						TleLine2:  &state.TwoLineElements[1],
 					},
 					Tags: &state.Tags,
 				}
