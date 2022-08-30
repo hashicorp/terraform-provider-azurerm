@@ -1,14 +1,19 @@
 package namespaces
 
 type NetworkRuleSetOperationPredicate struct {
-	Id   *string
-	Name *string
-	Type *string
+	Id       *string
+	Location *string
+	Name     *string
+	Type     *string
 }
 
 func (p NetworkRuleSetOperationPredicate) Matches(input NetworkRuleSet) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
 		return false
 	}
 

@@ -12,7 +12,7 @@ type SBNamespaceUpdateParameters struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                            `json:"location,omitempty"`
 	Name       *string                            `json:"name,omitempty"`
-	Properties *SBNamespaceProperties             `json:"properties,omitempty"`
+	Properties *SBNamespaceUpdateProperties       `json:"properties,omitempty"`
 	Sku        *SBSku                             `json:"sku,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 	Type       *string                            `json:"type,omitempty"`
