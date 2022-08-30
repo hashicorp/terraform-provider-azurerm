@@ -40,6 +40,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_sentinel_alert_rule_machine_learning_behavior_analytics":               resourceSentinelAlertRuleMLBehaviorAnalytics(),
 		"azurerm_sentinel_alert_rule_ms_security_incident":                              resourceSentinelAlertRuleMsSecurityIncident(),
 		"azurerm_sentinel_alert_rule_scheduled":                                         resourceSentinelAlertRuleScheduled(),
+		"azurerm_sentinel_alert_rule_nrt":                                               resourceSentinelAlertRuleNrt(),
 		"azurerm_sentinel_data_connector_aws_cloud_trail":                               resourceSentinelDataConnectorAwsCloudTrail(),
 		"azurerm_sentinel_data_connector_azure_active_directory":                        resourceSentinelDataConnectorAzureActiveDirectory(),
 		"azurerm_sentinel_data_connector_azure_advanced_threat_protection":              resourceSentinelDataConnectorAzureAdvancedThreatProtection(),
