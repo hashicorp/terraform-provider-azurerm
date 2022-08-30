@@ -369,8 +369,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_F2s_v2"
-  instances = 1
+  sku_name = "Standard_F2s_v2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -413,6 +415,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthWindows"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = "80"
+      "requestPath" = "/"
+    })
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
@@ -436,8 +452,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_D1_v2"
-  instances = 1
+  sku_name = "Standard_D1_v2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -478,6 +496,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     offer     = "WindowsServer"
     sku       = "2016-Datacenter"
     version   = "latest"
+  }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthWindows"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = "80"
+      "requestPath" = "/healthEndpoint"
+    })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, patchMode, r.natgateway_template(data))
@@ -502,8 +534,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_D1_v2"
-  instances = 1
+  sku_name = "Standard_D1_v2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -543,6 +577,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthWindows"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = "80"
+      "requestPath" = "/healthEndpoint"
+    })
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
@@ -566,8 +614,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_D1_v2"
-  instances = 1
+  sku_name = "Standard_D1_v2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -609,6 +659,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthWindows"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = "80"
+      "requestPath" = "/healthEndpoint"
+    })
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
@@ -632,8 +696,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_F2"
-  instances = 1
+  sku_name = "Standard_F2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -679,6 +745,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthLinux"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = 80
+      "requestPath" = "/healthEndpoint"
+    })
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, patchMode, r.natgateway_template(data))
 }
@@ -702,8 +782,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_F2"
-  instances = 1
+  sku_name = "Standard_F2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -747,6 +829,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthLinux"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = 80
+      "requestPath" = "/healthEndpoint"
+    })
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
@@ -770,8 +866,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_F2"
-  instances = 1
+  sku_name = "Standard_F2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -816,6 +914,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
+  }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthLinux"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = 80
+      "requestPath" = "/healthEndpoint"
+    })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
@@ -915,8 +1027,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   zones = []
 
-  sku_name  = "Standard_D1_v2"
-  instances = 1
+  sku_name = "Standard_D1_v2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -963,6 +1077,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     enabled      = true
     grace_period = "PT1H"
   }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthLinux"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = 80
+      "requestPath" = "/healthEndpoint"
+    })
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
@@ -995,8 +1123,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   zones = []
 
-  sku_name  = "Standard_D1_v2"
-  instances = 1
+  sku_name = "Standard_D1_v2"
+
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances = 0
 
   platform_fault_domain_count = 2
 
@@ -1041,6 +1171,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   automatic_instance_repair {
     enabled = false
+  }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthLinux"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = 80
+      "requestPath" = "/healthEndpoint"
+    })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
