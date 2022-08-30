@@ -58,6 +58,23 @@ func TestAccLinuxFunctionApp_basicBasicPlan(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_basicRuntimeCheck(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.runtimeScaleCheck(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.runtime_scale_monitoring_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxFunctionApp_basicConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -1379,7 +1396,7 @@ resource "azurerm_linux_function_app" "test" {
 }
 
 func (r LinuxFunctionAppResource) withIPRestrictions(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+  return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1411,6 +1428,31 @@ resource "azurerm_linux_function_app" "test" {
   }
 }
 `, r.template(data, SkuStandardPlan), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) runtimeScaleCheck(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    runtime_scale_monitoring_enabled = true
+    pre_warmed_instance_count        = 1
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) healthCheckPath(data acceptance.TestData, planSku string) string {

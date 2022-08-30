@@ -30,6 +30,7 @@ func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_write_key.0.connection_string").Exists(),
 				check.That(data.ResourceName).Key("primary_write_key.0.id").Exists(),
 				check.That(data.ResourceName).Key("primary_write_key.0.secret").Exists(),
+				check.That(data.ResourceName).Key("public_network_access").Exists(),
 				check.That(data.ResourceName).Key("secondary_read_key.0.connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_read_key.0.id").Exists(),
 				check.That(data.ResourceName).Key("secondary_read_key.0.secret").Exists(),

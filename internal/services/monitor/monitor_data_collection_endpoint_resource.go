@@ -17,17 +17,18 @@ import (
 )
 
 type DataCollectionEndpoint struct {
-	Description               string                 `tfschema:"description"`
-	Kind                      string                 `tfschema:"kind"`
-	Name                      string                 `tfschema:"name"`
-	Location                  string                 `tfschema:"location"`
-	EnablePublicNetworkAccess bool                   `tfschema:"public_network_access_enabled"`
-	ResourceGroupName         string                 `tfschema:"resource_group_name"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
+	ConfigurationAccessEndpoint string                 `tfschema:"configuration_access_endpoint"`
+	Description                 string                 `tfschema:"description"`
+	Kind                        string                 `tfschema:"kind"`
+	Name                        string                 `tfschema:"name"`
+	Location                    string                 `tfschema:"location"`
+	LogsIngestionEndpoint       string                 `tfschema:"logs_ingestion_endpoint"`
+	EnablePublicNetworkAccess   bool                   `tfschema:"public_network_access_enabled"`
+	ResourceGroupName           string                 `tfschema:"resource_group_name"`
+	Tags                        map[string]interface{} `tfschema:"tags"`
 }
 
-type DataCollectionEndpointResource struct {
-}
+type DataCollectionEndpointResource struct{}
 
 func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -65,7 +66,17 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 }
 
 func (r DataCollectionEndpointResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"configuration_access_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"logs_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r DataCollectionEndpointResource) ResourceType() string {
@@ -146,7 +157,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			var enablePublicNetWorkAccess bool
-			var description, kind, location string
+			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
@@ -157,17 +168,27 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 					if networkAcls := prop.NetworkAcls; networkAcls != nil {
 						enablePublicNetWorkAccess = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
 					}
+
+					if prop.ConfigurationAccess != nil && prop.ConfigurationAccess.Endpoint != nil {
+						configurationAccessEndpoint = *prop.ConfigurationAccess.Endpoint
+					}
+
+					if prop.LogsIngestion != nil && prop.LogsIngestion.Endpoint != nil {
+						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
+					}
 				}
 			}
 
 			return metadata.Encode(&DataCollectionEndpoint{
-				Description:               description,
-				Kind:                      kind,
-				Location:                  location,
-				Name:                      id.DataCollectionEndpointName,
-				EnablePublicNetworkAccess: enablePublicNetWorkAccess,
-				ResourceGroupName:         id.ResourceGroupName,
-				Tags:                      tag,
+				ConfigurationAccessEndpoint: configurationAccessEndpoint,
+				Description:                 description,
+				Kind:                        kind,
+				Location:                    location,
+				LogsIngestionEndpoint:       logsIngestionEndpoint,
+				Name:                        id.DataCollectionEndpointName,
+				EnablePublicNetworkAccess:   enablePublicNetWorkAccess,
+				ResourceGroupName:           id.ResourceGroupName,
+				Tags:                        tag,
 			})
 		},
 		Timeout: 5 * time.Minute,
