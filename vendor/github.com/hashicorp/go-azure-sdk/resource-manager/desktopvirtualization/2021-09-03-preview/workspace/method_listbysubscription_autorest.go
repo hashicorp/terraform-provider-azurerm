@@ -60,50 +60,6 @@ func (c WorkspaceClient) ListBySubscription(ctx context.Context, id commonids.Su
 	return
 }
 
-// ListBySubscriptionComplete retrieves all of the results into a single object
-func (c WorkspaceClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
-	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, WorkspaceOperationPredicate{})
-}
-
-// ListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c WorkspaceClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate WorkspaceOperationPredicate) (resp ListBySubscriptionCompleteResult, err error) {
-	items := make([]Workspace, 0)
-
-	page, err := c.ListBySubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListBySubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListBySubscription prepares the ListBySubscription request.
 func (c WorkspaceClient) preparerForListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c WorkspaceClient) responderForListBySubscription(resp *http.Response) (re
 		}
 	}
 	return
+}
+
+// ListBySubscriptionComplete retrieves all of the results into a single object
+func (c WorkspaceClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
+	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, WorkspaceOperationPredicate{})
+}
+
+// ListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c WorkspaceClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate WorkspaceOperationPredicate) (resp ListBySubscriptionCompleteResult, err error) {
+	items := make([]Workspace, 0)
+
+	page, err := c.ListBySubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListBySubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

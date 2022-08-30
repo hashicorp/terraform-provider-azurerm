@@ -59,6 +59,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
     operator  = "GreaterThan"
     threshold = 3
   }
+  tags = {
+    foo = "bar"
+  }
 }
 
 # Example: Alerting Action Cross-Resource
@@ -92,6 +95,9 @@ QUERY
     operator  = "GreaterThan"
     threshold = 3
   }
+  tags = {
+    foo = "bar"
+  }
 }
 ```
 
@@ -114,6 +120,7 @@ The following arguments are supported:
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
 * `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (inclusive).
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -160,5 +167,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Scheduled Query Rule Alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledqueryrules/myrulename
+terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
 ```

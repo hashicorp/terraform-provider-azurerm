@@ -67,6 +67,20 @@ func TestAccStreamAnalyticsOutputPowerBI_update(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputPowerBI_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_powerbi", "test")
+	r := StreamAnalyticsOutputPowerBIResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (r StreamAnalyticsOutputPowerBIResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -95,6 +109,24 @@ resource "azurerm_stream_analytics_output_powerbi" "test" {
   table                   = "updated-table"
   group_id                = "e18ff5df-fb66-4f6d-8f27-88c4dcbfc002"
   group_name              = "some-updated-group-id"
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputPowerBIResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_powerbi" "test" {
+  name                      = "acctestoutput-%d"
+  stream_analytics_job_id   = azurerm_stream_analytics_job.test.id
+  dataset                   = "complete-dataset"
+  table                     = "complete-table"
+  group_id                  = "e18ff5df-fb66-4f6d-8f27-88c4dcbfc002"
+  group_name                = "some-test-group-name"
+  token_user_principal_name = "bobsmith@contoso.com"
+  token_user_display_name   = "Bob Smith"
 }
 `, template, data.RandomInteger)
 }

@@ -84,50 +84,6 @@ func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroup(ctx context.Context
 	return
 }
 
-// DedicatedHsmListByResourceGroupComplete retrieves all of the results into a single object
-func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options DedicatedHsmListByResourceGroupOperationOptions) (DedicatedHsmListByResourceGroupCompleteResult, error) {
-	return c.DedicatedHsmListByResourceGroupCompleteMatchingPredicate(ctx, id, options, DedicatedHsmOperationPredicate{})
-}
-
-// DedicatedHsmListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options DedicatedHsmListByResourceGroupOperationOptions, predicate DedicatedHsmOperationPredicate) (resp DedicatedHsmListByResourceGroupCompleteResult, err error) {
-	items := make([]DedicatedHsm, 0)
-
-	page, err := c.DedicatedHsmListByResourceGroup(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := DedicatedHsmListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForDedicatedHsmListByResourceGroup prepares the DedicatedHsmListByResourceGroup request.
 func (c DedicatedHsmsClient) preparerForDedicatedHsmListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options DedicatedHsmListByResourceGroupOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -213,4 +169,48 @@ func (c DedicatedHsmsClient) responderForDedicatedHsmListByResourceGroup(resp *h
 		}
 	}
 	return
+}
+
+// DedicatedHsmListByResourceGroupComplete retrieves all of the results into a single object
+func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options DedicatedHsmListByResourceGroupOperationOptions) (DedicatedHsmListByResourceGroupCompleteResult, error) {
+	return c.DedicatedHsmListByResourceGroupCompleteMatchingPredicate(ctx, id, options, DedicatedHsmOperationPredicate{})
+}
+
+// DedicatedHsmListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options DedicatedHsmListByResourceGroupOperationOptions, predicate DedicatedHsmOperationPredicate) (resp DedicatedHsmListByResourceGroupCompleteResult, err error) {
+	items := make([]DedicatedHsm, 0)
+
+	page, err := c.DedicatedHsmListByResourceGroup(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := DedicatedHsmListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

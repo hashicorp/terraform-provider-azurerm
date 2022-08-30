@@ -734,14 +734,14 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 						Value: utils.String("dotnet-isolated"),
 					})
-					windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion)
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion))
 
 				} else {
 					appSettings = append(appSettings, web.NameValuePair{
 						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 						Value: utils.String("dotnet"),
 					})
-					windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion)
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
 				}
 			}
 
@@ -754,7 +754,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
 					Value: utils.String(windowsAppStack.NodeVersion),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion)
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion))
 			}
 
 			if windowsAppStack.JavaVersion != "" {
@@ -762,7 +762,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("java"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion)
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion))
 			}
 
 			if windowsAppStack.PowerShellCoreVersion != "" {
@@ -770,7 +770,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("powershell"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion)
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion))
 			}
 
 			if windowsAppStack.CustomHandler {
@@ -778,14 +778,14 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("custom"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = "" // Custom needs an explicit empty string here
+				expanded.WindowsFxVersion = utils.String("") // Custom needs an explicit empty string here
 			}
 		} else {
 			appSettings = append(appSettings, web.NameValuePair{
 				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 				Value: utils.String(""),
 			})
-			windowsSlotSiteConfig.WindowsFxVersion = ""
+			expanded.WindowsFxVersion = utils.String("")
 		}
 	}
 

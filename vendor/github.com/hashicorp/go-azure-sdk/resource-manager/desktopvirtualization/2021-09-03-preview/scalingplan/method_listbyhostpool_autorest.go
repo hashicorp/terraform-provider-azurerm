@@ -59,50 +59,6 @@ func (c ScalingPlanClient) ListByHostPool(ctx context.Context, id HostPoolId) (r
 	return
 }
 
-// ListByHostPoolComplete retrieves all of the results into a single object
-func (c ScalingPlanClient) ListByHostPoolComplete(ctx context.Context, id HostPoolId) (ListByHostPoolCompleteResult, error) {
-	return c.ListByHostPoolCompleteMatchingPredicate(ctx, id, ScalingPlanOperationPredicate{})
-}
-
-// ListByHostPoolCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ScalingPlanClient) ListByHostPoolCompleteMatchingPredicate(ctx context.Context, id HostPoolId, predicate ScalingPlanOperationPredicate) (resp ListByHostPoolCompleteResult, err error) {
-	items := make([]ScalingPlan, 0)
-
-	page, err := c.ListByHostPool(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByHostPoolCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByHostPool prepares the ListByHostPool request.
 func (c ScalingPlanClient) preparerForListByHostPool(ctx context.Context, id HostPoolId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ScalingPlanClient) responderForListByHostPool(resp *http.Response) (resu
 		}
 	}
 	return
+}
+
+// ListByHostPoolComplete retrieves all of the results into a single object
+func (c ScalingPlanClient) ListByHostPoolComplete(ctx context.Context, id HostPoolId) (ListByHostPoolCompleteResult, error) {
+	return c.ListByHostPoolCompleteMatchingPredicate(ctx, id, ScalingPlanOperationPredicate{})
+}
+
+// ListByHostPoolCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ScalingPlanClient) ListByHostPoolCompleteMatchingPredicate(ctx context.Context, id HostPoolId, predicate ScalingPlanOperationPredicate) (resp ListByHostPoolCompleteResult, err error) {
+	items := make([]ScalingPlan, 0)
+
+	page, err := c.ListByHostPool(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByHostPoolCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

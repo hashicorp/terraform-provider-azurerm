@@ -63,5 +63,6 @@ func (c RulesClient) responderForTagRulesGet(resp *http.Response) (result TagRul
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
