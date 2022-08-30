@@ -1240,22 +1240,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
-
-  extension {
-    name                       = "CustomScript"
-    publisher                  = "Microsoft.Compute"
-    type                       = "CustomScriptExtension"
-    type_handler_version       = "1.10"
-    auto_upgrade_minor_version = true
-
-    settings = jsonencode({
-      "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
-    })
-
-    protected_settings = jsonencode({
-      "managedIdentity" = {}
-    })
-  }
 }
 `, r.template(data))
 }
