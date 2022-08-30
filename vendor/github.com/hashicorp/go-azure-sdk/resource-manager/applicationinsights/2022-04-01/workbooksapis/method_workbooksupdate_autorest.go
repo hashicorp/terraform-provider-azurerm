@@ -89,7 +89,7 @@ func (c WorkbooksAPIsClient) preparerForWorkbooksUpdate(ctx context.Context, id 
 func (c WorkbooksAPIsClient) responderForWorkbooksUpdate(resp *http.Response) (result WorkbooksUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp

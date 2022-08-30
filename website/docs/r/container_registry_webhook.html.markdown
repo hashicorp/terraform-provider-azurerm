@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `custom_headers` - (Optional) Custom headers that will be added to the webhook notifications request.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ## Attributes Reference
 
 The following attributes are exported:
