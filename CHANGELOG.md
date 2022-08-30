@@ -19,6 +19,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_container_registry` - support the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties [GH-17926]
 * `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
 * `azurerm_iothub_dps` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-18151]
 * `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
