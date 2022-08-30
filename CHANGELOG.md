@@ -23,13 +23,14 @@ ENHANCEMENTS:
 * `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_servicebus_namespace` - support for the `public_network_access_enabled` and `minimum_tls_version` properties [GH-17805]
-* `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_storage_account` - support for the `public_network_access_enabled` property [GH-18005]
 * `azurerm_stream_analytics_output_eventhub` - support for the `authentication_mode` property [GH-18096]
 * `azurerm_stream_analytics_output_mssql` - support for the `authentication_mode` property [GH-18096]
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `authentication_mode` property [GH-18096]
 * `azurerm_stream_analytics_output_powerbi` - support for the `token_user_principal_name` and `token_user_display_name` properties [GH-18117]
 * `azurerm_stream_analytics_output_cosmosdb` - support for the `partition_key` property [GH-18120]
 * `azurerm_stream_analytics_reference_input_blob` - support for the `authentication_mode` property [GH-18137]
+* `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 
 BUG FIXES:
 
