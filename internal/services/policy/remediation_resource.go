@@ -268,7 +268,7 @@ func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.Re
 			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
 		PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
-		PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_id").(string)),
+		PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_reference_id").(string)),
 	}
 	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
 	prop.ResourceDiscoveryMode = &mode
@@ -300,7 +300,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 	}
 
 	d.Set("policy_assignment_id", prop.PolicyAssignmentId)
-	d.Set("policy_definition_id", prop.PolicyDefinitionReferenceId)
+	d.Set("policy_definition_reference_id", prop.PolicyDefinitionReferenceId)
 	d.Set("resource_discovery_mode", utils.NormalizeNilableString((*string)(prop.ResourceDiscoveryMode)))
 
 	d.Set("resource_count", prop.ResourceCount)
