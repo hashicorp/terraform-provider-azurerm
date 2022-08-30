@@ -28,6 +28,7 @@ func TestAccIotHubDPS_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("device_provisioning_host_name").Exists(),
 				check.That(data.ResourceName).Key("id_scope").Exists(),
 				check.That(data.ResourceName).Key("service_operations_host_name").Exists(),
+				check.That(data.ResourceName).Key("data_residency_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -70,6 +71,21 @@ func TestAccIotHubDPS_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubDPS_dataResidencyEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
+	r := IotHubDPSResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataResidencyEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -223,6 +239,34 @@ resource "azurerm_iothub_dps" "test" {
 
   tags = {
     purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (IotHubDPSResource) dataResidencyEnabled(data acceptance.TestData) string {
+	// Data residency has limited region support
+	data.Locations.Primary = "brazilsouth"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub_dps" "test" {
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  data_residency_enabled = true
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

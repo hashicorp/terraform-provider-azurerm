@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/dataexport"
@@ -24,6 +25,7 @@ type Client struct {
 	SavedSearchesClient        *savedsearches.SavedSearchesClient
 	SolutionsClient            *solution.SolutionClient
 	StorageInsightsClient      *storageinsights.StorageInsightsClient
+	QueryPackQueriesClient     *querypackqueries.QueryPackQueriesClient
 	WorkspacesClient           *workspaces.WorkspacesClient
 }
 
@@ -58,6 +60,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	QueryPacksClient := querypacks.NewQueryPacksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&QueryPacksClient.Client, o.ResourceManagerAuthorizer)
 
+	QueryPackQueriesClient := querypackqueries.NewQueryPackQueriesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&QueryPackQueriesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ClusterClient:              &ClusterClient,
 		DataExportClient:           &DataExportClient,
@@ -65,6 +70,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		LinkedServicesClient:       &LinkedServicesClient,
 		LinkedStorageAccountClient: &LinkedStorageAccountClient,
 		QueryPacksClient:           &QueryPacksClient,
+		QueryPackQueriesClient:     &QueryPackQueriesClient,
 		SavedSearchesClient:        &SavedSearchesClient,
 		SolutionsClient:            &SolutionsClient,
 		StorageInsightsClient:      &StorageInsightsClient,

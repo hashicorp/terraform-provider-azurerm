@@ -233,6 +233,18 @@ A `worker_node` block supports the following:
 
 ---
 
+A `display_encryption_properties` block supports the following:
+
+* `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
+
+* `encryption_at_host_enabled` - (Optional) This is indicator to show whether resource disk encryption is enabled.
+
+* `key_vault_key_id` - (Optional) The ID of the key vault key.
+
+* `key_vault_managed_identity_id` - (Optional) This is the resource ID of Managed Identity used to access the key vault.
+
+---
+
 A `zookeeper_node` block supports the following:
 
 * `username` - (Required) The Username of the local administrator for the Zookeeper Nodes. Changing this forces a new resource to be created.
