@@ -485,7 +485,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount, metadata)
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {

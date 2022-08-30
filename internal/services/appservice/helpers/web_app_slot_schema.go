@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
@@ -829,6 +830,9 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 
 			winAppStack := winSlotSiteConfig.ApplicationStack[0]
 			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
+			if winAppStack.CurrentStack == "dotnetcore" {
+				expanded.NetFrameworkVersion = nil
+			}
 			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
 			expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
 			expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
@@ -967,7 +971,7 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
+func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int, metadata sdk.ResourceMetaData) []SiteConfigWindowsWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -1019,8 +1023,24 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		siteConfig.WorkerCount = int(*appSiteSlotConfig.NumberOfWorkers)
 	}
 
+	dotnetVersion := ""
+	if appSiteSlotConfig.NetFrameworkVersion != nil {
+		dotnetVersion = *appSiteSlotConfig.NetFrameworkVersion
+	}
+	if currentStack == "dotnetcore" {
+		if !features.FourPointOh() {
+			if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) == "v3.0" {
+				dotnetVersion = "v3.0"
+			} else if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) == "core3.1" {
+				dotnetVersion = "core3.1"
+			}
+		} else {
+			dotnetVersion = "core3.1"
+		}
+	}
+
 	winAppStack := ApplicationStackWindows{
-		NetFrameworkVersion:  utils.NormalizeNilableString(appSiteSlotConfig.NetFrameworkVersion),
+		NetFrameworkVersion:  dotnetVersion,
 		PhpVersion:           utils.NormalizeNilableString(appSiteSlotConfig.PhpVersion),
 		NodeVersion:          utils.NormalizeNilableString(appSiteSlotConfig.NodeVersion),
 		PythonVersion:        utils.NormalizeNilableString(appSiteSlotConfig.PythonVersion),

@@ -304,7 +304,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount, metadata)
 
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 

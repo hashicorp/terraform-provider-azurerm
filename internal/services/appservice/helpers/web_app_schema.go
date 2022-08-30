@@ -967,6 +967,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.8",
 						"11",
+						"17",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
@@ -3562,7 +3563,7 @@ func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 	return true
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindows {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int, metadata sdk.ResourceMetaData) []SiteConfigWindows {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3614,7 +3615,23 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	var winAppStack ApplicationStackWindows
-	winAppStack.NetFrameworkVersion = utils.NormalizeNilableString(appSiteConfig.NetFrameworkVersion)
+
+	dotnetVersion := ""
+	if appSiteConfig.NetFrameworkVersion != nil {
+		dotnetVersion = *appSiteConfig.NetFrameworkVersion
+	}
+	if currentStack == "dotnetcore" {
+		if !features.FourPointOh() {
+			if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) == "v3.0" {
+				dotnetVersion = "v3.0"
+			} else if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) == "core3.1" {
+				dotnetVersion = "core3.1"
+			}
+		} else {
+			dotnetVersion = "core3.1"
+		}
+	}
+	winAppStack.NetFrameworkVersion = dotnetVersion
 	winAppStack.PhpVersion = utils.NormalizeNilableString(appSiteConfig.PhpVersion)
 	winAppStack.NodeVersion = utils.NormalizeNilableString(appSiteConfig.NodeVersion)
 	winAppStack.PythonVersion = utils.NormalizeNilableString(appSiteConfig.PythonVersion)

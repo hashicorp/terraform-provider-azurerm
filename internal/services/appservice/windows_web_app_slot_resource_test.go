@@ -525,7 +525,22 @@ func TestAccWindowsWebAppSlot_withDotNet3(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_config.0.application_stack.0.dotnet_version"),
+	})
+}
+
+func TestAccWindowsWebAppSlot_withDotNetCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNetCore(data, "core3.1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_config.0.application_stack.0.dotnet_version"),
 	})
 }
 
@@ -1512,6 +1527,29 @@ resource "azurerm_windows_web_app_slot" "test" {
   site_config {
     application_stack {
       dotnet_version = "%s"
+    }
+  }
+}
+
+`, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
+}
+
+func (r WindowsWebAppSlotResource) dotNetCore(data acceptance.TestData, dotNetVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {
+    application_stack {
+      dotnet_version = "%s"
+      current_stack  = "dotnetcore"
     }
   }
 }
