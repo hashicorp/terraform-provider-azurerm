@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -38,17 +37,12 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 
-			"api_name": schemaz.SchemaApiManagementApiName(),
-
-			"api_management_name": schemaz.SchemaApiManagementName(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"tag_id": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Optional: true,
 			},
+
+			"api_name": schemaz.SchemaApiManagementApiName(),
 
 			"description": {
 				Type:     pluginsdk.TypeString,
@@ -72,11 +66,15 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiTagDescriptionClient
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApiTagDescriptionsID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("tag_id").(string))
+	tagId, err := parse.TagID(d.Get("tag_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `api_id`: %v", err)
+	}
+
+	id := parse.NewApiTagDescriptionsID(tagId.SubscriptionId, tagId.ResourceGroup, tagId.ServiceName, d.Get("api_name").(string), tagId.Name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.TagDescriptionName)
@@ -133,10 +131,10 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	tagId := parse.NewTagID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.TagDescriptionName)
+
+	d.Set("tag_id", tagId.ID())
 	d.Set("api_name", id.ApiName)
-	d.Set("api_management_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("tag_id", id.TagDescriptionName)
 	d.Set("description", resp.Description)
 	d.Set("external_documentation_url", resp.ExternalDocsURL)
 	d.Set("external_documentation_description", resp.ExternalDocsDescription)

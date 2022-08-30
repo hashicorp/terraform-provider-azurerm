@@ -91,9 +91,7 @@ resource "azurerm_api_management_tag" "test" {
 
 resource "azurerm_api_management_api_tag_description" "test" {
   api_name                           = azurerm_api_management_api.test.name
-  api_management_name                = azurerm_api_management.test.name
-  resource_group_name                = azurerm_resource_group.test.name
-  tag_id                             = azurerm_api_management_tag.test.name
+  tag_id                             = azurerm_api_management_tag.test.id
   description                        = "tag description"
   external_documentation_url         = "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs"
   external_documentation_description = "external tag description"
@@ -106,8 +104,6 @@ func (r ApiManagementApiTagDescriptionResource) requiresImport(data acceptance.T
 %s
 resource "azurerm_api_management_api_tag_description" "import" {
   api_name                           = azurerm_api_management_api_tag_description.test.api_name
-  api_management_name                = azurerm_api_management_api_tag_description.test.api_management_name
-  resource_group_name                = azurerm_api_management_api_tag_description.test.resource_group_name
   tag_id                             = azurerm_api_management_api_tag_description.test.tag_id
   description                        = azurerm_api_management_api_tag_description.test.description
   external_documentation_url         = azurerm_api_management_api_tag_description.test.external_documentation_url
@@ -126,9 +122,7 @@ resource "azurerm_api_management_tag" "test" {
 
 resource "azurerm_api_management_api_tag_description" "test" {
   api_name                           = azurerm_api_management_api.test.name
-  api_management_name                = azurerm_api_management.test.name
-  resource_group_name                = azurerm_resource_group.test.name
-  tag_id                             = azurerm_api_management_tag.test.name
+  tag_id                             = azurerm_api_management_tag.test.id
   description                        = "tag description update"
   external_documentation_url         = "https://registry.terraform.io/providers/hashicorp/azurerm"
   external_documentation_description = "external tag description update"
