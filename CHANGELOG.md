@@ -27,6 +27,7 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `authentication_mode` property [GH-18096]
 * `azurerm_stream_analytics_output_powerbi` - support for the `token_user_principal_name` and `token_user_display_name` properties [GH-18117]
 * `azurerm_stream_analytics_output_cosmosdb` - support for the `partition_key` property [GH-18120]
+* `azurerm_stream_analytics_reference_input_blob` - support for the `authentication_mode` property [GH-18137]
 
 BUG FIXES:
 
