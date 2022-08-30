@@ -63,6 +63,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	DataCollectionEndpointsClient := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&DataCollectionEndpointsClient.Client, o.ResourceManagerAuthorizer)
+
 	DataCollectionRulesClient := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -98,6 +101,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionGroupsClient:               &ActionGroupsClient,
 		ActivityLogAlertsClient:          &ActivityLogAlertsClient,
 		AlertRulesClient:                 &AlertRulesClient,
+		DataCollectionEndpointsClient:    &DataCollectionEndpointsClient,
 		DataCollectionRulesClient:        &DataCollectionRulesClient,
 		DiagnosticSettingsClient:         &DiagnosticSettingsClient,
 		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
