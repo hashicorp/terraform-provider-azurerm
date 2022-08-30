@@ -9,6 +9,13 @@ FEATURES:
 * **New Resource**: `azurerm_spring_cloud_connection` [GH-16907]
 * **New Resource**: `azurerm_sentinel_alert_rule_nrt` [GH-15999]
 
+ENHANCEMENTS:
+
+* `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+
 BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - `kube_config` is now set when AAD is enabled for a v1.24 cluster [GH-18142]
