@@ -7,14 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	validateAuto "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +27,7 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 		Update: resourceLogAnalyticsLinkedServiceCreateUpdate,
 		Delete: resourceLogAnalyticsLinkedServiceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LogAnalyticsLinkedServiceID(id)
+			_, err := linkedservices.ParseLinkedServiceID(id)
 			return err
 		}),
 
@@ -52,7 +51,7 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 
 			if d.HasChange("write_access_id") {
 				if writeAccessID := d.Get("write_access_id").(string); writeAccessID != "" {
-					if _, err := validate.LogAnalyticsClusterID(writeAccessID, "write_access_id"); err != nil {
+					if _, err := clusters.ValidateClusterID(writeAccessID, "write_access_id"); err != nil {
 						return fmt.Errorf("'write_access_id' must be a Log Analytics Cluster resource ID, got %q", writeAccessID)
 					}
 				}
@@ -77,12 +76,12 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	writeAccess := d.Get("write_access_id").(string)
 	workspaceId = d.Get("workspace_id").(string)
 
-	workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
+	workspace, err := linkedservices.ParseWorkspaceID(workspaceId)
 	if err != nil {
 		return fmt.Errorf("linked service (Resource Group %q) unable to parse workspace id: %+v", resourceGroup, err)
 	}
 
-	id := parse.NewLogAnalyticsLinkedServiceID(subscriptionId, resourceGroup, workspace.WorkspaceName, LogAnalyticsLinkedServiceType(readAccess))
+	id := linkedservices.NewLinkedServiceID(subscriptionId, resourceGroup, workspace.WorkspaceName, LogAnalyticsLinkedServiceType(readAccess))
 
 	if strings.EqualFold(id.LinkedServiceName, "Cluster") && writeAccess == "" {
 		return fmt.Errorf("linked service '%s/%s' (Resource Group %q): A linked Log Analytics Cluster requires the 'write_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
@@ -93,40 +92,36 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, id.LinkedServiceName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_log_analytics_linked_service", id.ID())
 		}
 	}
 
-	parameters := operationalinsights.LinkedService{
-		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{},
+	parameters := linkedservices.LinkedService{
+		Properties: linkedservices.LinkedServiceProperties{},
 	}
 
 	if id.LinkedServiceName == "Automation" {
-		parameters.LinkedServiceProperties.ResourceID = utils.String(readAccess)
+		parameters.Properties.ResourceId = utils.String(readAccess)
 	}
 
 	if id.LinkedServiceName == "Cluster" {
-		parameters.LinkedServiceProperties.WriteAccessResourceID = utils.String(writeAccess)
+		parameters.Properties.WriteAccessResourceId = utils.String(writeAccess)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, id.LinkedServiceName, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
-	}
-
-	if _, err = client.Get(ctx, resourceGroup, workspace.WorkspaceName, id.LinkedServiceName); err != nil {
+	if _, err = client.Get(ctx, id); err != nil {
 		return fmt.Errorf("retrieving Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
 	}
 
@@ -141,29 +136,38 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsLinkedServiceID(d.Id())
+	id, err := linkedservices.ParseLinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	workspace := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspace := linkedservices.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.LinkedServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("workspace_id", workspace.ID())
 
-	if props := resp.LinkedServiceProperties; props != nil {
-		d.Set("read_access_id", props.ResourceID)
-		d.Set("write_access_id", props.WriteAccessResourceID)
+	if model := resp.Model; model != nil {
+		readAccessId := ""
+		if model.Properties.ResourceId != nil {
+			readAccessId = *model.Properties.ResourceId
+		}
+		d.Set("read_access_id", readAccessId)
+
+		writeAccessId := ""
+		if model.Properties.WriteAccessResourceId != nil {
+			writeAccessId = *model.Properties.WriteAccessResourceId
+		}
+		d.Set("write_access_id", writeAccessId)
 	}
 
 	return nil
@@ -174,25 +178,19 @@ func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsLinkedServiceID(d.Id())
+	id, err := linkedservices.ParseLinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-		}
-	}
-
 	// (@WodansSon) - This is a bug in the service API, it returns instantly from the delete call with a 200
 	// so we must wait for the state to change before we return from the delete function
-	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutDelete), id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
+	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, client, d.Timeout(pluginsdk.TimeoutDelete), *id)
 
 	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s: %+v", *id, err)
