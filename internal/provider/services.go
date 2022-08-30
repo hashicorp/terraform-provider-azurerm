@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks"
@@ -93,6 +94,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
@@ -123,6 +125,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		consumption.Registration{},
 		containers.Registration{},
 		costmanagement.Registration{},
+		dashboard.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
@@ -134,8 +137,10 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		monitor.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
+		recoveryservices.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},
+		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
 		streamanalytics.Registration{},
 		web.Registration{},
@@ -169,6 +174,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			consumption.Registration{},
 			cosmos.Registration{},
 			customproviders.Registration{},
+			dashboard.Registration{},
 			databricks.Registration{},
 			datadog.Registration{},
 			datafactory.Registration{},

@@ -1,5 +1,5 @@
 ---
-subcategory: "Network"
+subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_firewall_policy"
 description: |-
