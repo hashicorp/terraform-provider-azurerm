@@ -81,6 +81,9 @@ var serviceTestConfigurationOverrides = mapOf(
          // Logic uses app service which is only available in certain locations
          "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+         // Logz is only available in certain locations
+         "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
