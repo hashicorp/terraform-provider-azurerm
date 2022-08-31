@@ -205,9 +205,8 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if policyRuleStr := flattenJSON(props.PolicyRule); policyRuleStr != "" {
 			d.Set("policy_rule", policyRuleStr)
-			if roleIDs, err := getPolicyRoleDefinitionIDs(policyRuleStr); err == nil {
-				d.Set("role_definition_ids", roleIDs)
-			}
+			roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
+			d.Set("role_definition_ids", roleIDs)
 		}
 
 		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
