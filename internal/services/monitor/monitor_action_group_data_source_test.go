@@ -90,7 +90,7 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("email_receiver.1.email_address").HasValue("devops@contoso.com"),
 				check.That(data.ResourceName).Key("email_receiver.1.use_common_alert_schema").HasValue("false"),
 				check.That(data.ResourceName).Key("itsm_receiver.#").HasValue("1"),
-				check.That(data.ResourceName).Key("itsm_receiver.0.workspace_id").HasValue("6eee3a18-aac3-40e4-b98e-1f309f329816"),
+				check.That(data.ResourceName).Key("itsm_receiver.0.workspace_id").HasValue("5def922a-3ed4-49c1-b9fd-05ec533819a3|55dfd1f8-7e59-4f89-bf56-4c82f5ace23c"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.connection_id").HasValue("53de6956-42b4-41ba-be3c-b154cdf17b13"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.ticket_configuration").HasValue("{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.region").HasValue("southcentralus"),
@@ -217,7 +217,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   itsm_receiver {
     name                 = "createorupdateticket"
-    workspace_id         = "6eee3a18-aac3-40e4-b98e-1f309f329816"
+    workspace_id         = "5def922a-3ed4-49c1-b9fd-05ec533819a3|55dfd1f8-7e59-4f89-bf56-4c82f5ace23c"
     connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
     ticket_configuration = "{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"
     region               = "southcentralus"
