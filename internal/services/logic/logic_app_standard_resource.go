@@ -1430,7 +1430,7 @@ func addDefaultWorkerRuntime(d *pluginsdk.ResourceData, appSettings []web.NameVa
 func appendIfNotExist(appSettings []web.NameValuePair, toAddSettings web.NameValuePair) []web.NameValuePair {
 	exist := false
 	for _, pair := range appSettings {
-		if strings.EqualFold(*pair.Name, *toAddSettings.Name) {
+		if pair != nil && *pair.Name == *toAddSettings.Name {
 			exist = true
 		}
 	}
