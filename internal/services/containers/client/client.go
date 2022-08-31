@@ -22,7 +22,7 @@ type Client struct {
 	TokensClient                      *containerregistry.TokensClient
 	ScopeMapsClient                   *containerregistry.ScopeMapsClient
 	SnapshotsClient                   *containerservice.SnapshotsClient
-	TasksClient                       *containerregistry.TasksClien t
+	TasksClient                       *containerregistry.TasksClient
 	RunsClient                        *containerregistry.RunsClient
 	ConnectedRegistriesClient         *containerregistry.ConnectedRegistriesClient
 
