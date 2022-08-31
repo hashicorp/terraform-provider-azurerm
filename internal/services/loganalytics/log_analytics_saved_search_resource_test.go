@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/savedsearches"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -80,17 +80,17 @@ func TestAccLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
 }
 
 func (t LogAnalyticsSavedSearchResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(state.ID, "/")))
+	id, err := savedsearches.ParseSavedSearcheID(fmt.Sprintf("/%s", strings.TrimPrefix(state.ID, "/")))
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.SavedSearchesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
+	resp, err := clients.LogAnalytics.SavedSearchesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Linked Service Saved Search (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogAnalyticsSavedSearchResource) basic(data acceptance.TestData) string {

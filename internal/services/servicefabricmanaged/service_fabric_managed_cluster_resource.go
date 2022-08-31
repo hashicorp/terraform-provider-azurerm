@@ -609,7 +609,7 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			for _, lbi := range rd.Get("lb_rule").([]interface{}) {
 				lb := lbi.(map[string]interface{})
 				probeProto := lb["probe_protocol"].(string)
-				if probeProto == string(managedcluster.ProbeProtocolHttp) || probeProto == string(managedcluster.ProbeProtocolHttps) {
+				if probeProto == string(managedcluster.ProbeProtocolHTTP) || probeProto == string(managedcluster.ProbeProtocolHTTPS) {
 					probePath := lb["probe_request_path"]
 					if probePath == nil || probePath.(string) == "" {
 						return fmt.Errorf("probe_request_path needs to be set if probe protocol is %q", probeProto)
@@ -721,7 +721,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	}
 
 	model.ClientConnectionPort = utils.NormaliseNilableInt64(properties.ClientConnectionPort)
-	model.HTTPGatewayPort = utils.NormaliseNilableInt64(properties.HttpGatewayConnectionPort)
+	model.HTTPGatewayPort = utils.NormaliseNilableInt64(properties.HTTPGatewayConnectionPort)
 
 	if lbrules := properties.LoadBalancingRules; lbrules != nil {
 		model.LBRules = make([]LBRule, len(*lbrules))
@@ -887,7 +887,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		out.FabricSettings = &fs
 	}
 
-	out.HttpGatewayConnectionPort = &model.HTTPGatewayPort
+	out.HTTPGatewayConnectionPort = &model.HTTPGatewayPort
 
 	if rules := model.LBRules; len(rules) > 0 {
 		lbRules := make([]managedcluster.LoadBalancingRule, len(rules))
@@ -1212,8 +1212,8 @@ func lbRulesSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProbeProtocolHttp),
-						string(managedcluster.ProbeProtocolHttps),
+						string(managedcluster.ProbeProtocolHTTP),
+						string(managedcluster.ProbeProtocolHTTPS),
 						string(managedcluster.ProbeProtocolTcp),
 					}, false),
 				},
