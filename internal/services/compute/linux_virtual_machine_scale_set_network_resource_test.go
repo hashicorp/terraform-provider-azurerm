@@ -387,6 +387,7 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 }
 
 func TestAccLinuxVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	t.Skip("Skipping test until api version is upgraded to 2022-03-01 with `network_interface.ip_configuration.public_ip_address.sku_name` added")
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
