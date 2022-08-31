@@ -189,15 +189,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_publicIPSkuName(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicEmptyPublicIP(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.sku_name").HasValue("Basic_Regional"),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.basicEmptyPublicIPSkuNameUpdated(data),
+			Config: r.basicEmptyPublicIPSkuName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -206,21 +198,13 @@ func TestAccOrchestratedVirtualMachineScaleSet_publicIPSkuName(t *testing.T) {
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_publicIPVersion(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicEmptyPublicIP(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.basicEmptyPublicIPVersionUpdated(data),
+			Config: r.networkPublicIPVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1059,7 +1043,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIPSkuNameUpdated(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIPSkuName(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1110,7 +1094,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
         name                    = "TestPublicIPConfiguration"
         domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
-        sku_name                = "Standard_Regional"
+        sku_name                = "Basic_Regional"
       }
     }
   }
@@ -1130,7 +1114,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIPVersionUpdated(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1180,6 +1164,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
         domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
         idle_timeout_in_minutes = 4
         version                 = "IPv6"
       }

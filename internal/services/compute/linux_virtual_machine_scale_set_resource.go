@@ -120,6 +120,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
+	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
@@ -182,7 +183,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			ComputerNamePrefix: utils.String(computerNamePrefix),
 			LinuxConfiguration: &compute.LinuxConfiguration{
 				DisablePasswordAuthentication: utils.Bool(disablePasswordAuthentication),
-				ProvisionVMAgent:              utils.Bool(d.Get("provision_vm_agent").(bool)),
+				ProvisionVMAgent:              utils.Bool(provisionVMAgent),
 				SSH: &compute.SSHConfiguration{
 					PublicKeys: &sshKeys,
 				},
@@ -202,12 +203,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
 			GalleryApplications: galleryApplications,
 		}
-	}
-
-	// NOTE: Hardware Profile is currently only supported in Uniform
-	hardwareProfileRaw := d.Get("hardware_profile").([]interface{})
-	if hardwareProfile := ExpandVirtualMachineScaleSetHardwareProfile(hardwareProfileRaw); hardwareProfile != nil {
-		virtualMachineProfile.HardwareProfile = hardwareProfile
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
@@ -230,7 +225,17 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		if v && !provisionVMAgent {
+			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		if !features.FourPointOhBeta() {
+			if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
+				virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+			}
+		} else {
+			virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		}
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -944,13 +949,14 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			d.Set("source_image_id", storageImageId)
 		}
 
+		extensionOperationsEnabled := true
 		if osProfile := profile.OsProfile; osProfile != nil {
 			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
 			d.Set("admin_username", osProfile.AdminUsername)
 			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
 
 			if osProfile.AllowExtensionOperations != nil {
-				d.Set("extension_operations_enabled", *osProfile.AllowExtensionOperations)
+				extensionOperationsEnabled = *osProfile.AllowExtensionOperations
 			}
 
 			if linux := osProfile.LinuxConfiguration; linux != nil {
@@ -970,6 +976,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				return fmt.Errorf("setting `secret`: %+v", err)
 			}
 		}
+		d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
@@ -1028,7 +1035,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		d.Set("hardware_profile", FlattenVirtualMachineScaleSetHardwareProfile(profile.HardwareProfile))
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
@@ -1235,7 +1241,13 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			Default: func() interface{} {
+				if !features.FourPointOhBeta() {
+					return nil
+				}
+				return true
+			}(),
+			Computed: !features.FourPointOhBeta(),
 			ForceNew: true,
 		},
 
@@ -1250,8 +1262,6 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
 
-		"hardware_profile": VirtualMachineScaleSetHardwareProfileSchema(),
-
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -1259,10 +1269,13 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"host_group_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.HostGroupID,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validate.HostGroupID,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),

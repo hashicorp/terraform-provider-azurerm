@@ -387,22 +387,16 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 }
 
 func TestAccLinuxVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	t.Skip("Skipping test until api version is upgraded to 2022-03-01 with `network_interface.ip_configuration.public_ip_address.sku_name` added")
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkPublicIP(data),
+			Config: r.networkPublicIPVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.networkPublicIPVersionUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1660,7 +1654,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersionUpdated(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1698,6 +1692,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "first"
+        idle_timeout_in_minutes = 4
+      }
+    }
+
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
         idle_timeout_in_minutes = 4
         version                 = "IPv6"
       }

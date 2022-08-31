@@ -117,6 +117,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
+	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
@@ -181,7 +182,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			AdminUsername:      utils.String(d.Get("admin_username").(string)),
 			ComputerNamePrefix: utils.String(computerNamePrefix),
 			WindowsConfiguration: &compute.WindowsConfiguration{
-				ProvisionVMAgent: utils.Bool(d.Get("provision_vm_agent").(bool)),
+				ProvisionVMAgent: utils.Bool(provisionVMAgent),
 				WinRM:            winRmListeners,
 			},
 			Secrets: secrets,
@@ -199,12 +200,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
 			GalleryApplications: galleryApplications,
 		}
-	}
-
-	// NOTE: Hardware Profile is currently only supported in Uniform
-	hardwareProfileRaw := d.Get("hardware_profile").([]interface{})
-	if hardwareProfile := ExpandVirtualMachineScaleSetHardwareProfile(hardwareProfileRaw); hardwareProfile != nil {
-		virtualMachineProfile.HardwareProfile = hardwareProfile
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
@@ -227,7 +222,17 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		if v && !provisionVMAgent {
+			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		if !features.FourPointOhBeta() {
+			if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
+				virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+			}
+		} else {
+			virtualMachineProfile.OsProfile.AllowExtensionOperations = utils.Bool(v)
+		}
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -404,6 +409,11 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.VirtualMachineScaleSetProperties.HostGroup = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
+	}
+
+	spotRestoreRaw := d.Get("spot_restore").([]interface{})
+	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(spotRestoreRaw); spotRestorePolicy != nil {
+		props.SpotRestorePolicy = spotRestorePolicy
 	}
 
 	if len(zones) > 0 {
@@ -893,6 +903,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("scale_in_policy", rule)
 	}
 
+	if props.SpotRestorePolicy != nil {
+		d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
+	}
+
 	var upgradeMode compute.UpgradeMode
 	if policy := props.UpgradePolicy; policy != nil {
 		upgradeMode = policy.Mode
@@ -968,13 +982,14 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			d.Set("source_image_id", storageImageId)
 		}
 
+		extensionOperationsEnabled := true
 		if osProfile := profile.OsProfile; osProfile != nil {
 			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
 			d.Set("admin_username", osProfile.AdminUsername)
 			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
 
 			if osProfile.AllowExtensionOperations != nil {
-				d.Set("extension_operations_enabled", *osProfile.AllowExtensionOperations)
+				extensionOperationsEnabled = *osProfile.AllowExtensionOperations
 			}
 
 			if err := d.Set("secret", flattenWindowsSecrets(osProfile.Secrets)); err != nil {
@@ -1006,6 +1021,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				}
 			}
 		}
+		d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
@@ -1064,7 +1080,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			}
 		}
 
-		d.Set("hardware_profile", FlattenVirtualMachineScaleSetHardwareProfile(profile.HardwareProfile))
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
@@ -1257,7 +1272,13 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			Default: func() interface{} {
+				if !features.FourPointOhBeta() {
+					return nil
+				}
+				return true
+			}(),
+			Computed: !features.FourPointOhBeta(),
 			ForceNew: true,
 		},
 
@@ -1272,8 +1293,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
 
-		"hardware_profile": VirtualMachineScaleSetHardwareProfileSchema(),
-
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -1281,10 +1300,13 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"host_group_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: computeValidate.HostGroupID,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     computeValidate.HostGroupID,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),

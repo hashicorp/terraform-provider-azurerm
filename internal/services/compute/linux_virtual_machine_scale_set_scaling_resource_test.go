@@ -449,14 +449,15 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
+  sku                 = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
 
   disable_password_authentication = false
 
-  host_group_id = azurerm_dedicated_host_group.test.id
+  platform_fault_domain_count = 1
+  host_group_id               = azurerm_dedicated_host_group.test.id
 
   source_image_reference {
     publisher = "Canonical"

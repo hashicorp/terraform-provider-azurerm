@@ -237,8 +237,6 @@ A `automatic_instance_repair` block supports the following:
 
 * `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `30` and `90` minutes. Defaults to `30` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT30M` to `PT90M`).
 
-* `repair_action` - (Optional) The repair action that will be taken for repairing unhealthy virtual machines in the scale set. Possible values are `Replace`, `Restart` and `Reimage`. Defaults to `Replace`.
-
 ---
 
 A `boot_diagnostics` block supports the following:
@@ -297,11 +295,7 @@ An `extension` block supports the following:
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
 
-* `protected_settings_from_key_vault` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) that are passed by reference, and consumed from key vault for the Extension.
-
 -> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information. 
-
-!> **IMPORTANT:** The `extension` block may contain either a `protected_settings` field or a `protected_settings_from_key_vault` field but not both.
 
 * `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`. Defaults to `false`.
 
@@ -354,8 +348,6 @@ A `network_interface` block supports the following:
 * `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Possible values are `true` and `false`. Defaults to `false`.
 
 * `enable_ip_forwarding` - (Optional) Does this Network Interface support IP Forwarding? Possible values are `true` and `false`. Defaults to `false`.
-
-* `fpga_enabled` - (Optional) Is this network interface FPGA networking-enabled? Possible values include `true` or `false`. Defaults to `false`.
 
 * `network_security_group_id` - (Optional) The ID of a Network Security Group which should be assigned to this Network Interface.
 

@@ -435,7 +435,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
 
-  host_group_id = azurerm_dedicated_host_group.test.id
+  platform_fault_domain_count = 1
+  host_group_id               = azurerm_dedicated_host_group.test.id
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

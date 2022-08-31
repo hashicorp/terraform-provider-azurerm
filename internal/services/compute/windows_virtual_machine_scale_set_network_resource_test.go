@@ -187,7 +187,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkIPv6(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("Error expanding `network_interface`: An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary"),
+			ExpectError: regexp.MustCompile("instead add a IPv4 IP Configuration as the Primary"),
 		},
 	})
 }
@@ -383,22 +383,16 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 }
 
 func TestAccWindowsVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	t.Skip("Skipping test until api version is upgraded to 2022-03-01 with `network_interface.ip_configuration.public_ip_address.sku_name` added")
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkPublicIP(data),
+			Config: r.networkPublicIPVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.networkPublicIPVersionUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1602,7 +1596,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) networkPublicIPVersionUpdated(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1638,6 +1632,16 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "first"
+        idle_timeout_in_minutes = 4
+      }
+    }
+
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
         idle_timeout_in_minutes = 4
         version                 = "IPv6"
       }

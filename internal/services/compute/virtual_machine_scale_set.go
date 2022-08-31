@@ -15,84 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func VirtualMachineScaleSetHardwareProfileSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"virtual_cpus_available": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      0,
-					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
-				},
-
-				// NOTE: If vCPUs per core is set to 1 hyper-threading is disabled
-				"virtual_cpus_per_core": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      0,
-					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
-				},
-			},
-		},
-	}
-}
-
-func ExpandVirtualMachineScaleSetHardwareProfile(input []interface{}) *compute.VirtualMachineScaleSetHardwareProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	vCPUsAvailable := input[0].(map[string]interface{})["virtual_cpus_available"].(int)
-	vCPUsPerCore := input[0].(map[string]interface{})["virtual_cpus_per_core"].(int)
-
-	if vCPUsAvailable > 0 || vCPUsPerCore > 0 {
-		hardwareProfile := &compute.VirtualMachineScaleSetHardwareProfile{
-			VMSizeProperties: &compute.VMSizeProperties{},
-		}
-
-		if vCPUsAvailable > 0 {
-			hardwareProfile.VMSizeProperties.VCPUsAvailable = utils.Int32(int32(vCPUsAvailable))
-		}
-
-		if vCPUsPerCore > 0 {
-			hardwareProfile.VMSizeProperties.VCPUsPerCore = utils.Int32(int32(vCPUsPerCore))
-		}
-
-		return hardwareProfile
-	}
-
-	return nil
-}
-
-func FlattenVirtualMachineScaleSetHardwareProfile(input *compute.VirtualMachineScaleSetHardwareProfile) []interface{} {
-	if input == nil || input.VMSizeProperties == nil {
-		return []interface{}{}
-	}
-
-	vCPUsAvailable := 0
-	if input.VMSizeProperties.VCPUsAvailable != nil {
-		vCPUsAvailable = int(*input.VMSizeProperties.VCPUsAvailable)
-	}
-
-	vCPUsPerCore := 0
-	if input.VMSizeProperties.VCPUsPerCore != nil {
-		vCPUsPerCore = int(*input.VMSizeProperties.VCPUsPerCore)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"virtual_cpus_available": vCPUsAvailable,
-			"virtual_cpus_per_core":  vCPUsPerCore,
-		},
-	}
-}
-
 func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -103,13 +25,6 @@ func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 				// NOTE: requires registration to use:
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
-				"hibernation_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-					ForceNew: true,
-				},
-
 				"ultra_ssd_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -127,7 +42,6 @@ func ExpandVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *co
 	if len(input) > 0 {
 		raw := input[0].(map[string]interface{})
 
-		capabilities.HibernationEnabled = utils.Bool(raw["hibernation_enabled"].(bool))
 		capabilities.UltraSSDEnabled = utils.Bool(raw["ultra_ssd_enabled"].(bool))
 	}
 
@@ -139,11 +53,6 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 		return []interface{}{}
 	}
 
-	hibernationEnabled := false
-	if input.HibernationEnabled != nil {
-		hibernationEnabled = *input.HibernationEnabled
-	}
-
 	ultraSsdEnabled := false
 	if input.UltraSSDEnabled != nil {
 		ultraSsdEnabled = *input.UltraSSDEnabled
@@ -151,8 +60,7 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 
 	return []interface{}{
 		map[string]interface{}{
-			"hibernation_enabled": hibernationEnabled,
-			"ultra_ssd_enabled":   ultraSsdEnabled,
+			"ultra_ssd_enabled": ultraSsdEnabled,
 		},
 	}
 }
@@ -255,11 +163,6 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
-				"fpga_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -348,7 +251,7 @@ func flattenVirtualMachineScaleSetGalleryApplications(input *[]compute.VMGallery
 		return nil
 	}
 
-	out := make([]map[string]interface{}, 0)
+	out := make([]interface{}, 0)
 
 	for _, v := range *input {
 		var packageReferenceId, configurationReference, tag string
@@ -380,7 +283,7 @@ func flattenVirtualMachineScaleSetGalleryApplications(input *[]compute.VMGallery
 		out = append(out, app)
 	}
 
-	return []interface{}{out}
+	return out
 }
 
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
@@ -482,6 +385,7 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -495,7 +399,7 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Default:      "PT1H30M",
+					Default:      "PT1H",
 					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 				},
@@ -769,6 +673,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					Default:  string(compute.IPVersionIPv4),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.IPVersionIPv4),
@@ -864,7 +769,6 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compu
 				},
 				EnableAcceleratedNetworking: utils.Bool(raw["enable_accelerated_networking"].(bool)),
 				EnableIPForwarding:          utils.Bool(raw["enable_ip_forwarding"].(bool)),
-				EnableFpga:                  utils.Bool(raw["fpga_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     utils.Bool(raw["primary"].(bool)),
 			},
@@ -1096,7 +1000,7 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
 			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
 		}
-		var enableAcceleratedNetworking, enableIPForwarding, primary, fpgaEnabled bool
+		var enableAcceleratedNetworking, enableIPForwarding, primary bool
 		if v.EnableAcceleratedNetworking != nil {
 			enableAcceleratedNetworking = *v.EnableAcceleratedNetworking
 		}
@@ -1105,9 +1009,6 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 		}
 		if v.Primary != nil {
 			primary = *v.Primary
-		}
-		if v.EnableFpga != nil {
-			fpgaEnabled = *v.EnableFpga
 		}
 
 		var dnsServers []interface{}
@@ -1128,7 +1029,6 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 			"dns_servers":                   dnsServers,
 			"enable_accelerated_networking": enableAcceleratedNetworking,
 			"enable_ip_forwarding":          enableIPForwarding,
-			"fpga_enabled":                  fpgaEnabled,
 			"ip_configuration":              ipConfigurations,
 			"network_security_group_id":     networkSecurityGroupId,
 			"primary":                       primary,
@@ -1971,16 +1871,6 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
-				"repair_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(compute.RepairActionReplace),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.RepairActionReplace),
-						string(compute.RepairActionReimage),
-						string(compute.RepairActionRestart),
-					}, false),
-				},
 			},
 		},
 	}
@@ -1994,9 +1884,8 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *co
 	raw := input[0].(map[string]interface{})
 
 	return &compute.AutomaticRepairsPolicy{
-		Enabled:      utils.Bool(raw["enabled"].(bool)),
-		GracePeriod:  utils.String(raw["grace_period"].(string)),
-		RepairAction: compute.RepairAction(raw["repair_action"].(string)),
+		Enabled:     utils.Bool(raw["enabled"].(bool)),
+		GracePeriod: utils.String(raw["grace_period"].(string)),
 	}
 }
 
@@ -2014,16 +1903,10 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 		gracePeriod = *input.GracePeriod
 	}
 
-	repairAction := "Replace"
-	if input != nil && input.RepairAction != "" {
-		repairAction = string(input.RepairAction)
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":       enabled,
-			"grace_period":  gracePeriod,
-			"repair_action": repairAction,
+			"enabled":      enabled,
+			"grace_period": gracePeriod,
 		},
 	}
 }
