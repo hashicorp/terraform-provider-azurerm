@@ -39,7 +39,8 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 
 			"tag_id": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"api_name": schemaz.SchemaApiManagementApiName(),
