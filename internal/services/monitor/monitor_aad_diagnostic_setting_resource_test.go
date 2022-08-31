@@ -222,11 +222,11 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {}
   }
   log {
-	category = "B2CRequestLogs"
-	enabled  = true
-	retention_policy {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
       enabled = true
-	  days    = 1
+      days    = 1
     }
   }
 }
@@ -342,11 +342,11 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {}
   }
   log {
-	category = "B2CRequestLogs"
-	enabled  = true
-	retention_policy {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
       enabled = true
-	  days    = 1
+      days    = 1
     }
   }
 }
@@ -487,11 +487,11 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {}
   }
   log {
-	category = "B2CRequestLogs"
-	enabled  = true
-	retention_policy {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
       enabled = true
-	  days    = 1
+      days    = 1
     }
   }
 }
@@ -600,11 +600,11 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {}
   }
   log {
-	category = "B2CRequestLogs"
-	enabled  = true
-	retention_policy {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
       enabled = true
-	  days    = 1
+      days    = 1
     }
   }
 }
