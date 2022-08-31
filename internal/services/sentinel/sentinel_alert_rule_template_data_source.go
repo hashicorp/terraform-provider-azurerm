@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
@@ -321,7 +321,7 @@ func flattenScheduledAlertRuleTemplate(input *securityinsight.ScheduledAlertRule
 
 	tactics := []interface{}{}
 	if input.Tactics != nil {
-		tactics = flattenAlertRuleTactics(input.Tactics)
+		tactics = flattenAlertRuleTacticsForTemplate(input.Tactics)
 	}
 
 	query := ""
@@ -370,7 +370,7 @@ func flattenNrtAlertRuleTemplate(input *securityinsight.NrtAlertRuleTemplateProp
 
 	tactics := []interface{}{}
 	if input.Tactics != nil {
-		tactics = flattenAlertRuleTactics(input.Tactics)
+		tactics = flattenAlertRuleTacticsForTemplate(input.Tactics)
 	}
 
 	query := ""
@@ -404,4 +404,18 @@ func flattenMsSecurityIncidentAlertRuleTemplate(input *securityinsight.Microsoft
 			"product_filter": string(input.ProductFilter),
 		},
 	}
+}
+
+func flattenAlertRuleTacticsForTemplate(input *[]securityinsight.AttackTactic) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		output = append(output, string(e))
+	}
+
+	return output
 }
