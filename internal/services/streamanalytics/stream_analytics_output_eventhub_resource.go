@@ -91,6 +91,16 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeMsi),
+					string(streamanalytics.AuthenticationModeConnectionString),
+				}, false),
+			},
+
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
 		},
 	}
@@ -141,6 +151,7 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
 					PropertyColumns:        utils.ExpandStringSlice(propertyColumns),
 					PartitionKey:           utils.String(partitionKey),
+					AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -196,6 +207,7 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 		d.Set("property_columns", v.PropertyColumns)
 		d.Set("partition_key", v.PartitionKey)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)

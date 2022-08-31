@@ -62,5 +62,6 @@ func (c ContainerInstanceClient) responderForContainerGroupsStop(resp *http.Resp
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

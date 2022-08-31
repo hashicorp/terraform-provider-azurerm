@@ -7,11 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -108,7 +111,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.AvailabilitySetID,
+				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
 				// the Compute/VM API is broken and returns the Availability Set name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -150,7 +153,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostID,
+				ValidateFunc: dedicatedhosts.ValidateHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -162,7 +165,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostGroupID,
+				ValidateFunc: dedicatedhostgroups.ValidateHostGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -191,8 +194,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -254,7 +257,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.ProximityPlacementGroupID,
+				ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,

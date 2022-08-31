@@ -22,8 +22,8 @@ type ManagedClusterProperties struct {
 	EnableAutoOSUpgrade                  *bool                                 `json:"enableAutoOSUpgrade,omitempty"`
 	FabricSettings                       *[]SettingsSectionDescription         `json:"fabricSettings,omitempty"`
 	Fqdn                                 *string                               `json:"fqdn,omitempty"`
-	HttpGatewayConnectionPort            *int64                                `json:"httpGatewayConnectionPort,omitempty"`
-	Ipv4Address                          *string                               `json:"ipv4Address,omitempty"`
+	HTTPGatewayConnectionPort            *int64                                `json:"httpGatewayConnectionPort,omitempty"`
+	IPv4Address                          *string                               `json:"ipv4Address,omitempty"`
 	LoadBalancingRules                   *[]LoadBalancingRule                  `json:"loadBalancingRules,omitempty"`
 	NetworkSecurityRules                 *[]NetworkSecurityRule                `json:"networkSecurityRules,omitempty"`
 	ProvisioningState                    *ManagedResourceProvisioningState     `json:"provisioningState,omitempty"`

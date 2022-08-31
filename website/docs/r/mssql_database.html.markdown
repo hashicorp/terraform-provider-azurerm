@@ -10,8 +10,6 @@ description: |-
 
 Manages a MS SQL Database.
 
-~> **Note:** The Database Extended Auditing Policy can be set inline here, as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
-
 ## Example Usage
 
 ```hcl
@@ -79,8 +77,6 @@ The following arguments are supported:
 
 * `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database.
 
-* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
-
 * `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. 
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
@@ -140,16 +136,6 @@ a `threat_detection_policy` block supports the following:
 
 ---
 
-A `extended_auditing_policy` block supports the following:
-
-* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net).
-* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
-* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_eventhub). 
-
----
-
 A `long_term_retention_policy` block supports the following:
 
 * `weekly_retention` - (Optional) The weekly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 520 weeks. e.g. `P1Y`, `P1M`, `P1W` or `P7D`.
@@ -173,7 +159,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the MS SQL Database.
 * `update` - (Defaults to 60 minutes) Used when updating the MS SQL Database.

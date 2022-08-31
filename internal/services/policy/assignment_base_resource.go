@@ -212,7 +212,8 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 			if existing.Identity != nil {
 				update.Identity = &policy.Identity{
-					Type: existing.Identity.Type,
+					Type:                   existing.Identity.Type,
+					UserAssignedIdentities: existing.Identity.UserAssignedIdentities,
 				}
 			}
 

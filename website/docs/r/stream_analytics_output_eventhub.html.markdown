@@ -76,6 +76,8 @@ The following arguments are supported:
 
 * `property_columns` - (Optional) A list of property columns to add to the Event Hub output.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 * `partition_key` - (Optional) The column that is used for the Event Hub partition key.
 
 ---
@@ -104,7 +106,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output EventHub.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output EventHub.

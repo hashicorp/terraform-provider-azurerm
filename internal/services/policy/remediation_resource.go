@@ -6,12 +6,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -64,6 +64,24 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 				ValidateFunc:     validate.PolicyAssignmentID,
 			},
 
+			"failure_percentage": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validate2.FloatInRange(0, 1.0),
+			},
+
+			"parallel_deployments": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate2.IntegerPositive,
+			},
+
+			"resource_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate2.IntegerPositive,
+			},
+
 			"location_filters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -84,10 +102,10 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 			"resource_discovery_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(policyinsights.ExistingNonCompliant),
+				Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(policyinsights.ExistingNonCompliant),
-					string(policyinsights.ReEvaluateCompliance),
+					string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+					string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
 				}, false),
 			},
 		},
@@ -101,32 +119,25 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 
 	resourceId := d.Get("resource_id").(string)
 
-	id := parse.NewResourcePolicyRemediationId(resourceId, d.Get("name").(string))
+	id := remediations.NewScopedRemediationID(resourceId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtResource(ctx, id.ResourceId, id.Name)
+		existing, err := client.RemediationsGetAtResource(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", *existing.ID)
+		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", *existing.Model.Id)
 		}
 	}
 
-	parameters := policyinsights.Remediation{
-		RemediationProperties: &policyinsights.RemediationProperties{
-			Filters: &policyinsights.RemediationFilters{
-				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
-			},
-			PolicyAssignmentID:          utils.String(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceID: utils.String(d.Get("policy_definition_id").(string)),
-			ResourceDiscoveryMode:       policyinsights.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string)),
-		},
+	parameters := remediations.Remediation{
+		Properties: readRemediationProperties(d),
 	}
 
-	if _, err := client.CreateOrUpdateAtResource(ctx, id.ResourceId, id.Name, parameters); err != nil {
+	if _, err := client.RemediationsCreateOrUpdateAtResource(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
@@ -140,14 +151,13 @@ func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourcePolicyRemediationID(d.Id())
+	id, err := remediations.ParseScopedRemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("reading Policy Remediation: %+v", err)
+		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
 	}
-
-	resp, err := client.GetAtResource(ctx, id.ResourceId, id.Name)
+	resp, err := client.RemediationsGetAtResource(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", id.ID())
 			d.SetId("")
 			return nil
@@ -155,24 +165,10 @@ func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("reading %s: %+v", id.ID(), err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.RemediationName)
 	d.Set("resource_id", id.ResourceId)
 
-	if props := resp.RemediationProperties; props != nil {
-		locations := []interface{}{}
-		if filters := props.Filters; filters != nil {
-			locations = utils.FlattenStringSlice(filters.Locations)
-		}
-		if err := d.Set("location_filters", locations); err != nil {
-			return fmt.Errorf("setting `location_filters`: %+v", err)
-		}
-
-		d.Set("policy_assignment_id", props.PolicyAssignmentID)
-		d.Set("policy_definition_id", props.PolicyDefinitionReferenceID)
-		d.Set("resource_discovery_mode", string(props.ResourceDiscoveryMode))
-	}
-
-	return nil
+	return setRemediationProperties(d, resp.Model.Properties)
 }
 
 func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -180,64 +176,140 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourcePolicyRemediationID(d.Id())
+	id, err := remediations.ParseScopedRemediationID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
 	}
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
 	// therefore we first retrieve the remediation to see if the resource_discovery_mode is switched to ReEvaluateCompliance
-	existing, err := client.GetAtResource(ctx, id.ResourceId, id.Name)
+	existing, err := client.RemediationsGetAtResource(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
+		if response.WasNotFound(existing.HttpResponse) {
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if existing.RemediationProperties != nil && existing.RemediationProperties.ResourceDiscoveryMode == policyinsights.ReEvaluateCompliance {
-		// Remediation can only be canceld when it is in "Evaluating" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
-		if existing.RemediationProperties.ProvisioningState != nil && *existing.RemediationProperties.ProvisioningState == "Evaluating" {
+	if err := waitRemediationToDelete(ctx,
+		existing.Model.Properties,
+		id.ID(),
+		d.Timeout(pluginsdk.TimeoutDelete),
+		func() error {
+			_, err := client.RemediationsCancelAtResource(ctx, *id)
+			return err
+		},
+		resourcePolicyRemediationCancellationRefreshFunc(ctx, client, *id),
+	); err != nil {
+		return err
+	}
+
+	_, err = client.RemediationsDeleteAtResource(ctx, *id)
+
+	return err
+}
+
+func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.ScopedRemediationId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.RemediationsGetAtResource(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
+		}
+
+		if resp.Model.Properties == nil {
+			return nil, "", fmt.Errorf("`properties` was nil")
+		}
+		if resp.Model.Properties.ProvisioningState == nil {
+			return nil, "", fmt.Errorf("`properties.ProvisioningState` was nil")
+		}
+		return resp, *resp.Model.Properties.ProvisioningState, nil
+	}
+}
+
+// waitRemediationToDelete waits for the remediation to a status that allow to delete
+func waitRemediationToDelete(ctx context.Context,
+	prop *remediations.RemediationProperties,
+	id string,
+	timeout time.Duration,
+	cancelFunc func() error,
+	refresh pluginsdk.StateRefreshFunc) error {
+
+	if prop == nil {
+		return nil
+	}
+	if mode := prop.ResourceDiscoveryMode; mode != nil && *mode == remediations.ResourceDiscoveryModeReEvaluateCompliance {
+		// Remediation can only be canceld when it is in "Evaluating" or "Accepted" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
+		if state := prop.ProvisioningState; state != nil && (*state == "Evaluating" || *state == "Accepted") {
 			log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
-			if _, err := client.CancelAtResource(ctx, id.ResourceId, id.Name); err != nil {
-				return fmt.Errorf("cancelling %s: %+v", id.ID(), err)
+			if err := cancelFunc(); err != nil {
+				return fmt.Errorf("cancelling %s: %+v", id, err)
 			}
 
-			log.Printf("[DEBUG] waiting for the %s to be canceled", id.ID())
+			log.Printf("[DEBUG] waiting for the %s to be canceled", id)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Cancelling"},
 				Target: []string{
 					"Succeeded", "Canceled", "Failed",
 				},
-				Refresh:    resourcePolicyRemediationCancellationRefreshFunc(ctx, client, *id),
+				Refresh:    refresh,
 				MinTimeout: 10 * time.Second,
-				Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+				Timeout:    timeout,
 			}
 
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to be canceled: %+v", id.ID(), err)
+				return fmt.Errorf("waiting for %s to be canceled: %+v", id, err)
 			}
 		}
 	}
-
-	_, err = client.DeleteAtResource(ctx, id.ResourceId, id.Name)
-
-	return err
+	return nil
 }
 
-func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, client *policyinsights.RemediationsClient, id parse.ResourcePolicyRemediationId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.GetAtResource(ctx, id.ResourceId, id.Name)
-		if err != nil {
-			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
-		}
-
-		if resp.RemediationProperties == nil {
-			return nil, "", fmt.Errorf("`properties` was nil")
-		}
-		if resp.RemediationProperties.ProvisioningState == nil {
-			return nil, "", fmt.Errorf("`properties.ProvisioningState` was nil")
-		}
-		return resp, *resp.RemediationProperties.ProvisioningState, nil
+// readRemediationProperties sets the properties of the remediation, useful when add new properties to the model
+func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.RemediationProperties) {
+	prop = &remediations.RemediationProperties{
+		Filters: &remediations.RemediationFilters{
+			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+		},
+		PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
+		PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_id").(string)),
 	}
+	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
+	prop.ResourceDiscoveryMode = &mode
+	if v := d.Get("failure_percentage").(float64); v != 0 {
+		prop.FailureThreshold = &remediations.RemediationPropertiesFailureThreshold{
+			Percentage: utils.Float(v),
+		}
+	}
+	if v := d.Get("parallel_deployments").(int); v != 0 {
+		prop.ParallelDeployments = utils.Int64(int64(v))
+	}
+	if v := d.Get("resource_count").(int); v != 0 {
+		prop.ResourceCount = utils.Int64(int64(v))
+	}
+	return
+}
+
+// setRemediationProperties sets the properties of the remediation, useful when add new properties to the model
+func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.RemediationProperties) error {
+	if prop == nil {
+		return nil
+	}
+	locations := []interface{}{}
+	if filters := prop.Filters; filters != nil {
+		locations = utils.FlattenStringSlice(filters.Locations)
+	}
+	if err := d.Set("location_filters", locations); err != nil {
+		return fmt.Errorf("setting `location_filters`: %+v", err)
+	}
+
+	d.Set("policy_assignment_id", prop.PolicyAssignmentId)
+	d.Set("policy_definition_id", prop.PolicyDefinitionReferenceId)
+	d.Set("resource_discovery_mode", utils.NormalizeNilableString((*string)(prop.ResourceDiscoveryMode)))
+
+	d.Set("resource_count", prop.ResourceCount)
+	d.Set("parallel_deployments", prop.ParallelDeployments)
+	if prop.FailureThreshold != nil {
+		d.Set("failure_percentage", prop.FailureThreshold.Percentage)
+	}
+	return nil
 }

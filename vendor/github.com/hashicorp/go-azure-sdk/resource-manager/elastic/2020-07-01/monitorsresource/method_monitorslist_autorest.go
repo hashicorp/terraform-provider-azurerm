@@ -60,50 +60,6 @@ func (c MonitorsResourceClient) MonitorsList(ctx context.Context, id commonids.S
 	return
 }
 
-// MonitorsListComplete retrieves all of the results into a single object
-func (c MonitorsResourceClient) MonitorsListComplete(ctx context.Context, id commonids.SubscriptionId) (MonitorsListCompleteResult, error) {
-	return c.MonitorsListCompleteMatchingPredicate(ctx, id, ElasticMonitorResourceOperationPredicate{})
-}
-
-// MonitorsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ElasticMonitorResourceOperationPredicate) (resp MonitorsListCompleteResult, err error) {
-	items := make([]ElasticMonitorResource, 0)
-
-	page, err := c.MonitorsList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := MonitorsListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForMonitorsList prepares the MonitorsList request.
 func (c MonitorsResourceClient) preparerForMonitorsList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c MonitorsResourceClient) responderForMonitorsList(resp *http.Response) (r
 		}
 	}
 	return
+}
+
+// MonitorsListComplete retrieves all of the results into a single object
+func (c MonitorsResourceClient) MonitorsListComplete(ctx context.Context, id commonids.SubscriptionId) (MonitorsListCompleteResult, error) {
+	return c.MonitorsListCompleteMatchingPredicate(ctx, id, ElasticMonitorResourceOperationPredicate{})
+}
+
+// MonitorsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ElasticMonitorResourceOperationPredicate) (resp MonitorsListCompleteResult, err error) {
+	items := make([]ElasticMonitorResource, 0)
+
+	page, err := c.MonitorsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := MonitorsListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

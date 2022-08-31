@@ -59,50 +59,6 @@ func (c DatabasesClient) ListByCluster(ctx context.Context, id RedisEnterpriseId
 	return
 }
 
-// ListByClusterComplete retrieves all of the results into a single object
-func (c DatabasesClient) ListByClusterComplete(ctx context.Context, id RedisEnterpriseId) (ListByClusterCompleteResult, error) {
-	return c.ListByClusterCompleteMatchingPredicate(ctx, id, DatabaseOperationPredicate{})
-}
-
-// ListByClusterCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DatabasesClient) ListByClusterCompleteMatchingPredicate(ctx context.Context, id RedisEnterpriseId, predicate DatabaseOperationPredicate) (resp ListByClusterCompleteResult, err error) {
-	items := make([]Database, 0)
-
-	page, err := c.ListByCluster(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByClusterCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByCluster prepares the ListByCluster request.
 func (c DatabasesClient) preparerForListByCluster(ctx context.Context, id RedisEnterpriseId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c DatabasesClient) responderForListByCluster(resp *http.Response) (result 
 		}
 	}
 	return
+}
+
+// ListByClusterComplete retrieves all of the results into a single object
+func (c DatabasesClient) ListByClusterComplete(ctx context.Context, id RedisEnterpriseId) (ListByClusterCompleteResult, error) {
+	return c.ListByClusterCompleteMatchingPredicate(ctx, id, DatabaseOperationPredicate{})
+}
+
+// ListByClusterCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c DatabasesClient) ListByClusterCompleteMatchingPredicate(ctx context.Context, id RedisEnterpriseId, predicate DatabaseOperationPredicate) (resp ListByClusterCompleteResult, err error) {
+	items := make([]Database, 0)
+
+	page, err := c.ListByCluster(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByClusterCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

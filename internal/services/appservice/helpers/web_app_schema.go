@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -867,6 +868,7 @@ type ApplicationStackWindows struct {
 }
 
 // Version information for the below validations was taken in part from - https://github.com/Azure/app-service-linux-docs/tree/master/Runtime_Support
+// There is no 3.0 version of .netFramework, setting the property to this value causing app to be broke.
 func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -878,12 +880,24 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"v3.0",
-						"v4.0",
-						"v5.0",
-						"v6.0",
-					}, false),
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						if !features.FourPointOh() {
+							return validation.StringInSlice([]string{
+								"v2.0",
+								"v3.0",
+								"core3.1",
+								"v4.0",
+								"v5.0",
+								"v6.0"}, false)
+						}
+						return validation.StringInSlice([]string{
+							"v2.0",
+							"core3.1",
+							"v4.0",
+							"v5.0",
+							"v6.0",
+						}, false)
+					}(),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
@@ -2856,7 +2870,7 @@ func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, *string, error) {
+func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, *string, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil, nil
 	}
@@ -2870,6 +2884,16 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	winSiteConfig := siteConfig[0]
 
+	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if winSiteConfig.AlwaysOn == true {
+				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+			}
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+			}
+		}
+	}
 	expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -2892,6 +2916,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		if len(winSiteConfig.ApplicationStack) == 1 {
 			winAppStack := winSiteConfig.ApplicationStack[0]
 			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
+			if winAppStack.CurrentStack == "dotnetcore" {
+				expanded.NetFrameworkVersion = nil
+			}
 			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
 			expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
 			expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
@@ -3012,7 +3039,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, error) {
+func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
@@ -3023,6 +3050,16 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	linuxSiteConfig := siteConfig[0]
 
+	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if linuxSiteConfig.AlwaysOn == true {
+				return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+			}
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+				return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+			}
+		}
+	}
 	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -4210,4 +4247,19 @@ func DisabledLogsConfig() *web.SiteLogsConfig {
 			},
 		},
 	}
+}
+
+func isFreeOrSharedServicePlan(inputSKU string) bool {
+	result := false
+	for _, sku := range freeSkus {
+		if inputSKU == sku {
+			result = true
+		}
+	}
+	for _, sku := range sharedSkus {
+		if inputSKU == sku {
+			result = true
+		}
+	}
+	return result
 }

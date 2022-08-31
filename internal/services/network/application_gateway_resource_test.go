@@ -89,6 +89,36 @@ func TestAccApplicationGateway_autoscaleConfigurationNoMaxCapacity(t *testing.T)
 	})
 }
 
+func TestAccApplicationGateway_globalConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createGlobalConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("global.0.request_buffering_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("global.0.response_buffering_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateGlobalConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("global.0.request_buffering_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("global.0.response_buffering_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApplicationGateway_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
@@ -406,6 +436,11 @@ func TestAccApplicationGateway_rewriteRuleSets_rewriteUrl(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rewrite_rule_set.0.name").Exists(),
+				check.That(data.ResourceName).Key("rewrite_rule_set.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rewrite_rule_set.0.rewrite_rule.0.url.0.components").HasValue(""),
+				check.That(data.ResourceName).Key("rewrite_rule_set.1.rewrite_rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rewrite_rule_set.1.rewrite_rule.0.url.0.components").HasValue("path_only"),
+				check.That(data.ResourceName).Key("rewrite_rule_set.1.rewrite_rule.1.url.0.components").HasValue("query_string_only"),
 			),
 		},
 		data.ImportStep(),
@@ -1359,6 +1394,174 @@ resource "azurerm_application_gateway" "test" {
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+    priority                   = 10
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) createGlobalConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-standard-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  global {
+    request_buffering_enabled  = true
+    response_buffering_enabled = true
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+    priority                   = 10
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) updateGlobalConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-standard-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  global {
+    request_buffering_enabled  = false
+    response_buffering_enabled = false
   }
 
   http_listener {
@@ -6052,6 +6255,40 @@ resource "azurerm_application_gateway" "test" {
         path         = "/article.aspx"
         query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
         reroute      = false
+      }
+    }
+  }
+
+  rewrite_rule_set {
+    name = "${local.rewrite_rule_set_name}_1"
+
+    rewrite_rule {
+      name          = "${local.rewrite_rule_name}_1"
+      rule_sequence = 1
+
+      condition {
+        variable = "var_uri_path"
+        pattern  = ".*article/(.*)/(.*)"
+      }
+
+      url {
+        path       = "/article.aspx"
+        components = "path_only"
+      }
+    }
+
+    rewrite_rule {
+      name          = "${local.rewrite_rule_name}_2"
+      rule_sequence = 2
+
+      condition {
+        variable = "var_uri_path"
+        pattern  = ".*article2/(.*)/(.*)"
+      }
+
+      url {
+        query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
+        components   = "query_string_only"
       }
     }
   }

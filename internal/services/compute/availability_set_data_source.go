@@ -2,19 +2,18 @@ package compute
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceAvailabilitySet() *pluginsdk.Resource {
@@ -26,26 +25,23 @@ func dataSourceAvailabilitySet() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"location": commonschema.LocationComputed(),
 
 			"platform_update_domain_count": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"platform_fault_domain_count": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
@@ -54,7 +50,7 @@ func dataSourceAvailabilitySet() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -65,31 +61,35 @@ func dataSourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAvailabilitySetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := availabilitysets.NewAvailabilitySetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if resp.Sku != nil && resp.Sku.Name != nil {
-		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
-	}
-	if props := resp.AvailabilitySetProperties; props != nil {
-		if v := props.PlatformUpdateDomainCount; v != nil {
-			d.Set("platform_update_domain_count", strconv.Itoa(int(*v)))
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		managed := false
+		if model.Sku != nil && model.Sku.Name != nil {
+			managed = strings.EqualFold(*model.Sku.Name, "Aligned")
 		}
-		if v := props.PlatformFaultDomainCount; v != nil {
-			d.Set("platform_fault_domain_count", strconv.Itoa(int(*v)))
+		d.Set("managed", managed)
+
+		if props := model.Properties; props != nil {
+			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+			d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+
+	return nil
 }

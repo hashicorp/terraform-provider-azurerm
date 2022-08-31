@@ -120,8 +120,8 @@ func RandIpAddress(s string) (string, error) {
 	last.SetBytes([]byte(lastIp))
 	r := &big.Int{}
 	r.Sub(last, first)
-	if len := r.BitLen(); len > 31 {
-		return "", fmt.Errorf("CIDR range is too large: %d", len)
+	if bitLen := r.BitLen(); bitLen > 31 {
+		return "", fmt.Errorf("CIDR range is too large: %d", bitLen)
 	}
 
 	max := int(r.Int64())

@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -216,12 +218,19 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.ProximityPlacementGroupID,
+						ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 					},
 					"only_critical_addons_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
+					},
+
+					"host_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.HostGroupID,
 					},
 
 					"upgrade_settings": upgradeSettingsSchema(),
@@ -708,6 +717,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
+	if hostGroupID := raw["host_group_id"].(string); hostGroupID != "" {
+		profile.HostGroupID = utils.String(hostGroupID)
+	}
+
 	if orchestratorVersion := raw["orchestrator_version"].(string); orchestratorVersion != "" {
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
@@ -1052,6 +1065,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		vnetSubnetId = *agentPool.VnetSubnetID
 	}
 
+	hostGroupID := ""
+	if agentPool.HostGroupID != nil {
+		hostGroupID = *agentPool.HostGroupID
+	}
+
 	orchestratorVersion := ""
 	if agentPool.OrchestratorVersion != nil {
 		orchestratorVersion = *agentPool.OrchestratorVersion
@@ -1082,6 +1100,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		"enable_node_public_ip":         enableNodePublicIP,
 		"enable_host_encryption":        enableHostEncryption,
 		"fips_enabled":                  enableFIPS,
+		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             string(agentPool.KubeletDiskType),
 		"max_count":                     maxCount,
 		"max_pods":                      maxPods,

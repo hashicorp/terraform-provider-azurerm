@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -740,6 +739,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
     }
   }
@@ -1764,6 +1767,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
 
       initial_delay_seconds = 1
@@ -1910,6 +1917,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
 
       initial_delay_seconds = 1

@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -1101,6 +1100,16 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
+							"placement": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(compute.DiffDiskPlacementCacheDisk),
+									string(compute.DiffDiskPlacementResourceDisk),
+								}, false),
+							},
 						},
 					},
 				},
@@ -1153,8 +1162,9 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 
 func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.VirtualMachineScaleSetOSDisk, error) {
 	raw := input[0].(map[string]interface{})
+	caching := raw["caching"].(string)
 	disk := compute.VirtualMachineScaleSetOSDisk{
-		Caching: compute.CachingTypes(raw["caching"].(string)),
+		Caching: compute.CachingTypes(caching),
 		ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
@@ -1191,9 +1201,15 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 	}
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+		if caching != string(compute.CachingTypesReadOnly) {
+			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
+			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
+		}
+
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option: compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
 		}
 	}
 
@@ -1231,7 +1247,8 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option": string(input.DiffDiskSettings.Option),
+			"option":    string(input.DiffDiskSettings.Option),
+			"placement": string(input.DiffDiskSettings.Placement),
 		})
 	}
 

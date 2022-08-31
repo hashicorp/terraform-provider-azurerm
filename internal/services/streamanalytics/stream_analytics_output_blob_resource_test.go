@@ -110,6 +110,29 @@ func TestAccStreamAnalyticsOutputBlob_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputBlob_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+	r := StreamAnalyticsOutputBlobResource{}
+	identity := "identity { type = \"SystemAssigned\" }"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.csv(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+		{
+			Config: r.authenticationMode(data, identity),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+	})
+}
+
 func (r StreamAnalyticsOutputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	jobName := state.Attributes["stream_analytics_job_name"]
@@ -126,7 +149,7 @@ func (r StreamAnalyticsOutputBlobResource) Exists(ctx context.Context, client *c
 }
 
 func (r StreamAnalyticsOutputBlobResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -149,7 +172,7 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 }
 
 func (r StreamAnalyticsOutputBlobResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -174,7 +197,7 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 }
 
 func (r StreamAnalyticsOutputBlobResource) json(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -199,7 +222,7 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 }
 
 func (r StreamAnalyticsOutputBlobResource) parquet(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -224,7 +247,7 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 }
 
 func (r StreamAnalyticsOutputBlobResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -287,7 +310,31 @@ resource "azurerm_stream_analytics_output_blob" "import" {
 `, template)
 }
 
-func (r StreamAnalyticsOutputBlobResource) template(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputBlobResource) authenticationMode(data acceptance.TestData, identity string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_blob" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_container_name    = azurerm_storage_container.test.name
+  path_pattern              = "some-pattern"
+  date_format               = "yyyy-MM-dd"
+  time_format               = "HH"
+  authentication_mode       = "Msi"
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+}
+`, r.template(data, identity), data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputBlobResource) template(data acceptance.TestData, identity string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -330,6 +377,7 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, identity)
 }

@@ -59,50 +59,6 @@ func (c CreatorsClient) ListByAccount(ctx context.Context, id AccountId) (resp L
 	return
 }
 
-// ListByAccountComplete retrieves all of the results into a single object
-func (c CreatorsClient) ListByAccountComplete(ctx context.Context, id AccountId) (ListByAccountCompleteResult, error) {
-	return c.ListByAccountCompleteMatchingPredicate(ctx, id, CreatorOperationPredicate{})
-}
-
-// ListByAccountCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c CreatorsClient) ListByAccountCompleteMatchingPredicate(ctx context.Context, id AccountId, predicate CreatorOperationPredicate) (resp ListByAccountCompleteResult, err error) {
-	items := make([]Creator, 0)
-
-	page, err := c.ListByAccount(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByAccountCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByAccount prepares the ListByAccount request.
 func (c CreatorsClient) preparerForListByAccount(ctx context.Context, id AccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c CreatorsClient) responderForListByAccount(resp *http.Response) (result L
 		}
 	}
 	return
+}
+
+// ListByAccountComplete retrieves all of the results into a single object
+func (c CreatorsClient) ListByAccountComplete(ctx context.Context, id AccountId) (ListByAccountCompleteResult, error) {
+	return c.ListByAccountCompleteMatchingPredicate(ctx, id, CreatorOperationPredicate{})
+}
+
+// ListByAccountCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c CreatorsClient) ListByAccountCompleteMatchingPredicate(ctx context.Context, id AccountId, predicate CreatorOperationPredicate) (resp ListByAccountCompleteResult, err error) {
+	items := make([]Creator, 0)
+
+	page, err := c.ListByAccount(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByAccountCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

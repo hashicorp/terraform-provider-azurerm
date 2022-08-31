@@ -90,7 +90,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewSubscriptionID()
+id := capacities.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -106,7 +106,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewResourceGroupID()
+id := capacities.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 read, err := client.ListByResourceGroup(ctx, id)
 if err != nil {

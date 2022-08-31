@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -191,6 +192,17 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			OsDisk:         osDisk,
 			DataDisks:      dataDisks,
 		},
+	}
+
+	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+		if d.Get("single_placement_group").(bool) {
+			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+		}
+		virtualMachineProfile.CapacityReservation = &compute.CapacityReservationProfile{
+			CapacityReservationGroup: &compute.SubResource{
+				ID: utils.String(v.(string)),
+			},
+		}
 	}
 
 	hasHealthExtension := false
@@ -806,6 +818,12 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 		}
 
+		capacityReservationGroupId := ""
+		if profile.CapacityReservation != nil && profile.CapacityReservation.CapacityReservationGroup != nil && profile.CapacityReservation.CapacityReservationGroup.ID != nil {
+			capacityReservationGroupId = *profile.CapacityReservation.CapacityReservationGroup.ID
+		}
+		d.Set("capacity_reservation_group_id", capacityReservationGroupId)
+
 		// defaulted since BillingProfile isn't returned if it's unset
 		maxBidPrice := float64(-1.0)
 		if profile.BillingProfile != nil && profile.BillingProfile.MaxPrice != nil {
@@ -1041,7 +1059,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"instances": {
 			Type:         pluginsdk.TypeInt,
-			Required:     true,
+			Optional:     true,
+			Default:      0,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
@@ -1069,6 +1088,16 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 		"boot_diagnostics": bootDiagnosticsSchema(),
+
+		"capacity_reservation_group_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.CapacityReservationGroupID,
+			ConflictsWith: []string{
+				"proximity_placement_group_id",
+			},
+		},
 
 		"computer_name_prefix": {
 			Type:     pluginsdk.TypeString,
@@ -1176,9 +1205,12 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ProximityPlacementGroupID,
+			ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 			// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
 			DiffSuppressFunc: suppress.CaseDifference,
+			ConflictsWith: []string{
+				"capacity_reservation_group_id",
+			},
 		},
 
 		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),

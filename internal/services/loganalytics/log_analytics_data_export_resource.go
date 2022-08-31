@@ -3,13 +3,16 @@ package loganalytics
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/dataexport"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -25,7 +28,7 @@ func resourceLogAnalyticsDataExport() *pluginsdk.Resource {
 		Update: resourceOperationalinsightsDataExportCreateUpdate,
 		Delete: resourceOperationalinsightsDataExportDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LogAnalyticsDataExportID(id)
+			_, err := dataexport.ParseDataExportID(id)
 			return err
 		}),
 
@@ -51,7 +54,7 @@ func resourceLogAnalyticsDataExport() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogAnalyticsWorkspaceID,
+				ValidateFunc: dataexport.ValidateWorkspaceID,
 			},
 
 			"destination_resource_id": {
@@ -89,35 +92,55 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_resource_id").(string))
+	workspace, err := dataexport.ParseWorkspaceID(d.Get("workspace_resource_id").(string))
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
-	id := parse.NewLogAnalyticsDataExportID(workspace.SubscriptionId, d.Get("resource_group_name").(string), workspace.WorkspaceName, d.Get("name").(string))
+
+	id := dataexport.NewDataExportID(workspace.SubscriptionId, d.Get("resource_group_name").(string), workspace.WorkspaceName, d.Get("name").(string))
+	id.Segments()
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_log_analytics_data_export_rule", id.ID())
 		}
 	}
 
-	parameters := operationalinsights.DataExport{
-		DataExportProperties: &operationalinsights.DataExportProperties{
-			Destination: &operationalinsights.Destination{
-				ResourceID: utils.String(d.Get("destination_resource_id").(string)),
+	destinationId := d.Get("destination_resource_id").(string)
+	var tableNames []string
+	for _, v := range d.Get("table_names").(*pluginsdk.Set).List() {
+		tableNames = append(tableNames, v.(string))
+	}
+
+	parameters := dataexport.DataExport{
+		Properties: &dataexport.DataExportProperties{
+			Destination: &dataexport.Destination{
+				ResourceId: destinationId,
 			},
-			TableNames: utils.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List()),
+			TableNames: tableNames,
 			Enable:     utils.Bool(d.Get("enabled").(bool)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName, parameters); err != nil {
+	if strings.Contains(destinationId, "Microsoft.EventHub") {
+		eventhubId, err := eventhubs.ParseEventhubID(destinationId)
+		if err != nil {
+			return fmt.Errorf("parsing destination eventhub id error: %+v", err)
+		}
+		destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
+		parameters.Properties.Destination.ResourceId = destinationId
+		parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
+			EventHubName: utils.String(eventhubId.EventHubName),
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -130,28 +153,45 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsDataExportID(d.Id())
+	id, err := dataexport.ParseDataExportID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Log Analytics %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.DataexportName, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	d.Set("name", id.DataexportName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
-	if props := resp.DataExportProperties; props != nil {
-		d.Set("export_rule_id", props.DataExportID)
-		d.Set("destination_resource_id", flattenDataExportDestination(props.Destination))
-		d.Set("enabled", props.Enable)
-		d.Set("table_names", utils.FlattenStringSlice(props.TableNames))
+	d.Set("name", id.DataExportName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("workspace_resource_id", dataexport.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			dataExportId := ""
+			if props.DataExportId != nil {
+				dataExportId = *props.DataExportId
+			}
+			d.Set("export_rule_id", dataExportId)
+
+			destinationId, err := flattenDataExportDestination(props.Destination)
+			if err != nil {
+				return fmt.Errorf("flattening destination ID error: %+v", err)
+			}
+			d.Set("destination_resource_id", destinationId)
+
+			enabled := false
+			if props.Enable != nil {
+				enabled = *props.Enable
+			}
+			d.Set("enabled", enabled)
+			d.Set("table_names", props.TableNames)
+		}
 	}
 	return nil
 }
@@ -161,26 +201,37 @@ func resourceOperationalinsightsDataExportDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsDataExportID(d.Id())
+	id, err := dataexport.ParseDataExportID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName); err != nil {
-		return fmt.Errorf("deleting Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.DataexportName, id.ResourceGroup, id.WorkspaceName, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }
 
-func flattenDataExportDestination(input *operationalinsights.Destination) string {
+func flattenDataExportDestination(input *dataexport.Destination) (string, error) {
 	if input == nil {
-		return ""
+		return "", nil
 	}
 
 	var resourceID string
-	if input.ResourceID != nil {
-		resourceID = *input.ResourceID
+	if input.ResourceId != "" {
+		resourceID = input.ResourceId
+		if *input.Type == dataexport.TypeEventHub {
+			if input.MetaData != nil && input.MetaData.EventHubName != nil {
+				eventhubName := *input.MetaData.EventHubName
+				eventhubNamespaceId, err := eventhubs.ParseNamespaceID(resourceID)
+				eventhubId := eventhubs.NewEventhubID(eventhubNamespaceId.SubscriptionId, eventhubNamespaceId.ResourceGroupName, eventhubNamespaceId.NamespaceName, eventhubName)
+				if err != nil {
+					return "", fmt.Errorf("parsing destination eventhub namespace ID error")
+				}
+				resourceID = eventhubId.ID()
+			}
+		}
 	}
 
-	return resourceID
+	return resourceID, nil
 }

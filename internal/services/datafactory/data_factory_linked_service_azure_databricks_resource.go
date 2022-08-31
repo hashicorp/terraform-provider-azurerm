@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	databricksValidator "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,7 +56,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 			"msi_work_space_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: databricksValidator.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
 			},
 

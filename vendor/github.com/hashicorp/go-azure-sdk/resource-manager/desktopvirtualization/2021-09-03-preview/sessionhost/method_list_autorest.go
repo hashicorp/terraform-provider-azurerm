@@ -59,50 +59,6 @@ func (c SessionHostClient) List(ctx context.Context, id HostPoolId) (resp ListOp
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c SessionHostClient) ListComplete(ctx context.Context, id HostPoolId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, SessionHostOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SessionHostClient) ListCompleteMatchingPredicate(ctx context.Context, id HostPoolId, predicate SessionHostOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]SessionHost, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c SessionHostClient) preparerForList(ctx context.Context, id HostPoolId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c SessionHostClient) responderForList(resp *http.Response) (result ListOpe
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c SessionHostClient) ListComplete(ctx context.Context, id HostPoolId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, SessionHostOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SessionHostClient) ListCompleteMatchingPredicate(ctx context.Context, id HostPoolId, predicate SessionHostOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]SessionHost, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

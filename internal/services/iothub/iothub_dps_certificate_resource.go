@@ -58,6 +58,13 @@ func resourceIotHubDPSCertificate() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 				Sensitive:    true,
 			},
+
+			"is_verified": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -85,6 +92,10 @@ func resourceIotHubDPSCertificateCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	certificate := iothub.CertificateBodyDescription{
 		Certificate: utils.String(d.Get("certificate_content").(string)),
+	}
+
+	if d.Get("is_verified").(bool) {
+		certificate.IsVerified = utils.Bool(true)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, id.CertificateName, certificate, ""); err != nil {
@@ -119,6 +130,13 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("iot_dps_name", id.ProvisioningServiceName)
 	// We are unable to set `certificate_content` since it is not returned from the API
+	if props := resp.Properties; props != nil {
+		isVerified := false
+		if props.IsVerified != nil {
+			isVerified = *props.IsVerified
+		}
+		d.Set("is_verified", isVerified)
+	}
 
 	return nil
 }

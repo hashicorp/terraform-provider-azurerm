@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -123,30 +123,16 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"500m",
-								"1",
-								"2",
-								"3",
-								"4",
-							}, false),
+							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"memory": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"512Mi",
-								"1Gi",
-								"2Gi",
-								"3Gi",
-								"4Gi",
-								"5Gi",
-								"6Gi",
-								"7Gi",
-								"8Gi",
-							}, false),
+							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},

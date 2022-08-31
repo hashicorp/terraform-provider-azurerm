@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -73,4 +74,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 
 	return resources
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		GalleryApplicationResource{},
+		GalleryApplicationVersionResource{},
+	}
 }

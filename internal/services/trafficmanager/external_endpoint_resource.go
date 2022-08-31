@@ -67,7 +67,8 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 
 			"weight": {
 				Type:         pluginsdk.TypeInt,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -182,12 +183,15 @@ func resourceExternalEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			EndpointStatus: &status,
 			Target:         utils.String(d.Get("target").(string)),
 			Subnets:        expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
-			Weight:         utils.Int64(int64(d.Get("weight").(int))),
 		},
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
 		params.Properties.Priority = utils.Int64(int64(priority))
+	}
+
+	if weight := d.Get("weight").(int); weight != 0 {
+		params.Properties.Weight = utils.Int64(int64(weight))
 	}
 
 	if endpointLocation := d.Get("endpoint_location").(string); endpointLocation != "" {

@@ -342,6 +342,8 @@ resource "azurerm_mssql_elasticpool" "test" {
   max_size_gb         = %.7[6]f
   zone_redundant      = %[9]t
 
+  maintenance_configuration_name = "%[4]s" != "Basic" && azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
+
   sku {
     name     = "%[3]s"
     tier     = "%[4]s"
