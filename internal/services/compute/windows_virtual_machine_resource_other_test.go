@@ -1607,7 +1607,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_D2s_v3"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
@@ -1696,6 +1696,7 @@ func (r WindowsVirtualMachineResource) otherSkipShutdownAndForceDelete(data acce
 provider "azurerm" {
   features {
     virtual_machine {
+      delete_os_disk_on_deletion     = true
       skip_shutdown_and_force_delete = true
     }
   }
@@ -2764,7 +2765,8 @@ locals {
 provider "azurerm" {
   features {
     virtual_machine {
-      graceful_shutdown = %t
+      delete_os_disk_on_deletion = true
+      graceful_shutdown          = %t
     }
   }
 }
