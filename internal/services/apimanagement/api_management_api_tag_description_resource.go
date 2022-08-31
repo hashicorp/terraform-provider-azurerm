@@ -2,6 +2,7 @@ package apimanagement
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"log"
 	"time"
 
@@ -38,9 +39,10 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 
 			"tag_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.TagID,
 			},
 
 			"api_name": schemaz.SchemaApiManagementApiName(),
