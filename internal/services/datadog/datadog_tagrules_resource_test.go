@@ -91,8 +91,7 @@ func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 	
 
 resource "azurerm_datadog_monitor_tagrule" "test" {
-  name                = "test-terraform-acctests"
-  resource_group_name = "acctest-datadog"
+  datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
   log {
     subscription_log_enabled = true
   }
@@ -110,8 +109,7 @@ resource "azurerm_datadog_monitor_tagrule" "test" {
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_datadog_monitor_tagrule" "test" {
-  name                = "test-terraform-acctests"
-  resource_group_name = "acctest-datadog"
+  datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
   log {
     subscription_log_enabled = false
     resource_log_enabled     = true

@@ -84,10 +84,9 @@ func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 	
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
-  name                = "test-terraform-acctests"
-  resource_group_name = "acctest-datadog"
+  datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
   singlesignon_state  = "Enable"
-  enterpriseapp_id    = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
+  enterprise_application_id    = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
 `)
 }
@@ -95,10 +94,9 @@ resource "azurerm_datadog_monitor_sso_configuration" "test" {
 func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
-  name                = "test-terraform-acctests"
-  resource_group_name = "acctest-datadog"
+	datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
   singlesignon_state  = "Disable"
-  enterpriseapp_id    = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
+  enterprise_application_id    = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
 `)
 }
