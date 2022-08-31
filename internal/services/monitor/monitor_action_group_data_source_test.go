@@ -92,7 +92,7 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("itsm_receiver.#").HasValue("1"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.workspace_id").HasValue("6eee3a18-aac3-40e4-b98e-1f309f329816"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.connection_id").HasValue("53de6956-42b4-41ba-be3c-b154cdf17b13"),
-				check.That(data.ResourceName).Key("itsm_receiver.0.ticket_configuration").HasValue("{}"),
+				check.That(data.ResourceName).Key("itsm_receiver.0.ticket_configuration").HasValue("{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.region").HasValue("southcentralus"),
 				check.That(data.ResourceName).Key("azure_app_push_receiver.#").HasValue("1"),
 				check.That(data.ResourceName).Key("azure_app_push_receiver.0.email_address").HasValue("admin@contoso.com"),
@@ -219,7 +219,7 @@ resource "azurerm_monitor_action_group" "test" {
     name                 = "createorupdateticket"
     workspace_id         = "6eee3a18-aac3-40e4-b98e-1f309f329816"
     connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
-    ticket_configuration = "{}"
+    ticket_configuration = "{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"
     region               = "southcentralus"
   }
 
