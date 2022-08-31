@@ -10,8 +10,6 @@ description: |-
 
 Sets a PostgreSQL Configuration value on a Azure PostgreSQL Flexible Server.
 
-~> **NOTE:** The service API doesn't allow to operate `azurerm_postgresql_flexible_server_configuration`, `azurerm_postgresql_flexible_server_database` and `azurerm_postgresql_flexible_server_firewall_rule` simultaneously, so it has to use `depends_on` to execute them in sequence.
-
 ## Example Usage
 
 ```hcl
