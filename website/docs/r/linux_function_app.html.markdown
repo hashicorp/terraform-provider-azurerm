@@ -244,7 +244,7 @@ A `cors` block supports the following:
 
 A `docker` block supports the following:
 
-* `registry_url` - (Required) The URL of the docker registry.
+* `registry_url` - (Required) The URL of the docker registry. Please provide the full registry URL, including http:// or https://.
 
 * `image_name` - (Required) The name of the Docker image to use.
 

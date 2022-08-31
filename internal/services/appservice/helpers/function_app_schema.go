@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 
@@ -1131,10 +1132,15 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*schema.Schema{
 							"registry_url": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The URL of the docker registry.",
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+									if !features.FourPointOh() {
+										return validation.StringIsNotEmpty
+									}
+									return validation.IsURLWithHTTPorHTTPS
+								}(),
+								Description: "The URL of the docker registry.",
 							},
 
 							"registry_username": {
@@ -1590,10 +1596,15 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
+			dockerUrl := dockerConfig.RegistryURL
+			httpPrefixes := []string{"https://", "http://"}
+			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerUrl, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
+			for _, prefix := range httpPrefixes {
+				dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+			}
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
 		}
 	} else {
 		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)

@@ -114,7 +114,12 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 		appType = "DOCKER"
 		dockerCfg := appStack.Docker[0]
 		if dockerCfg.RegistryURL != "" {
-			appString = fmt.Sprintf("%s/%s:%s", strings.Trim(dockerCfg.RegistryURL, "/"), dockerCfg.ImageName, dockerCfg.ImageTag)
+			dockerUrl := dockerCfg.RegistryURL
+			httpPrefixes := []string{"https://", "http://"}
+			for _, prefix := range httpPrefixes {
+				dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+			}
+			appString = fmt.Sprintf("%s/%s:%s", dockerUrl, dockerCfg.ImageName, dockerCfg.ImageTag)
 		} else {
 			appString = fmt.Sprintf("%s:%s", dockerCfg.ImageName, dockerCfg.ImageTag)
 		}
@@ -183,7 +188,12 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 		return nil, fmt.Errorf("expected a docker FX version, got %q", parts[0])
 	}
 
-	dockerParts := strings.Split(strings.TrimPrefix(parts[1], partial.RegistryURL), ":")
+	dockerUrl := partial.RegistryURL
+	urlPrefix := []string{"https://", "http://"}
+	for _, prefix := range urlPrefix {
+		dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+	}
+	dockerParts := strings.Split(strings.TrimPrefix(parts[1], dockerUrl), ":")
 	if len(dockerParts) != 2 {
 		return nil, fmt.Errorf("invalid docker image reference %q", parts[1])
 	}
