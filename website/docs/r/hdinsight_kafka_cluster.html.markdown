@@ -118,6 +118,8 @@ The following arguments are supported:
 
 * `monitor` - (Optional) A `monitor` block as defined below.
 
+* `extension` - (Optional) An `extension` block as defined below.
+
 * `rest_proxy` - (Optional) A `rest_proxy` block as defined below.
 
 * `security_profile` - (Optional) A `security_profile` block as defined below.
@@ -340,6 +342,14 @@ A `monitor` block supports the following:
 * `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
 
 * `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
+
+---
+
+A `extension` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The workspace ID of the log analytics extension.
+
+* `primary_key` - (Required) The workspace key of the log analytics extension.
 
 ---
 
