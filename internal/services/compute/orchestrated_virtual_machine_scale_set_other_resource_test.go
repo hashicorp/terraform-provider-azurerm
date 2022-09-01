@@ -2,6 +2,8 @@ package compute_test
 
 import (
 	"fmt"
+	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -268,33 +270,72 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherVMAgentDisabledWithExtension
 }
 
 func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroup(t *testing.T) {
-	t.Skip("Skipping test until GA of Single Placement Group")
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
+	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherSinglePlacementGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.otherSinglePlacementGroupUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.otherSinglePlacementGroup(data),
+			// NOTE: Once single_placement_group has been set to false
+			// it can no longer be changed back to true.
+			Config: r.otherSinglePlacementGroup(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
+	r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.otherSinglePlacementGroup(data, "true"),
+			ExpectError: regexp.MustCompile("Virtual Machine Scale Sets with Flexible Orchestration Mode or Virtual Machines referencing such Virtual Machine Scale Sets cannot use VM Size"),
+		},
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupNullMSeriesVmSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
+	r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSinglePlacementGroupNull(data, "Standard_M32ls"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupNullStandardVmSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
+	r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSinglePlacementGroupNull(data, "Standard_D1_v2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
+func (r OrchestratedVirtualMachineScaleSetResource) preCheck(t *testing.T) {
+	if r.SinglePlacementGroupGA == "" {
+		t.Skipf("`ARM_TEST_SINGLE_PLACEMENT_GROUP_GA` must be set to run the Orchestrated VMSS single_placement_group acceptance tests")
+	}
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) priorityTemplate(data acceptance.TestData) string {
@@ -1337,7 +1378,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) otherSinglePlacementGroup(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) otherSinglePlacementGroup(data acceptance.TestData, singlePlacementGroup string) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1409,12 +1450,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 
-  single_placement_group = true
+  single_placement_group = %[5]s
+
+  tags = {
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString, singlePlacementGroup)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) otherSinglePlacementGroupUpdated(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) otherSinglePlacementGroupNull(data acceptance.TestData, vmSku string) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1442,7 +1487,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   zones = []
 
-  sku_name  = "Standard_D1_v2"
+  sku_name  = "%[5]s"
   instances = 1
 
   platform_fault_domain_count = 2
@@ -1486,7 +1531,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 
-  single_placement_group = false
+  tags = {
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString, vmSku)
 }

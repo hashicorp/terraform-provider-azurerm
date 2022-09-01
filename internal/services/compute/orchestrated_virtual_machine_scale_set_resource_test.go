@@ -14,7 +14,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type OrchestratedVirtualMachineScaleSetResource struct{}
+type OrchestratedVirtualMachineScaleSetResource struct {
+	SinglePlacementGroupGA string
+}
+
+func NewOrchestratedVirtualMachineScaleSetResource(singlePlacementGroupGA string) *OrchestratedVirtualMachineScaleSetResource {
+	return &OrchestratedVirtualMachineScaleSetResource{
+		SinglePlacementGroupGA: singlePlacementGroupGA,
+	}
+}
 
 func TestAccOrchestratedVirtualMachineScaleSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
