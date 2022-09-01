@@ -82,9 +82,10 @@ func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	resp, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.GroupName)
+	filter := "name eq '" + id.GroupName + "'"
+	resp, err := client.ListByProduct(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, filter, utils.Int32(1), utils.Int32(0))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if utils.ResponseWasNotFound(resp.Response().Response) || len(resp.Values()) == 0 {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
