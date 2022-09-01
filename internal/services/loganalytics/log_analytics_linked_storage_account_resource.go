@@ -50,7 +50,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAlerts)),
 					// Value removed from enum in 2020-08-01, but effectively still works
 					"ingestion",
-				}, false),
+				}, true),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
