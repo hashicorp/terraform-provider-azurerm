@@ -689,7 +689,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
+  throughput_in_mibps = 64
 
   export_policy_rule {
     rule_index        = 1
@@ -739,7 +739,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
-  throughput_in_mibps = 65
+  throughput_in_mibps = 63
 
   export_policy_rule {
     rule_index        = 1
