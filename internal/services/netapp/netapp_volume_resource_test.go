@@ -16,7 +16,39 @@ import (
 
 type NetAppVolumeResource struct{}
 
-func TestAccNetAppVolume_basic(t *testing.T) {
+func TestAccNetAppVolume(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"Resource": {
+			"basic":                              testAccNetAppVolume_basic,
+			"nfsv41":                             testAccNetAppVolume_nfsv41,
+			"standardNetworkFeature":             testAccNetAppVolume_standardNetworkFeature,
+			"snapshotPolicy":                     testAccNetAppVolume_snapshotPolicy,
+			"crossRegionReplication":             testAccNetAppVolume_crossRegionReplication,
+			"nfsv3FromSnapshot":                  testAccNetAppVolume_nfsv3FromSnapshot,
+			"nfsv3SnapshotDirectoryVisibleFalse": testAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse,
+			"requiresImport":                     testAccNetAppVolume_requiresImport,
+			"complete":                           testAccNetAppVolume_complete,
+			"update":                             testAccNetAppVolume_update,
+			"updateSubnet":                       testAccNetAppVolume_updateSubnet,
+			"updateExportPolicyRule":             testAccNetAppVolume_updateExportPolicyRule,
+		},
+		"DataSource": {
+			"basic": testAccDataSourceNetAppVolume_basic,
+		},
+	}
+
+	for group, m := range testCases {
+		for name, tc := range m {
+			t.Run(group, func(t *testing.T) {
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			})
+		}
+	}
+}
+
+func testAccNetAppVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -31,7 +63,7 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_nfsv41(t *testing.T) {
+func testAccNetAppVolume_nfsv41(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -47,7 +79,7 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
+func testAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -63,7 +95,7 @@ func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_snapshotPolicy(t *testing.T) {
+func testAccNetAppVolume_snapshotPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -79,7 +111,7 @@ func TestAccNetAppVolume_snapshotPolicy(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
+func testAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
 	r := NetAppVolumeResource{}
 
@@ -95,7 +127,7 @@ func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
+func testAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_vol")
 	r := NetAppVolumeResource{}
 
@@ -110,7 +142,7 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
+func testAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_directory_visible_false")
 	r := NetAppVolumeResource{}
 
@@ -126,7 +158,7 @@ func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_requiresImport(t *testing.T) {
+func testAccNetAppVolume_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -144,7 +176,7 @@ func TestAccNetAppVolume_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_complete(t *testing.T) {
+func testAccNetAppVolume_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -165,7 +197,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_update(t *testing.T) {
+func testAccNetAppVolume_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -197,7 +229,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_updateSubnet(t *testing.T) {
+func testAccNetAppVolume_updateSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 	resourceGroupName := fmt.Sprintf("acctestRG-netapp-%d", data.RandomInteger)
@@ -231,7 +263,7 @@ func TestAccNetAppVolume_updateSubnet(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
+func testAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
