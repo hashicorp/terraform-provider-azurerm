@@ -1162,8 +1162,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	}
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
-	// only write state for single_placement_group if it is returned and it is in the config file
-	if props.SinglePlacementGroup != nil && !pluginsdk.IsExplicitlyNullInConfig(d, "single_placement_group") {
+	// only write state for single_placement_group if it is returned by the RP...
+	if props.SinglePlacementGroup != nil {
 		d.Set("single_placement_group", props.SinglePlacementGroup)
 	}
 	d.Set("unique_id", props.UniqueID)
