@@ -2,7 +2,6 @@ package compute_test
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -271,8 +270,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherVMAgentDisabledWithExtension
 
 func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
-	r.preCheck(t)
+	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -289,8 +287,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroup(t *test
 
 func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
-	r.preCheck(t)
+	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -302,8 +299,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupInvalid(
 
 func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupNullMSeriesVmSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
-	r.preCheck(t)
+	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -318,8 +314,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupNullMSer
 
 func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupNullStandardVmSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := NewOrchestratedVirtualMachineScaleSetResource(os.Getenv("ARM_TEST_SINGLE_PLACEMENT_GROUP_GA"))
-	r.preCheck(t)
+	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -330,12 +325,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupNullStan
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
-}
-
-func (r OrchestratedVirtualMachineScaleSetResource) preCheck(t *testing.T) {
-	if r.SinglePlacementGroupGA == "" {
-		t.Skipf("`ARM_TEST_SINGLE_PLACEMENT_GROUP_GA` must be set to run the Orchestrated VMSS single_placement_group acceptance tests")
-	}
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) priorityTemplate(data acceptance.TestData) string {
