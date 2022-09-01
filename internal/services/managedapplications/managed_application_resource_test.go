@@ -49,7 +49,7 @@ func TestAccManagedApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -64,7 +64,7 @@ func TestAccManagedApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -197,8 +197,8 @@ func (r ManagedApplicationResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "cisco"
-  offer     = "meraki-vmx"
-  plan      = "meraki-vmx100"
+  offer     = "cisco-meraki-vmx"
+  plan      = "cisco-meraki-vmx"
 }
 
 resource "azurerm_managed_application" "test" {
@@ -212,11 +212,11 @@ resource "azurerm_managed_application" "test" {
     name      = azurerm_marketplace_agreement.test.plan
     product   = azurerm_marketplace_agreement.test.offer
     publisher = azurerm_marketplace_agreement.test.publisher
-    version   = "1.0.44"
+    version   = "15.37.1"
   }
 
   parameters = {
-    baseUrl                     = ""
+    zone                        = "0"
     location                    = azurerm_resource_group.test.location
     merakiAuthToken             = "f451adfb-d00b-4612-8799-b29294217d4a"
     subnetAddressPrefix         = "10.0.0.0/24"
