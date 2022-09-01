@@ -210,6 +210,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			// for this bool
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
+				Computed: true,
 				Optional: true,
 			},
 
