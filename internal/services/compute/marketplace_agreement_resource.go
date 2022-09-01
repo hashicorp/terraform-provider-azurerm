@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -91,13 +90,9 @@ func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if accepted {
-		agreement, err := client.GetAgreement(ctx, id.AgreementName, id.OfferName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(agreement.Response) {
-				return fmt.Errorf("retrieving %s: %s", id, err)
-			}
+		if _, err := client.Cancel(ctx, id.AgreementName, id.OfferName, id.Name); err != nil {
+			return fmt.Errorf("cancelling agreement for Publisher %q / Offer %q / Plan %q: %s", id.AgreementName, id.OfferName, id.Name, err)
 		}
-		return tf.ImportAsExistsError("azurerm_marketplace_agreement", id.ID())
 	}
 
 	terms, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)

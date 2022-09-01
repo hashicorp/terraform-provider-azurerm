@@ -49,7 +49,7 @@ func TestAccManagedApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -64,7 +64,7 @@ func TestAccManagedApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
