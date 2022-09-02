@@ -39,7 +39,7 @@ resource "azurerm_automation_software_update_configuration" "example" {
     classification    = "Security"
     excluded_packages = ["apt"]
     included_packages = ["vim"]
-    reboot    = "IfRequired"
+    reboot            = "IfRequired"
   }
 
   duration = "PT2H2M2S"
