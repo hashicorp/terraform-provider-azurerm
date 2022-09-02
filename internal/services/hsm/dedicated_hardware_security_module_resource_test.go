@@ -15,7 +15,28 @@ import (
 
 type DedicatedHardwareSecurityModuleResource struct{}
 
-func TestAccDedicatedHardwareSecurityModule_basic(t *testing.T) {
+func TestAccNetAppVolume(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"Resource": {
+			"basic":          testAccDedicatedHardwareSecurityModule_basic,
+			"requiresImport": testAccDedicatedHardwareSecurityModule_requiresImport,
+			"complete":       testAccDedicatedHardwareSecurityModule_complete,
+			"update":         testAccDedicatedHardwareSecurityModule_update,
+		},
+	}
+
+	for group, m := range testCases {
+		for name, tc := range m {
+			t.Run(group, func(t *testing.T) {
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			})
+		}
+	}
+}
+
+func testAccDedicatedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 	r := DedicatedHardwareSecurityModuleResource{}
 
@@ -30,7 +51,7 @@ func TestAccDedicatedHardwareSecurityModule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDedicatedHardwareSecurityModule_requiresImport(t *testing.T) {
+func testAccDedicatedHardwareSecurityModule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 	r := DedicatedHardwareSecurityModuleResource{}
 
@@ -45,7 +66,7 @@ func TestAccDedicatedHardwareSecurityModule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDedicatedHardwareSecurityModule_complete(t *testing.T) {
+func testAccDedicatedHardwareSecurityModule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 	r := DedicatedHardwareSecurityModuleResource{}
 
@@ -60,7 +81,7 @@ func TestAccDedicatedHardwareSecurityModule_complete(t *testing.T) {
 	})
 }
 
-func TestAccDedicatedHardwareSecurityModule_update(t *testing.T) {
+func testAccDedicatedHardwareSecurityModule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 	r := DedicatedHardwareSecurityModuleResource{}
 
