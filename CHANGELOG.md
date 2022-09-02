@@ -21,6 +21,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` [GH-18183]
+* `azurerm_batch_pool` - support for the `mount` property [GH-18042]
 * `azurerm_container_registry` - support for the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties [GH-17926]
 * `azurerm_cosmosdb_cassandra_cluster` - support for the `HoursBetweenBackups` property [GH-18154]
 * `azurerm_hdinsight_kafka_cluster` - add support for the `disk_encryption` property [GH-17351]
