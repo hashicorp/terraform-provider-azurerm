@@ -182,9 +182,6 @@ func (m WatcherResource) Read() sdk.ResourceFunc {
 			output.Status = utils.NormalizeNilableString(prop.Status)
 
 			// tags, etag and location do not returned by response, so do NOT encode them
-			//output.Etag = utils.NormalizeNilableString(result.Etag)
-			//output.Location = utils.NormalizeNilableString(result.Location)
-			//output.Tags = tags.Flatten(result.Tags)
 
 			return meta.Encode(&output)
 		},
