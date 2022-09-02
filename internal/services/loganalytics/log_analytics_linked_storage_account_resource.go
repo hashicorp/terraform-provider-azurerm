@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -39,10 +38,9 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"data_source_type": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeCustomLogs)),
 					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAzureWatson)),
@@ -50,7 +48,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAlerts)),
 					// Value removed from enum in 2020-08-01, but effectively still works
 					"ingestion",
-				}, true),
+				}, false),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -144,7 +142,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 
 		dataSourceType := ""
 		if props.DataSourceType != nil {
-			dataSourceType = string(*props.DataSourceType)
+			dataSourceType = strings.ToLower(string(*props.DataSourceType))
 		}
 		d.Set("data_source_type", dataSourceType)
 
