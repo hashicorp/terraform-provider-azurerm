@@ -163,3 +163,17 @@ func flattenParameterValuesValueToString(input map[string]*policy.ParameterValue
 
 	return compactJson.String(), nil
 }
+
+func getPolicyRoleDefinitionIDs(ruleStr string) (res []string, err error) {
+	type policyRule struct {
+		Then struct {
+			Details struct {
+				RoleDefinitionIds []string `json:"roleDefinitionIds"`
+			} `json:"details"`
+		} `json:"then"`
+	}
+	var ins policyRule
+	err = json.Unmarshal([]byte(ruleStr), &ins)
+	res = ins.Then.Details.RoleDefinitionIds
+	return
+}
