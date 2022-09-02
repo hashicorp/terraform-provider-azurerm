@@ -38,6 +38,7 @@ ENHANCEMENTS:
 * `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
 * `azurerm_orchestrated_virtual_machine_scale_set` - add support for missing fields [GH-17571]
+* `azurerm_policy_definition - export the `role_definition_ids` attribute [GH-18043]
 * `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_role_assignment` - support `scope` to be `/providers/Subscription` [GH-17456]
