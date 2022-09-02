@@ -3,12 +3,12 @@ subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_software_update_configuration"
 description: |-
-  Manages a Automation Software Update Configuration.
+  Manages an Automation Software Update Configuration.
 ---
 
 # azurerm_automation_software_update_configuration
 
-Manages a Automation Software Update Configuraion.
+Manages an Automation Software Update Configuraion.
 
 ## Example Usage
 
@@ -39,7 +39,7 @@ resource "azurerm_automation_software_update_configuration" "example" {
     classification    = "Security"
     excluded_packages = ["apt"]
     included_packages = ["vim"]
-    reboot_setting    = "IfRequired"
+    reboot    = "IfRequired"
   }
 
   duration = "PT2H2M2S"
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `non_azure_computer_names` - (Optional) Specifies a list of names of non-azure machines for the software update configuration.
 
-* `targets` - (Optional) One or more `targets` blocks as defined below.
+* `target` - (Optional) One or more `target` blocks as defined below.
 
 * `post_task` - (Optional) One or more `post_task` blocks as defined below.
 
@@ -82,37 +82,37 @@ The following arguments are supported:
 
 A `linux` block supports the following:
 
-* `classification` - (Optional) Specifies the update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
+* `classification_included` - (Optional) Specifies the update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
 
 * `excluded_packages` - (Optional) Specifies a list of packages to excluded from the Software Update Configuration.
 
 * `included_packages` - (Optional) Specifies a list of packages to included from the Software Update Configuration.
 
-* `reboot_setting` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
 
 ---
 
 A `windows` block supports the following:
 
-* `classification` - (Optional) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+* `classification_included` - (Optional) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `excluded_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers excluded.
 
 * `included_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers included.
 
-* `reboot_setting` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
 
 ---
 
-A `targets` block supports the following:
+A `target` block supports the following:
 
-* `azure_queries` - (Optional) One or more `azure_queries` blocks as defined above.
+* `azure_query` - (Optional) One or more `azure_query` blocks as defined above.
 
-* `non_azure_queries` - (Optional) One or more `non_azure_queries` blocks as defined above.
+* `non_azure_query` - (Optional) One or more `non_azure_query` blocks as defined above.
 
 ---
 
-A `azure_queries` block supports the following:
+A `azure_query` block supports the following:
 
 * `locations` - (Optional) Specifies a list of locations to scope the query to.
 
@@ -132,7 +132,7 @@ A `tags` block supports the following:
 
 ---
 
-A `non_azure_queries` block supports the following:
+A `non_azure_query` block supports the following:
 
 * `function_alias` - (Optional) Specifies the Log Analytics save search name.
 

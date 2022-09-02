@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	validate3 "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -55,14 +54,14 @@ type Tag struct {
 	Values []string `tfschema:"values"`
 }
 
-type AzureQueries struct {
+type AzureQuery struct {
 	Scope     []string `tfschema:"scope"`
 	Locations []string `tfschema:"locations"`
 	Tags      []Tag    `tfschema:"tags"`
 	TagFilter string   `tfschema:"tag_filter"`
 }
 
-func (a *AzureQueries) LoadSDKTags(tags map[string][]string) {
+func (a *AzureQuery) LoadSDKTags(tags map[string][]string) {
 	if tags == nil {
 		return
 	}
@@ -75,7 +74,7 @@ func (a *AzureQueries) LoadSDKTags(tags map[string][]string) {
 		a.Tags = append(a.Tags, t)
 	}
 }
-func (a *AzureQueries) ToSDKTags() map[string][]string {
+func (a *AzureQuery) ToSDKTags() map[string][]string {
 	if len(a.Tags) == 0 {
 		return nil
 	}
@@ -87,8 +86,8 @@ func (a *AzureQueries) ToSDKTags() map[string][]string {
 }
 
 type Linux struct {
-	RebootSetting    string   `tfschema:"reboot_setting"`
-	Classification   string   `tfschema:"classification"`
+	Reboot           string   `tfschema:"reboot"`
+	Classification   string   `tfschema:"classification_included"`
 	ExcludedPackages []string `tfschema:"excluded_packages"`
 	IncludedPackages []string `tfschema:"included_packages"`
 }
@@ -98,7 +97,7 @@ type MonthlyOccurrence struct {
 	Day        string `tfschema:"day"`
 }
 
-type NonAzureQueries struct {
+type NonAzureQuery struct {
 	FunctionAlias string `tfschema:"function_alias"`
 	WorkspaceId   string `tfschema:"workspace_id"`
 }
@@ -243,19 +242,19 @@ func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 	return &res
 }
 
-type Targets struct {
-	AzureQueries    []AzureQueries    `tfschema:"azure_queries"`
-	NonAzureQueries []NonAzureQueries `tfschema:"non_azure_queries"`
+type Target struct {
+	AzureQueries    []AzureQuery    `tfschema:"azure_query"`
+	NonAzureQueries []NonAzureQuery `tfschema:"non_azure_query"`
 }
 
-func targetsFromSDK(prop *automation.TargetProperties) []Targets {
+func targetsFromSDK(prop *automation.TargetProperties) []Target {
 	if prop == nil {
 		return nil
 	}
-	var t Targets
+	var t Target
 	if prop.AzureQueries != nil {
 		for _, az := range *prop.AzureQueries {
-			q := AzureQueries{
+			q := AzureQuery{
 				Scope:     stringSlice(az.Scope),
 				Locations: stringSlice(az.Locations),
 			}
@@ -268,26 +267,25 @@ func targetsFromSDK(prop *automation.TargetProperties) []Targets {
 	}
 	if prop.NonAzureQueries != nil {
 		for _, az := range *prop.NonAzureQueries {
-			q := NonAzureQueries{
+			q := NonAzureQuery{
 				FunctionAlias: utils.NormalizeNilableString(az.FunctionAlias),
 				WorkspaceId:   utils.NormalizeNilableString(az.WorkspaceID),
 			}
 			t.NonAzureQueries = append(t.NonAzureQueries, q)
 		}
 	}
-	return []Targets{t}
+	return []Target{t}
 }
 
 type Windows struct {
-	Classification string   `tfschema:"classification"`
+	Classification string   `tfschema:"classification_included"`
 	ExcludedKbs    []string `tfschema:"excluded_knowledge_base_numbers"`
 	IncludedKbs    []string `tfschema:"included_knowledge_base_numbers"`
-	RebootSetting  string   `tfschema:"reboot_setting"`
+	RebootSetting  string   `tfschema:"reboot"`
 }
 
 type SoftwareUpdateConfigurationModel struct {
-	ResourceGroupName     string       `tfschema:"resource_group_name"`
-	AutomationAccountName string       `tfschema:"automation_account_name"`
+	AutomationAccountID   string       `tfschema:"automation_account_id"`
 	Name                  string       `tfschema:"name"`
 	ErrorCode             string       `tfschema:"error_code"`
 	ErrorMeesage          string       `tfschema:"error_meesage"`
@@ -297,7 +295,7 @@ type SoftwareUpdateConfigurationModel struct {
 	Duration              string       `tfschema:"duration"`
 	VirtualMachines       []string     `tfschema:"virtual_machines"`
 	NonAzureComputerNames []string     `tfschema:"non_azure_computer_names"`
-	Targets               []Targets    `tfschema:"targets"`
+	Targets               []Target     `tfschema:"target"`
 	Schedule              []Schedule   `tfschema:"schedule"`
 	PreTask               []UpdateTask `tfschema:"pre_task"`
 	PostTask              []UpdateTask `tfschema:"post_task"`
@@ -316,8 +314,8 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 		upd.Linux = &automation.LinuxProperties{
 			IncludedPackageClassifications: automation.LinuxUpdateClasses(l.Classification),
 		}
-		if l.RebootSetting != "" {
-			upd.Linux.RebootSetting = utils.String(l.RebootSetting)
+		if l.Reboot != "" {
+			upd.Linux.RebootSetting = utils.String(l.Reboot)
 		}
 
 		upd.Linux.IncludedPackageNameMasks = utils.StringSlice(l.IncludedPackages)
@@ -393,7 +391,7 @@ func (s *SoftwareUpdateConfigurationModel) LoadSDKModel(prop *automation.Softwar
 		s.OperatingSystem = string(conf.OperatingSystem)
 		if l := conf.Linux; l != nil {
 			s.Linux = []Linux{{
-				RebootSetting:    utils.NormalizeNilableString(l.RebootSetting),
+				Reboot:           utils.NormalizeNilableString(l.RebootSetting),
 				Classification:   string(l.IncludedPackageClassifications),
 				ExcludedPackages: stringSlice(l.ExcludedPackageNameMasks),
 				IncludedPackages: stringSlice(l.IncludedPackageNameMasks),
@@ -428,13 +426,11 @@ var _ sdk.ResourceWithUpdate = (*SoftwareUpdateConfigurationResource)(nil)
 func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"automation_account_name": {
+		"automation_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.AutomationAccountID,
 		},
 
 		"name": {
@@ -459,12 +455,12 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 
-					"reboot_setting": {
+					"reboot": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 
-					"classification": {
+					"classification_included": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice(func() (vs []string) {
@@ -502,7 +498,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 
-					"classification": {
+					"classification_included": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice(func() (vs []string) {
@@ -531,7 +527,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 						},
 					},
 
-					"reboot_setting": {
+					"reboot": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
@@ -564,13 +560,14 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			},
 		},
 
-		"targets": {
+		"target": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 
-					"azure_queries": {
+					"azure_query": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -633,7 +630,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 						},
 					},
 
-					"non_azure_queries": {
+					"non_azure_query": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -867,9 +864,10 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 			if err := meta.Decode(&model); err != nil {
 				return err
 			}
+			automationID, _ := parse.AutomationAccountID(model.AutomationAccountID)
 
 			subscriptionID := meta.Client.Account.SubscriptionId
-			id := parse.NewSoftwareUpdateConfigurationID(subscriptionID, model.ResourceGroupName, model.AutomationAccountName, model.Name)
+			id := parse.NewSoftwareUpdateConfigurationID(subscriptionID, automationID.ResourceGroup, automationID.Name, model.Name)
 			existing, err := client.GetByName(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, "")
 			if !utils.ResponseWasNotFound(existing.Response) {
 				if err != nil {
@@ -913,8 +911,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			output.Name = id.Name
-			output.ResourceGroupName = id.ResourceGroup
-			output.AutomationAccountName = id.AutomationAccountName
+			output.AutomationAccountID = parse.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName).ID()
 			output.LoadSDKModel(result.SoftwareUpdateConfigurationProperties)
 
 			return meta.Encode(&output)

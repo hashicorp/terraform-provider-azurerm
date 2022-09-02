@@ -81,26 +81,27 @@ func (a SoftwareUpdateConfigurationResource) basic(data acceptance.TestData) str
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  name                    = "acctest-suc-%[2]d"
-  operating_system        = "Linux"
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+  operating_system      = "Linux"
 
   linux {
-    classification    = "Security"
-    excluded_packages = ["apt"]
-    included_packages = ["vim"]
-    reboot_setting    = "IfRequired"
+    classification_included = "Security"
+    excluded_packages       = ["apt"]
+    included_packages       = ["vim"]
+    reboot                  = "IfRequired"
   }
 
   duration         = "PT1H1M1S"
   virtual_machines = []
 
-  targets {
-    azure_queries {
+  target {
+    azure_query {
       scope     = [azurerm_resource_group.test.id]
       locations = [azurerm_resource_group.test.location]
       tags {
@@ -110,7 +111,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
       tag_filter = "Any"
     }
 
-    non_azure_queries {
+    non_azure_query {
       function_alias = "savedSearch1"
       workspace_id   = azurerm_log_analytics_workspace.test.id
     }
@@ -141,26 +142,27 @@ func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) st
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  name                    = "acctest-suc-%[2]d"
-  operating_system        = "Linux"
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+  operating_system      = "Linux"
 
   linux {
-    classification    = "Security"
-    excluded_packages = ["apt"]
-    included_packages = ["vim"]
-    reboot_setting    = "IfRequired"
+    classification_included = "Security"
+    excluded_packages       = ["apt"]
+    included_packages       = ["vim"]
+    reboot                  = "IfRequired"
   }
 
   duration         = "PT2H2M2S"
   virtual_machines = []
 
-  targets {
-    azure_queries {
+  target {
+    azure_query {
       scope     = [azurerm_resource_group.test.id]
       locations = [azurerm_resource_group.test.location]
       tags {
@@ -170,7 +172,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
       tag_filter = "Any"
     }
 
-    non_azure_queries {
+    non_azure_query {
       function_alias = "savedSearch1"
       workspace_id   = azurerm_log_analytics_workspace.test.id
     }
