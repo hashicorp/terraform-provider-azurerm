@@ -1,4 +1,4 @@
-## 3.21.1 (Unreleased)
+## 3.21.1 (September 02, 2022)
 
 BREAKING CHANGES:
 
@@ -7,12 +7,12 @@ BREAKING CHANGES:
 
 NOTES:
 
-* the `containerregistry` api version has been reverted to `2021-08-01-preview` to restore the `virtual_network` block meaning the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties had to be removed as they were not supported by the API version that supported virtual network rules. [GH-18239]
+* the `containerregistry` api version has been reverted to `2021-08-01-preview` to restore the `virtual_network` block meaning the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties had to be removed as they were not supported by the API version that supported virtual network rules. ([#18239](https://github.com/hashicorp/terraform-provider-azurerm/issues/18239))
 
 BUG FIXES:
 
-* `azurerm_container_registry` - the `virtual_network` block has been restored [GH-18239]
-* `azurerm_log_analytics_data_export_rule` - a state migration to work around the previously incorrect id casing [GH-18240]
+* `azurerm_container_registry` - the `virtual_network` block has been restored ([#18239](https://github.com/hashicorp/terraform-provider-azurerm/issues/18239))
+* `azurerm_log_analytics_data_export_rule` - a state migration to work around the previously incorrect id casing ([#18240](https://github.com/hashicorp/terraform-provider-azurerm/issues/18240))
 
 ## 3.21.0 (September 01, 2022)
 
