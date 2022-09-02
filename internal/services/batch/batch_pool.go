@@ -656,6 +656,180 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	return startTask, nil
 }
 
+func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*batch.VirtualMachineConfiguration, error) {
+	var result batch.VirtualMachineConfiguration
+
+	result.NodeAgentSkuID = utils.String(d.Get("node_agent_sku_id").(string))
+
+	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+	if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
+		result.ImageReference = imageReference
+	} else {
+		return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
+	}
+
+	if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{})); err == nil {
+		result.ContainerConfiguration = containerConfiguration
+	}
+
+	if dataDisk, diskErr := expandBatchPoolDataDisks(d.Get("data_disks").([]interface{})); diskErr == nil {
+		result.DataDisks = dataDisk
+	}
+
+	if diskEncryptionConfig, diskEncryptionErr := expandBatchPoolDiskEncryptionConfiguration(d.Get("disk_encryption_configuration").([]interface{})); diskEncryptionErr == nil {
+		result.DiskEncryptionConfiguration = diskEncryptionConfig
+	}
+
+	if extensions, extErr := expandBatchPoolExtensions(d.Get("extensions").([]interface{})); extErr == nil {
+		result.Extensions = extensions
+	}
+
+	if licenseType, ok := d.GetOk("license_type"); ok {
+		result.LicenseType = utils.String(licenseType.(string))
+	}
+
+	if nodeReplacementConfig, nodeRepCfgErr := expandBatchPoolNodeReplacementConfig(d.Get("node_placement_configuration").([]interface{})); nodeRepCfgErr == nil {
+		result.NodePlacementConfiguration = nodeReplacementConfig
+	}
+
+	if osDisk, osDiskErr := expandBatchPoolOSDisk(d.Get("os_disk_placement_setting")); osDiskErr == nil {
+		result.OsDisk = osDisk
+	}
+
+	if windowsConfiguration, windowsConfigErr := expandBatchPoolWindowsConfiguration(d.Get("windows_configuration").([]interface{})); windowsConfigErr == nil {
+		result.WindowsConfiguration = windowsConfiguration
+	}
+
+	return &result, nil
+}
+
+func expandBatchPoolOSDisk(ref interface{}) (*batch.OSDisk, error) {
+	if ref == nil {
+		return nil, fmt.Errorf("os_disk_placement_setting is empty")
+	}
+	item := ref.(string)
+	result := batch.OSDisk{
+		EphemeralOSDiskSettings: &batch.DiffDiskSettings{
+			Placement: batch.DiffDiskPlacement(item),
+		},
+	}
+	return &result, nil
+}
+
+func expandBatchPoolNodeReplacementConfig(list []interface{}) (*batch.NodePlacementConfiguration, error) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("node_placement_configuration is empty")
+	}
+	item := list[0].(map[string]interface{})["policy"].(string)
+	result := batch.NodePlacementConfiguration{
+		Policy: batch.NodePlacementPolicyType(item),
+	}
+	return &result, nil
+}
+
+func expandBatchPoolWindowsConfiguration(list []interface{}) (*batch.WindowsConfiguration, error) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("windows_configuration is empty")
+	}
+	item := list[0].(map[string]interface{})["enable_automatic_updates"].(bool)
+	result := batch.WindowsConfiguration{
+		EnableAutomaticUpdates: utils.Bool(item),
+	}
+	return &result, nil
+}
+
+func expandBatchPoolExtensions(list []interface{}) (*[]batch.VMExtension, error) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("extensions is empty")
+	}
+	var result []batch.VMExtension
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		if batchPoolExtension, err := expandBatchPoolExtension(item); err == nil {
+			result = append(result, *batchPoolExtension)
+		} else {
+			return nil, fmt.Errorf("cloud_service_configuration either is empty or contains parsing errors")
+		}
+	}
+
+	return &result, nil
+}
+
+func expandBatchPoolExtension(ref map[string]interface{}) (*batch.VMExtension, error) {
+	if ref == nil || len(ref) == 0 {
+		return nil, fmt.Errorf("extension is empty")
+	}
+	result := batch.VMExtension{
+		Name:      utils.String(ref["name"].(string)),
+		Publisher: utils.String(ref["publisher"].(string)),
+		Type:      utils.String(ref["type"].(string)),
+	}
+	if autoUpgradeMinorVersion, ok := ref["auto_upgrade_minor_version"]; ok {
+		result.AutoUpgradeMinorVersion = utils.Bool(autoUpgradeMinorVersion.(bool))
+	}
+	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
+		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
+	}
+	if settings, ok := ref["settings"]; ok {
+		result.Settings = utils.String(settings.(string))
+	}
+	if protectedSettings, ok := ref["protected_settings"]; ok {
+		result.ProtectedSettings = utils.String(protectedSettings.(string))
+	}
+	if tmpItem, ok := ref["provision_after_extensions"]; ok {
+		result.ProvisionAfterExtensions = utils.ExpandStringSlice(tmpItem.(*pluginsdk.Set).List())
+	}
+	return &result, nil
+}
+
+func expandBatchPoolDiskEncryptionConfiguration(list []interface{}) (*batch.DiskEncryptionConfiguration, error) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("disk_encryption_configuration is empty")
+	}
+	var result batch.DiskEncryptionConfiguration
+
+	var targetList []batch.DiskEncryptionTarget
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		if dataDiskEncryptionTarget, ok := item["disk_encryption_target"]; ok {
+			targetList = append(targetList, batch.DiskEncryptionTarget(dataDiskEncryptionTarget.(string)))
+		} else {
+			return nil, fmt.Errorf("disk_encryption_target either is empty or contains parsing errors")
+		}
+	}
+	result.Targets = &targetList
+	return &result, nil
+}
+
+func expandBatchPoolDataDisks(list []interface{}) (*[]batch.DataDisk, error) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("data_disk is empty")
+	}
+	var result []batch.DataDisk
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		dataDisk, err := expandBatchPoolDataDisk(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *dataDisk)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolDataDisk(ref map[string]interface{}) (*batch.DataDisk, error) {
+	result := batch.DataDisk{
+		Lun:                utils.Int32(int32(ref["lun"].(int))),
+		Caching:            batch.CachingType(ref["caching"].(string)),
+		DiskSizeGB:         utils.Int32(int32(ref["disk_size_gb"].(int))),
+		StorageAccountType: batch.StorageAccountType(ref["storage_account_type"].(string)),
+	}
+	return &result, nil
+}
+
 func expandCommonEnvironmentProperties(env map[string]interface{}) *[]batch.EnvironmentSetting {
 	envSettings := make([]batch.EnvironmentSetting, 0)
 

@@ -577,6 +577,66 @@ func TestAccBatchPool_mountConfigurationNFS(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_diskSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
+				check.That(data.ResourceName).Key("data_disks.0.lun").HasValue("20"),
+				check.That(data.ResourceName).Key("data_disks.0.caching").HasValue("None"),
+				check.That(data.ResourceName).Key("data_disks.0.disk_size_gb").HasValue("1"),
+				check.That(data.ResourceName).Key("data_disks.0.storage_account_type").HasValue("Standard_LRS"),
+				check.That(data.ResourceName).Key("os_disk_placement_setting").HasValue("CacheDisk"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+
+}
+
+func TestAccBatchPool_extensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("extensions.0.name").HasValue("KeyVaultForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.publisher").HasValue("Microsoft.Azure.KeyVault"),
+				check.That(data.ResourceName).Key("extensions.0.type").HasValue("KeyVaultForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.type_handler_version").HasValue("2.0"),
+				check.That(data.ResourceName).Key("extensions.0.auto_upgrade_minor_version").HasValue("true"),
+				check.That(data.ResourceName).Key("extensions.0.settings").HasValue("{}"),
+				check.That(data.ResourceName).Key("extensions.0.protected_settings").HasValue("sensitive"),
+				check.That(data.ResourceName).Key("extensions.0.provision_after_extensions.0").HasValue("newProv1"),
+			),
+		},
+	})
+}
+
+func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.interNodeCommunication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("inter_node_communication").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("task_scheduling_policy.0.node_fill_type").HasValue("Pack"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_linuxUserAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -1969,6 +2029,117 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) extensions(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  extensions {
+    name                       = "KeyVaultForLinux"
+    publisher                  = "Microsoft.Azure.KeyVault"
+    type                       = "KeyVaultForLinux"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+    settings                   = "{}"
+    protected_settings         = "sensitive"
+    provision_after_extensions = ["newProv1"]
+  }
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) diskSettings(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  data_disks {
+    lun                  = 20
+    caching              = "None"
+    disk_size_gb         = 1
+    storage_account_type = "Standard_LRS"
+  }
+  os_disk_placement_setting = "CacheDisk"
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) interNodeCommunication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+resource "azurerm_batch_account" "test" {
+  name                          = "testaccbatch%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  public_network_access_enabled = false
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  inter_node_communication = "Disabled"
+  task_scheduling_policy {
+    node_fill_type = "Pack"
+  }
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) linuxUserAccounts(data acceptance.TestData) string {

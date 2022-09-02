@@ -197,6 +197,109 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					Schema: startTaskDSSchema(),
 				},
 			},
+			"data_disks": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"lun": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"caching": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"disk_size_gb": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"storage_account_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"disk_encryption_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"disk_encryption_target": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"extensions": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"publisher": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"type_handler_version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"auto_upgrade_minor_version": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"settings": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"protected_settings": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"provision_after_extensions": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+			"inter_node_communication": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"license_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"node_placement_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"policy": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"os_disk_placement_setting": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 			"user_accounts": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -443,6 +546,30 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"task_scheduling_policy": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"node_fill_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"windows_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enable_automatic_updates": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -589,18 +716,93 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("mount_configuration", mountConfigs)
 		}
 
-		if dcfg := props.DeploymentConfiguration; dcfg != nil {
-			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				if err := d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration)); err != nil {
-					return fmt.Errorf("setting `container_configuration`: %v", err)
+		if props.DeploymentConfiguration != nil {
+			if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+				config := props.DeploymentConfiguration.VirtualMachineConfiguration
+				if config.ContainerConfiguration != nil {
+					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 				}
-
-				if err := d.Set("storage_image_reference", flattenBatchPoolImageReference(vmcfg.ImageReference)); err != nil {
-					return fmt.Errorf("setting `storage_image_reference`: %v", err)
+				if config.DataDisks != nil {
+					dataDisks := make([]interface{}, 0)
+					for _, item := range *config.DataDisks {
+						dataDisk := make(map[string]interface{})
+						dataDisk["lun"] = *item.Lun
+						dataDisk["disk_size_gb"] = *item.DiskSizeGB
+						dataDisk["caching"] = string(item.Caching)
+						dataDisk["storage_account_type"] = string(item.StorageAccountType)
+						dataDisks = append(dataDisks, dataDisk)
+					}
+					d.Set("data_disks", dataDisks)
 				}
+				if config.DiskEncryptionConfiguration != nil {
+					diskEncryptionConfiguration := make([]interface{}, 0)
+					if config.DiskEncryptionConfiguration.Targets != nil {
+						for _, item := range *config.DiskEncryptionConfiguration.Targets {
+							target := make(map[string]interface{})
+							target["disk_encryption_target"] = string(item)
+							diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
+						}
+					}
+					d.Set("disk_encryption_configuration", diskEncryptionConfiguration)
+				}
+				if config.Extensions != nil {
+					extensions := make([]interface{}, 0)
+					n := len(*config.Extensions)
+					for _, item := range *config.Extensions {
+						extension := make(map[string]interface{})
+						extension["name"] = *item.Name
+						extension["publisher"] = *item.Publisher
+						extension["type"] = *item.Type
+						if item.TypeHandlerVersion != nil {
+							extension["type_handler_version"] = *item.TypeHandlerVersion
+						}
+						if item.AutoUpgradeMinorVersion != nil {
+							extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
+						}
+						if item.Settings != nil {
+							extension["settings"] = item.Settings
+						}
 
-				if err := d.Set("node_agent_sku_id", vmcfg.NodeAgentSkuID); err != nil {
-					return fmt.Errorf("setting `node_agent_sku_id`: %v", err)
+						for i := 0; i < n; i++ {
+							if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == *item.Name {
+								extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
+								break
+							}
+						}
+
+						if item.ProvisionAfterExtensions != nil {
+							extension["provision_after_extensions"] = *item.ProvisionAfterExtensions
+						}
+						extensions = append(extensions, extension)
+					}
+					d.Set("extensions", extensions)
+				}
+				if config.ImageReference != nil {
+					d.Set("storage_image_reference", flattenBatchPoolImageReference(config.ImageReference))
+				}
+				if config.LicenseType != nil {
+					d.Set("license_type", *config.LicenseType)
+				}
+				if config.NodeAgentSkuID != nil {
+					d.Set("node_agent_sku_id", *config.NodeAgentSkuID)
+				}
+				if config.NodePlacementConfiguration != nil {
+					nodePlacementConfiguration := make([]interface{}, 0)
+					nodePlacementConfig := make(map[string]interface{})
+					nodePlacementConfig["policy"] = string(config.NodePlacementConfiguration.Policy)
+					nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
+					d.Set("node_placement_configuration", nodePlacementConfiguration)
+				}
+				if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
+					d.Set("os_disk_placement_setting", string(config.OsDisk.EphemeralOSDiskSettings.Placement))
+				}
+				if config.WindowsConfiguration != nil {
+					windowsConfig := []interface{}{
+						map[string]interface{}{
+							"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
+						},
+					}
+					d.Set("windows_configuration", windowsConfig)
 				}
 			}
 		}
