@@ -1,3 +1,18 @@
+## 3.21.1 (Unreleased)
+
+BREAKING CHANGES:
+
+* `azurerm_container_registry` - the field `azuread_authentication_as_arm_policy_enabled` has been removed to fix a regression - support for this will be reintroduced in a future release.
+* `azurerm_container_registry` - the field `soft_delete_policy` has been removed to fix a regression - support for this will be reintroduced in a future release.
+
+NOTES:
+
+* the `containerregistry` api version has been reverted to `2021-08-01-preview` to restore the `virtual_network` block meaning the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties had to be removed as they were not supported by the API version that supported virtual network rules. [GH-18239]
+
+BUG FIXES:
+
+* `azurerm_container_registry` - the `virtual_network` block has been restored [GH-18239]
+
 ## 3.21.0 (September 01, 2022)
 
 FEATURES:
