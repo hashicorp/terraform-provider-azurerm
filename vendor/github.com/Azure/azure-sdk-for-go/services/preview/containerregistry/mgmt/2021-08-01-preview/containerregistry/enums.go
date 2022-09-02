@@ -85,22 +85,6 @@ func PossibleAuditLogStatusValues() []AuditLogStatus {
 	return []AuditLogStatus{AuditLogStatusDisabled, AuditLogStatusEnabled}
 }
 
-// AzureADAuthenticationAsArmPolicyStatus enumerates the values for azure ad authentication as arm policy
-// status.
-type AzureADAuthenticationAsArmPolicyStatus string
-
-const (
-	// AzureADAuthenticationAsArmPolicyStatusDisabled ...
-	AzureADAuthenticationAsArmPolicyStatusDisabled AzureADAuthenticationAsArmPolicyStatus = "disabled"
-	// AzureADAuthenticationAsArmPolicyStatusEnabled ...
-	AzureADAuthenticationAsArmPolicyStatusEnabled AzureADAuthenticationAsArmPolicyStatus = "enabled"
-)
-
-// PossibleAzureADAuthenticationAsArmPolicyStatusValues returns an array of possible values for the AzureADAuthenticationAsArmPolicyStatus const type.
-func PossibleAzureADAuthenticationAsArmPolicyStatusValues() []AzureADAuthenticationAsArmPolicyStatus {
-	return []AzureADAuthenticationAsArmPolicyStatus{AzureADAuthenticationAsArmPolicyStatusDisabled, AzureADAuthenticationAsArmPolicyStatusEnabled}
-}
-
 // BaseImageDependencyType enumerates the values for base image dependency type.
 type BaseImageDependencyType string
 

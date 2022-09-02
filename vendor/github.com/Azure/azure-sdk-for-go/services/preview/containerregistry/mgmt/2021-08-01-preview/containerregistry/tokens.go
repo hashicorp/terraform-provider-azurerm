@@ -86,7 +86,7 @@ func (client TokensClient) CreatePreparer(ctx context.Context, resourceGroupName
 		"tokenName":         autorest.Encode("path", tokenName),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -183,7 +183,7 @@ func (client TokensClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"tokenName":         autorest.Encode("path", tokenName),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -284,7 +284,7 @@ func (client TokensClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"tokenName":         autorest.Encode("path", tokenName),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -375,7 +375,7 @@ func (client TokensClient) ListPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -498,7 +498,7 @@ func (client TokensClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"tokenName":         autorest.Encode("path", tokenName),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
