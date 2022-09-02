@@ -1,3 +1,9 @@
+## 3.22.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_mssql_database` - `license_type ` is now also Computed [GH-18230]
+
 ## 3.21.1 (September 02, 2022)
 
 BREAKING CHANGES:
