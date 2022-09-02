@@ -82,7 +82,7 @@ resource "azurerm_cdn_frontdoor_secret" "example" {
   name                     = "example-customer-managed-secret"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.id
     }
@@ -98,11 +98,11 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The Resource ID of the Frontdoor Profile. Changing this forces a new Frontdoor Secret to be created.
 
-* `secret_parameters` - (Required) A `secret_parameters` block as defined below. Changing this forces a new Frontdoor Secret to be created.
+* `secret` - (Required) A `secret` block as defined below. Changing this forces a new Frontdoor Secret to be created.
 
 ---
 
-A `secret_parameters` block supports the following:
+A `secret` block supports the following:
 
 * `customer_certificate` - (Required) A `customer_certificate` block as defined below. Changing this forces a new Frontdoor Secret to be created.
 

@@ -50,7 +50,7 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontDoorProfileID,
 			},
 
-			"secret_parameters": {
+			"secret": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
@@ -116,9 +116,9 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_secret", id.ID())
 	}
 
-	secretParams, err := expandCdnFrontDoorBasicSecretParameters(ctx, d.Get("secret_parameters").([]interface{}), meta.(*clients.Client))
+	secretParams, err := expandCdnFrontDoorBasicSecretParameters(ctx, d.Get("secret").([]interface{}), meta.(*clients.Client))
 	if err != nil {
-		return fmt.Errorf("expanding 'secret_parameters': %+v", err)
+		return fmt.Errorf("expanding 'secret': %+v", err)
 	}
 
 	props := cdn.Secret{
@@ -165,11 +165,11 @@ func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 	if props := resp.SecretProperties; props != nil {
 		var customerCertificate []interface{}
 		if customerCertificate, err = flattenSecretParameters(ctx, props.Parameters, meta); err != nil {
-			return fmt.Errorf("flattening 'secret_parameters': %+v", err)
+			return fmt.Errorf("flattening 'secret': %+v", err)
 		}
 
-		if err := d.Set("secret_parameters", customerCertificate); err != nil {
-			return fmt.Errorf("setting 'secret_parameters': %+v", err)
+		if err := d.Set("secret", customerCertificate); err != nil {
+			return fmt.Errorf("setting 'secret': %+v", err)
 		}
 
 		d.Set("cdn_frontdoor_profile_name", props.ProfileName)

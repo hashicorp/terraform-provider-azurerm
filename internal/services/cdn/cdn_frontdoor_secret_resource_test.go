@@ -121,7 +121,7 @@ resource "azurerm_cdn_frontdoor_secret" "test" {
   name                     = "accTestSecret-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.id
     }
@@ -139,7 +139,7 @@ resource "azurerm_cdn_frontdoor_secret" "import" {
   name                     = azurerm_cdn_frontdoor_secret.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.id
     }
@@ -161,7 +161,7 @@ resource "azurerm_cdn_frontdoor_secret" "test" {
   name                     = "accTestSecret-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
     }
