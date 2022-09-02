@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,8 +36,9 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"datadog_monitor_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.DatadogMonitorID,
 			},
 
 			"name": {

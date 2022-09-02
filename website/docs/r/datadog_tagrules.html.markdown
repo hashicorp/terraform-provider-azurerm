@@ -19,8 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West US 2"
 }
 resource "azurerm_datadog_monitor_tagrule" "example" {
-  name                = "example-monitor"
-  resource_group_name = azurerm_resource_group.example.name
+  datadog_monitor_id = azurerm_datadog_monitor.example.id
   log{
     subscription_log_enabled = true
   }
@@ -38,7 +37,7 @@ resource "azurerm_datadog_monitor_tagrule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this datadog Monitor.
+* `datadog_monitor_id` - (Required) The Datadog Monitor Id which should be used for this.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the datadog Monitor should exist.
 
@@ -78,7 +77,7 @@ A `filtering_tag` block supports the following:
 
 * `value` - (Required) Value of the Tag.
 
-* `action` - (Required) Allowed values Enable or Disbale.
+* `action` - (Required) Allowed values Enable or Disable.
 
 ## Timeouts
 

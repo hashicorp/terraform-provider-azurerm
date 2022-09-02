@@ -19,8 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West US 2"
 }
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
-    name = "example-monitor"
-    resource_group_name = azurerm_resource_group.example.name
+    datadog_monitor_id = azurerm_datadog_monitor.example.id
     singlesignon_state = "Enable"
     enterprise_application_id = "XXXX"
 }
@@ -30,9 +29,7 @@ resource "azurerm_datadog_monitor_sso_configuration" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this datadog Monitor.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the datadog Monitor should exist.
+* `datadog_monitor_id` - (Required) The Datadog Monitor Id which should be used for this.
 
 * `singlesignon_state` - (Required) The state of SingleSignOn configuration.
 
@@ -40,7 +37,7 @@ The following arguments are supported:
 
 --- 
 
-* `configuration_name` - (Optional) The name of the SingleSignOn configuration.
+* `name` - (Optional) The name of the SingleSignOn configuration.
 
 ## Attributes Reference
 
