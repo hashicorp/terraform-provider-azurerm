@@ -49,7 +49,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `sku_name` - (Optional) The `name` of the SKU to be used by this Orcestrated Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
 
-* `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
+* `additional_capabilities` - (Optional) An `additional_capabilities` block as defined below.
 
 * `instances`- (Optional) The number of Virtual Machines in the Orcestrated Virtual Machine Scale Set.
 
@@ -81,7 +81,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `license_type` - (Optional) Specifies the type of on-premise license (also known as Azure Hybrid Use Benefit) which should be used for this Orchestrated Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`. Changing this forces a new resource to be created.
 
@@ -111,13 +111,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 ---
 
-A `additional_capabilities` block supports the following:
+An `additional_capabilities` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Orchestrated Virtual Machine Scale Set? Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
-A `os_profile` block supports the following: 
+An `os_profile` block supports the following: 
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Orchestrated Virtual Machine Scale Set.
 
@@ -135,7 +135,7 @@ A `windows_configuration` block supports the following:
 
 * `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
-* `automatic_instance_repair` - (Optional) A `automatic_instance_repair` block as defined below. 
+* `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below. 
 
 -> **NOTE:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
@@ -215,7 +215,7 @@ A (Linux) `certificate` block supports the following:
 
 ---
 
-A `admin_ssh_key` block supports the following:
+An `admin_ssh_key` block supports the following:
 
 * `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in ssh-rsa format. Changing this forces a new resource to be created.
 
@@ -233,7 +233,7 @@ A `winrm_listener` block supports the following:
 
 ---
 
-A `automatic_instance_repair` block supports the following:
+An `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Orchestrated Virtual Machine Scale Set? Possible values are `true` and `false`. Defaults to `false`.
 
@@ -305,7 +305,7 @@ An `extension` block supports the following:
 
 ---
 
-A `ip_configuration` block supports the following:
+An `ip_configuration` block supports the following:
 
 * `name` - (Required) The Name which should be used for this IP Configuration.
 
@@ -325,13 +325,13 @@ A `ip_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet which this IP Configuration should be connected to.
 
--> **NOTE:** `subnet_id` is required if version is set to `IPv4`. 
+-> **NOTE:** `subnet_id` is required if version is set to `IPv4`.
 
 * `version` - (Optional) The Internet Protocol Version which should be used for this IP Configuration. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`.
 
 ---
 
-A `ip_tag` block supports the following:
+An `ip_tag` block supports the following:
 
 * `tag` - The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
 
@@ -359,7 +359,7 @@ A `network_interface` block supports the following:
 
 ---
 
-A `os_disk` block supports the following:
+An `os_disk` block supports the following:
 
 * `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
@@ -385,7 +385,7 @@ A `plan` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) The type of Managed Identity that should be configured on this Orchestrated Windows Virtual Machine Scale Set. Only possible value is `UserAssigned`.
 

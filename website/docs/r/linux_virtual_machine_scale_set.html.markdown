@@ -100,21 +100,21 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `instances` - (Optional) The number of Virtual Machines in the Scale Set. Defaults to `0`.
 
--> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
+-> **NOTE:** If you are using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
 * `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined below.
 
-* `os_disk` - (Required) A `os_disk` block as defined below.
+* `os_disk` - (Required) An `os_disk` block as defined below.
 
 ---
 
-* `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
+* `additional_capabilities` - (Optional) An `additional_capabilities` block as defined below.
 
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
--> **NOTE:** When a `admin_password` is specified `disable_password_authentication` must be set to `false`.
+-> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
 -> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
@@ -122,9 +122,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
-* `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This can only be specified when `upgrade_mode` is set to `Automatic`.
+* `automatic_os_upgrade_policy` - (Optional) An `automatic_os_upgrade_policy` block as defined below. This can only be specified when `upgrade_mode` is set to `Automatic`.
 
-* `automatic_instance_repair` - (Optional) A `automatic_instance_repair` block as defined below. To enable the automatic instance repair, this Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
+* `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below. To enable the automatic instance repair, this Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
 -> **NOTE:** For more information about Automatic Instance Repair, please refer to [this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
 
@@ -174,7 +174,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `host_group_id` - (Optional) Specifies the ID of the dedicated host group that the virtual machine scale set resides in. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in this Scale Set should not be evicted for price reasons.
 
@@ -238,13 +238,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 ---
 
-A `additional_capabilities` block supports the following:
+An `additional_capabilities` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
-A `admin_ssh_key` block supports the following:
+An `admin_ssh_key` block supports the following:
 
 * `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in `ssh-rsa` format.
 
@@ -254,7 +254,7 @@ A `admin_ssh_key` block supports the following:
 
 ---
 
-A `automatic_os_upgrade_policy` block supports the following:
+An `automatic_os_upgrade_policy` block supports the following:
 
 * `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled?
 
@@ -262,7 +262,7 @@ A `automatic_os_upgrade_policy` block supports the following:
 
 ---
 
-A `automatic_instance_repair` block supports the following:
+An `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Virtual Machine Scale Set?
 
@@ -328,7 +328,7 @@ A `diff_disk_settings` block supports the following:
 
 ---
 
-A `extension` block supports the following:
+An `extension` block supports the following:
 
 * `name` - (Required) The name for the Virtual Machine Scale Set Extension.
 
@@ -374,7 +374,7 @@ A `gallery_applications` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Virtual Machine Scale Set. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
@@ -384,7 +384,7 @@ A `identity` block supports the following:
 
 ---
 
-A `ip_configuration` block supports the following:
+An `ip_configuration` block supports the following:
 
 * `name` - (Required) The Name which should be used for this IP Configuration.
 
@@ -416,7 +416,7 @@ A `ip_configuration` block supports the following:
 
 ---
 
-A `ip_tag` block supports the following:
+An `ip_tag` block supports the following:
 
 * `tag` - The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
 
@@ -444,7 +444,7 @@ A `network_interface` block supports the following:
 
 ---
 
-A `os_disk` block supports the following:
+An `os_disk` block supports the following:
 
 * `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
