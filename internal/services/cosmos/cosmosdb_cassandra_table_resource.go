@@ -237,16 +237,11 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 	if props := resp.CassandraTableGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
+			d.Set("analytical_storage_ttl", res.AnalyticalStorageTTL)
 
 			if defaultTTL := res.DefaultTTL; defaultTTL != nil {
 				d.Set("default_ttl", defaultTTL)
 			}
-
-			analyticalTTL := -2
-			if res.AnalyticalStorageTTL != nil {
-				analyticalTTL = int(*res.AnalyticalStorageTTL)
-			}
-			d.Set("analytical_storage_ttl", analyticalTTL)
 
 			if schema := res.Schema; schema != nil {
 				d.Set("schema", flattenTableSchema(schema))
