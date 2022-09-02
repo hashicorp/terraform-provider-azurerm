@@ -85,6 +85,10 @@ func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 
 
 
+
+
+
+
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
   singlesignon_state        = "Enable"
