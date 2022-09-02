@@ -15,8 +15,8 @@ FEATURES:
 * **New Resource**: `azurerm_container_registry_task_schedule_run_now` [GH-15120]
 * **New Resource**: `azurerm_cosmosdb_sql_dedicated_gateway` [GH-18133]
 * **New Resource**: `azurerm_dashboard_grafana` [GH-17840]
-* **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
 * **New Resource**: `azurerm_healthcare_medtech_service` [GH-15967]
+* **New Resource**: `azurerm_log_analytics_query_pack_query` [GH-17929]
 * **New Resource**: `azurerm_spring_cloud_connection` [GH-16907]
 * **New Resource**: `azurerm_search_shared_private_link_service` [GH-17744]
 * **New Resource**: `azurerm_sentinel_alert_rule_nrt` [GH-15999]
@@ -24,6 +24,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` [GH-18183]
+* dependencies: `log_analytics` - update to use hashicorp/go-azure-sdk [GH-18098]
 * `azurerm_batch_pool` - support for the `mount` property [GH-18042]
 * `azurerm_container_registry` - support for the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties [GH-17926]
 * `azurerm_cosmosdb_cassandra_cluster` - support for the `HoursBetweenBackups` property [GH-18154]
@@ -42,7 +43,7 @@ ENHANCEMENTS:
 * `azurerm_policy_definition - export the `role_definition_ids` attribute [GH-18043]
 * `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
-* `azurerm_role_assignment` - support `scope` to be `/providers/Subscription` [GH-17456]
+* `azurerm_role_assignment` - support for `scope` to start with `/providers/Subscription` [GH-17456]
 * `azurerm_servicebus_namespace` - support for the `public_network_access_enabled` and `minimum_tls_version` properties [GH-17805]
 * `azurerm_storage_account` - support for the `public_network_access_enabled` property [GH-18005]
 * `azurerm_stream_analytics_output_eventhub` - support for the `authentication_mode` property [GH-18096]
@@ -51,11 +52,10 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_output_powerbi` - support for the `token_user_principal_name` and `token_user_display_name` properties [GH-18117]
 * `azurerm_stream_analytics_output_cosmosdb` - support for the `partition_key` property [GH-18120]
 * `azurerm_stream_analytics_reference_input_blob` - support for the `authentication_mode` property [GH-18137]
-* `azurerm_stream_analytics_reference_input_mssql` - support for `table` property [GH-18211]
+* `azurerm_stream_analytics_reference_input_mssql` - support for the `table` property [GH-18211]
 * `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_windows_virtual_machine` - add support for missing fields [GH-17571]
 * `azurerm_windows_virtual_machine_scale_set` - add support for missing fields [GH-17571]
-* Dependencies: `log_analytics` - update to use hashicorp/go-azure-sdk [GH-18098]
 
 BUG FIXES:
 
