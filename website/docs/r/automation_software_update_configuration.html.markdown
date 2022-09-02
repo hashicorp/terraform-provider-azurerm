@@ -30,10 +30,9 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_software_update_configuration" "example" {
-  name                    = "example"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  operating_system        = "Linux"
+  name                  = "example"
+  automation_account_id = azurerm_automation_account.test.id
+  operating_system      = "Linux"
 
   linux {
     classification    = "Security"
@@ -52,9 +51,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Automation. Changing this forces a new Automation to be created.
 
-* `automation_account_name` - (Required) The name of the automation account in which the Schedule is created. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Automation should exist. Changing this forces a new Automation Software Update Configuration to be created.
+* `automation_account_id` (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
 * `operating_system` - (Required) The Operating system of target machines. Possible values are `Windows` and `Linux`.
 
