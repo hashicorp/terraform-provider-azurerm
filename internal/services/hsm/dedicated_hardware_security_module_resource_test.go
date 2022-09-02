@@ -15,7 +15,7 @@ import (
 
 type DedicatedHardwareSecurityModuleResource struct{}
 
-func TestAccNetAppVolume(t *testing.T) {
+func TestAccDedicatedHardwareSecurityModule(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccDedicatedHardwareSecurityModule_basic,
