@@ -663,13 +663,23 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*batch.Virt
 
 	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
 	if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
-		result.ImageReference = imageReference
+		if imageReference != nil {
+			// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
+			if imageReference.ID != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
+				return nil, fmt.Errorf("properties version, offer, publish cannot be defined when using a custom image id")
+			} else if imageReference.ID == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
+				return nil, fmt.Errorf("properties version, offer, publish and sku are mandatory when not using a custom image")
+			}
+			result.ImageReference = imageReference
+		}
 	} else {
 		return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
 	}
 
 	if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{})); err == nil {
 		result.ContainerConfiguration = containerConfiguration
+	} else {
+		return nil, fmt.Errorf("container_configuration either is empty or contains parsing errors")
 	}
 
 	if dataDisk, diskErr := expandBatchPoolDataDisks(d.Get("data_disks").([]interface{})); diskErr == nil {
