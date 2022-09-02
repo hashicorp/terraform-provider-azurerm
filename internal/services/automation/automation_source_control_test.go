@@ -25,17 +25,17 @@ type githubRepo struct {
 }
 
 func newSourceControlResource(t *testing.T) SourceControlResource {
-	// - ARM_TEST_ASC_GITHUB_REPO_URL represents the user repo from: https://github.com/Azure-Samples/acr-build-helloworld-node
+	// - ARM_TEST_ASC_GITHUB_REPOSITORY_URL represents the user repo
 	// - ARM_TEST_ASC_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
 	// Checkout https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task for details.
 	ins := SourceControlResource{
 		githubRepo: githubRepo{
-			url:   os.Getenv("ARM_TEST_ASC_GITHUB_REPO_URL"),
+			url:   os.Getenv("ARM_TEST_ASC_GITHUB_REPOSITORY_URL"),
 			token: os.Getenv("ARM_TEST_ASC_GITHUB_USER_TOKEN"),
 		},
 	}
 	if ins.url == "" || ins.token == "" {
-		t.Skipf("both `ARM_TEST_ASC_GITHUB_REPO_URL` and `ARM_TEST_ASC_GITHUB_USER_TOKEN` must be set for acceptance tests!")
+		t.Skipf("both `ARM_TEST_ASC_GITHUB_REPOSITORY_URL` and `ARM_TEST_ASC_GITHUB_USER_TOKEN` must be set for acceptance tests!")
 	}
 	return ins
 }
@@ -79,18 +79,18 @@ func (s SourceControlResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_automation_source_control" "test" {
-  name                    = "acctest-%[2]d"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  name                  = "acctest-%[2]d"
+  automation_account_id = azurerm_automation_account.test.id
 
-  repo_url        = "%[3]s"
-  branch          = "main"
-  folder_path     = "/runbook"
-  auto_sync       = true
-  publish_runbook = true
-  source_type     = "GitHub"
-  description     = "example repo desc"
-  security_token {
+  repository_url          = "%[3]s"
+  branch                  = "main"
+  folder_path             = "/runbook"
+  automatic_sync          = true
+  publish_runbook_enabled = true
+  source_control_type     = "GitHub"
+  description             = "example repo desc"
+
+  security {
     token      = "%[4]s"
     token_type = "PersonalAccessToken"
   }
@@ -106,17 +106,16 @@ func (s SourceControlResource) update(data acceptance.TestData) string {
 
 resource "azurerm_automation_source_control" "test" {
   name                    = "acctest-%[2]d"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  automation_account_id   = azurerm_automation_account.test.id
+  repository_url          = "%[3]s"
+  branch                  = "dev"
+  folder_path             = "/runbook"
+  automatic_sync          = true
+  publish_runbook_enabled = true
+  source_control_type     = "GitHub"
+  description             = "example repo desc foo"
 
-  repo_url        = "%[3]s"
-  branch          = "dev"
-  folder_path     = "/runbook"
-  auto_sync       = true
-  publish_runbook = true
-  source_type     = "GitHub"
-  description     = "example repo desc foo"
-  security_token {
+  security {
     token      = "%[4]s"
     token_type = "PersonalAccessToken"
   }
@@ -135,7 +134,7 @@ func TestAccSourceControl_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("branch").HasValue("main"),
 			),
 		},
-		data.ImportStep("security_token"),
+		data.ImportStep("security"),
 	})
 }
 
@@ -150,7 +149,7 @@ func TestAccSourceControl_update(t *testing.T) {
 				check.That(data.ResourceName).Key("branch").HasValue("main"),
 			),
 		},
-		data.ImportStep("security_token"),
+		data.ImportStep("security"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -158,6 +157,6 @@ func TestAccSourceControl_update(t *testing.T) {
 				check.That(data.ResourceName).Key("branch").HasValue("dev"),
 			),
 		},
-		data.ImportStep("security_token"),
+		data.ImportStep("security"),
 	})
 }

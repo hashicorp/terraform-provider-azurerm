@@ -14,18 +14,18 @@ Manages an Automation Source Control.
 
 ```hcl
 resource "azurerm_automation_source_control" "example" {
-  name                    = "example"
-  resource_group_name     = "example"
-  automation_account_name = "example"
-  folder_path             = "runbook"
+  name                  = "example"
+  resource_group_name   = "example"
+  automation_account_id = azurerm_automation_account.test.id
+  folder_path           = "runbook"
 
-  security_token {
+  security {
     token      = "ghp_xxx"
     token_type = "PersonalAccessToken"
   }
-  repo_url    = "https://github.com/foo/bat.git"
-  source_type = "GitHub"
-  branch      = "main"
+  repository_url      = "https://github.com/foo/bat.git"
+  source_control_type = "GitHub"
+  branch              = "main"
 }
 ```
 
@@ -35,31 +35,29 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Automation Source Control. Changing this forces a new Automation Source Control to be created.
 
-* `automation_account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the Runbook is created. Changing this forces a new resource to be created.
+* `automation_account_id` (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
 * `folder_path` - (Required) The folder path of the source control. This Path must be relative.
 
-* `repo_url` - (Required) The Repo URL of the source control.
+* `repository_url` - (Required) The Repository URL of the source control.
 
-* `security_token` - (Required) A `security_token` block as defined below.
+* `security` - (Required) A `security` block as defined below.
 
-* `source_type` - (Required) The source type of Source Control, possible vaules are `VsoGit`, `VsoTfvc` and `GitHub`, and the value is case sensitive.
+* `source_control_type` - (Required) The source type of Source Control, possible vaules are `VsoGit`, `VsoTfvc` and `GitHub`, and the value is case sensitive.
 
 ---
 
-* `auto_sync` - (Optional) Whether auto async the Source Control.
+* `automatic_sync` - (Optional) Whether auto async the Source Control.
 
 * `branch` - (Optional) Specify the repo branch of the Source Control. Empty value is valid only for `VsoTfvc`.
 
 * `description` - (Optional) A short description of the Source Control.
 
-* `publish_runbook` - (Optional) Whether auto publish the Source Control.
+* `publish_runbook_enabled` - (Optional) Whether auto publish the Source Control.
 
 ---
 
-A `security_token` block supports the following:
+A `security` block supports the following:
 
 * `token` - (Required) The access token of specified repo.
 

@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -16,24 +15,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SecurityToken struct {
+type Security struct {
 	Token        string `tfschema:"token"`
 	RefreshToken string `tfschema:"refresh_token"`
 	TokenType    string `tfschema:"token_type"`
 }
 
 type SourceControlModel struct {
-	ResourceGroupName     string          `tfschema:"resource_group_name"`
-	AutomationAccountName string          `tfschema:"automation_account_name"`
-	Name                  string          `tfschema:"name"`
-	RepoURL               string          `tfschema:"repo_url"`
-	Branch                string          `tfschema:"branch"`
-	FolderPath            string          `tfschema:"folder_path"`
-	AutoSync              bool            `tfschema:"auto_sync"`
-	PublishRunbook        bool            `tfschema:"publish_runbook"`
-	SourceType            string          `tfschema:"source_type"`
-	Description           string          `tfschema:"description"`
-	SecurityToken         []SecurityToken `tfschema:"security_token"`
+	AutomationAccountID string     `tfschema:"automation_account_id"`
+	Name                string     `tfschema:"name"`
+	RepoURL             string     `tfschema:"repository_url"`
+	Branch              string     `tfschema:"branch"`
+	FolderPath          string     `tfschema:"folder_path"`
+	AutoSync            bool       `tfschema:"automatic_sync"`
+	PublishRunbook      bool       `tfschema:"publish_runbook_enabled"`
+	SourceType          string     `tfschema:"source_control_type"`
+	Description         string     `tfschema:"description"`
+	SecurityToken       []Security `tfschema:"security"`
 }
 
 type SourceControlResource struct{}
@@ -42,45 +40,51 @@ var _ sdk.Resource = (*SourceControlResource)(nil)
 
 func (m SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupName(),
-		"automation_account_name": {
+		"automation_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AutomationAccount(),
+			ValidateFunc: validate.AutomationAccountID,
 		},
+
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
-		"repo_url": {
+
+		"repository_url": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringLenBetween(0, 2000),
 		},
+
 		"branch": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(0, 255),
 		},
+
 		"folder_path": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringLenBetween(0, 255),
 		},
-		"auto_sync": {
+
+		"automatic_sync": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
-		"publish_runbook": {
+
+		"publish_runbook_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		},
-		"source_type": {
+
+		"source_control_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -89,11 +93,13 @@ func (m SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 				string(automation.SourceTypeGitHub),
 			}, true),
 		},
+
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
-		"security_token": {
+
+		"security": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -105,11 +111,13 @@ func (m SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringLenBetween(0, 1024),
 					},
+
 					"refresh_token": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(0, 1024),
 					},
+
 					"token_type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
@@ -148,7 +156,8 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionID := meta.Client.Account.SubscriptionId
-			id := parse.NewSourceControlID(subscriptionID, model.ResourceGroupName, model.AutomationAccountName, model.Name)
+			accountID, _ := parse.AutomationAccountID(model.AutomationAccountID)
+			id := parse.NewSourceControlID(subscriptionID, accountID.ResourceGroup, accountID.Name, model.Name)
 			existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 			if !utils.ResponseWasNotFound(existing.Response) {
 				if err != nil {
@@ -207,9 +216,8 @@ func (m SourceControlResource) Read() sdk.ResourceFunc {
 			if err := meta.Decode(&output); err != nil {
 				return err
 			}
-			output.AutomationAccountName = id.AutomationAccountName
+			output.AutomationAccountID = parse.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName).ID()
 			output.Name = id.Name
-			output.ResourceGroupName = id.ResourceGroup
 			output.RepoURL = utils.NormalizeNilableString(result.RepoURL)
 			output.Branch = utils.NormalizeNilableString(result.Branch)
 			output.FolderPath = utils.NormalizeNilableString(result.FolderPath)
@@ -246,20 +254,20 @@ func (m SourceControlResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("folder_path") {
 				prop.FolderPath = utils.String(model.FolderPath)
 			}
-			if meta.ResourceData.HasChange("auto_sync") {
+			if meta.ResourceData.HasChange("automatic_sync") {
 				prop.AutoSync = utils.Bool(model.AutoSync)
 			}
 			if meta.ResourceData.HasChange("folder_path") {
 				prop.FolderPath = utils.String(model.FolderPath)
 			}
-			if meta.ResourceData.HasChange("publish_runbook") {
+			if meta.ResourceData.HasChange("publish_runbook_enabled") {
 				prop.PublishRunbook = utils.Bool(model.PublishRunbook)
 			}
 			if meta.ResourceData.HasChange("description") {
 				prop.Description = utils.String(model.Description)
 			}
 
-			if meta.ResourceData.HasChange("security_token") {
+			if meta.ResourceData.HasChange("security") {
 				prop.SecurityToken = &automation.SourceControlSecurityTokenProperties{
 					AccessToken:  utils.String(model.SecurityToken[0].TokenType),
 					RefreshToken: utils.String(model.SecurityToken[0].RefreshToken),
