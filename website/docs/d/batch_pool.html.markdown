@@ -39,9 +39,29 @@ The following attributes are exported:
 
 * `auto_scale` - A `auto_scale` block that describes the scale settings when using auto scale.
 
+* `data_disks` - A `data_disks` block describes the data disk settings.
+
+* `disk_encryption_configuration` - A `disk_encryption_configuration` block describes the disk encryption configuration applied on compute nodes in the pool.
+
+* `extensions` - An `extensions` block describes the extension settings
+
+* `inter_node_communication` - Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool.
+
+* `license_type` - The type of on-premises license to be used when deploying the operating system.
+
+* `node_placement_configuration` - A `node_placement_configuration` block that describes the placement policy for allocating nodes in the pool.
+
+* `os_disk_placement_setting` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool.
+
 * `storage_image_reference` - The reference of the storage image used by the nodes in the Batch pool.
 
 * `start_task` - A `start_task` block that describes the start task settings for the Batch pool.
+
+* `task_scheduling_policy` - A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool.
+
+* `user_accounts` - A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
+
+* `windows_configuration` - A `windows_configuration` block that describes the Windows configuration in the pool.
 
 * `max_tasks_per_node` - The maximum number of tasks that can run concurrently on a single compute node in the pool.
 
@@ -70,6 +90,51 @@ A `auto_scale` block exports the following:
 * `formula` - The autoscale formula that needs to be used for scaling the Batch pool.
 
 ---
+
+A `data_disks` block exports the following:
+
+* `lun` - The lun is used to uniquely identify each data disk.
+
+* `caching` - The caching mode of data disks.
+
+* `disk_size_gb` - The initial disk size in GB when creating new data disk.
+
+* `storage_account_type` - The storage account type to be used for the data disk.
+
+---
+
+A `disk_encryption_configuration` block exports the following:
+
+* `disk_encryption_target` - On Linux pool, only `TemporaryDisk` is supported; on Windows pool, `OsDisk` and `TemporaryDisk` must be specified.
+
+---
+
+An `extensions` block exports the following:
+
+* `name` - The name of the virtual machine extension.
+
+* `publisher` - The name of the extension handler publisher.The name of the extension handler publisher.
+
+* `type` - The type of the extensions.
+
+* `type_handler_version` - The version of script handler.
+
+* `auto_upgrade_minor_version` - Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
+
+* `settings` - JSON formatted public settings for the extension.
+
+* `protected_settings` - The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
+
+* `provision_after_extensions` - The collection of extension names. Collection of extension names after which this extension needs to be provisioned.
+
+---
+
+A `node_placement_configuration` block exports the following:
+
+* `policy` - The placement policy for allocating nodes in the pool.
+
+---
+
 
 A `start_task` block exports the following:
 
