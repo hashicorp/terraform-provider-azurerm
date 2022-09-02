@@ -12,6 +12,7 @@ NOTES:
 BUG FIXES:
 
 * `azurerm_container_registry` - the `virtual_network` block has been restored [GH-18239]
+* `azurerm_log_analytics_data_export_rule` - a state migration to work around the previously incorrect id casing [GH-18240]
 
 ## 3.21.0 (September 01, 2022)
 
