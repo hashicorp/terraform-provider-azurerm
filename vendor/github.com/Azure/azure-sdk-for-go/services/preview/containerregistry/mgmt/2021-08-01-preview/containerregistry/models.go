@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2022-02-01-preview/containerregistry"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
 
 // ActivationProperties the activation properties of the connected registry.
 type ActivationProperties struct {
@@ -583,12 +583,6 @@ type AuthInfoUpdateParameters struct {
 	Scope *string `json:"scope,omitempty"`
 	// ExpiresIn - Time in seconds that the token remains valid
 	ExpiresIn *int32 `json:"expiresIn,omitempty"`
-}
-
-// AzureADAuthenticationAsArmPolicy the policy for using ARM audience token for a container registry.
-type AzureADAuthenticationAsArmPolicy struct {
-	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'AzureADAuthenticationAsArmPolicyStatusEnabled', 'AzureADAuthenticationAsArmPolicyStatusDisabled'
-	Status AzureADAuthenticationAsArmPolicyStatus `json:"status,omitempty"`
 }
 
 // BaseImageDependency properties that describe a base image dependency.
@@ -1739,7 +1733,7 @@ type ErrorResponseBody struct {
 	// Target - target of the particular error.
 	Target *string `json:"target,omitempty"`
 	// Details - an array of additional nested error response info objects, as described by this contract.
-	Details *[]InnerErrorDescription `json:"details,omitempty"`
+	Details *InnerErrorDescription `json:"details,omitempty"`
 }
 
 // Event the event for a webhook.
@@ -3203,6 +3197,8 @@ func (lsp LoginServerProperties) MarshalJSON() ([]byte, error) {
 type NetworkRuleSet struct {
 	// DefaultAction - The default action of allow or deny when no other rules match. Possible values include: 'DefaultActionAllow', 'DefaultActionDeny'
 	DefaultAction DefaultAction `json:"defaultAction,omitempty"`
+	// VirtualNetworkRules - The virtual network rules.
+	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
 	// IPRules - The IP ACL rules.
 	IPRules *[]IPRule `json:"ipRules,omitempty"`
 }
@@ -3529,23 +3525,6 @@ type OverrideTaskStepProperties struct {
 	Values *[]SetValue `json:"values,omitempty"`
 	// UpdateTriggerToken - Base64 encoded update trigger token that will be attached with the base image trigger webhook.
 	UpdateTriggerToken *string `json:"updateTriggerToken,omitempty"`
-}
-
-// PackageType the properties of a package type.
-type PackageType struct {
-	// Name - The name of the package type.
-	Name *string `json:"name,omitempty"`
-	// Endpoint - READ-ONLY; The endpoint of the package type.
-	Endpoint *string `json:"endpoint,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PackageType.
-func (pt PackageType) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pt.Name != nil {
-		objectMap["name"] = pt.Name
-	}
-	return json.Marshal(objectMap)
 }
 
 // ParentProperties the properties of the connected registry parent.
@@ -4014,10 +3993,6 @@ type Policies struct {
 	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
 	// ExportPolicy - The export policy for a container registry.
 	ExportPolicy *ExportPolicy `json:"exportPolicy,omitempty"`
-	// AzureADAuthenticationAsArmPolicy - The policy for using ARM audience token for a container registry.
-	AzureADAuthenticationAsArmPolicy *AzureADAuthenticationAsArmPolicy `json:"azureADAuthenticationAsArmPolicy,omitempty"`
-	// SoftDeletePolicy - The soft delete policy for a container registry.
-	SoftDeletePolicy *SoftDeletePolicy `json:"softDeletePolicy,omitempty"`
 }
 
 // PrivateEndpoint the Private Endpoint resource.
@@ -4376,7 +4351,6 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 
 // PrivateLinkResource a resource that supports private link capabilities.
 type PrivateLinkResource struct {
-	autorest.Response `json:"-"`
 	// Type - READ-ONLY; The resource type is private link resource.
 	Type *string `json:"type,omitempty"`
 	// ID - The resource ID.
@@ -7053,28 +7027,6 @@ func (s Sku) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// SoftDeletePolicy the soft delete policy for a container registry
-type SoftDeletePolicy struct {
-	// RetentionDays - The number of days after which a soft-deleted item is permanently deleted.
-	RetentionDays *int32 `json:"retentionDays,omitempty"`
-	// LastUpdatedTime - READ-ONLY; The timestamp when the policy was last updated.
-	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
-	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'PolicyStatusEnabled', 'PolicyStatusDisabled'
-	Status PolicyStatus `json:"status,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for SoftDeletePolicy.
-func (sdp SoftDeletePolicy) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sdp.RetentionDays != nil {
-		objectMap["retentionDays"] = sdp.RetentionDays
-	}
-	if sdp.Status != "" {
-		objectMap["status"] = sdp.Status
-	}
-	return json.Marshal(objectMap)
-}
-
 // Source the registry node that generated the event. Put differently, while the actor initiates the event,
 // the source generates it.
 type Source struct {
@@ -7203,13 +7155,6 @@ type StatusDetailProperties struct {
 func (sdp StatusDetailProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
-}
-
-// StorageAccountProperties the properties of a storage account for a container registry. Only applicable
-// to Classic SKU.
-type StorageAccountProperties struct {
-	// ID - The resource ID of the storage account.
-	ID *string `json:"id,omitempty"`
 }
 
 // SyncProperties the sync properties of the connected registry with its parent.
@@ -9515,6 +9460,14 @@ type UserIdentityProperties struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// ClientID - The client id of user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
+}
+
+// VirtualNetworkRule virtual network rule.
+type VirtualNetworkRule struct {
+	// Action - The action of virtual network rule. Possible values include: 'ActionAllow'
+	Action Action `json:"action,omitempty"`
+	// VirtualNetworkResourceID - Resource ID of a subnet, for example: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}.
+	VirtualNetworkResourceID *string `json:"id,omitempty"`
 }
 
 // Webhook an object that represents a webhook for a container registry.

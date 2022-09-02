@@ -15,31 +15,31 @@ import (
 	"net/http"
 )
 
-// ScopeMapsClient is the client for the ScopeMaps methods of the Containerregistry service.
-type ScopeMapsClient struct {
+// ReplicationsClient is the client for the Replications methods of the Containerregistry service.
+type ReplicationsClient struct {
 	BaseClient
 }
 
-// NewScopeMapsClient creates an instance of the ScopeMapsClient client.
-func NewScopeMapsClient(subscriptionID string) ScopeMapsClient {
-	return NewScopeMapsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewReplicationsClient creates an instance of the ReplicationsClient client.
+func NewReplicationsClient(subscriptionID string) ReplicationsClient {
+	return NewReplicationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewScopeMapsClientWithBaseURI creates an instance of the ScopeMapsClient client using a custom endpoint.  Use this
-// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewScopeMapsClientWithBaseURI(baseURI string, subscriptionID string) ScopeMapsClient {
-	return ScopeMapsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewReplicationsClientWithBaseURI creates an instance of the ReplicationsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewReplicationsClientWithBaseURI(baseURI string, subscriptionID string) ReplicationsClient {
+	return ReplicationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create creates a scope map for a container registry with the specified parameters.
+// Create creates a replication for a container registry with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group to which the container registry belongs.
 // registryName - the name of the container registry.
-// scopeMapName - the name of the scope map.
-// scopeMapCreateParameters - the parameters for creating a scope map.
-func (client ScopeMapsClient) Create(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string, scopeMapCreateParameters ScopeMap) (result ScopeMapsCreateFuture, err error) {
+// replicationName - the name of the replication.
+// replication - the parameters for creating a replication.
+func (client ReplicationsClient) Create(ctx context.Context, resourceGroupName string, registryName string, replicationName string, replication Replication) (result ReplicationsCreateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ScopeMapsClient.Create")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationsClient.Create")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -55,25 +55,22 @@ func (client ScopeMapsClient) Create(ctx context.Context, resourceGroupName stri
 			Constraints: []validation.Constraint{{Target: "registryName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}},
-		{TargetValue: scopeMapName,
-			Constraints: []validation.Constraint{{Target: "scopeMapName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "scopeMapName", Name: validation.MinLength, Rule: 5, Chain: nil},
-				{Target: "scopeMapName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9-_]*$`, Chain: nil}}},
-		{TargetValue: scopeMapCreateParameters,
-			Constraints: []validation.Constraint{{Target: "scopeMapCreateParameters.ScopeMapProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "scopeMapCreateParameters.ScopeMapProperties.Actions", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("containerregistry.ScopeMapsClient", "Create", err.Error())
+		{TargetValue: replicationName,
+			Constraints: []validation.Constraint{{Target: "replicationName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "replicationName", Name: validation.MinLength, Rule: 5, Chain: nil},
+				{Target: "replicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerregistry.ReplicationsClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, registryName, scopeMapName, scopeMapCreateParameters)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, registryName, replicationName, replication)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Create", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Create", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -81,15 +78,15 @@ func (client ScopeMapsClient) Create(ctx context.Context, resourceGroupName stri
 }
 
 // CreatePreparer prepares the Create request.
-func (client ScopeMapsClient) CreatePreparer(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string, scopeMapCreateParameters ScopeMap) (*http.Request, error) {
+func (client ReplicationsClient) CreatePreparer(ctx context.Context, resourceGroupName string, registryName string, replicationName string, replication Replication) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"registryName":      autorest.Encode("path", registryName),
+		"replicationName":   autorest.Encode("path", replicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"scopeMapName":      autorest.Encode("path", scopeMapName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -98,15 +95,15 @@ func (client ScopeMapsClient) CreatePreparer(ctx context.Context, resourceGroupN
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/scopeMaps/{scopeMapName}", pathParameters),
-		autorest.WithJSON(scopeMapCreateParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/replications/{replicationName}", pathParameters),
+		autorest.WithJSON(replication),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
-func (client ScopeMapsClient) CreateSender(req *http.Request) (future ScopeMapsCreateFuture, err error) {
+func (client ReplicationsClient) CreateSender(req *http.Request) (future ReplicationsCreateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -122,7 +119,7 @@ func (client ScopeMapsClient) CreateSender(req *http.Request) (future ScopeMapsC
 
 // CreateResponder handles the response to the Create request. The method always
 // closes the http.Response Body.
-func (client ScopeMapsClient) CreateResponder(resp *http.Response) (result ScopeMap, err error) {
+func (client ReplicationsClient) CreateResponder(resp *http.Response) (result Replication, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -132,14 +129,14 @@ func (client ScopeMapsClient) CreateResponder(resp *http.Response) (result Scope
 	return
 }
 
-// Delete deletes a scope map from a container registry.
+// Delete deletes a replication from a container registry.
 // Parameters:
 // resourceGroupName - the name of the resource group to which the container registry belongs.
 // registryName - the name of the container registry.
-// scopeMapName - the name of the scope map.
-func (client ScopeMapsClient) Delete(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string) (result ScopeMapsDeleteFuture, err error) {
+// replicationName - the name of the replication.
+func (client ReplicationsClient) Delete(ctx context.Context, resourceGroupName string, registryName string, replicationName string) (result ReplicationsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ScopeMapsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -155,22 +152,22 @@ func (client ScopeMapsClient) Delete(ctx context.Context, resourceGroupName stri
 			Constraints: []validation.Constraint{{Target: "registryName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}},
-		{TargetValue: scopeMapName,
-			Constraints: []validation.Constraint{{Target: "scopeMapName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "scopeMapName", Name: validation.MinLength, Rule: 5, Chain: nil},
-				{Target: "scopeMapName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9-_]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("containerregistry.ScopeMapsClient", "Delete", err.Error())
+		{TargetValue: replicationName,
+			Constraints: []validation.Constraint{{Target: "replicationName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "replicationName", Name: validation.MinLength, Rule: 5, Chain: nil},
+				{Target: "replicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerregistry.ReplicationsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, registryName, scopeMapName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, registryName, replicationName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -178,15 +175,15 @@ func (client ScopeMapsClient) Delete(ctx context.Context, resourceGroupName stri
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ScopeMapsClient) DeletePreparer(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string) (*http.Request, error) {
+func (client ReplicationsClient) DeletePreparer(ctx context.Context, resourceGroupName string, registryName string, replicationName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"registryName":      autorest.Encode("path", registryName),
+		"replicationName":   autorest.Encode("path", replicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"scopeMapName":      autorest.Encode("path", scopeMapName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -194,14 +191,14 @@ func (client ScopeMapsClient) DeletePreparer(ctx context.Context, resourceGroupN
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/scopeMaps/{scopeMapName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/replications/{replicationName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client ScopeMapsClient) DeleteSender(req *http.Request) (future ScopeMapsDeleteFuture, err error) {
+func (client ReplicationsClient) DeleteSender(req *http.Request) (future ReplicationsDeleteFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -217,7 +214,7 @@ func (client ScopeMapsClient) DeleteSender(req *http.Request) (future ScopeMapsD
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client ScopeMapsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client ReplicationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -226,14 +223,14 @@ func (client ScopeMapsClient) DeleteResponder(resp *http.Response) (result autor
 	return
 }
 
-// Get gets the properties of the specified scope map.
+// Get gets the properties of the specified replication.
 // Parameters:
 // resourceGroupName - the name of the resource group to which the container registry belongs.
 // registryName - the name of the container registry.
-// scopeMapName - the name of the scope map.
-func (client ScopeMapsClient) Get(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string) (result ScopeMap, err error) {
+// replicationName - the name of the replication.
+func (client ReplicationsClient) Get(ctx context.Context, resourceGroupName string, registryName string, replicationName string) (result Replication, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ScopeMapsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -249,29 +246,29 @@ func (client ScopeMapsClient) Get(ctx context.Context, resourceGroupName string,
 			Constraints: []validation.Constraint{{Target: "registryName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}},
-		{TargetValue: scopeMapName,
-			Constraints: []validation.Constraint{{Target: "scopeMapName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "scopeMapName", Name: validation.MinLength, Rule: 5, Chain: nil},
-				{Target: "scopeMapName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9-_]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("containerregistry.ScopeMapsClient", "Get", err.Error())
+		{TargetValue: replicationName,
+			Constraints: []validation.Constraint{{Target: "replicationName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "replicationName", Name: validation.MinLength, Rule: 5, Chain: nil},
+				{Target: "replicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerregistry.ReplicationsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, registryName, scopeMapName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, registryName, replicationName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -279,15 +276,15 @@ func (client ScopeMapsClient) Get(ctx context.Context, resourceGroupName string,
 }
 
 // GetPreparer prepares the Get request.
-func (client ScopeMapsClient) GetPreparer(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string) (*http.Request, error) {
+func (client ReplicationsClient) GetPreparer(ctx context.Context, resourceGroupName string, registryName string, replicationName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"registryName":      autorest.Encode("path", registryName),
+		"replicationName":   autorest.Encode("path", replicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"scopeMapName":      autorest.Encode("path", scopeMapName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -295,20 +292,20 @@ func (client ScopeMapsClient) GetPreparer(ctx context.Context, resourceGroupName
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/scopeMaps/{scopeMapName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/replications/{replicationName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client ScopeMapsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client ReplicationsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ScopeMapsClient) GetResponder(resp *http.Response) (result ScopeMap, err error) {
+func (client ReplicationsClient) GetResponder(resp *http.Response) (result Replication, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -318,17 +315,17 @@ func (client ScopeMapsClient) GetResponder(resp *http.Response) (result ScopeMap
 	return
 }
 
-// List lists all the scope maps for the specified container registry.
+// List lists all the replications for the specified container registry.
 // Parameters:
 // resourceGroupName - the name of the resource group to which the container registry belongs.
 // registryName - the name of the container registry.
-func (client ScopeMapsClient) List(ctx context.Context, resourceGroupName string, registryName string) (result ScopeMapListResultPage, err error) {
+func (client ReplicationsClient) List(ctx context.Context, resourceGroupName string, registryName string) (result ReplicationListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ScopeMapsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationsClient.List")
 		defer func() {
 			sc := -1
-			if result.smlr.Response.Response != nil {
-				sc = result.smlr.Response.Response.StatusCode
+			if result.rlr.Response.Response != nil {
+				sc = result.rlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -340,29 +337,29 @@ func (client ScopeMapsClient) List(ctx context.Context, resourceGroupName string
 			Constraints: []validation.Constraint{{Target: "registryName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("containerregistry.ScopeMapsClient", "List", err.Error())
+		return result, validation.NewError("containerregistry.ReplicationsClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, registryName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.smlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "List", resp, "Failure sending request")
+		result.rlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.smlr, err = client.ListResponder(resp)
+	result.rlr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.smlr.hasNextLink() && result.smlr.IsEmpty() {
+	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -371,14 +368,14 @@ func (client ScopeMapsClient) List(ctx context.Context, resourceGroupName string
 }
 
 // ListPreparer prepares the List request.
-func (client ScopeMapsClient) ListPreparer(ctx context.Context, resourceGroupName string, registryName string) (*http.Request, error) {
+func (client ReplicationsClient) ListPreparer(ctx context.Context, resourceGroupName string, registryName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"registryName":      autorest.Encode("path", registryName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -386,20 +383,20 @@ func (client ScopeMapsClient) ListPreparer(ctx context.Context, resourceGroupNam
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/scopeMaps", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/replications", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client ScopeMapsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client ReplicationsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client ScopeMapsClient) ListResponder(resp *http.Response) (result ScopeMapListResult, err error) {
+func (client ReplicationsClient) ListResponder(resp *http.Response) (result ReplicationListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -410,10 +407,10 @@ func (client ScopeMapsClient) ListResponder(resp *http.Response) (result ScopeMa
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ScopeMapsClient) listNextResults(ctx context.Context, lastResults ScopeMapListResult) (result ScopeMapListResult, err error) {
-	req, err := lastResults.scopeMapListResultPreparer(ctx)
+func (client ReplicationsClient) listNextResults(ctx context.Context, lastResults ReplicationListResult) (result ReplicationListResult, err error) {
+	req, err := lastResults.replicationListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -421,19 +418,19 @@ func (client ScopeMapsClient) listNextResults(ctx context.Context, lastResults S
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ScopeMapsClient) ListComplete(ctx context.Context, resourceGroupName string, registryName string) (result ScopeMapListResultIterator, err error) {
+func (client ReplicationsClient) ListComplete(ctx context.Context, resourceGroupName string, registryName string) (result ReplicationListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ScopeMapsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -446,15 +443,15 @@ func (client ScopeMapsClient) ListComplete(ctx context.Context, resourceGroupNam
 	return
 }
 
-// Update updates a scope map with the specified parameters.
+// Update updates a replication for a container registry with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group to which the container registry belongs.
 // registryName - the name of the container registry.
-// scopeMapName - the name of the scope map.
-// scopeMapUpdateParameters - the parameters for updating a scope map.
-func (client ScopeMapsClient) Update(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string, scopeMapUpdateParameters ScopeMapUpdateParameters) (result ScopeMapsUpdateFuture, err error) {
+// replicationName - the name of the replication.
+// replicationUpdateParameters - the parameters for updating a replication.
+func (client ReplicationsClient) Update(ctx context.Context, resourceGroupName string, registryName string, replicationName string, replicationUpdateParameters ReplicationUpdateParameters) (result ReplicationsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ScopeMapsClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationsClient.Update")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -470,22 +467,22 @@ func (client ScopeMapsClient) Update(ctx context.Context, resourceGroupName stri
 			Constraints: []validation.Constraint{{Target: "registryName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}},
-		{TargetValue: scopeMapName,
-			Constraints: []validation.Constraint{{Target: "scopeMapName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "scopeMapName", Name: validation.MinLength, Rule: 5, Chain: nil},
-				{Target: "scopeMapName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9-_]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("containerregistry.ScopeMapsClient", "Update", err.Error())
+		{TargetValue: replicationName,
+			Constraints: []validation.Constraint{{Target: "replicationName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "replicationName", Name: validation.MinLength, Rule: 5, Chain: nil},
+				{Target: "replicationName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerregistry.ReplicationsClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, registryName, scopeMapName, scopeMapUpdateParameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, registryName, replicationName, replicationUpdateParameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ReplicationsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -493,15 +490,15 @@ func (client ScopeMapsClient) Update(ctx context.Context, resourceGroupName stri
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ScopeMapsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, registryName string, scopeMapName string, scopeMapUpdateParameters ScopeMapUpdateParameters) (*http.Request, error) {
+func (client ReplicationsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, registryName string, replicationName string, replicationUpdateParameters ReplicationUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"registryName":      autorest.Encode("path", registryName),
+		"replicationName":   autorest.Encode("path", replicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"scopeMapName":      autorest.Encode("path", scopeMapName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -510,15 +507,15 @@ func (client ScopeMapsClient) UpdatePreparer(ctx context.Context, resourceGroupN
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/scopeMaps/{scopeMapName}", pathParameters),
-		autorest.WithJSON(scopeMapUpdateParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/replications/{replicationName}", pathParameters),
+		autorest.WithJSON(replicationUpdateParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client ScopeMapsClient) UpdateSender(req *http.Request) (future ScopeMapsUpdateFuture, err error) {
+func (client ReplicationsClient) UpdateSender(req *http.Request) (future ReplicationsUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -534,7 +531,7 @@ func (client ScopeMapsClient) UpdateSender(req *http.Request) (future ScopeMapsU
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client ScopeMapsClient) UpdateResponder(resp *http.Response) (result ScopeMap, err error) {
+func (client ReplicationsClient) UpdateResponder(resp *http.Response) (result Replication, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),

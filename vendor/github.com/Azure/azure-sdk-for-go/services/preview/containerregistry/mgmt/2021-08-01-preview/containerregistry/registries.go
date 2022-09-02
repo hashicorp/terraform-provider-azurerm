@@ -85,7 +85,7 @@ func (client RegistriesClient) CheckNameAvailabilityPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,7 +169,7 @@ func (client RegistriesClient) CreatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -260,7 +260,7 @@ func (client RegistriesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -349,7 +349,7 @@ func (client RegistriesClient) GenerateCredentialsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -447,7 +447,7 @@ func (client RegistriesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -564,94 +564,6 @@ func (client RegistriesClient) GetBuildSourceUploadURLResponder(resp *http.Respo
 	return
 }
 
-// GetPrivateLinkResource gets a private link resource by a specified group name for a container registry.
-// Parameters:
-// resourceGroupName - the name of the resource group to which the container registry belongs.
-// registryName - the name of the container registry.
-// groupName - the name of the private link resource.
-func (client RegistriesClient) GetPrivateLinkResource(ctx context.Context, resourceGroupName string, registryName string, groupName string) (result PrivateLinkResource, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/RegistriesClient.GetPrivateLinkResource")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: registryName,
-			Constraints: []validation.Constraint{{Target: "registryName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
-				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("containerregistry.RegistriesClient", "GetPrivateLinkResource", err.Error())
-	}
-
-	req, err := client.GetPrivateLinkResourcePreparer(ctx, resourceGroupName, registryName, groupName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesClient", "GetPrivateLinkResource", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetPrivateLinkResourceSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesClient", "GetPrivateLinkResource", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetPrivateLinkResourceResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesClient", "GetPrivateLinkResource", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// GetPrivateLinkResourcePreparer prepares the GetPrivateLinkResource request.
-func (client RegistriesClient) GetPrivateLinkResourcePreparer(ctx context.Context, resourceGroupName string, registryName string, groupName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"groupName":         autorest.Encode("path", groupName),
-		"registryName":      autorest.Encode("path", registryName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2022-02-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/privateLinkResources/{groupName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetPrivateLinkResourceSender sends the GetPrivateLinkResource request. The method will close the
-// http.Response Body if it receives an error.
-func (client RegistriesClient) GetPrivateLinkResourceSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetPrivateLinkResourceResponder handles the response to the GetPrivateLinkResource request. The method always
-// closes the http.Response Body.
-func (client RegistriesClient) GetPrivateLinkResourceResponder(resp *http.Response) (result PrivateLinkResource, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
 // ImportImage copies an image to this container registry from the specified container registry.
 // Parameters:
 // resourceGroupName - the name of the resource group to which the container registry belongs.
@@ -707,7 +619,7 @@ func (client RegistriesClient) ImportImagePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -794,7 +706,7 @@ func (client RegistriesClient) ListPreparer(ctx context.Context) (*http.Request,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -916,7 +828,7 @@ func (client RegistriesClient) ListByResourceGroupPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1039,7 +951,7 @@ func (client RegistriesClient) ListCredentialsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1130,7 +1042,7 @@ func (client RegistriesClient) ListPrivateLinkResourcesPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1253,7 +1165,7 @@ func (client RegistriesClient) ListUsagesPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1341,7 +1253,7 @@ func (client RegistriesClient) RegenerateCredentialPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1515,7 +1427,7 @@ func (client RegistriesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-02-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
