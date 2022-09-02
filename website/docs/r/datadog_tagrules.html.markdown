@@ -20,14 +20,14 @@ resource "azurerm_resource_group" "example" {
 }
 resource "azurerm_datadog_monitor_tagrule" "example" {
   datadog_monitor_id = azurerm_datadog_monitor.example.id
-  log{
+  log {
     subscription_log_enabled = true
   }
-  metric{
+  metric {
     filtering_tag {
-        name = "Test"
-        value = "Logs"
-        action = "Include"
+      name   = "Test"
+      value  = "Logs"
+      action = "Include"
     }
   }
 }

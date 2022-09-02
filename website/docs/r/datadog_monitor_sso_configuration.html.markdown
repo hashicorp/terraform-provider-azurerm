@@ -19,9 +19,9 @@ resource "azurerm_resource_group" "example" {
   location = "West US 2"
 }
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
-    datadog_monitor_id = azurerm_datadog_monitor.example.id
-    singlesignon_state = "Enable"
-    enterprise_application_id = "XXXX"
+  datadog_monitor_id        = azurerm_datadog_monitor.example.id
+  singlesignon_state        = "Enable"
+  enterprise_application_id = "XXXX"
 }
 ```
 
