@@ -49,6 +49,7 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_output_powerbi` - support for the `token_user_principal_name` and `token_user_display_name` properties [GH-18117]
 * `azurerm_stream_analytics_output_cosmosdb` - support for the `partition_key` property [GH-18120]
 * `azurerm_stream_analytics_reference_input_blob` - support for the `authentication_mode` property [GH-18137]
+* `azurerm_stream_analytics_reference_input_mssql` - support for `table` property [GH-18211]
 * `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_windows_virtual_machine` - add support for missing fields [GH-17571]
 * `azurerm_windows_virtual_machine_scale_set` - add support for missing fields [GH-17571]
