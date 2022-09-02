@@ -692,6 +692,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("order", props.Order)
 
 		// BUG: RuleSetName is not being returned by the API
+		// Tracking issue opened: https://github.com/Azure/azure-rest-api-specs/issues/20560
 		d.Set("cdn_frontdoor_rule_set_name", ruleSetId.RuleSetName)
 
 		actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)

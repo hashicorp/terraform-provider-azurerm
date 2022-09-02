@@ -172,6 +172,7 @@ func InitializeCdnFrontDoorConditionMappings() *CdnFrontDoorCondtionsMappings {
 	return &m
 }
 
+// TODO: Move CIDR detection to its own validation package and expose unit tests
 func checkForDuplicateCIDRs(input []interface{}) error {
 	if len(input) <= 1 {
 		return nil
@@ -189,6 +190,7 @@ func checkForDuplicateCIDRs(input []interface{}) error {
 	return nil
 }
 
+// TODO: Move CIDR detection to its own validation package and expose unit tests
 func checkForCIDROverlap(matchValues []interface{}) error {
 	// verify there are no duplicates in the CIDRs
 	err := checkForDuplicateCIDRs(matchValues)
@@ -255,6 +257,7 @@ func checkForCIDROverlap(matchValues []interface{}) error {
 	return nil
 }
 
+// TODO: Move CIDR detection to its own validation package and expose unit tests
 // evaluates if the passed CIDR is a valid IPv4 or IPv6 CIDR or not.
 func isValidCIDR(cidr interface{}) bool {
 	var isValid bool
@@ -266,6 +269,7 @@ func isValidCIDR(cidr interface{}) bool {
 	return isValid
 }
 
+// TODO: Move CIDR detection to its own validation package and expose unit tests
 func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
 	_, sourceNetwork, err := net.ParseCIDR(sourceCIDR)
 	if err != nil {

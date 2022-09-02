@@ -26,6 +26,9 @@ Manages a Frontdoor Secret.
 
 ```hcl
 data "azurerm_client_config" "current" {}
+data "azuread_service_principal" "frontdoor" {
+  display_name = "Microsoft.AzureFrontDoor-Cdn"
+}
 
 resource "azurerm_key_vault" "example" {
   name                       = "example-keyvault"
@@ -44,7 +47,7 @@ resource "azurerm_key_vault" "example" {
   # Frontdoor Enterprise Application Object ID(e.g. Microsoft.AzureFrontDoor-Cdn)
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application
+    object_id = data.azuread_service_principal.frontdoor.object_id
 
     secret_permissions = [
       "Get",
