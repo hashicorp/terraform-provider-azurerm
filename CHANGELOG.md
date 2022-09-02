@@ -29,8 +29,11 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_hadoop_cluster` - add support for the `disk_encryption` property [GH-17351]
 * `azurerm_iothub_dps` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-18151]
 * `azurerm_kubernetes_node_pool` - spot node pools can now be upgraded [GH-18124]
+* `azurerm_linux_virtual_machine` - add support for missing fields [GH-17571]
+* `azurerm_linux_virtual_machine_scale_set` - add support for missing fields [GH-17571]
 * `azurerm_management_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_monitor_diagnostic_setting` - support for the `category_group` property [GH-16367]
+* `azurerm_orchestrated_virtual_machine_scale_set` - add support for missing fields [GH-17571]
 * `azurerm_resource_group_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_resource_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
 * `azurerm_role_assignment` - support `scope` to be `/providers/Subscription` [GH-17456]
@@ -43,6 +46,8 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_output_cosmosdb` - support for the `partition_key` property [GH-18120]
 * `azurerm_stream_analytics_reference_input_blob` - support for the `authentication_mode` property [GH-18137]
 * `azurerm_subscription_policy_remediation` - support for the `resource_count`, `parallel_deployments`, and `failure_percentage` properties [GH-17313]
+* `azurerm_windows_virtual_machine` - add support for missing fields [GH-17571]
+* `azurerm_windows_virtual_machine_scale_set` - add support for missing fields [GH-17571]
 * Dependencies: `log_analytics` - update to use hashicorp/go-azure-sdk [GH-18098]
 
 BUG FIXES:
