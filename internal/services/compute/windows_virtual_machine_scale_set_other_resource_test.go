@@ -373,6 +373,38 @@ func TestAccWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_otherSpotRestoreDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSpotRestoreDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("spot_restore.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("spot_restore.0.timeout").HasValue("PT1H"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherSpotRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSpotRestore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -441,6 +473,21 @@ func TestAccWindowsVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherVMAgent(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherVMAgentDisabledWithExtensionDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherVMAgentDisabledWithExtensionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -533,6 +580,30 @@ func TestAccWindowsVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_otherScaleIn(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherScaleInDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scale_in.0.rule").HasValue("Default"),
+				check.That(data.ResourceName).Key("scale_in.0.force_deletion_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherScaleInUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_otherTerminationNotification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -607,7 +678,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// turn automatic repair on
 		{
-			Config: r.otherAutomaticRepairsPolicy(data, true),
+			Config: r.otherAutomaticRepairsPolicyEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -615,7 +686,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 		data.ImportStep("admin_password"),
 		// turn automatic repair off
 		{
-			Config: r.otherAutomaticRepairsPolicy(data, false),
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -623,7 +694,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 		data.ImportStep("admin_password"),
 		// turn automatic repair on again
 		{
-			Config: r.otherAutomaticRepairsPolicy(data, true),
+			Config: r.otherAutomaticRepairsPolicyEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -742,14 +813,14 @@ func TestAccWindowsVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *tes
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, 40, 40, 40, "PT0S"),
+			Config: r.otherRollingUpgradePolicyUpdate(data, true, 40, 40, 40, "PT0S", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, 30, 100, 100, "PT1S"),
+			Config: r.otherRollingUpgradePolicyUpdate(data, false, 30, 100, 100, "PT1S", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -808,6 +879,37 @@ func TestAccWindowsVirtualMachineScaleSet_otherLicenseTypeUpdated(t *testing.T) 
 		data.ImportStep("admin_password"),
 		{
 			Config: r.otherLicenseTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationsBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherGalleryApplicationsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationsComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherGalleryApplicationsComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1740,6 +1842,98 @@ resource "azurerm_key_vault_certificate" "second" {
 `, r.template(data), data.RandomString)
 }
 
+func (r WindowsVirtualMachineScaleSetResource) otherSpotRestoreDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  priority        = "Spot"
+  eviction_policy = "Deallocate"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  spot_restore {
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherSpotRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  priority        = "Spot"
+  eviction_policy = "Deallocate"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  spot_restore {
+    enabled = true
+    timeout = "PT2H"
+  }
+}
+`, r.template(data))
+}
+
 func (r WindowsVirtualMachineScaleSetResource) otherTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1905,6 +2099,48 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), enabled)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherVMAgentDisabledWithExtensionDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  provision_vm_agent           = false
+  extension_operations_enabled = false
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherWinRMHTTP(data acceptance.TestData) string {
@@ -2371,6 +2607,92 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
+func (r WindowsVirtualMachineScaleSetResource) otherScaleInDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  scale_in {
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherScaleInUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  scale_in {
+    rule                   = "NewestVM"
+    force_deletion_enabled = true
+  }
+}
+`, r.template(data))
+}
+
 // TODO remove otherTerminateNotification in 4.0
 func (r WindowsVirtualMachineScaleSetResource) otherTerminateNotification(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
@@ -2458,7 +2780,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), enabled)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData, enabled bool) string {
+func (r WindowsVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2559,12 +2881,122 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_instance_repair {
-    enabled = %[3]t
+    enabled      = true
+    grace_period = "PT1H"
   }
 
   depends_on = [azurerm_lb_rule.test]
 }
-`, r.template(data), data.RandomInteger, enabled)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpip-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 4
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 80
+  frontend_port_end              = 81
+  backend_port                   = 8080
+}
+
+resource "azurerm_lb_probe" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  name                           = "AccTestLBRule"
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  health_probe_id     = azurerm_lb_probe.test.id
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+    disk_size_gb         = 10
+    lun                  = 10
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+    }
+  }
+
+  automatic_instance_repair {
+    enabled = false
+  }
+
+  depends_on = [azurerm_lb_rule.test]
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherUpgradeMode(data acceptance.TestData, enabled bool) string {
@@ -2824,7 +3256,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string) string {
+func (r WindowsVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2832,21 +3264,16 @@ locals {
   frontend_ip_configuration_name = "internal"
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "actestvmsspip-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allocation_method   = "Static"
-}
-
 resource "azurerm_lb" "test" {
   name                = "actestvmsslb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 
   frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
+    name      = local.frontend_ip_configuration_name
+    subnet_id = azurerm_subnet.test.id
+    zones     = ["1"]
   }
 }
 
@@ -2882,14 +3309,18 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
 
+  zones = ["1"]
+
   upgrade_mode    = "Rolling"
   health_probe_id = azurerm_lb_probe.test.id
 
   rolling_upgrade_policy {
+    cross_zone_upgrades_enabled             = %t
     max_batch_instance_percent              = %d
     max_unhealthy_instance_percent          = %d
     max_unhealthy_upgraded_instance_percent = %d
     pause_time_between_batches              = "%s"
+    prioritize_unhealthy_instances_enabled  = %t
   }
 
   source_image_reference {
@@ -2919,7 +3350,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   depends_on = [azurerm_lb_rule.test]
 
 }
-`, r.template(data), data.RandomInteger, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches)
+`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {
@@ -3193,4 +3624,165 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), licenseType)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  gallery_applications {
+    package_reference_id = azurerm_gallery_application_version.test.id
+  }
+}
+`, r.otherGalleryApplicationsTemplate(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  gallery_applications {
+    package_reference_id             = azurerm_gallery_application_version.test.id
+    configuration_reference_blob_uri = azurerm_storage_blob.test2.id
+    order                            = 1
+    tag                              = "app"
+  }
+}
+`, r.otherGalleryApplicationsTemplate(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accteststr%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "script"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "script"
+}
+
+resource "azurerm_storage_blob" "test2" {
+  name                   = "script2"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "script2"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[3]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_gallery_application" "test" {
+  name              = "acctest-app-%[3]d"
+  gallery_id        = azurerm_shared_image_gallery.test.id
+  location          = azurerm_shared_image_gallery.test.location
+  supported_os_type = "Windows"
+}
+
+resource "azurerm_gallery_application_version" "test" {
+  name                   = "0.0.1"
+  gallery_application_id = azurerm_gallery_application.test.id
+  location               = azurerm_gallery_application.test.location
+
+  source {
+    media_link                 = azurerm_storage_blob.test.id
+    default_configuration_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "[install command]"
+    remove  = "[remove command]"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
+
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
