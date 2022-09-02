@@ -42,11 +42,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Automation Hybrid Runbook Worker.
 
-* `ip` - The IP address of assigned machine .
+* `ip` - The IP address of assigned machine.
 
 * `last_seen_date_time` - Last Heartbeat from the Worker.
 
-* `registered_date_time` - The registration time of the worker machine.
+* `registration_date_time` - The registration time of the worker machine.
 
 * `worker_name` - The name of HybridWorker.
 

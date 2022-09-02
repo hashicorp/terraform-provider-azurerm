@@ -24,7 +24,7 @@ type HybridRunbookWorkerModel struct {
 	WorkerId              string `tfschema:"worker_id"`
 	VmResourceId          string `tfschema:"vm_resource_id"`
 	Ip                    string `tfschema:"ip"`
-	RegisteredDateTime    string `tfschema:"registered_date_time"`
+	RegisteredDateTime    string `tfschema:"registration_date_time"`
 	LastSeenDateTime      string `tfschema:"last_seen_date_time"`
 	WorkerType            string `tfschema:"worker_type"`
 }
@@ -36,24 +36,28 @@ var _ sdk.Resource = (*HybridRunbookWorkerResource)(nil)
 func (m HybridRunbookWorkerResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"automation_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"worker_group_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"worker_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
+
 		"vm_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -69,18 +73,22 @@ func (m HybridRunbookWorkerResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"registered_date_time": {
+
+		"registration_date_time": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"last_seen_date_time": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"worker_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"worker_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
