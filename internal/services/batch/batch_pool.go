@@ -373,6 +373,46 @@ func flattenBatchPoolIdentityReferenceToIdentityID(ref *batch.ComputeNodeIdentit
 	return ""
 }
 
+func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *batch.UserAccount) map[string]interface{} {
+	userAccount := make(map[string]interface{})
+	userAccount["name"] = *account.Name
+	userAccount["elevation_level"] = string(account.ElevationLevel)
+	userAccountIndex := -1
+	if num, ok := d.GetOk("user_accounts.#"); ok {
+		n := num.(int)
+		for i := 0; i < n; i++ {
+			if src, nameOk := d.GetOk(fmt.Sprintf("user_accounts.%d.name", i)); nameOk && src == *account.Name {
+				userAccount["password"] = d.Get(fmt.Sprintf("user_accounts.%d.password", i)).(string)
+				userAccountIndex = i
+				break
+			}
+		}
+	}
+	if account.LinuxUserConfiguration != nil {
+		linuxUserConfig := make(map[string]interface{})
+		if account.LinuxUserConfiguration.UID != nil {
+			linuxUserConfig["uid"] = *account.LinuxUserConfiguration.UID
+			linuxUserConfig["gid"] = *account.LinuxUserConfiguration.Gid
+		}
+		if userAccountIndex > -1 {
+			if sshPrivateKey, ok := d.GetOk(fmt.Sprintf("user_accounts.%d.linux_user_configuration.0.ssh_private_key", userAccountIndex)); ok {
+				linuxUserConfig["ssh_private_key"] = sshPrivateKey
+			}
+		}
+		userAccount["linux_user_configuration"] = []interface{}{
+			linuxUserConfig,
+		}
+	}
+	if account.WindowsUserConfiguration != nil {
+		loginMode := make(map[string]interface{})
+		loginMode["login_mode"] = string(account.WindowsUserConfiguration.LoginMode)
+		userAccount["windows_user_configuration"] = []interface{}{
+			loginMode,
+		}
+	}
+	return userAccount
+}
+
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
 	if len(list) == 0 {
@@ -963,4 +1003,58 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 			"subnet_id":                        subnetId,
 		},
 	}
+}
+
+func ExpandBatchPoolUserAccounts(d *pluginsdk.ResourceData) (*[]batch.UserAccount, error) {
+	var result []batch.UserAccount
+
+	if userAccountList, ok := d.GetOk("user_accounts"); ok {
+		userAccounts := userAccountList.([]interface{})
+		if len(userAccounts) > 0 && userAccounts[0] != nil {
+			for _, tempItem := range userAccounts {
+				item := tempItem.(map[string]interface{})
+				if userAccount, err := expandBatchPoolUserAccount(item); err == nil {
+					result = append(result, userAccount)
+				}
+			}
+			return &result, nil
+		}
+	}
+	return nil, fmt.Errorf("user_accounts either is empty or contains parsing errors")
+}
+
+func expandBatchPoolUserAccount(ref map[string]interface{}) (batch.UserAccount, error) {
+	result := batch.UserAccount{
+		Name:           utils.String(ref["name"].(string)),
+		Password:       utils.String(ref["password"].(string)),
+		ElevationLevel: batch.ElevationLevel(ref["elevation_level"].(string)),
+	}
+
+	if linuxUserConfig, ok := ref["linux_user_configuration"]; ok {
+		if linuxUserConfig != nil && len(linuxUserConfig.([]interface{})) > 0 {
+			linuxUserConfigMap := linuxUserConfig.([]interface{})[0].(map[string]interface{})
+			var linuxUserConfig batch.LinuxUserConfiguration
+			if uid, ok := linuxUserConfigMap["uid"]; ok {
+				linuxUserConfig = batch.LinuxUserConfiguration{
+					UID: utils.Int32(int32(uid.(int))),
+					Gid: utils.Int32(int32(linuxUserConfigMap["gid"].(int))),
+				}
+			}
+			if sshPrivateKey, ok := linuxUserConfigMap["ssh_private_key"]; ok {
+				linuxUserConfig.SSHPrivateKey = utils.String(sshPrivateKey.(string))
+			}
+			result.LinuxUserConfiguration = &linuxUserConfig
+		}
+	}
+
+	if winUserConfig, ok := ref["windows_user_configuration"]; ok {
+		if winUserConfig != nil && len(winUserConfig.([]interface{})) > 0 {
+			winUserConfigMap := winUserConfig.([]interface{})[0].(map[string]interface{})
+			result.WindowsUserConfiguration = &batch.WindowsUserConfiguration{
+				LoginMode: batch.LoginMode(winUserConfigMap["login_mode"].(string)),
+			}
+		}
+	}
+
+	return result, nil
 }

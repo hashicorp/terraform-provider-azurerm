@@ -577,6 +577,57 @@ func TestAccBatchPool_mountConfigurationNFS(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_linuxUserAccounts(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxUserAccounts(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("user_accounts.0.name").HasValue("username1"),
+				check.That(data.ResourceName).Key("user_accounts.0.password").HasValue("<ExamplePassword>"),
+				check.That(data.ResourceName).Key("user_accounts.0.elevation_level").HasValue("Admin"),
+				check.That(data.ResourceName).Key("user_accounts.0.linux_user_configuration.0.ssh_private_key").HasValue("sshprivatekeyvalue"),
+				check.That(data.ResourceName).Key("user_accounts.0.linux_user_configuration.0.uid").HasValue("1234"),
+				check.That(data.ResourceName).Key("user_accounts.0.linux_user_configuration.0.gid").HasValue("4567"),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"user_accounts.0.password",
+			"user_accounts.0.linux_user_configuration.0.ssh_private_key",
+		),
+	})
+}
+
+func TestAccBatchPool_windowsUserAccountsWithAdditionalConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsUserAccountsWithConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue("Windows_Server"),
+				check.That(data.ResourceName).Key("node_placement_configuration.0.policy").HasValue("Regional"),
+				check.That(data.ResourceName).Key("disk_encryption_configuration.0.disk_encryption_target").HasValue("TemporaryDisk"),
+				check.That(data.ResourceName).Key("user_accounts.0.name").HasValue("username1"),
+				check.That(data.ResourceName).Key("user_accounts.0.password").HasValue("<ExamplePassword>"),
+				check.That(data.ResourceName).Key("user_accounts.0.elevation_level").HasValue("Admin"),
+				check.That(data.ResourceName).Key("user_accounts.0.windows_user_configuration.0.login_mode").HasValue("Interactive"),
+				check.That(data.ResourceName).Key("windows_configuration.0.enable_automatic_updates").HasValue("true"),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"user_accounts.0.password",
+		),
+	})
+}
+
 func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PoolID(state.ID)
 	if err != nil {
@@ -1915,6 +1966,90 @@ resource "azurerm_batch_pool" "test" {
     offer     = "UbuntuServer"
     sku       = "18.04-lts"
     version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) linuxUserAccounts(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+  user_accounts {
+    name            = "username1"
+    password        = "<ExamplePassword>"
+    elevation_level = "Admin"
+    linux_user_configuration {
+      ssh_private_key = "sshprivatekeyvalue"
+      uid             = 1234
+      gid             = 4567
+    }
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) windowsUserAccountsWithConfig(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.windows amd64"
+  vm_size             = "Standard_A1"
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter"
+    version   = "latest"
+  }
+  license_type = "Windows_Server"
+  node_placement_configuration {
+    policy = "Regional"
+  }
+  disk_encryption_configuration {
+    disk_encryption_target = "TemporaryDisk"
+  }
+  windows_configuration {
+    enable_automatic_updates = true
+  }
+  user_accounts {
+    name            = "username1"
+    password        = "<ExamplePassword>"
+    elevation_level = "Admin"
+    windows_user_configuration {
+      login_mode = "Interactive"
+    }
   }
 }
 `, template, data.RandomString, data.RandomString)

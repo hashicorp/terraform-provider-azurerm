@@ -197,6 +197,58 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					Schema: startTaskDSSchema(),
 				},
 			},
+			"user_accounts": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"elevation_level": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"linux_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"uid": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+									"gid": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+									"ssh_private_key": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"windows_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"login_mode": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"metadata": {
 				Type:     pluginsdk.TypeMap,
 				Computed: true,
@@ -519,6 +571,22 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
+		}
+
+		if props.UserAccounts != nil {
+			userAccounts := make([]interface{}, 0)
+			for _, userAccount := range *props.UserAccounts {
+				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
+			}
+			d.Set("user_accounts", userAccounts)
+		}
+
+		if props.MountConfiguration != nil {
+			mountConfigs := make([]interface{}, 0)
+			for _, mountConfig := range *props.MountConfiguration {
+				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
+			}
+			d.Set("mount_configuration", mountConfigs)
 		}
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {

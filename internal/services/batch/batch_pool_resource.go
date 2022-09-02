@@ -301,6 +301,70 @@ func resourceBatchPool() *pluginsdk.Resource {
 					Schema: startTaskSchema(),
 				},
 			},
+			"user_accounts": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"elevation_level": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ElevationLevelNonAdmin),
+								string(batch.ElevationLevelAdmin),
+							}, false),
+						},
+						"linux_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"uid": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+									},
+									"gid": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+									},
+									"ssh_private_key": {
+										Type:      pluginsdk.TypeString,
+										Optional:  true,
+										Sensitive: true,
+									},
+								},
+							},
+						},
+						"windows_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"login_mode": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(batch.LoginModeBatch),
+											string(batch.LoginModeInteractive),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"metadata": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -590,6 +654,12 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 	}
 
+	userAccounts, err := ExpandBatchPoolUserAccounts(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
+	}
+	parameters.PoolProperties.UserAccounts = userAccounts
+
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
@@ -750,6 +820,12 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
+	userAccounts, err := ExpandBatchPoolUserAccounts(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
+	}
+	parameters.PoolProperties.UserAccounts = userAccounts
+
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
@@ -846,6 +922,14 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
+		}
+
+		if props.UserAccounts != nil {
+			userAccounts := make([]interface{}, 0)
+			for _, userAccount := range *props.UserAccounts {
+				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
+			}
+			d.Set("user_accounts", userAccounts)
 		}
 
 		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
