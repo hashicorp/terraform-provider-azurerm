@@ -1,8 +1,14 @@
 ## 3.22.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` ([#18183](https://github.com/hashicorp/terraform-provider-azurerm/issues/18183))
+* dependencies: `desktopvirtualization` - updating to use `2022-02-10` [GH-17489]
+* `azurerm_virtual_desktop_host_pool` - support for the `scheduled_agent_updates` block [GH-17489]
+
 BUG FIXES:
 
-* `azurerm_mssql_database` - `license_type ` is now also Computed [GH-18230]
+* `azurerm_mssql_database` - the `license_type` property is now also Computed [GH-18230]
 
 ## 3.21.1 (September 02, 2022)
 
