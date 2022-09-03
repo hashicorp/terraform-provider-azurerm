@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorCustomDomainResource struct {
+type CdnFrontDoorCustomDomainResource struct {
 }
 
-func TestAccCdnFrontdoorCustomDomain_basic(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{}
+	r := CdnFrontDoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -33,9 +33,9 @@ func TestAccCdnFrontdoorCustomDomain_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorCustomDomain_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{}
+	r := CdnFrontDoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,9 +49,9 @@ func TestAccCdnFrontdoorCustomDomain_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorCustomDomain_complete(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{}
+	r := CdnFrontDoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -68,7 +68,7 @@ func TestAccCdnFrontdoorCustomDomain_complete(t *testing.T) {
 // TODO: Due to the validation logic in the service you cannot update the custom domain until
 // it has been approved. Need to add a txt validator to facilitate testing the update functionality.
 
-func (r CdnFrontdoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
@@ -85,13 +85,13 @@ func (r CdnFrontdoorCustomDomainResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorCustomDomainResource) preCheck(t *testing.T) {
+func (r CdnFrontDoorCustomDomainResource) preCheck(t *testing.T) {
 	if v := os.Getenv("TF_RUN_CDN_CUSTOM_DOMAIN"); v == "" {
 		t.Skipf("skipping tests since `TF_RUN_CDN_CUSTOM_DOMAIN` isn't set")
 	}
 }
 
-func (r CdnFrontdoorCustomDomainResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -114,7 +114,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -133,7 +133,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "import" {
 `, config)
 }
 
-func (r CdnFrontdoorCustomDomainResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -160,7 +160,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 // TODO: Add test case that uses pre_validated_custom_domain_resource_id
 // TODO: Add test case that uses CMK
 
-func (r CdnFrontdoorCustomDomainResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"

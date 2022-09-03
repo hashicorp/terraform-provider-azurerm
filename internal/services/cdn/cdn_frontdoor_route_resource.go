@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
+func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorRouteCreate,
-		Read:   resourceCdnFrontdoorRouteRead,
-		Update: resourceCdnFrontdoorRouteUpdate,
-		Delete: resourceCdnFrontdoorRouteDelete,
+		Create: resourceCdnFrontDoorRouteCreate,
+		Read:   resourceCdnFrontDoorRouteRead,
+		Update: resourceCdnFrontDoorRouteUpdate,
+		Delete: resourceCdnFrontDoorRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -31,49 +31,40 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorRouteID(id)
+			_, err := parse.FrontDoorRouteID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: missing validation
-				// WS: Fixed
-				ValidateFunc: validate.CdnFrontdoorRouteName,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FrontDoorRouteName,
 			},
 
 			"cdn_frontdoor_endpoint_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorEndpointID,
+				ValidateFunc: validate.FrontDoorEndpointID,
 			},
 
-			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Because the legacy Frontdoor also has some of the same resource types, so I was exposing
-			// them all with the prefix as a disambiguator so there wouldn't be any confusion what was
-			// expected here as input.
 			"cdn_frontdoor_origin_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.FrontdoorOriginGroupID,
+				ValidateFunc: validate.FrontDoorOriginGroupID,
 			},
 
-			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Same as above.
+			// NOTE: These are not sent to the API, they are only here so Terraform
+			// can provision/destroy the resources in the correct order.
 			"cdn_frontdoor_origin_ids": {
-				// TODO: BLOCKER - these are sent to the API so must be returned
-				// WS: These are not sent to the API, they are only here so Terraform
-				// can provision/destroy the resources in the correct order.
 				Type:     pluginsdk.TypeList,
 				Required: true,
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.FrontdoorOriginID,
+					ValidateFunc: validate.FrontDoorOriginID,
 				},
 			},
 
@@ -120,7 +111,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice(cdnFrontdoorContentTypes(), false),
+								ValidateFunc: validation.StringInSlice(frontDoorContentTypes(), false),
 							},
 						},
 					},
@@ -150,15 +141,13 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Same as above.
 			"cdn_frontdoor_custom_domain_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.FrontdoorCustomDomainID,
+					ValidateFunc: validate.FrontDoorCustomDomainID,
 				},
 			},
 
@@ -168,8 +157,6 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Same as above.
 			"cdn_frontdoor_origin_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -184,8 +171,6 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Same as above.
 			"cdn_frontdoor_rule_set_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -196,8 +181,6 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			},
 
 			"supported_protocols": {
-				// TODO: does this need to be a Set?
-				// WS: Fixed
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MaxItems: 2,
@@ -210,27 +193,21 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 					}, false),
 				},
 			},
-
-			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Removed, not useful
-
-			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Removed, not useful
 		},
 	}
 }
 
-func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	endpointId, err := parse.FrontdoorEndpointID(d.Get("cdn_frontdoor_endpoint_id").(string))
+	endpointId, err := parse.FrontDoorEndpointID(d.Get("cdn_frontdoor_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontdoorRouteID(endpointId.SubscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.AfdEndpointName, d.Get("name").(string))
+	id := parse.NewFrontDoorRouteID(endpointId.SubscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.AfdEndpointName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
@@ -248,10 +225,10 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if httpsRedirect {
 		// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
-		// This configuration does not cause an error when provisioned, however the http requests that are supposed to be redirected to https
-		// remain http requests
-		if !cdnFrontdoorRouteSupportsHttpHttps(protocolsRaw) {
-			return fmt.Errorf("%[1]q and %[2]q conflict. The %[1]q cannot be set to %[3]q unless the %[2]q field contains both %[4]q and %[5]q", "https_redirect_enabled", "supported_protocols", "true", "Http", "Https")
+		// This configuration does not cause an error when provisioned, however the http requests that
+		// are supposed to be redirected to https remain http requests
+		if !routeSupportsHttpAndHttps(protocolsRaw) {
+			return fmt.Errorf("'https_redirect_enabled' and 'supported_protocols' conflict. The 'https_redirect_enabled' cannot be set to 'true' unless the 'supported_protocols' field contains both 'HTTP' and 'HTTPS'")
 		}
 	}
 
@@ -259,11 +236,11 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		RouteProperties: &cdn.RouteProperties{
 			CustomDomains:       expandCdnFrontdoorRouteActivatedResourceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})),
 			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
-			EnabledState:        convertCdnFrontdoorBoolToEnabledState(d.Get("enabled").(bool)),
+			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
-			HTTPSRedirect:       convertCdnFrontdoorBoolToRouteHttpsRedirect(httpsRedirect),
-			LinkToDefaultDomain: convertCdnFrontdoorBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
-			OriginGroup:         expandCdnFrontdoorResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
+			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
+			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
+			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandCdnFrontdoorRouteEndpointProtocolsArray(protocolsRaw),
@@ -285,22 +262,21 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	// TODO: this needs to be removed in favour of the API returning the data (as per the ARM guidelines)
-	// WS: These are not sent to the API, they are only here so Terraform
+	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
 		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
 	}
 
-	return resourceCdnFrontdoorRouteRead(d, meta)
+	return resourceCdnFrontDoorRouteRead(d, meta)
 }
 
-func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorRouteID(d.Id())
+	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -315,25 +291,24 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// TODO: BLOCKER - these need to be returned from the API
-	// WS: These are not sent to the API, they are only here so Terraform
+	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
 		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
 	}
 
 	d.Set("name", id.RouteName)
-	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
+	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
 		// TODO: split this into two separate flatten functions
 		// WS: Fixed
 		domains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 		d.Set("cdn_frontdoor_custom_domain_ids", domains)
-		d.Set("enabled", convertCdnFrontdoorEnabledStateToBool(&props.EnabledState))
+		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
-		d.Set("https_redirect_enabled", convertCdnFrontdoorRouteHttpsRedirectToBool(&props.HTTPSRedirect))
-		d.Set("link_to_default_domain_enabled", convertCdnFrontdoorRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
+		d.Set("https_redirect_enabled", flattenRouteHttpsRedirectToBool(props.HTTPSRedirect))
+		d.Set("link_to_default_domain_enabled", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
@@ -344,7 +319,7 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `cache`: %+v", err)
 		}
 
-		if err := d.Set("cdn_frontdoor_origin_group_id", flattenCdnFrontdoorResourceReference(props.OriginGroup)); err != nil {
+		if err := d.Set("cdn_frontdoor_origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
 			return fmt.Errorf("setting `cdn_frontdoor_origin_group_id`: %+v", err)
 		}
 
@@ -360,13 +335,13 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorRouteID(d.Id())
+	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -392,7 +367,7 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("enabled") {
-		props.EnabledState = convertCdnFrontdoorBoolToEnabledState(d.Get("enabled").(bool))
+		props.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
 	}
 
 	if d.HasChange("forwarding_protocol") {
@@ -402,15 +377,15 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	var httpsRedirectChanged bool
 	if d.HasChange("https_redirect_enabled") {
 		httpsRedirectChanged = true
-		props.HTTPSRedirect = convertCdnFrontdoorBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool))
+		props.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool))
 	}
 
 	if d.HasChange("link_to_default_domain_enabled") {
-		props.LinkToDefaultDomain = convertCdnFrontdoorBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool))
+		props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool))
 	}
 
 	if d.HasChange("cdn_frontdoor_origin_group_id") {
-		props.OriginGroup = expandCdnFrontdoorResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string))
+		props.OriginGroup = expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string))
 	}
 
 	if d.HasChange("cdn_frontdoor_origin_path") {
@@ -442,10 +417,10 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if httpsRedirect {
 			// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
-			// This configuration does not cause an error when provisioned, however the http requests that are supposed to be redirected to https
-			// remain http requests
-			if !cdnFrontdoorRouteSupportsHttpHttps(protocolsRaw) {
-				return fmt.Errorf("%[1]q and %[2]q conflict. The %[1]q cannot be set to %[3]q unless the %[2]q field contains both %[4]q and %[5]q", "https_redirect_enabled", "supported_protocols", "true", "Http", "Https")
+			// This configuration does not cause an error when provisioned, however the http requests that
+			// are supposed to be redirected to https remain http requests
+			if !routeSupportsHttpAndHttps(protocolsRaw) {
+				return fmt.Errorf("'https_redirect_enabled' and 'supported_protocols' conflict. The 'https_redirect_enabled' cannot be set to 'true' unless the 'supported_protocols' field contains both 'HTTP' and 'HTTPS'")
 			}
 		}
 	}
@@ -458,22 +433,21 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	// TODO: BLOCKER - this'll need to be returned from the API and set in the Read
-	// WS: These are not sent to the API, they are only here so Terraform
+	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
 		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
 	}
 
-	return resourceCdnFrontdoorRouteRead(d, meta)
+	return resourceCdnFrontDoorRouteRead(d, meta)
 }
 
-func resourceCdnFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorRouteID(d.Id())
+	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -537,7 +511,7 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRout
 		CompressionSettings: &cdn.CompressionSettings{
 			IsCompressionEnabled: utils.Bool(compressionEnabled),
 		},
-		QueryParameters:            expandCdnFrontdoorStringSliceToCsvFormat(v["query_strings"].([]interface{})),
+		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
 
@@ -616,7 +590,7 @@ func flattenCdnFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigur
 
 	queryParameters := make([]interface{}, 0)
 	if input.QueryParameters != nil {
-		queryParameters = flattenCdnFrontdoorCsvToStringSlice(input.QueryParameters)
+		queryParameters = flattenCsvToStringSlice(input.QueryParameters)
 	}
 
 	cachingBehaviour := ""
@@ -638,7 +612,7 @@ func flattenCdnFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigur
 			"compression_enabled":           compressionEnabled,
 			"content_types_to_compress":     contentTypesToCompress,
 			"query_string_caching_behavior": cachingBehaviour,
-			"query_strings":                 queryParameters, // TODO: why isn't this called query_parameters? WS: To be consistent with the legacy resource I felt it was best to keep the names a constant across all resources.
+			"query_strings":                 queryParameters,
 		},
 	}
 }

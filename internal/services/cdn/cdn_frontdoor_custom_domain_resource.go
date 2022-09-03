@@ -6,23 +6,23 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	track1 "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	dnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
+func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorCustomDomainCreate,
-		Read:   resourceCdnFrontdoorCustomDomainRead,
-		Update: resourceCdnFrontdoorCustomDomainUpdate,
-		Delete: resourceCdnFrontdoorCustomDomainDelete,
+		Create: resourceCdnFrontDoorCustomDomainCreate,
+		Read:   resourceCdnFrontDoorCustomDomainRead,
+		Update: resourceCdnFrontDoorCustomDomainUpdate,
+		Delete: resourceCdnFrontDoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// TODO: these timeouts need adjusting..?
@@ -40,28 +40,24 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: missing validation
-				// WS: Fixed
-				ValidateFunc: validate.CdnFrontdoorCustomDomainName,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FrontDoorCustomDomainName,
 			},
 
-			// WS: I need this fake field because I need the profile name during the create operation
+			// NOTE: I need this fake field because I need the profile name during the create operation
 			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorProfileID,
+				ValidateFunc: validate.FrontDoorProfileID,
 			},
 
 			"dns_zone_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				// TODO: this should be validating the DNS Zone ID - if this could be both Public or Private we can validate that
-				// WS: Fixed
-				ValidateFunc: dnsValidate.DnsZoneID,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: dnsValidate.ValidateDnsZoneID,
 			},
 
 			"domain_validation_state": {
@@ -78,7 +74,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 			"pre_validated_cdn_frontdoor_custom_domain_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.FrontdoorCustomDomainID,
+				ValidateFunc: validate.FrontDoorCustomDomainID,
 			},
 
 			"tls": {
@@ -113,7 +109,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.FrontdoorSecretID,
+							ValidateFunc: validate.FrontDoorSecretID,
 						},
 					},
 				},
@@ -138,12 +134,12 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -166,8 +162,8 @@ func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	props := track1.AFDDomain{
 		AFDDomainProperties: &track1.AFDDomainProperties{
 			HostName:                           utils.String(d.Get("host_name").(string)),
-			AzureDNSZone:                       expandCdnFrontdoorResourceReference(d.Get("dns_zone_id").(string)),
-			PreValidatedCustomDomainResourceID: expandCdnFrontdoorResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
+			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
+			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
 			TLSSettings:                        expandCdnFrontdoorCustomDomainHttpsParameters(d.Get("tls").([]interface{})),
 		},
 	}
@@ -182,10 +178,10 @@ func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorCustomDomainRead(d, meta)
+	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
 
-func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,19 +201,17 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.Set("name", id.CustomDomainName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
 		d.Set("host_name", props.HostName)
-		// TODO: this either needs to be returned from the API or removed
-		// WS: Fixed. Removed.
 
-		if err := d.Set("dns_zone_id", flattenCdnFrontdoorResourceReference(props.AzureDNSZone)); err != nil {
+		if err := d.Set("dns_zone_id", flattenResourceReference(props.AzureDNSZone)); err != nil {
 			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 		}
 
-		if err := d.Set("pre_validated_cdn_frontdoor_custom_domain_id", flattenCdnFrontdoorResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
+		if err := d.Set("pre_validated_cdn_frontdoor_custom_domain_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
 			return fmt.Errorf("setting `pre_validated_cdn_frontdoor_custom_domain_id`: %+v", err)
 		}
 
@@ -234,7 +228,7 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,8 +240,8 @@ func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	props := track1.AFDDomainUpdateParameters{
 		AFDDomainUpdatePropertiesParameters: &track1.AFDDomainUpdatePropertiesParameters{
-			AzureDNSZone:                       expandCdnFrontdoorResourceReference(d.Get("dns_zone_id").(string)),
-			PreValidatedCustomDomainResourceID: expandCdnFrontdoorResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
+			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
+			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
 			TLSSettings:                        expandCdnFrontdoorCustomDomainHttpsParameters(d.Get("tls").([]interface{})),
 		},
 	}
@@ -261,10 +255,10 @@ func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceCdnFrontdoorCustomDomainRead(d, meta)
+	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
 
-func resourceCdnFrontdoorCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,7 +294,7 @@ func expandCdnFrontdoorCustomDomainHttpsParameters(input []interface{}) *track1.
 	return &track1.AFDDomainHTTPSParameters{
 		CertificateType:   track1.AfdCertificateType(v["certificate_type"].(string)),
 		MinimumTLSVersion: track1.AfdMinimumTLSVersion(v["minimum_tls_version"].(string)),
-		Secret:            expandCdnFrontdoorResourceReference(v["cdn_frontdoor_secret_id"].(string)),
+		Secret:            expandResourceReference(v["cdn_frontdoor_secret_id"].(string)),
 	}
 }
 
@@ -311,7 +305,7 @@ func flattenCustomDomainAFDDomainHttpsParameters(input *track1.AFDDomainHTTPSPar
 
 	return []interface{}{
 		map[string]interface{}{
-			"cdn_frontdoor_secret_id": flattenCdnFrontdoorResourceReference(input.Secret),
+			"cdn_frontdoor_secret_id": flattenResourceReference(input.Secret),
 			"certificate_type":        string(input.CertificateType),
 			"minimum_tls_version":     string(input.MinimumTLSVersion),
 		},

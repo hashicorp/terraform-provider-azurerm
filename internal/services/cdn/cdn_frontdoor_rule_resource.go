@@ -1147,7 +1147,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 	// it actually has a condition defined within it, else return an empty
 	// slice
 	output := []interface{}{conditions}
-	if !cdnFrontDoorRuleHasDeliveryRuleConditions(conditions) {
+	if !ruleHasDeliveryRuleConditions(conditions) {
 		output = results
 	}
 

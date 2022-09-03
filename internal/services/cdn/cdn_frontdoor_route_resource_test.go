@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorRouteResource struct{}
+type CdnFrontDoorRouteResource struct{}
 
-func TestAccCdnFrontdoorRoute_basic(t *testing.T) {
+func TestAccCdnFrontDoorRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
-	r := CdnFrontdoorRouteResource{}
+	r := CdnFrontDoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -37,9 +37,9 @@ func TestAccCdnFrontdoorRoute_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRoute_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorRoute_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
-	r := CdnFrontdoorRouteResource{}
+	r := CdnFrontDoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -58,9 +58,9 @@ func TestAccCdnFrontdoorRoute_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRoute_complete(t *testing.T) {
+func TestAccCdnFrontDoorRoute_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
-	r := CdnFrontdoorRouteResource{}
+	r := CdnFrontDoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -79,9 +79,9 @@ func TestAccCdnFrontdoorRoute_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRoute_update(t *testing.T) {
+func TestAccCdnFrontDoorRoute_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
-	r := CdnFrontdoorRouteResource{}
+	r := CdnFrontDoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -107,8 +107,8 @@ func TestAccCdnFrontdoorRoute_update(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorRouteID(state.ID)
+func (r CdnFrontDoorRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.FrontDoorRouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (r CdnFrontdoorRouteResource) Exists(ctx context.Context, clients *clients.
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorRouteResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorRouteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,7 +178,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontdoorRouteResource) destroy(data acceptance.TestData) string {
+func (r CdnFrontDoorRouteResource) destroy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -231,7 +231,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontdoorRouteResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorRouteResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -249,7 +249,7 @@ resource "azurerm_cdn_frontdoor_route" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorRouteResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorRouteResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -267,7 +267,7 @@ resource "azurerm_cdn_frontdoor_route" "import" {
 `, config)
 }
 
-func (r CdnFrontdoorRouteResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorRouteResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -294,7 +294,7 @@ resource "azurerm_cdn_frontdoor_route" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorRouteResource) update(data acceptance.TestData) string {
+func (r CdnFrontDoorRouteResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

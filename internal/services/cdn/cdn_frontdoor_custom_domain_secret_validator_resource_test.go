@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorCustomDomainSecretValidatorResource struct {
+type CdnFrontDoorCustomDomainSecretValidatorResource struct {
 	DoNotRunFrontdooCustomDomainTests bool
 }
 
-func TestAccCdnFrontdoorCustomDomainSecretValidator_complete(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomainSecretValidator_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_secret_validator", "test")
-	r := CdnFrontdoorCustomDomainSecretValidatorResource{DoNotRunFrontdooCustomDomainTests: true}
+	r := CdnFrontDoorCustomDomainSecretValidatorResource{DoNotRunFrontdooCustomDomainTests: true}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -33,9 +33,9 @@ func TestAccCdnFrontdoorCustomDomainSecretValidator_complete(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorCustomDomainSecretValidatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontDoorCustomDomainSecretValidatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	// This is not a real resource so it does not really exist in Azure, but if it exists in state that means that it was created successfully
-	_, err := parse.FrontdoorCustomDomainSecretID(state.ID)
+	_, err := parse.FrontDoorCustomDomainSecretID(state.ID)
 	if err != nil {
 		return utils.Bool(false), nil
 	}
@@ -43,13 +43,13 @@ func (r CdnFrontdoorCustomDomainSecretValidatorResource) Exists(ctx context.Cont
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorCustomDomainSecretValidatorResource) preCheck(t *testing.T) {
+func (r CdnFrontDoorCustomDomainSecretValidatorResource) preCheck(t *testing.T) {
 	if r.DoNotRunFrontdooCustomDomainTests {
 		t.Skipf("`azurerm_cdn_frontdoor_custom_domain_secret_validator` currently is not testable due to service requirements")
 	}
 }
 
-func (r CdnFrontdoorCustomDomainSecretValidatorResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainSecretValidatorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -147,7 +147,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "fabrikam" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r CdnFrontdoorCustomDomainSecretValidatorResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainSecretValidatorResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s

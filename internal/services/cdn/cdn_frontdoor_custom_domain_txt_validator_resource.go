@@ -20,11 +20,11 @@ import (
 // WS: We need to sequence the associating the custom domain with the route, in the new
 // Frontdoor service you have to verify domain ownership via the _dnsAuth txt record before
 // you can associate the custom domain with the Frontdoor route
-func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
+func resourceCdnFrontDoorCustomDomainTxtValidator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorCustomDomainTxtValidatorCreate,
-		Read:   resourceCdnFrontdoorCustomDomainTxtValidatorRead,
-		Delete: resourceCdnFrontdoorCustomDomainTxtValidatorDelete,
+		Create: resourceCdnFrontDoorCustomDomainTxtValidatorCreate,
+		Read:   resourceCdnFrontDoorCustomDomainTxtValidatorRead,
+		Delete: resourceCdnFrontDoorCustomDomainTxtValidatorDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(24 * time.Hour),
@@ -34,7 +34,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			// TODO: Make an importer
-			_, err := parse.FrontdoorCustomDomainTxtID(id)
+			_, err := parse.FrontDoorCustomDomainTxtID(id)
 			return err
 		}),
 
@@ -44,7 +44,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorCustomDomainID,
+				ValidateFunc: validate.FrontDoorCustomDomainID,
 			},
 
 			"cdn_frontdoor_custom_domain_validation_state": {
@@ -55,7 +55,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -70,7 +70,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("generating UUID for the %q: %+v", "azurerm_cdn_frontdoor_custom_domain_txt_validator", err)
 	}
 
-	id := parse.NewFrontdoorCustomDomainTxtID(customDomainId.SubscriptionId, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName, uuid)
+	id := parse.NewFrontDoorCustomDomainTxtID(customDomainId.SubscriptionId, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName, uuid)
 
 	// Make sure the custom domain exists
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
@@ -104,15 +104,15 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceDat
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorCustomDomainTxtValidatorRead(d, meta)
+	return resourceCdnFrontDoorCustomDomainTxtValidatorRead(d, meta)
 }
 
-func resourceCdnFrontdoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorCustomDomainTxtID(d.Id())
+	id, err := parse.FrontDoorCustomDomainTxtID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceCdnFrontdoorCustomDomainTxtValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainTxtValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	// TODO: Delete doesn't really make sense since this is a fake resource I need to think about this...
 	d.SetId("")
 	return nil
