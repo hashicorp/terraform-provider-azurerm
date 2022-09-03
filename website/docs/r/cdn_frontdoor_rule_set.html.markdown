@@ -32,8 +32,6 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 
 ## Arguments Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name which should be used for this CDN FrontDoor Rule Set. Changing this forces a new CDN FrontDoor Rule Set to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the CDN FrontDoor Profile. Changing this forces a new CDN FrontDoor Rule Set to be created.

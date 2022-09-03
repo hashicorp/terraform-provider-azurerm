@@ -26,8 +26,6 @@ resource "azurerm_cdn_frontdoor_custom_domain_secret_validator" "example" {
 
 ## Arguments Reference
 
-The following arguments are supported:
-
 * `cdn_frontdoor_route_id` - (Required) The resource ID of the Frontdoor Route which holds the Custom Domain association information. Changing this forces a new Frontdoor Custom Domain Secret Validator to be created.
 
 * `cdn_frontdoor_custom_domain_ids` - (Required) One or more resource IDs of the Frontdoor Custom Domain(s) to validate. Changing this forces a new Frontdoor Custom Domain Secret Validator to be created.

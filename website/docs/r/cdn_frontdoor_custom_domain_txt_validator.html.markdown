@@ -69,8 +69,6 @@ resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "example" {
 
 ## Arguments Reference
 
-The following arguments are supported:
-
 * `cdn_frontdoor_custom_domain_id` - (Required) The resource ID of the Frontdoor Custom Domain to validate. Changing this forces a new Frontdoor Custom Domain Txt Validator to be created.
 
 ## Attributes Reference

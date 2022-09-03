@@ -103,8 +103,6 @@ resource "azurerm_cdn_frontdoor_route" "example" {
 
 ## Arguments Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name which should be used for this Frontdoor Route. Valid values must begin with a letter or number, end with a letter or number and may only contain letters, numbers and hypens with a maximum length of 90 characters. Changing this forces a new Frontdoor Route to be created.
 
 * `cdn_frontdoor_endpoint_id` - (Required) The ID of the Frontdoor Route. Changing this forces a new Frontdoor Route to be created.

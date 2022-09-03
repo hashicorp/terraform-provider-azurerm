@@ -143,8 +143,6 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 
 ## Arguments Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name which should be used for this Frontdoor Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule to be created.
 
 * `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Frontdoor Rule Set for this Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
@@ -157,11 +155,11 @@ The following arguments are supported:
 
 * `behavior_on_match` - (Optional) If this rule is a match should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
 
-* `conditions` - (Optional) An `conditions` block as defined below.
+* `conditions` - (Optional) A `conditions` block as defined below.
 
 ---
 
-A `actions` block supports the following:
+An `actions` block supports the following:
 
 ->**NOTE:** You may include upto 5 separate actions in the `actions` block.
 
@@ -179,7 +177,7 @@ Some actions support `Action Server Variables` which provide access to structure
 
 ---
 
-A `url_redirect_action` block supports the following:
+An `url_redirect_action` block supports the following:
 
 * `redirect_type` - (Required) The response type to return to the requestor. Possible values include `Moved`, `Found` , `TemporaryRedirect` or `PermanentRedirect`.
 
@@ -217,7 +215,7 @@ A `route_configuration_override_action` block supports the following:
 
 ---
 
-A `url_rewrite_action` block supports the following:
+An `url_rewrite_action` block supports the following:
 
 * `source_pattern` - (Required) The source pattern in the URL path to replace. This uses prefix-based matching. For example, to match all URL paths use a forward slash `"/"` as the source pattern value.
 
@@ -479,7 +477,7 @@ A `request_scheme_condition` block supports the following:
 
 ---
 
-A `url_path_condition` block supports the following:
+An `url_path_condition` block supports the following:
 
 ->The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
 
@@ -493,7 +491,7 @@ A `url_path_condition` block supports the following:
 
 ---
 
-A `url_file_extension_condition` block supports the following:
+An `url_file_extension_condition` block supports the following:
 
 ->The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
 
@@ -507,7 +505,7 @@ A `url_file_extension_condition` block supports the following:
 
 ---
 
-A `url_filename_condition` block supports the following:
+An `url_filename_condition` block supports the following:
 
 ->The `url_filename_condition` identifies requests that include the specified file name in the request URL.
 
@@ -549,7 +547,7 @@ A `cookies_condition` block supports the following:
 
 ---
 
-A `is_device_condition` block supports the following:
+An `is_device_condition` block supports the following:
 
 ->Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
 

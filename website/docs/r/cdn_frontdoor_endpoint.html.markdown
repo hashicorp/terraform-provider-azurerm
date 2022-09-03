@@ -36,8 +36,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "example" {
 
 ## Arguments Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name which should be used for this CDN FrontDoor Endpoint. Changing this forces a new CDN FrontDoor Endpoint to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the FrontDoor Profile within which this FrontDoor Endpoint should exist. Changing this forces a new CDN FrontDoor Endpoint to be created.

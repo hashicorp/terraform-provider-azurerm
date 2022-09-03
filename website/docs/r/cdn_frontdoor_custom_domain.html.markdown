@@ -45,8 +45,6 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 
 ## Arguments Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name which should be used for this Frontdoor Custom Domain. Possible values must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number and contain only letters, numbers and hyphens. Changing this forces a new Frontdoor Custom Domain to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.

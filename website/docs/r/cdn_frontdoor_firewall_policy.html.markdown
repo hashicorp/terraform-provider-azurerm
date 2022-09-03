@@ -129,8 +129,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 
 ## Argument Reference
 
-The following arguments are supported:
-
 * `name` - (Required) The name of the policy. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
@@ -159,7 +157,7 @@ The following arguments are supported:
 
 ---
 
-The `custom_rule` block supports the following:
+A `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
@@ -209,7 +207,7 @@ A `managed_rule` block supports the following:
 
 ---
 
-A `override` block supports the following:
+An `override` block supports the following:
 
 * `rule_group_name` - (Required) The managed rule group to override.
 
@@ -231,7 +229,7 @@ A `rule` block supports the following:
 
 ---
 
-A `exclusion` block supports the following:
+An `exclusion` block supports the following:
 
 * `match_variable` - (Required) The variable type to be excluded. Possible values are `QueryStringArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
 
