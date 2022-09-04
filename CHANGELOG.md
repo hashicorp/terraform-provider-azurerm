@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` ([#18183](https://github.com/hashicorp/terraform-provider-azurerm/issues/18183))
 * dependencies: `desktopvirtualization` - updating to use `2022-02-10` [GH-17489]
+* `azurerm_kubernetes_cluster` - support for the `edge_zone` property [GH-18115]
 * `azurerm_virtual_desktop_host_pool` - support for the `scheduled_agent_updates` block [GH-17489]
 
 BUG FIXES:
