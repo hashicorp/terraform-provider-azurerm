@@ -1,12 +1,12 @@
 ---
 subcategory: "Orbital"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_spacecraft"
+page_title: "Azure Resource Manager: azurerm_orbital_spacecraft"
 description: |-
   Manages a Spacecraft resource.
 ---
 
-# azurerm_spacecraft
+# azurerm_orbital_spacecraft
 
 Manages a Spacecraft.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_spacecraft" "example" {
+resource "azurerm_orbital_spacecraft" "example" {
   name                = "example-spacecraft"
   resource_group_name = azurerm_resource_group.test.name
   location            = "westeurope"
@@ -93,5 +93,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spacecraft can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spacecraft.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Orbital/spacecrafts/spacecraft1
+terraform import azurerm_orbital_spacecraft.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Orbital/spacecrafts/spacecraft1
 ```

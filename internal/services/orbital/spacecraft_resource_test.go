@@ -17,7 +17,7 @@ import (
 type SpacecraftResource struct{}
 
 func TestAccSpacecraft_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spacecraft", "test")
+	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
 	r := SpacecraftResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -32,7 +32,7 @@ func TestAccSpacecraft_basic(t *testing.T) {
 }
 
 func TestAccSpacecraft_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spacecraft", "test")
+	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
 	r := SpacecraftResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -53,7 +53,7 @@ func TestAccSpacecraft_update(t *testing.T) {
 }
 
 func TestAccSpacecraft_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spacecraft", "test")
+	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
 	r := SpacecraftResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -88,7 +88,7 @@ func (r SpacecraftResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_spacecraft" "test" {
+resource "azurerm_orbital_spacecraft" "test" {
   name                = "acctestspacecraft-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "westus"
@@ -113,7 +113,7 @@ func (r SpacecraftResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_spacecraft" "test" {
+resource "azurerm_orbital_spacecraft" "test" {
   name                = "acctestspacecraft-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "eastus"
@@ -138,7 +138,7 @@ func (r SpacecraftResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_spacecraft" "test" {
+resource "azurerm_orbital_spacecraft" "test" {
   name                = "acctestspacecraft-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "eastus"

@@ -83,7 +83,7 @@ func (r SpacecraftResource) ModelObject() interface{} {
 }
 
 func (r SpacecraftResource) ResourceType() string {
-	return "azurerm_spacecraft"
+	return "azurerm_orbital_spacecraft"
 }
 
 func (r SpacecraftResource) Create() sdk.ResourceFunc {
