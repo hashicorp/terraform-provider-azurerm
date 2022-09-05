@@ -81,6 +81,21 @@ func TestAccStreamAnalyticsReferenceInputBlob_update(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsReferenceInputBlob_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
+	r := StreamAnalyticsReferenceInputBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+	})
+}
+
 func TestAccStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 	r := StreamAnalyticsReferenceInputBlobResource{}
@@ -219,6 +234,31 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
   }
 }
 `, template, data.RandomString, data.RandomInteger)
+}
+
+func (r StreamAnalyticsReferenceInputBlobResource) authenticationMode(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_reference_input_blob" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  storage_container_name    = azurerm_storage_container.test.name
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
+  authentication_mode       = "Msi"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) requiresImport(data acceptance.TestData) string {

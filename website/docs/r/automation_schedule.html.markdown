@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
-* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://s2.automation.ext.azure.com/api/Orchestrator/TimeZones?_=1594792230258
+* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
 * `week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 

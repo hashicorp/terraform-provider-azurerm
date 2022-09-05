@@ -8,6 +8,8 @@ import (
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
+	diagnosticSettingClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
+	diagnosticCategoryClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -29,8 +31,8 @@ type Client struct {
 	AlertRulesClient                 *classic.AlertRulesClient
 	DataCollectionRulesClient        *datacollectionrules.DataCollectionRulesClient
 	DataCollectionEndpointsClient    *datacollectionendpoints.DataCollectionEndpointsClient
-	DiagnosticSettingsClient         *classic.DiagnosticSettingsClient
-	DiagnosticSettingsCategoryClient *classic.DiagnosticSettingsCategoryClient
+	DiagnosticSettingsClient         *diagnosticSettingClient.DiagnosticSettingsClient
+	DiagnosticSettingsCategoryClient *diagnosticCategoryClient.DiagnosticSettingsCategoriesClient
 	LogProfilesClient                *classic.LogProfilesClient
 	MetricAlertsClient               *classic.MetricAlertsClient
 	PrivateLinkScopesClient          *classic.PrivateLinkScopesClient
@@ -67,10 +69,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	DataCollectionRulesClient := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	DiagnosticSettingsClient := classic.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	DiagnosticSettingsClient := diagnosticSettingClient.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
 
-	DiagnosticSettingsCategoryClient := classic.NewDiagnosticSettingsCategoryClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	DiagnosticSettingsCategoryClient := diagnosticCategoryClient.NewDiagnosticSettingsCategoriesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DiagnosticSettingsCategoryClient.Client, o.ResourceManagerAuthorizer)
 
 	LogProfilesClient := classic.NewLogProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -99,8 +101,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionGroupsClient:               &ActionGroupsClient,
 		ActivityLogAlertsClient:          &ActivityLogAlertsClient,
 		AlertRulesClient:                 &AlertRulesClient,
-		DataCollectionRulesClient:        &DataCollectionRulesClient,
 		DataCollectionEndpointsClient:    &DataCollectionEndpointsClient,
+		DataCollectionRulesClient:        &DataCollectionRulesClient,
 		DiagnosticSettingsClient:         &DiagnosticSettingsClient,
 		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
 		LogProfilesClient:                &LogProfilesClient,

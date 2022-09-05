@@ -78,6 +78,8 @@ The following arguments are supported:
 
 * `max_writer_count` - (Optional) The max writer count for the SQL Database. Defaults to `1`. Possible values are `0` which bases the writer count on the query partition and `1` which corresponds to a single writer.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:

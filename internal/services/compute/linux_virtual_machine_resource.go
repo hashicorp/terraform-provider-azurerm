@@ -282,6 +282,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					computeValidate.ImageID,
 					computeValidate.SharedImageID,
 					computeValidate.SharedImageVersionID,
+					computeValidate.CommunityGalleryImageID,
+					computeValidate.CommunityGalleryImageVersionID,
+					computeValidate.SharedGalleryImageID,
+					computeValidate.SharedGalleryImageVersionID,
 				),
 			},
 
@@ -587,12 +591,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
 	} else if priority == compute.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -635,10 +639,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	// "Authentication using either SSH or by user name and password must be enabled in Linux profile." Target="linuxConfiguration"
 	adminPassword := d.Get("admin_password").(string)
 	if disablePasswordAuthentication && len(sshKeys) == 0 {
-		return fmt.Errorf("At least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
+		return fmt.Errorf("at least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
 	} else if !disablePasswordAuthentication {
 		if adminPassword == "" {
-			return fmt.Errorf("An `admin_password` must be specified if `disable_password_authentication` is set to `false`")
+			return fmt.Errorf("an `admin_password` must be specified if `disable_password_authentication` is set to `false`")
 		}
 
 		params.OsProfile.AdminPassword = utils.String(adminPassword)
@@ -830,6 +834,13 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		if profile.ImageReference != nil && profile.ImageReference.ID != nil {
 			storageImageId = *profile.ImageReference.ID
 		}
+		if profile.ImageReference != nil && profile.ImageReference.CommunityGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.CommunityGalleryImageID
+		}
+		if profile.ImageReference != nil && profile.ImageReference.SharedGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.SharedGalleryImageID
+		}
+
 		d.Set("source_image_id", storageImageId)
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
@@ -1272,7 +1283,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			// Upgrade to 2021-07-01 added a hibernate parameter to this call defaulting to false
 			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 			if err != nil {
-				return fmt.Errorf("Deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -1346,7 +1357,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
