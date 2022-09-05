@@ -98,7 +98,7 @@ func TestAccServicePlan_completeUpdate(t *testing.T) {
 }
 
 func TestAccServicePlan_maxElasticWorkerCountForAllSupportedSku(t *testing.T) {
-	for _, sku := range []string{"WS1","EP1"} {
+	for _, sku := range []string{"WS1", "EP1"} {
 		t.Run(sku, func(t *testing.T) {
 			data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 			r := ServicePlanResource{}
