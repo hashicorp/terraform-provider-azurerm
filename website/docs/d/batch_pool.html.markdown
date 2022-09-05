@@ -292,8 +292,6 @@ A `nfs_mount` block exports the following:
 
 ---
 
----
-
 A `network_configuration` block exports the following:
 
 * `subnet_id` - The ARM resource identifier of the virtual network subnet which the compute nodes of the pool are joined too.
@@ -323,6 +321,51 @@ A `network_security_group_rules` block exports the following:
 * `priority` - The priority for this rule.
 
 * `source_address_prefix` - The source address prefix or tag to match for the rule.
+
+---
+
+A `task_scheduling_policy` block exports the following:
+
+* `node_fill_type` - Supported values are `Pack` and `Spread`. `Pack` means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. `Spread` means that tasks should be assigned evenly across all nodes in the pool.
+
+---
+
+A `user_accounts` block exports the following:
+
+* `name` - The name of the user account.
+
+* `password` - The password for the user account.
+
+* `elevation_level` - The elevation level of the user account. "NonAdmin" - The auto user is a standard user without elevated access. "Admin" - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin.
+
+* `linux_user_configuration` - The `linux_user_configuration` block defined below is a linux-specific user configuration for the user account. This property is ignored if specified on a Windows pool. If not specified, the user is created with the default options.
+
+* `windows_user_configuration` - The `windows_user_configuration` block defined below is a windows-specific user configuration for the user account. This property can only be specified if the user is on a Windows pool. If not specified and on a Windows pool, the user is created with the default options.
+
+---
+
+A `linux_user_configuration` block exports the following:
+
+* `uid` - The group ID for the user account.
+
+* `gid` - The user ID of the user account.
+
+* `ssh_private_key` - The SSH private key for the user account.
+
+---
+
+A `windows_user_configuration` block exports the following:
+
+* `login_mode` - Specifies login mode for the user.
+
+---
+
+A `windows_configuration` block exports the following:
+
+Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
+
+* `enable_automatic_updates` - Whether automatic updates are enabled on the virtual machine.
+
 
 ## Timeouts
 
