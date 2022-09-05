@@ -3629,11 +3629,12 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		if len(parts) == 2 {
 			winAppStack.DockerContainerTag = parts[1]
 			path := strings.Split(parts[0], "/")
-			if len(path) > 2 {
+			if len(path) > 1 {
 				winAppStack.DockerContainerRegistry = path[0]
 				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+			} else {
+				winAppStack.DockerContainerName = path[0]
 			}
-			winAppStack.DockerContainerName = path[0]
 		}
 	}
 	winAppStack.CurrentStack = currentStack
