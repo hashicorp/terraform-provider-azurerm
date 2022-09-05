@@ -2120,11 +2120,11 @@ resource "azurerm_batch_account" "test" {
   public_network_access_enabled = false
 }
 resource "azurerm_batch_pool" "test" {
-  name                = "testaccpool%s"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 18.04"
-  vm_size             = "Standard_A1"
+  name                     = "testaccpool%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  account_name             = azurerm_batch_account.test.name
+  node_agent_sku_id        = "batch.node.ubuntu 18.04"
+  vm_size                  = "Standard_A1"
   inter_node_communication = "Disabled"
   task_scheduling_policy {
     node_fill_type = "Pack"
