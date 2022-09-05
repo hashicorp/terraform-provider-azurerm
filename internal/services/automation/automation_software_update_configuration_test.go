@@ -83,6 +83,10 @@ func (a SoftwareUpdateConfigurationResource) basic(data acceptance.TestData) str
 
 
 
+
+
+
+
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
@@ -97,8 +101,8 @@ resource "azurerm_automation_software_update_configuration" "test" {
     reboot                  = "IfRequired"
   }
 
-  duration         = "PT1H1M1S"
-  virtual_machines = []
+  duration            = "PT1H1M1S"
+  virtual_machine_ids = []
 
   target {
     azure_query {
@@ -144,6 +148,10 @@ func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) st
 
 
 
+
+
+
+
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
@@ -158,8 +166,8 @@ resource "azurerm_automation_software_update_configuration" "test" {
     reboot                  = "IfRequired"
   }
 
-  duration         = "PT2H2M2S"
-  virtual_machines = []
+  duration            = "PT2H2M2S"
+  virtual_machine_ids = []
 
   target {
     azure_query {

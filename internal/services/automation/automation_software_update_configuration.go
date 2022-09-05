@@ -3,12 +3,12 @@ package automation
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	validate4 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	validate3 "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
@@ -170,6 +170,7 @@ func (s *Schedule) LoadSDKModel(info *automation.SUCScheduleProperties) {
 	s.CreationTime = timeString(info.CreationTime)
 	s.LastModifiedTime = timeString(info.LastModifiedTime)
 	s.Description = utils.NormalizeNilableString(info.Description)
+
 	if setting := info.AdvancedSchedule; setting != nil {
 		s.AdvancedWeekDays = stringSlice(setting.WeekDays)
 		if setting.MonthDays != nil {
@@ -177,6 +178,7 @@ func (s *Schedule) LoadSDKModel(info *automation.SUCScheduleProperties) {
 				s.AdvancedMonthDays = append(s.AdvancedMonthDays, int(v))
 			}
 		}
+
 		if setting.MonthlyOccurrences != nil {
 			for _, occ := range *setting.MonthlyOccurrences {
 				s.MonthlyOccurrence = append(s.MonthlyOccurrence, MonthlyOccurrence{
@@ -205,6 +207,7 @@ func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 	if s == nil {
 		return nil
 	}
+
 	res := automation.SUCScheduleProperties{
 		StartTime:               parseTime(s.StartTime),
 		StartTimeOffsetMinutes:  utils.Float(s.StartTimeOffsetMinutes),
@@ -219,9 +222,11 @@ func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 		Description:             utils.String(s.Description),
 		Frequency:               automation.ScheduleFrequency(s.Frequency),
 	}
+
 	if len(s.AdvancedWeekDays) > 0 {
 		res.AdvancedSchedule.WeekDays = &s.AdvancedWeekDays
 	}
+
 	if len(s.AdvancedMonthDays) > 0 {
 		var is []int32
 		for _, v := range s.AdvancedMonthDays {
@@ -229,6 +234,7 @@ func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 		}
 		res.AdvancedSchedule.MonthDays = &is
 	}
+
 	var occ []automation.AdvancedScheduleMonthlyOccurrence
 	for _, m := range s.MonthlyOccurrence {
 		occ = append(occ, automation.AdvancedScheduleMonthlyOccurrence{
@@ -236,6 +242,7 @@ func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 			Day:        automation.ScheduleDay(m.Day),
 		})
 	}
+
 	if len(occ) > 0 {
 		res.AdvancedSchedule.MonthlyOccurrences = &occ
 	}
@@ -251,6 +258,7 @@ func targetsFromSDK(prop *automation.TargetProperties) []Target {
 	if prop == nil {
 		return nil
 	}
+
 	var t Target
 	if prop.AzureQueries != nil {
 		for _, az := range *prop.AzureQueries {
@@ -265,6 +273,7 @@ func targetsFromSDK(prop *automation.TargetProperties) []Target {
 			t.AzureQueries = append(t.AzureQueries, q)
 		}
 	}
+
 	if prop.NonAzureQueries != nil {
 		for _, az := range *prop.NonAzureQueries {
 			q := NonAzureQuery{
@@ -274,6 +283,7 @@ func targetsFromSDK(prop *automation.TargetProperties) []Target {
 			t.NonAzureQueries = append(t.NonAzureQueries, q)
 		}
 	}
+
 	return []Target{t}
 }
 
@@ -293,7 +303,7 @@ type SoftwareUpdateConfigurationModel struct {
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`
-	VirtualMachines       []string     `tfschema:"virtual_machines"`
+	VirtualMachines       []string     `tfschema:"virtual_machine_ids"`
 	NonAzureComputerNames []string     `tfschema:"non_azure_computer_names"`
 	Targets               []Target     `tfschema:"target"`
 	Schedule              []Schedule   `tfschema:"schedule"`
@@ -309,6 +319,7 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 	prop.UpdateConfiguration = &automation.UpdateConfiguration{}
 	upd := prop.UpdateConfiguration
 	upd.OperatingSystem = automation.OperatingSystemType(s.OperatingSystem)
+
 	if len(s.Linux) > 0 {
 		l := s.Linux[0]
 		upd.Linux = &automation.LinuxProperties{
@@ -321,20 +332,24 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 		upd.Linux.IncludedPackageNameMasks = utils.StringSlice(l.IncludedPackages)
 		upd.Linux.ExcludedPackageNameMasks = utils.StringSlice(l.ExcludedPackages)
 	}
+
 	if len(s.Windows) > 0 {
 		w := s.Windows[0]
 		upd.Windows = &automation.WindowsProperties{
 			IncludedUpdateClassifications: automation.WindowsUpdateClasses(w.Classification),
 		}
+
 		if w.RebootSetting != "" {
 			upd.Windows.RebootSetting = utils.String(w.RebootSetting)
 		}
 		upd.Windows.IncludedKbNumbers = utils.StringSlice(w.IncludedKbs)
 		upd.Windows.ExcludedKbNumbers = utils.StringSlice(w.ExcludedKbs)
 	}
+
 	upd.Duration = utils.String(s.Duration)
 	upd.AzureVirtualMachines = utils.StringSlice(s.VirtualMachines)
 	upd.NonAzureComputerNames = utils.StringSlice(s.NonAzureComputerNames)
+
 	if len(s.Targets) > 0 {
 		upd.Targets = &automation.TargetProperties{}
 		var azureQueries []automation.AzureQueryProperties
@@ -351,9 +366,11 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 			q.TagSettings = &tag
 			azureQueries = append(azureQueries, q)
 		}
+
 		if azureQueries != nil {
 			upd.Targets.AzureQueries = &azureQueries
 		}
+
 		var nonAzureQueries []automation.NonAzureQueryProperties
 		for _, az := range t.NonAzureQueries {
 			q := automation.NonAzureQueryProperties{
@@ -362,13 +379,16 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 			}
 			nonAzureQueries = append(nonAzureQueries, q)
 		}
+
 		if nonAzureQueries != nil {
 			upd.Targets.NonAzureQueries = &nonAzureQueries
 		}
 	}
+
 	if len(s.Schedule) > 0 {
 		prop.ScheduleInfo = s.Schedule[0].ToSDKModel()
 	}
+
 	prop.Tasks = &automation.SoftwareUpdateConfigurationTasks{}
 	if len(s.PreTask) > 0 {
 		prop.Tasks.PreTask = s.PreTask[0].ToSDKModel()
@@ -383,12 +403,15 @@ func (s *SoftwareUpdateConfigurationModel) LoadSDKModel(prop *automation.Softwar
 	if prop == nil {
 		return
 	}
+
 	if prop.Error != nil {
 		s.ErrorCode = utils.NormalizeNilableString(prop.Error.Code)
 		s.ErrorMeesage = utils.NormalizeNilableString(prop.Error.Message)
 	}
+
 	if conf := prop.UpdateConfiguration; conf != nil {
 		s.OperatingSystem = string(conf.OperatingSystem)
+
 		if l := conf.Linux; l != nil {
 			s.Linux = []Linux{{
 				Reboot:           utils.NormalizeNilableString(l.RebootSetting),
@@ -397,6 +420,7 @@ func (s *SoftwareUpdateConfigurationModel) LoadSDKModel(prop *automation.Softwar
 				IncludedPackages: stringSlice(l.IncludedPackageNameMasks),
 			}}
 		}
+
 		if w := conf.Windows; w != nil {
 			s.Windows = []Windows{
 				{
@@ -406,11 +430,13 @@ func (s *SoftwareUpdateConfigurationModel) LoadSDKModel(prop *automation.Softwar
 					RebootSetting:  utils.NormalizeNilableString(w.RebootSetting),
 				}}
 		}
+
 		s.Duration = utils.NormalizeNilableString(conf.Duration)
 		s.VirtualMachines = stringSlice(conf.AzureVirtualMachines)
 		s.NonAzureComputerNames = stringSlice(conf.NonAzureComputerNames)
 		s.Targets = targetsFromSDK(conf.Targets)
 	}
+
 	// service api response scheduleInfo.advancedSchedule as null, which cause import lost it
 	s.Schedule = scheduleFromSDK(prop.ScheduleInfo, s.Schedule)
 	if tasks := prop.Tasks; tasks != nil {
@@ -536,13 +562,12 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"duration": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^PT\d+H\d+M\d+S$`),
-				"Duration needs to be specified using the format PT[n]H[n]M[n]S as per ISO8601"),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate4.ISO8601Duration,
 		},
 
-		"virtual_machines": {
+		"virtual_machine_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{

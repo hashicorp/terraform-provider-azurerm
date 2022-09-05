@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `windows` - (Optional) One or more `windows` blocks as defined below.
 
-* `virtual_machines` - (Optional) Specifies a list of azure resource Ids of azure virtual machines.
+* `virtual_machine_ids` - (Optional) Specifies a list of azure resource Ids of azure virtual machines.
 
 * `non_azure_computer_names` - (Optional) Specifies a list of names of non-azure machines for the software update configuration.
 
