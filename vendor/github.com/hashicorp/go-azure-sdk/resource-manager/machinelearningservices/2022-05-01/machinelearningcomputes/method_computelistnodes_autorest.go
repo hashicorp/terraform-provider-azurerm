@@ -59,50 +59,6 @@ func (c MachineLearningComputesClient) ComputeListNodes(ctx context.Context, id 
 	return
 }
 
-// ComputeListNodesComplete retrieves all of the results into a single object
-func (c MachineLearningComputesClient) ComputeListNodesComplete(ctx context.Context, id ComputeId) (ComputeListNodesCompleteResult, error) {
-	return c.ComputeListNodesCompleteMatchingPredicate(ctx, id, AmlComputeNodesInformationOperationPredicate{})
-}
-
-// ComputeListNodesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c MachineLearningComputesClient) ComputeListNodesCompleteMatchingPredicate(ctx context.Context, id ComputeId, predicate AmlComputeNodesInformationOperationPredicate) (resp ComputeListNodesCompleteResult, err error) {
-	items := make([]AmlComputeNodesInformation, 0)
-
-	page, err := c.ComputeListNodes(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ComputeListNodesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForComputeListNodes prepares the ComputeListNodes request.
 func (c MachineLearningComputesClient) preparerForComputeListNodes(ctx context.Context, id ComputeId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c MachineLearningComputesClient) responderForComputeListNodes(resp *http.R
 		}
 	}
 	return
+}
+
+// ComputeListNodesComplete retrieves all of the results into a single object
+func (c MachineLearningComputesClient) ComputeListNodesComplete(ctx context.Context, id ComputeId) (ComputeListNodesCompleteResult, error) {
+	return c.ComputeListNodesCompleteMatchingPredicate(ctx, id, AmlComputeNodesInformationOperationPredicate{})
+}
+
+// ComputeListNodesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c MachineLearningComputesClient) ComputeListNodesCompleteMatchingPredicate(ctx context.Context, id ComputeId, predicate AmlComputeNodesInformationOperationPredicate) (resp ComputeListNodesCompleteResult, err error) {
+	items := make([]AmlComputeNodesInformation, 0)
+
+	page, err := c.ComputeListNodes(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ComputeListNodesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

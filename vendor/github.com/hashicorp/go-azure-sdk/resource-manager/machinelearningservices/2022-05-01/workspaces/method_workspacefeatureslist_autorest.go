@@ -59,50 +59,6 @@ func (c WorkspacesClient) WorkspaceFeaturesList(ctx context.Context, id Workspac
 	return
 }
 
-// WorkspaceFeaturesListComplete retrieves all of the results into a single object
-func (c WorkspacesClient) WorkspaceFeaturesListComplete(ctx context.Context, id WorkspaceId) (WorkspaceFeaturesListCompleteResult, error) {
-	return c.WorkspaceFeaturesListCompleteMatchingPredicate(ctx, id, AmlUserFeatureOperationPredicate{})
-}
-
-// WorkspaceFeaturesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c WorkspacesClient) WorkspaceFeaturesListCompleteMatchingPredicate(ctx context.Context, id WorkspaceId, predicate AmlUserFeatureOperationPredicate) (resp WorkspaceFeaturesListCompleteResult, err error) {
-	items := make([]AmlUserFeature, 0)
-
-	page, err := c.WorkspaceFeaturesList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := WorkspaceFeaturesListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForWorkspaceFeaturesList prepares the WorkspaceFeaturesList request.
 func (c WorkspacesClient) preparerForWorkspaceFeaturesList(ctx context.Context, id WorkspaceId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c WorkspacesClient) responderForWorkspaceFeaturesList(resp *http.Response)
 		}
 	}
 	return
+}
+
+// WorkspaceFeaturesListComplete retrieves all of the results into a single object
+func (c WorkspacesClient) WorkspaceFeaturesListComplete(ctx context.Context, id WorkspaceId) (WorkspaceFeaturesListCompleteResult, error) {
+	return c.WorkspaceFeaturesListCompleteMatchingPredicate(ctx, id, AmlUserFeatureOperationPredicate{})
+}
+
+// WorkspaceFeaturesListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c WorkspacesClient) WorkspaceFeaturesListCompleteMatchingPredicate(ctx context.Context, id WorkspaceId, predicate AmlUserFeatureOperationPredicate) (resp WorkspaceFeaturesListCompleteResult, err error) {
+	items := make([]AmlUserFeature, 0)
+
+	page, err := c.WorkspaceFeaturesList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := WorkspaceFeaturesListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

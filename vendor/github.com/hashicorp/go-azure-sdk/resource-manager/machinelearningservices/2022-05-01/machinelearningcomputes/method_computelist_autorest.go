@@ -83,50 +83,6 @@ func (c MachineLearningComputesClient) ComputeList(ctx context.Context, id Works
 	return
 }
 
-// ComputeListComplete retrieves all of the results into a single object
-func (c MachineLearningComputesClient) ComputeListComplete(ctx context.Context, id WorkspaceId, options ComputeListOperationOptions) (ComputeListCompleteResult, error) {
-	return c.ComputeListCompleteMatchingPredicate(ctx, id, options, ComputeResourceOperationPredicate{})
-}
-
-// ComputeListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c MachineLearningComputesClient) ComputeListCompleteMatchingPredicate(ctx context.Context, id WorkspaceId, options ComputeListOperationOptions, predicate ComputeResourceOperationPredicate) (resp ComputeListCompleteResult, err error) {
-	items := make([]ComputeResource, 0)
-
-	page, err := c.ComputeList(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ComputeListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForComputeList prepares the ComputeList request.
 func (c MachineLearningComputesClient) preparerForComputeList(ctx context.Context, id WorkspaceId, options ComputeListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c MachineLearningComputesClient) responderForComputeList(resp *http.Respon
 		}
 	}
 	return
+}
+
+// ComputeListComplete retrieves all of the results into a single object
+func (c MachineLearningComputesClient) ComputeListComplete(ctx context.Context, id WorkspaceId, options ComputeListOperationOptions) (ComputeListCompleteResult, error) {
+	return c.ComputeListCompleteMatchingPredicate(ctx, id, options, ComputeResourceOperationPredicate{})
+}
+
+// ComputeListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c MachineLearningComputesClient) ComputeListCompleteMatchingPredicate(ctx context.Context, id WorkspaceId, options ComputeListOperationOptions, predicate ComputeResourceOperationPredicate) (resp ComputeListCompleteResult, err error) {
+	items := make([]ComputeResource, 0)
+
+	page, err := c.ComputeList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ComputeListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

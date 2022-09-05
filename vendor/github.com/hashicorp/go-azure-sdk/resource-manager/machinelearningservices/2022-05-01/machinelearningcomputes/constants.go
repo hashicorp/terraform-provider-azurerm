@@ -330,20 +330,20 @@ type LoadBalancerType string
 
 const (
 	LoadBalancerTypeInternalLoadBalancer LoadBalancerType = "InternalLoadBalancer"
-	LoadBalancerTypePublicIp             LoadBalancerType = "PublicIp"
+	LoadBalancerTypePublicIP             LoadBalancerType = "PublicIp"
 )
 
 func PossibleValuesForLoadBalancerType() []string {
 	return []string{
 		string(LoadBalancerTypeInternalLoadBalancer),
-		string(LoadBalancerTypePublicIp),
+		string(LoadBalancerTypePublicIP),
 	}
 }
 
 func parseLoadBalancerType(input string) (*LoadBalancerType, error) {
 	vals := map[string]LoadBalancerType{
 		"internalloadbalancer": LoadBalancerTypeInternalLoadBalancer,
-		"publicip":             LoadBalancerTypePublicIp,
+		"publicip":             LoadBalancerTypePublicIP,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

@@ -13,7 +13,7 @@ type AmlComputeProperties struct {
 	AllocationState               *AllocationState             `json:"allocationState,omitempty"`
 	AllocationStateTransitionTime *string                      `json:"allocationStateTransitionTime,omitempty"`
 	CurrentNodeCount              *int64                       `json:"currentNodeCount,omitempty"`
-	EnableNodePublicIp            *bool                        `json:"enableNodePublicIp,omitempty"`
+	EnableNodePublicIP            *bool                        `json:"enableNodePublicIp,omitempty"`
 	Errors                        *[]ErrorResponse             `json:"errors,omitempty"`
 	IsolatedNetwork               *bool                        `json:"isolatedNetwork,omitempty"`
 	NodeStateCounts               *NodeStateCounts             `json:"nodeStateCounts,omitempty"`

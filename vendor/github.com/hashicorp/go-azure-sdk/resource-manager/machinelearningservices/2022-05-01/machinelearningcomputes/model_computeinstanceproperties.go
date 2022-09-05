@@ -12,7 +12,7 @@ type ComputeInstanceProperties struct {
 	CreatedBy                        *ComputeInstanceCreatedBy             `json:"createdBy,omitempty"`
 	DataDisks                        *[]ComputeInstanceDataDisk            `json:"dataDisks,omitempty"`
 	DataMounts                       *[]ComputeInstanceDataMount           `json:"dataMounts,omitempty"`
-	EnableNodePublicIp               *bool                                 `json:"enableNodePublicIp,omitempty"`
+	EnableNodePublicIP               *bool                                 `json:"enableNodePublicIp,omitempty"`
 	Errors                           *[]ErrorResponse                      `json:"errors,omitempty"`
 	LastOperation                    *ComputeInstanceLastOperation         `json:"lastOperation,omitempty"`
 	PersonalComputeInstanceSettings  *PersonalComputeInstanceSettings      `json:"personalComputeInstanceSettings,omitempty"`

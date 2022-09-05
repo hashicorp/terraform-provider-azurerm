@@ -4,6 +4,6 @@ package machinelearningcomputes
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ComputeInstanceConnectivityEndpoints struct {
-	PrivateIpAddress *string `json:"privateIpAddress,omitempty"`
-	PublicIpAddress  *string `json:"publicIpAddress,omitempty"`
+	PrivateIPAddress *string `json:"privateIpAddress,omitempty"`
+	PublicIPAddress  *string `json:"publicIpAddress,omitempty"`
 }

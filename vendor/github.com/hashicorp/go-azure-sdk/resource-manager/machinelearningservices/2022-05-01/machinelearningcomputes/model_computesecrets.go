@@ -3,6 +3,7 @@ package machinelearningcomputes
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -24,6 +25,30 @@ func unmarshalComputeSecretsImplementation(input []byte) (ComputeSecrets, error)
 	value, ok := temp["computeType"].(string)
 	if !ok {
 		return nil, nil
+	}
+
+	if strings.EqualFold(value, "AKS") {
+		var out AksComputeSecrets
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AksComputeSecrets: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "Databricks") {
+		var out DatabricksComputeSecrets
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into DatabricksComputeSecrets: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "VirtualMachine") {
+		var out VirtualMachineSecrets
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into VirtualMachineSecrets: %+v", err)
+		}
+		return out, nil
 	}
 
 	type RawComputeSecretsImpl struct {

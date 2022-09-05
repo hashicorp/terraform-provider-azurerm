@@ -63,5 +63,6 @@ func (c MachineLearningComputesClient) responderForComputeGet(resp *http.Respons
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
