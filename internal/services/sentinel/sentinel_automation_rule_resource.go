@@ -9,11 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -53,7 +52,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"display_name": {
@@ -278,11 +277,11 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	workspaceId, err := loganalyticsParse.LogAnalyticsWorkspaceID(d.Get("log_analytics_workspace_id").(string))
+	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewAutomationRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, name)
+	id := parse.NewAutomationRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
@@ -352,7 +351,7 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.Set("name", id.Name)
-	d.Set("log_analytics_workspace_id", loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("log_analytics_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if prop := resp.AutomationRuleProperties; prop != nil {
 		d.Set("display_name", prop.DisplayName)
 

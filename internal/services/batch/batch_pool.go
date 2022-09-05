@@ -284,6 +284,95 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 	return ""
 }
 
+func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourceValue string, mountType string, d *pluginsdk.ResourceData) string {
+	if num, ok := d.GetOk("mount.#"); ok {
+		n := num.(int)
+		for i := 0; i < n; i++ {
+			if src, ok := d.GetOk(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, sourceType)); ok && src == sourceValue {
+				return d.Get(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, targetType)).(string)
+			}
+		}
+	}
+	return ""
+}
+
+func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountConfiguration) map[string]interface{} {
+	mountConfig := make(map[string]interface{})
+
+	switch {
+	case config.AzureBlobFileSystemConfiguration != nil:
+		azureBlobFileSysConfigList := make([]interface{}, 0)
+		azureBlobFileSysConfig := make(map[string]interface{})
+		azureBlobFileSysConfig["account_name"] = *config.AzureBlobFileSystemConfiguration.AccountName
+		azureBlobFileSysConfig["container_name"] = *config.AzureBlobFileSystemConfiguration.ContainerName
+		azureBlobFileSysConfig["relative_mount_path"] = *config.AzureBlobFileSystemConfiguration.RelativeMountPath
+		azureBlobFileSysConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system", d)
+		azureBlobFileSysConfig["sas_key"] = findSensitiveInfoForMountConfig("sas_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system", d)
+		if config.AzureBlobFileSystemConfiguration.IdentityReference != nil {
+			azureBlobFileSysConfig["identity_id"] = flattenBatchPoolIdentityReferenceToIdentityID(config.AzureBlobFileSystemConfiguration.IdentityReference)
+		}
+		if config.AzureBlobFileSystemConfiguration.BlobfuseOptions != nil {
+			azureBlobFileSysConfig["blobfuse_options"] = *config.AzureBlobFileSystemConfiguration.BlobfuseOptions
+		}
+		azureBlobFileSysConfigList = append(azureBlobFileSysConfigList, azureBlobFileSysConfig)
+		mountConfig["azure_blob_file_system"] = azureBlobFileSysConfigList
+	case config.AzureFileShareConfiguration != nil:
+		azureFileShareConfigList := make([]interface{}, 0)
+		azureFileShareConfig := make(map[string]interface{})
+		azureFileShareConfig["account_name"] = *config.AzureFileShareConfiguration.AccountName
+		azureFileShareConfig["azure_file_url"] = *config.AzureFileShareConfiguration.AzureFileURL
+		azureFileShareConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureFileShareConfiguration.AccountName, "azure_file_share", d)
+		azureFileShareConfig["relative_mount_path"] = *config.AzureFileShareConfiguration.RelativeMountPath
+
+		if config.AzureFileShareConfiguration.MountOptions != nil {
+			azureFileShareConfig["mount_options"] = *config.AzureFileShareConfiguration.MountOptions
+		}
+
+		azureFileShareConfigList = append(azureFileShareConfigList, azureFileShareConfig)
+		mountConfig["azure_file_share"] = azureFileShareConfigList
+
+	case config.CifsMountConfiguration != nil:
+		cifsMountConfigList := make([]interface{}, 0)
+		cifsMountConfig := make(map[string]interface{})
+
+		cifsMountConfig["user_name"] = *config.CifsMountConfiguration.Username
+		cifsMountConfig["password"] = findSensitiveInfoForMountConfig("password", "user_name", *config.CifsMountConfiguration.Username, "cifs_mount", d)
+		cifsMountConfig["source"] = *config.CifsMountConfiguration.Source
+		cifsMountConfig["relative_mount_path"] = *config.CifsMountConfiguration.RelativeMountPath
+
+		if config.CifsMountConfiguration.MountOptions != nil {
+			cifsMountConfig["mount_options"] = *config.CifsMountConfiguration.MountOptions
+		}
+
+		cifsMountConfigList = append(cifsMountConfigList, cifsMountConfig)
+		mountConfig["cifs_mount"] = cifsMountConfigList
+	case config.NfsMountConfiguration != nil:
+		nfsMountConfigList := make([]interface{}, 0)
+		nfsMountConfig := make(map[string]interface{})
+
+		nfsMountConfig["source"] = *config.NfsMountConfiguration.Source
+		nfsMountConfig["relative_mount_path"] = *config.NfsMountConfiguration.RelativeMountPath
+
+		if config.NfsMountConfiguration.MountOptions != nil {
+			nfsMountConfig["mount_options"] = *config.NfsMountConfiguration.MountOptions
+		}
+
+		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
+		mountConfig["nfs_mount"] = nfsMountConfigList
+	default:
+		return nil
+	}
+
+	return mountConfig
+}
+
+func flattenBatchPoolIdentityReferenceToIdentityID(ref *batch.ComputeNodeIdentityReference) string {
+	if ref != nil && ref.ResourceID != nil {
+		return *ref.ResourceID
+	}
+	return ""
+}
+
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
 	if len(list) == 0 {
@@ -576,6 +665,121 @@ func FlattenBatchMetaData(metadatas *[]batch.MetadataItem) map[string]interface{
 	}
 
 	return output
+}
+
+func ExpandBatchPoolMountConfigurations(d *pluginsdk.ResourceData) (*[]batch.MountConfiguration, error) {
+	var result []batch.MountConfiguration
+
+	if mountConfigs, ok := d.GetOk("mount"); ok {
+		mountConfigList := mountConfigs.([]interface{})
+		for _, tempItem := range mountConfigList {
+			item := tempItem.(map[string]interface{})
+			if mountConfig, err := expandBatchPoolMountConfiguration(item); err == nil {
+				result = append(result, mountConfig)
+			}
+		}
+		return &result, nil
+	}
+	return nil, fmt.Errorf("mount either is empty or contains parsing errors")
+}
+
+func expandBatchPoolMountConfiguration(ref map[string]interface{}) (batch.MountConfiguration, error) {
+	var result batch.MountConfiguration
+	if azureBlobFileSystemConfiguration, err := expandBatchPoolAzureBlobFileSystemConfiguration(ref["azure_blob_file_system"].([]interface{})); err == nil {
+		result.AzureBlobFileSystemConfiguration = azureBlobFileSystemConfiguration
+	}
+	if azureFileShareConfiguration, err := expandBatchPoolAzureFileShareConfiguration(ref["azure_file_share"].([]interface{})); err == nil {
+		result.AzureFileShareConfiguration = azureFileShareConfiguration
+	}
+	if cifsMountConfiguration, err := expandBatchPoolCIFSMountConfiguration(ref["cifs_mount"].([]interface{})); err == nil {
+		result.CifsMountConfiguration = cifsMountConfiguration
+	}
+	if nfsMountConfiguration, err := expandBatchPoolNFSMountConfiguration(ref["nfs_mount"].([]interface{})); err == nil {
+		result.NfsMountConfiguration = nfsMountConfiguration
+	}
+	return result, nil
+}
+
+func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*batch.AzureBlobFileSystemConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("azure_blob_file_system is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.AzureBlobFileSystemConfiguration{
+		AccountName:       utils.String(configMap["account_name"].(string)),
+		ContainerName:     utils.String(configMap["container_name"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if accountKey, ok := configMap["account_key"]; ok {
+		result.AccountKey = utils.String(accountKey.(string))
+	} else if sasKey, ok := configMap["sas_key"]; ok {
+		result.SasKey = utils.String(sasKey.(string))
+	} else if computedIDRef, err := expandBatchPoolIdentityReference(configMap); err == nil {
+		result.IdentityReference = computedIDRef
+	}
+
+	if blobfuseOptions, ok := configMap["blobfuse_options"]; ok {
+		result.BlobfuseOptions = utils.String(blobfuseOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*batch.AzureFileShareConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("azure_file_share is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.AzureFileShareConfiguration{
+		AccountName:       utils.String(configMap["account_name"].(string)),
+		AccountKey:        utils.String(configMap["account_key"].(string)),
+		AzureFileURL:      utils.String(configMap["azure_file_url"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if mountOptions, ok := configMap["mount_options"]; ok {
+		result.MountOptions = utils.String(mountOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*batch.CIFSMountConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("cifs_mount is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.CIFSMountConfiguration{
+		Username:          utils.String(configMap["user_name"].(string)),
+		Source:            utils.String(configMap["source"].(string)),
+		Password:          utils.String(configMap["password"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if mountOptions, ok := configMap["mount_options"]; ok {
+		result.MountOptions = utils.String(mountOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolNFSMountConfiguration(list []interface{}) (*batch.NFSMountConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("nfs_mount is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.NFSMountConfiguration{
+		Source:            utils.String(configMap["source"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if mountOptions, ok := configMap["mount_options"]; ok {
+		result.MountOptions = utils.String(mountOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolIdentityReference(ref map[string]interface{}) (*batch.ComputeNodeIdentityReference, error) {
+	var result batch.ComputeNodeIdentityReference
+	if iid, ok := ref["identity_id"]; ok && iid != "" {
+		result.ResourceID = utils.String(iid.(string))
+		return &result, nil
+	}
+	return nil, fmt.Errorf("identity_id is empty")
 }
 
 // ExpandBatchPoolNetworkConfiguration expands Batch pool network configuration

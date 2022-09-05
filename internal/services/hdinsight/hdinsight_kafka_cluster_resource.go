@@ -115,6 +115,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
+
 			"roles": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -273,6 +275,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
+	}
+
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
 
@@ -410,6 +419,16 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		if props.NetworkProperties != nil {
 			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
 				return fmt.Errorf("flatten `network`: %+v", err)
+			}
+		}
+
+		if props.DiskEncryptionProperties != nil {
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 		}
 
