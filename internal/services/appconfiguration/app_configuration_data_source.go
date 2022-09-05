@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -40,6 +40,11 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 			},
 
 			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -177,6 +182,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("public_network_access", props.PublicNetworkAccess)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)

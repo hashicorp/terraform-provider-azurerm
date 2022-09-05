@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -141,29 +141,29 @@ func TestAccAvailabilitySet_unmanaged(t *testing.T) {
 }
 
 func (AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AvailabilitySetID(state.ID)
+	id, err := availabilitysets.ParseAvailabilitySetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.AvailabilitySetsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Compute.AvailabilitySetsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Availability Set %q", id.String())
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (AvailabilitySetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AvailabilitySetID(state.ID)
+	id, err := availabilitysets.ParseAvailabilitySetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Compute.AvailabilitySetsClient.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Compute.AvailabilitySetsClient.Delete(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return nil, fmt.Errorf("deleting on availSetClient: %+v", err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

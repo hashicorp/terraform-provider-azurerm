@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -272,8 +272,10 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 				continue
 			}
 
-			supportedVersions = append(supportedVersions, *version.KubernetesVersion)
-			if *version.KubernetesVersion == desiredNodePoolVersion {
+			v := *version.KubernetesVersion
+			supportedVersions = append(supportedVersions, v)
+			// alias versions (major.minor) are also fine as the latest supported GA patch version is chosen automatically in this case
+			if v == desiredNodePoolVersion || v[:strings.LastIndex(v, ".")] == desiredNodePoolVersion {
 				versionExists = true
 			}
 		}

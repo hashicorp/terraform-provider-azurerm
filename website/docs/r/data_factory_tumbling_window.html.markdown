@@ -25,9 +25,8 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_pipeline" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 }
 
 resource "azurerm_data_factory_trigger_tumbling_window" "example" {
@@ -48,7 +47,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "example" {
   }
 
   pipeline {
-    name = azurerm_data_factory_pipeline.test.name
+    name = azurerm_data_factory_pipeline.example.name
     parameters = {
       Env = "Prod"
     }
@@ -135,7 +134,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Tumbling Window Trigger.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Tumbling Window Trigger.

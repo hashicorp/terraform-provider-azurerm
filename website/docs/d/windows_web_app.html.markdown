@@ -87,6 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
 
+* `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
+
 ---
 
 A `action` block exports the following:
@@ -349,7 +351,7 @@ A `schedule` block exports the following:
 
 A `site_config` block exports the following:
 
-* `always_on` - Is this Linux Web App is Always On enabled.
+* `always_on` - Is this Windows Web App is Always On enabled.
 
 * `api_definition_url` - The ID of the APIM configuration for this Windows Web App.
 
@@ -457,9 +459,9 @@ A `status_code` block exports the following:
 
 A `sticky_settings` block exports the following:
 
-* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `app_setting_names` - A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
-* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `connection_string_names` - A list of `connection_string` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 
@@ -522,6 +524,6 @@ A `virtual_directory` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.

@@ -92,6 +92,53 @@ func TestAccDataSourceStorageAccount_withInfrastructureEncryption(t *testing.T) 
 	})
 }
 
+func TestAccDataSourceStorageAccount_systemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountDataSource{}.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceStorageAccount_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountDataSource{}.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.0").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceStorageAccount_systemAssignedUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountDataSource{}.systemAssignedUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.0").IsSet(),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+			),
+		},
+	})
+}
+
 func (d StorageAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -210,4 +257,101 @@ data "azurerm_storage_account" "test" {
   resource_group_name = azurerm_storage_account.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, t)
+}
+
+func (d StorageAccountDataSource) identityTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (d StorageAccountDataSource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_storage_account" "test" {
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
+}
+`, d.identityTemplate(data), data.RandomString)
+}
+
+func (d StorageAccountDataSource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+
+data "azurerm_storage_account" "test" {
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
+}
+`, d.identityTemplate(data), data.RandomString)
+}
+
+func (d StorageAccountDataSource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+
+data "azurerm_storage_account" "test" {
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
+}
+`, d.identityTemplate(data), data.RandomString)
 }

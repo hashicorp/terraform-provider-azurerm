@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -53,7 +53,7 @@ func (UserAssignedIdentityV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (UserAssignedIdentityV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		id, err := parse.UserAssignedIdentityIDInsensitively(oldId)
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

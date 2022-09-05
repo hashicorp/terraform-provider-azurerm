@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -25,7 +24,7 @@ func resourceSqlElasticPool() *pluginsdk.Resource {
 		Update: resourceSqlElasticPoolCreateUpdate,
 		Delete: resourceSqlElasticPoolDelete,
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_elasticpool_resource` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_elasticpool` resource instead."),
+		DeprecationMessage: "The `azurerm_sql_elasticpool_resource` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_elasticpool` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ElasticPoolID(id)

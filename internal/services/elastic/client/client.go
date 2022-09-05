@@ -1,9 +1,9 @@
 package client
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/monitorsresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/sdk/2020-07-01/monitorsresource"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/sdk/2020-07-01/rules"
 )
 
 type Client struct {

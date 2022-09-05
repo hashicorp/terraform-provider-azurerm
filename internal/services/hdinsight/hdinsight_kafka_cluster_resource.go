@@ -84,6 +84,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
 
+			"network": SchemaHDInsightsNetwork(),
+
 			"component_version": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -112,6 +114,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 				ForceNew: true,
 				Optional: true,
 			},
+
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
 			"roles": {
 				Type:     pluginsdk.TypeList,
@@ -212,6 +216,9 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
+
 	kafkaRoles := hdInsightRoleDefinition{
 		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
 		WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
@@ -244,6 +251,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Kafka"),
 				ComponentVersion: componentVersions,
@@ -264,6 +272,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	if encryptionInTransit, ok := d.GetOk("encryption_in_transit_enabled"); ok {
 		params.Properties.EncryptionInTransitProperties = &hdinsight.EncryptionInTransitProperties{
 			IsEncryptionInTransitEnabled: utils.Bool(encryptionInTransit.(bool)),
+		}
+	}
+
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -399,6 +414,22 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 
 		if props.EncryptionInTransitProperties != nil {
 			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
+		}
+
+		if props.NetworkProperties != nil {
+			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flatten `network`: %+v", err)
+			}
+		}
+
+		if props.DiskEncryptionProperties != nil {
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+			}
 		}
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)

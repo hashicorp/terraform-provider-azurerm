@@ -19,7 +19,7 @@ data "azurerm_cosmosdb_account" "example" {
 }
 
 resource "azurerm_cosmosdb_sql_database" "example" {
-  name                = "tfex-cosmos-mongo-db"
+  name                = "tfex-cosmos-sql-db"
   resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
   account_name        = data.azurerm_cosmosdb_account.example.name
   throughput          = 400
@@ -59,7 +59,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Database.
 * `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Database.

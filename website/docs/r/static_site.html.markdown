@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `sku_size` - (Optional) Specifies the SKU size of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.
 
-* `identitiy` - (Optional) An `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -58,9 +58,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
   
 * `default_host_name` - The default host name of the Static Web App.
 
+* `identity` - (Optional) An `identity` block as defined below which contains the Managed Service Identity information for this resource.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The Type of Managed Identity assigned to this resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `principal_id` - (Optional) The Principal ID associated with this Managed Service Identity.
+
+-> You can access the Principal ID via `azurerm_static_site.example.identity.0.principal_id`
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Web App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App.

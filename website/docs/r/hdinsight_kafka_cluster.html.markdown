@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `roles` - (Required) A `roles` block as defined below.
 
+* `network` - (Optional) A `network` block as defined below.
+
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
 
 * `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
@@ -170,6 +172,16 @@ A `roles` block supports the following:
 
 ---
 
+A `network` block supports the following:
+
+* `connection_direction` - (Optional) The direction of the resource provider connection. Possible values include `Inbound` or `Outbound`. Defaults to `Inbound`. Changing this forces a new resource to be created.
+
+-> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
+
+* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+
+---
+
 A `storage_account` block supports the following:
 
 * `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
@@ -241,6 +253,18 @@ A `zookeeper_node` block supports the following:
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
+
+---
+
+A `display_encryption_properties` block supports the following:
+
+* `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
+
+* `encryption_at_host_enabled` - (Optional) This is indicator to show whether resource disk encryption is enabled.
+
+* `key_vault_key_id` - (Optional) The ID of the key vault key.
+
+* `key_vault_managed_identity_id` - (Optional) This is the resource ID of Managed Identity used to access the key vault.
 
 ---
 
@@ -359,7 +383,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kafka HDInsight Cluster.
 * `update` - (Defaults to 60 minutes) Used when updating the Kafka HDInsight Cluster.

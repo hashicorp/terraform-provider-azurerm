@@ -9,7 +9,7 @@ import (
 // ValueChangeValidationFunc is a function type that validates the difference
 // (or lack thereof) between two values, returning an error if the change
 // is invalid.
-type ValueChangeValidationFunc func(ctx context.Context, old, new, meta interface{}) error
+type ValueChangeValidationFunc func(ctx context.Context, oldValue, newValue, meta interface{}) error
 
 // ValueValidationFunc is a function type that validates a particular value,
 // returning an error if the value is invalid.
@@ -19,8 +19,8 @@ type ValueValidationFunc func(ctx context.Context, value, meta interface{}) erro
 // function to the change for the given key, returning any error produced.
 func ValidateChange(key string, f ValueChangeValidationFunc) schema.CustomizeDiffFunc {
 	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-		old, new := d.GetChange(key)
-		return f(ctx, old, new, meta)
+		oldValue, newValue := d.GetChange(key)
+		return f(ctx, oldValue, newValue, meta)
 	}
 }
 

@@ -7,11 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -108,17 +111,31 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.AvailabilitySetID,
+				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
 				// the Compute/VM API is broken and returns the Availability Set name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
 				ConflictsWith: []string{
+					"capacity_reservation_group_id",
 					"virtual_machine_scale_set_id",
 					"zone",
 				},
 			},
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
+
+			"capacity_reservation_group_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     computeValidate.CapacityReservationGroupID,
+				ConflictsWith: []string{
+					"availability_set_id",
+					"proximity_placement_group_id",
+				},
+			},
 
 			"computer_name": {
 				Type:     pluginsdk.TypeString,
@@ -136,7 +153,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostID,
+				ValidateFunc: dedicatedhosts.ValidateHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -148,7 +165,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostGroupID,
+				ValidateFunc: dedicatedhostgroups.ValidateHostGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -177,8 +194,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -240,10 +257,13 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.ProximityPlacementGroupID,
+				ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"capacity_reservation_group_id",
+				},
 			},
 
 			"secret": linuxSecretSchema(),
@@ -262,6 +282,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					computeValidate.ImageID,
 					computeValidate.SharedImageID,
 					computeValidate.SharedImageVersionID,
+					computeValidate.CommunityGalleryImageID,
+					computeValidate.CommunityGalleryImageVersionID,
+					computeValidate.SharedGalleryImageID,
+					computeValidate.SharedGalleryImageVersionID,
 				),
 			},
 
@@ -541,6 +565,14 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+		params.CapacityReservation = &compute.CapacityReservationProfile{
+			CapacityReservationGroup: &compute.SubResource{
+				ID: utils.String(v.(string)),
+			},
+		}
+	}
+
 	if v, ok := d.GetOk("custom_data"); ok {
 		params.OsProfile.CustomData = utils.String(v.(string))
 	}
@@ -559,12 +591,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
 	} else if priority == compute.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -607,10 +639,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	// "Authentication using either SSH or by user name and password must be enabled in Linux profile." Target="linuxConfiguration"
 	adminPassword := d.Get("admin_password").(string)
 	if disablePasswordAuthentication && len(sshKeys) == 0 {
-		return fmt.Errorf("At least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
+		return fmt.Errorf("at least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
 	} else if !disablePasswordAuthentication {
 		if adminPassword == "" {
-			return fmt.Errorf("An `admin_password` must be specified if `disable_password_authentication` is set to `false`")
+			return fmt.Errorf("an `admin_password` must be specified if `disable_password_authentication` is set to `false`")
 		}
 
 		params.OsProfile.AdminPassword = utils.String(adminPassword)
@@ -684,6 +716,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		availabilitySetId = *props.AvailabilitySet.ID
 	}
 	d.Set("availability_set_id", availabilitySetId)
+
+	capacityReservationGroupId := ""
+	if props.CapacityReservation != nil && props.CapacityReservation.CapacityReservationGroup != nil && props.CapacityReservation.CapacityReservationGroup.ID != nil {
+		capacityReservationGroupId = *props.CapacityReservation.CapacityReservationGroup.ID
+	}
+	d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
 	licenseType := ""
 	if props.LicenseType != nil {
@@ -796,6 +834,13 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		if profile.ImageReference != nil && profile.ImageReference.ID != nil {
 			storageImageId = *profile.ImageReference.ID
 		}
+		if profile.ImageReference != nil && profile.ImageReference.CommunityGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.CommunityGalleryImageID
+		}
+		if profile.ImageReference != nil && profile.ImageReference.SharedGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.SharedGalleryImageID
+		}
+
 		d.Set("source_image_id", storageImageId)
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
@@ -939,6 +984,23 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 		if v, ok := d.GetOk("license_type"); ok {
 			update.LicenseType = utils.String(v.(string))
+		}
+	}
+
+	if d.HasChange("capacity_reservation_group_id") {
+		shouldUpdate = true
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+			update.CapacityReservation = &compute.CapacityReservationProfile{
+				CapacityReservationGroup: &compute.SubResource{
+					ID: utils.String(v.(string)),
+				},
+			}
+		} else {
+			update.CapacityReservation = &compute.CapacityReservationProfile{
+				CapacityReservationGroup: &compute.SubResource{},
+			}
 		}
 	}
 
@@ -1221,7 +1283,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			// Upgrade to 2021-07-01 added a hibernate parameter to this call defaulting to false
 			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 			if err != nil {
-				return fmt.Errorf("Deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -1295,7 +1357,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 

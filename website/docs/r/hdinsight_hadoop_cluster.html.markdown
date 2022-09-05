@@ -233,6 +233,18 @@ A `worker_node` block supports the following:
 
 ---
 
+A `display_encryption_properties` block supports the following:
+
+* `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
+
+* `encryption_at_host_enabled` - (Optional) This is indicator to show whether resource disk encryption is enabled.
+
+* `key_vault_key_id` - (Optional) The ID of the key vault key.
+
+* `key_vault_managed_identity_id` - (Optional) This is the resource ID of Managed Identity used to access the key vault.
+
+---
+
 A `zookeeper_node` block supports the following:
 
 * `username` - (Required) The Username of the local administrator for the Zookeeper Nodes. Changing this forces a new resource to be created.
@@ -267,7 +279,33 @@ A `install_script_action` block supports the following:
 
 * `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
 
---- 
+* `parameters` - (Optional) The parameters for the script.
+
+---
+
+A `https_endpints` block supports the following:
+
+* `access_modes` - (Optional) A list of access modes for the application.
+
+* `destination_port` - (Optional) The destination port to connect to.
+
+* `disable_gateway_auth` - (Optional) The value indicates whether the gateway authentication is enabled or not.
+
+* `private_ip_address` - (Optional) The private ip address of the endpoint.
+
+* `sub_domain_suffix` - (Optional) The application's subdomain suffix.
+
+---
+
+A `uninstall_script_actions` block supports the following:
+
+* `name` - (Required) The name of the uninstall script action. Changing this forces a new resource to be created.
+
+* `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
+
+* `parameters` - (Optional) The parameters for the script.
+
+---
 
 A `metastores` block supports the following:
 
@@ -390,7 +428,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Hadoop HDInsight Cluster.
 * `update` - (Defaults to 60 minutes) Used when updating the Hadoop HDInsight Cluster.

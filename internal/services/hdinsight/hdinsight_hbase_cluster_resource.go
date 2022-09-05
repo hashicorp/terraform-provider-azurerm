@@ -89,6 +89,8 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
+
 			"gateway": SchemaHDInsightsGateway(),
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
@@ -230,6 +232,13 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("failure creating HDInsight HBase Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -332,6 +341,16 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 		if props.NetworkProperties != nil {
 			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
 				return fmt.Errorf("flattening `network`: %+v", err)
+			}
+		}
+
+		if props.DiskEncryptionProperties != nil {
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 		}
 

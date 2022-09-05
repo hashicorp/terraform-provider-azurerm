@@ -38,8 +38,6 @@ resource "azurerm_nat_gateway" "example" {
   name                    = "nat-Gateway"
   location                = azurerm_resource_group.example.location
   resource_group_name     = azurerm_resource_group.example.name
-  public_ip_address_ids   = [azurerm_public_ip.example.id]
-  public_ip_prefix_ids    = [azurerm_public_ip_prefix.example.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
   zones                   = ["1"]
@@ -78,7 +76,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the NAT Gateway.
 * `update` - (Defaults to 60 minutes) Used when updating the NAT Gateway.

@@ -120,10 +120,14 @@ func TestAccSubscriptionPolicyAssignment_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.userAssignedIdentity(data),
+			Config: r.userAssignedIdentity(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data, "description"),
 		},
 		data.ImportStep(),
 	})
@@ -627,7 +631,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SubscriptionAssignmentTestResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r SubscriptionAssignmentTestResource) userAssignedIdentity(data acceptance.TestData, description string) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -656,11 +660,12 @@ resource "azurerm_subscription_policy_assignment" "test" {
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
+  description          = "%[4]s"
 
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary, description)
 }

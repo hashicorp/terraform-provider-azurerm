@@ -89,6 +89,28 @@ func testAccBotChannelsRegistration_complete(t *testing.T) {
 	})
 }
 
+func testAccBotChannelsRegistration_streamingEndpointEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
+	r := BotChannelsRegistrationResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.streamingEndpointEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("developer_app_insights_api_key"),
+		{
+			Config: r.streamingEndpointEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("developer_app_insights_api_key"),
+	})
+}
+
 func (t BotChannelsRegistrationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotServiceID(state.ID)
 	if err != nil {
@@ -827,4 +849,34 @@ resource "azurerm_bot_channels_registration" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+}
+
+func (BotChannelsRegistrationResource) streamingEndpointEnabled(data acceptance.TestData, streamingEndpointEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_bot_channels_registration" "test" {
+  name                       = "acctestdf%d"
+  location                   = "global"
+  resource_group_name        = azurerm_resource_group.test.name
+  sku                        = "F0"
+  microsoft_app_id           = data.azurerm_client_config.current.client_id
+  streaming_endpoint_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, streamingEndpointEnabled)
 }

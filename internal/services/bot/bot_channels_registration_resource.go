@@ -146,6 +146,12 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validate.BotChannelRegistrationIconUrl,
 			},
 
+			"streaming_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -211,6 +217,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
 			IconURL:                           utils.String(d.Get("icon_url").(string)),
 			IsCmekEnabled:                     utils.Bool(false),
+			IsStreamingSupported:              utils.Bool(d.Get("streaming_endpoint_enabled").(bool)),
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
@@ -287,6 +294,7 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
 		d.Set("icon_url", props.IconURL)
+		d.Set("streaming_endpoint_enabled", props.IsStreamingSupported)
 
 		// `PublicNetworkAccess` is empty string when `public_network_access_enabled` or `isolated_network_enabled` isn't specified. So `public_network_access_enabled` and `isolated_network_enabled` shouldn't be set at this time to avoid diff
 		if props.PublicNetworkAccess != "" {
@@ -329,6 +337,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
 			IconURL:                           utils.String(d.Get("icon_url").(string)),
 			IsCmekEnabled:                     utils.Bool(false),
+			IsStreamingSupported:              utils.Bool(d.Get("streaming_endpoint_enabled").(bool)),
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{

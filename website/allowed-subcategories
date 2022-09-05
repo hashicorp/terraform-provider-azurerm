@@ -27,6 +27,7 @@ CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
 DNS
+Dashboard
 Data Explorer
 Data Factory
 Data Share
@@ -35,11 +36,13 @@ Database
 Database Migration
 Databox Edge
 Databricks
+Datadog
 Desktop Virtualization
 Dev Test
 Digital Twins
 Disks
 Elastic
+Fluid Relay
 HDInsight
 Hardware Security Module
 Healthcare

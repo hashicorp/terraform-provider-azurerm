@@ -316,7 +316,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMExtensionClient
+	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -325,12 +325,10 @@ func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.LabName, id.ScheduleName)
-	if err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.LabName, id.ScheduleName); err != nil {
 		return err
 	}
-
-	return future.WaitForCompletionRef(ctx, client.Client)
+	return nil
 }
 
 func expandDevTestScheduleRecurrenceDaily(recurrence interface{}) *dtl.DayDetails {

@@ -48,6 +48,7 @@ type LinuxWebAppDataSourceModel struct {
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
+	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
@@ -188,6 +189,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
 
 		"tags": tags.SchemaDataSource(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 

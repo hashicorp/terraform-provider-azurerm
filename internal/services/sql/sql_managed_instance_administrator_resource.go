@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,7 +25,7 @@ func resourceSqlManagedInstanceAdministrator() *pluginsdk.Resource {
 		Update: resourceSqlManagedInstanceActiveDirectoryAdministratorCreateUpdate,
 		Delete: resourceSqlManagedInstanceActiveDirectoryAdministratorDelete,
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_managed_instance_active_directory_administrator` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_managed_instance_active_directory_administrator` resource instead."),
+		DeprecationMessage: "The `azurerm_sql_managed_instance_active_directory_administrator` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_managed_instance_active_directory_administrator` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(id)
