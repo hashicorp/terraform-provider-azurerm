@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -38,14 +37,12 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 
-			"tag_id": {
+			"api_tag_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.TagID,
+				ValidateFunc: validate.ApiTagID,
 			},
-
-			"api_name": schemaz.SchemaApiManagementApiName(),
 
 			"description": {
 				Type:     pluginsdk.TypeString,
@@ -72,12 +69,12 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	tagId, err := parse.TagID(d.Get("tag_id").(string))
+	apiTagId, err := parse.ApiTagID(d.Get("api_tag_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `api_id`: %v", err)
 	}
 
-	id := parse.NewApiTagDescriptionsID(tagId.SubscriptionId, tagId.ResourceGroup, tagId.ServiceName, d.Get("api_name").(string), tagId.Name)
+	id := parse.NewApiTagDescriptionsID(apiTagId.SubscriptionId, apiTagId.ResourceGroup, apiTagId.ServiceName, apiTagId.ApiName, apiTagId.TagName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.TagDescriptionName)
@@ -134,10 +131,9 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	tagId := parse.NewTagID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.TagDescriptionName)
+	apiTagId := parse.NewApiTagID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName, id.TagDescriptionName)
 
-	d.Set("tag_id", tagId.ID())
-	d.Set("api_name", id.ApiName)
+	d.Set("api_tag_id", apiTagId.ID())
 	d.Set("description", resp.Description)
 	d.Set("external_documentation_url", resp.ExternalDocsURL)
 	d.Set("external_documentation_description", resp.ExternalDocsDescription)

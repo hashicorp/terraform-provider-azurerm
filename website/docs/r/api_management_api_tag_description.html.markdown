@@ -52,9 +52,13 @@ resource "azurerm_api_management_tag" "example" {
   name              = "example-Tag"
 }
 
+resource "azurerm_api_management_tag" "example" {
+  api_management_id = azurerm_api_management.example.id
+  name              = "example-tag"
+}
+
 resource "azurerm_api_management_api_tag_description" "example" {
-  api_name                  = azurerm_api_management_api.example.name
-  tag_id                    = azurerm_api_management_tag.example.id
+  api_tag_id                = azurerm_api_management_tag.example.id
   description               = "This is an example description"
   external_docs_url         = "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs"
   external_docs_description = "This is an example external docs description"
@@ -65,9 +69,7 @@ resource "azurerm_api_management_api_tag_description" "example" {
 
 The following arguments are supported:
 
-* `api_name` - (Required) The name of the API Management API. Changing this forces a new resource to be created.
-
-* `tag_id` - (Required) The ID of the tag. It must be known in the API Tag. Changing this forces a new API Management API Tag Description to be created.
+* `api_tag_id` - (Required) The The ID of the API Management API Tag. Changing this forces a new API Management API Tag Description to be created.
 
 * `description` - (Optional) The description of the Tag.
 

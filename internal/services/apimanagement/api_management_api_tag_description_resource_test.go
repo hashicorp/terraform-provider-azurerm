@@ -89,22 +89,25 @@ resource "azurerm_api_management_tag" "test" {
   name              = "acctest-Tag-%d"
 }
 
+resource "azurerm_api_management_api_tag" "test" {
+  api_id = azurerm_api_management_api.test.id
+  name   = "acctest-Tag-%d"
+}
+
 resource "azurerm_api_management_api_tag_description" "test" {
-  api_name                           = azurerm_api_management_api.test.name
-  tag_id                             = azurerm_api_management_tag.test.id
+  api_tag_id                         = azurerm_api_management_api_tag.test.id
   description                        = "tag description"
   external_documentation_url         = "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs"
   external_documentation_description = "external tag description"
 }
-`, ApiManagementApiResource{}.basic(data), data.RandomInteger)
+`, ApiManagementApiResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementApiTagDescriptionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_api_management_api_tag_description" "import" {
-  api_name                           = azurerm_api_management_api_tag_description.test.api_name
-  tag_id                             = azurerm_api_management_api_tag_description.test.tag_id
+  api_tag_id                         = azurerm_api_management_api_tag_description.test.api_tag_id
   description                        = azurerm_api_management_api_tag_description.test.description
   external_documentation_url         = azurerm_api_management_api_tag_description.test.external_documentation_url
   external_documentation_description = azurerm_api_management_api_tag_description.test.external_documentation_description
@@ -120,12 +123,16 @@ resource "azurerm_api_management_tag" "test" {
   name              = "acctest-Tag-%d"
 }
 
+resource "azurerm_api_management_api_tag" "test" {
+  api_id = azurerm_api_management_api.test.id
+  name   = "acctest-Tag-%d"
+}
+
 resource "azurerm_api_management_api_tag_description" "test" {
-  api_name                           = azurerm_api_management_api.test.name
-  tag_id                             = azurerm_api_management_tag.test.id
+  api_tag_id                         = azurerm_api_management_api_tag.test.id
   description                        = "tag description update"
   external_documentation_url         = "https://registry.terraform.io/providers/hashicorp/azurerm"
   external_documentation_description = "external tag description update"
 }
-`, ApiManagementApiResource{}.basic(data), data.RandomInteger)
+`, ApiManagementApiResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }
