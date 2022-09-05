@@ -3,7 +3,6 @@ package containers
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
@@ -616,16 +615,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("orchestrator_version") {
-		// Spot Node pool's can't be updated - Azure Docs: https://docs.microsoft.com/en-us/azure/aks/spot-node-pool
-		//   > You can't upgrade a spot node pool since spot node pools can't guarantee cordon and drain.
-		//   > You must replace your existing spot node pool with a new one to do operations such as upgrading
-		//   > the Kubernetes version. To replace a spot node pool, create a new spot node pool with a different
-		//   > version of Kubernetes, wait until its status is Ready, then remove the old node pool.
-		if strings.EqualFold(string(props.ScaleSetPriority), string(containerservice.ScaleSetPrioritySpot)) {
-			// ^ the Scale Set Priority isn't returned when Regular
-			return fmt.Errorf("the Orchestrator Version cannot be updated when using a Spot Node Pool")
-		}
-
 		existingNodePool, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 		if err != nil {
 			return fmt.Errorf("retrieving Node Pool %s: %+v", *id, err)

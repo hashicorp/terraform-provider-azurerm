@@ -162,18 +162,18 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve the %q from the linked %q: %+v", "sku_name", "azurerm_cdn_frontdoor_profile", err)
+		return fmt.Errorf("unable to retrieve the 'sku_name' from the linked 'azurerm_cdn_frontdoor_profile': %+v", err)
 	}
 
 	if profile.Sku == nil {
-		return fmt.Errorf("retreving the parent %q: `sku` was nil", *profileId)
+		return fmt.Errorf("retreving the parent %q: 'sku' was nil", *profileId)
 	}
 
 	isStandardSku := strings.HasPrefix(strings.ToLower(string(profile.Sku.Name)), "standard")
 
 	params, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
 	if err != nil {
-		return fmt.Errorf("expanding %q: %+v", "security_policies", err)
+		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
 
 	props := cdn.SecurityPolicy{

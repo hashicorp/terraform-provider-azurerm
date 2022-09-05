@@ -32,11 +32,13 @@ func (m HybridRunbookWorkerGroupResource) Arguments() map[string]*pluginsdk.Sche
 		"automation_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"credential_name": {
@@ -88,6 +90,7 @@ func (m HybridRunbookWorkerGroupResource) Create() sdk.ResourceFunc {
 			}
 			// return 201 cause err in autorest sdk
 			future, err := client.Create(ctx, id, req)
+			// Workaround swagger issue https://github.com/Azure/azure-rest-api-specs/issues/19741
 			if err != nil && !response.WasStatusCode(future.HttpResponse, http.StatusCreated) {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}

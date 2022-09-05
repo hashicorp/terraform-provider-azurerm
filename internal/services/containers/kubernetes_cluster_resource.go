@@ -12,7 +12,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -24,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -91,6 +92,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew:     true,
 				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 			},
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"kubernetes_version": {
 				Type:         pluginsdk.TypeString,
@@ -396,7 +399,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"log_analytics_workspace_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+							ValidateFunc: workspaces.ValidateWorkspaceID,
 						},
 					},
 				},
@@ -1107,8 +1110,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 
 	parameters := containerservice.ManagedCluster{
-		Name:     utils.String(id.ManagedClusterName),
-		Location: utils.String(location),
+		Name:             utils.String(id.ManagedClusterName),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
 		Sku: &containerservice.ManagedClusterSKU{
 			Name: containerservice.ManagedClusterSKUNameBasic, // the only possible value at this point
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
@@ -1705,6 +1709,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("name", id.ManagedClusterName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -2991,4 +2996,24 @@ func flattenKubernetesClusterMicrosoftDefender(input *containerservice.ManagedCl
 			"log_analytics_workspace_id": logAnalyticsWorkspace,
 		},
 	}
+}
+
+func expandEdgeZone(input string) *containerservice.ExtendedLocation {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &containerservice.ExtendedLocation{
+		Name: utils.String(normalized),
+		Type: containerservice.ExtendedLocationTypesEdgeZone,
+	}
+}
+
+func flattenEdgeZone(input *containerservice.ExtendedLocation) string {
+	// As the `extendedLocation.type` returned by API is always lower case, so it has to use `Normalize` function while comparing them
+	if input == nil || edgezones.Normalize(string(input.Type)) != edgezones.Normalize(string(containerservice.ExtendedLocationTypesEdgeZone)) || input.Name == nil {
+		return ""
+	}
+	return edgezones.NormalizeNilable(input.Name)
 }

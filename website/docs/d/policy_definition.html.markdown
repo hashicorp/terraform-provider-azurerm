@@ -44,6 +44,8 @@ output "id" {
 
 * `policy_rule` - The Rule as defined (in JSON) in the Policy.
 
+* `role_definition_ids` - A list of role definition id extracted from `policy_rule` required for remediation.
+
 * `parameters` - Any Parameters defined in the Policy.
 
 * `metadata` - Any Metadata defined in the Policy.
