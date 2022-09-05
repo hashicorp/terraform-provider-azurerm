@@ -223,7 +223,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				},
 			},
 
-			"log_activity_trace": {
+			"log_activity_trace_level": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(0),
@@ -271,7 +271,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			LogProgress:      &logProgress,
 			RunbookType:      runbookType,
 			Description:      &description,
-			LogActivityTrace: utils.Int32(int32(d.Get("log_activity_trace").(int))),
+			LogActivityTrace: utils.Int32(int32(d.Get("log_activity_trace_level").(int))),
 		},
 
 		Location: &location,
@@ -387,7 +387,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("log_progress", props.LogProgress)
 		d.Set("runbook_type", props.RunbookType)
 		d.Set("description", props.Description)
-		d.Set("log_activity_trace", props.LogActivityTrace)
+		d.Set("log_activity_trace_level", props.LogActivityTrace)
 	}
 
 	response, err := client.GetContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)

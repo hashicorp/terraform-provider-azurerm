@@ -542,7 +542,7 @@ resource "azurerm_automation_runbook" "test" {
     }
   }
 
-  log_activity_trace = 3
+  log_activity_trace_level = 9
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
