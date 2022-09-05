@@ -58,7 +58,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Recovery Services Vault. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Recovery Services Vault. The possible value is `SystemAssigned` and `UserAssigned`.
 
 ---
 
@@ -68,7 +68,7 @@ An `encryption` block supports the following:
 
 * `infrastructure_encryption_enabled` - (Required) Enabling/Disabling the Double Encryption state.
 
-* `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. At this time the only possible value is `true`. Defaults to `true`.
+* `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not.  Defaults to `true`.
 
 !> **Note:** Once `infrastructure_encryption_enabled` has been set it's not possible to change it.
 

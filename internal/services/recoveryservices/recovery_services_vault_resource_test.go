@@ -145,7 +145,7 @@ func TestAccRecoveryServicesVault_identity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithIdentity(data),
+			Config: r.basicWithIdentity(data, "SystemAssigned"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -159,7 +159,7 @@ func TestAccRecoveryServicesVault_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithIdentity(data),
+			Config: r.basicWithIdentity(data, "UserAssigned"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -318,7 +318,7 @@ func TestAccRecoveryServicesVault_turnOnEncryptionWithKeyVaultKey(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithIdentity(data),
+			Config: r.basicWithIdentity(data, "SystemAssigned"),
 		},
 		data.ImportStep(),
 		{
@@ -338,7 +338,7 @@ func TestAccRecoveryServicesVault_turnOffEncryptionWithKeyVaultKeyShouldHaveClea
 		},
 		data.ImportStep(),
 		{
-			Config:      r.basicWithIdentity(data),
+			Config:      r.basicWithIdentity(data, "SystemAssigned"),
 			ExpectError: regexp.MustCompile("once encryption with your own key has been enabled it's not possible to disable it"),
 		},
 	})
@@ -463,7 +463,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (RecoveryServicesVaultResource) basicWithIdentity(data acceptance.TestData) string {
+func (RecoveryServicesVaultResource) basicWithIdentity(data acceptance.TestData, identityType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -481,12 +481,12 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   identity {
-    type = "SystemAssigned"
+    type = "%s"
   }
 
   soft_delete_enabled = false
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, identityType)
 }
 
 func (RecoveryServicesVaultResource) complete(data acceptance.TestData) string {
