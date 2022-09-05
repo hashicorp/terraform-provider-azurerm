@@ -19,8 +19,7 @@ import (
 )
 
 type WatcherModel struct {
-	ResourceGroupName           string                 `tfschema:"resource_group_name"`
-	AutomationAccountName       string                 `tfschema:"automation_account_name"`
+	AutomationAccountID         string                 `tfschema:"automation_account_id"`
 	Name                        string                 `tfschema:"name"`
 	Location                    string                 `tfschema:"location"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
@@ -39,37 +38,43 @@ var _ sdk.Resource = (*WatcherResource)(nil)
 
 func (m WatcherResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupName(),
-		"automation_account_name": {
+		"automation_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.AutomationAccountID,
 		},
+
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"location": commonschema.Location(),
-		"tags":     commonschema.Tags(),
+
+		"tags": commonschema.Tags(),
+
 		"etag": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"execution_frequency_in_seconds": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: nil,
+			ValidateFunc: validation.IntAtLeast(0),
 		},
+
 		"script_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"script_parameters": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
@@ -78,11 +83,13 @@ func (m WatcherResource) Arguments() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"script_run_on": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -120,7 +127,9 @@ func (m WatcherResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionID := meta.Client.Account.SubscriptionId
-			id := parse.NewWatcherID(subscriptionID, model.ResourceGroupName, model.AutomationAccountName, model.Name)
+			accountID, _ := parse.AutomationAccountID(model.AutomationAccountID)
+			id := parse.NewWatcherID(subscriptionID, accountID.ResourceGroup, accountID.Name, model.Name)
+
 			existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 			if !utils.ResponseWasNotFound(existing.Response) {
 				if err != nil {
@@ -165,14 +174,14 @@ func (m WatcherResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			var output WatcherModel
 			if err := meta.Decode(&output); err != nil {
 				return err
 			}
 
 			prop := result.WatcherProperties
-			output.ResourceGroupName = id.ResourceGroup
-			output.AutomationAccountName = id.AutomationAccountName
+			output.AutomationAccountID = parse.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName).ID()
 			output.Name = id.Name
 			output.ExecutionFrequencyInSeconds = utils.NormaliseNilableInt64(prop.ExecutionFrequencyInSeconds)
 			output.ScriptName = utils.NormalizeNilableString(prop.ScriptName)

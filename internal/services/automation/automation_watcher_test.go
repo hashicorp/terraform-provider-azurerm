@@ -149,21 +149,23 @@ func (a WatcherResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_automation_watcher" "test" {
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  name                    = "acctest-watcher-%[2]d"
-  location                = "%[3]s"
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-watcher-%[2]d"
+  location              = "%[3]s"
+
   tags = {
     foo = "bar"
   }
-  etag                           = "etag example"
-  execution_frequency_in_seconds = 2
-  script_name                    = azurerm_automation_runbook.test.name
+
   script_parameters = {
     param_foo = "arg_bar"
   }
-  script_run_on = azurerm_automation_hybrid_runbook_worker_group.test.name
-  description   = "example-watcher desc"
+
+  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
+  description                    = "example-watcher desc"
+  etag                           = "etag example"
+  script_name                    = azurerm_automation_runbook.test.name
+  execution_frequency_in_seconds = 2
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -175,21 +177,23 @@ func (a WatcherResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_automation_watcher" "test" {
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  name                    = "acctest-watcher-%[2]d"
-  location                = "%[3]s"
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-watcher-%[2]d"
+  location              = "%[3]s"
+
   tags = {
     "foo" = "bar"
   }
-  etag                           = "etag example"
-  execution_frequency_in_seconds = 20
-  script_name                    = azurerm_automation_runbook.test.name
+
   script_parameters = {
     foo = "bar"
   }
-  script_run_on = azurerm_automation_hybrid_runbook_worker_group.test.name
-  description   = "example-watcher desc"
+
+  etag                           = "etag example"
+  execution_frequency_in_seconds = 20
+  script_name                    = azurerm_automation_runbook.test.name
+  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
+  description                    = "example-watcher desc"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
