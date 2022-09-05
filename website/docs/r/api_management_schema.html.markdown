@@ -1,12 +1,12 @@
 ---
 subcategory: "API Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_api_management_schema"
+page_title: "Azure Resource Manager: azurerm_api_management_global_schema"
 description: |-
   Manages a Global Schema within an API Management Service.
 ---
 
-# azurerm_api_management_schema
+# azurerm_api_management_global_schema
 
 Manages a Global Schema within an API Management Service.
 
@@ -31,7 +31,7 @@ resource "azurerm_api_management" "example" {
   sku_name            = "Consumption_0"
 }
 
-resource "azurerm_api_management_schema" "example" {
+resource "azurerm_api_management_global_schema" "example" {
   schema_id           = "example-schema1"
   api_management_name = azurerm_api_management.example.name
   resource_group_name = azurerm_resource_group.example.name
@@ -79,5 +79,5 @@ specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-
 API Management API Schema's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/schemas/schema1
+terraform import azurerm_api_management_global_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/schemas/schema1
 ```

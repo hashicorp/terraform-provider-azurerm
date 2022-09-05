@@ -16,7 +16,7 @@ import (
 type ApiManagementGlobalSchemaResource struct{}
 
 func TestAccApiManagementGlobalSchema_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_schema", "test")
+	data := acceptance.BuildTestData(t, "azurerm_api_management_global_schema", "test")
 	r := ApiManagementGlobalSchemaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -31,7 +31,7 @@ func TestAccApiManagementGlobalSchema_basic(t *testing.T) {
 }
 
 func TestAccApiManagementGlobalSchema_jsonSchema(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_schema", "test")
+	data := acceptance.BuildTestData(t, "azurerm_api_management_global_schema", "test")
 	r := ApiManagementGlobalSchemaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -46,7 +46,7 @@ func TestAccApiManagementGlobalSchema_jsonSchema(t *testing.T) {
 }
 
 func TestAccApiManagementGlobalSchema_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_schema", "test")
+	data := acceptance.BuildTestData(t, "azurerm_api_management_global_schema", "test")
 	r := ApiManagementGlobalSchemaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -68,7 +68,7 @@ func TestAccApiManagementGlobalSchema_update(t *testing.T) {
 }
 
 func TestAccApiManagementGlobalSchema_requireImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_schema", "test")
+	data := acceptance.BuildTestData(t, "azurerm_api_management_global_schema", "test")
 	r := ApiManagementGlobalSchemaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -116,7 +116,7 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Consumption_0"
 }
 
-resource "azurerm_api_management_schema" "test" {
+resource "azurerm_api_management_global_schema" "test" {
   schema_id           = "accetestSchema-%[1]d"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -168,7 +168,7 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Consumption_0"
 }
 
-resource "azurerm_api_management_schema" "test" {
+resource "azurerm_api_management_global_schema" "test" {
   schema_id           = "accetestSchema-%[1]d"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -218,7 +218,7 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Consumption_0"
 }
 
-resource "azurerm_api_management_schema" "test" {
+resource "azurerm_api_management_global_schema" "test" {
   schema_id           = "accetestSchema-%[1]d"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -252,12 +252,12 @@ func (r ApiManagementGlobalSchemaResource) requiresImport(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_schema" "import" {
-  schema_id           = azurerm_api_management_schema.test.schema_id
-  api_management_name = azurerm_api_management_schema.test.api_management_name
-  resource_group_name = azurerm_api_management_schema.test.resource_group_name
-  type                = azurerm_api_management_schema.test.type
-  value               = azurerm_api_management_schema.test.value
+resource "azurerm_api_management_global_schema" "import" {
+  schema_id           = azurerm_api_management_global_schema.test.schema_id
+  api_management_name = azurerm_api_management_global_schema.test.api_management_name
+  resource_group_name = azurerm_api_management_global_schema.test.resource_group_name
+  type                = azurerm_api_management_global_schema.test.type
+  value               = azurerm_api_management_global_schema.test.value
 }
 `, r.basic(data))
 }

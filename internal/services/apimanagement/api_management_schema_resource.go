@@ -84,7 +84,7 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_schema", id.ID())
+			return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
 		}
 	}
 	parameters := globalSchema.GlobalSchemaContract{
