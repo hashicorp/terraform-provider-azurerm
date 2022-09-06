@@ -1,3 +1,5 @@
+// Deprecated: Please note, this package has been deprecated. A replacement package is available [github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/redisenterprise/armredisenterprise](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/redisenterprise/armredisenterprise). We strongly encourage you to upgrade to continue receiving updates. See [Migration Guide](https://aka.ms/azsdk/golang/t2/migration) for guidance on upgrading. Refer to our [deprecation policy](https://azure.github.io/azure-sdk/policies_support.html) for more details.
+//
 // Package redisenterprise implements the Azure ARM Redisenterprise service API version 2021-03-01.
 //
 // REST API for managing Redis Enterprise resources in Azure.
