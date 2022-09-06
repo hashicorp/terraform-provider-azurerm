@@ -496,10 +496,9 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 
   itsm_receiver {
-    name          = "createorupdateticket"
-    workspace_id  = "${data.azurerm_client_config.current.subscription_id}|${azurerm_log_analytics_workspace.test.workspace_id}"
-    connection_id = "53de6956-42b4-41ba-be3c-b154cdf17b13"
-    # https://github.com/Azure/azure-rest-api-specs/issues/20488
+    name                 = "createorupdateticket"
+    workspace_id         = "${data.azurerm_client_config.current.subscription_id}|${azurerm_log_analytics_workspace.test.workspace_id}"
+    connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
     ticket_configuration = "{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"
     region               = "eastus"
   }
