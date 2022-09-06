@@ -137,7 +137,7 @@ func PlanTypeFromSku(input string) string {
 }
 
 // ServicePlanInfoForApp returns the OS type and Service Plan SKU for a given App Service Resource
-func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, id interface{}) (osType *string, planSku *string, err error) {
+func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, id interface{}, serviceFarmId string) (osType *string, planSku *string, err error) {
 	client := metadata.Client.AppService.WebAppsClient
 	servicePlanClient := metadata.Client.AppService.ServicePlanClient
 	var rg, siteName string
@@ -165,7 +165,10 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 	if props.ServerFarmID == nil {
 		return nil, nil, fmt.Errorf("determining Service Plan ID for %s: %+v", id, err)
 	}
-	servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+	if serviceFarmId == "" {
+		serviceFarmId = *props.ServerFarmID
+	}
+	servicePlanId, err := parse.ServicePlanID(serviceFarmId)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -424,17 +424,28 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					functionApp.AppSettings["AzureWebJobsDashboard__accountName"] = functionApp.StorageAccountName
 				}
 			}
-
+			// for function premium app with WEBSITE_CONTENTOVERVNET sets to 1, the user has to specify a predefined fire share.
+			// https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings#website_contentovervnet
 			if sendContentSettings {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)
 				}
 				if !functionApp.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
-					if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
+					_, contentShareConnectionString := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+
+					if !contentSharePresent {
+						if contentOverVnetEnabled {
+							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
+						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}
-					if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					if !contentShareConnectionString {
+						if contentOverVnetEnabled && contentSharePresent {
+							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET is specified")
+						}
 						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 				} else {
@@ -566,6 +577,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
+			servicePlanClient := metadata.Client.AppService.ServicePlanClient
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -578,6 +590,22 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
+			var planSku *string
+			if functionApp.ServerFarmID != nil {
+				servicePlanId, err := parse.ServicePlanID(*functionApp.ServerFarmID)
+				if err != nil {
+					return err
+				}
+				servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+				if err != nil {
+					return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+				}
+				if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+					planSku = sku.Name
+				}
+			}
+			sendContentSettings := helpers.PlanIsElastic(planSku)
+
 			if functionApp.SiteProperties == nil {
 				return fmt.Errorf("reading properties of Linux %s", id)
 			}
@@ -586,6 +614,43 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+			}
+
+			var storageAccountName, storageFileShare string
+			if sendContentSettings || helpers.PlanIsConsumption(planSku) {
+				if appSettingsResp.Properties != nil {
+					if appSettingsResp.Properties["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] != nil {
+						saConnectionString := strings.Split(*appSettingsResp.Properties["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"], ";")
+						for _, part := range saConnectionString {
+							if strings.Contains(part, "AccountName") {
+								storageAccountName = strings.TrimPrefix(part, "AccountName=")
+								break
+							}
+						}
+					}
+					if appSettingsResp.Properties["WEBSITE_CONTENTSHARE"] != nil {
+						storageFileShare = *appSettingsResp.Properties["WEBSITE_CONTENTSHARE"]
+					}
+					saClient := metadata.Client.Storage
+					account, err := saClient.FindAccount(ctx, storageAccountName)
+					if err != nil {
+						return fmt.Errorf("retrieving Account %q for Share %q: %s", storageAccountName, storageFileShare, err)
+					}
+					if account == nil {
+						return fmt.Errorf("unable to locate Storage Account %s", storageAccountName)
+					}
+					saFileShareClient, err := metadata.Client.Storage.FileSharesClient(ctx, *account)
+					if err != nil {
+						return fmt.Errorf("building File Share Client: %s", err)
+					}
+					exists, err := saFileShareClient.Exists(ctx, account.ResourceGroup, storageAccountName, storageFileShare)
+					if err != nil {
+						return fmt.Errorf("checking for existence of Storage Share %q (Account %q) : %+v", storageFileShare, storageAccountName, err)
+					}
+					if exists == nil {
+						return fmt.Errorf("the storage file share %s for function app %s does not exists, please specify an existing one", storageFileShare, id.ID())
+					}
+				}
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
@@ -751,7 +816,6 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -767,18 +831,20 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			// Some service plan updates are allowed - see customiseDiff for exceptions
+			var serviceFarmId string
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				serviceFarmId = state.ServicePlanId
+				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
+			}
+
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id, serviceFarmId)
 			if err != nil {
 				return err
 			}
 
 			// Only send for ElasticPremium
 			sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
-
-			// Some service plan updates are allowed - see customiseDiff for exceptions
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
-			}
 
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
@@ -854,6 +920,30 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 					state.AppSettings = make(map[string]string)
 				}
 				state.AppSettings = helpers.ParseContentSettings(appSettingsResp, state.AppSettings)
+
+				if !state.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					_, contentOverVnetEnabled := state.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					_, contentSharePresent := state.AppSettings["WEBSITE_CONTENTSHARE"]
+					_, contentShareConnectionString := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+
+					if !contentSharePresent {
+						if contentOverVnetEnabled {
+							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
+						}
+						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
+					}
+					if !contentShareConnectionString {
+						if contentOverVnetEnabled && contentSharePresent {
+							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET is specified")
+						}
+						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := state.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						state.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
+				}
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later

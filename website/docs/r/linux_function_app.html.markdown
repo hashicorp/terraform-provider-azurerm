@@ -618,6 +618,8 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `false`.
 
+~> **NOTE:** when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
+
 * `api_definition_url` - (Optional) The URL of the API definition that describes this Linux Function App.
 
 * `api_management_api_id` - (Optional) The ID of the API Management API for this Linux Function App.
