@@ -77,6 +77,7 @@ var services = mapOf(
         "netapp" to "NetApp",
         "network" to "Network",
         "notificationhub" to "Notification Hub",
+        "orbital" to "Orbital",
         "policy" to "Policy",
         "portal" to "Portal",
         "postgres" to "PostgreSQL",
