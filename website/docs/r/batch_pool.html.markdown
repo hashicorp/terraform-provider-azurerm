@@ -144,6 +144,8 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A map of custom batch pool metadata.
 
+* `mount` - (Optional) A `mount` block defined as below.
+
 * `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool.
 
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
@@ -282,6 +284,77 @@ A `container_registries` block supports the following:
 * `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
 
 * `user_assigned_identity_id` - (Optional) The reference to the user assigned identity to use to access an Azure Container Registry instead of username and password. Changing this forces a new resource to be created.
+
+---
+
+An `mount` block supports the following:
+
+Any property below is mutually exclusive with all other properties.
+
+* `azure_blob_file_system` - (Optional) A `azure_blob_file_system` block defined as below.
+
+* `azure_file_share` - (Optional) A `azure_file_share` block defined as below.
+
+* `cifs_mount` - (Optional) A `cifs_mount` block defined as below.
+
+* `nfs_mount` - (Optional) A `nfs_mount` block defined as below.
+
+---
+
+An `azure_blob_file_system` block supports the following:
+
+* `account_name` - (Required) The Azure Storage Account name.
+
+* `container_name` - (Required) The Azure Blob Storage Container name.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `account_key` - (Optional) The Azure Storage Account key. This property is mutually exclusive with both `sas_key` and `identity_id`; exactly one must be specified.
+
+* `sas_key` - (Optional) The Azure Storage SAS token. This property is mutually exclusive with both `account_key` and `identity_id`; exactly one must be specified.
+
+* `identity_id` - (Optional) The ARM resource id of the user assigned identity. This property is mutually exclusive with both `account_key` and `sas_key`; exactly one must be specified.
+
+* `blobfuse_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `azure_file_share` block supports the following:
+
+* `account_name` - (Required) The Azure Storage Account name.
+
+* `account_key` - (Required) The Azure Storage Account key.
+
+* `azure_file_url` - (Required) The Azure Files URL. This is of the form 'https://{account}.file.core.windows.net/'.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+A `cifs_mount` block supports the following:
+
+* `user_name` - (Required) The user to use for authentication against the CIFS file system.
+
+* `password` - (Required) The password to use for authentication against the CIFS file system.
+
+* `source` - (Required) The URI of the file system to mount.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+A `nfs_mount` block supports the following:
+
+* `source` - (Required) The URI of the file system to mount.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
 ---
 
 A `network_configuration` block supports the following:

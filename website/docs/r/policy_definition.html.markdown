@@ -96,6 +96,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Policy Definition.
 
+* `role_definition_ids` - A list of role definition id extracted from `policy_rule` required for remediation.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

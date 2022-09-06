@@ -309,6 +309,151 @@ func resourceBatchPool() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
+			"mount": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"azure_blob_file_system": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"container_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"account_key": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"sas_key": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"identity_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+									},
+									"blobfuse_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"azure_file_share": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"azure_file_url": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsURLWithHTTPS,
+									},
+									"account_key": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"cifs_mount": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"user_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"source": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"password": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"nfs_mount": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"source": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -521,6 +666,12 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 
+	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "mount": %v`, err)
+	}
+	parameters.PoolProperties.MountConfiguration = mountConfiguration
+
 	networkConfiguration := d.Get("network_configuration").([]interface{})
 	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
@@ -633,6 +784,12 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
 
+	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "mount": %v`, err)
+	}
+	parameters.PoolProperties.MountConfiguration = mountConfiguration
+
 	result, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters, "")
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
@@ -714,6 +871,14 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
+
+		if props.MountConfiguration != nil {
+			mountConfigs := make([]interface{}, 0)
+			for _, mountConfig := range *props.MountConfiguration {
+				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
+			}
+			d.Set("mount", mountConfigs)
+		}
 
 		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 			return fmt.Errorf("setting `network_configuration`: %v", err)

@@ -492,6 +492,91 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_mountConfigurationAzureBlobFileSystem(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mountConfigurationAzureBlobFileSystem(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount.0.azure_blob_file_system.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.azure_blob_file_system.0.relative_mount_path").HasValue("/mnt/"),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"mount.0.azure_blob_file_system.0.account_key",
+		),
+	})
+}
+
+func TestAccBatchPool_mountConfigurationAzureFileShare(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mountConfigurationAzureFileShare(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount.0.azure_file_share.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.azure_file_share.0.relative_mount_path").HasValue("/mnt/"),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"mount.0.azure_file_share.0.account_key",
+		),
+	})
+}
+
+func TestAccBatchPool_mountConfigurationCIFS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mountConfigurationCIFS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.password").HasValue("myPassword"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.source").HasValue("https://testaccount.file.core.windows.net/"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.relative_mount_path").HasValue("/mnt/"),
+				check.That(data.ResourceName).Key("mount.0.cifs_mount.0.mount_options").HasValue("sampleops"),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"mount.0.cifs_mount.0.password",
+		),
+	})
+}
+
+func TestAccBatchPool_mountConfigurationNFS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mountConfigurationNFS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.0.source").HasValue("https://testaccount.file.core.windows.net/"),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.0.relative_mount_path").HasValue("/mnt/"),
+				check.That(data.ResourceName).Key("mount.0.nfs_mount.0.mount_options").HasValue("sampleops"),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+		),
+	})
+}
+
 func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PoolID(state.ID)
 	if err != nil {
@@ -1665,4 +1750,206 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchPoolResource) mountConfigurationAzureBlobFileSystem(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_storage_account" "test" {
+  name                     = "accbatchsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+resource "azurerm_storage_container" "test" {
+  name                  = "accbatchsc%s"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  mount {
+    azure_blob_file_system {
+      account_name        = azurerm_storage_account.test.name
+      container_name      = azurerm_storage_container.test.name
+      account_key         = azurerm_storage_account.test.primary_access_key
+      relative_mount_path = "/mnt/"
+    }
+  }
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) mountConfigurationAzureFileShare(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_storage_account" "test" {
+  name                     = "accbatchsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+resource "azurerm_storage_container" "test" {
+  name                  = "accbatchsc%s"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  mount {
+    azure_file_share {
+      account_name        = azurerm_storage_account.test.name
+      account_key         = azurerm_storage_account.test.primary_access_key
+      azure_file_url      = "https://testaccount.file.core.windows.net/"
+      relative_mount_path = "/mnt/"
+    }
+  }
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) mountConfigurationCIFS(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  mount {
+    cifs_mount {
+      user_name           = "myUserName"
+      password            = "myPassword"
+      source              = "https://testaccount.file.core.windows.net/"
+      relative_mount_path = "/mnt/"
+      mount_options       = "sampleops"
+    }
+  }
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) mountConfigurationNFS(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+  mount {
+    nfs_mount {
+      source              = "https://testaccount.file.core.windows.net/"
+      relative_mount_path = "/mnt/"
+      mount_options       = "sampleops"
+    }
+  }
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+resource "azurerm_network_security_group" "test" {
+  name                = "testnsg-batch-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "testvn-batch-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+resource "azurerm_subnet" "testsubnet" {
+  name                 = "testsn-%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.testsubnet.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }

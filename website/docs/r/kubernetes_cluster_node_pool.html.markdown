@@ -85,6 +85,8 @@ The following arguments are supported:
 
 ~> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot` and will default to `Delete` unless otherwise specified.
 
+* `host_group_id` - (Optional) The fully qualified resource ID of the Dedicated Host Group to provision virtual machines from. Changing this forces a new resource to be created.
+
 * `kubelet_config` - (Optional) A `kubelet_config` block as defined below.
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below.

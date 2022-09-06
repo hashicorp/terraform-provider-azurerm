@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `delta_snapshot_query` - (Optional) The query used to retrieve incremental changes in the reference data from the MS SQL database. Cannot be set when `refresh_type` is `Static`.
 
+* `table` - (Optional) The name of the table in the Azure SQL database.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

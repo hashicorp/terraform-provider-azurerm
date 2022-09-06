@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -87,17 +87,17 @@ func testAccCassandraCluster_update(t *testing.T) {
 }
 
 func (t CassandraClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CassandraClusterID(state.ID)
+	id, err := managedcassandras.ParseCassandraClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cosmos.CassandraClustersClient.CassandraClustersGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r CassandraClusterResource) basic(data acceptance.TestData) string {
@@ -133,6 +133,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   client_certificate_pems          = [file("testdata/cert.pem")]
   external_gossip_certificate_pems = [file("testdata/cert.pem")]
   external_seed_node_ip_addresses  = ["10.52.221.2"]
+  hours_between_backups            = 22
 
   identity {
     type = "SystemAssigned"
@@ -164,6 +165,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   client_certificate_pems          = [file("testdata/cert2.pem")]
   external_gossip_certificate_pems = [file("testdata/cert2.pem")]
   external_seed_node_ip_addresses  = ["10.52.221.5"]
+  hours_between_backups            = 0
 
   tags = {
     Env = "Test2"
