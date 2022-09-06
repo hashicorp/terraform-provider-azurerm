@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_api_management_schema` [GH-18158]
 * **New Resource**: `azurerm_automation_source_control` [GH-18175]
 
 ENHANCEMENTS:
