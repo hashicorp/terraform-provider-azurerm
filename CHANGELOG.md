@@ -14,6 +14,12 @@ ENHANCEMENTS:
 * `azurerm_api_management_api` - the `soap_pass_through` property has been deprecated in favour of the `api_type` property [GH-17812]
 * `azurerm_kubernetes_cluster` - support for the `edge_zone` property [GH-18115]
 * `azurerm_virtual_desktop_host_pool` - support for the `scheduled_agent_updates` block [GH-17489]
+* `azurerm_hdinsight_kafka_cluster` - azurerm_hdinsight_spark_cluster - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_spark_cluster` - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_hbase_cluster` - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_hadoop_cluster` - support for the `extension` property [GH-17846]
+
 
 BUG FIXES:
 
