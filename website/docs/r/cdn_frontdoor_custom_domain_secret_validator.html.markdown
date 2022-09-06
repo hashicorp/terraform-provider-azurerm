@@ -6,7 +6,7 @@ description: |-
   Manages a part of the workflow when creating a Frontdoor Custom Domain.
 ---
 
-# azurerum_cdn_frontdoor_custom_domain_secret_validator
+# azurerm_cdn_frontdoor_custom_domain_secret_validator
 
 The successful creation of this resource represents that the TLS certificate(s) have been successfully provisioned to each Frontdoor Custom Domain by the Frontdoor service.
 
