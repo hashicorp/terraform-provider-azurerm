@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
+	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -83,6 +84,7 @@ import (
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
+	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
@@ -199,6 +201,7 @@ type Client struct {
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
 	Network               *network.Client
+	Nginx                 *nginx2.Client
 	NotificationHubs      *notificationhub.Client
 	Orbital               *orbital.Client
 	Policy                *policy.Client
@@ -317,6 +320,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
+	client.Nginx = nginx.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Orbital = orbital.NewClient(o)
 	client.Policy = policy.NewClient(o)
