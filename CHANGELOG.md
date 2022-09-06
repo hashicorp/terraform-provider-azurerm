@@ -1,5 +1,9 @@
 ## 3.22.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_automation_source_control` [GH-18175]
+
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` ([#18183](https://github.com/hashicorp/terraform-provider-azurerm/issues/18183))
