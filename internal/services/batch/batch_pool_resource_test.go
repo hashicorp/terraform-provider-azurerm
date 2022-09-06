@@ -626,7 +626,7 @@ func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.interNodeCommunication(data),
+			Config: r.interNodeCommunicationWithTaskSchedulingPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("inter_node_communication").HasValue("Disabled"),
@@ -2104,7 +2104,7 @@ resource "azurerm_batch_pool" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func (BatchPoolResource) interNodeCommunication(data acceptance.TestData) string {
+func (BatchPoolResource) interNodeCommunicationWithTaskSchedulingPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

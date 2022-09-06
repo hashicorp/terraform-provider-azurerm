@@ -1051,6 +1051,20 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	return networkConfiguration, nil
 }
 
+func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*batch.TaskSchedulingPolicy, error) {
+	var result batch.TaskSchedulingPolicy
+
+	if taskSchedulingPolicyString, ok := d.GetOk("task_scheduling_policy"); ok {
+		taskSchedulingPolicy := taskSchedulingPolicyString.([]interface{})
+		if taskSchedulingPolicy != nil && len(taskSchedulingPolicy) > 0 {
+			item := taskSchedulingPolicy[0].(map[string]interface{})
+			result.NodeFillType = batch.ComputeNodeFillType(item["node_fill_type"].(string))
+		}
+		return &result, nil
+	}
+	return nil, fmt.Errorf("task_scheduling_policy either is empty or contains parsing errors")
+}
+
 func expandPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
 	if len(list) == 0 {
 		return nil, nil

@@ -834,6 +834,12 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.PoolProperties.UserAccounts = userAccounts
 
+	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
+	}
+	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
+
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
@@ -967,6 +973,12 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	parameters.PoolProperties.ScaleSettings = scaleSettings
+
+	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
+	if err != nil {
+		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
+	}
+	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
 
 	userAccounts, err := ExpandBatchPoolUserAccounts(d)
 	if err != nil {
