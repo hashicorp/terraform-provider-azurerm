@@ -846,16 +846,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"dns_server": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-										RequiredWith: []string{"windows_profile.0.gmsa.0.dns_server", "windows_profile.0.gmsa.0.root_domain"},
+										Type:     pluginsdk.TypeString,
+										Required: true,
 									},
 									"root_domain": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-										RequiredWith: []string{"windows_profile.0.gmsa.0.dns_server", "windows_profile.0.gmsa.0.root_domain"},
+										Type:     pluginsdk.TypeString,
+										Required: true,
 									},
 								},
 							},
@@ -2122,10 +2118,6 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservic
 func expandGmsaProfile(input []interface{}) *containerservice.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
-	}
-
-	if input[0] == nil {
-		return &containerservice.WindowsGmsaProfile{Enabled: utils.Bool(true)}
 	}
 
 	config := input[0].(map[string]interface{})
