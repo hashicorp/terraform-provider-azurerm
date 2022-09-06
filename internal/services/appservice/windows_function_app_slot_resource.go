@@ -678,7 +678,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id, "")
 			if err != nil {
 				return err
 			}
