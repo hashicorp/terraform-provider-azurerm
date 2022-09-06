@@ -16,10 +16,11 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_batch_account" "example" {
-  name                = "${var.prefix}batch"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  storage_account_id  = azurerm_storage_account.example.id
+  name                                = "${var.prefix}batch"
+  resource_group_name                 = azurerm_resource_group.example.name
+  location                            = azurerm_resource_group.example.location
+  storage_account_id                  = azurerm_storage_account.example.id
+  storage_account_authentication_mode = "StorageKeys"
 }
 
 resource "azurerm_batch_pool" "fixed" {

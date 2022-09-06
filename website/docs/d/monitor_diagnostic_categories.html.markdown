@@ -34,6 +34,12 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 
 * `logs` - A list of the Log Categories supported for this Resource.
 
+* ~> **NOTE:** `logs` is deprecated and will be removed in favour of the property `log_category_types` and `log_category_groups` in version 4.0 of the AzureRM Provider.
+
+* `log_category_types` - A list of the supported log category types of this resource to send to the destination.
+
+* `log_category_groups` - A list of the supported log category groups of this resource to send to the destination.
+
 * `metrics` - A list of the Metric Categories supported for this Resource.
 
 ## Timeouts

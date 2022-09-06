@@ -76,16 +76,16 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[1]d"
+  name                 = "acctestpa-sub-%[1]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[2]s", "%[3]s"]
+      "value" = ["%[2]s", "%[3]s", "%[4]s"]
     }
   })
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r SubscriptionPolicyRemediationResource) basic(data acceptance.TestData) string {
@@ -111,6 +111,9 @@ resource "azurerm_subscription_policy_remediation" "test" {
   location_filters        = ["westus"]
   policy_definition_id    = data.azurerm_policy_definition.test.id
   resource_discovery_mode = "ReEvaluateCompliance"
+  failure_percentage      = 0.5
+  parallel_deployments    = 3
+  resource_count          = 3
 }
 `, r.template(data), data.RandomString)
 }

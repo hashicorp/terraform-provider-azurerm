@@ -6,10 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	subnetValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -80,7 +79,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 					"log_analytics_workspace_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+						ValidateFunc: workspaces.ValidateWorkspaceID,
 					},
 					"oms_agent_identity": {
 						Type:     pluginsdk.TypeList,
@@ -260,7 +259,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		config := make(map[string]*string)
 
 		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
-			lawid, err := laparse.LogAnalyticsWorkspaceID(workspaceID.(string))
+			lawid, err := workspaces.ParseWorkspaceID(workspaceID.(string))
 			if err != nil {
 				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
 			}
@@ -428,7 +427,7 @@ func flattenKubernetesAddOns(profile map[string]*containerservice.ManagedCluster
 		if enabled := omsAgent.Enabled; enabled != nil && *enabled {
 			workspaceID := ""
 			if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
-				if lawid, err := laparse.LogAnalyticsWorkspaceID(*v); err == nil {
+				if lawid, err := workspaces.ParseWorkspaceID(*v); err == nil {
 					workspaceID = lawid.ID()
 				}
 			}

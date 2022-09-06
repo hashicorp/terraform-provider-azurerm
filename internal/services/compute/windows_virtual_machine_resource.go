@@ -299,6 +299,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					computeValidate.ImageID,
 					computeValidate.SharedImageID,
 					computeValidate.SharedImageVersionID,
+					computeValidate.CommunityGalleryImageID,
+					computeValidate.CommunityGalleryImageVersionID,
+					computeValidate.SharedGalleryImageID,
+					computeValidate.SharedGalleryImageVersionID,
 				),
 			},
 
@@ -884,6 +888,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		var storageImageId string
 		if profile.ImageReference != nil && profile.ImageReference.ID != nil {
 			storageImageId = *profile.ImageReference.ID
+		}
+		if profile.ImageReference != nil && profile.ImageReference.CommunityGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.CommunityGalleryImageID
+		}
+		if profile.ImageReference != nil && profile.ImageReference.SharedGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.SharedGalleryImageID
 		}
 		d.Set("source_image_id", storageImageId)
 

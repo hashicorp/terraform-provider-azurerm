@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `document_id` - (Optional) The name of the field in output events used to specify the primary key which insert or update operations are based on.
 
+* `partition_key` - (Optional) The name of the field in output events used to specify the key for partitioning output across collections. If `container_name` contains `{partition}` token, this property is required to be specified.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
