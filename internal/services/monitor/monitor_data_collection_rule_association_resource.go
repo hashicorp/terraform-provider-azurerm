@@ -28,18 +28,19 @@ type DataCollectionRuleAssociationResource struct{}
 
 func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"target_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceID,
+		},
+
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "configurationAccessEndpoint",
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"data_collection_endpoint_id": {
@@ -54,6 +55,7 @@ func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk
 			Optional:     true,
 			ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
 			ExactlyOneOf: []string{"data_collection_endpoint_id", "data_collection_rule_id"},
+			RequiredWith: []string{"name"},
 		},
 
 		"description": {

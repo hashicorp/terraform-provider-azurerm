@@ -102,7 +102,6 @@ resource "azurerm_data_collection_rule_association" "example1" {
 
 # associate to a Data Collection Endpoint
 resource "azurerm_data_collection_rule_association" "example1" {
-  name                        = "configurationAccessEndpoint"
   target_resource_id          = azurerm_linux_virtual_machine.example.id
   data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.example.id
   description                 = "example"
@@ -114,13 +113,13 @@ resource "azurerm_data_collection_rule_association" "example1" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Data Collection Rule. Changing this forces a new Data Collection Rule to be created.
-
--> **NOTE** If `data_collection_endpoint_id` is specified, this Data Collection Rule Association must be named 'configurationAccessEndpoint'. If `data_collection_rule_id` is specified, the name can be customized. 
-
 * `target_resource_id` - (Required) The ID of the Azure Resource which to associate to a Data Collection Rule or a Data Collection Endpoint. Changing this forces a new resource to be created.
 
 ---
+
+* `name` - (Optional) The name which should be used for this Data Collection Rule. Changing this forces a new Data Collection Rule to be created.
+
+-> **NOTE** `name` is required when `data_collection_rule_id` is specified. And when `data_collection_endpoint_id` is specified, the `name` is populated with `configurationAccessEndpoint`.
 
 * `data_collection_endpoint_id` - (Optional) The ID of the Data Collection Endpoint which will be associated to the target resource.
 
