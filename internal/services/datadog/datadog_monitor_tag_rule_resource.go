@@ -38,6 +38,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 			"datadog_monitor_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.DatadogMonitorID,
 			},
 
@@ -67,7 +68,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"filtering_tag": {
+						"filter": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -100,7 +101,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"filtering_tag": {
+						"filter": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -242,7 +243,7 @@ func expandLogRules(input []interface{}) *datadog.LogRules {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	filteringTag := v["filtering_tag"].([]interface{})
+	filteringTag := v["filter"].([]interface{})
 
 	return &datadog.LogRules{
 		SendAadLogs:          utils.Bool(v["aad_log_enabled"].(bool)),
@@ -257,7 +258,7 @@ func expandMetricRules(input []interface{}) *datadog.MetricRules {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	filteringTag := v["filtering_tag"].([]interface{})
+	filteringTag := v["filter"].([]interface{})
 
 	return &datadog.MetricRules{
 		FilteringTags: expandFilteringTag(filteringTag),
@@ -306,7 +307,7 @@ func flattenLogRules(input *datadog.LogRules) []interface{} {
 		result["resource_log_enabled"] = *input.SendResourceLogs
 	}
 
-	result["filtering_tag"] = flattenFilteringTags(input.FilteringTags)
+	result["filter"] = flattenFilteringTags(input.FilteringTags)
 	return append(results, result)
 
 }
@@ -319,7 +320,7 @@ func flattenMetricRules(input *datadog.MetricRules) []interface{} {
 	}
 	result := make(map[string]interface{})
 
-	result["filtering_tag"] = flattenFilteringTags(input.FilteringTags)
+	result["filter"] = flattenFilteringTags(input.FilteringTags)
 	return append(results, result)
 }
 

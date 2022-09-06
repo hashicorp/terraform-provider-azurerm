@@ -37,6 +37,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			"datadog_monitor_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.DatadogMonitorID,
 			},
 
@@ -47,8 +48,9 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			},
 
 			"enterprise_application_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.DatadogEnterpriseApplicationID,
 			},
 
 			"singlesignon_state": {
@@ -56,7 +58,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"singlesignon_url": {
+			"login_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -129,7 +131,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	if props := resp.Properties; props != nil {
 		d.Set("singlesignon_state", props.SingleSignOnState)
-		d.Set("singlesignon_url", props.SingleSignOnURL)
+		d.Set("login_url", props.SingleSignOnURL)
 		d.Set("enterprise_application_id", props.EnterpriseAppID)
 	}
 

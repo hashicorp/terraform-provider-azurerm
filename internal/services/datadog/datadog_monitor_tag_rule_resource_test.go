@@ -16,7 +16,7 @@ import (
 type TagRulesDatadogMonitorResource struct{}
 
 func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,7 +30,7 @@ func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 }
 
 func TestAccDatadogMonitorTagRules_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,13 +96,13 @@ func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 
 
 
-resource "azurerm_datadog_monitor_tagrule" "test" {
+resource "azurerm_datadog_monitor_tag_rule" "test" {
   datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
   log {
     subscription_log_enabled = true
   }
   metric {
-    filtering_tag {
+    filter {
       name   = "Test"
       value  = "Testing-Logs"
       action = "Include"
@@ -114,19 +114,19 @@ resource "azurerm_datadog_monitor_tagrule" "test" {
 
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_datadog_monitor_tagrule" "test" {
+resource "azurerm_datadog_monitor_tag_rule" "test" {
   datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
   log {
     subscription_log_enabled = false
     resource_log_enabled     = true
-    filtering_tag {
+    filter {
       name   = "Test"
       value  = "Testing-Logs"
       action = "Include"
     }
   }
   metric {
-    filtering_tag {
+    filter {
       name   = "Test"
       value  = "Testing-Logs"
       action = "Include"

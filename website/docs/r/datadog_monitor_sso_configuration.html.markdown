@@ -29,7 +29,7 @@ resource "azurerm_datadog_monitor_sso_configuration" "test" {
 
 The following arguments are supported:
 
-* `datadog_monitor_id` - (Required) The Datadog Monitor Id which should be used for this.
+* `datadog_monitor_id` - (Required) The Datadog Monitor Id which should be used for this Datadog Monitor SSO Configuration. Changing this forces a new Datadog Monitor SSO Configuration to be created.
 
 * `singlesignon_state` - (Required) The state of SingleSignOn configuration.
 
@@ -43,7 +43,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `singlesignon_url` - The SingleSignOn URL to login to Datadog org.
+* `login_url` - The SingleSignOn URL to login to Datadog org.
 
 ## Timeouts
 
@@ -53,3 +53,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `read` - (Defaults to 5 minutes) Used when retrieving the SingleSignOn on the datadog Monitor.
 * `update` - (Defaults to 30 minutes) Used when updating the SingleSignOn on the datadog Monitor.
 * `delete` - (Defaults to 30 minutes) Used when deleting the SingleSignOn on the datadog Monitor.
+
+## Import
+
+SingleSignOn on the Datadog Monitor can be imported using the `signle sign on resource id`, e.g.
+
+```shell
+terraform import azurerm_datadog_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Datadog/monitors/monitor1/singleSignOnConfigurations/default
