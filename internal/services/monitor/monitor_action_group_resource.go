@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -447,6 +448,11 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	expandedItsmReceiver, err := expandMonitorActionGroupItsmReceiver(itsmReceiversRaw)
+	if err != nil {
+		return err
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
@@ -457,7 +463,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			Enabled:                    utils.Bool(enabled),
 			EmailReceivers:             expandMonitorActionGroupEmailReceiver(emailReceiversRaw),
 			AzureAppPushReceivers:      expandMonitorActionGroupAzureAppPushReceiver(azureAppPushReceiversRaw),
-			ItsmReceivers:              expandMonitorActionGroupItsmReceiver(itsmReceiversRaw),
+			ItsmReceivers:              expandedItsmReceiver,
 			SmsReceivers:               expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
 			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(tenantId, webhookReceiversRaw),
 			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(automationRunbookReceiversRaw),
@@ -584,20 +590,36 @@ func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]insights.EmailRec
 	return &receivers
 }
 
-func expandMonitorActionGroupItsmReceiver(v []interface{}) *[]insights.ItsmReceiver {
+func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]insights.ItsmReceiver, error) {
 	receivers := make([]insights.ItsmReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
+		ticketConfiguration := utils.String(val["ticket_configuration"].(string))
 		receiver := insights.ItsmReceiver{
 			Name:                utils.String(val["name"].(string)),
 			WorkspaceID:         utils.String(val["workspace_id"].(string)),
 			ConnectionID:        utils.String(val["connection_id"].(string)),
-			TicketConfiguration: utils.String(val["ticket_configuration"].(string)),
+			TicketConfiguration: ticketConfiguration,
 			Region:              utils.String(azure.NormalizeLocation(val["region"].(string))),
+		}
+
+		// https://github.com/Azure/azure-rest-api-specs/issues/20488 ticket_configuration should have `PayloadRevision` and `WorkItemType` keys
+		if ticketConfiguration != nil {
+			j := make(map[string]interface{})
+			err := json.Unmarshal([]byte(*ticketConfiguration), &j)
+			if err != nil {
+				return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` %s unmarshall json error: %+v", *ticketConfiguration, err)
+			}
+
+			_, existKeyPayloadRevision := j["PayloadRevision"]
+			_, existKeyWorkItemType := j["WorkItemType"]
+			if !(existKeyPayloadRevision && existKeyWorkItemType) {
+				return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
+			}
 		}
 		receivers = append(receivers, receiver)
 	}
-	return &receivers
+	return &receivers, nil
 }
 
 func expandMonitorActionGroupAzureAppPushReceiver(v []interface{}) *[]insights.AzureAppPushReceiver {
