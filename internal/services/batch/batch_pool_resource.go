@@ -821,9 +821,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
-			VMSize:           utils.String(d.Get("vm_size").(string)),
-			DisplayName:      utils.String(d.Get("display_name").(string)),
-			TaskSlotsPerNode: utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
+			VMSize:                 utils.String(d.Get("vm_size").(string)),
+			DisplayName:            utils.String(d.Get("display_name").(string)),
+			InterNodeCommunication: batch.InterNodeCommunicationState(d.Get("inter_node_communication").(string)),
+			TaskSlotsPerNode:       utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
@@ -1061,6 +1062,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if props := resp.PoolProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("vm_size", props.VMSize)
+		d.Set("inter_node_communication", string(props.InterNodeCommunication))
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {

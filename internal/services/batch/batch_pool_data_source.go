@@ -690,6 +690,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.PoolProperties; props != nil {
 		d.Set("vm_size", props.VMSize)
 		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
+		d.Set("inter_node_communication", string(props.InterNodeCommunication))
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
