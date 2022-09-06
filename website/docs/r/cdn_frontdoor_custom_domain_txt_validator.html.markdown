@@ -6,7 +6,7 @@ description: |-
   Manages a part of the workflow when creating a Frontdoor Custom Domain.
 ---
 
-# azurerum_cdn_frontdoor_custom_domain_txt_validator
+# azurerm_cdn_frontdoor_custom_domain_txt_validator
 
 The successful creation of this resource represents that the DNS TXT record for a Frontdoor Custom Domain has been validated by the Frontdoor service.
 
