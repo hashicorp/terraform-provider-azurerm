@@ -75,7 +75,12 @@ A `health_probe` block supports the following:
 
 * `path` - (Optional) Specifies the path relative to the origin that is used to determine the health of the origin. Defaults to `/`.
 
+-> **NOTE:** Health probes can only be disabled if there is a single enabled origin in a single enabled origin group.
+
+-> **NOTE:** To disable health probes you must remove them from your configuration files `azurerm_cdn_frontdoor_origin_group` resource definition.
+
 -> **NOTE:** For more information about the `health_probe` settings please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/health-probes).
+
 ---
 
 A `load_balancing` block supports the following:

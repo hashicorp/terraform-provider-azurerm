@@ -115,12 +115,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO: can this be removed?
-			// WS: Removed
-
-			// TODO: we should probably make these top-level fields
-			// WS: Fixed
-
 			"expiration_date": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

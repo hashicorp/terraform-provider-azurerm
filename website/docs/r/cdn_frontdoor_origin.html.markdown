@@ -118,9 +118,9 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 
 * `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
-* `health_probes_enabled` - (Optional) Should the health probes be enabled against the origins defined within the origin group? Possible values are `true` or `false`. Defaults to `true`. 
+* `enabled` - (Optional) Should the origin be enabled? Possible values are `true` or `false`. Defaults to `true`.
 
--> **NOTE:** Health probes can only be disabled if there is a single enabled origin in single enabled origin group
+-> **NOTE:** In version 4.0 of the provider this value will default to `true`, however due to the deprecation of the `health_probes_enabled` property in version 3.x of the AzureRM Provider this value will need to be explicitly set until the 4.0 provider is released.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
