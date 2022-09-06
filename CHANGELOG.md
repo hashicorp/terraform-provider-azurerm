@@ -25,6 +25,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_mssql_database` - the `license_type` property is now also Computed [GH-18230]
+* `azurerm_synapse_sql_pool` - `name` has correct validation error message  [GH-18264]
 
 ## 3.21.1 (September 02, 2022)
 
