@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	pandoraAPIMGlobalSchema "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -25,6 +26,7 @@ type Client struct {
 	GatewayCertificateAuthorityClient  *apimanagement.GatewayCertificateAuthorityClient
 	GatewayApisClient                  *apimanagement.GatewayAPIClient
 	GatewayHostNameConfigurationClient *apimanagement.GatewayHostnameConfigurationClient
+	GlobalSchemaClient                 *pandoraAPIMGlobalSchema.SchemaClient
 	GroupClient                        *apimanagement.GroupClient
 	GroupUsersClient                   *apimanagement.GroupUserClient
 	IdentityProviderClient             *apimanagement.IdentityProviderClient
@@ -104,6 +106,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	gatewayHostNameConfigurationClient := apimanagement.NewGatewayHostnameConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayHostNameConfigurationClient.Client, o.ResourceManagerAuthorizer)
+
+	globalSchemaClient := pandoraAPIMGlobalSchema.NewSchemaClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&globalSchemaClient.Client, o.ResourceManagerAuthorizer)
 
 	groupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupClient.Client, o.ResourceManagerAuthorizer)
@@ -185,6 +190,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		GatewayCertificateAuthorityClient:  &gatewayCertificateAuthorityClient,
 		GatewayApisClient:                  &gatewayApisClient,
 		GatewayHostNameConfigurationClient: &gatewayHostNameConfigurationClient,
+		GlobalSchemaClient:                 &globalSchemaClient,
 		GroupClient:                        &groupClient,
 		GroupUsersClient:                   &groupUsersClient,
 		IdentityProviderClient:             &identityProviderClient,
