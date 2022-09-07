@@ -52,7 +52,7 @@ resource "azurerm_linux_web_app_slot" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Linux Web App. Changing this forces a new Linux Web App to be created.
+* `name` - (Required) The name which should be used for this Linux Web App Slot. Changing this forces a new Linux Web App Slot to be created.
 
 * ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
 
@@ -416,9 +416,7 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `false`.
 
-* `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
-
-* `api_management_api_id` - (Optional) The API Management API ID this Linux Web App Slot os associated with.
+* `api_management_api_id` - (Optional) The API Management API ID this Linux Web App Slot is associated with.
 
 * `api_definition_url` - (Optional) The URL to the API Definition for this Linux Web App Slot.
 
