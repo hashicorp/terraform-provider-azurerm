@@ -119,7 +119,6 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				Computed:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
 			},
 
