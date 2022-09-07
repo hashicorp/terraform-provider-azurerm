@@ -15,23 +15,24 @@ func FrontDoorRuleCidrOverlap(input []interface{}, key string) (warnings []strin
 			v, ok := CIDR.(string)
 			if !ok {
 				errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-				return
+				return warnings, errors
 			}
 
 			if _, value := tmp[v]; !value {
 				tmp[v] = true
 			} else {
 				errors = append(errors, fmt.Errorf("%q CIDRs must be unique, there is a duplicate entry for CIDR %q in the %q field. Please remove the duplicate entry and re-apply", key, CIDR, key))
-				return
+				return warnings, errors
 			}
 		}
 	} else {
 		_, ok := input[0].(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-			return
+			return warnings, errors
 		}
-		return
+
+		return warnings, errors
 	}
 
 	// separate the CIDRs into IPv6 and IPv4 variants
@@ -62,12 +63,12 @@ func FrontDoorRuleCidrOverlap(input []interface{}, key string) (warnings []strin
 				cidrOverlaps, err := validateCIDROverlap(sourceCIDR, checkCIDR)
 				if err != nil {
 					errors = append(errors, err)
-					return
+					return warnings, errors
 				}
 
 				if cidrOverlaps {
 					errors = append(errors, fmt.Errorf("the IPv4 %q CIDR %q address range overlaps with %q IPv4 CIDR address range", key, sourceCIDR, checkCIDR))
-					return
+					return warnings, errors
 				}
 			}
 		}
@@ -84,18 +85,18 @@ func FrontDoorRuleCidrOverlap(input []interface{}, key string) (warnings []strin
 				cidrOverlaps, err := validateCIDROverlap(sourceCIDR, checkCIDR)
 				if err != nil {
 					errors = append(errors, fmt.Errorf("unable to validate IPv6 CIDR address ranges overlap: %+v", err))
-					return
+					return warnings, errors
 				}
 
 				if cidrOverlaps {
 					errors = append(errors, fmt.Errorf("the %q IPv6 CIDR %q address range overlaps with %q IPv6 CIDR address range", key, sourceCIDR, checkCIDR))
-					return
+					return warnings, errors
 				}
 			}
 		}
 	}
 
-	return
+	return warnings, errors
 }
 
 func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
