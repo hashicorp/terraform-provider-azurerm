@@ -35,7 +35,7 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := capacities.ParseCapacitiesID(id)
+			_, err := capacities.ParseCapacityID(id)
 			return err
 		}),
 
@@ -95,7 +95,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := capacities.NewCapacitiesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := capacities.NewCapacityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.GetDetails(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -136,7 +136,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := capacities.ParseCapacitiesID(d.Id())
+	id, err := capacities.ParseCapacityID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := capacities.ParseCapacitiesID(d.Id())
+	id, err := capacities.ParseCapacityID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := capacities.ParseCapacitiesID(d.Id())
+	id, err := capacities.ParseCapacityID(d.Id())
 	if err != nil {
 		return err
 	}

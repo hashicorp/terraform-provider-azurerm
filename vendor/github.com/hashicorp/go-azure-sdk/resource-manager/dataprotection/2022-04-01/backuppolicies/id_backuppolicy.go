@@ -7,19 +7,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = BackupPoliciesId{}
+var _ resourceids.ResourceId = BackupPolicyId{}
 
-// BackupPoliciesId is a struct representing the Resource ID for a Backup Policies
-type BackupPoliciesId struct {
+// BackupPolicyId is a struct representing the Resource ID for a Backup Policy
+type BackupPolicyId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	VaultName         string
 	BackupPolicyName  string
 }
 
-// NewBackupPoliciesID returns a new BackupPoliciesId struct
-func NewBackupPoliciesID(subscriptionId string, resourceGroupName string, vaultName string, backupPolicyName string) BackupPoliciesId {
-	return BackupPoliciesId{
+// NewBackupPolicyID returns a new BackupPolicyId struct
+func NewBackupPolicyID(subscriptionId string, resourceGroupName string, vaultName string, backupPolicyName string) BackupPolicyId {
+	return BackupPolicyId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		VaultName:         vaultName,
@@ -27,16 +27,16 @@ func NewBackupPoliciesID(subscriptionId string, resourceGroupName string, vaultN
 	}
 }
 
-// ParseBackupPoliciesID parses 'input' into a BackupPoliciesId
-func ParseBackupPoliciesID(input string) (*BackupPoliciesId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupPoliciesId{})
+// ParseBackupPolicyID parses 'input' into a BackupPolicyId
+func ParseBackupPolicyID(input string) (*BackupPolicyId, error) {
+	parser := resourceids.NewParserFromResourceIdType(BackupPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := BackupPoliciesId{}
+	id := BackupPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -57,17 +57,17 @@ func ParseBackupPoliciesID(input string) (*BackupPoliciesId, error) {
 	return &id, nil
 }
 
-// ParseBackupPoliciesIDInsensitively parses 'input' case-insensitively into a BackupPoliciesId
+// ParseBackupPolicyIDInsensitively parses 'input' case-insensitively into a BackupPolicyId
 // note: this method should only be used for API response data and not user input
-func ParseBackupPoliciesIDInsensitively(input string) (*BackupPoliciesId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupPoliciesId{})
+func ParseBackupPolicyIDInsensitively(input string) (*BackupPolicyId, error) {
+	parser := resourceids.NewParserFromResourceIdType(BackupPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := BackupPoliciesId{}
+	id := BackupPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -88,29 +88,29 @@ func ParseBackupPoliciesIDInsensitively(input string) (*BackupPoliciesId, error)
 	return &id, nil
 }
 
-// ValidateBackupPoliciesID checks that 'input' can be parsed as a Backup Policies ID
-func ValidateBackupPoliciesID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateBackupPolicyID checks that 'input' can be parsed as a Backup Policy ID
+func ValidateBackupPolicyID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseBackupPoliciesID(v); err != nil {
+	if _, err := ParseBackupPolicyID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Backup Policies ID
-func (id BackupPoliciesId) ID() string {
+// ID returns the formatted Backup Policy ID
+func (id BackupPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/backupVaults/%s/backupPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VaultName, id.BackupPolicyName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Backup Policies ID
-func (id BackupPoliciesId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Backup Policy ID
+func (id BackupPolicyId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -125,13 +125,13 @@ func (id BackupPoliciesId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Backup Policies ID
-func (id BackupPoliciesId) String() string {
+// String returns a human-readable description of this Backup Policy ID
+func (id BackupPolicyId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Vault Name: %q", id.VaultName),
 		fmt.Sprintf("Backup Policy Name: %q", id.BackupPolicyName),
 	}
-	return fmt.Sprintf("Backup Policies (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Backup Policy (%s)", strings.Join(components, "\n"))
 }
