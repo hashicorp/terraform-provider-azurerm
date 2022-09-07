@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	validate4 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,34 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func parseTime(s string) *date.Time {
-	t, _ := time.Parse(time.RFC3339, s)
-	return &date.Time{
-		Time: t,
-	}
-}
-
-func timeString(t *date.Time) string {
-	if t == nil {
-		return ""
-	}
-	return t.Time.Format(time.RFC3339)
-}
-
-func stringSlice(input *[]string) []string {
-	if input == nil {
-		return nil
-	}
-	return *input
-}
-
-func deFloat64(ptr *float64) float64 {
-	if ptr == nil {
-		return 0
-	}
-	return *ptr
-}
 
 type Tag struct {
 	Tag    string   `tfschema:"tag"`
@@ -155,13 +128,20 @@ type Schedule struct {
 }
 
 func (s *Schedule) LoadSDKModel(info *automation.SUCScheduleProperties) {
+	timeString := func(t *date.Time) string {
+		if t == nil {
+			return ""
+		}
+		return t.Time.Format(time.RFC3339)
+	}
+
 	s.StartTime = timeString(info.StartTime)
-	s.StartTimeOffsetMinutes = deFloat64(info.StartTimeOffsetMinutes)
+	s.StartTimeOffsetMinutes = pointer.ToFloat64(info.StartTimeOffsetMinutes)
 	s.ExpiryTime = timeString(info.ExpiryTime)
-	s.ExpiryTimeOffsetMinutes = deFloat64(info.ExpiryTimeOffsetMinutes)
+	s.ExpiryTimeOffsetMinutes = pointer.ToFloat64(info.ExpiryTimeOffsetMinutes)
 	s.IsEnabled = utils.NormaliseNilableBool(info.IsEnabled)
 	s.NextRun = timeString(info.NextRun)
-	s.NextRunOffsetMinutes = deFloat64(info.NextRunOffsetMinutes)
+	s.NextRunOffsetMinutes = pointer.ToFloat64(info.NextRunOffsetMinutes)
 	if info.Interval != nil {
 		s.Interval = int(*info.Interval)
 	}
@@ -172,7 +152,7 @@ func (s *Schedule) LoadSDKModel(info *automation.SUCScheduleProperties) {
 	s.Description = utils.NormalizeNilableString(info.Description)
 
 	if setting := info.AdvancedSchedule; setting != nil {
-		s.AdvancedWeekDays = stringSlice(setting.WeekDays)
+		s.AdvancedWeekDays = pointer.ToSliceOfStrings(setting.WeekDays)
 		if setting.MonthDays != nil {
 			for _, v := range *(setting.MonthDays) {
 				s.AdvancedMonthDays = append(s.AdvancedMonthDays, int(v))
@@ -206,6 +186,11 @@ func scheduleFromSDK(info *automation.SUCScheduleProperties, old []Schedule) []S
 func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 	if s == nil {
 		return nil
+	}
+
+	parseTime := func(s string) *date.Time {
+		t, _ := time.Parse(time.RFC3339, s)
+		return &date.Time{Time: t}
 	}
 
 	res := automation.SUCScheduleProperties{
@@ -263,8 +248,8 @@ func targetsFromSDK(prop *automation.TargetProperties) []Target {
 	if prop.AzureQueries != nil {
 		for _, az := range *prop.AzureQueries {
 			q := AzureQuery{
-				Scope:     stringSlice(az.Scope),
-				Locations: stringSlice(az.Locations),
+				Scope:     pointer.ToSliceOfStrings(az.Scope),
+				Locations: pointer.ToSliceOfStrings(az.Locations),
 			}
 			if setting := az.TagSettings; setting != nil {
 				q.LoadSDKTags(setting.Tags)
@@ -416,8 +401,8 @@ func (s *SoftwareUpdateConfigurationModel) LoadSDKModel(prop *automation.Softwar
 			s.Linux = []Linux{{
 				Reboot:           utils.NormalizeNilableString(l.RebootSetting),
 				Classification:   string(l.IncludedPackageClassifications),
-				ExcludedPackages: stringSlice(l.ExcludedPackageNameMasks),
-				IncludedPackages: stringSlice(l.IncludedPackageNameMasks),
+				ExcludedPackages: pointer.ToSliceOfStrings(l.ExcludedPackageNameMasks),
+				IncludedPackages: pointer.ToSliceOfStrings(l.IncludedPackageNameMasks),
 			}}
 		}
 
@@ -425,15 +410,15 @@ func (s *SoftwareUpdateConfigurationModel) LoadSDKModel(prop *automation.Softwar
 			s.Windows = []Windows{
 				{
 					Classification: string(w.IncludedUpdateClassifications),
-					ExcludedKbs:    stringSlice(w.ExcludedKbNumbers),
-					IncludedKbs:    stringSlice(w.IncludedKbNumbers),
+					ExcludedKbs:    pointer.ToSliceOfStrings(w.ExcludedKbNumbers),
+					IncludedKbs:    pointer.ToSliceOfStrings(w.IncludedKbNumbers),
 					RebootSetting:  utils.NormalizeNilableString(w.RebootSetting),
 				}}
 		}
 
 		s.Duration = utils.NormalizeNilableString(conf.Duration)
-		s.VirtualMachines = stringSlice(conf.AzureVirtualMachines)
-		s.NonAzureComputerNames = stringSlice(conf.NonAzureComputerNames)
+		s.VirtualMachines = pointer.ToSliceOfStrings(conf.AzureVirtualMachines)
+		s.NonAzureComputerNames = pointer.ToSliceOfStrings(conf.NonAzureComputerNames)
 		s.Targets = targetsFromSDK(conf.Targets)
 	}
 
