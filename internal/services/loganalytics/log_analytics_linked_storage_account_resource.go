@@ -3,7 +3,6 @@ package loganalytics
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -42,13 +41,12 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeCustomLogs)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAzureWatson)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeQuery)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAlerts)),
-					// Value removed from enum in 2020-08-01, but effectively still works
-					"ingestion",
-				}, false),
+					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
+					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
+					string(linkedstorageaccounts.DataSourceTypeQuery),
+					string(linkedstorageaccounts.DataSourceTypeAlerts),
+					string(linkedstorageaccounts.DataSourceTypeIngestion),
+				}, true),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
