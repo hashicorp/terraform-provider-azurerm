@@ -87,8 +87,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
-        // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "2,4,6"),
+        // netapp has a max of 10 accounts per subscription so lets limit it to 5 to account for broken ones, run Monday, Wednesday, Friday
+        "netapp" to testConfiguration(parallelism = 5, daysOfWeek = "2,4,6"),
 
         "policy" to testConfiguration(useAltSubscription = true),
 
