@@ -9,7 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` ([#18183](https://github.com/hashicorp/terraform-provider-azurerm/issues/18183))
+* dependencies: updating to version `v0.20220907.1111434` of `github.com/hashicorp/go-azure-sdk` [GH-18282]
 * dependencies: `desktopvirtualization` - updating to use `2022-02-10` [GH-17489]
 * `azurerm_api_management_api` - the `soap_pass_through` property has been deprecated in favour of the `api_type` property [GH-17812]
 * `azurerm_kubernetes_cluster` - support for the `edge_zone` property [GH-18115]
