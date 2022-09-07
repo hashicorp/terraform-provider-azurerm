@@ -364,7 +364,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
 
-~> **NOTE:** `public_network_access_enabled` is deprecated and will be removed in favour of the property `public_access_behind_virtual_network_enabled` in version 4.0 of the AzureRM Provider.
+~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
 
 * `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
