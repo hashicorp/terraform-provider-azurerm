@@ -17,6 +17,44 @@ import (
 
 type WatcherResource struct{}
 
+func TestAccWatcher_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
+	r := WatcherResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("2"),
+			),
+		},
+		data.ImportStep("tags", "etag", "location"),
+	})
+}
+
+func TestAccWatcher_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
+	r := WatcherResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("2"),
+			),
+		},
+		data.ImportStep("tags", "etag", "location"),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("20"),
+			),
+		},
+		data.ImportStep("tags", "etag", "location"),
+	})
+}
+
 func (a WatcherResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WatcherID(state.ID)
 	if err != nil {
@@ -27,6 +65,62 @@ func (a WatcherResource) Exists(ctx context.Context, client *clients.Client, sta
 		return nil, fmt.Errorf("retrieving Type %s: %+v", id, err)
 	}
 	return utils.Bool(resp.WatcherProperties != nil), nil
+}
+
+func (a WatcherResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_automation_watcher" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-watcher-%[2]d"
+  location              = "%[3]s"
+
+  tags = {
+    foo = "bar"
+  }
+
+  script_parameters = {
+    param_foo = "arg_bar"
+  }
+
+  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
+  description                    = "example-watcher desc"
+  etag                           = "etag example"
+  script_name                    = azurerm_automation_runbook.test.name
+  execution_frequency_in_seconds = 2
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a WatcherResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_automation_watcher" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-watcher-%[2]d"
+  location              = "%[3]s"
+
+  tags = {
+    "foo" = "bar"
+  }
+
+  script_parameters = {
+    foo = "bar"
+  }
+
+  etag                           = "etag example"
+  execution_frequency_in_seconds = 20
+  script_name                    = azurerm_automation_runbook.test.name
+  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
+  description                    = "example-watcher desc"
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a WatcherResource) template(data acceptance.TestData) string {
@@ -92,7 +186,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_G5"
+  size                = "Standard_F2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
 
@@ -140,98 +234,4 @@ CONTENT
   }
 }
 `, data.RandomInteger, data.Locations.Primary, uuid.New().String())
-}
-
-func (a WatcherResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-
-%s
-
-resource "azurerm_automation_watcher" "test" {
-  automation_account_id = azurerm_automation_account.test.id
-  name                  = "acctest-watcher-%[2]d"
-  location              = "%[3]s"
-
-  tags = {
-    foo = "bar"
-  }
-
-  script_parameters = {
-    param_foo = "arg_bar"
-  }
-
-  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
-  description                    = "example-watcher desc"
-  etag                           = "etag example"
-  script_name                    = azurerm_automation_runbook.test.name
-  execution_frequency_in_seconds = 2
-}
-`, a.template(data), data.RandomInteger, data.Locations.Primary)
-}
-
-func (a WatcherResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-
-%s
-
-resource "azurerm_automation_watcher" "test" {
-  automation_account_id = azurerm_automation_account.test.id
-  name                  = "acctest-watcher-%[2]d"
-  location              = "%[3]s"
-
-  tags = {
-    "foo" = "bar"
-  }
-
-  script_parameters = {
-    foo = "bar"
-  }
-
-  etag                           = "etag example"
-  execution_frequency_in_seconds = 20
-  script_name                    = azurerm_automation_runbook.test.name
-  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
-  description                    = "example-watcher desc"
-}
-`, a.template(data), data.RandomInteger, data.Locations.Primary)
-}
-
-func TestAccWatcher_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
-	r := WatcherResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("2"),
-			),
-		},
-		data.ImportStep("tags", "etag", "location"),
-	})
-}
-
-func TestAccWatcher_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
-	r := WatcherResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("2"),
-			),
-		},
-		data.ImportStep("tags", "etag", "location"),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("20"),
-			),
-		},
-		data.ImportStep("tags", "etag", "location"),
-	})
 }
