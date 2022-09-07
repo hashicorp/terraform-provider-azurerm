@@ -593,13 +593,10 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 			}
 
 			if linuxAppStack.JavaServer != "" {
-				// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
-				// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
-				if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
-					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
-				} else {
-					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+				if linuxAppStack.JavaVersion == "17" && (linuxAppStack.JavaServer == "JBOSSEAP" || linuxAppStack.JavaServer == "JBOSSEAP-AUTO-UPDATE") {
+					return nil, fmt.Errorf("Red Hat (JBOSSEAP) sever is not supported in java 17 yet")
 				}
+				expanded.LinuxFxVersion = EncodeWebAppLinuxFxVersionForJava(linuxAppStack)
 			}
 
 			if linuxAppStack.DockerImage != "" {
