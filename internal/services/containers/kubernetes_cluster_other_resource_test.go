@@ -1466,6 +1466,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   windows_profile {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
+    gmsa {
+      dns_server  = "10.10.0.10/2"
+      root_domain = "contoso.com"
+    }
   }
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource

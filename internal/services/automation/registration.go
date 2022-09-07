@@ -20,6 +20,7 @@ func (r Registration) Resources() []sdk.Resource {
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
 		WatcherResource{},
+		SourceControlResource{},
 	}
 }
 
