@@ -17,9 +17,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: this needs discussing
-// WS: We need to sequence the writing of the CNAME record and we can't write the CNAME record to
-// DNS until the certificate has been deployed which is why I exposed this resource
+// NOTE: We need to sequence the writing of the CNAME record and we can't write the CNAME record to
+// DNS until the certificate has been deployed/provisioned which is why I had to exposed this resource
 
 func resourceCdnFrontDoorCustomDomainSecretValidator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -123,8 +122,8 @@ func resourceCdnFrontDoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 			return err
 		}
 
-		// I need to wait for the Custom Domains to be associated by the route before I can grab the TLS Settings
-		// else the TLS Settings will be nil causing a panic...
+		// NOTE: I need to wait for the Custom Domain(s) to be associated by the route before
+		// I can grab the TLS Settings else the TLS Settings will be nil causing a panic...
 		log.Printf("[DEBUG] Waiting for Custom Domain %q TLS Settings to become %q", customDomainId.CustomDomainName, "Succeeded")
 		customDomainStateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Pending"},
@@ -139,7 +138,7 @@ func resourceCdnFrontDoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 			return fmt.Errorf("waiting for the %q:%q (Resource Group: %q) TLS Settings to become %q: %+v", "azurerm_cdn_frontdoor_custom_domain_secret_validator", id.SecretName, id.ResourceGroup, "Succeeded", err)
 		}
 
-		// Now that I know they are there I can grab them...
+		// NOTE: Now that I know they are there I can grab them...
 		customDomainResp, err := customDomainClient.Get(ctx, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName)
 		if err != nil {
 			if utils.ResponseWasNotFound(customDomainResp.Response) {
@@ -168,8 +167,8 @@ func resourceCdnFrontDoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
-		// NOTE: Per the service team: DeploymentStatus would be the correct check ultimately, however deployment tracking is not yet rolled out.
-		// We are targeting to roll it out by end of next week(4/15/2022).
+		// NOTE: Per the service team: DeploymentStatus would be the correct check ultimately, however deployment tracking
+		// is not yet rolled out. We are targeting to roll it out by end of next week(4/15/2022).
 		log.Printf("[DEBUG] Waiting for Custom Domain %q secret %q to become %q", customDomainId.CustomDomainName, secretId.SecretName, "Succeeded")
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"InProgress", "NotStarted", "Updating", "Creating"},
@@ -285,15 +284,15 @@ func cdnFrontDoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client 
 				return nil, "", fmt.Errorf("polling for the CDN Frontdoor TLS Settings %q (Resource Group: %q): %+v", id.CustomDomainName, id.ResourceGroup, err)
 			}
 
-			// The route and custom domain may not have been associated yet so a 404 is acceptable
-			// keep polling until it shows up
+			// NOTE: The route and custom domain may not have been associated yet so a 404 is
+			// acceptable keep polling until it shows up...
 			return resp, "Pending", nil
 		}
 
 		if props := resp.AFDDomainProperties; props != nil {
 			validationState := props.DomainValidationState
 
-			// First lets check the validation state of the custom domain
+			// NOTE: First lets check the validation state of the custom domain
 			if validationState == cdn.DomainValidationStateApproved {
 				// Are the Domains TLS Settings available yet?
 				if props.TLSSettings != nil && props.TLSSettings.Secret != nil && props.TLSSettings.Secret.ID != nil {
@@ -326,8 +325,8 @@ func cdnFrontDoorCustomDomainSecretRefreshFunc(ctx context.Context, client *cdn.
 				return nil, "", fmt.Errorf("polling for the Domain Validation State of the CDN Frontdoor Secret %q (Resource Group: %q): %+v", id.SecretName, id.ResourceGroup, err)
 			}
 
-			// The secret may not have been provisioned yet so a 404 is acceptable
-			// keep polling until it shows up
+			// NOTE: The secret may not have been provisioned yet so a 404 is
+			// acceptable keep polling until it shows up...
 			return resp, "", nil
 		}
 
@@ -341,8 +340,8 @@ func cdnFrontDoorCustomDomainSecretRefreshFunc(ctx context.Context, client *cdn.
 			}
 		}
 
-		// Due to deployment tracking not being currently implemented in the service
-		// I am first going to check the DeploymentStatus, if I get a NotStarted
+		// NOTE: Due to deployment tracking not being currently implemented in the
+		// service I am first going to check the DeploymentStatus, if I get a NotStarted
 		// I will fall back and use the provisioningState instead. That way when
 		// they do implement the DeploymentStatus, this resource will be checking the
 		// correct field once it goes live. But, for now ProvisioningState is all we

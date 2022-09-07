@@ -25,8 +25,8 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			// TODO: these timeouts need adjusting..?
-			// WS: No, these are correct as this is currently a manual step.
+			// NOTE: These timeouts are extreamly long due to the manual
+			// step of approving the private link if defined.
 			Create: pluginsdk.DefaultTimeout(12 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(24 * time.Hour),
@@ -276,10 +276,9 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 
 func expandCdnFrontdoorCustomDomainHttpsParameters(input []interface{}) *track1.AFDDomainHTTPSParameters {
 	if len(input) == 0 || input[0] == nil {
-		// TODO: why is this returning nil and not an empty object?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
+		// NOTE: With the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they
+		// attempt to get a value from one of the fields.
 		return nil
 	}
 

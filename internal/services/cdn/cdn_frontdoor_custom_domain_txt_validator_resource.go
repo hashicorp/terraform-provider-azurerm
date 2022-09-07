@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: this needs discussing
-// WS: We need to sequence the associating the custom domain with the route, in the new
+// NOTE: We need to sequence the associating of the custom domain with the route, in the new
 // Frontdoor service you have to verify domain ownership via the _dnsAuth txt record before
 // you can associate the custom domain with the Frontdoor route
 func resourceCdnFrontDoorCustomDomainTxtValidator() *pluginsdk.Resource {
@@ -138,7 +137,7 @@ func resourceCdnFrontDoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData,
 }
 
 func resourceCdnFrontDoorCustomDomainTxtValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	// TODO: Delete doesn't really make sense since this is a fake resource I need to think about this...
+	// NOTE: Since this is a fake resource I just remove it from the state file...
 	d.SetId("")
 	return nil
 }
@@ -159,6 +158,7 @@ func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *cdn.AFD
 
 		state := cdn.DomainValidationStateUnknown
 		if props := resp.AFDDomainProperties; props != nil {
+			// NOTE: Possible states:
 			// 'DomainValidationStateUnknown', 'DomainValidationStateSubmitting', 'DomainValidationStatePending',
 			// 'DomainValidationStateRejected', 'DomainValidationStateTimedOut', '',
 			// 'DomainValidationStateApproved', 'DomainValidationStateRefreshingValidationToken',
@@ -173,13 +173,13 @@ func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *cdn.AFD
 			return nil, string(state), fmt.Errorf("the Domain Validation State returned a fatal validation state(%q)", string(state))
 		}
 
-		// not sure what to do here since they regenerated the DNS TXT record value or the cert expired (e.g. PendingRevalidation)...
+		// NOTE: Not sure what to do here since they regenerated the DNS TXT record value or the cert expired (e.g. PendingRevalidation)...
 		if state == cdn.DomainValidationStateRefreshingValidationToken || state == cdn.DomainValidationStatePendingRevalidation {
 			log.Printf("[DEBUG] CDN Frontdoor Custom Domain %q (Resource Group: %q) validation token has changed (Domain Validation State: %q)", id.CustomDomainName, id.ResourceGroup, string(state))
 			return nil, string(state), fmt.Errorf("the Domain Validation State returned a unrecoverable validation state(%q)", string(state))
 		}
 
-		// We should be Submitting, Pending or Approved at this point...
+		// NOTE: We should be Submitting, Pending or Approved at this point...
 		return resp, string(state), nil
 	}
 }

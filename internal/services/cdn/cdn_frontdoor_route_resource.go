@@ -301,8 +301,6 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
-		// TODO: split this into two separate flatten functions
-		// WS: Fixed
 		domains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 		d.Set("cdn_frontdoor_custom_domain_ids", domains)
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
@@ -311,9 +309,6 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("link_to_default_domain_enabled", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
-
-		// TODO: BLOCKER - BUG: Endpoint name is not being returned by the API
-		// WS: Removed, not useful.
 
 		if err := d.Set("cache", flattenCdnFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 			return fmt.Errorf("setting `cache`: %+v", err)
@@ -477,10 +472,9 @@ func expandCdnFrontdoorRouteEndpointProtocolsArray(input []interface{}) *[]cdn.A
 func expandCdnFrontdoorRouteResourceReferenceArray(input []interface{}) *[]cdn.ResourceReference {
 	results := make([]cdn.ResourceReference, 0)
 	if len(input) == 0 || input[0] == nil {
-		// TODO: shouldn't this be returning an empty slice?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
+		// NOTE: The Frontdoor service, do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors
+		// when they attempt to get a value from one of the fields.
 		return nil
 	}
 
@@ -495,8 +489,7 @@ func expandCdnFrontdoorRouteResourceReferenceArray(input []interface{}) *[]cdn.R
 
 func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCacheConfiguration {
 	if len(input) == 0 || input[0] == nil {
-		// TODO: shouldn't this be returning an empty slice?
-		// WS: No, if this is not an explicit nil you will receive a "Unsupported QueryStringCachingBehavior type: ''.
+		// NOTE: If this is not an explicit nil you will receive an "Unsupported QueryStringCachingBehavior type:
 		// Property 'RouteV2.CacheConfiguration.QueryStringCachingBehavior' is required but it was not set" error.
 		// The Frontdoor service treats empty slices as if they are fully defined unlike other services.
 		return nil
@@ -525,9 +518,8 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRout
 func expandCdnFrontdoorRouteActivatedResourceArray(input []interface{}) *[]cdn.ActivatedResourceReference {
 	results := make([]cdn.ActivatedResourceReference, 0)
 	if len(input) == 0 {
-		// TODO: confirm if sending an empty list means we can remove the hack
-		// WS: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty list will not work.
-		// I had to modify the SDK to allow for nil which in the API means disassociate the custom domains
+		// NOTE: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty
+		// list will not work. I had to modify the SDK to allow for nil which in the API means disassociate the custom domains.
 		return nil
 	}
 
