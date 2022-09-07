@@ -3,7 +3,6 @@ package loganalytics
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -41,14 +41,15 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO 4.0: change ignoreCase from true to false and remove diff suppress to respect correct casing
 				ValidateFunc: validation.StringInSlice([]string{
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeCustomLogs)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAzureWatson)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeQuery)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAlerts)),
-					// Value removed from enum in 2020-08-01, but effectively still works
-					"ingestion",
-				}, false),
+					string(linkedstorageaccounts.DataSourceTypeAlerts),
+					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
+					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
+					string(linkedstorageaccounts.DataSourceTypeIngestion),
+					string(linkedstorageaccounts.DataSourceTypeQuery),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -142,7 +143,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 
 		dataSourceType := ""
 		if props.DataSourceType != nil {
-			dataSourceType = strings.ToLower(string(*props.DataSourceType))
+			dataSourceType = string(*props.DataSourceType)
 		}
 		d.Set("data_source_type", dataSourceType)
 
