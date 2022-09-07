@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-03-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -284,17 +284,21 @@ func TestAccRecoveryServicesVault_updateSkuWithExistingEncryption(t *testing.T) 
 }
 
 func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VaultID(state.ID)
+	id, err := vaults.ParseVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service (%s): %+v", id.String(), err)
 	}
+	model := resp.Model
+	if model == nil {
+		return nil, fmt.Errorf("retrieving Recovery Service (%s): `model` was nil", id.String())
+	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(model.Id != nil), nil
 }
 
 func TestAccRecoveryServicesVault_encryptionWithKeyVaultKey(t *testing.T) {
@@ -386,6 +390,18 @@ func TestAccRecoveryServicesVault_switchEncryptionKeyVaultKey(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cmkEncryptionWithKeyVaultKey(data, false, 1),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_monitorSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.monitorSettings(data),
 		},
 		data.ImportStep(),
 	})
@@ -889,4 +905,31 @@ resource "azurerm_recovery_services_vault" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
+}
+
+func (RecoveryServicesVaultResource) monitorSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = false
+
+  monitor_settings {
+    azure_monitor_alert_enabled = false
+    classic_alert_enabled       = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
+* `monitor_settings` - (Optional) An `monitor_settings` block as defined below.
+
 !> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
 
 ---
@@ -71,6 +73,14 @@ An `encryption` block supports the following:
 * `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not.  Defaults to `true`.
 
 !> **Note:** Once `infrastructure_encryption_enabled` has been set it's not possible to change it.
+
+---
+
+A `monitor_settings` block supports the following:
+
+* `azure_monitor_alert_enabled` - (Optional) Is Azure Monitor based alerts enabled for this Vault? Defaults to `true`.
+
+* `classic_alert_enabled` - (Optional) Is Classic Alert enabled for this Vault? Defaults to `true`.
 
 ---
 
