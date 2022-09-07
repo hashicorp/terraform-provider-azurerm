@@ -25,7 +25,7 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 		Delete: resourceLogAnalyticsSavedSearchDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := savedsearches.ParseSavedSearcheID(id)
+			_, err := savedsearches.ParseSavedSearchID(id)
 			return err
 		}),
 
@@ -111,7 +111,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	id := savedsearches.NewSavedSearcheID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
+	id := savedsearches.NewSavedSearchID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -158,7 +158,7 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := savedsearches.ParseSavedSearcheID(d.Id())
+	id, err := savedsearches.ParseSavedSearchID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -207,7 +207,7 @@ func resourceLogAnalyticsSavedSearchDelete(d *pluginsdk.ResourceData, meta inter
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := savedsearches.ParseSavedSearcheID(d.Id())
+	id, err := savedsearches.ParseSavedSearchID(d.Id())
 	if err != nil {
 		return err
 	}

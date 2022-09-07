@@ -7,34 +7,34 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = CapacitiesId{}
+var _ resourceids.ResourceId = CapacityId{}
 
-// CapacitiesId is a struct representing the Resource ID for a Capacities
-type CapacitiesId struct {
+// CapacityId is a struct representing the Resource ID for a Capacity
+type CapacityId struct {
 	SubscriptionId        string
 	ResourceGroupName     string
 	DedicatedCapacityName string
 }
 
-// NewCapacitiesID returns a new CapacitiesId struct
-func NewCapacitiesID(subscriptionId string, resourceGroupName string, dedicatedCapacityName string) CapacitiesId {
-	return CapacitiesId{
+// NewCapacityID returns a new CapacityId struct
+func NewCapacityID(subscriptionId string, resourceGroupName string, dedicatedCapacityName string) CapacityId {
+	return CapacityId{
 		SubscriptionId:        subscriptionId,
 		ResourceGroupName:     resourceGroupName,
 		DedicatedCapacityName: dedicatedCapacityName,
 	}
 }
 
-// ParseCapacitiesID parses 'input' into a CapacitiesId
-func ParseCapacitiesID(input string) (*CapacitiesId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapacitiesId{})
+// ParseCapacityID parses 'input' into a CapacityId
+func ParseCapacityID(input string) (*CapacityId, error) {
+	parser := resourceids.NewParserFromResourceIdType(CapacityId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := CapacitiesId{}
+	id := CapacityId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -51,17 +51,17 @@ func ParseCapacitiesID(input string) (*CapacitiesId, error) {
 	return &id, nil
 }
 
-// ParseCapacitiesIDInsensitively parses 'input' case-insensitively into a CapacitiesId
+// ParseCapacityIDInsensitively parses 'input' case-insensitively into a CapacityId
 // note: this method should only be used for API response data and not user input
-func ParseCapacitiesIDInsensitively(input string) (*CapacitiesId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapacitiesId{})
+func ParseCapacityIDInsensitively(input string) (*CapacityId, error) {
+	parser := resourceids.NewParserFromResourceIdType(CapacityId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := CapacitiesId{}
+	id := CapacityId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -78,29 +78,29 @@ func ParseCapacitiesIDInsensitively(input string) (*CapacitiesId, error) {
 	return &id, nil
 }
 
-// ValidateCapacitiesID checks that 'input' can be parsed as a Capacities ID
-func ValidateCapacitiesID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateCapacityID checks that 'input' can be parsed as a Capacity ID
+func ValidateCapacityID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseCapacitiesID(v); err != nil {
+	if _, err := ParseCapacityID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Capacities ID
-func (id CapacitiesId) ID() string {
+// ID returns the formatted Capacity ID
+func (id CapacityId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.PowerBIDedicated/capacities/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DedicatedCapacityName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Capacities ID
-func (id CapacitiesId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Capacity ID
+func (id CapacityId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -113,12 +113,12 @@ func (id CapacitiesId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Capacities ID
-func (id CapacitiesId) String() string {
+// String returns a human-readable description of this Capacity ID
+func (id CapacityId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Dedicated Capacity Name: %q", id.DedicatedCapacityName),
 	}
-	return fmt.Sprintf("Capacities (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Capacity (%s)", strings.Join(components, "\n"))
 }
