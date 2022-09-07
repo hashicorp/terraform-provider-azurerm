@@ -30,7 +30,7 @@ func TestAccContainerRegistryTokenPassword_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password.0.value"),
+		data.ImportStep("password1.0.value"),
 	})
 }
 
@@ -45,7 +45,7 @@ func TestAccContainerRegistryTokenPassword_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password.0.value", "password.1.value"),
+		data.ImportStep("password1.0.value", "password2.0.value"),
 	})
 }
 
@@ -60,21 +60,21 @@ func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password.0.value"),
+		data.ImportStep("password1.0.value"),
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password.0.value", "password.1.value"),
+		data.ImportStep("password1.0.value", "password2.0.value"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password.0.value"),
+		data.ImportStep("password1.0.value"),
 	})
 }
 
@@ -128,9 +128,7 @@ func (r ContainerRegistryTokenPasswordResource) basic(data acceptance.TestData) 
 
 resource "azurerm_container_registry_token_password" "test" {
   container_registry_token_id = azurerm_container_registry_token.test.id
-  password {
-    name = "password1"
-  }
+  password1 {}
 }
 `, template)
 }
@@ -142,12 +140,10 @@ func (r ContainerRegistryTokenPasswordResource) complete(data acceptance.TestDat
 
 resource "azurerm_container_registry_token_password" "test" {
   container_registry_token_id = azurerm_container_registry_token.test.id
-  password {
-    name   = "password1"
+  password1 {
     expiry = %q
   }
-  password {
-    name   = "password2"
+  password2 {
     expiry = %q
   }
 }
@@ -161,9 +157,7 @@ func (r ContainerRegistryTokenPasswordResource) requiresImport(data acceptance.T
 
 resource "azurerm_container_registry_token_password" "import" {
   container_registry_token_id = azurerm_container_registry_token.test.id
-  password {
-    name = "password1"
-  }
+  password1 {}
 }
 `, template)
 }

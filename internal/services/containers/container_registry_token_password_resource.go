@@ -24,11 +24,11 @@ var _ sdk.ResourceWithUpdate = ContainerRegistryTokenPasswordResource{}
 
 type ContainerRegistryTokenPasswordModel struct {
 	TokenId   string                           `tfschema:"container_registry_token_id"`
-	Passwords []ContainerRegistryTokenPassword `tfschema:"password"`
+	Password1 []ContainerRegistryTokenPassword `tfschema:"password1"`
+	Password2 []ContainerRegistryTokenPassword `tfschema:"password2"`
 }
 
 type ContainerRegistryTokenPassword struct {
-	Name   string `tfschema:"name"`
 	Expiry string `tfschema:"expiry"`
 	Value  string `tfschema:"value"`
 }
@@ -41,29 +41,48 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 			ForceNew:     true,
 			ValidateFunc: validate.ContainerRegistryTokenID,
 		},
-		"password": {
+		"password1": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 2,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							// TODO: Use below SDK enum once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18339
-							// string(containerregistry.PasswordNamePassword),
-							"password1",
-							string(containerregistry.PasswordNamePassword2),
-						}, false),
-					},
+					// "name": {
+					// 	Type:     pluginsdk.TypeString,
+					// 	Required: true,
+					// 	ValidateFunc: validation.StringInSlice([]string{
+					// 		// TODO: Use below SDK enum once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18339
+					// 		// string(containerregistry.PasswordNamePassword),
+					// 		"password1",
+					// 		string(containerregistry.PasswordNamePassword2),
+					// 	}, false),
+					// },
 					"expiry": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
 						DiffSuppressFunc: suppress.RFC3339Time,
 					},
-					// TODO: Should this go to the `Attributes()`? But how?
+					"value": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		},
+		"password2": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"expiry": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						ValidateFunc:     validation.IsRFC3339Time,
+						DiffSuppressFunc: suppress.RFC3339Time,
+					},
 					"value": {
 						Type:      pluginsdk.TypeString,
 						Computed:  true,
@@ -117,7 +136,7 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			passwords, err := r.expandContainerRegistryTokenPassword(plan.Passwords)
+			passwords, err := r.expandContainerRegistryTokenPassword(plan)
 			if err != nil {
 				return fmt.Errorf("expanding `password`: %v", err)
 			}
@@ -131,7 +150,9 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 			}
 
 			// The password is only known right after it is generated, therefore setting it to the resource data here.
-			plan.Passwords = r.flattenContainerRegistryTokenPassword(&genPasswords)
+			password1, password2 := r.flattenContainerRegistryTokenPassword(&genPasswords)
+			plan.Password1 = password1
+			plan.Password2 = password2
 			if err := metadata.Encode(&plan); err != nil {
 				return fmt.Errorf("encoding model and store into state: %+v", err)
 			}
@@ -169,8 +190,11 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding from state %+v", err)
 			}
 			existingPasswords := map[string]ContainerRegistryTokenPassword{}
-			for _, pwd := range state.Passwords {
-				existingPasswords[pwd.Name] = pwd
+			if len(state.Password1) == 1 {
+				existingPasswords["password1"] = state.Password1[0]
+			}
+			if len(state.Password2) == 1 {
+				existingPasswords[string(containerregistry.TokenPasswordNamePassword2)] = state.Password2[0]
 			}
 
 			model := ContainerRegistryTokenPasswordModel{
@@ -178,9 +202,7 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 			}
 			for _, pwd := range pwds {
 				name := string(pwd.Name)
-				v := ContainerRegistryTokenPassword{
-					Name: name,
-				}
+				v := ContainerRegistryTokenPassword{}
 				if pwd.Expiry != nil {
 					v.Expiry = pwd.Expiry.String()
 				}
@@ -188,7 +210,12 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 				if e, ok := existingPasswords[name]; ok {
 					v.Value = e.Value
 				}
-				model.Passwords = append(model.Passwords, v)
+				switch name {
+				case "password1":
+					model.Password1 = []ContainerRegistryTokenPassword{v}
+				case string(containerregistry.TokenPasswordNamePassword2):
+					model.Password2 = []ContainerRegistryTokenPassword{v}
+				}
 			}
 
 			return metadata.Encode(&model)
@@ -248,7 +275,7 @@ func (r ContainerRegistryTokenPasswordResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			passwords, err := r.expandContainerRegistryTokenPassword(plan.Passwords)
+			passwords, err := r.expandContainerRegistryTokenPassword(plan)
 			if err != nil {
 				return fmt.Errorf("expanding `password`: %v", err)
 			}
@@ -262,7 +289,9 @@ func (r ContainerRegistryTokenPasswordResource) Update() sdk.ResourceFunc {
 			}
 
 			// The password is only known right after it is generated, therefore setting it to the resource data here.
-			plan.Passwords = r.flattenContainerRegistryTokenPassword(&genPasswords)
+			password1, password2 := r.flattenContainerRegistryTokenPassword(&genPasswords)
+			plan.Password1 = password1
+			plan.Password2 = password2
 			if err := metadata.Encode(&plan); err != nil {
 				return fmt.Errorf("encoding model and store into state: %+v", err)
 			}
@@ -272,50 +301,68 @@ func (r ContainerRegistryTokenPasswordResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPassword(passwords []ContainerRegistryTokenPassword) (*[]containerregistry.TokenPassword, error) {
-	if len(passwords) == 0 {
-		return nil, nil
-	}
-
+func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPassword(plan ContainerRegistryTokenPasswordModel) (*[]containerregistry.TokenPassword, error) {
 	result := make([]containerregistry.TokenPassword, 0)
 
-	for _, e := range passwords {
-		password := containerregistry.TokenPassword{
-			Name:  containerregistry.TokenPasswordName(e.Name),
-			Value: utils.String(e.Value),
-		}
-		if v := e.Expiry; v != "" {
-			t, err := time.Parse(time.RFC3339, v)
-			if err != nil {
-				return nil, err
+	expandPassword := func(name string, password []ContainerRegistryTokenPassword) (*containerregistry.TokenPassword, error) {
+		if len(password) == 1 {
+			password := password[0]
+			ret := &containerregistry.TokenPassword{
+				Name:  containerregistry.TokenPasswordName(name),
+				Value: utils.String(password.Value),
 			}
-			password.Expiry = &date.Time{Time: t}
+			if v := password.Expiry; v != "" {
+				t, err := time.Parse(time.RFC3339, v)
+				if err != nil {
+					return nil, err
+				}
+				ret.Expiry = &date.Time{Time: t}
+			}
+			return ret, nil
 		}
-		result = append(result, password)
+		return nil, nil
+	}
+	// TODO: Use below SDK enum once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18339
+	// containerregistry.PasswordNamePassword
+	v, err := expandPassword("password1", plan.Password1)
+	if err != nil {
+		return nil, err
+	}
+	if v != nil {
+		result = append(result, *v)
+	}
+
+	v, err = expandPassword(string(containerregistry.PasswordNamePassword2), plan.Password2)
+	if err != nil {
+		return nil, err
+	}
+	if v != nil {
+		result = append(result, *v)
 	}
 	return &result, nil
 }
 
-func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPassword(input *[]containerregistry.TokenPassword) []ContainerRegistryTokenPassword {
+func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPassword(input *[]containerregistry.TokenPassword) (password1, password2 []ContainerRegistryTokenPassword) {
 	if input == nil {
-		return []ContainerRegistryTokenPassword{}
+		return nil, nil
 	}
 
-	output := make([]ContainerRegistryTokenPassword, 0)
-
 	for _, e := range *input {
-		password := ContainerRegistryTokenPassword{
-			Name: string(e.Name),
-		}
+		password := ContainerRegistryTokenPassword{}
 		if e.Expiry != nil {
 			password.Expiry = e.Expiry.String()
 		}
 		if e.Value != nil {
 			password.Value = *e.Value
 		}
-		output = append(output, password)
+		switch e.Name {
+		case "password1":
+			password1 = []ContainerRegistryTokenPassword{password}
+		case containerregistry.TokenPasswordNamePassword2:
+			password2 = []ContainerRegistryTokenPassword{password}
+		}
 	}
-	return output
+	return
 }
 
 func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containerregistry.TokensClient, id parse.ContainerRegistryTokenId) ([]containerregistry.TokenPassword, error) {

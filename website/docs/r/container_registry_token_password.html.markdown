@@ -47,8 +47,7 @@ resource "azurerm_container_registry_token" "example" {
 resource "azurerm_container_registry_token_password" "example" {
   container_registry_token_id = azurerm_container_registry_token.example.id
 
-  password {
-    name   = "password1"
+  password1 {
     expiry = "2023-03-22T17:57:36+08:00"
   }
 }
@@ -60,13 +59,13 @@ The following arguments are supported:
 
 * `container_registry_token_id` - (Required) The ID of the Container Registry Token that this Container Registry Token Password resides in. Changing this forces a new Container Registry Token Password to be created.
 
-* `password` - (Required) One or two `password` blocks as defined below.
+* `password1` - (Required) One `password` block as defined below.
+
+* `password2` - (Optional) One `password` block as defined below.
 
 ---
 
 A `password` block supports the following:
-
-* `name` - (Required) The name which should be used for this password. Possible values are `password1` and `password2`.
 
 * `expiry` - (Optional) The expiration date of the password in RFC3339 format.
 
