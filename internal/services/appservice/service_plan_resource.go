@@ -185,7 +185,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 			}
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
-				if !strings.HasPrefix(servicePlan.Sku, "EP") && !strings.HasPrefix(servicePlan.Sku, "PC") {
+				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
 				}
 				appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(servicePlan.MaximumElasticWorkerCount))
@@ -338,7 +338,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
-				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !strings.HasPrefix(state.Sku, "EP") && !strings.HasPrefix(state.Sku, "PC") {
+				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !isServicePlanSupportScaleOut(state.Sku) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
 				}
 				existing.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(state.MaximumElasticWorkerCount))
@@ -356,4 +356,12 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func isServicePlanSupportScaleOut(plan string) bool {
+	support := false
+	support = support || strings.HasPrefix(plan, "EP")
+	support = support || strings.HasPrefix(plan, "PC")
+	support = support || strings.HasPrefix(plan, "WS")
+	return support
 }

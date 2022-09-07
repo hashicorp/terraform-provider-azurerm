@@ -51,6 +51,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old == "msi" || old == ""
 			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) != 0 && len(new.([]interface{})) == 0
+			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.dns_server", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.root_domain", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -831,6 +840,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LicenseTypeWindowsServer),
 							}, false),
+						},
+						"gmsa": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"dns_server": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+									"root_domain": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -2080,11 +2106,28 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservic
 		license = containerservice.LicenseType(v)
 	}
 
+	gmsaProfile := expandGmsaProfile(config["gmsa"].([]interface{}))
+
 	return &containerservice.ManagedClusterWindowsProfile{
 		AdminUsername: utils.String(config["admin_username"].(string)),
 		AdminPassword: utils.String(config["admin_password"].(string)),
 		LicenseType:   license,
+		GmsaProfile:   gmsaProfile,
 	}
+}
+
+func expandGmsaProfile(input []interface{}) *containerservice.WindowsGmsaProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	return &containerservice.WindowsGmsaProfile{
+		Enabled:        utils.Bool(true),
+		DNSServer:      utils.String(config["dns_server"].(string)),
+		RootDomainName: utils.String(config["root_domain"].(string)),
+	}
+
 }
 
 func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
@@ -2108,11 +2151,37 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 		license = string(profile.LicenseType)
 	}
 
+	gmsaProfile := flattenGmsaProfile(profile.GmsaProfile)
+
 	return []interface{}{
 		map[string]interface{}{
 			"admin_password": adminPassword,
 			"admin_username": adminUsername,
 			"license":        license,
+			"gmsa":           gmsaProfile,
+		},
+	}
+}
+
+func flattenGmsaProfile(profile *containerservice.WindowsGmsaProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	dnsServer := ""
+	if dns := profile.DNSServer; dns != nil {
+		dnsServer = *dns
+	}
+
+	rootDomainName := ""
+	if domain := profile.RootDomainName; domain != nil {
+		rootDomainName = *domain
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"dns_server":  dnsServer,
+			"root_domain": rootDomainName,
 		},
 	}
 }

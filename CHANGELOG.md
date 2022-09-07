@@ -1,16 +1,31 @@
 ## 3.22.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_api_management_api_tag_description` [GH-17876]
+* **New Resource**: `azurerm_api_management_schema` [GH-18158]
+* **New Resource**: `azurerm_automation_source_control` [GH-18175]
+* **New Resource**: `azurerm_orbital_spacecraft` [GH-17860]
+
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` ([#18183](https://github.com/hashicorp/terraform-provider-azurerm/issues/18183))
 * dependencies: `desktopvirtualization` - updating to use `2022-02-10` [GH-17489]
 * `azurerm_api_management_api` - the `soap_pass_through` property has been deprecated in favour of the `api_type` property [GH-17812]
 * `azurerm_kubernetes_cluster` - support for the `edge_zone` property [GH-18115]
+* `azurerm_kubernetes_cluster` - support for the `windows_profile.gmsa` block [GH-16437]
 * `azurerm_virtual_desktop_host_pool` - support for the `scheduled_agent_updates` block [GH-17489]
+* `azurerm_hdinsight_kafka_cluster` - azurerm_hdinsight_spark_cluster - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_spark_cluster` - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_hbase_cluster` - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_hadoop_cluster` - support for the `extension` property [GH-17846]
+
 
 BUG FIXES:
 
 * `azurerm_mssql_database` - the `license_type` property is now also Computed [GH-18230]
+* `azurerm_synapse_sql_pool` - `name` has correct validation error message  [GH-18264]
 
 ## 3.21.1 (September 02, 2022)
 

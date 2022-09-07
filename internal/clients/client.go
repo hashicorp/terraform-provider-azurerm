@@ -84,6 +84,7 @@ import (
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
+	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
@@ -199,6 +200,7 @@ type Client struct {
 	NetApp                *netapp.Client
 	Network               *network.Client
 	NotificationHubs      *notificationhub.Client
+	Orbital               *orbital.Client
 	Policy                *policy.Client
 	Portal                *portal.Client
 	Postgres              *postgres.Client
@@ -316,6 +318,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
+	client.Orbital = orbital.NewClient(o)
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
