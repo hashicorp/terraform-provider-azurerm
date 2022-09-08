@@ -9,8 +9,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-// NOTE: this workaround client exists to allow the removal of `cacheConfiguration` items during update
-
+// NOTE: this workaround client exists to allow the removal of 'cacheConfiguration' items during update
 type CdnFrontDoorRoutesWorkaroundClient struct {
 	sdkClient *cdn.RoutesClient
 }

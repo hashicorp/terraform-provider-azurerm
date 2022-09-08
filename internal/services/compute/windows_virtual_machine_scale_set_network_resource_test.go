@@ -187,7 +187,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkIPv6(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("Error expanding `network_interface`: An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary"),
+			ExpectError: regexp.MustCompile("instead add a IPv4 IP Configuration as the Primary"),
 		},
 	})
 }
@@ -376,6 +376,23 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 			Config: r.networkPublicIP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	t.Skip("Skipping test until api version is upgraded to 2022-03-01 with `network_interface.ip_configuration.public_ip_address.sku_name` added")
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkPublicIPVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1572,6 +1589,61 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
           tag  = "/Sql"
           type = "FirstPartyUsage"
         }
+      }
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "primary"
+    primary = true
+
+    ip_configuration {
+      name      = "first"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "first"
+        idle_timeout_in_minutes = 4
+      }
+    }
+
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
+        idle_timeout_in_minutes = 4
+        version                 = "IPv6"
       }
     }
   }

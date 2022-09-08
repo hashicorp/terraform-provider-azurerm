@@ -117,6 +117,8 @@ The following arguments are supported:
 
 * `monitor` - (Optional) A `monitor` block as defined below.
 
+* `extension` - (Optional) An `extension` block as defined below.
+
 * `security_profile` - (Optional) A `security_profile` block as defined below.
 
 ---
@@ -251,7 +253,19 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
---- 
+---
+
+A `display_encryption_properties` block supports the following:
+
+* `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
+
+* `encryption_at_host_enabled` - (Optional) This is indicator to show whether resource disk encryption is enabled.
+
+* `key_vault_key_id` - (Optional) The ID of the key vault key.
+
+* `key_vault_managed_identity_id` - (Optional) This is the resource ID of Managed Identity used to access the key vault.
+
+---
 
 A `metastores` block supports the following:
 
@@ -305,6 +319,14 @@ A `monitor` block supports the following:
 * `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
 
 * `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
+
+---
+
+A `extension` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The workspace ID of the log analytics extension.
+
+* `primary_key` - (Required) The workspace key of the log analytics extension.
 
 ---
 

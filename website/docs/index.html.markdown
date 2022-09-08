@@ -11,7 +11,7 @@ description: |-
 The Azure Provider can be used to configure infrastructure in [Microsoft Azure](https://azure.microsoft.com/en-us/) using the Azure Resource Manager API's. Documentation regarding the [Data Sources](/docs/configuration/data-sources.html) and [Resources](/docs/configuration/resources.html) supported by the Azure Provider can be found in the navigation to the left.
 
 To learn the basics of Terraform using this provider, follow the
-hands-on [get started tutorials](https://learn.hashicorp.com/tutorials/terraform/infrastructure-as-code?in=terraform/azure-get-started) on HashiCorp's Learn platform.
+hands-on [get started tutorials](https://learn.hashicorp.com/tutorials/terraform/infrastructure-as-code?in=terraform/azure-get-started).
 
 Interested in the provider's latest features, or want to make sure you're up to date? Check out the [changelog](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/CHANGELOG.md) for version information and release notes.
 
@@ -136,6 +136,8 @@ When authenticating as a Service Principal using Open ID Connect, the following 
 
 * `oidc_request_url` - (Optional) The URL for the OIDC provider from which to request an ID token. This can also be sourced from the `ARM_OIDC_REQUEST_URL` or `ACTIONS_ID_TOKEN_REQUEST_URL` Environment Variables.
 
+* `oidc_token` - (Optional) The ID token when authenticating using OpenID Connect (OIDC). This can also be sourced from the `ARM_OIDC_TOKEN` environment Variable.
+
 * `use_oidc` - (Optional) Should OIDC be used for Authentication? This can also be sourced from the `ARM_USE_OIDC` Environment Variable. Defaults to `false`.
 
 More information on [how to configure a Service Principal using OpenID Connect can be found in this guide](guides/service_principal_oidc.html).
@@ -160,7 +162,7 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** `environment` must be set to the requested environment name in the list of available environments held in the `metadata_host`.
 
-* `partner_id` - (Optional) A GUID/UUID that is [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#register-guids-and-offers) with Microsoft to facilitate partner resource usage attribution. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
+* `partner_id` - (Optional) A GUID/UUID registered with Microsoft to facilitate partner resource [usage attribution]((https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution)). This can also be sourced from the `ARM_PARTNER_ID` Environment Variable. Supported formats are `<guid>` / `pid-<guid>` (GUIDs [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#other-use-cases) in Partner Center) and `pid-<guid>-partnercenter` (for published [commercial marketplace Azure apps](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#commercial-marketplace-azure-apps)).
 
 * `auxiliary_tenant_ids` - (Optional) Contains a list of (up to 3) other Tenant IDs used for cross-tenant and multi-tenancy scenarios with multiple AzureRM provider definitions. The list of `auxiliary_tenant_ids` in a given AzureRM provider definition contains the other, remote Tenants and should not include its own `subscription_id` (or `ARM_SUBSCRIPTION_ID` Environment Variable).
 

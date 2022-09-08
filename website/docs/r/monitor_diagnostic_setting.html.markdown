@@ -95,9 +95,13 @@ The following arguments are supported:
 
 A `log` block supports the following:
 
-* `category` - (Required) The name of a Diagnostic Log Category for this Resource.
+* `category` - (Optional) The name of a Diagnostic Log Category for this Resource.
 
 -> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) or [list of service specific schemas](https://docs.microsoft.com/azure/azure-monitor/platform/resource-logs-schema#service-specific-schemas) to identify which categories are available for a given Resource.
+
+* `category_group` - (Optional) The name of a Diagnostic Log Category Group for this Resource.
+
+-> **NOTE:** Not all resources have category groups available.****
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 

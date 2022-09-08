@@ -6,14 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -53,7 +52,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"display_name": {
@@ -278,11 +277,11 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	workspaceId, err := loganalyticsParse.LogAnalyticsWorkspaceID(d.Get("log_analytics_workspace_id").(string))
+	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewAutomationRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, name)
+	id := parse.NewAutomationRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
@@ -320,7 +319,7 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 		params.AutomationRuleProperties.TriggeringLogic.ExpirationTimeUtc = &date.Time{Time: t}
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params)
+	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, &params)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -352,7 +351,7 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.Set("name", id.Name)
-	d.Set("log_analytics_workspace_id", loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("log_analytics_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if prop := resp.AutomationRuleProperties; prop != nil {
 		d.Set("display_name", prop.DisplayName)
 
@@ -420,14 +419,15 @@ func expandAutomationRuleConditions(input []interface{}) *[]securityinsight.Basi
 	for _, b := range input {
 		b := b.(map[string]interface{})
 
-		out = append(out, &securityinsight.AutomationRulePropertyValuesCondition{
-			ConditionProperties: &securityinsight.AutomationRulePropertyValuesConditionConditionProperties{
+		out = append(out, &securityinsight.PropertyConditionProperties{
+			ConditionProperties: &securityinsight.AutomationRulePropertyValuesCondition{
 				PropertyName:   securityinsight.AutomationRulePropertyConditionSupportedProperty(b["property"].(string)),
 				Operator:       securityinsight.AutomationRulePropertyConditionSupportedOperator(b["operator"].(string)),
 				PropertyValues: utils.ExpandStringSlice(b["values"].([]interface{})),
 			},
-			ConditionType: securityinsight.ConditionTypeProperty,
+			ConditionType: securityinsight.ConditionTypeBasicAutomationRuleConditionConditionTypeProperty,
 		})
+
 	}
 	return &out
 }
@@ -439,7 +439,7 @@ func flattenAutomationRuleConditions(conditions *[]securityinsight.BasicAutomati
 
 	out := make([]interface{}, 0, len(*conditions))
 	for _, condition := range *conditions {
-		condition := condition.(securityinsight.AutomationRulePropertyValuesCondition)
+		condition := condition.(securityinsight.PropertyConditionProperties)
 
 		var (
 			property string
@@ -466,7 +466,10 @@ func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId stri
 	if err != nil {
 		return nil, err
 	}
-	actionPlaybook := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
+	actionPlaybook, err := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(actionIncident)+len(actionPlaybook) == 0 {
 		return nil, nil
@@ -558,9 +561,9 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]securityinsight.
 		}
 
 		out = append(out, securityinsight.AutomationRuleModifyPropertiesAction{
-			ActionType: securityinsight.ActionTypeModifyProperties,
+			ActionType: securityinsight.ActionTypeBasicAutomationRuleActionActionTypeModifyProperties,
 			Order:      utils.Int32(int32(b["order"].(int))),
-			ActionConfiguration: &securityinsight.AutomationRuleModifyPropertiesActionActionConfiguration{
+			ActionConfiguration: &securityinsight.IncidentPropertiesAction{
 				Status:                status,
 				Classification:        securityinsight.IncidentClassification(classification),
 				ClassificationComment: &classificationComment,
@@ -630,30 +633,35 @@ func flattenAutomationRuleActionIncident(input securityinsight.AutomationRuleMod
 	}
 }
 
-func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId string) []securityinsight.BasicAutomationRuleAction {
+func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId string) ([]securityinsight.BasicAutomationRuleAction, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	out := make([]securityinsight.BasicAutomationRuleAction, 0, len(input))
 	for _, b := range input {
 		b := b.(map[string]interface{})
 
-		tenantId := defaultTenantId
-		if tid := b["tenant_id"].(string); tid != "" {
-			tenantId = tid
+		tid := defaultTenantId
+		if t := b["tenant_id"].(string); t != "" {
+			tid = t
+		}
+
+		tenantId, err := uuid.FromString(tid)
+		if err != nil {
+			return nil, fmt.Errorf("getting `tenant_id`: %v", err)
 		}
 
 		out = append(out, securityinsight.AutomationRuleRunPlaybookAction{
-			ActionType: securityinsight.ActionTypeRunPlaybook,
+			ActionType: securityinsight.ActionTypeBasicAutomationRuleActionActionTypeRunPlaybook,
 			Order:      utils.Int32(int32(b["order"].(int))),
-			ActionConfiguration: &securityinsight.AutomationRuleRunPlaybookActionActionConfiguration{
+			ActionConfiguration: &securityinsight.PlaybookActionProperties{
 				LogicAppResourceID: utils.String(b["logic_app_id"].(string)),
 				TenantID:           &tenantId,
 			},
 		})
 	}
-	return out
+	return out, nil
 }
 
 func flattenAutomationRuleActionPlaybook(input securityinsight.AutomationRuleRunPlaybookAction) map[string]interface{} {
@@ -674,7 +682,7 @@ func flattenAutomationRuleActionPlaybook(input securityinsight.AutomationRuleRun
 		}
 
 		if cfg.TenantID != nil {
-			tenantId = *cfg.TenantID
+			tenantId = cfg.TenantID.String()
 		}
 	}
 

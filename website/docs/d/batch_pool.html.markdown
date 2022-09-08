@@ -45,6 +45,8 @@ The following attributes are exported:
 
 * `max_tasks_per_node` - The maximum number of tasks that can run concurrently on a single compute node in the pool.
 
+* `mount` - A `mount` block that describes mount configuration.
+
 * `certificate` - One or more `certificate` blocks that describe the certificates installed on each compute node in the pool.
 
 * `container_configuration` - The container configuration used in the pool's VMs.
@@ -152,6 +154,78 @@ A `container_registries` block exports the following:
 * `password` - The password to log into the registry server.
 
 * `user_assigned_identity_id` - The reference to the user assigned identity to use to access an Azure Container Registry instead of username and password.
+
+---
+
+An `mount` exports the following:
+
+Any property below is mutually exclusive with all other properties.
+
+* `azure_blob_file_system` - A `azure_blob_file_system` block defined as below.
+
+* `azure_file_share` - A `azure_file_share` block defined as below.
+
+* `cifs_mount` - A `cifs_mount` block defined as below.
+
+* `nfs_mount` - A `nfs_mount` block defined as below.
+
+---
+
+An `azure_blob_file_system` block exports the following:
+
+* `account_name` - The Azure Storage Account name.
+
+* `container_name` - The Azure Blob Storage Container name.
+
+* `relative_mount_path` - The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `account_key` - The Azure Storage Account key. This property is mutually exclusive with both `sas_key` and `identity_id`; exactly one must be specified.
+
+* `sas_key` - The Azure Storage SAS token. This property is mutually exclusive with both `account_key` and `identity_id`; exactly one must be specified.
+
+* `identity_id` - The ARM resource id of the user assigned identity. This property is mutually exclusive with both `account_key` and `sas_key`; exactly one must be specified.
+
+* `blobfuse_options` - Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `azure_file_share` block exports the following:
+
+* `account_name` - The Azure Storage Account name.
+
+* `account_key` - The Azure Storage Account key.
+
+* `azure_file_url` - The Azure Files URL. This is of the form 'https://{account}.file.core.windows.net/'.
+
+* `relative_mount_path` - The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+A `cifs_mount` block exports the following:
+
+* `user_name` - The user to use for authentication against the CIFS file system.
+
+* `password` - The password to use for authentication against the CIFS file system.
+
+* `source` - The URI of the file system to mount.
+
+* `relative_mount_path` - The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+A `nfs_mount` block exports the following:
+
+* `source` - The URI of the file system to mount.
+
+* `relative_mount_path` - The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
 
 ---
 

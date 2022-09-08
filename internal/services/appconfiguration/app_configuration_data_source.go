@@ -44,6 +44,11 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_read_key": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -177,6 +182,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("public_network_access", props.PublicNetworkAccess)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)

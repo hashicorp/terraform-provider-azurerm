@@ -114,6 +114,7 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(web.ClientCertModeOptional),
 				string(web.ClientCertModeRequired),
+				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
 		},
 
@@ -684,7 +685,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("zip_deploy_file") || metadata.ResourceData.HasChange("zip_deploy_file") {
-				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile, id.SlotName); err != nil {
 					return err
 				}
 			}

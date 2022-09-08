@@ -309,6 +309,7 @@ data "azuread_domains" "test" {
 
 resource "azuread_service_principal" "test" {
   application_id = "2565bd9d-da50-47d4-8b85-4c97f669dc36" // published app for domain services
+  use_existing   = true
 }
 
 resource "azuread_group" "test" {
