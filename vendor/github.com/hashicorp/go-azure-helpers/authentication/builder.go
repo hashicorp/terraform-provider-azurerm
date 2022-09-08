@@ -44,6 +44,12 @@ type Builder struct {
 	ClientSecret             string
 	ClientSecretDocsLink     string
 
+	// OIDC Auth
+	SupportsOIDCAuth    bool
+	IDToken             string
+	IDTokenRequestURL   string
+	IDTokenRequestToken string
+
 	// Beta opt-in for Microsoft Graph
 	UseMicrosoftGraph bool
 }
@@ -68,6 +74,7 @@ func (b Builder) Build() (*Config, error) {
 		servicePrincipalClientCertificateAuth{},
 		servicePrincipalClientSecretMultiTenantAuth{},
 		servicePrincipalClientSecretAuth{},
+		oidcAuth{},
 		managedServiceIdentityAuth{},
 		azureCliTokenMultiTenantAuth{},
 		azureCliTokenAuth{},

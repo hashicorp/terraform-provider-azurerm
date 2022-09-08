@@ -167,7 +167,7 @@ The following arguments are supported:
 
 ->**NOTE:**  If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
 
-* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all extended auditing logs.
+* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all extended auditing logs.
 
 * `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
 
@@ -187,7 +187,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MS SQL Server Extended Auditing Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Server Extended Auditing Policy.

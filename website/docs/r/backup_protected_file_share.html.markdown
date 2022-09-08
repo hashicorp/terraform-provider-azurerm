@@ -13,22 +13,22 @@ Manages an Azure Backup Protected File Share to enable backups for file shares w
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "tfex-recovery_vault"
   location = "West Europe"
 }
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "tfex-recovery-vault"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_storage_account" "sa" {
   name                     = "examplesa"
-  location                 = azurerm_resource_group.rg.location
-  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -36,17 +36,18 @@ resource "azurerm_storage_account" "sa" {
 resource "azurerm_storage_share" "example" {
   name                 = "example-share"
   storage_account_name = azurerm_storage_account.sa.name
+  quota                = 1
 }
 
 resource "azurerm_backup_container_storage_account" "protection-container" {
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   recovery_vault_name = azurerm_recovery_services_vault.vault.name
   storage_account_id  = azurerm_storage_account.sa.id
 }
 
 resource "azurerm_backup_policy_file_share" "example" {
   name                = "tfex-recovery-vault-policy"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   recovery_vault_name = azurerm_recovery_services_vault.vault.name
 
   backup {
@@ -60,7 +61,7 @@ resource "azurerm_backup_policy_file_share" "example" {
 }
 
 resource "azurerm_backup_protected_file_share" "share1" {
-  resource_group_name       = azurerm_resource_group.rg.name
+  resource_group_name       = azurerm_resource_group.example.name
   recovery_vault_name       = azurerm_recovery_services_vault.vault.name
   source_storage_account_id = azurerm_backup_container_storage_account.protection-container.storage_account_id
   source_file_share_name    = azurerm_storage_share.example.name
@@ -78,7 +79,7 @@ The following arguments are supported:
 
 * `source_storage_account_id` - (Required) Specifies the ID of the storage account of the file share to backup. Changing this forces a new resource to be created.
 
--> **NOTE** The storage account must already be registered with the recovery vault in order to backup shares within the account. You can use the `azurerm_backup_container_storage_account` resource or the [Register-AzRecoveryServicesBackupContainer PowerShell cmdlet](https://docs.microsoft.com/en-us/powershell/module/az.recoveryservices/register-azrecoveryservicesbackupcontainer?view=azps-3.2.0) to register a storage account with a vault. When using the `azurerm_backup_container_storage_account` resource to register, you can use `depends_on` to explicitly declare the dependency. It will make sure that the registration is completed before creating the `azurerm_backup_protected_file_share` resource. 
+-> **NOTE** The storage account must already be registered with the recovery vault in order to backup shares within the account. You can use the `azurerm_backup_container_storage_account` resource or the [Register-AzRecoveryServicesBackupContainer PowerShell cmdlet](https://docs.microsoft.com/powershell/module/az.recoveryservices/register-azrecoveryservicesbackupcontainer?view=azps-3.2.0) to register a storage account with a vault. When using the `azurerm_backup_container_storage_account` resource to register, you can use `depends_on` to explicitly declare the dependency. It will make sure that the registration is completed before creating the `azurerm_backup_protected_file_share` resource. 
 
 * `source_file_share_name` - (Required) Specifies the name of the file share to backup. Changing this forces a new resource to be created.
 
@@ -92,7 +93,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 80 minutes) Used when creating the Backup File Share.
 * `update` - (Defaults to 80 minutes) Used when updating the Backup File Share.

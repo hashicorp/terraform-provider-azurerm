@@ -45,6 +45,8 @@ resource "azurerm_firewall" "example" {
   name                = "testfirewall"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -114,13 +116,13 @@ A `rule` block supports the following:
 
 -> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
-* `destination_addresses` - (Optional) Either a list of destination IP addresses and/or IP ranges, or a list of destination [Service Tags](https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags).
+* `destination_addresses` - (Optional) Either a list of destination IP addresses and/or IP ranges, or a list of destination [Service Tags](https://docs.microsoft.com/azure/virtual-network/service-tags-overview#available-service-tags).
 
 * `destination_ip_groups` - (Optional) A list of destination IP Group IDs for the rule.
 
 * `destination_fqdns` - (Optional) A list of destination FQDNS for the rule.
 
--> **NOTE** [You must enable DNS Proxy to use FQDNs in your network rules](https://docs.microsoft.com/en-us/azure/firewall/fqdn-filtering-network-rules).
+-> **NOTE** [You must enable DNS Proxy to use FQDNs in your network rules](https://docs.microsoft.com/azure/firewall/fqdn-filtering-network-rules).
 
 -> **NOTE** At least one of `destination_addresses`, `destination_ip_groups` and `destination_fqdns` must be specified for a rule.
 
@@ -132,7 +134,7 @@ A `rule` block supports the following:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Network Rule Collection.
 * `update` - (Defaults to 30 minutes) Used when updating the Firewall Network Rule Collection.

@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -78,6 +79,31 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			ValidateFunc: validation.IsUUID,
 		},
 
+		"microsoft_app_msi_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+
+		"microsoft_app_tenant_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"microsoft_app_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(botservice.MsaAppTypeMultiTenant),
+				string(botservice.MsaAppTypeSingleTenant),
+				string(botservice.MsaAppTypeUserAssignedMSI),
+			}, false),
+		},
+
 		"luis_app_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -92,6 +118,12 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"streaming_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"tags": tags.Schema(),
@@ -147,8 +179,21 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightsApplicationID: utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           utils.String(metadata.ResourceData.Get("luis_key").(string)),
+					IsStreamingSupported:              utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			}
+
+			if v, ok := metadata.ResourceData.GetOk("microsoft_app_type"); ok {
+				props.Properties.MsaAppType = botservice.MsaAppType(v.(string))
+			}
+
+			if v, ok := metadata.ResourceData.GetOk("microsoft_app_tenant_id"); ok {
+				props.Properties.MsaAppTenantID = utils.String(v.(string))
+			}
+
+			if v, ok := metadata.ResourceData.GetOk("microsoft_app_msi_id"); ok {
+				props.Properties.MsaAppMSIResourceID = utils.String(v.(string))
 			}
 
 			if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
@@ -229,11 +274,35 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				}
 				metadata.ResourceData.Set("developer_app_insights_application_id", appInsightsId)
 
+				msaAppType := ""
+				if v := props.MsaAppType; v != "" {
+					msaAppType = string(v)
+				}
+				metadata.ResourceData.Set("microsoft_app_type", msaAppType)
+
+				msaAppTenantId := ""
+				if v := props.MsaAppTenantID; v != nil {
+					msaAppTenantId = *v
+				}
+				metadata.ResourceData.Set("microsoft_app_tenant_id", msaAppTenantId)
+
+				msaAppMSIId := ""
+				if v := props.MsaAppMSIResourceID; v != nil {
+					msaAppMSIId = *v
+				}
+				metadata.ResourceData.Set("microsoft_app_msi_id", msaAppMSIId)
+
 				var luisAppIds []string
 				if v := props.LuisAppIds; v != nil {
 					luisAppIds = *v
 				}
 				metadata.ResourceData.Set("luis_app_ids", utils.FlattenStringSlice(&luisAppIds))
+
+				streamingEndpointEnabled := false
+				if v := props.IsStreamingSupported; v != nil {
+					streamingEndpointEnabled = *v
+				}
+				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
 			}
 
 			return nil
@@ -301,6 +370,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("luis_key") {
 				existing.Properties.LuisKey = utils.String(metadata.ResourceData.Get("luis_key").(string))
+			}
+
+			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
+				existing.Properties.IsStreamingSupported = utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool))
 			}
 
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {

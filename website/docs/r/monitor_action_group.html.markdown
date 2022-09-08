@@ -19,6 +19,15 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "workspace-01"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
 resource "azurerm_monitor_action_group" "example" {
   name                = "CriticalAlertsAction"
   resource_group_name = azurerm_resource_group.example.name
@@ -72,9 +81,9 @@ resource "azurerm_monitor_action_group" "example" {
 
   itsm_receiver {
     name                 = "createorupdateticket"
-    workspace_id         = "6eee3a18-aac3-40e4-b98e-1f309f329816"
+    workspace_id         = "${data.azurerm_client_config.current.subscription_id}|${azurerm_log_analytics_workspace.example.workspace_id}"
     connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
-    ticket_configuration = "{}"
+    ticket_configuration = "{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"
     region               = "southcentralus"
   }
 
@@ -190,6 +199,8 @@ The following arguments are supported:
 * `ticket_configuration` - (Required) A JSON blob for the configurations of the ITSM action. CreateMultipleWorkItems option will be part of this blob as well.
 * `region` - (Required) The region of the workspace.
 
+-> **NOTE** `ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys (e.g., `ticket_configuration="{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\"}"`), and `ticket_configuration="{}"` will return an error, see more at this [REST API issue](https://github.com/Azure/azure-rest-api-specs/issues/20488) 
+
 ---
 
 `logic_app_receiver` supports the following:
@@ -224,7 +235,7 @@ The following arguments are supported:
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 * `aad_auth` - (Optional) The `aad_auth` block as defined below
 
-~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook).
+~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
 
 `aad_auth` supports the following:.
 
@@ -240,7 +251,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Action Group.
 * `update` - (Defaults to 30 minutes) Used when updating the Action Group.

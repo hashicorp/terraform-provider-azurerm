@@ -26,7 +26,7 @@ type MetricsConfig struct {
 
 type RetentionPolicy struct {
 	Enabled bool `xml:"Enabled"`
-	Days    int  `xml:"Days"`
+	Days    int  `xml:"Days,omitempty"`
 }
 
 type Cors struct {

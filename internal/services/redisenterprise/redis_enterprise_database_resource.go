@@ -9,11 +9,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/databases"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -271,10 +271,6 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("setting module error: %+v", err)
 	}
 
-	if isGeoEnabled && module != nil && evictionPolicy != databases.EvictionPolicyNoEviction {
-		return fmt.Errorf("evictionPolicy must be set to NoEviction when using RediSearch module")
-	}
-
 	parameters := databases.Database{
 		Properties: &databases.DatabaseProperties{
 			ClientProtocol:   &protocol,
@@ -431,10 +427,6 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 	module, err := expandArmDatabaseModuleArray(d.Get("module").([]interface{}), isGeoEnabled)
 	if err != nil {
 		return fmt.Errorf("setting module error: %+v", err)
-	}
-
-	if isGeoEnabled && module != nil && evictionPolicy != databases.EvictionPolicyNoEviction {
-		return fmt.Errorf("evictionPolicy must be set to NoEviction when using RediSearch module")
 	}
 
 	parameters := databases.Database{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -104,6 +105,11 @@ func dataSourceSnapshot() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -137,6 +143,14 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
+
+		trustedLaunchEnabled := false
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	if data := resp.CreationData; data != nil {

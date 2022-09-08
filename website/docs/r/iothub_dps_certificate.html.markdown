@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `certificate_content` - (Required) The Base-64 representation of the X509 leaf certificate .cer file or just a .pem file content.
 
+* `is_verified` - (Optional) Specifies if the certificate is created in verified state. Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -60,7 +62,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Device Provisioning Service Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service Certificate.

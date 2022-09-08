@@ -151,7 +151,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 }
 
 func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -273,7 +273,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.ComputeID(d.Id())

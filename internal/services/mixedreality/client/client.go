@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/mixedreality/mgmt/2021-01-01/mixedreality"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	SpatialAnchorsAccountClient *mixedreality.SpatialAnchorsAccountsClient
+	SpatialAnchorsAccountClient *resource.ResourceClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	SpatialAnchorsAccountClient := mixedreality.NewSpatialAnchorsAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	SpatialAnchorsAccountClient := resource.NewResourceClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&SpatialAnchorsAccountClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

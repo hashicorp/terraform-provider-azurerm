@@ -98,6 +98,8 @@ The following arguments are supported:
 
 !> **Note:** Once Purge Protection has been Enabled it's not possible to Disable it. Support for [disabling purge protection is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075). Deleting the Key Vault with Purge Protection Enabled will schedule the Key Vault to be deleted (which will happen by Azure in the configured number of days, currently 90 days - which will be configurable in Terraform in the future).
 
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Key Vault. Defaults to `true`.
+
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` (the default) days.
 
 ~> **Note:** This field can only be configured one time and cannot be updated.
@@ -136,7 +138,7 @@ A `network_acls` block supports the following:
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.
 
-* `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Key Vault.
+* `virtual_network_subnet_ids` - (Optional) One or more Subnet IDs which should be able to access this Key Vault.
 
 ---
 
@@ -158,7 +160,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault.

@@ -28,6 +28,7 @@ func TestAccIotHubDPS_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("device_provisioning_host_name").Exists(),
 				check.That(data.ResourceName).Key("id_scope").Exists(),
 				check.That(data.ResourceName).Key("service_operations_host_name").Exists(),
+				check.That(data.ResourceName).Key("data_residency_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -70,6 +71,21 @@ func TestAccIotHubDPS_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubDPS_dataResidencyEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
+	r := IotHubDPSResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataResidencyEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -228,7 +244,9 @@ resource "azurerm_iothub_dps" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IotHubDPSResource) linkedHubs(data acceptance.TestData) string {
+func (IotHubDPSResource) dataResidencyEnabled(data acceptance.TestData) string {
+	// Data residency has limited region support
+	data.Locations.Primary = "brazilsouth"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -244,36 +262,56 @@ resource "azurerm_iothub_dps" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+  data_residency_enabled = true
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r IotHubDPSResource) linkedHubs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_iothub_dps" "test" {
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
   sku {
     name     = "S1"
     capacity = "1"
   }
 
   linked_hub {
-    connection_string       = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
+    connection_string       = azurerm_iothub_shared_access_policy.test.primary_connection_string
     location                = azurerm_resource_group.test.location
     allocation_weight       = 15
     apply_allocation_policy = true
   }
 
   linked_hub {
-    connection_string = "HostName=test2.azure-devices.net;SharedAccessKeyName=iothubowner2;SharedAccessKey=key2"
+    connection_string = azurerm_iothub_shared_access_policy.test2.primary_connection_string
     location          = azurerm_resource_group.test.location
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.linkedHubsDependencies(data), data.RandomInteger)
 }
 
-func (IotHubDPSResource) linkedHubsUpdated(data acceptance.TestData) string {
+func (r IotHubDPSResource) linkedHubsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
@@ -286,13 +324,72 @@ resource "azurerm_iothub_dps" "test" {
   }
 
   linked_hub {
-    connection_string       = "HostName=test3.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
+    connection_string       = azurerm_iothub_shared_access_policy.test.primary_connection_string
     location                = azurerm_resource_group.test.location
     allocation_weight       = 150
     apply_allocation_policy = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.linkedHubsDependencies(data), data.RandomInteger)
+}
+
+func (IotHubDPSResource) linkedHubsDependencies(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+
+resource "azurerm_iothub_shared_access_policy" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
+
+  registry_read   = true
+  registry_write  = true
+  service_connect = true
+}
+
+resource "azurerm_iothub" "test2" {
+  name                = "acctestIoTHub2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+
+resource "azurerm_iothub_shared_access_policy" "test2" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test2.name
+  name                = "acctest2"
+
+  registry_read   = true
+  registry_write  = true
+  service_connect = true
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (IotHubDPSResource) ipFilterRules(data acceptance.TestData) string {

@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +27,7 @@ func dataSourcePublicIPs() *pluginsdk.Resource {
 }
 
 func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name_prefix": {
@@ -39,24 +38,10 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 		"attachment_status": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				out := []string{
-					"Attached",
-					"Unattached",
-				}
-				if !features.ThreePointOhBeta() {
-					out = append(out, "All")
-				}
-				return validation.StringInSlice(out, false)
-			}(),
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{
-						"attached",
-					}
-				}
-				return []string{}
-			}(),
+			ValidateFunc: validation.StringInSlice([]string{
+				"Attached",
+				"Unattached",
+			}, false),
 		},
 
 		"allocation_type": {
@@ -97,17 +82,6 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		out["attached"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Deprecated: "This property has been deprecated in favour of `attachment_status` to improve filtering",
-			ConflictsWith: []string{
-				"attachment_status",
-			},
-		}
-	}
-	return out
 }
 
 func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -139,14 +113,6 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 		if attachmentStatusOk && attachmentStatus.(string) == "Unattached" && nicIsAttached {
 			continue
-		}
-
-		if !features.ThreePointOhBeta() {
-			// Removal will also change behaviour for data sources without `attachment_status` set
-			attachedOnly := d.Get("attached").(bool)
-			if !attachmentStatusOk && attachedOnly != nicIsAttached {
-				continue
-			}
 		}
 
 		if allocationType := d.Get("allocation_type").(string); allocationType != "" {

@@ -3,7 +3,7 @@ package batch
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 )
 
 // expandBatchAccountKeyVaultReference expands Batch account KeyVault reference

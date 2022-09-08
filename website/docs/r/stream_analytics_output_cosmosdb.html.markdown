@@ -13,8 +13,9 @@ Manages a Stream Analytics Output to CosmosDB.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -24,8 +25,8 @@ data "azurerm_stream_analytics_job" "example" {
 
 resource "azurerm_cosmosdb_account" "example" {
   name                = "exampledb"
-  resource_group_name = data.azurerm_resource_group.example.name
-  location            = data.azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
@@ -58,7 +59,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 
 resource "azurerm_stream_analytics_output_cosmosdb" "example" {
   name                     = "output-to-cosmosdb"
-  stream_analytics_job_id  = azurerm_stream_analytics_job.example.id
+  stream_analytics_job_id  = data.azurerm_stream_analytics_job.example.id
   cosmosdb_account_key     = azurerm_cosmosdb_account.example.primary_key
   cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.example.id
   container_name           = azurerm_cosmosdb_sql_container.example.name
@@ -82,6 +83,8 @@ The following arguments are supported:
 
 * `document_id` - (Optional) The name of the field in output events used to specify the primary key which insert or update operations are based on.
 
+* `partition_key` - (Optional) The name of the field in output events used to specify the key for partitioning output across collections. If `container_name` contains `{partition}` token, this property is required to be specified.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -90,7 +93,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output for CosmosDB.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output for CosmosDB.

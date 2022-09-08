@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -108,7 +107,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 						"apply_allocation_policy": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  features.ThreePointOhBeta(),
+							Default:  true,
 						},
 						"allocation_weight": {
 							Type:         pluginsdk.TypeInt,
@@ -171,6 +170,13 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"data_residency_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -230,6 +236,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: &iothub.IotDpsPropertiesDescription{
 			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
 			AllocationPolicy:    iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
+			EnableDataResidency: utils.Bool(d.Get("data_residency_enabled").(bool)),
 			IPFilterRules:       expandDpsIPFilterRules(d),
 			PublicNetworkAccess: publicNetworkAccess,
 		},
@@ -294,6 +301,13 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
 		d.Set("id_scope", props.IDScope)
 		d.Set("allocation_policy", string(props.AllocationPolicy))
+
+		enableDataResidency := false
+		if props.EnableDataResidency != nil {
+			enableDataResidency = *props.EnableDataResidency
+		}
+		d.Set("data_residency_enabled", enableDataResidency)
+
 		publicNetworkAccess := true
 		if props.PublicNetworkAccess != "" {
 			publicNetworkAccess = strings.EqualFold("Enabled", string(props.PublicNetworkAccess))

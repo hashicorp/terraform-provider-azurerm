@@ -14,8 +14,39 @@ Manages an API Management API Operation Policy
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_api_management" "example" {
+  name                = "example-apim"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  publisher_name      = "My Company"
+  publisher_email     = "company@terraform.io"
+  sku_name            = "Developer_1"
+}
+
+resource "azurerm_api_management_api" "example" {
+  name                = "example-api"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  revision            = "1"
+}
+
 resource "azurerm_api_management_api_operation" "example" {
-  #...
+  operation_id        = "acctest-operation"
+  api_name            = azurerm_api_management_api.example.name
+  api_management_name = azurerm_api_management.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  display_name        = "DELETE Resource"
+  method              = "DELETE"
+  url_template        = "/resource"
 }
 
 resource "azurerm_api_management_api_operation_policy" "example" {
@@ -40,7 +71,7 @@ XML
 
 The following arguments are supported:
 
-* `api_name` - (Required) The ID of the API Management API Operation within the API Management Service. Changing this forces a new resource to be created.
+* `api_name` - (Required) The name of the API within the API Management Service where the Operation exists. Changing this forces a new resource to be created.
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
@@ -60,7 +91,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation Policy.

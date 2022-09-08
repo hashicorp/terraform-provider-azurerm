@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -23,28 +22,6 @@ func TestAccIotHub_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccIotHub_ipFilterRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
-	r := IotHubResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ipFilterRules(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.ipFilterRulesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -597,118 +574,6 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (IotHubResource) ipFilterRules(data acceptance.TestData) string {
-	ipFilterRules := `
-  ip_filter_rule {
-    name    = "test"
-    ip_mask = "10.0.0.0/31"
-    action  = "Accept"
-  }
-
-  ip_filter_rule {
-    name    = "test2"
-    ip_mask = "10.0.2.0/31"
-    action  = "Accept"
-  }
-
-  ip_filter_rule {
-    name    = "test3"
-    ip_mask = "10.0.3.0/31"
-    action  = "Accept"
-  }
-`
-	if features.ThreePointOhBeta() {
-		ipFilterRules = ""
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_iothub" "test" {
-  name                = "acctestIoTHub-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "S1"
-    capacity = "1"
-  }
-
-  %s
-
-  tags = {
-    purpose = "testing"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipFilterRules)
-}
-
-func (IotHubResource) ipFilterRulesUpdate(data acceptance.TestData) string {
-
-	ipFilterRules := `
-  ip_filter_rule {
-    name    = "test4"
-    ip_mask = "10.0.4.0/31"
-    action  = "Accept"
-  }
-
-  ip_filter_rule {
-    name    = "test"
-    ip_mask = "10.0.0.0/31"
-    action  = "Accept"
-  }
-
-  ip_filter_rule {
-    name    = "test3"
-    ip_mask = "10.0.3.0/31"
-    action  = "Accept"
-  }
-
-  ip_filter_rule {
-    name    = "test5"
-    ip_mask = "10.0.5.0/31"
-    action  = "Accept"
-  }
-`
-	if features.ThreePointOhBeta() {
-		ipFilterRules = ""
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_iothub" "test" {
-  name                = "acctestIoTHub-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "S1"
-    capacity = "1"
-  }
-
-  %s
-
-  tags = {
-    purpose = "testing"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipFilterRules)
 }
 
 func (IotHubResource) networkRuleSet(data acceptance.TestData) string {

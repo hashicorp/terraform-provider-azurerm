@@ -70,6 +70,12 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 								"record",
 							}, false),
 						},
+
+						"configuration_parameter": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -267,7 +273,8 @@ func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]streamanalyt
 		v := raw.(map[string]interface{})
 		variableType := v["type"].(string)
 		outputs = append(outputs, streamanalytics.FunctionInput{
-			DataType: utils.String(variableType),
+			DataType:                 utils.String(variableType),
+			IsConfigurationParameter: utils.Bool(v["configuration_parameter"].(bool)),
 		})
 	}
 
@@ -287,8 +294,14 @@ func flattenStreamAnalyticsFunctionUDAInputs(input *[]streamanalytics.FunctionIn
 			variableType = *v.DataType
 		}
 
+		var isConfigurationParameter bool
+		if v.IsConfigurationParameter != nil {
+			isConfigurationParameter = *v.IsConfigurationParameter
+		}
+
 		outputs = append(outputs, map[string]interface{}{
-			"type": variableType,
+			"type":                    variableType,
+			"configuration_parameter": isConfigurationParameter,
 		})
 	}
 

@@ -18,6 +18,11 @@ type azureCliTokenMultiTenantAuth struct {
 }
 
 func (a azureCliTokenMultiTenantAuth) build(b Builder) (authMethod, error) {
+	ver, err := populateAzVersion(false)
+	if err != nil {
+		return nil, err
+	}
+
 	auth := azureCliTokenMultiTenantAuth{
 		clientId: "04b07795-8ddb-461a-bbee-02f9e1bf7b46", // fixed first party client id for Az CLI
 		profile: &azureCLIProfileMultiTenant{
@@ -25,9 +30,11 @@ func (a azureCliTokenMultiTenantAuth) build(b Builder) (authMethod, error) {
 			subscriptionId:     b.SubscriptionID,
 			tenantId:           b.TenantID,
 			auxiliaryTenantIDs: b.AuxiliaryTenantIDs,
+			azVersion:          *ver,
 		},
 		servicePrincipalAuthDocsLink: b.ClientSecretDocsLink,
 	}
+
 	profilePath, err := cli.ProfilePath()
 	if err != nil {
 		return nil, fmt.Errorf("loading the Profile Path from the Azure CLI: %+v", err)
@@ -146,7 +153,7 @@ func (a azureCliTokenMultiTenantAuth) populateConfig(c *Config) error {
 	c.SubscriptionID = a.profile.subscriptionId
 
 	c.GetAuthenticatedObjectID = func(ctx context.Context) (*string, error) {
-		objectId, err := obtainAuthenticatedObjectID()
+		objectId, err := obtainAuthenticatedObjectID(a.profile.azVersion)
 		if err != nil {
 			return nil, err
 		}

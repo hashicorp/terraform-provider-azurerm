@@ -11,9 +11,17 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 	// Azure only being able provision against one app id at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":    testAccBotChannelsRegistration_basic,
-			"update":   testAccBotChannelsRegistration_update,
-			"complete": testAccBotChannelsRegistration_complete,
+			"basic":                    testAccBotChannelsRegistration_basic,
+			"update":                   testAccBotChannelsRegistration_update,
+			"complete":                 testAccBotChannelsRegistration_complete,
+			"streamingEndpointEnabled": testAccBotChannelsRegistration_streamingEndpointEnabled,
+		},
+		"bot": {
+			"basic":                    testAccBotServiceAzureBot_basic,
+			"completeUpdate":           testAccBotServiceAzureBot_completeUpdate,
+			"msaAppType":               testAccBotServiceAzureBot_msaAppType,
+			"requiresImport":           testAccBotServiceAzureBot_requiresImport,
+			"streamingEndpointEnabled": testAccBotServiceAzureBot_streamingEndpointEnabled,
 		},
 		"connection": {
 			"basic":    testAccBotConnection_basic,
@@ -23,6 +31,8 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"alexaBasic":                     testAccBotChannelAlexa_basic,
 			"alexaUpdate":                    testAccBotChannelAlexa_update,
 			"alexaRequiresImport":            testAccBotChannelAlexa_requiresImport,
+			"emailBasic":                     testAccBotChannelEmail_basic,
+			"emailUpdate":                    testAccBotChannelEmail_update,
 			"slackBasic":                     testAccBotChannelSlack_basic,
 			"slackComplete":                  testAccBotChannelSlack_complete,
 			"slackUpdate":                    testAccBotChannelSlack_update,

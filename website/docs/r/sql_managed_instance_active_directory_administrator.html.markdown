@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource manager: azurerm_sql_managed_instance_active_directory_administrator"
+page_title: "Azure Resource Manager: azurerm_sql_managed_instance_active_directory_administrator"
 description: |-
   Manages an Active Directory administrator on a SQL Managed Instance
 ---
@@ -15,6 +15,11 @@ Allows you to set a user or group as the AD administrator for an Azure SQL Manag
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
 resource "azurerm_sql_managed_instance" "example" {
   name                         = "managedsqlinstance"
   resource_group_name          = azurerm_resource_group.example.name
@@ -68,7 +73,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Active Directory Administrator.
 * `update` - (Defaults to 30 minutes) Used when updating the SQL Active Directory Administrator.

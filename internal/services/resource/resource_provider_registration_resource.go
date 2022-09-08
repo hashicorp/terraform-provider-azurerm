@@ -89,83 +89,145 @@ func (r ResourceProviderRegistrationResource) ResourceType() string {
 
 func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Func:    r.resourceCreateUpdate,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.ProvidersClient
+			account := metadata.Client.Account
+
+			var obj ResourceProviderRegistrationModel
+			if err := metadata.Decode(&obj); err != nil {
+				return err
+			}
+
+			resourceId := parse.NewResourceProviderID(account.SubscriptionId, obj.Name)
+			if err := r.checkIfManagedByTerraform(resourceId.ResourceProvider, account); err != nil {
+				return err
+			}
+
+			provider, err := client.Get(ctx, resourceId.ResourceProvider, "")
+			if err != nil {
+				if utils.ResponseWasNotFound(provider.Response) {
+					return fmt.Errorf("the Resource Provider %q was not found", resourceId.ResourceProvider)
+				}
+
+				return fmt.Errorf("retrieving Resource Provider %q: %+v", resourceId.ResourceProvider, err)
+			}
+			if provider.RegistrationState == nil {
+				return fmt.Errorf("retrieving Resource Provider %q: `registrationState` was nil", resourceId.ResourceProvider)
+			}
+
+			if strings.EqualFold(*provider.RegistrationState, "Registered") {
+				return metadata.ResourceRequiresImport(r.ResourceType(), resourceId)
+			}
+
+			if metadata.ResourceData.HasChange("feature") {
+				oldFeaturesRaw, newFeaturesRaw := metadata.ResourceData.GetChange("feature")
+				err := r.applyFeatures(ctx, metadata, resourceId, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List())
+				if err != nil {
+					return fmt.Errorf("applying features for Resource Provider %q: %+v", resourceId.ResourceProvider, err)
+				}
+			}
+
+			log.Printf("[DEBUG] Registering Resource Provider %q..", resourceId.ResourceProvider)
+			if _, err := client.Register(ctx, resourceId.ResourceProvider); err != nil {
+				return fmt.Errorf("registering Resource Provider %q: %+v", resourceId.ResourceProvider, err)
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", resourceId.ID())
+			}
+			// TODO: @tombuildsstuff - expose a nicer means of doing this in the SDK
+			log.Printf("[DEBUG] Waiting for Resource Provider %q to finish registering..", resourceId.ResourceProvider)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Processing"},
+				Target:       []string{"Registered"},
+				Refresh:      r.registerRefreshFunc(ctx, client, resourceId.ResourceProvider),
+				MinTimeout:   15 * time.Second,
+				PollInterval: 30 * time.Second,
+				Timeout:      time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for Resource Provider Namespace %q to be registered: %s", resourceId.ResourceProvider, err)
+			}
+			log.Printf("[DEBUG] Registered Resource Provider %q.", resourceId.ResourceProvider)
+
+			metadata.SetID(resourceId)
+			return nil
+		},
+
 		Timeout: 120 * time.Minute,
 	}
 }
 
 func (r ResourceProviderRegistrationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Func:    r.resourceCreateUpdate,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.ProvidersClient
+			account := metadata.Client.Account
+
+			var obj ResourceProviderRegistrationModel
+			if err := metadata.Decode(&obj); err != nil {
+				return err
+			}
+
+			resourceId := parse.NewResourceProviderID(account.SubscriptionId, obj.Name)
+			if err := r.checkIfManagedByTerraform(resourceId.ResourceProvider, account); err != nil {
+				return err
+			}
+
+			provider, err := client.Get(ctx, resourceId.ResourceProvider, "")
+			if err != nil {
+				if utils.ResponseWasNotFound(provider.Response) {
+					return fmt.Errorf("the Resource Provider %q was not found", resourceId.ResourceProvider)
+				}
+
+				return fmt.Errorf("retrieving Resource Provider %q: %+v", resourceId.ResourceProvider, err)
+			}
+			if provider.RegistrationState == nil {
+				return fmt.Errorf("retrieving Resource Provider %q: `registrationState` was nil", resourceId.ResourceProvider)
+			}
+
+			if !strings.EqualFold(*provider.RegistrationState, "Registered") {
+				return fmt.Errorf("retrieving Resource Provider %q: `registrationState` was not `Registered`", resourceId.ResourceProvider)
+			}
+
+			if metadata.ResourceData.HasChange("feature") {
+				oldFeaturesRaw, newFeaturesRaw := metadata.ResourceData.GetChange("feature")
+				err := r.applyFeatures(ctx, metadata, resourceId, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List())
+				if err != nil {
+					return fmt.Errorf("applying features for Resource Provider %q: %+v", resourceId.ResourceProvider, err)
+				}
+			}
+
+			log.Printf("[DEBUG] Registering Resource Provider %q..", resourceId.ResourceProvider)
+			if _, err := client.Register(ctx, resourceId.ResourceProvider); err != nil {
+				return fmt.Errorf("registering Resource Provider %q: %+v", resourceId.ResourceProvider, err)
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", resourceId.ID())
+			}
+			// TODO: @tombuildsstuff - expose a nicer means of doing this in the SDK
+			log.Printf("[DEBUG] Waiting for Resource Provider %q to finish registering..", resourceId.ResourceProvider)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Processing"},
+				Target:       []string{"Registered"},
+				Refresh:      r.registerRefreshFunc(ctx, client, resourceId.ResourceProvider),
+				MinTimeout:   15 * time.Second,
+				PollInterval: 30 * time.Second,
+				Timeout:      time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for Resource Provider Namespace %q to be registered: %s", resourceId.ResourceProvider, err)
+			}
+			log.Printf("[DEBUG] Registered Resource Provider %q.", resourceId.ResourceProvider)
+
+			metadata.SetID(resourceId)
+			return nil
+		},
 		Timeout: 120 * time.Minute,
 	}
-}
-
-func (r ResourceProviderRegistrationResource) resourceCreateUpdate(ctx context.Context, metadata sdk.ResourceMetaData) error {
-	client := metadata.Client.Resource.ProvidersClient
-	account := metadata.Client.Account
-
-	var obj ResourceProviderRegistrationModel
-	if err := metadata.Decode(&obj); err != nil {
-		return err
-	}
-
-	resourceId := parse.NewResourceProviderID(account.SubscriptionId, obj.Name)
-	if err := r.checkIfManagedByTerraform(resourceId.ResourceProvider, account); err != nil {
-		return err
-	}
-
-	provider, err := client.Get(ctx, resourceId.ResourceProvider, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(provider.Response) {
-			return fmt.Errorf("the Resource Provider %q was not found", resourceId.ResourceProvider)
-		}
-
-		return fmt.Errorf("retrieving Resource Provider %q: %+v", resourceId.ResourceProvider, err)
-	}
-	if provider.RegistrationState == nil {
-		return fmt.Errorf("retrieving Resource Provider %q: `registrationState` was nil", resourceId.ResourceProvider)
-	}
-	if metadata.ResourceData.IsNewResource() {
-		if strings.EqualFold(*provider.RegistrationState, "Registered") {
-			return metadata.ResourceRequiresImport(r.ResourceType(), resourceId)
-		}
-	} else {
-		if !strings.EqualFold(*provider.RegistrationState, "Registered") {
-			return fmt.Errorf("retrieving Resource Provider %q: `registrationState` was not `Registered`", resourceId.ResourceProvider)
-		}
-	}
-
-	if metadata.ResourceData.HasChange("feature") {
-		oldFeaturesRaw, newFeaturesRaw := metadata.ResourceData.GetChange("feature")
-		err := r.applyFeatures(ctx, metadata, resourceId, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List())
-		if err != nil {
-			return fmt.Errorf("applying features for Resource Provider %q: %+v", resourceId.ResourceProvider, err)
-		}
-	}
-
-	log.Printf("[DEBUG] Registering Resource Provider %q..", resourceId.ResourceProvider)
-	if _, err := client.Register(ctx, resourceId.ResourceProvider); err != nil {
-		return fmt.Errorf("registering Resource Provider %q: %+v", resourceId.ResourceProvider, err)
-	}
-
-	// TODO: @tombuildsstuff - expose a nicer means of doing this in the SDK
-	log.Printf("[DEBUG] Waiting for Resource Provider %q to finish registering..", resourceId.ResourceProvider)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:      []string{"Processing"},
-		Target:       []string{"Registered"},
-		Refresh:      r.registerRefreshFunc(ctx, client, resourceId.ResourceProvider),
-		MinTimeout:   15 * time.Second,
-		PollInterval: 30 * time.Second,
-		Timeout:      metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Resource Provider Namespace %q to be registered: %s", resourceId.ResourceProvider, err)
-	}
-	log.Printf("[DEBUG] Registered Resource Provider %q.", resourceId.ResourceProvider)
-
-	metadata.SetID(resourceId)
-	return nil
 }
 
 func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
@@ -252,14 +314,17 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("unregistering Resource Provider %q: %+v", id.ResourceProvider, err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
 			// TODO: @tombuildsstuff - we should likely expose something in the SDK to make this easier
-
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Processing"},
 				Target:     []string{"Unregistered"},
 				Refresh:    r.unregisterRefreshFunc(ctx, client, id.ResourceProvider),
 				MinTimeout: 15 * time.Second,
-				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete),
+				Timeout:    time.Until(deadline),
 			}
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for Resource Provider %q to become unregistered: %+v", id.ResourceProvider, err)

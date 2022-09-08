@@ -388,6 +388,7 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 		Enabled:     model.Enabled,
 	}
 
+	value.Conditions.ClientFilters.Filters = make([]interface{}, 0)
 	if model.PercentageFilter > 0 {
 		value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
 			Name:       PercentageFilterName,

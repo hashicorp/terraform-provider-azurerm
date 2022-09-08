@@ -364,6 +364,8 @@ resource "azurerm_virtual_machine" "testsource" {
   network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -399,7 +401,14 @@ func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData, storageType
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults       = false
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
+    }
+  }
 }
 
 %s
@@ -440,6 +449,8 @@ resource "azurerm_virtual_machine" "testsource" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -577,6 +588,8 @@ resource "azurerm_virtual_machine" "testdestination" {
   network_interface_ids = [azurerm_network_interface.testdestination.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     id = azurerm_image.testdestination.id
   }
@@ -640,6 +653,8 @@ resource "azurerm_virtual_machine" "testdestination" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testdestination.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     id = azurerm_image.testdestination.id

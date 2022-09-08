@@ -51,12 +51,14 @@ The following attributes are exported:
 
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
+* `network_features` - Network features in use `Basic` or `Standard`.
+  
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
  
 * `security_style` - Volume security style
 
 * `data_protection_replication` - Volume data protection block
-* 
+  
 * `volume_path` - The unique file path of the volume.
 
 ---
@@ -75,6 +77,6 @@ A `data_protection_replication` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.

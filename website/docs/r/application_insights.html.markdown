@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource
+* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource. Changing this forces a new resource to be created.
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
@@ -118,7 +118,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Component.
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.

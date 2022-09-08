@@ -60,11 +60,19 @@ The following arguments are supported:
 
 ~> **NOTE:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
 
-~> **NOTE:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/en-us/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
+~> **NOTE:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
 
 * `key_vault_reference` - (Optional) A `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
 
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
+
+* `storage_account_authentication_mode` - (Optional) Specifies the storage account authentication mode. Possible values include `StorageKeys`, `BatchAccountManagedIdentity`.
+
+~> **NOTE:** When using `BatchAccountManagedIdentity` mod, the `identity.type` must set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+* `storage_account_node_identity` - (Optional) Specifies the user assigned identity for the storage account.
+
+* `allowed_authentication_modes` - (Optional) Specifies the allowed authentication mode for the Batch account. Possible values include `AAD`, `SharedKey` or `TaskAuthenticationToken`.
 
 * `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data.
 
@@ -92,7 +100,7 @@ A `key_vault_reference` block supports the following:
 
 A `encryption` block supports the following:
 
-* `key_vault_key_id` - (Required) The Azure key vault reference id with version that should be used to encrypt data, as documented [here](https://docs.microsoft.com/en-us/azure/batch/batch-customer-managed-key). Key rotation is not yet supported.
+* `key_vault_key_id` - (Required) The Azure key vault reference id with version that should be used to encrypt data, as documented [here](https://docs.microsoft.com/azure/batch/batch-customer-managed-key). Key rotation is not yet supported.
 
 ## Attributes Reference
 
@@ -108,7 +116,7 @@ The following attributes are exported:
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
-~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
+~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService` and `allowed_authentication_modes` contains `SharedKey`. See [documentation](https://docs.microsoft.com/azure/batch/batch-api-basics) for more information.
 
 ---
 
@@ -120,7 +128,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Account.
 * `update` - (Defaults to 30 minutes) Used when updating the Batch Account.

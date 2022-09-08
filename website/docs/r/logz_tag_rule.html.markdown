@@ -23,10 +23,10 @@ resource "azurerm_logz_monitor" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   plan {
-    billing_cycle  = "Monthly"
+    billing_cycle  = "MONTHLY"
     effective_date = "2022-06-06T00:00:00Z"
     plan_id        = "100gb14days"
-    usage_type     = "Committed"
+    usage_type     = "COMMITTED"
   }
 
   user {
@@ -78,7 +78,7 @@ An `tag_filter` block exports the following:
 
 * `name` - (Required) The name of this `tag_filter`.
 
-* `action` - (Required) The action for a filtering tag. Possible values are "Include" and "Exclude" is allowed. Note that the `Exclude` takes priority over the `Include`.
+* `action` - (Required) The action for a filtering tag. Possible values are `Include` and `Exclude` is allowed. Note that the `Exclude` takes priority over the `Include`.
 
 * `value` - (Optional) The value of this `tag_filter`.
 
@@ -90,7 +90,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the logz Tag Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the logz Tag Rule.

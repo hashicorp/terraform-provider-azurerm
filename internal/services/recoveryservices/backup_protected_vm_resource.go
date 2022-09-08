@@ -7,15 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	vmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -43,6 +41,12 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 		},
 
 		Schema: resourceRecoveryServicesBackupProtectedVMSchema(),
+
+		// It's possible to remove the associated vm from the protected backup so we'll only ForceNew this attribute if it's
+		// changing to something other than empty.
+		CustomizeDiff: pluginsdk.ForceNewIfChange("source_vm_id", func(ctx context.Context, old, new, meta interface{}) bool {
+			return new.(string) != "" && old.(string) != new.(string)
+		}),
 	}
 }
 
@@ -54,6 +58,13 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	vaultName := d.Get("recovery_vault_name").(string)
+
+	// source_vm_id must be specified at creation time but can be removed during update
+	if d.IsNewResource() {
+		if _, ok := d.GetOk("source_vm_id"); !ok {
+			return fmt.Errorf("`source_vm_id` must be specified when creating")
+		}
+	}
 	vmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("backup_policy_id").(string)
 
@@ -177,7 +188,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if _, err := resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, id.VaultName, id.ResourceGroup, id.ProtectionContainerName, id.Name, "", d); err != nil {
+	if _, err := resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, id.VaultName, id.ResourceGroup, id.ProtectionContainerName, id.Name, d); err != nil {
 		return err
 	}
 
@@ -208,27 +219,45 @@ func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx conte
 	return resp.(backup.ProtectedItemResource), nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, d *pluginsdk.ResourceData) (backup.ProtectedItemResource, error) {
+func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, d *pluginsdk.ResourceData) (backup.ProtectedItemResource, error) {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
-		Pending:    []string{"Found"},
-		Target:     []string{"NotFound"},
-		Refresh:    resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, false),
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Pending:    []string{"Pending"},
+		Target:     []string{"NotFound", "Stopped"},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return resp, "NotFound", nil
+				}
+
+				return resp, "Error", fmt.Errorf("making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			}
+
+			if properties := resp.Properties; properties != nil {
+				if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
+					if strings.EqualFold(string(vm.ProtectionState), string(backup.ProtectionStateProtectionStopped)) {
+						return resp, "Stopped", nil
+					}
+				}
+			}
+			return resp, "Pending", nil
+		},
+
+		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
 		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("waiting for the Azure Backup Protected VM %q to be false (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
+		return i, fmt.Errorf("waiting for the Azure Backup Protected VM %q to be deleted (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectedItemResource), nil
 }
 
 func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) pluginsdk.StateRefreshFunc {
-	// TODO: split this into two functions
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
@@ -237,22 +266,6 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 			}
 
 			return resp, "Error", fmt.Errorf("making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
-		} else if !newResource && policyId != "" {
-			if properties := resp.Properties; properties != nil {
-				if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
-					if v := vm.PolicyID; v != nil {
-						if strings.Replace(*v, "Subscriptions", "subscriptions", 1) != policyId {
-							return resp, "NotFound", nil
-						}
-					} else {
-						return resp, "Error", fmt.Errorf("reading policy ID attribute nil on Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
-					}
-				} else {
-					return resp, "Error", fmt.Errorf("reading properties on Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
-				}
-			} else {
-				return resp, "Error", fmt.Errorf("reading properties on empty Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
-			}
 		}
 		return resp, "Found", nil
 	}
@@ -292,7 +305,7 @@ func expandDiskLunList(input []interface{}) []interface{} {
 }
 
 func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"recovery_vault_name": {
@@ -303,10 +316,14 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		},
 
 		"source_vm_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.Any(
+				validation.StringIsEmpty,
+				azure.ValidateResourceID,
+			),
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10357
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
@@ -337,10 +354,4 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		schema["tags"] = tags.SchemaDeprecatedUnsupported()
-	}
-
-	return schema
 }

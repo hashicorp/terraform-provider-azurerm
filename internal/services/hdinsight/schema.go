@@ -7,12 +7,14 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -42,8 +44,7 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.TierStandard),
 			string(hdinsight.TierPremium),
-		}, !features.ThreePointOhBeta()),
-		DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+		}, false),
 	}
 }
 
@@ -88,47 +89,28 @@ func hdinsightClusterVersionDiffSuppressFunc(_, old, new string, _ *pluginsdk.Re
 }
 
 func SchemaHDInsightsGateway() *pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
-		// NOTE: these are Required since if these aren't present you get a `500 bad request`
-		"username": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"password": {
-			Type:      pluginsdk.TypeString,
-			Required:  true,
-			Sensitive: true,
-			// Azure returns the key as *****. We'll suppress that here.
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				return (new == d.Get(k).(string)) && (old == "*****")
-			},
-		},
-	}
-
-	if !features.ThreePointOhBeta() {
-		s["enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    true,
-			Deprecated: "HDInsight doesn't support disabling gateway anymore",
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-				enabled := i.(bool)
-
-				if !enabled {
-					errors = append(errors, fmt.Errorf("Only true is supported, because HDInsight doesn't support disabling gateway anymore. Provided value %t", enabled))
-				}
-				return warnings, errors
-			},
-		}
-	}
-
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: s,
+			Schema: map[string]*pluginsdk.Schema{
+				// NOTE: these are Required since if these aren't present you get a `500 bad request`
+				"username": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+				"password": {
+					Type:      pluginsdk.TypeString,
+					Required:  true,
+					Sensitive: true,
+					// Azure returns the key as *****. We'll suppress that here.
+					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
 		},
 	}
 }
@@ -206,6 +188,32 @@ func SchemaHDInsightsMonitor() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					// Azure doesn't return the key
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsExtension() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"log_analytics_workspace_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
+				"primary_key": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
 					},
 				},
@@ -294,7 +302,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				},
 
 				"cluster_users_group_dns": {
@@ -309,6 +317,86 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"uri": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+
+				"parameters": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"access_modes": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"destination_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: azValidate.PortNumber,
+				},
+
+				"disable_gateway_auth": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"private_ip_address": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsIPAddress,
+				},
+
+				"sub_domain_suffix": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+type HttpEndpointModel struct {
+	AccessModes        []string `tfschema:"access_modes"`
+	DestinationPort    int32    `tfschema:"destination_port"`
+	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
+	PrivateIpAddress   string   `tfschema:"private_ip_address"`
+	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
 }
 
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
@@ -468,8 +556,6 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 }
 
 func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.ResourceData) []interface{} {
-	enabled := true
-
 	username := ""
 	if v, exists := input["restAuthCredential.username"]; exists && v != nil {
 		username = *v
@@ -485,9 +571,6 @@ func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.Reso
 	out := map[string]interface{}{
 		"username": username,
 		"password": password,
-	}
-	if !features.ThreePointOhBeta() {
-		out["enabled"] = enabled
 	}
 
 	return []interface{}{out}
@@ -669,6 +752,107 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 	}
 }
 
+func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"encryption_algorithm": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSA15),
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSAOAEP),
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
+					}, false),
+				},
+
+				"encryption_at_host_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"key_vault_managed_identity_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+				},
+
+				"key_vault_key_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: keyVault.NestedItemId,
+				},
+			},
+		},
+	}
+}
+
+func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*hdinsight.DiskEncryptionProperties, error) {
+	v := input[0].(map[string]interface{})
+
+	encryptionAlgorithm := v["encryption_algorithm"].(string)
+	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
+	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
+
+	diskEncryptionProps := &hdinsight.DiskEncryptionProperties{
+		EncryptionAlgorithm: hdinsight.JSONWebKeyEncryptionAlgorithm(encryptionAlgorithm),
+		EncryptionAtHost:    &encryptionAtHost,
+		MsiResourceID:       &keyVaultManagedIdentityId,
+	}
+
+	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
+		keyVaultKeyId, err := parse.ParseNestedItemID(id.(string))
+		if err != nil {
+			return nil, err
+		}
+		diskEncryptionProps.KeyName = &keyVaultKeyId.Name
+		diskEncryptionProps.KeyVersion = &keyVaultKeyId.Version
+		diskEncryptionProps.VaultURI = &keyVaultKeyId.KeyVaultBaseUrl
+	}
+
+	return diskEncryptionProps, nil
+}
+
+func FlattenHDInsightsDiskEncryptionProperties(input hdinsight.DiskEncryptionProperties) ([]interface{}, error) {
+	var encryptionAlgorithm string
+	var encryptionAtHost bool
+	var keyName string
+	var keyVersion string
+	var msiResourceId string
+	var keyVaultKeyId string
+
+	if input.EncryptionAtHost != nil {
+		encryptionAtHost = *input.EncryptionAtHost
+	}
+	encryptionAlgorithm = string(input.EncryptionAlgorithm)
+	if input.KeyName != nil {
+		keyName = *input.KeyName
+	}
+	if input.KeyVersion != nil {
+		keyVersion = *input.KeyVersion
+	}
+	msiResourceId = *input.MsiResourceID
+
+	if keyName != "" || keyVersion != "" {
+		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultURI, "keys", keyName, keyVersion)
+		if err != nil {
+			return nil, err
+		}
+		keyVaultKeyId = keyVaultKeyIdRaw.ID()
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"encryption_algorithm":          encryptionAlgorithm,
+			"encryption_at_host_enabled":    encryptionAtHost,
+			"key_vault_key_id":              keyVaultKeyId,
+			"key_vault_managed_identity_id": msiResourceId,
+		},
+	}, nil
+}
+
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
 func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
@@ -751,11 +935,10 @@ type HDInsightNodeDefinition struct {
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
 	result := map[string]*pluginsdk.Schema{
 		"vm_size": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,
@@ -801,17 +984,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		countValidation := validation.IntAtLeast(definition.MinInstanceCount)
 		if definition.MaxInstanceCount != nil {
 			countValidation = validation.IntBetween(definition.MinInstanceCount, *definition.MaxInstanceCount)
-		}
-
-		if !features.ThreePointOhBeta() {
-			result["min_instance_count"] = &pluginsdk.Schema{
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				Computed:     true,
-				Deprecated:   "this has been deprecated from the API and will be removed in version 3.0 of the provider",
-				ValidateFunc: countValidation,
-			}
 		}
 
 		result["target_instance_count"] = &pluginsdk.Schema{
@@ -997,13 +1169,6 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		if !features.ThreePointOhBeta() {
-			minInstanceCount := v["min_instance_count"].(int)
-			if minInstanceCount > 0 {
-				role.MinInstanceCount = utils.Int32(int32(minInstanceCount))
-			}
-		}
-
 		targetInstanceCount := v["target_instance_count"].(int)
 		role.TargetInstanceCount = utils.Int32(int32(targetInstanceCount))
 
@@ -1188,13 +1353,6 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 
 	if definition.CanSpecifyInstanceCount {
 		output["target_instance_count"] = 0
-
-		if !features.ThreePointOhBeta() {
-			output["min_instance_count"] = 0
-			if input.MinInstanceCount != nil {
-				output["min_instance_count"] = int(*input.MinInstanceCount)
-			}
-		}
 
 		if input.TargetInstanceCount != nil {
 			output["target_instance_count"] = int(*input.TargetInstanceCount)

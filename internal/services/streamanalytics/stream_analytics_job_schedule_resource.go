@@ -231,8 +231,12 @@ func (r JobScheduleResource) Update() sdk.ResourceFunc {
 					}
 				}
 
-				if _, err = client.Start(ctx, id.ResourceGroup, id.StreamingjobName, props); err != nil {
+				future, err := client.Start(ctx, id.ResourceGroup, id.StreamingjobName, props)
+				if err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
+				if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for update of %q: %+v", *id, err)
 				}
 			}
 

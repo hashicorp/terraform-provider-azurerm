@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -22,7 +22,7 @@ func resourcePostgreSQLConfiguration() *pluginsdk.Resource {
 		Read:   resourcePostgreSQLConfigurationRead,
 		Delete: resourcePostgreSQLConfigurationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConfigurationID(id)
+			_, err := configurations.ParseConfigurationID(id)
 			return err
 		}),
 
@@ -64,25 +64,20 @@ func resourcePostgreSQLConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	// TODO: support RequiresImport - this is possible to tell if it's the non-default value from the API (see Delete)
 
 	locks.ByName(id.ServerName, postgreSQLServerResourceName)
 	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
 
-	properties := postgresql.Configuration{
-		ConfigurationProperties: &postgresql.ConfigurationProperties{
+	properties := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
 			Value: utils.String(d.Get("value").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -94,14 +89,14 @@ func resourcePostgreSQLConfigurationRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -110,12 +105,14 @@ func resourcePostgreSQLConfigurationRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ConfigurationName)
 	d.Set("server_name", id.ServerName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ConfigurationProperties; props != nil {
-		d.Set("value", props.Value)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("value", props.Value)
+		}
 	}
 
 	return nil
@@ -126,7 +123,7 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -135,25 +132,25 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
 
 	// "delete" = resetting this to the default value
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving Postgresql Configuration '%s': %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	properties := postgresql.Configuration{
-		ConfigurationProperties: &postgresql.ConfigurationProperties{
+	defaultValue := ""
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.DefaultValue != nil {
+		defaultValue = *resp.Model.Properties.DefaultValue
+	}
+
+	properties := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
 			// we can alternatively set `source: "system-default"`
-			Value: resp.DefaultValue,
+			Value: &defaultValue,
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
 		return fmt.Errorf("resetting %s to it's default value: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to reset to it's default value: %+v", *id, err)
 	}
 
 	return nil

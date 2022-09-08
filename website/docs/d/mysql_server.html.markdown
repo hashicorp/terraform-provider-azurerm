@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `version` - The version of this MySQL Server.
 
-* `administrator_login` - The Administrator Login for the MySQL Server.
+* `administrator_login` - The Administrator login for the MySQL Server.
 
 * `auto_grow_enabled` - The auto grow setting for this MySQL Server.
 
@@ -92,10 +92,10 @@ A `threat_detection_policy` block exports the following:
 
 * `storage_account_access_key` - Specifies the identifier key of the Threat Detection audit storage account.
 
-* `storage_endpoint` - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+* `storage_endpoint` - Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Server.

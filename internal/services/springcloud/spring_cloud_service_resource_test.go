@@ -160,11 +160,56 @@ func TestAccSpringCloudService_serviceRegistry(t *testing.T) {
 			Config: r.serviceRegistry(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_registry_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.serviceRegistry(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSpringCloudService_buildAgentPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.buildAgentPool(data, "S1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.buildAgentPool(data, "S2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.buildAgentPool(data, "S1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSpringCloudService_zoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundant(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -206,6 +251,26 @@ resource "azurerm_spring_cloud_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (SpringCloudServiceResource) zoneRedundant(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%d"
+  location = "%s"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "acctest-sc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  zone_redundant      = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (SpringCloudServiceResource) serviceRegistry(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -225,6 +290,27 @@ resource "azurerm_spring_cloud_service" "test" {
   service_registry_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+}
+
+func (SpringCloudServiceResource) buildAgentPool(data acceptance.TestData, size string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%d"
+  location = "%s"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                  = "acctest-sc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  sku_name              = "E0"
+  build_agent_pool_size = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, size)
 }
 
 func (SpringCloudServiceResource) singleGitRepo(data acceptance.TestData) string {
@@ -353,7 +439,11 @@ resource "azurerm_spring_cloud_service" "test" {
 func (SpringCloudServiceResource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 provider "azuread" {}
@@ -402,14 +492,16 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_spring_cloud_service" "test" {
-  name                = "acctest-sc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                               = "acctest-sc-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  log_stream_public_endpoint_enabled = true
 
   network {
     app_subnet_id             = azurerm_subnet.test1.id
     service_runtime_subnet_id = azurerm_subnet.test2.id
     cidr_ranges               = ["10.4.0.0/16", "10.5.0.0/16", "10.3.0.1/16"]
+    read_timeout_seconds      = 2
   }
 
   config_server_git_setting {

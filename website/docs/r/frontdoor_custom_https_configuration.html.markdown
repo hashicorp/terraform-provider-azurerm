@@ -30,9 +30,8 @@ data "azurerm_key_vault" "vault" {
 }
 
 resource "azurerm_frontdoor" "example" {
-  name                                         = "example-FrontDoor"
-  resource_group_name                          = azurerm_resource_group.example.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "example-FrontDoor"
+  resource_group_name = azurerm_resource_group.example.name
 
   routing_rule {
     name               = "exampleRoutingRule1"
@@ -118,7 +117,7 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX. Defaults to `Latest`.
 
-~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instructions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
+~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instructions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
 
 ## Attributes Reference
@@ -133,7 +132,7 @@ The `custom_https_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating a Custom HTTPS Configuration.
 * `update` - (Defaults to 6 hours) Used when updating a Custom HTTPS Configuration.

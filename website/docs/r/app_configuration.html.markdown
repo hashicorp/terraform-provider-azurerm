@@ -14,15 +14,15 @@ Manages an Azure App Configuration.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 
@@ -37,6 +37,10 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`.
+
+   `public_network_access` - (Optional) The Public Network Access setting of the App Configuration. Possible values are `Enabled` and `Disabled`.  
+
+~> **NOTE:** If `public_network_access` is not specified, the App Configuration will be created as  `Automatic`. However, once a different value is defined, can not be set again as automatic.  
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -66,6 +70,8 @@ The following attributes are exported:
 * `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
 
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
+
+* `public_network_access` - The Public Network Access setting of this App Configuration.
 
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
@@ -123,7 +129,7 @@ A `secondary_write_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the App Configuration.

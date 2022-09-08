@@ -33,5 +33,5 @@ data "azurerm_spring_cloud_app" "test" {
   resource_group_name = azurerm_spring_cloud_app.test.resource_group_name
   service_name        = azurerm_spring_cloud_app.test.service_name
 }
-`, SpringCloudAppResource{}.basic(data))
+`, SpringCloudAppResource{}.complete(data))
 }

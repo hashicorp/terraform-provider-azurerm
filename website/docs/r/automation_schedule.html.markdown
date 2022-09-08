@@ -22,10 +22,7 @@ resource "azurerm_automation_account" "example" {
   name                = "tfex-automation-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
-  sku {
-    name = "Basic"
-  }
+  sku_name            = "Basic"
 }
 
 resource "azurerm_automation_schedule" "example" {
@@ -61,7 +58,7 @@ The following arguments are supported:
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
-* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://s2.automation.ext.azure.com/api/Orchestrator/TimeZones?_=1594792230258
+* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
 * `week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 
@@ -85,7 +82,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Schedule.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Schedule.

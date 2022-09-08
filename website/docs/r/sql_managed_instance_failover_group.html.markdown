@@ -17,6 +17,11 @@ Manages a SQL Instance Failover Group.
 ~> **Note:** For a more complete example, see the [the `examples/sql-azure/managed_instance_failover_group` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/managed_instance_failover_group) within the GitHub Repository.
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
 resource "azurerm_sql_managed_instance" "primary" {
   name                         = "example-primary"
   resource_group_name          = azurerm_resource_group.primary.name
@@ -121,7 +126,7 @@ A `partner_region` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Instance Failover Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Instance Failover Group.

@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
@@ -65,16 +64,11 @@ data "azurerm_lb_rule" "test" {
 }
 
 func (r LoadBalancerRule) completeDataSource(data acceptance.TestData) string {
-	var rg string
-	if !features.ThreePointOhBeta() {
-		rg = "resource_group_name = azurerm_resource_group.test.name"
-	}
 	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_backend_address_pool" "test" {
-  name = "LbPool-%s"
-  %s
+  name            = "LbPool-%s"
   loadbalancer_id = azurerm_lb.test.id
 }
 
@@ -108,5 +102,5 @@ data "azurerm_lb_rule" "test" {
   name            = azurerm_lb_rule.test.name
   loadbalancer_id = azurerm_lb_rule.test.loadbalancer_id
 }
-`, template, data.RandomStringOfLength(8), rg, data.RandomStringOfLength(8), data.RandomStringOfLength(8))
+`, template, data.RandomStringOfLength(8), data.RandomStringOfLength(8), data.RandomStringOfLength(8))
 }

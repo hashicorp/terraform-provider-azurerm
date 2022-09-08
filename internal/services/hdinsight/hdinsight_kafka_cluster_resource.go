@@ -84,6 +84,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
 
+			"network": SchemaHDInsightsNetwork(),
+
 			"component_version": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -112,6 +114,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 				ForceNew: true,
 				Optional: true,
 			},
+
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
 			"roles": {
 				Type:     pluginsdk.TypeList,
@@ -172,6 +176,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			},
 
 			"monitor": SchemaHDInsightsMonitor(),
+
+			"extension": SchemaHDInsightsExtension(),
 		},
 	}
 }
@@ -212,6 +218,9 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
+
 	kafkaRoles := hdInsightRoleDefinition{
 		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
 		WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
@@ -244,6 +253,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Kafka"),
 				ComponentVersion: componentVersions,
@@ -264,6 +274,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	if encryptionInTransit, ok := d.GetOk("encryption_in_transit_enabled"); ok {
 		params.Properties.EncryptionInTransitProperties = &hdinsight.EncryptionInTransitProperties{
 			IsEncryptionInTransitEnabled: utils.Bool(encryptionInTransit.(bool)),
+		}
+	}
+
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -304,6 +321,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
 		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+			return err
+		}
+	}
+
+	if v, ok := d.GetOk("extension"); ok {
+		extensionRaw := v.([]interface{})
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -401,6 +425,22 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
 		}
 
+		if props.NetworkProperties != nil {
+			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flatten `network`: %+v", err)
+			}
+		}
+
+		if props.DiskEncryptionProperties != nil {
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+			}
+		}
+
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -411,6 +451,13 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
 			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
 		}
+
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+		}
+
+		d.Set("extension", flattenHDInsightAzureMonitor(extension))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)

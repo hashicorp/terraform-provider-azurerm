@@ -11,7 +11,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -206,6 +205,8 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if policyRuleStr := flattenJSON(props.PolicyRule); policyRuleStr != "" {
 			d.Set("policy_rule", policyRuleStr)
+			roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
+			d.Set("role_definition_ids", roleIDs)
 		}
 
 		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
@@ -280,7 +281,7 @@ func flattenJSON(stringMap interface{}) string {
 }
 
 func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -296,7 +297,7 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 				string(policy.TypeCustom),
 				string(policy.TypeNotSpecified),
 				string(policy.TypeStatic),
-			}, !features.ThreePointOhBeta()),
+			}, false),
 		},
 
 		"mode": {
@@ -322,13 +323,6 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Computed: !features.ThreePointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"management_group_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"display_name": {
@@ -355,18 +349,14 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
+		"role_definition_ids": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
 		"metadata": metadataSchema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["management_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			ConflictsWith: []string{"management_group_id"},
-			Deprecated:    "Deprecated in favour of `management_group_id`",
-		}
-	}
-	return out
 }

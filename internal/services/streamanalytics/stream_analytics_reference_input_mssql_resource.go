@@ -105,6 +105,12 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"table": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -156,6 +162,10 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 
 	if v, ok := d.GetOk("delta_snapshot_query"); ok {
 		properties.DeltaSnapshotQuery = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("table"); ok {
+		properties.Table = utils.String(v.(string))
 	}
 
 	props := streamanalytics.Input{
@@ -221,6 +231,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 		d.Set("refresh_interval_duration", inputDataSource.AzureSQLReferenceInputDataSourceProperties.RefreshRate)
 		d.Set("full_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.FullSnapshotQuery)
 		d.Set("delta_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.DeltaSnapshotQuery)
+		d.Set("table", inputDataSource.AzureSQLReferenceInputDataSourceProperties.Table)
 	}
 	return nil
 }

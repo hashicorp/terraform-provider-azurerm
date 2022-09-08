@@ -21,7 +21,8 @@ resource "azurerm_policy_definition" "example" {
   name                = "only-deploy-in-westeurope"
   policy_type         = "Custom"
   mode                = "All"
-  management_group_id = azurerm_management_group.example.group_id
+  display_name        = "my-policy-definition"
+  management_group_id = azurerm_management_group.example.id
 
   policy_rule = <<POLICY_RULE
 	{
@@ -83,7 +84,7 @@ A `identity` block supports the following:
 
 * `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Policy Definition.
+* `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
@@ -111,7 +112,7 @@ The `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Assignment for this Management Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Assignment for this Management Group.

@@ -14,11 +14,13 @@ Manages an Authorization Server within an API Management Service.
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_api" "example" {
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_api_management" "example" {
   name                = "search-api"
-  api_management_name = "search-api-management"
   resource_group_name = "search-service"
-  revision            = "2"
 }
 
 resource "azurerm_api_management_authorization_server" "example" {
@@ -32,6 +34,9 @@ resource "azurerm_api_management_authorization_server" "example" {
 
   grant_types = [
     "authorizationCode",
+  ]
+  authorization_methods = [
+    "GET",
   ]
 }
 ```
@@ -102,7 +107,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Authorization Server.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Authorization Server.
@@ -119,7 +124,7 @@ terraform import azurerm_api_management_authorization_server.example /subscripti
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Authorization Server.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Authorization Server.

@@ -229,11 +229,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook login authentication.
 
 ---
 
@@ -249,11 +249,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The client secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub login authentication.
 
 ---
 
@@ -263,7 +263,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Google Sign-In authentication.
 
@@ -385,7 +385,7 @@ A `site_config` block exports the following:
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
 
-* `remote_debugging` - Is Remote Debugging enabled.
+* `remote_debugging_enabled` - Is Remote Debugging enabled.
 
 * `remote_debugging_version` - The Remote Debugging Version.
 
@@ -398,6 +398,8 @@ A `site_config` block exports the following:
 * `scm_use_main_ip_restriction` - Is the Linux Web App `ip_restriction` configuration used for the SCM also.
 
 * `use_32_bit_worker` - Does the Linux Web App use a 32-bit worker.
+
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are Web Sockets enabled?
 
@@ -485,6 +487,6 @@ A `twitter` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Web App.

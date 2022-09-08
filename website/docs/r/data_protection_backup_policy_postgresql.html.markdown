@@ -13,22 +13,22 @@ Manages a Backup Policy to back up PostgreSQL.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_data_protection_backup_vault" "example" {
   name                = "example-backup-vault"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql" "example" {
   name                = "example-backup-policy"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   vault_name          = azurerm_data_protection_backup_vault.example.name
 
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
@@ -119,7 +119,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Policy PostgreSQL.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Policy PostgreSQL.

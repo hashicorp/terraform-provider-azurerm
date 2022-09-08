@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -145,6 +144,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
+									"user_assigned_identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
 									"user_name": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
@@ -201,12 +204,143 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+			"mount": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"azure_blob_file_system": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"container_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"relative_mount_path": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"account_key": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"sas_key": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"blobfuse_options": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"azure_file_share": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"azure_file_url": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"account_key": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"relative_mount_path": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"mount_options": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"cifs_mount": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"user_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"source": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"relative_mount_path": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"mount_options": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"password": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"nfs_mount": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"source": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"relative_mount_path": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"mount_options": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"public_ips": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"public_address_provisioning_type": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -348,20 +482,6 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-	}
-	if !features.ThreePointOhBeta() {
-		s["max_task_retry_count"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		}
-
-		s["environment"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		}
 	}
 	return s
 }

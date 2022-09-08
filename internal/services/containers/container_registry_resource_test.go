@@ -233,6 +233,13 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.geoReplicationMultipleLocationsUpdate(data, secondaryLocation, ternaryLocation),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		// updates the SKU to basic.
 		{
 			Config: r.geoReplicationUpdateWithNoLocation_basic(data),
@@ -271,6 +278,13 @@ func TestAccContainerRegistry_geoReplication(t *testing.T) {
 		// updates the ACR with updated locations
 		{
 			Config: r.geoReplicationMultipleLocations(data, secondaryLocation, ternaryLocation),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.geoReplicationMultipleLocationsUpdate(data, secondaryLocation, ternaryLocation),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -768,6 +782,37 @@ resource "azurerm_container_registry" "test" {
   }
   georeplications {
     location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+}
+
+func (ContainerRegistryResource) geoReplicationMultipleLocationsUpdate(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location                = "%s"
+    zone_redundancy_enabled = true
+  }
+  georeplications {
+    location                  = "%s"
+    regional_endpoint_enabled = true
+    tags = {
+      foo = "bar"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)

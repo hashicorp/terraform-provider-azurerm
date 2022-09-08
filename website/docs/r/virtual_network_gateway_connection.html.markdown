@@ -259,7 +259,15 @@ Changing this value will force a resource to be created.
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
     for this connection. Defaults to `false`.
 
+* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` (Border Gateway Protocol custom IP Addresses) block which is documented below.
+    The block can only be used on `IPSec` / `activeactive` connections,
+    For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
+
 * `express_route_gateway_bypass` - (Optional) If `true`, data packets will bypass ExpressRoute Gateway for data forwarding This is only valid for ExpressRoute connections.
+
+* `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
+
+* `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.
 
 * `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic
     selectors are enabled for this connection. Enabling policy-based traffic
@@ -267,13 +275,17 @@ Changing this value will force a resource to be created.
 
 * `ipsec_policy` (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
-    custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
+    custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
 
-* `traffic_selector_policy` A `traffic_selector_policy` which allows to specify traffic selector policy proposal to be used in a virtual network gateway connection.
-    Only one block can be defined for a connection.
-    For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
+* `traffic_selector_policy` (Optional) One or more `traffic_selector_policy` blocks which are documented below.
+    A `traffic_selector_policy` allows to specify a traffic selector policy proposal to be used in a virtual network gateway connection.
+    For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+The `custom_bgp_addresses` block supports:
+* `primary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
+* `secondary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
 
 The `ipsec_policy` block supports:
 
@@ -303,6 +315,12 @@ The `ipsec_policy` block supports:
 * `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least
     `300` seconds. Defaults to `27000` seconds.
 
+The `traffic_selector_policy` block supports:
+
+* `local_address_cidrs` - List of local CIDRs.
+
+* `remote_address_cidrs` - List of remote CIDRs.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -311,7 +329,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Network Gateway Connection.
 * `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Gateway Connection.

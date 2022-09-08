@@ -41,11 +41,15 @@ resource "azurerm_synapse_workspace" "example" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "example" {
   name                 = "AllowAll"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }
@@ -83,7 +87,7 @@ The following arguments are supported:
 
 * `subresource_name` - (Required) Specifies the sub resource name which the Synapse Private Endpoint is able to connect to. Changing this forces a new resource to be created.
 
--> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration).
+-> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
 
 ## Attributes Reference
 
@@ -93,7 +97,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Managed Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Managed Private Endpoint.

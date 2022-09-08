@@ -1,7 +1,6 @@
 package appservice
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -22,40 +21,34 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	if features.ThreePointOhBeta() {
-		return []sdk.DataSource{
-			AppServiceSourceControlTokenDataSource{},
-			LinuxFunctionAppDataSource{},
-			LinuxWebAppDataSource{},
-			ServicePlanDataSource{},
-			WindowsFunctionAppDataSource{},
-			WindowsWebAppDataSource{},
-		}
+	return []sdk.DataSource{
+		AppServiceSourceControlTokenDataSource{},
+		LinuxFunctionAppDataSource{},
+		LinuxWebAppDataSource{},
+		ServicePlanDataSource{},
+		WindowsFunctionAppDataSource{},
+		WindowsWebAppDataSource{},
 	}
-	return []sdk.DataSource{}
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if features.ThreePointOhBeta() {
-		return []sdk.Resource{
-			AppServiceSourceControlTokenResource{},
-			FunctionAppActiveSlotResource{},
-			FunctionAppFunctionResource{},
-			FunctionAppHybridConnectionResource{},
-			LinuxFunctionAppResource{},
-			LinuxFunctionAppSlotResource{},
-			LinuxWebAppResource{},
-			LinuxWebAppSlotResource{},
-			ServicePlanResource{},
-			SourceControlResource{},
-			SourceControlSlotResource{},
-			WebAppActiveSlotResource{},
-			WebAppHybridConnectionResource{},
-			WindowsFunctionAppResource{},
-			WindowsFunctionAppSlotResource{},
-			WindowsWebAppResource{},
-			WindowsWebAppSlotResource{},
-		}
+	return []sdk.Resource{
+		AppServiceSourceControlTokenResource{},
+		FunctionAppActiveSlotResource{},
+		FunctionAppFunctionResource{},
+		FunctionAppHybridConnectionResource{},
+		LinuxFunctionAppResource{},
+		LinuxFunctionAppSlotResource{},
+		LinuxWebAppResource{},
+		LinuxWebAppSlotResource{},
+		ServicePlanResource{},
+		SourceControlResource{},
+		SourceControlSlotResource{},
+		WebAppActiveSlotResource{},
+		WebAppHybridConnectionResource{},
+		WindowsFunctionAppResource{},
+		WindowsFunctionAppSlotResource{},
+		WindowsWebAppResource{},
+		WindowsWebAppSlotResource{},
 	}
-	return []sdk.Resource{}
 }

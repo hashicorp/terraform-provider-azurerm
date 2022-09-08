@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -115,9 +115,6 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		maxTaskRetryCount = *startTask.MaxTaskRetryCount
 	}
 
-	if !features.ThreePointOhBeta() {
-		result["max_task_retry_count"] = maxTaskRetryCount
-	}
 	result["task_retry_maximum"] = maxTaskRetryCount
 
 	if startTask.UserIdentity != nil {
@@ -172,9 +169,6 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		}
 	}
 
-	if !features.ThreePointOhBeta() {
-		result["environment"] = environment
-	}
 	result["common_environment_properties"] = environment
 
 	result["resource_file"] = resourceFiles
@@ -259,14 +253,12 @@ func flattenBatchPoolContainerRegistry(d *pluginsdk.ResourceData, armContainerRe
 	}
 	if userName := armContainerRegistry.UserName; userName != nil {
 		result["user_name"] = *userName
+		// Locate the password only if user_name is defined
+		result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
 	}
-
-	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
-	if len(result) != 2 {
-		return result
+	if identity := armContainerRegistry.IdentityReference; identity != nil {
+		result["user_assigned_identity_id"] = identity.ResourceID
 	}
-
-	result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
 
 	return result
 }
@@ -289,6 +281,95 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 		return d.Get(fmt.Sprintf("container_configuration.0.container_registries.%d.password", i))
 	}
 
+	return ""
+}
+
+func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourceValue string, mountType string, d *pluginsdk.ResourceData) string {
+	if num, ok := d.GetOk("mount.#"); ok {
+		n := num.(int)
+		for i := 0; i < n; i++ {
+			if src, ok := d.GetOk(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, sourceType)); ok && src == sourceValue {
+				return d.Get(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, targetType)).(string)
+			}
+		}
+	}
+	return ""
+}
+
+func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountConfiguration) map[string]interface{} {
+	mountConfig := make(map[string]interface{})
+
+	switch {
+	case config.AzureBlobFileSystemConfiguration != nil:
+		azureBlobFileSysConfigList := make([]interface{}, 0)
+		azureBlobFileSysConfig := make(map[string]interface{})
+		azureBlobFileSysConfig["account_name"] = *config.AzureBlobFileSystemConfiguration.AccountName
+		azureBlobFileSysConfig["container_name"] = *config.AzureBlobFileSystemConfiguration.ContainerName
+		azureBlobFileSysConfig["relative_mount_path"] = *config.AzureBlobFileSystemConfiguration.RelativeMountPath
+		azureBlobFileSysConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system", d)
+		azureBlobFileSysConfig["sas_key"] = findSensitiveInfoForMountConfig("sas_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system", d)
+		if config.AzureBlobFileSystemConfiguration.IdentityReference != nil {
+			azureBlobFileSysConfig["identity_id"] = flattenBatchPoolIdentityReferenceToIdentityID(config.AzureBlobFileSystemConfiguration.IdentityReference)
+		}
+		if config.AzureBlobFileSystemConfiguration.BlobfuseOptions != nil {
+			azureBlobFileSysConfig["blobfuse_options"] = *config.AzureBlobFileSystemConfiguration.BlobfuseOptions
+		}
+		azureBlobFileSysConfigList = append(azureBlobFileSysConfigList, azureBlobFileSysConfig)
+		mountConfig["azure_blob_file_system"] = azureBlobFileSysConfigList
+	case config.AzureFileShareConfiguration != nil:
+		azureFileShareConfigList := make([]interface{}, 0)
+		azureFileShareConfig := make(map[string]interface{})
+		azureFileShareConfig["account_name"] = *config.AzureFileShareConfiguration.AccountName
+		azureFileShareConfig["azure_file_url"] = *config.AzureFileShareConfiguration.AzureFileURL
+		azureFileShareConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureFileShareConfiguration.AccountName, "azure_file_share", d)
+		azureFileShareConfig["relative_mount_path"] = *config.AzureFileShareConfiguration.RelativeMountPath
+
+		if config.AzureFileShareConfiguration.MountOptions != nil {
+			azureFileShareConfig["mount_options"] = *config.AzureFileShareConfiguration.MountOptions
+		}
+
+		azureFileShareConfigList = append(azureFileShareConfigList, azureFileShareConfig)
+		mountConfig["azure_file_share"] = azureFileShareConfigList
+
+	case config.CifsMountConfiguration != nil:
+		cifsMountConfigList := make([]interface{}, 0)
+		cifsMountConfig := make(map[string]interface{})
+
+		cifsMountConfig["user_name"] = *config.CifsMountConfiguration.Username
+		cifsMountConfig["password"] = findSensitiveInfoForMountConfig("password", "user_name", *config.CifsMountConfiguration.Username, "cifs_mount", d)
+		cifsMountConfig["source"] = *config.CifsMountConfiguration.Source
+		cifsMountConfig["relative_mount_path"] = *config.CifsMountConfiguration.RelativeMountPath
+
+		if config.CifsMountConfiguration.MountOptions != nil {
+			cifsMountConfig["mount_options"] = *config.CifsMountConfiguration.MountOptions
+		}
+
+		cifsMountConfigList = append(cifsMountConfigList, cifsMountConfig)
+		mountConfig["cifs_mount"] = cifsMountConfigList
+	case config.NfsMountConfiguration != nil:
+		nfsMountConfigList := make([]interface{}, 0)
+		nfsMountConfig := make(map[string]interface{})
+
+		nfsMountConfig["source"] = *config.NfsMountConfiguration.Source
+		nfsMountConfig["relative_mount_path"] = *config.NfsMountConfiguration.RelativeMountPath
+
+		if config.NfsMountConfiguration.MountOptions != nil {
+			nfsMountConfig["mount_options"] = *config.NfsMountConfiguration.MountOptions
+		}
+
+		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
+		mountConfig["nfs_mount"] = nfsMountConfigList
+	default:
+		return nil
+	}
+
+	return mountConfig
+}
+
+func flattenBatchPoolIdentityReferenceToIdentityID(ref *batch.ComputeNodeIdentityReference) string {
+	if ref != nil && ref.ResourceID != nil {
+		return *ref.ResourceID
+	}
 	return ""
 }
 
@@ -370,11 +451,23 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 		return nil, fmt.Errorf("Error: container registry reference should be defined")
 	}
 
-	containerRegistry := batch.ContainerRegistry{
-		RegistryServer: utils.String(ref["registry_server"].(string)),
-		UserName:       utils.String(ref["user_name"].(string)),
-		Password:       utils.String(ref["password"].(string)),
+	containerRegistry := batch.ContainerRegistry{}
+
+	if v := ref["registry_server"]; v != nil && v != "" {
+		containerRegistry.RegistryServer = pointer.FromString(v.(string))
 	}
+	if v := ref["user_name"]; v != nil && v != "" {
+		containerRegistry.UserName = pointer.FromString(v.(string))
+	}
+	if v := ref["password"]; v != nil && v != "" {
+		containerRegistry.Password = pointer.FromString(v.(string))
+	}
+	if v := ref["user_assigned_identity_id"]; v != nil && v != "" {
+		containerRegistry.IdentityReference = &batch.ComputeNodeIdentityReference{
+			ResourceID: pointer.FromString(v.(string)),
+		}
+	}
+
 	return &containerRegistry, nil
 }
 
@@ -430,12 +523,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 
 	maxTaskRetryCount := int32(1)
 
-	if !features.ThreePointOhBeta() {
-		if v, ok := startTaskValue["max_task_retry_count"]; ok && v.(int) > 0 {
-			maxTaskRetryCount = int32(v.(int))
-		}
-	}
-
 	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
 		maxTaskRetryCount = int32(v)
 	}
@@ -459,11 +546,12 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				Scope:          batch.AutoUserScope(autoUserMap["scope"].(string)),
 			}
 		}
-	} else if userNameValue, ok := userIdentityValue["username"]; ok {
+	}
+	if userNameValue, ok := userIdentityValue["user_name"]; ok {
 		userName := userNameValue.(string)
-		userIdentity.UserName = &userName
-	} else {
-		return nil, fmt.Errorf("either auto_user or user_name should be specified for Batch pool start task")
+		if len(userName) != 0 {
+			userIdentity.UserName = &userName
+		}
 	}
 
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
@@ -519,12 +607,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		WaitForSuccess:    &waitForSuccess,
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
-	}
-
-	if !features.ThreePointOhBeta() {
-		if v, ok := startTaskValue["environment"]; ok && len(v.(map[string]interface{})) > 0 {
-			startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v.(map[string]interface{}))
-		}
 	}
 
 	if v := startTaskValue["common_environment_properties"].(map[string]interface{}); len(v) > 0 {
@@ -583,6 +665,121 @@ func FlattenBatchMetaData(metadatas *[]batch.MetadataItem) map[string]interface{
 	}
 
 	return output
+}
+
+func ExpandBatchPoolMountConfigurations(d *pluginsdk.ResourceData) (*[]batch.MountConfiguration, error) {
+	var result []batch.MountConfiguration
+
+	if mountConfigs, ok := d.GetOk("mount"); ok {
+		mountConfigList := mountConfigs.([]interface{})
+		for _, tempItem := range mountConfigList {
+			item := tempItem.(map[string]interface{})
+			if mountConfig, err := expandBatchPoolMountConfiguration(item); err == nil {
+				result = append(result, mountConfig)
+			}
+		}
+		return &result, nil
+	}
+	return nil, fmt.Errorf("mount either is empty or contains parsing errors")
+}
+
+func expandBatchPoolMountConfiguration(ref map[string]interface{}) (batch.MountConfiguration, error) {
+	var result batch.MountConfiguration
+	if azureBlobFileSystemConfiguration, err := expandBatchPoolAzureBlobFileSystemConfiguration(ref["azure_blob_file_system"].([]interface{})); err == nil {
+		result.AzureBlobFileSystemConfiguration = azureBlobFileSystemConfiguration
+	}
+	if azureFileShareConfiguration, err := expandBatchPoolAzureFileShareConfiguration(ref["azure_file_share"].([]interface{})); err == nil {
+		result.AzureFileShareConfiguration = azureFileShareConfiguration
+	}
+	if cifsMountConfiguration, err := expandBatchPoolCIFSMountConfiguration(ref["cifs_mount"].([]interface{})); err == nil {
+		result.CifsMountConfiguration = cifsMountConfiguration
+	}
+	if nfsMountConfiguration, err := expandBatchPoolNFSMountConfiguration(ref["nfs_mount"].([]interface{})); err == nil {
+		result.NfsMountConfiguration = nfsMountConfiguration
+	}
+	return result, nil
+}
+
+func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*batch.AzureBlobFileSystemConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("azure_blob_file_system is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.AzureBlobFileSystemConfiguration{
+		AccountName:       utils.String(configMap["account_name"].(string)),
+		ContainerName:     utils.String(configMap["container_name"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if accountKey, ok := configMap["account_key"]; ok {
+		result.AccountKey = utils.String(accountKey.(string))
+	} else if sasKey, ok := configMap["sas_key"]; ok {
+		result.SasKey = utils.String(sasKey.(string))
+	} else if computedIDRef, err := expandBatchPoolIdentityReference(configMap); err == nil {
+		result.IdentityReference = computedIDRef
+	}
+
+	if blobfuseOptions, ok := configMap["blobfuse_options"]; ok {
+		result.BlobfuseOptions = utils.String(blobfuseOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*batch.AzureFileShareConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("azure_file_share is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.AzureFileShareConfiguration{
+		AccountName:       utils.String(configMap["account_name"].(string)),
+		AccountKey:        utils.String(configMap["account_key"].(string)),
+		AzureFileURL:      utils.String(configMap["azure_file_url"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if mountOptions, ok := configMap["mount_options"]; ok {
+		result.MountOptions = utils.String(mountOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*batch.CIFSMountConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("cifs_mount is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.CIFSMountConfiguration{
+		Username:          utils.String(configMap["user_name"].(string)),
+		Source:            utils.String(configMap["source"].(string)),
+		Password:          utils.String(configMap["password"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if mountOptions, ok := configMap["mount_options"]; ok {
+		result.MountOptions = utils.String(mountOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolNFSMountConfiguration(list []interface{}) (*batch.NFSMountConfiguration, interface{}) {
+	if list == nil || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("nfs_mount is empty")
+	}
+	configMap := list[0].(map[string]interface{})
+	result := batch.NFSMountConfiguration{
+		Source:            utils.String(configMap["source"].(string)),
+		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),
+	}
+	if mountOptions, ok := configMap["mount_options"]; ok {
+		result.MountOptions = utils.String(mountOptions.(string))
+	}
+	return &result, nil
+}
+
+func expandBatchPoolIdentityReference(ref map[string]interface{}) (*batch.ComputeNodeIdentityReference, error) {
+	var result batch.ComputeNodeIdentityReference
+	if iid, ok := ref["identity_id"]; ok && iid != "" {
+		result.ResourceID = utils.String(iid.(string))
+		return &result, nil
+	}
+	return nil, fmt.Errorf("identity_id is empty")
 }
 
 // ExpandBatchPoolNetworkConfiguration expands Batch pool network configuration

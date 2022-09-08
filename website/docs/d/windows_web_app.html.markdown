@@ -87,6 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
 
+* `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
+
 ---
 
 A `action` block exports the following:
@@ -239,11 +241,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook login authentication.
 
 ---
 
@@ -259,11 +261,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The Client Secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub login authentication.
 
 ---
 
@@ -273,7 +275,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Google Sign-In authentication.
 
@@ -349,7 +351,7 @@ A `schedule` block exports the following:
 
 A `site_config` block exports the following:
 
-* `always_on` - Is this Linux Web App is Always On enabled.
+* `always_on` - Is this Windows Web App is Always On enabled.
 
 * `api_definition_url` - The ID of the APIM configuration for this Windows Web App.
 
@@ -409,6 +411,8 @@ A `site_config` block exports the following:
 
 * `virtual_application` - A `virtual_application` block as defined below.
 
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
+
 * `websockets_enabled` - Are Web Sockets enabled?
 
 * `windows_fx_version` - The string representation of the Windows FX Version.
@@ -455,9 +459,9 @@ A `status_code` block exports the following:
 
 A `sticky_settings` block exports the following:
 
-* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `app_setting_names` - A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
-* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `connection_string_names` - A list of `connection_string` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 
@@ -520,6 +524,6 @@ A `virtual_directory` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.

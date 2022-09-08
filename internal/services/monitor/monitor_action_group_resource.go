@@ -1,17 +1,17 @@
 package monitor
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
-	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -386,7 +386,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"event_hub_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: eventHubValidation.EventhubID,
+							ValidateFunc: eventhubs.ValidateEventhubID,
 						},
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
@@ -448,6 +448,11 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	expandedItsmReceiver, err := expandMonitorActionGroupItsmReceiver(itsmReceiversRaw)
+	if err != nil {
+		return err
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
@@ -458,7 +463,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			Enabled:                    utils.Bool(enabled),
 			EmailReceivers:             expandMonitorActionGroupEmailReceiver(emailReceiversRaw),
 			AzureAppPushReceivers:      expandMonitorActionGroupAzureAppPushReceiver(azureAppPushReceiversRaw),
-			ItsmReceivers:              expandMonitorActionGroupItsmReceiver(itsmReceiversRaw),
+			ItsmReceivers:              expandedItsmReceiver,
 			SmsReceivers:               expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
 			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(tenantId, webhookReceiversRaw),
 			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(automationRunbookReceiversRaw),
@@ -585,20 +590,36 @@ func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]insights.EmailRec
 	return &receivers
 }
 
-func expandMonitorActionGroupItsmReceiver(v []interface{}) *[]insights.ItsmReceiver {
+func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]insights.ItsmReceiver, error) {
 	receivers := make([]insights.ItsmReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
+		ticketConfiguration := utils.String(val["ticket_configuration"].(string))
 		receiver := insights.ItsmReceiver{
 			Name:                utils.String(val["name"].(string)),
 			WorkspaceID:         utils.String(val["workspace_id"].(string)),
 			ConnectionID:        utils.String(val["connection_id"].(string)),
-			TicketConfiguration: utils.String(val["ticket_configuration"].(string)),
+			TicketConfiguration: ticketConfiguration,
 			Region:              utils.String(azure.NormalizeLocation(val["region"].(string))),
+		}
+
+		// https://github.com/Azure/azure-rest-api-specs/issues/20488 ticket_configuration should have `PayloadRevision` and `WorkItemType` keys
+		if ticketConfiguration != nil {
+			j := make(map[string]interface{})
+			err := json.Unmarshal([]byte(*ticketConfiguration), &j)
+			if err != nil {
+				return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` %s unmarshall json error: %+v", *ticketConfiguration, err)
+			}
+
+			_, existKeyPayloadRevision := j["PayloadRevision"]
+			_, existKeyWorkItemType := j["WorkItemType"]
+			if !(existKeyPayloadRevision && existKeyWorkItemType) {
+				return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
+			}
 		}
 		receivers = append(receivers, receiver)
 	}
-	return &receivers
+	return &receivers, nil
 }
 
 func expandMonitorActionGroupAzureAppPushReceiver(v []interface{}) *[]insights.AzureAppPushReceiver {
@@ -735,7 +756,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 
-		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
+		eventHubId, err := eventhubs.ParseEventhubID(*utils.String(val["event_hub_id"].(string)))
 		if err != nil {
 			return nil, err
 		}
@@ -743,7 +764,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		receiver := insights.EventHubReceiver{
 			Name:                 utils.String(val["name"].(string)),
 			EventHubNameSpace:    &eventHubId.NamespaceName,
-			EventHubName:         &eventHubId.Name,
+			EventHubName:         &eventHubId.EventHubName,
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		if v := val["tenant_id"].(string); v != "" {
@@ -1027,7 +1048,7 @@ func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *
 				event_hub_name := *receiver.EventHubName
 				subscription_id := *receiver.SubscriptionID
 
-				val["event_hub_id"] = eventHubParser.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
+				val["event_hub_id"] = eventhubs.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
 			}
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema

@@ -79,7 +79,7 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_machine_learning_compute_cluster" "test" {
   name                          = "example"
-  location                      = "West Europe"
+  location                      = azurerm_resource_group.example.location
   vm_priority                   = "LowPriority"
   vm_size                       = "Standard_DS2_v2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.example.id
@@ -131,9 +131,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Machine Learning Compute Cluster. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Compute Cluster.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -174,7 +174,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Compute Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Compute Cluster.

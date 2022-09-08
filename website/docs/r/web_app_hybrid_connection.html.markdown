@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "web_app_hybrid_connection: azurerm_web_app_hybrid_connection"
+page_title: "Azure Resource Manager: azurerm_web_app_hybrid_connection"
 description: |-
   Manages a Web App Hybrid Connection.
 ---
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_service_plan" "test" {
+resource "azurerm_service_plan" "example" {
   name                = "example-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -95,7 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web App Hybrid Connection.
 * `update` - (Defaults to 30 minutes) Used when updating the Web App Hybrid Connection.

@@ -19,7 +19,7 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = data.azurerm_resource_group.example.name
 }
 
 resource "azurerm_stream_analytics_function_javascript_uda" "example" {
@@ -72,6 +72,8 @@ An `input` block supports the following:
 
 * `type` - The input data type of this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
+* `configuration_parameter` - (Optional) Is this input parameter a configuration parameter? Defaults to `false`.
+
 ---
 
 An `output` block supports the following:
@@ -86,7 +88,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics JavaScript UDA Function.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics JavaScript UDA Function.

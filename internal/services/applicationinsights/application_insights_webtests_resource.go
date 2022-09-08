@@ -149,7 +149,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 	id := parse.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Application Insights %s: %+v", id, err)
@@ -197,7 +197,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 		Tags: tags.Expand(t),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, webTest)
+	_, err = client.CreateOrUpdate(ctx, id, webTest)
 	if err != nil {
 		return fmt.Errorf("creating/updating Application Insights %s: %+v", id, err)
 	}
@@ -219,7 +219,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights %q", *id)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Application Insights %s was not found - removing from state!", *id)
@@ -280,7 +280,7 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[DEBUG] Deleting AzureRM Application Insights %s", *id)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil

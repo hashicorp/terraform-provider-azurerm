@@ -48,6 +48,35 @@ func SchemaForDataFlowSourceAndSink() *pluginsdk.Schema {
 					},
 				},
 
+				"flowlet": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"parameters": {
+								Type:     pluginsdk.TypeMap,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"dataset_parameters": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+
 				"linked_service": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -98,6 +127,103 @@ func SchemaForDataFlowSourceAndSink() *pluginsdk.Schema {
 	}
 }
 
+func SchemaForDataFlowSourceTransformation() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"description": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"dataset": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"parameters": {
+								Type:     pluginsdk.TypeMap,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				},
+
+				"flowlet": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"parameters": {
+								Type:     pluginsdk.TypeMap,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"dataset_parameters": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+
+				"linked_service": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"parameters": {
+								Type:     pluginsdk.TypeMap,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func expandDataFactoryDataFlowSource(input []interface{}) *[]datafactory.DataFlowSource {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -112,6 +238,7 @@ func expandDataFactoryDataFlowSource(input []interface{}) *[]datafactory.DataFlo
 			Dataset:             expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
 			LinkedService:       expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
 			SchemaLinkedService: expandDataFactoryLinkedServiceReference(raw["schema_linked_service"].([]interface{})),
+			Flowlet:             expandDataFactoryDataFlowReference(raw["flowlet"].([]interface{})),
 		})
 	}
 	return &result
@@ -131,6 +258,26 @@ func expandDataFactoryDataFlowSink(input []interface{}) *[]datafactory.DataFlowS
 			Dataset:             expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
 			LinkedService:       expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
 			SchemaLinkedService: expandDataFactoryLinkedServiceReference(raw["schema_linked_service"].([]interface{})),
+			Flowlet:             expandDataFactoryDataFlowReference(raw["flowlet"].([]interface{})),
+		})
+	}
+	return &result
+}
+
+func expandDataFactoryDataFlowTransformation(input []interface{}) *[]datafactory.Transformation {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	result := make([]datafactory.Transformation, 0)
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+		result = append(result, datafactory.Transformation{
+			Description:   utils.String(raw["description"].(string)),
+			Name:          utils.String(raw["name"].(string)),
+			Dataset:       expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
+			LinkedService: expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
+			Flowlet:       expandDataFactoryDataFlowReference(raw["flowlet"].([]interface{})),
 		})
 	}
 	return &result
@@ -162,6 +309,20 @@ func expandDataFactoryLinkedServiceReference(input []interface{}) *datafactory.L
 	}
 }
 
+func expandDataFactoryDataFlowReference(input []interface{}) *datafactory.DataFlowReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &datafactory.DataFlowReference{
+		Type:              utils.String("DataFlowReference"),
+		ReferenceName:     utils.String(raw["name"].(string)),
+		Parameters:        raw["parameters"].(map[string]interface{}),
+		DatasetParameters: utils.String(raw["dataset_parameters"].(string)),
+	}
+}
+
 func flattenDataFactoryDataFlowSource(input *[]datafactory.DataFlowSource) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -183,6 +344,7 @@ func flattenDataFactoryDataFlowSource(input *[]datafactory.DataFlowSource) []int
 			"dataset":               flattenDataFactoryDatasetReference(v.Dataset),
 			"linked_service":        flattenDataFactoryLinkedServiceReference(v.LinkedService),
 			"schema_linked_service": flattenDataFactoryLinkedServiceReference(v.SchemaLinkedService),
+			"flowlet":               flattenDataFactoryDataFlowReference(v.Flowlet),
 		})
 	}
 	return result
@@ -209,6 +371,33 @@ func flattenDataFactoryDataFlowSink(input *[]datafactory.DataFlowSink) []interfa
 			"dataset":               flattenDataFactoryDatasetReference(v.Dataset),
 			"linked_service":        flattenDataFactoryLinkedServiceReference(v.LinkedService),
 			"schema_linked_service": flattenDataFactoryLinkedServiceReference(v.SchemaLinkedService),
+			"flowlet":               flattenDataFactoryDataFlowReference(v.Flowlet),
+		})
+	}
+	return result
+}
+
+func flattenDataFactoryDataFlowTransformation(input *[]datafactory.Transformation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		name := ""
+		description := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+		if v.Description != nil {
+			description = *v.Description
+		}
+		result = append(result, map[string]interface{}{
+			"name":           name,
+			"description":    description,
+			"dataset":        flattenDataFactoryDatasetReference(v.Dataset),
+			"linked_service": flattenDataFactoryLinkedServiceReference(v.LinkedService),
+			"flowlet":        flattenDataFactoryDataFlowReference(v.Flowlet),
 		})
 	}
 	return result
@@ -246,6 +435,25 @@ func flattenDataFactoryLinkedServiceReference(input *datafactory.LinkedServiceRe
 		map[string]interface{}{
 			"name":       name,
 			"parameters": input.Parameters,
+		},
+	}
+}
+
+func flattenDataFactoryDataFlowReference(input *datafactory.DataFlowReference) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.ReferenceName != nil {
+		name = *input.ReferenceName
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":               name,
+			"parameters":         input.Parameters,
+			"dataset_parameters": input.DatasetParameters,
 		},
 	}
 }
