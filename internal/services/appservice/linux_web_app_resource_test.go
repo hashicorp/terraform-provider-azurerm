@@ -925,7 +925,7 @@ func TestAccLinuxWebApp_updateAppStack(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.java(data, "java11", "TOMCAT", "9.0"),
+			Config: r.java(data, "11", "TOMCAT", "9.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|9.0-java11"),
@@ -1042,11 +1042,6 @@ func TestAccLinuxWebApp_stickySettings(t *testing.T) {
 			Config: r.stickySettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
 		data.ImportStep(),
