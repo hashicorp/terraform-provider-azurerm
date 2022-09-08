@@ -361,6 +361,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 				Format:      apimanagement.ContentFormat(contentFormat),
 				Value:       utils.String(contentValue),
 				Path:        utils.String(path),
+				APIRevision: utils.String(revision),
 				APIVersion:  utils.String(version),
 			},
 		}
@@ -422,6 +423,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			Protocols:                     protocols,
 			ServiceURL:                    utils.String(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
+			APIRevision:                   utils.String(revision),
 			APIVersion:                    utils.String(version),
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
