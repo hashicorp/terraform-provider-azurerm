@@ -11,6 +11,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220907.1111434` of `github.com/hashicorp/go-azure-sdk` [GH-18282]
 * dependencies: `desktopvirtualization` - updating to use `2022-02-10` [GH-17489]
+* dependencies: `iothub.dps` - update to use `hashicorp/go-azure-sdk` [GH-18299]
 * `azurerm_api_management_api` - the `soap_pass_through` property has been deprecated in favour of the `api_type` property [GH-17812]
 * `azurerm_kubernetes_cluster` - support for the `edge_zone` property [GH-18115]
 * `azurerm_kubernetes_cluster` - support for the `windows_profile.gmsa` block [GH-16437]
@@ -69,7 +70,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220830.1105041` of `github.com/hashicorp/go-azure-sdk` ([#18183](https://github.com/hashicorp/terraform-provider-azurerm/issues/18183))
-* dependencies: `log_analytics` - update to use hashicorp/go-azure-sdk ([#18098](https://github.com/hashicorp/terraform-provider-azurerm/issues/18098))
+* dependencies: `log_analytics` - update to use `hashicorp/go-azure-sdk` ([#18098](https://github.com/hashicorp/terraform-provider-azurerm/issues/18098))
 * `azurerm_batch_pool` - support for the `mount` property ([#18042](https://github.com/hashicorp/terraform-provider-azurerm/issues/18042))
 * `azurerm_container_registry` - support for the `azuread_authentication_as_arm_policy_enabled` and `soft_delete_policy` properties ([#17926](https://github.com/hashicorp/terraform-provider-azurerm/issues/17926))
 * `azurerm_cosmosdb_cassandra_cluster` - support for the `HoursBetweenBackups` property ([#18154](https://github.com/hashicorp/terraform-provider-azurerm/issues/18154))
