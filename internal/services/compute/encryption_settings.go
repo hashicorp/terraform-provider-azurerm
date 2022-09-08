@@ -23,7 +23,7 @@ func encryptionSettingsSchema() *pluginsdk.Schema {
 						// Azure can change enabled from false to true, but not the other way around, so
 						//   to keep idempotency, we'll conservatively set this to ForceNew=true
 						ForceNew:   true,
-						Deprecated: "Deprecated, Azure Disk Encryption is now configured directly by `disk_encryption_key` and `key_encryption_key`. To disable Azure Disk Encryption, please remove `encryption_settings` block",
+						Deprecated: "Deprecated, Azure Disk Encryption is now configured directly by `disk_encryption_key` and `key_encryption_key`. To disable Azure Disk Encryption, please remove `encryption_settings` block. To enabled, specify a `encryption_settings` block`",
 					},
 					"disk_encryption_key": {
 						Type:     pluginsdk.TypeList,
