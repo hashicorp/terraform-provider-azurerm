@@ -22,11 +22,11 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_hbase_cluster` - support for the `extension` property [GH-17846]
 * `azurerm_hdinsight_hadoop_cluster` - support for the `extension` property [GH-17846]
 
-
 BUG FIXES:
 
 * `azurerm_mssql_database` - the `license_type` property is now also Computed [GH-18230]
 * `azurerm_synapse_sql_pool` - `name` has correct validation error message  [GH-18264]
+* `azurerm_log_analytics_solution` - a state migration to work around the previously incorrect id casing [GH-18291]
 
 ## 3.21.1 (September 02, 2022)
 
