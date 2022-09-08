@@ -270,8 +270,9 @@ func EncodeWebAppLinuxFxVersionForJava(input ApplicationStackLinux) *string {
 			} else {
 				return utils.String(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, "java8"))
 			}
+		} else if javaServer == "TOMCAT" || javaServer == "JBOSSEAP" {
+			return utils.String(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, "java8"))
 		}
-		return utils.String(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, "java8"))
 
 	case javaMajorVersion == "11" || javaMajorVersion == "17":
 		if strings.Contains(javaServerVersion, "AUTO-UPDATE") || javaServer == "TOMCAT" || javaServer == "JBOSSEAP" {
