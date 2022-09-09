@@ -527,11 +527,13 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props.IsLedgerOn != nil {
 			ledgerEnabled = *props.IsLedgerOn
 		}
-		maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
-		if err != nil {
-			return err
+		if props.ElasticPoolID == nil {
+			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
+			if err != nil {
+				return err
+			}
+			d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
 		}
-		d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
 		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
