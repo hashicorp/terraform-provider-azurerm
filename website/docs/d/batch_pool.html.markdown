@@ -41,7 +41,7 @@ The following attributes are exported:
 
 * `data_disks` - A `data_disks` block describes the data disk settings.
 
-* `disk_encryption_configuration` - A `disk_encryption_configuration` block describes the disk encryption configuration applied on compute nodes in the pool.
+* `disk_encryption` - A `disk_encryption` block describes the disk encryption configuration applied on compute nodes in the pool.
 
 * `extensions` - An `extensions` block describes the extension settings
 
@@ -49,9 +49,9 @@ The following attributes are exported:
 
 * `license_type` - The type of on-premises license to be used when deploying the operating system.
 
-* `node_placement_configuration` - A `node_placement_configuration` block that describes the placement policy for allocating nodes in the pool.
+* `node_placement` - A `node_placement` block that describes the placement policy for allocating nodes in the pool.
 
-* `os_disk_placement_setting` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool.
+* `os_disk_placement` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool.
 
 * `storage_image_reference` - The reference of the storage image used by the nodes in the Batch pool.
 
@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `user_accounts` - A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
 
-* `windows_configuration` - A `windows_configuration` block that describes the Windows configuration in the pool.
+* `windows` - A `windows` block that describes the Windows configuration in the pool.
 
 * `max_tasks_per_node` - The maximum number of tasks that can run concurrently on a single compute node in the pool.
 
@@ -103,7 +103,7 @@ A `data_disks` block exports the following:
 
 ---
 
-A `disk_encryption_configuration` block exports the following:
+A `disk_encryption` block exports the following:
 
 * `disk_encryption_target` - On Linux pool, only `TemporaryDisk` is supported; on Windows pool, `OsDisk` and `TemporaryDisk` must be specified.
 
@@ -121,7 +121,7 @@ An `extensions` block exports the following:
 
 * `auto_upgrade_minor_version` - Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
 
-* `settings` - JSON formatted public settings for the extension.
+* `settings_json` - JSON formatted public settings for the extension.
 
 * `protected_settings` - The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
 
@@ -129,7 +129,7 @@ An `extensions` block exports the following:
 
 ---
 
-A `node_placement_configuration` block exports the following:
+A `node_placement` block exports the following:
 
 * `policy` - The placement policy for allocating nodes in the pool.
 
@@ -360,7 +360,7 @@ A `windows_user_configuration` block exports the following:
 
 ---
 
-A `windows_configuration` block exports the following:
+A `windows` block exports the following:
 
 Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
 

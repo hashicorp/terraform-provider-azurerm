@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
-* `disk_encryption_configuration` - (Optional) A `disk_encryption_configuration` block describes the disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
+* `disk_encryption` - (Optional) A `disk_encryption` block describes the disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
 
 * `extensions` - (Optional) An `extensions` block as defined below.
 
@@ -158,15 +158,15 @@ The following arguments are supported:
 
 * `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool.
 
-* `node_placement_configuration` - (Optional) A `node_placement_configuration` block that describes the placement policy for allocating nodes in the pool.
+* `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool.
 
-* `os_disk_placement_setting` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
+* `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
 
 * `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread.
 
 * `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
 
-* `windows_configuration` - A `windows_configuration` block that describes the Windows configuration in the pool.
+* `windows` - A `windows` block that describes the Windows configuration in the pool.
 
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
@@ -192,7 +192,7 @@ A `data_disks` block supports the following:
 
 * `storage_account_type` - (Optional) The storage account type to be used for the data disk. If omitted, the default is "Standard_LRS". Values are: "Standard_LRS" - The data disk should use standard locally redundant storage. "Premium_LRS" - The data disk should use premium locally redundant storage.
 
-A `disk_encryption_configuration` block supports the following:
+A `disk_encryption` block supports the following:
 
 The disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
 
@@ -215,7 +215,7 @@ If specified, the extensions mentioned in this configuration will be installed o
 
 * `auto_upgrade_minor_version` - (Optional) Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
 
-* `settings` - (Optional) JSON formatted public settings for the extension.
+* `settings_json` - (Optional) JSON formatted public settings for the extension.
 
 * `protected_settings` - (Optional) The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
 
@@ -223,7 +223,7 @@ If specified, the extensions mentioned in this configuration will be installed o
 
 ---
 
-A `node_placement_configuration` block supports the following:
+A `node_placement` block supports the following:
 
 Node placement Policy type on Batch Pools. Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy.
 
@@ -498,7 +498,7 @@ A `windows_user_configuration` block supports the following:
 
 ---
 
-A `windows_configuration` block supports the following:
+A `windows` block supports the following:
 
 Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
 

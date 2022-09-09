@@ -594,7 +594,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"disk_encryption_configuration": {
+			"disk_encryption": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -639,7 +639,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"settings": {
+						"settings_json": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
@@ -660,7 +660,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"node_placement_configuration": {
+			"node_placement": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -682,7 +682,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"os_disk_placement_setting": {
+			"os_disk_placement": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
@@ -781,7 +781,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"windows_configuration": {
+			"windows": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -1130,7 +1130,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 							diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 						}
 					}
-					d.Set("disk_encryption_configuration", diskEncryptionConfiguration)
+					d.Set("disk_encryption", diskEncryptionConfiguration)
 				}
 				if config.Extensions != nil {
 					extensions := make([]interface{}, 0)
@@ -1147,7 +1147,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 							extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
 						}
 						if item.Settings != nil {
-							extension["settings"] = item.Settings
+							extension["settings_json"] = item.Settings
 						}
 
 						for i := 0; i < n; i++ {
@@ -1178,10 +1178,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					nodePlacementConfig := make(map[string]interface{})
 					nodePlacementConfig["policy"] = string(config.NodePlacementConfiguration.Policy)
 					nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
-					d.Set("node_placement_configuration", nodePlacementConfiguration)
+					d.Set("node_placement", nodePlacementConfiguration)
 				}
 				if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
-					d.Set("os_disk_placement_setting", string(config.OsDisk.EphemeralOSDiskSettings.Placement))
+					d.Set("os_disk_placement", string(config.OsDisk.EphemeralOSDiskSettings.Placement))
 				}
 				if config.WindowsConfiguration != nil {
 					windowsConfig := []interface{}{
@@ -1189,7 +1189,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 							"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
 						},
 					}
-					d.Set("windows_configuration", windowsConfig)
+					d.Set("windows", windowsConfig)
 				}
 			}
 		}
