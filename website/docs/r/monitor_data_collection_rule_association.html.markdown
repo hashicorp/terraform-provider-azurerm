@@ -93,7 +93,7 @@ resource "azurerm_monitor_data_collection_endpoint" "test" {
 }
 
 # associate to a Data Collection Rule
-resource "azurerm_data_collection_rule_association" "example1" {
+resource "azurerm_monitor_data_collection_rule_association" "example1" {
   name                    = "example1-dcra"
   target_resource_id      = azurerm_linux_virtual_machine.example.id
   data_collection_rule_id = azurerm_monitor_data_collection_rule.example.id
@@ -101,7 +101,7 @@ resource "azurerm_data_collection_rule_association" "example1" {
 }
 
 # associate to a Data Collection Endpoint
-resource "azurerm_data_collection_rule_association" "example1" {
+resource "azurerm_monitor_data_collection_rule_association" "example1" {
   target_resource_id          = azurerm_linux_virtual_machine.example.id
   data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.example.id
   description                 = "example"
