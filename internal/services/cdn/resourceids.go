@@ -7,8 +7,6 @@ package cdn
 
 // CDN FrontDoor
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorCustomDomain -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1 -rewrite=true
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorCustomDomainTxt -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/dnsTxt/txt1 -rewrite=true
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorCustomDomainSecret -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/secrets/secret1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorEndpoint -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorFirewallPolicy -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorOrigin -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1/origins/origin1 -rewrite=true
