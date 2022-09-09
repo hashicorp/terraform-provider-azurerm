@@ -21,7 +21,7 @@ type SoftwareUpdateConfigurationResource struct {
 }
 
 func newSoftwareUpdateConfigurationResource() SoftwareUpdateConfigurationResource {
-	// The start time of the schedule must be at least 5 minutes after the time you create the schedule
+	// The start time of the schedule must be at least 5 minutes after the time you create the schedule,
 	// so we cannot hardcode the time string.
 	// we use timezone as UTC so the time string should be in UTC format
 	ins := SoftwareUpdateConfigurationResource{
@@ -43,48 +43,46 @@ func (a SoftwareUpdateConfigurationResource) Exists(ctx context.Context, client 
 	return utils.Bool(resp.SoftwareUpdateConfigurationProperties != nil), nil
 }
 
-func (a SoftwareUpdateConfigurationResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+func TestAccSoftwareUpdateConfiguration_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always return null
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-auto-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_automation_account" "test" {
-  name                = "acctest-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Basic"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
-resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_id        = azurerm_log_analytics_workspace.test.id
-  read_access_id      = azurerm_automation_account.test.id
-}
-`, data.RandomInteger, data.Locations.Primary)
+func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always return null
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always return null
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
 }
 
 func (a SoftwareUpdateConfigurationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
-
-
-
-
 
 
 %s
@@ -146,12 +144,6 @@ func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) st
 	return fmt.Sprintf(`
 
 
-
-
-
-
-
-
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
@@ -202,40 +194,36 @@ resource "azurerm_automation_software_update_configuration" "test" {
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
-func TestAccSoftwareUpdateConfiguration_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
-	r := newSoftwareUpdateConfigurationResource()
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// scheduleInfo.advancedSchedule always return null
-		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
-	})
+func (a SoftwareUpdateConfigurationResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
 }
 
-func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
-	r := newSoftwareUpdateConfigurationResource()
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// scheduleInfo.advancedSchedule always return null
-		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// scheduleInfo.advancedSchedule always return null
-		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
-	})
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_log_analytics_linked_service" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  read_access_id      = azurerm_automation_account.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
