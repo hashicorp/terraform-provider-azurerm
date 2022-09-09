@@ -10,7 +10,7 @@ description: |-
 
 Manages a Frontdoor Rule.
 
-!>**IMPORTANT:** To create the Frontdoor Rules resource successfully you **must** add a `depends_on` attribute to the `azurerm_cdn_frontdoor_rule` code block and reference both the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group` that are associated with the Frontdoor Rule resource.
+!>**IMPORTANT:** To create the Frontdoor Rules resource successfully you **must** add a `depends_on` meta-argument to the `azurerm_cdn_frontdoor_rule` code block and reference the `azurerm_cdn_frontdoor_origin`, `azurerm_cdn_frontdoor_origin_group` and the `azurerm_cdn_frontdoor_route` that are associated with the Frontdoor Rule resource. The `azurerm_cdn_frontdoor_route` definition has been excluded from the below `Example Usage` for brevity but has been included in the `depends_on` meta-argument as an example of the correct way to define the `azurerm_cdn_frontdoor_rule` resource.
 
 ## Example Usage
 
@@ -76,7 +76,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_rule" "example" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example]
+  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example, azurerm_cdn_frontdoor_route.example]
 
   name                      = "examplerule"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.example.id
