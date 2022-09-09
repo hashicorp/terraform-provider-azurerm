@@ -41,28 +41,20 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 			ForceNew:     true,
 			ValidateFunc: validate.ContainerRegistryTokenID,
 		},
+
 		"password1": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// "name": {
-					// 	Type:     pluginsdk.TypeString,
-					// 	Required: true,
-					// 	ValidateFunc: validation.StringInSlice([]string{
-					// 		// TODO: Use below SDK enum once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18339
-					// 		// string(containerregistry.PasswordNamePassword),
-					// 		"password1",
-					// 		string(containerregistry.PasswordNamePassword2),
-					// 	}, false),
-					// },
 					"expiry": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
 						DiffSuppressFunc: suppress.RFC3339Time,
 					},
+
 					"value": {
 						Type:      pluginsdk.TypeString,
 						Computed:  true,
@@ -71,6 +63,7 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 				},
 			},
 		},
+
 		"password2": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -83,6 +76,7 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 						ValidateFunc:     validation.IsRFC3339Time,
 						DiffSuppressFunc: suppress.RFC3339Time,
 					},
+
 					"value": {
 						Type:      pluginsdk.TypeString,
 						Computed:  true,
