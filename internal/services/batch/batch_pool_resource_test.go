@@ -2052,7 +2052,7 @@ resource "azurerm_batch_pool" "test" {
     type                       = "KeyVaultForLinux"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    settings_json                   = "{}"
+    settings_json              = "{}"
     protected_settings         = "sensitive"
     provision_after_extensions = ["newProv1"]
   }
