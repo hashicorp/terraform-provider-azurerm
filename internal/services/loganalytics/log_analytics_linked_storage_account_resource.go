@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -18,7 +19,7 @@ import (
 )
 
 func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
 		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
 		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
@@ -41,15 +42,13 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				// TODO 4.0: change ignoreCase from true to false and remove diff suppress to respect correct casing
 				ValidateFunc: validation.StringInSlice([]string{
 					string(linkedstorageaccounts.DataSourceTypeAlerts),
 					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
 					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
 					string(linkedstorageaccounts.DataSourceTypeIngestion),
 					string(linkedstorageaccounts.DataSourceTypeQuery),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -72,6 +71,25 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	// TODO 4.0: remove this block to respect correct casing
+	if !features.FourPointOhBeta() {
+		resource.Schema["data_source_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(linkedstorageaccounts.DataSourceTypeAlerts),
+				string(linkedstorageaccounts.DataSourceTypeAzureWatson),
+				string(linkedstorageaccounts.DataSourceTypeCustomLogs),
+				string(linkedstorageaccounts.DataSourceTypeIngestion),
+				string(linkedstorageaccounts.DataSourceTypeQuery),
+			}, true),
+			DiffSuppressFunc: suppress.CaseDifference,
+		}
+	}
+
+	return resource
 }
 
 func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
