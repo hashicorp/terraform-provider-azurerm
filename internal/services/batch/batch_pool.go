@@ -747,11 +747,11 @@ func expandBatchPoolWindowsConfiguration(list []interface{}) (*batch.WindowsConf
 	if list == nil || len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("windows_configuration is empty")
 	}
+	
 	item := list[0].(map[string]interface{})["enable_automatic_updates"].(bool)
-	result := batch.WindowsConfiguration{
+	return := &batch.WindowsConfiguration{
 		EnableAutomaticUpdates: utils.Bool(item),
-	}
-	return &result, nil
+	}, nil
 }
 
 func expandBatchPoolExtensions(list []interface{}) (*[]batch.VMExtension, error) {
