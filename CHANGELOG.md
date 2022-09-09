@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource**: `azurerm_automation_watcher` [GH-17927]
 * **New Resource**: `azurerm_automation_source_control` [GH-18175]
 * **New Resource**: `azurerm_container_registry_token_password` [GH-15939]
+* **New Resource**: `azurerm_monitor_data_collection_rule_association` [GH-17948]
 * **New Resource**: `azurerm_orbital_spacecraft` [GH-17860]
 
 ENHANCEMENTS:
@@ -19,7 +20,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `windows_profile.gmsa` block [GH-16437]
 * `azurerm_mssql_database` - support for the `maintenance_configuration_name` property [GH-18247]
 * `azurerm_virtual_desktop_host_pool` - support for the `scheduled_agent_updates` block [GH-17489]
-* `azurerm_hdinsight_kafka_cluster` - azurerm_hdinsight_spark_cluster - support for the `extension` property [GH-17846]
+* `azurerm_hdinsight_kafka_cluster` - support for the `extension` property [GH-17846]
 * `azurerm_hdinsight_spark_cluster` - support for the `extension` property [GH-17846]
 * `azurerm_hdinsight_interactive_query_cluster` - support for the `extension` property [GH-17846]
 * `azurerm_hdinsight_hbase_cluster` - support for the `extension` property [GH-17846]
@@ -28,7 +29,6 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_mssql_database` - the `license_type` property is now also Computed [GH-18230]
-* `azurerm_synapse_sql_pool` - `name` has correct validation error message  [GH-18264]
 * `azurerm_log_analytics_solution` - a state migration to work around the previously incorrect id casing [GH-18291]
 
 ## 3.21.1 (September 02, 2022)
