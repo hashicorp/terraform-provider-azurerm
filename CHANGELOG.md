@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource**: `azurerm_api_management_schema` [GH-18158]
 * **New Resource**: `azurerm_automation_watcher` [GH-17927]
 * **New Resource**: `azurerm_automation_source_control` [GH-18175]
+* **New Resource**: `azurerm_container_registry_token_password` [GH-15939]
 * **New Resource**: `azurerm_orbital_spacecraft` [GH-17860]
 
 ENHANCEMENTS:
