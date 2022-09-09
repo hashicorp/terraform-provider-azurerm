@@ -47,6 +47,7 @@ type Builder struct {
 	// OIDC Auth
 	SupportsOIDCAuth    bool
 	IDToken             string
+	IDTokenPath         string
 	IDTokenRequestURL   string
 	IDTokenRequestToken string
 

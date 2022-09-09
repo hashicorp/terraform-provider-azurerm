@@ -248,6 +248,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
+			"oidc_token_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN_PATH", ""),
+				Description: "The path to an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
+			},
+
 			"use_oidc": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -348,6 +355,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			IDTokenRequestToken: d.Get("oidc_request_token").(string),
 			IDTokenRequestURL:   d.Get("oidc_request_url").(string),
 			IDToken:             d.Get("oidc_token").(string),
+			IDTokenPath:         d.Get("oidc_token_path").(string),
 
 			// Feature Toggles
 			SupportsClientCertAuth:         true,
