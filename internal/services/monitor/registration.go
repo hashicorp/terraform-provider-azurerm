@@ -25,6 +25,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DataCollectionEndpointResource{},
+		DataCollectionRuleAssociationResource{},
 		DataCollectionRuleResource{},
 		ScheduledQueryRulesAlertV2Resource{},
 	}
