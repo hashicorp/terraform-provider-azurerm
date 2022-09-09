@@ -456,7 +456,9 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
-				state.VirtualNetworkSubnetID = subnetId
+				if metadata.ResourceData.Get("virtual_network_subnet_id").(string) != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
 			}
 
 			var healthCheckCount *int
