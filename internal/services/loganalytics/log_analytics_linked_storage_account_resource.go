@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -40,13 +41,14 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// https://github.com/Azure/azure-rest-api-specs/issues/20619
 				ValidateFunc: validation.StringInSlice([]string{
 					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
 					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
 					string(linkedstorageaccounts.DataSourceTypeQuery),
 					string(linkedstorageaccounts.DataSourceTypeAlerts),
 					string(linkedstorageaccounts.DataSourceTypeIngestion),
-				}, true),
+				}, !features.FourPointOhBeta()),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
