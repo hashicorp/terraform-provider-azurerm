@@ -321,7 +321,7 @@ func flattenScheduledAlertRuleTemplate(input *securityinsight.ScheduledAlertRule
 
 	tactics := []interface{}{}
 	if input.Tactics != nil {
-		tactics = flattenAlertRuleTactics(input.Tactics)
+		tactics = flattenAlertRuleTacticsForTemplate(input.Tactics)
 	}
 
 	query := ""
@@ -370,7 +370,7 @@ func flattenNrtAlertRuleTemplate(input *securityinsight.NrtAlertRuleTemplateProp
 
 	tactics := []interface{}{}
 	if input.Tactics != nil {
-		tactics = flattenAlertRuleTactics(input.Tactics)
+		tactics = flattenAlertRuleTacticsForTemplate(input.Tactics)
 	}
 
 	query := ""
@@ -404,4 +404,18 @@ func flattenMsSecurityIncidentAlertRuleTemplate(input *securityinsight.Microsoft
 			"product_filter": string(input.ProductFilter),
 		},
 	}
+}
+
+func flattenAlertRuleTacticsForTemplate(input *[]securityinsight.AttackTactic) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		output = append(output, string(e))
+	}
+
+	return output
 }

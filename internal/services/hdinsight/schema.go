@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
@@ -187,6 +188,32 @@ func SchemaHDInsightsMonitor() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					// Azure doesn't return the key
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsExtension() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"log_analytics_workspace_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
+				"primary_key": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
 					},
 				},

@@ -145,8 +145,6 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `azuread_authentication_as_arm_policy_enabled` - (Optional)  Boolean value that indicates whether the policy for using ARM audience token for a container registry is enabled. Defaults to `true`.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `georeplications` - (Optional) A `georeplications` block as documented below.
@@ -155,6 +153,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
 
+~> **NOTE:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
+
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
@@ -162,8 +162,6 @@ The following arguments are supported:
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled. Defaults to `false`.
 
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
-
-* `soft_delete_policy` - (Optional) A `soft_delete_policy` block as documented below.
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
@@ -205,6 +203,8 @@ The following arguments are supported:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
+* `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
+
 ~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
@@ -219,6 +219,14 @@ The following arguments are supported:
 
 ---
 
+`virtual_network` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `subnet_id` - (Required) The subnet id from which requests will match the rule.
+
+---
+
 `trust_policy` supports the following:
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
@@ -228,14 +236,6 @@ The following arguments are supported:
 `retention_policy` supports the following:
 
 * `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
-
-* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
-
----
-
-`soft_delete_policy` supports the following:
-
-* `retention_days` - (Optional) The number of days after which a soft-deleted item is permanently deleted. Default is `7`.
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 

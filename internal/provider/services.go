@@ -79,6 +79,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
@@ -144,6 +145,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
+		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},
 		web.Registration{},

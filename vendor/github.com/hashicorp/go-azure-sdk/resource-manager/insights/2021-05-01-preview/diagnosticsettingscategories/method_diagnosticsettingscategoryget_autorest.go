@@ -17,7 +17,7 @@ type DiagnosticSettingsCategoryGetOperationResponse struct {
 }
 
 // DiagnosticSettingsCategoryGet ...
-func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryGet(ctx context.Context, id ScopedDiagnosticSettingsCategoriesId) (result DiagnosticSettingsCategoryGetOperationResponse, err error) {
+func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryGet(ctx context.Context, id ScopedDiagnosticSettingsCategoryId) (result DiagnosticSettingsCategoryGetOperationResponse, err error) {
 	req, err := c.preparerForDiagnosticSettingsCategoryGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "diagnosticsettingscategories.DiagnosticSettingsCategoriesClient", "DiagnosticSettingsCategoryGet", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryGet(ctx co
 }
 
 // preparerForDiagnosticSettingsCategoryGet prepares the DiagnosticSettingsCategoryGet request.
-func (c DiagnosticSettingsCategoriesClient) preparerForDiagnosticSettingsCategoryGet(ctx context.Context, id ScopedDiagnosticSettingsCategoriesId) (*http.Request, error) {
+func (c DiagnosticSettingsCategoriesClient) preparerForDiagnosticSettingsCategoryGet(ctx context.Context, id ScopedDiagnosticSettingsCategoryId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

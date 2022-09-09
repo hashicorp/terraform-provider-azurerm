@@ -16,7 +16,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c BackupPoliciesClient) Delete(ctx context.Context, id BackupPoliciesId) (result DeleteOperationResponse, err error) {
+func (c BackupPoliciesClient) Delete(ctx context.Context, id BackupPolicyId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backuppolicies.BackupPoliciesClient", "Delete", nil, "Failure preparing request")
@@ -39,7 +39,7 @@ func (c BackupPoliciesClient) Delete(ctx context.Context, id BackupPoliciesId) (
 }
 
 // preparerForDelete prepares the Delete request.
-func (c BackupPoliciesClient) preparerForDelete(ctx context.Context, id BackupPoliciesId) (*http.Request, error) {
+func (c BackupPoliciesClient) preparerForDelete(ctx context.Context, id BackupPolicyId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

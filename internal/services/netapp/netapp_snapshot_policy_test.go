@@ -156,7 +156,7 @@ func TestAccNetAppSnapshotPolicy_complete(t *testing.T) {
 }
 
 func (t NetAppSnapshotPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := snapshotpolicy.ParseSnapshotPoliciesID(state.ID)
+	id, err := snapshotpolicy.ParseSnapshotPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

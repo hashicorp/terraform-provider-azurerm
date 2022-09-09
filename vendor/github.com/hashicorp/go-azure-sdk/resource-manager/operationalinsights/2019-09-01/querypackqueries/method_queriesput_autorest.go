@@ -17,7 +17,7 @@ type QueriesPutOperationResponse struct {
 }
 
 // QueriesPut ...
-func (c QueryPackQueriesClient) QueriesPut(ctx context.Context, id QueriesId, input LogAnalyticsQueryPackQuery) (result QueriesPutOperationResponse, err error) {
+func (c QueryPackQueriesClient) QueriesPut(ctx context.Context, id QueryId, input LogAnalyticsQueryPackQuery) (result QueriesPutOperationResponse, err error) {
 	req, err := c.preparerForQueriesPut(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "querypackqueries.QueryPackQueriesClient", "QueriesPut", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c QueryPackQueriesClient) QueriesPut(ctx context.Context, id QueriesId, in
 }
 
 // preparerForQueriesPut prepares the QueriesPut request.
-func (c QueryPackQueriesClient) preparerForQueriesPut(ctx context.Context, id QueriesId, input LogAnalyticsQueryPackQuery) (*http.Request, error) {
+func (c QueryPackQueriesClient) preparerForQueriesPut(ctx context.Context, id QueryId, input LogAnalyticsQueryPackQuery) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

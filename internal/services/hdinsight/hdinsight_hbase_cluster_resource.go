@@ -131,6 +131,8 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 			},
 
 			"monitor": SchemaHDInsightsMonitor(),
+
+			"extension": SchemaHDInsightsExtension(),
 		},
 	}
 }
@@ -267,6 +269,13 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if v, ok := d.GetOk("extension"); ok {
+		extensionRaw := v.([]interface{})
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
+			return err
+		}
+	}
+
 	return resourceHDInsightHBaseClusterRead(d, meta)
 }
 
@@ -375,6 +384,13 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+		}
+
+		d.Set("extension", flattenHDInsightAzureMonitor(extension))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)

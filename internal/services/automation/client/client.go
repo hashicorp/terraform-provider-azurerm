@@ -25,7 +25,9 @@ type Client struct {
 	RunbookWorkerClient         *hybridrunbookworker.HybridRunbookWorkerClient
 	ScheduleClient              *automation.ScheduleClient
 	SoftwareUpdateConfigClient  *automation.SoftwareUpdateConfigurationsClient
+	SourceControlClient         *automation.SourceControlClient
 	VariableClient              *automation.VariableClient
+	WatcherClient               *automation.WatcherClient
 	WebhookClient               *automation.WebhookClient
 }
 
@@ -72,6 +74,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	runbookWorkerClient := hybridrunbookworker.NewHybridRunbookWorkerClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&runbookWorkerClient.Client, o.ResourceManagerAuthorizer)
 
+	sourceCtlClient := automation.NewSourceControlClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sourceCtlClient.Client, o.ResourceManagerAuthorizer)
+
 	scheduleClient := automation.NewScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&scheduleClient.Client, o.ResourceManagerAuthorizer)
 
@@ -80,6 +85,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	variableClient := automation.NewVariableClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&variableClient.Client, o.ResourceManagerAuthorizer)
+
+	watcherClient := automation.NewWatcherClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&watcherClient.Client, o.ResourceManagerAuthorizer)
 
 	webhookClient := automation.NewWebhookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&webhookClient.Client, o.ResourceManagerAuthorizer)
@@ -101,7 +109,9 @@ func NewClient(o *common.ClientOptions) *Client {
 		RunbookWorkerClient:         &runbookWorkerClient,
 		ScheduleClient:              &scheduleClient,
 		SoftwareUpdateConfigClient:  &softUpClient,
+		SourceControlClient:         &sourceCtlClient,
 		VariableClient:              &variableClient,
+		WatcherClient:               &watcherClient,
 		WebhookClient:               &webhookClient,
 	}
 }
