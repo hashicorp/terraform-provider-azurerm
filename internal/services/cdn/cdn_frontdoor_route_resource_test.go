@@ -25,11 +25,8 @@ func TestAccCdnFrontDoorRoute_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: BLOCKER - these need to be returned from the API
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
 		{
-			// TODO: this would indicate we need both a depends_on and a lock in the resource? which'd allow us to remove this step
-
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
@@ -49,8 +46,6 @@ func TestAccCdnFrontDoorRoute_requiresImport(t *testing.T) {
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 		{
-			// TODO: (as above) we should be able to remove this
-
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
@@ -70,8 +65,6 @@ func TestAccCdnFrontDoorRoute_complete(t *testing.T) {
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
 		{
-			// TODO: (as above) we should be able to remove this
-
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
@@ -98,8 +91,6 @@ func TestAccCdnFrontDoorRoute_update(t *testing.T) {
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
 		{
-			// TODO: (as above) we should be able to remove this
-
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
