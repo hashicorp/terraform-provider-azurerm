@@ -252,7 +252,7 @@ func TestAccLinuxVirtualMachine_diskOSStorageTypePremiumZRS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSStorageAccountType(data, "Premium_ZRS"),
+			Config: r.diskOSStorageAccountTypeWithRestrictedLocation(data, "Premium_ZRS", "westeurope"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -833,6 +833,43 @@ resource "azurerm_linux_virtual_machine" "test" {
 }
 
 func (r LinuxVirtualMachineResource) diskOSStorageAccountType(data acceptance.TestData, accountType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2s_v2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "%s"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger, accountType)
+}
+
+func (r LinuxVirtualMachineResource) diskOSStorageAccountTypeWithRestrictedLocation(data acceptance.TestData, accountType string, location string) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
 	return fmt.Sprintf(`
 %s
 
