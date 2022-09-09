@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `default_ttl` - (Optional) Time to live of the Cosmos DB Cassandra table. Possible values are at least `-1`. `-1` means the Cassandra table never expires.
 
-* `analytical_storage_ttl` - (Optional) Time to live of the Analytical Storage. Possible values are at least `-1`. `-1` means the Analytical Storage never expires. Changing this forces a new resource to be created.
+* `analytical_storage_ttl` - (Optional) Time to live of the Analytical Storage. Possible values are between `-1` and `2147483647` except `0`. `-1` means the Analytical Storage never expires. Changing this forces a new resource to be created.
 
 ~> **Note:** throughput has a maximum value of `1000000` unless a higher limit is requested via Azure Support
 

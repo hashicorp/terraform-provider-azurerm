@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -83,8 +83,7 @@ type LogAnalytic struct {
 	WorkspaceResourceId string `tfschema:"workspace_resource_id"`
 }
 
-type DataCollectionRuleResource struct {
-}
+type DataCollectionRuleResource struct{}
 
 func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -163,7 +162,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"workspace_resource_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+									ValidateFunc: workspaces.ValidateWorkspaceID,
 								},
 							},
 						},

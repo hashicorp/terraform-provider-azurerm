@@ -8,7 +8,11 @@ import (
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	newAlertsManagementClient "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertsmanagement"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
+	diagnosticSettingClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
+	diagnosticCategoryClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -25,18 +29,20 @@ type Client struct {
 	SmartDetectorAlertRulesClient *alertsmanagement.SmartDetectorAlertRulesClient
 
 	// Monitor
-	ActionGroupsClient               *newActionGroupClient.ActionGroupsClient
-	ActivityLogAlertsClient          *insights.ActivityLogAlertsClient
-	AlertRulesClient                 *classic.AlertRulesClient
-	DataCollectionRulesClient        *datacollectionrules.DataCollectionRulesClient
-	DataCollectionEndpointsClient    *datacollectionendpoints.DataCollectionEndpointsClient
-	DiagnosticSettingsClient         *classic.DiagnosticSettingsClient
-	DiagnosticSettingsCategoryClient *classic.DiagnosticSettingsCategoryClient
-	LogProfilesClient                *classic.LogProfilesClient
-	MetricAlertsClient               *classic.MetricAlertsClient
-	PrivateLinkScopesClient          *classic.PrivateLinkScopesClient
-	PrivateLinkScopedResourcesClient *classic.PrivateLinkScopedResourcesClient
-	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
+	ActionGroupsClient                   *newActionGroupClient.ActionGroupsClient
+	ActivityLogAlertsClient              *insights.ActivityLogAlertsClient
+	AlertRulesClient                     *classic.AlertRulesClient
+	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
+	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
+	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
+	DiagnosticSettingsClient             *diagnosticSettingClient.DiagnosticSettingsClient
+	DiagnosticSettingsCategoryClient     *diagnosticCategoryClient.DiagnosticSettingsCategoriesClient
+	LogProfilesClient                    *classic.LogProfilesClient
+	MetricAlertsClient                   *classic.MetricAlertsClient
+	PrivateLinkScopesClient              *classic.PrivateLinkScopesClient
+	PrivateLinkScopedResourcesClient     *classic.PrivateLinkScopedResourcesClient
+	ScheduledQueryRulesClient            *classic.ScheduledQueryRulesClient
+	ScheduledQueryRulesV2Client          *scheduledqueryrules.ScheduledQueryRulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -67,13 +73,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	DataCollectionEndpointsClient := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionEndpointsClient.Client, o.ResourceManagerAuthorizer)
 
+	DataCollectionRuleAssociationsClient := datacollectionruleassociations.NewDataCollectionRuleAssociationsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&DataCollectionRuleAssociationsClient.Client, o.ResourceManagerAuthorizer)
+
 	DataCollectionRulesClient := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	DiagnosticSettingsClient := classic.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	DiagnosticSettingsClient := diagnosticSettingClient.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
 
-	DiagnosticSettingsCategoryClient := classic.NewDiagnosticSettingsCategoryClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	DiagnosticSettingsCategoryClient := diagnosticCategoryClient.NewDiagnosticSettingsCategoriesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DiagnosticSettingsCategoryClient.Client, o.ResourceManagerAuthorizer)
 
 	LogProfilesClient := classic.NewLogProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -91,23 +100,28 @@ func NewClient(o *common.ClientOptions) *Client {
 	ScheduledQueryRulesClient := classic.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	ScheduledQueryRulesV2Client := scheduledqueryrules.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&ScheduledQueryRulesV2Client.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		AADDiagnosticSettingsClient:      &AADDiagnosticSettingsClient,
-		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
-		AlertsManagementClient:           &AlertsManagementClient,
-		ActionRulesClient:                &ActionRulesClient,
-		SmartDetectorAlertRulesClient:    &SmartDetectorAlertRulesClient,
-		ActionGroupsClient:               &ActionGroupsClient,
-		ActivityLogAlertsClient:          &ActivityLogAlertsClient,
-		AlertRulesClient:                 &AlertRulesClient,
-		DataCollectionRulesClient:        &DataCollectionRulesClient,
-		DataCollectionEndpointsClient:    &DataCollectionEndpointsClient,
-		DiagnosticSettingsClient:         &DiagnosticSettingsClient,
-		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
-		LogProfilesClient:                &LogProfilesClient,
-		MetricAlertsClient:               &MetricAlertsClient,
-		PrivateLinkScopesClient:          &PrivateLinkScopesClient,
-		PrivateLinkScopedResourcesClient: &PrivateLinkScopedResourcesClient,
-		ScheduledQueryRulesClient:        &ScheduledQueryRulesClient,
+		AADDiagnosticSettingsClient:          &AADDiagnosticSettingsClient,
+		AutoscaleSettingsClient:              &AutoscaleSettingsClient,
+		ActionRulesClient:                    &ActionRulesClient,
+		SmartDetectorAlertRulesClient:        &SmartDetectorAlertRulesClient,
+		ActionGroupsClient:                   &ActionGroupsClient,
+		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
+		AlertRulesClient:                     &AlertRulesClient,
+		AlertsManagementClient:               &AlertsManagementClient,
+		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
+		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,
+		DataCollectionRulesClient:            &DataCollectionRulesClient,
+		DiagnosticSettingsClient:             &DiagnosticSettingsClient,
+		DiagnosticSettingsCategoryClient:     &DiagnosticSettingsCategoryClient,
+		LogProfilesClient:                    &LogProfilesClient,
+		MetricAlertsClient:                   &MetricAlertsClient,
+		PrivateLinkScopesClient:              &PrivateLinkScopesClient,
+		PrivateLinkScopedResourcesClient:     &PrivateLinkScopedResourcesClient,
+		ScheduledQueryRulesClient:            &ScheduledQueryRulesClient,
+		ScheduledQueryRulesV2Client:          &ScheduledQueryRulesV2Client,
 	}
 }

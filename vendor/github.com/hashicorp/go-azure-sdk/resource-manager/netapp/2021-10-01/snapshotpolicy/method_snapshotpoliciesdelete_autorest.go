@@ -19,7 +19,7 @@ type SnapshotPoliciesDeleteOperationResponse struct {
 }
 
 // SnapshotPoliciesDelete ...
-func (c SnapshotPolicyClient) SnapshotPoliciesDelete(ctx context.Context, id SnapshotPoliciesId) (result SnapshotPoliciesDeleteOperationResponse, err error) {
+func (c SnapshotPolicyClient) SnapshotPoliciesDelete(ctx context.Context, id SnapshotPolicyId) (result SnapshotPoliciesDeleteOperationResponse, err error) {
 	req, err := c.preparerForSnapshotPoliciesDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "snapshotpolicy.SnapshotPolicyClient", "SnapshotPoliciesDelete", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c SnapshotPolicyClient) SnapshotPoliciesDelete(ctx context.Context, id Sna
 }
 
 // SnapshotPoliciesDeleteThenPoll performs SnapshotPoliciesDelete then polls until it's completed
-func (c SnapshotPolicyClient) SnapshotPoliciesDeleteThenPoll(ctx context.Context, id SnapshotPoliciesId) error {
+func (c SnapshotPolicyClient) SnapshotPoliciesDeleteThenPoll(ctx context.Context, id SnapshotPolicyId) error {
 	result, err := c.SnapshotPoliciesDelete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing SnapshotPoliciesDelete: %+v", err)
@@ -50,7 +50,7 @@ func (c SnapshotPolicyClient) SnapshotPoliciesDeleteThenPoll(ctx context.Context
 }
 
 // preparerForSnapshotPoliciesDelete prepares the SnapshotPoliciesDelete request.
-func (c SnapshotPolicyClient) preparerForSnapshotPoliciesDelete(ctx context.Context, id SnapshotPoliciesId) (*http.Request, error) {
+func (c SnapshotPolicyClient) preparerForSnapshotPoliciesDelete(ctx context.Context, id SnapshotPolicyId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

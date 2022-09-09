@@ -173,6 +173,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchemaComputed(),
 
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"tags": tags.SchemaDataSource(),
 	}
 }

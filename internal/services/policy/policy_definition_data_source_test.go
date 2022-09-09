@@ -28,6 +28,21 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMPolicyDefinition_builtInLogAnalytics(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
+	d := PolicyDefinitionDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.builtInByName("04d53d87-841c-4f23-8a5b-21564380b55e"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/policyDefinitions/04d53d87-841c-4f23-8a5b-21564380b55e"),
+				check.That(data.ResourceName).Key("role_definition_ids.0").Exists(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMPolicyDefinition_builtInByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	d := PolicyDefinitionDataSource{}

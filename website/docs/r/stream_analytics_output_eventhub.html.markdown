@@ -76,6 +76,8 @@ The following arguments are supported:
 
 * `property_columns` - (Optional) A list of property columns to add to the Event Hub output.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 * `partition_key` - (Optional) The column that is used for the Event Hub partition key.
 
 ---

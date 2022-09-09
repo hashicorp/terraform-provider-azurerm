@@ -81,14 +81,17 @@ var serviceTestConfigurationOverrides = mapOf(
          // Logic uses app service which is only available in certain locations
          "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+         // Logz is only available in certain locations
+         "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
-        // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "2,4,6"),
+        // netapp has a max of 10 accounts per subscription so lets limit it to 3 to account for broken ones, run Monday, Wednesday, Friday
+        "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         "policy" to testConfiguration(useAltSubscription = true),
 
