@@ -49,6 +49,8 @@ type ContainerAppModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppResource{}
 
+//var _ sdk.ResourceWithCustomizeDiff = ContainerAppResource{}
+
 func (r ContainerAppResource) ModelObject() interface{} {
 	return &ContainerAppModel{}
 }
@@ -378,3 +380,33 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 		},
 	}
 }
+
+//func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
+//	return sdk.ResourceFunc{
+//		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+//			if metadata.ResourceData.HasChange("secret") {
+//				stateSecretsRaw, configSecretsRaw := metadata.ResourceData.GetChange("secret")
+//				stateSecrets := stateSecretsRaw.([]helpers.Secret)
+//				configSecret := configSecretsRaw.([]helpers.Secret)
+//				// Check there's not less
+//				if len(configSecret) < len(stateSecrets) {
+//					return fmt.Errorf("cannot remove secrets from Container Apps at this time")
+//				}
+//				// Check secrets names in state are all present in config, the values don't matter
+//				for _, s := range stateSecrets {
+//				found := false
+//					for _, c := range configSecret {
+//						if s.Name == c.Name {
+//							found = true
+//							break
+//						}
+//						if !found {
+//							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported at this time", s.Name)
+//						}
+//					}
+//				}
+//			}
+//			return nil
+//		},
+//	}
+//}
