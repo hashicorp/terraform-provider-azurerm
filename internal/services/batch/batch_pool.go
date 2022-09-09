@@ -378,6 +378,7 @@ func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *batch.UserA
 	userAccount["name"] = *account.Name
 	userAccount["elevation_level"] = string(account.ElevationLevel)
 	userAccountIndex := -1
+	
 	if num, ok := d.GetOk("user_accounts.#"); ok {
 		n := num.(int)
 		for i := 0; i < n; i++ {
@@ -388,21 +389,26 @@ func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *batch.UserA
 			}
 		}
 	}
+	
 	if account.LinuxUserConfiguration != nil {
 		linuxUserConfig := make(map[string]interface{})
+		
 		if account.LinuxUserConfiguration.UID != nil {
 			linuxUserConfig["uid"] = *account.LinuxUserConfiguration.UID
 			linuxUserConfig["gid"] = *account.LinuxUserConfiguration.Gid
 		}
+		
 		if userAccountIndex > -1 {
 			if sshPrivateKey, ok := d.GetOk(fmt.Sprintf("user_accounts.%d.linux_user_configuration.0.ssh_private_key", userAccountIndex)); ok {
 				linuxUserConfig["ssh_private_key"] = sshPrivateKey
 			}
 		}
+		
 		userAccount["linux_user_configuration"] = []interface{}{
 			linuxUserConfig,
 		}
 	}
+	
 	if account.WindowsUserConfiguration != nil {
 		loginMode := make(map[string]interface{})
 		loginMode["login_mode"] = string(account.WindowsUserConfiguration.LoginMode)
