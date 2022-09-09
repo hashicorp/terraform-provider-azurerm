@@ -157,8 +157,8 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 			if armResourceFile.FileMode != nil {
 				resourceFile["file_mode"] = *armResourceFile.FileMode
 			}
-			if armResourceFile.IdentityId != nil {
-				resourceFile["identity_id"] = *armResourceFile.IdentityId.ResourceID
+			if armResourceFile.IdentityReference != nil {
+				resourceFile["identity_reference"] = *armResourceFile.IdentityReference.ResourceID
 			}
 			resourceFiles = append(resourceFiles, resourceFile)
 		}
@@ -501,13 +501,13 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				resourceFile.FileMode = &fileMode
 			}
 		}
-		if v, ok := resourceFileValue["identity_id"]; ok {
+		if v, ok := resourceFileValue["identity_reference"]; ok {
 			resourceId := v.(string)
 			if resourceId != "" {
-				identityId := batch.ComputeNodeIdentityId{
+				identityReference := batch.ComputeNodeIdentityReference{
 					ResourceID: utils.String(resourceId),
 				}
-				resourceFile.IdentityId = &identityId
+				resourceFile.IdentityReference = &identityReference
 			}
 		}
 		resourceFiles = append(resourceFiles, resourceFile)
