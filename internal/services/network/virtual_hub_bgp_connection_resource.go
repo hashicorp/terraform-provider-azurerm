@@ -48,7 +48,6 @@ func resourceVirtualHubBgpConnection() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualHubID,
 			},
-
 			"peer_asn": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
@@ -61,6 +60,13 @@ func resourceVirtualHubBgpConnection() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsIPv4Address,
+			},
+
+			"virtual_network_connection_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.HubVirtualNetworkConnectionID,
 			},
 		},
 	}
@@ -100,6 +106,12 @@ func resourceVirtualHubBgpConnectionCreate(d *pluginsdk.ResourceData, meta inter
 			PeerAsn: utils.Int64(int64(d.Get("peer_asn").(int))),
 			PeerIP:  utils.String(d.Get("peer_ip").(string)),
 		},
+	}
+
+	if v, ok := d.GetOk("virtual_network_connection_id"); ok {
+		parameters.BgpConnectionProperties.HubVirtualNetworkConnection = &network.SubResource{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, parameters)
@@ -143,6 +155,7 @@ func resourceVirtualHubBgpConnectionRead(d *pluginsdk.ResourceData, meta interfa
 	if props := resp.BgpConnectionProperties; props != nil {
 		d.Set("peer_asn", props.PeerAsn)
 		d.Set("peer_ip", props.PeerIP)
+		d.Set("virtual_network_connection_id", props.HubVirtualNetworkConnection.ID)
 	}
 
 	return nil
