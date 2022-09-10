@@ -10,7 +10,7 @@ description: |-
 
 Manages a Frontdoor Rule.
 
-!>**IMPORTANT:** To create the Frontdoor Rules resource successfully you **must** add a `depends_on` meta-argument to the `azurerm_cdn_frontdoor_rule` code block and reference the `azurerm_cdn_frontdoor_origin`, `azurerm_cdn_frontdoor_origin_group` and the `azurerm_cdn_frontdoor_route` that are associated with the Frontdoor Rule resource. The `azurerm_cdn_frontdoor_route` definition has been excluded from the below `Example Usage` for brevity but has been included in the `depends_on` meta-argument as an example of the correct way to define the `azurerm_cdn_frontdoor_rule` resource.
+!>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin`, `azurerm_cdn_frontdoor_origin_group` and the `azurerm_cdn_frontdoor_route` that are associated with the Rule resource. The `azurerm_cdn_frontdoor_route` definition has been excluded from the below `Example Usage`, for brevity, but has been included in the `depends_on` meta-argument as an example of the correct way to define the `azurerm_cdn_frontdoor_rule` resource.
 
 ## Example Usage
 
