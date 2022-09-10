@@ -645,9 +645,9 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 }
 
 func (CdnFrontDoorOriginResource) template(data acceptance.TestData, profileSku string, isLoadBalancer bool) string {
-	// NOTE: This is a hack for what I believe is a bug in the CDN Frontdoor API. I am currently speaking with the service
-	// team about how to correctly fix this issue, but in the meantime this is what we need to do to get this scenario to
-	// work.
+	// NOTE: This is a hack (the private link service dependency in the profile resource) for what I believe is a bug in
+	// the CDN Frontdoor API. I am currently speaking with the service team about how to correctly fix this issue,
+	// but in the meantime this is what we need to do to get this scenario to work.
 	var loadBalancerDependsOn string
 	if isLoadBalancer {
 		loadBalancerDependsOn = "depends_on = [azurerm_private_link_service.test]"
