@@ -45,7 +45,7 @@ func TestAccCdnFrontDoorOrigin_basicThreePointOh(t *testing.T) {
 			data.ImportStep(),
 		})
 	} else {
-		t.Skip("Test no longer valid due to deprecation of the 'health_probes_enabled' field in the 3.x version of the provider")
+		t.Skip("Test no longer valid due to deprecation of the 'health_probes_enabled' field in the 4.x version of the provider")
 	}
 }
 
