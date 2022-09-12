@@ -1121,6 +1121,10 @@ func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumeProper
 		return []interface{}{}
 	}
 
+	if input.Snapshot != nil && *input.Snapshot.SnapshotPolicyId == "" {
+		return []interface{}{}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"snapshot_policy_id": input.Snapshot.SnapshotPolicyId,
