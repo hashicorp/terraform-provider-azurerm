@@ -100,6 +100,17 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["policy_definition_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validate.PolicyDefinitionID,
+			Deprecated: "`policy_definition_id` will be removed in version 4.0 of the AzureRM Provider in favour of `policy_definition_reference_id`.",
+		}
+	}
+
+	if !features.FourPointOhBeta() {
 		resource.Schema["resource_discovery_mode"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
