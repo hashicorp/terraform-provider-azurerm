@@ -2,6 +2,14 @@
 
 FEATURES:
 
+ENHANCEMENTS:
+
+* `azurerm_automation_account` - support for the `hybrid_service_url` property [GH-18320]
+
+## 3.22.0 (September 08, 2022)
+
+FEATURES:
+
 * **New Resource**: `azurerm_api_management_api_tag_description` ([#17876](https://github.com/hashicorp/terraform-provider-azurerm/issues/17876))
 * **New Resource**: `azurerm_api_management_schema` ([#18158](https://github.com/hashicorp/terraform-provider-azurerm/issues/18158))
 * **New Resource**: `azurerm_automation_watcher` ([#17927](https://github.com/hashicorp/terraform-provider-azurerm/issues/17927))
