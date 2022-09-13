@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_automation_account` - support for the `hybrid_service_url` property [GH-18320]
+* `azurerm_eventhub_namespace` - support for the `public_network_access_enabled` property [GH-18314]
 
 ## 3.22.0 (September 08, 2022)
 
