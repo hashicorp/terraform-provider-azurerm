@@ -67,6 +67,7 @@ import (
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
+	dynatrace "github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace/client"
 	elastic "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	elasticsan "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
@@ -199,6 +200,7 @@ type Client struct {
 	DigitalTwins                      *digitaltwins.Client
 	Dns                               *dns_v2018_05_01.Client
 	DomainServices                    *domainservices.Client
+	Dynatrace                         *dynatrace.Client
 	Elastic                           *elastic.Client
 	ElasticSan                        *elasticsan.Client
 	EventGrid                         *eventgrid_v2022_06_15.Client
@@ -430,6 +432,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.EventGrid, err = eventgrid.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for EventGrid: %+v", err)
 	}
+	client.Dynatrace = dynatrace.NewClient(o)
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
