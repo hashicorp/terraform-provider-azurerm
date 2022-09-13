@@ -454,6 +454,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/forwar
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/inboundendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/outboundendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/virtualnetworklinks
+<<<<<<< HEAD
 github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource
 github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15
@@ -471,6 +472,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/systemto
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topictypes
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/verifiedpartners
+=======
+github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2021-09-01/monitors
+github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2021-09-01/tagrules
+github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/monitorsresource
+github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/rules
+>>>>>>> 48af554919 (New resources: azurerm_dynatrace_monitors, azurerm_dynatrace_tag_rules)
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationruleseventhubs
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/checknameavailabilitydisasterrecoveryconfigs

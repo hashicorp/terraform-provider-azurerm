@@ -49,6 +49,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
@@ -161,6 +162,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
+		dynatrace.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
