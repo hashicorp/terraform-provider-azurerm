@@ -33,7 +33,7 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backuppolicies.ParseBackupPoliciesID(id)
+			_, err := backuppolicies.ParseBackupPolicyID(id)
 			return err
 		}),
 
@@ -131,7 +131,7 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	vaultId, _ := backuppolicies.ParseBackupVaultID(d.Get("vault_id").(string))
-	id := backuppolicies.NewBackupPoliciesID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
+	id := backuppolicies.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -168,7 +168,7 @@ func resourceDataProtectionBackupPolicyDiskRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func resourceDataProtectionBackupPolicyDiskDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}

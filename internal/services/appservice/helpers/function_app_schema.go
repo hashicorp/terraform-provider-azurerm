@@ -1066,7 +1066,8 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"12",
 						"14",
-						"16", // preview LTS Support
+						"16",
+						"18", // preview LTS Support
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1312,6 +1313,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"~12",
 						"~14",
 						"~16",
+						"~18",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1687,6 +1689,10 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.MinimumElasticInstanceCount = utils.Int32(int32(linuxSiteConfig.ElasticInstanceMinimum))
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(linuxSiteConfig.RuntimeScaleMonitoring)
+	}
+
 	expanded.AppSettings = &appSettings
 
 	return expanded, nil
@@ -1921,6 +1927,10 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
 		expanded.MinimumElasticInstanceCount = utils.Int32(int32(windowsSiteConfig.ElasticInstanceMinimum))
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(windowsSiteConfig.RuntimeScaleMonitoring)
 	}
 
 	expanded.AppSettings = &appSettings

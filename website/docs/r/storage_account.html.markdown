@@ -115,6 +115,8 @@ The following arguments are supported:
 
 ~> **Note:** Terraform uses Shared Key Authorisation to provision Storage Containers, Blobs and other items - when Shared Key Access is disabled, you will need to enable [the `storage_use_azuread` flag in the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#storage_use_azuread) to use Azure AD for authentication, however not all Azure Storage services support Active Directory authentication.
 
+* `public_network_access_enabled` - (Optional) Whether the public network access is enabled? Defaults to `true`.
+
 * `default_to_oauth_authentication` - (Optional) Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is `false`
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.

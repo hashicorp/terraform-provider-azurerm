@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of Redis to use. Possible values are `Basic`, `Standard` and `Premium`.
 
+~> **Note** Downgrading the SKU will force a new resource to be created.
+
 ---
 
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.

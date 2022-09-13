@@ -33,7 +33,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := backuppolicies.ParseBackupPoliciesID(id)
+			_, err := backuppolicies.ParseBackupPolicyID(id)
 			return err
 		}),
 
@@ -187,7 +187,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 	resourceGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("vault_name").(string)
 
-	id := backuppolicies.NewBackupPoliciesID(subscriptionId, resourceGroup, vaultName, name)
+	id := backuppolicies.NewBackupPolicyID(subscriptionId, resourceGroup, vaultName, name)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -228,7 +228,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLDelete(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
