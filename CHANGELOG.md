@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Datasource**: `azurerm_monitor_data_collection_rule` [GH-18318]
+
 ENHANCEMENTS:
 
 * `azurerm_automation_account` - support for the `hybrid_service_url` property [GH-18320]
