@@ -57,6 +57,11 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"hybrid_service_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -94,6 +99,7 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("endpoint", iresp.Endpoint)
 	if resp.Model != nil && resp.Model.Properties != nil {
 		d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(resp.Model.Properties.PrivateEndpointConnections))
+		d.Set("hybrid_service_url", resp.Model.Properties.AutomationHybridServiceUrl)
 	}
 	return nil
 }
