@@ -51,7 +51,8 @@ resource "azurerm_orbital_contact_profile" "example" {
   resource_group_name               = azurerm_resource_group.test.name
   location                          = azurerm_resource_group.test.location
   minimum_variable_contact_duration = "PT1M"
-  auto_tracking_configuration       = "disabled"
+  auto_tracking                     = "disabled"
+
   links {
     channels {
       name                 = "channelname"
@@ -68,6 +69,7 @@ resource "azurerm_orbital_contact_profile" "example" {
     name         = "RHCP_UL"
     polarization = "RHCP"
   }
+
   network_configuration_subnet_id = azurerm_subnet.example.id
 }
 ```
@@ -84,7 +86,7 @@ The following arguments are supported:
 
 * `minimum_variable_contact_duration` - (Required) Minimum viable contact duration in ISO 8601 format. Used for listing the available contacts with a spacecraft at a given ground station.
 
-* `auto_tracking_configuration` - (Required) Auto-tracking configurations for a spacecraft. Possible values are `disabled`, `xBand` and `sBand`.
+* `auto_tracking` - (Required) Auto-tracking configurations for a spacecraft. Possible values are `disabled`, `xBand` and `sBand`.
 
 * `network_configuration_subnet_id` - (Required) ARM resource identifier of the subnet delegated to the Microsoft.Orbital/orbitalGateways. Needs to be at least a class C subnet, and should not have any IP created in it.
 

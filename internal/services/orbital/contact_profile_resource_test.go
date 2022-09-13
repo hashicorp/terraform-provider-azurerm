@@ -93,7 +93,7 @@ resource "azurerm_orbital_contact_profile" "test" {
   resource_group_name               = azurerm_resource_group.test.name
   location                          = azurerm_resource_group.test.location
   minimum_variable_contact_duration = "PT1M"
-  auto_tracking_configuration       = "disabled"
+  auto_tracking                     = "disabled"
   links {
     channels {
       name                 = "channelname"
@@ -125,7 +125,7 @@ resource "azurerm_orbital_contact_profile" "test" {
   resource_group_name               = azurerm_resource_group.test.name
   location                          = azurerm_resource_group.test.location
   minimum_variable_contact_duration = "PT2M"
-  auto_tracking_configuration       = "disabled"
+  auto_tracking                     = "disabled"
   links {
     channels {
       name                 = "channelname"
@@ -177,7 +177,7 @@ resource "azurerm_orbital_contact_profile" "test" {
   resource_group_name               = azurerm_resource_group.test.name
   location                          = azurerm_resource_group.test.location
   minimum_variable_contact_duration = "PT1M"
-  auto_tracking_configuration       = "disabled"
+  auto_tracking                     = "disabled"
   event_hub_uri                     = azurerm_eventhub.test.id
   minimum_elevation_degrees         = 12.12
   links {

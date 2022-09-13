@@ -27,7 +27,7 @@ type ContactProfileResourceModel struct {
 	Location                       string                    `tfschema:"location"`
 	MinimumVariableContactDuration string                    `tfschema:"minimum_variable_contact_duration"`
 	MinimumElevationDegrees        float64                   `tfschema:"minimum_elevation_degrees"`
-	AutoTrackingConfiguration      string                    `tfschema:"auto_tracking_configuration"`
+	AutoTrackingConfiguration      string                    `tfschema:"auto_tracking"`
 	EventHubUri                    string                    `tfschema:"event_hub_uri"`
 	Links                          []ContactProfileLinkModel `tfschema:"links"`
 	Tags                           map[string]string         `tfschema:"tags"`
@@ -67,7 +67,7 @@ func (r ContactProfileResource) Arguments() map[string]*schema.Schema {
 			Optional: true,
 		},
 
-		"auto_tracking_configuration": {
+		"auto_tracking": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -118,7 +118,7 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			links, err := expandContactProfileLinks(model.Links)
