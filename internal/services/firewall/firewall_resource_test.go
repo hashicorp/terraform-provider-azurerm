@@ -173,7 +173,7 @@ func TestAccFirewall_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 	zones := []string{"1"}
-	zonesUpdate := []string{"1", "3"}
+	zonesUpdate := []string{"1", "2", "3"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
