@@ -1268,8 +1268,8 @@ resource "azurerm_batch_pool" "test" {
     }
 
     resource_file {
-      http_url  = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/README.md"
-      file_path = "README.md"
+      http_url           = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/README.md"
+      file_path          = "README.md"
       identity_reference = azurerm_user_assigned_identity.test.id
     }
   }
