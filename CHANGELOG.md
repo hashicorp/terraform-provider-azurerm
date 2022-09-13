@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * `azurerm_automation_account` - support for the `hybrid_service_url` property [GH-18320]
 * `azurerm_eventhub_namespace` - support for the `public_network_access_enabled` property [GH-18314]
+* `azurerm_batch_pool` - support for the `data_disks`, `disk_encryption`, `extensions`, `node_placement`, `task_scheduling_policy`, `user_accounts`, and `windows` blocks [GH-18226]
 
 ## 3.22.0 (September 08, 2022)
 
