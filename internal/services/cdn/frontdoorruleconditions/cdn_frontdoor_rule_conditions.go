@@ -656,12 +656,10 @@ func ExpandCdnFrontDoorCookiesCondition(input []interface{}) (*[]cdn.BasicDelive
 			},
 		}
 
-		if tt := item["transforms"].([]interface{}); len(tt) != 0 {
-			transforms := make([]cdn.Transform, 0)
-			for _, t := range tt {
-				transforms = append(transforms, cdn.Transform(t.(string)))
-			}
-			condition.Parameters.Transforms = &transforms
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontDoorTransforms(transformsRaw)
+			condition.Parameters.Transforms = &expanded
 		}
 
 		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), condition.Parameters.MatchValues, conditionMapping); err != nil {
