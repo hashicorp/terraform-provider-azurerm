@@ -136,10 +136,15 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
 	}
 
+	linkedReadProperties := expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsId.ID())
+	linkedWriteProperties := expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsId.ID())
+	if len(*linkedReadProperties) == 0 && len(*linkedWriteProperties) == 0 {
+		return fmt.Errorf("at least one read or write permission must be defined")
+	}
 	apiKeyProperties := insights.APIKeyRequest{
 		Name:                  &name,
-		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsId.ID()),
-		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsId.ID()),
+		LinkedReadProperties:  linkedReadProperties,
+		LinkedWriteProperties: linkedWriteProperties,
 	}
 
 	result, err := client.Create(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, apiKeyProperties)
