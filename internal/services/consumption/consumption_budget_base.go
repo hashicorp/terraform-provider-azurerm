@@ -565,7 +565,7 @@ func expandConsumptionBudgetNotifications(input []interface{}) *map[string]budge
 				notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
 			}
 
-			notificationKey := fmt.Sprintf("actual_%s_%f_Percent", string(notification.Operator), notification.Threshold)
+			notificationKey := fmt.Sprintf("%s_%s_%f_Percent", string(thresholdType), string(notification.Operator), notification.Threshold)
 			notifications[notificationKey] = notification
 		}
 	}
