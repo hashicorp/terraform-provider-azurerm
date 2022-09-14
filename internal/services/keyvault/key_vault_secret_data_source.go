@@ -18,7 +18,8 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 		Read: dataSourceKeyVaultSecretRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
+			Read: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -51,6 +52,16 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 			},
 
 			"versionless_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_versionless_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -100,6 +111,9 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 	d.Set("versionless_id", respID.VersionlessID())
+
+	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, respID.Name, respID.Version).ID())
+	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, respID.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

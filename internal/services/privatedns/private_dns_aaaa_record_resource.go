@@ -5,12 +5,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/recordsets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,12 +48,16 @@ func resourcePrivateDnsAaaaRecord() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
+
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"records": {
@@ -71,7 +77,7 @@ func resourcePrivateDnsAaaaRecord() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -99,7 +105,7 @@ func resourcePrivateDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta in
 	parameters := recordsets.RecordSet{
 		Name: utils.String(id.RelativeRecordSetName),
 		Properties: &recordsets.RecordSetProperties{
-			Metadata:    expandTags(d.Get("tags").(map[string]interface{})),
+			Metadata:    tags.Expand(d.Get("tags").(map[string]interface{})),
 			Ttl:         utils.Int64(int64(d.Get("ttl").(int))),
 			AaaaRecords: expandAzureRmPrivateDnsAaaaRecords(d),
 		},
@@ -149,7 +155,7 @@ func resourcePrivateDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta interface{
 				return err
 			}
 
-			return tags.FlattenAndSet(d, flattenTags(props.Metadata))
+			return tags.FlattenAndSet(d, props.Metadata)
 		}
 	}
 
@@ -182,11 +188,11 @@ func flattenAzureRmPrivateDnsAaaaRecords(records *[]recordsets.AaaaRecord) []str
 	}
 
 	for _, record := range *records {
-		if record.Ipv6Address == nil {
+		if record.IPv6Address == nil {
 			continue
 		}
 
-		results = append(results, *record.Ipv6Address)
+		results = append(results, *record.IPv6Address)
 	}
 
 	return results
@@ -199,7 +205,7 @@ func expandAzureRmPrivateDnsAaaaRecords(d *pluginsdk.ResourceData) *[]recordsets
 	for i, v := range recordStrings {
 		ipv6 := v.(string)
 		records[i] = recordsets.AaaaRecord{
-			Ipv6Address: &ipv6,
+			IPv6Address: &ipv6,
 		}
 	}
 

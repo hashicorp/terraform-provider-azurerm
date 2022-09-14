@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -162,6 +163,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, d.Get("maintenance_configuration_name").(string))
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
@@ -234,6 +236,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
 			RequestedBackupStorageRedundancy: sql.RequestedBackupStorageRedundancy(d.Get("storage_account_type").(string)),
 			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
+			MaintenanceConfigurationID:       utils.String(maintenanceConfigId.ID()),
 			IsLedgerOn:                       utils.Bool(ledgerEnabled),
 		},
 
@@ -524,6 +527,11 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props.IsLedgerOn != nil {
 			ledgerEnabled = *props.IsLedgerOn
 		}
+		maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
+		if err != nil {
+			return err
+		}
+		d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
 		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
@@ -715,6 +723,17 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 	return policy
 }
 
+func resourceMsSqlDatabaseMaintenanceNames() []string {
+	return []string{"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
+		"SQL_UKSouth_DB_1", "SQL_WestEurope_DB_1", "SQL_EastUS_DB_2", "SQL_EastUS2_DB_2", "SQL_WestUS2_DB_2", "SQL_SoutheastAsia_DB_2", "SQL_AustraliaEast_DB_2", "SQL_NorthEurope_DB_2", "SQL_SouthCentralUS_DB_2",
+		"SQL_UKSouth_DB_2", "SQL_WestEurope_DB_2", "SQL_AustraliaSoutheast_DB_1", "SQL_BrazilSouth_DB_1", "SQL_CanadaCentral_DB_1", "SQL_CanadaEast_DB_1", "SQL_CentralUS_DB_1", "SQL_EastAsia_DB_1",
+		"SQL_FranceCentral_DB_1", "SQL_GermanyWestCentral_DB_1", "SQL_CentralIndia_DB_1", "SQL_SouthIndia_DB_1", "SQL_JapanEast_DB_1", "SQL_JapanWest_DB_1", "SQL_NorthCentralUS_DB_1", "SQL_UKWest_DB_1",
+		"SQL_WestUS_DB_1", "SQL_AustraliaSoutheast_DB_2", "SQL_BrazilSouth_DB_2", "SQL_CanadaCentral_DB_2", "SQL_CanadaEast_DB_2", "SQL_CentralUS_DB_2", "SQL_EastAsia_DB_2", "SQL_FranceCentral_DB_2",
+		"SQL_GermanyWestCentral_DB_2", "SQL_CentralIndia_DB_2", "SQL_SouthIndia_DB_2", "SQL_JapanEast_DB_2", "SQL_JapanWest_DB_2", "SQL_NorthCentralUS_DB_2", "SQL_UKWest_DB_2", "SQL_WestUS_DB_2",
+		"SQL_WestCentralUS_DB_1", "SQL_FranceSouth_DB_1", "SQL_WestCentralUS_DB_2", "SQL_FranceSouth_DB_2", "SQL_SwitzerlandNorth_DB_1", "SQL_SwitzerlandNorth_DB_2", "SQL_BrazilSoutheast_DB_1",
+		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2"}
+}
+
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -774,6 +793,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.DatabaseLicenseTypeBasePrice),
 				string(sql.DatabaseLicenseTypeLicenseIncluded),
@@ -949,6 +969,14 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"maintenance_configuration_name": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Default:       "SQL_Default",
+			ConflictsWith: []string{"elastic_pool_id"},
+			ValidateFunc:  validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 		},
 
 		"ledger_enabled": {

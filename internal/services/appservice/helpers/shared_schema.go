@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	appserviceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1554,7 +1553,7 @@ func StickySettingsSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: appserviceValidate.AppSettingName,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					AtLeastOneOf: []string{
 						"sticky_settings.0.app_setting_names",
@@ -1568,7 +1567,7 @@ func StickySettingsSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: appserviceValidate.AppSettingName,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					AtLeastOneOf: []string{
 						"sticky_settings.0.app_setting_names",

@@ -187,6 +187,12 @@ func resourceKeyVault() *pluginsdk.Resource {
 				},
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"purge_protection_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -315,6 +321,12 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnableSoftDelete: utils.Bool(true),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if d.Get("public_network_access_enabled").(bool) {
+		parameters.Properties.PublicNetworkAccess = utils.String("Enabled")
+	} else {
+		parameters.Properties.PublicNetworkAccess = utils.String("Disabled")
 	}
 
 	if purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool); purgeProtectionEnabled {
@@ -514,6 +526,25 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		update.Properties.EnablePurgeProtection = utils.Bool(newValue)
+
+		if newValue {
+			// When the KV was created with a version prior to v2.42 and the `soft_delete_enabled` is set to false, setting `purge_protection_enabled` to `true` would not work when updating KV with v2.42 or later of terraform provider.
+			// This is because the `purge_protection_enabled` only works when soft delete is enabled.
+			// Since version v2.42 of the Azure Provider and later force the value of `soft_delete_enabled` to be true, we should set `EnableSoftDelete` to true when `purge_protection_enabled` is enabled to make sure it works in this case.
+			update.Properties.EnableSoftDelete = utils.Bool(true)
+		}
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		if update.Properties == nil {
+			update.Properties = &keyvault.VaultPatchProperties{}
+		}
+
+		if d.Get("public_network_access_enabled").(bool) {
+			update.Properties.PublicNetworkAccess = utils.String("Enabled")
+		} else {
+			update.Properties.PublicNetworkAccess = utils.String("Disabled")
+		}
 	}
 
 	if d.HasChange("sku_name") {
@@ -631,6 +662,9 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 	d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 	d.Set("purge_protection_enabled", props.EnablePurgeProtection)
+	if v := props.PublicNetworkAccess; v != nil {
+		d.Set("public_network_access_enabled", *v == "Enabled")
+	}
 	d.Set("vault_uri", props.VaultURI)
 
 	// @tombuildsstuff: the API doesn't return this field if it's not configured

@@ -35,6 +35,11 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"disk_access_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"disk_encryption_set_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -55,7 +60,60 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"encryption_settings": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"disk_encryption_key": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"secret_url": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"source_vault_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"key_encryption_key": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"key_url": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"source_vault_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"image_reference_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"network_access_policy": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -135,6 +193,13 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("storage_account_id", creationData.StorageAccountID)
 		}
 
+		diskAccessId := ""
+		if props.DiskAccessID != nil {
+			diskAccessId = *props.DiskAccessID
+		}
+		d.Set("disk_access_id", diskAccessId)
+
+		d.Set("network_access_policy", string(props.NetworkAccessPolicy))
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
@@ -145,6 +210,10 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			diskEncryptionSetId = *props.Encryption.DiskEncryptionSetID
 		}
 		d.Set("disk_encryption_set_id", diskEncryptionSetId)
+
+		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("setting `encryption_settings`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

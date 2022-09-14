@@ -5,17 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgreSQLAdministrator() *pluginsdk.Resource {
@@ -25,7 +24,7 @@ func resourcePostgreSQLAdministrator() *pluginsdk.Resource {
 		Update: resourcePostgreSQLAdministratorCreateUpdate,
 		Delete: resourcePostgreSQLAdministratorDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AzureActiveDirectoryAdministratorID(id)
+			_, err := serveradministrators.ParseServerID(id)
 			return err
 		}),
 
@@ -35,6 +34,11 @@ func resourcePostgreSQLAdministrator() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.PostgresqlAADAdministratorV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"server_name": {
@@ -72,39 +76,31 @@ func resourcePostgreSQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	login := d.Get("login").(string)
-	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
-	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
-
-	id := parse.NewAzureActiveDirectoryAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), "activeDirectory")
+	id := serveradministrators.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_postgresql_active_directory_administrator", id.ID())
 		}
 	}
 
-	parameters := postgresql.ServerAdministratorResource{
-		ServerAdministratorProperties: &postgresql.ServerAdministratorProperties{
-			AdministratorType: utils.String("ActiveDirectory"),
-			Login:             utils.String(login),
-			Sid:               &objectId,
-			TenantID:          &tenantId,
+	parameters := serveradministrators.ServerAdministratorResource{
+		Properties: &serveradministrators.ServerAdministratorProperties{
+			AdministratorType: serveradministrators.AdministratorTypeActiveDirectory,
+			Login:             d.Get("login").(string),
+			Sid:               d.Get("object_id").(string),
+			TenantId:          d.Get("tenant_id").(string),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -116,14 +112,14 @@ func resourcePostgreSQLAdministratorRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AzureActiveDirectoryAdministratorID(d.Id())
+	id, err := serveradministrators.ParseServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -132,23 +128,16 @@ func resourcePostgreSQLAdministratorRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("server_name", id.ServerName)
 
-	if props := resp.ServerAdministratorProperties; props != nil {
-		d.Set("login", props.Login)
-
-		objectId := ""
-		if props.Sid != nil {
-			objectId = props.Sid.String()
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("login", props.Login)
+			d.Set("object_id", props.Sid)
+			d.Set("tenant_id", props.TenantId)
 		}
-		d.Set("object_id", objectId)
 
-		tenantId := ""
-		if props.TenantID != nil {
-			tenantId = props.TenantID.String()
-		}
-		d.Set("tenant_id", tenantId)
 	}
 
 	return nil
@@ -159,17 +148,13 @@ func resourcePostgreSQLAdministratorDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AzureActiveDirectoryAdministratorID(d.Id())
+	id, err := serveradministrators.ParseServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

@@ -76,6 +76,15 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Set: pluginsdk.HashString,
 			},
 
+			"fqdns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			// Required by the API you can't create the resource without at least
 			// one ip configuration once primary is set it is set forever unless
 			// you destroy the resource and recreate it.
@@ -190,6 +199,7 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			},
 			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
 			LoadBalancerFrontendIPConfigurations: expandPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
+			Fqdns:                                utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -269,6 +279,10 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
 			return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
+		}
+
+		if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
+			return fmt.Errorf("setting `fqdns`: %+v", err)
 		}
 
 		if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {

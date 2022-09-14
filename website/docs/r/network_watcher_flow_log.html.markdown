@@ -11,6 +11,8 @@ description: |-
 
 Manages a Network Watcher Flow Log.
 
+~> **Note** The `azurerm_network_watcher_flow_log` creates a new storage lifecyle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
+
 ## Example Usage
 
 ```hcl
@@ -124,7 +126,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Watcher Flow Log.
 * `update` - (Defaults to 30 minutes) Used when updating the Network Watcher Flow Log.

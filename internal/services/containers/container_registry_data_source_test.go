@@ -28,6 +28,20 @@ func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMContainerRegistry_dataEndpointPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_registry", "test")
+	r := ContainerRegistryDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.dataEndpointPremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("data_endpoint_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func (ContainerRegistryDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -37,4 +51,15 @@ data "azurerm_container_registry" "test" {
   resource_group_name = azurerm_container_registry.test.resource_group_name
 }
 `, ContainerRegistryResource{}.basicManaged(data, "Basic"))
+}
+
+func (ContainerRegistryDataSource) dataEndpointPremium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_container_registry" "test" {
+  name                = azurerm_container_registry.test.name
+  resource_group_name = azurerm_container_registry.test.resource_group_name
+}
+`, ContainerRegistryResource{}.dataEndpointPremium(data, true))
 }

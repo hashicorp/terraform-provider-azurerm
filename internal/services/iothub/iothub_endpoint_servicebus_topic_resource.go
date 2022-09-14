@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -76,7 +76,7 @@ func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema 
 		"identity_id": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ValidateFunc:  msivalidate.UserAssignedIdentityID,
+			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
 			ConflictsWith: []string{"connection_string"},
 		},
 

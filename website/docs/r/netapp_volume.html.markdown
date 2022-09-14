@@ -82,8 +82,8 @@ resource "azurerm_netapp_volume" "example" {
   # to enable Cross-Region Replication feature
   data_protection_replication {
     endpoint_type             = "dst"
-    remote_volume_location    = azurerm_resource_group.example_primary.location
-    remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
+    remote_volume_location    = azurerm_resource_group.example.location
+    remote_volume_resource_id = azurerm_netapp_volume.example.id
     replication_frequency     = "10minutes"
   }
 
@@ -193,7 +193,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NetApp Volume.
 * `update` - (Defaults to 30 minutes) Used when updating the NetApp Volume.

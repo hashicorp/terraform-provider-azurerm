@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/sdk/2021-05-13-preview/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -130,7 +130,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 }
 
 func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
+	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +169,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
+	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -220,7 +220,7 @@ func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
+	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -272,7 +272,7 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceConfidentialLedgerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgereClient
+	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

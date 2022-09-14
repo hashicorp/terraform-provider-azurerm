@@ -1,6 +1,7 @@
 package hpccache
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -8,10 +9,17 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -43,6 +51,8 @@ func resourceHPCCache() *pluginsdk.Resource {
 
 func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,6 +118,11 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	directorySetting := expandStorageCacheDirectorySettings(d)
 
+	identity, err := expandStorageCacheIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
 		Location: utils.String(location),
@@ -123,16 +138,69 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if !d.IsNewResource() {
+		oldKeyVaultKeyId, newKeyVaultKeyId := d.GetChange("key_vault_key_id")
+		if (oldKeyVaultKeyId.(string) != "" && newKeyVaultKeyId.(string) == "") || (oldKeyVaultKeyId.(string) == "" && newKeyVaultKeyId.(string) != "") {
+			return fmt.Errorf("`key_vault_key_id` can not be added or removed after HPC Cache is created")
+		}
+	}
+
+	requireAdditionalUpdate := false
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
+		autoKeyRotationEnabled := d.Get("automatically_rotate_key_to_latest_enabled").(bool)
+		if !d.IsNewResource() && d.HasChange("key_vault_key_id") && autoKeyRotationEnabled {
+			// It is by design that `automatically_rotate_key_to_latest_enabled` changes to `false` when `key_vault_key_id` is changed, needs to do an additional update to set it back
+			requireAdditionalUpdate = true
+		}
+
+		keyVaultKeyId := v.(string)
+		keyVaultDetails, err := storageCacheRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("validating Key Vault Key %q for HPC Cache: %+v", keyVaultKeyId, err)
+		}
+		if azure.NormalizeLocation(keyVaultDetails.location) != azure.NormalizeLocation(location) {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Key Vault must be in the same region as HPC Cache!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+		if !keyVaultDetails.softDeleteEnabled {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+		if !keyVaultDetails.purgeProtectionEnabled {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+
+		cache.CacheProperties.EncryptionSettings = &storagecache.CacheEncryptionSettings{
+			KeyEncryptionKey: &storagecache.KeyVaultKeyReference{
+				KeyURL: utils.String(keyVaultKeyId),
+				SourceVault: &storagecache.KeyVaultKeyReferenceSourceVault{
+					ID: utils.String(keyVaultDetails.keyVaultId),
+				},
+			},
+			RotationToLatestKeyVersionEnabled: utils.Bool(autoKeyRotationEnabled),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
 	if err != nil {
-		return fmt.Errorf("creating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
+	}
+
+	if requireAdditionalUpdate {
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
+		if err != nil {
+			return fmt.Errorf("Updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for updating of HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	// If any directory setting is set, we'll further check either the `usernameDownloaded` (for LDAP/Flat File), or the `domainJoined` (for AD) in response to ensure the configuration is correct, and the cache is functional.
@@ -250,6 +318,28 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
+
+	identity, err := flattenStorageCacheIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	keyVaultKeyId := ""
+	autoKeyRotationEnabled := false
+	if props := resp.EncryptionSettings; props != nil {
+		if props.KeyEncryptionKey != nil && props.KeyEncryptionKey.KeyURL != nil {
+			keyVaultKeyId = *props.KeyEncryptionKey.KeyURL
+		}
+
+		if props.RotationToLatestKeyVersionEnabled != nil {
+			autoKeyRotationEnabled = *props.RotationToLatestKeyVersionEnabled
+		}
+	}
+	d.Set("key_vault_key_id", keyVaultKeyId)
+	d.Set("automatically_rotate_key_to_latest_enabled", autoKeyRotationEnabled)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -624,6 +714,109 @@ func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.Cach
 	}
 }
 
+func expandStorageCacheIdentity(input []interface{}) (*storagecache.CacheIdentity, error) {
+	config, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	identity := storagecache.CacheIdentity{
+		Type: storagecache.CacheIdentityType(config.Type),
+	}
+
+	if len(config.IdentityIds) != 0 {
+		identityIds := make(map[string]*storagecache.CacheIdentityUserAssignedIdentitiesValue, len(config.IdentityIds))
+		for id := range config.IdentityIds {
+			identityIds[id] = &storagecache.CacheIdentityUserAssignedIdentitiesValue{}
+		}
+		identity.UserAssignedIdentities = identityIds
+	}
+
+	return &identity, nil
+}
+
+func flattenStorageCacheIdentity(input *storagecache.CacheIdentity) (*[]interface{}, error) {
+	var config *identity.UserAssignedMap
+
+	if input != nil {
+		identityIds := map[string]identity.UserAssignedIdentityDetails{}
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{}
+		}
+
+		config = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: identityIds,
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(config)
+}
+
+type storageCacheKeyVault struct {
+	keyVaultId             string
+	resourceGroupName      string
+	keyVaultName           string
+	location               string
+	purgeProtectionEnabled bool
+	softDeleteEnabled      bool
+}
+
+func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, id string) (*storageCacheKeyVault, error) {
+	keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(id)
+	if err != nil {
+		return nil, err
+	}
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+	}
+	if keyVaultID == nil {
+		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
+	}
+
+	parsedKeyVaultID, err := keyVaultParse.VaultID(*keyVaultID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroup, parsedKeyVaultID.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *parsedKeyVaultID, err)
+	}
+
+	purgeProtectionEnabled := false
+	softDeleteEnabled := false
+
+	if props := resp.Properties; props != nil {
+		if props.EnableSoftDelete != nil {
+			softDeleteEnabled = *props.EnableSoftDelete
+		}
+
+		if props.EnablePurgeProtection != nil {
+			purgeProtectionEnabled = *props.EnablePurgeProtection
+		}
+	}
+
+	location := ""
+	if resp.Location != nil {
+		location = *resp.Location
+	}
+
+	return &storageCacheKeyVault{
+		keyVaultId:             *keyVaultID,
+		resourceGroupName:      parsedKeyVaultID.ResourceGroup,
+		keyVaultName:           parsedKeyVaultID.Name,
+		location:               location,
+		purgeProtectionEnabled: purgeProtectionEnabled,
+		softDeleteEnabled:      softDeleteEnabled,
+	}, nil
+}
+
 func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -921,6 +1114,21 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+		},
+
+		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
+
+		"key_vault_key_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyVaultValidate.NestedItemId,
+			RequiredWith: []string{"identity"},
+		},
+
+		"automatically_rotate_key_to_latest_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			RequiredWith: []string{"key_vault_key_id"},
 		},
 
 		"tags": tags.Schema(),

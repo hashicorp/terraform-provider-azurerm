@@ -6,17 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -69,6 +67,13 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      nil,
+				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
 			},
 
 			"primary_read_key": {
@@ -201,7 +206,21 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+
+	if publicNetworkAccessNotEmpty {
+
+		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse public_network_access: %+v", err)
+		}
+		properties := &configurationstores.ConfigurationStoreProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+		}
+		parameters.Properties = properties
+	}
+
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -233,8 +252,20 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+	if publicNetworkAccessNotEmpty {
+		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse public_network_access: %+v", err)
+		}
+		properties := &configurationstores.ConfigurationStorePropertiesUpdateParameters{
+			PublicNetworkAccess: publicNetworkAccess,
+		}
+		parameters.Properties = properties
+	}
+
 	if d.HasChange("identity") {
-		identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -282,6 +313,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("public_network_access", props.PublicNetworkAccess)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
@@ -290,7 +322,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
-		flattenedIdentity, err := flattenAppConfigurationIdentity(model.Identity)
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -391,49 +423,16 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 	}
 }
 
-func expandAppConfigurationIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
+func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
+	vals := map[string]configurationstores.PublicNetworkAccess{
+		"disabled": configurationstores.PublicNetworkAccessDisabled,
+		"enabled":  configurationstores.PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
 	}
 
-	transform := legacyIdentity.ExpandedConfig{
-		Type:        legacyIdentity.Type(string(expanded.Type)),
-		PrincipalId: expanded.PrincipalId,
-		TenantId:    expanded.TenantId,
-	}
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		transform.UserAssignedIdentityIds = make([]string, 0)
-		for k := range expanded.IdentityIds {
-			transform.UserAssignedIdentityIds = append(transform.UserAssignedIdentityIds, k)
-		}
-	}
-	out := legacyIdentity.SystemUserAssignedIdentityMap{}
-	out.FromExpandedConfig(transform)
+	// otherwise presume it's an undefined value and best-effort it
+	out := configurationstores.PublicNetworkAccess(input)
 	return &out, nil
-}
-
-func flattenAppConfigurationIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) (*[]interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		if input.PrincipalId != nil {
-			transform.PrincipalId = *input.PrincipalId
-		}
-		if input.TenantId != nil {
-			transform.TenantId = *input.TenantId
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientId,
-				PrincipalId: v.PrincipalId,
-			}
-		}
-	}
-
-	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

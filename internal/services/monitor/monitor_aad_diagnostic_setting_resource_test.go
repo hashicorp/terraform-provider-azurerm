@@ -221,6 +221,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     enabled  = false
     retention_policy {}
   }
+  log {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -332,6 +340,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     category = "ServicePrincipalRiskEvents"
     enabled  = false
     retention_policy {}
+  }
+  log {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -470,6 +486,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     enabled  = false
     retention_policy {}
   }
+  log {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -574,6 +598,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     category = "ServicePrincipalRiskEvents"
     enabled  = false
     retention_policy {}
+  }
+  log {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))

@@ -13,12 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -139,7 +138,7 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", id, err)
 		}
-		zones := zones.Expand(v.(*schema.Set).List())
+		zones := zones.Expand(v.(*pluginsdk.Set).List())
 		if len(zones) > 0 {
 			parameters.Zones = &zones
 		}

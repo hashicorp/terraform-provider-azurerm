@@ -19,16 +19,16 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = data.azurerm_resource_group.example.name
 }
 
 resource "azurerm_stream_analytics_output_powerbi" "example" {
-  name                      = "output-to-powerbi"
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  dataset                   = "example-dataset"
-  table                     = "example-table"
-  group_id                  = "00000000-0000-0000-0000-000000000000"
-  group_name                = "some-group-name"
+  name                    = "output-to-powerbi"
+  stream_analytics_job_id = data.azurerm_stream_analytics_job.example.id
+  dataset                 = "example-dataset"
+  table                   = "example-table"
+  group_id                = "00000000-0000-0000-0000-000000000000"
+  group_name              = "some-group-name"
 }
 ```
 
@@ -48,9 +48,13 @@ The following arguments are supported:
 
 * `group_name` - (Required) The name of the Power BI group. Use this property to help remember which specific Power BI group id was used.
 
+* `token_user_principal_name` - (Optional) The user principal name (UPN) of the user that was used to obtain the refresh token. 
+
+* `token_user_display_name` - (Optional) The user display name of the user that was used to obtain the refresh token.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output for PowerBI.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output for PowerBI.

@@ -3,7 +3,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -20,7 +20,7 @@ type ApiManagementApiSchemaResource struct{}
 func TestAccApiManagementApiSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}
-	schema, _ := ioutil.ReadFile("testdata/api_management_api_schema.xml")
+	schema, _ := os.ReadFile("testdata/api_management_api_schema.xml")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccApiManagementApiSchema_basic(t *testing.T) {
 func TestAccApiManagementApiSchema_basicSwagger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}
-	schema, _ := ioutil.ReadFile("testdata/api_management_api_schema_swagger.json")
+	schema, _ := os.ReadFile("testdata/api_management_api_schema_swagger.json")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

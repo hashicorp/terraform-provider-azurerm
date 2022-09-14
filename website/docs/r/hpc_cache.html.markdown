@@ -83,7 +83,13 @@ The following arguments are supported:
 * `directory_ldap` - (Optional) A `directory_ldap` block as defined below.
 
 ~> **Note:** Only one of `directory_active_directory`, `directory_flat_file` and `directory_ldap` can be set.
- 
+
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
+
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to encrypt the data in this HPC Cache.
+
+* `automatically_rotate_key_to_latest_enabled` - (Optional) Specifies whether the HPC Cache automatically rotates Encryption Key to the latest version. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
 
 ---
@@ -172,6 +178,14 @@ A `dns` block contains the following:
 
 * `search_domain` - (Optional) The DNS search domain for the HPC Cache.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this HPC Cache. Only possible value is `UserAssigned`.
+
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this HPC Cache.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -182,7 +196,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the HPC Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache.

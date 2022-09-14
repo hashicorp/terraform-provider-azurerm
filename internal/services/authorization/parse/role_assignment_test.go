@@ -10,14 +10,15 @@ var _ resourceid.Formatter = RoleAssignmentId{}
 
 func TestRoleAssignmentIDFormatter(t *testing.T) {
 	testData := []struct {
-		SubscriptionId   string
-		ResourceGroup    string
-		ResourceProvider string
-		ResourceScope    string
-		ManagementGroup  string
-		Name             string
-		TenantId         string
-		Expected         string
+		SubscriptionId      string
+		ResourceGroup       string
+		ResourceProvider    string
+		ResourceScope       string
+		ManagementGroup     string
+		IsSubscriptionLevel bool
+		Name                string
+		TenantId            string
+		Expected            string
 	}{
 		{
 			SubscriptionId:  "",
@@ -89,14 +90,21 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			TenantId:         "34567812-3456-7653-6742-345678901234",
 			Expected:         "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/nameStorageAccount/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
 		},
+		{
+			IsSubscriptionLevel: true,
+			Name:                "23456781-2349-8764-5631-234567890121",
+			TenantId:            "34567812-3456-7653-6742-345678901234",
+			Expected:            "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
+		},
 	}
 	for _, v := range testData {
 		t.Logf("testing %+v", v)
-		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId)
+		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.IsSubscriptionLevel)
 		if err != nil {
 			if v.Expected == "" {
 				continue
 			}
+			t.Fatal(err)
 		}
 		actualId := actual.ID()
 		if actualId != v.Expected {
@@ -151,6 +159,15 @@ func TestRoleAssignmentID(t *testing.T) {
 			// missing Role Assignment value at Management Group scope
 			Input: "/providers/Microsoft.Management/managementGroups/managementGroup1/providers/Microsoft.Authorization/roleAssignments/",
 			Error: true,
+		},
+
+		{
+			// valid at subscriptions scope
+			Input: "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				IsSubscriptionLevel: true,
+				Name:                "23456781-2349-8764-5631-234567890121",
+			},
 		},
 
 		{

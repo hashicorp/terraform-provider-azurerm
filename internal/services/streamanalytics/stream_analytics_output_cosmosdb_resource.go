@@ -29,6 +29,7 @@ type OutputCosmosDBResourceModel struct {
 	Database           string `tfschema:"cosmosdb_sql_database_id"`
 	ContainerName      string `tfschema:"container_name"`
 	DocumentID         string `tfschema:"document_id"`
+	PartitionKey       string `tfschema:"partition_key"`
 }
 
 func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
@@ -67,6 +68,12 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"document_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"partition_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -124,6 +131,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				Database:              utils.String(databaseId.Name),
 				CollectionNamePattern: utils.String(model.ContainerName),
 				DocumentID:            utils.String(model.DocumentID),
+				PartitionKey:          utils.String(model.PartitionKey),
 			}
 
 			props := streamanalytics.Output{
@@ -190,6 +198,10 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 					state.DocumentID = *v.DocumentID
 				}
 
+				if v.PartitionKey != nil {
+					state.PartitionKey = *v.PartitionKey
+				}
+
 				return metadata.Encode(&state)
 			}
 			return nil
@@ -253,6 +265,7 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 								Database:              &databaseId.Name,
 								CollectionNamePattern: &state.ContainerName,
 								DocumentID:            &state.DocumentID,
+								PartitionKey:          &state.PartitionKey,
 							},
 						},
 					},

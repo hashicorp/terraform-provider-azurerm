@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -49,20 +49,35 @@ func testAccCassandraCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccCassandraCluster_tags(t *testing.T) {
+func testAccCassandraCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
 	r := CassandraClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.tags(data, "Test"),
+			Config: r.complete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_admin_password"),
+	})
+}
+
+func testAccCassandraCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
+	r := CassandraClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("default_admin_password"),
 		{
-			Config: r.tags(data, "Test2"),
+			Config: r.update(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -72,17 +87,17 @@ func testAccCassandraCluster_tags(t *testing.T) {
 }
 
 func (t CassandraClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CassandraClusterID(state.ID)
+	id, err := managedcassandras.ParseCassandraClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cosmos.CassandraClustersClient.CassandraClustersGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r CassandraClusterResource) basic(data acceptance.TestData) string {
@@ -101,6 +116,66 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r CassandraClusterResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_cassandra_cluster" "test" {
+  name                           = "acctca-mi-cluster-%d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  default_admin_password         = "Password1234"
+  authentication_method          = "Cassandra"
+  version                        = "3.11"
+  repair_enabled                 = true
+
+  client_certificate_pems          = [file("testdata/cert.pem")]
+  external_gossip_certificate_pems = [file("testdata/cert.pem")]
+  external_seed_node_ip_addresses  = ["10.52.221.2"]
+  hours_between_backups            = 22
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    Env = "Test1"
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CassandraClusterResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_cassandra_cluster" "test" {
+  name                           = "acctca-mi-cluster-%d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  default_admin_password         = "Password1234"
+  authentication_method          = "None"
+  version                        = "3.11"
+  repair_enabled                 = false
+
+  client_certificate_pems          = [file("testdata/cert2.pem")]
+  external_gossip_certificate_pems = [file("testdata/cert2.pem")]
+  external_seed_node_ip_addresses  = ["10.52.221.5"]
+  hours_between_backups            = 0
+
+  tags = {
+    Env = "Test2"
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r CassandraClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -113,26 +188,6 @@ resource "azurerm_cosmosdb_cassandra_cluster" "import" {
   default_admin_password         = "Password1234"
 }
 `, r.basic(data))
-}
-
-func (r CassandraClusterResource) tags(data acceptance.TestData, tag string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cosmosdb_cassandra_cluster" "test" {
-  name                           = "acctca-mi-cluster-%d"
-  resource_group_name            = azurerm_resource_group.test.name
-  location                       = azurerm_resource_group.test.location
-  delegated_management_subnet_id = azurerm_subnet.test.id
-  default_admin_password         = "Password1234"
-
-  tags = {
-    Env = "%s"
-  }
-
-  depends_on = [azurerm_role_assignment.test]
-}
-`, r.template(data), data.RandomInteger, tag)
 }
 
 func (r CassandraClusterResource) template(data acceptance.TestData) string {

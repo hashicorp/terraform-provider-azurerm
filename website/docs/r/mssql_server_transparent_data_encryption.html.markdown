@@ -37,13 +37,6 @@ resource "azurerm_mssql_server" "example" {
     object_id      = "00000000-0000-0000-0000-000000000000"
   }
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
   tags = {
     environment = "production"
   }
@@ -171,7 +164,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MSSQL.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL.

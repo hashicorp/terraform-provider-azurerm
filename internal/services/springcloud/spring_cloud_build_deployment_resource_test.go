@@ -60,6 +60,28 @@ func TestAccSpringCloudBuildDeployment_complete(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudBuildDeployment_addon(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_build_deployment", "test")
+	r := SpringCloudBuildDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.addon(data, "app/dev"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addon(data, "app/prod"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudBuildDeployment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_build_deployment", "test")
 	r := SpringCloudBuildDeploymentResource{}
@@ -147,6 +169,33 @@ resource "azurerm_spring_cloud_build_deployment" "test" {
   }
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r SpringCloudBuildDeploymentResource) addon(data acceptance.TestData, pattern string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_build_deployment" "test" {
+  name                = "acctest-scjd%s"
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+  build_result_id     = "<default>"
+  instance_count      = 2
+
+  environment_variables = {
+    "Foo" : "Bar"
+    "Env" : "Staging"
+  }
+  quota {
+    cpu    = "2"
+    memory = "2Gi"
+  }
+  addon_json = jsonencode({
+    applicationConfigurationService = {
+      configFilePatterns = "%s"
+    }
+  })
+}
+`, SpringCloudAppResource{}.addon(data), data.RandomString, pattern)
 }
 
 func (SpringCloudBuildDeploymentResource) template(data acceptance.TestData) string {

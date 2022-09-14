@@ -178,6 +178,10 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("retrieving Backup Policy VM %q (Vault Name %q /Resource Group %q): ID was nil or empty", policyName, vaultName, resourceGroup)
+	}
+
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
@@ -346,6 +350,16 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []d
 
 				duration, ok := block["hour_duration"].(int)
 				if !ok {
+					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
+				if interval == 0 && duration == 0 {
+					return nil, fmt.Errorf("`hour_interval` and `hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if interval == 0 {
+					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if duration == 0 {
 					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 

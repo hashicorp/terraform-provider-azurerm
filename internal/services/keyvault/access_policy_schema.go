@@ -58,6 +58,10 @@ func keyPermissions() []string {
 		"Update",
 		"Verify",
 		"WrapKey",
+		"Release",
+		"Rotate",
+		"GetRotationPolicy",
+		"SetRotationPolicy",
 	}
 }
 

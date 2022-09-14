@@ -95,6 +95,8 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
+
 			"gateway": SchemaHDInsightsGateway(),
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
@@ -153,9 +155,18 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 													Required:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
+												"parameters": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
 											},
 										},
 									},
+
+									"https_endpoints": SchemaHDInsightsHttpsEndpoints(),
+
+									"uninstall_script_actions": SchemaHDInsightsScriptActions(),
 								},
 							},
 						},
@@ -176,6 +187,8 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 			},
 
 			"monitor": SchemaHDInsightsMonitor(),
+
+			"extension": SchemaHDInsightsExtension(),
 		},
 	}
 }
@@ -264,6 +277,14 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 		Identity: identity,
 	}
 
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		diskEncryptionProperties, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
+		params.Properties.DiskEncryptionProperties = diskEncryptionProperties
+	}
+
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
 
@@ -327,6 +348,13 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
 		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+			return err
+		}
+	}
+
+	if v, ok := d.GetOk("extension"); ok {
+		extensionRaw := v.([]interface{})
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -428,6 +456,16 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 			flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps)
 		}
 
+		if props.DiskEncryptionProperties != nil {
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+			}
+		}
+
 		if err := d.Set("roles", flattenedRoles); err != nil {
 			return fmt.Errorf("flattening `roles`: %+v", err)
 		}
@@ -443,6 +481,13 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+		}
+
+		d.Set("extension", flattenHDInsightAzureMonitor(extension))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)
@@ -485,7 +530,30 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 		for _, action := range *installScriptActions {
 			actions["name"] = action.Name
 			actions["uri"] = action.URI
+			actions["parameters"] = action.Parameters
 		}
+	}
+
+	if uninstallScriptActions := props.UninstallScriptActions; uninstallScriptActions != nil && len(*uninstallScriptActions) != 0 {
+		uninstallActions := make(map[string]interface{})
+		for _, uninstallAction := range *uninstallScriptActions {
+			actions["name"] = uninstallAction.Name
+			actions["uri"] = uninstallAction.URI
+			actions["parameters"] = uninstallAction.Parameters
+		}
+		edgeNode["uninstall_script_actions"] = []interface{}{uninstallActions}
+	}
+
+	if HTTPSEndpoints := props.HTTPSEndpoints; HTTPSEndpoints != nil && len(*HTTPSEndpoints) != 0 {
+		httpsEndpoints := make(map[string]interface{})
+		for _, HTTPSEndpoint := range *HTTPSEndpoints {
+			httpsEndpoints["access_modes"] = HTTPSEndpoint.AccessModes
+			httpsEndpoints["destination_port"] = HTTPSEndpoint.DestinationPort
+			httpsEndpoints["disable_gateway_auth"] = HTTPSEndpoint.DisableGatewayAuth
+			httpsEndpoints["private_ip_address"] = HTTPSEndpoint.PrivateIPAddress
+			httpsEndpoints["sub_domain_suffix"] = HTTPSEndpoint.SubDomainSuffix
+		}
+		edgeNode["https_endpoints"] = []interface{}{httpsEndpoints}
 	}
 
 	edgeNode["install_script_action"] = []interface{}{actions}
@@ -524,12 +592,69 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 
 		name := val["name"].(string)
 		uri := val["uri"].(string)
+		parameters := val["parameters"].(string)
 
 		action := hdinsight.RuntimeScriptAction{
 			Name: utils.String(name),
 			URI:  utils.String(uri),
 			// The only role available for edge nodes is edgenode
-			Roles: &[]string{"edgenode"},
+			Parameters: utils.String(parameters),
+			Roles:      &[]string{"edgenode"},
+		}
+
+		actions = append(actions, action)
+	}
+
+	return &actions
+}
+
+func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]hdinsight.ApplicationGetHTTPSEndpoint {
+	endpoints := make([]hdinsight.ApplicationGetHTTPSEndpoint, 0)
+	if len(input) == 0 || input[0] == nil {
+		return &endpoints
+	}
+
+	for _, v := range input {
+		val := v.(map[string]interface{})
+
+		accessModes := val["access_modes"].([]string)
+		destinationPort := val["destination_port"].(int32)
+		disableGatewayAuth := val["disable_gateway_auth"].(bool)
+		privateIpAddress := val["private_ip_address"].(string)
+		subDomainSuffix := val["sub_domain_suffix"].(string)
+
+		endPoint := hdinsight.ApplicationGetHTTPSEndpoint{
+			AccessModes:        &accessModes,
+			DestinationPort:    utils.Int32(destinationPort),
+			PrivateIPAddress:   utils.String(privateIpAddress),
+			SubDomainSuffix:    utils.String(subDomainSuffix),
+			DisableGatewayAuth: utils.Bool(disableGatewayAuth),
+		}
+
+		endpoints = append(endpoints, endPoint)
+	}
+
+	return &endpoints
+}
+
+func expandHDInsightApplicationEdgeNodeUninstallScriptActions(input []interface{}) *[]hdinsight.RuntimeScriptAction {
+	actions := make([]hdinsight.RuntimeScriptAction, 0)
+	if len(input) == 0 || input[0] == nil {
+		return &actions
+	}
+
+	for _, v := range input {
+		val := v.(map[string]interface{})
+
+		name := val["name"].(string)
+		uri := val["uri"].(string)
+		parameters := val["parameters"].(string)
+
+		action := hdinsight.RuntimeScriptAction{
+			Name:       utils.String(name),
+			URI:        utils.String(uri),
+			Parameters: utils.String(parameters),
+			Roles:      &[]string{"edgenode"},
 		}
 
 		actions = append(actions, action)

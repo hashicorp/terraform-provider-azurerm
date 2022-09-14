@@ -138,8 +138,12 @@ func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating DisksPool iscsi target %q : %+v", id.ID(), err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
 			//lintignore:R006
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+			return pluginsdk.Retry(time.Until(deadline), func() *resource.RetryError {
 				//lintignore:R006
 				if err := d.retryError("waiting for creation DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone()); err != nil {
 					return err
@@ -205,8 +209,12 @@ func (d DisksPoolIscsiTargetResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting DisksPool iscsi target %q: %+v", id.ID(), err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id)
+			}
 			//lintignore:R006
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
+			return pluginsdk.Retry(time.Until(deadline), func() *resource.RetryError {
 				return d.retryError("waiting for deletion of DisksPool iscsi target", id.ID(), future.Poller.PollUntilDone())
 			})
 		},

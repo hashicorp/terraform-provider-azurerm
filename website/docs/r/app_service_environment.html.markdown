@@ -42,6 +42,7 @@ resource "azurerm_subnet" "gateway" {
 
 resource "azurerm_app_service_environment" "example" {
   name                         = "example-ase"
+  resource_group_name          = azurerm_resource_group.example.name
   subnet_id                    = azurerm_subnet.ase.id
   pricing_tier                 = "I2"
   front_end_scale_factor       = 10
@@ -102,7 +103,7 @@ A `cluster_setting` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 4 hours) Used when creating the App Service Environment.
 * `update` - (Defaults to 4 hours) Used when updating the App Service Environment.

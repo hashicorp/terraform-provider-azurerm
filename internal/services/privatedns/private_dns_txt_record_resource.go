@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/recordsets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,6 +51,8 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 				ValidateFunc: validate.LowerCasedString,
 			},
 
+			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
+
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -85,7 +88,7 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -113,7 +116,7 @@ func resourcePrivateDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := recordsets.RecordSet{
 		Name: utils.String(id.RelativeRecordSetName),
 		Properties: &recordsets.RecordSetProperties{
-			Metadata:   expandTags(d.Get("tags").(map[string]interface{})),
+			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
 			Ttl:        utils.Int64(int64(d.Get("ttl").(int))),
 			TxtRecords: expandAzureRmPrivateDnsTxtRecords(d),
 		},
@@ -164,7 +167,7 @@ func resourcePrivateDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `record`: %+v", err)
 			}
 
-			return tags.FlattenAndSet(d, flattenTags(props.Metadata))
+			return tags.FlattenAndSet(d, props.Metadata)
 		}
 	}
 

@@ -36,7 +36,7 @@ resource "azurerm_key_vault_access_policy" "server" {
   object_id    = azurerm_postgresql_server.example.identity.0.principal_id
 
   key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
-  secret_permissions = ["get"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -104,7 +104,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Server Key.
 * `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Server Key.
