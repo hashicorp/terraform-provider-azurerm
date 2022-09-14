@@ -1554,8 +1554,7 @@ func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdent
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
 		out.UserAssignedIdentities = make(map[string]*documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue{
-			}
+			out.UserAssignedIdentities[k] = &documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue{}
 		}
 	}
 	return &out, nil
@@ -1567,7 +1566,7 @@ func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) (*[]interf
 
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
-			Type: identity.Type(string(input.Type)),
+			Type:        identity.Type(string(input.Type)),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		if input.PrincipalID != nil {
