@@ -1,3 +1,5 @@
+// Deprecated: Please note, this package has been deprecated. A replacement package is available [github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storagecache/armstoragecache](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storagecache/armstoragecache). We strongly encourage you to upgrade to continue receiving updates. See [Migration Guide](https://aka.ms/azsdk/golang/t2/migration) for guidance on upgrading. Refer to our [deprecation policy](https://azure.github.io/azure-sdk/policies_support.html) for more details.
+//
 // Package storagecache implements the Azure ARM Storagecache service API version 2021-09-01.
 //
 // A Storage Cache provides scalable caching service for NAS clients, serving data from either NFSv3 or Blob at-rest

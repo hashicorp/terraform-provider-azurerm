@@ -59,50 +59,6 @@ func (c NotificationHubsClient) List(ctx context.Context, id NamespaceId) (resp 
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c NotificationHubsClient) ListComplete(ctx context.Context, id NamespaceId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, NotificationHubResourceOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c NotificationHubsClient) ListCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate NotificationHubResourceOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]NotificationHubResource, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c NotificationHubsClient) preparerForList(ctx context.Context, id NamespaceId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c NotificationHubsClient) responderForList(resp *http.Response) (result Li
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c NotificationHubsClient) ListComplete(ctx context.Context, id NamespaceId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, NotificationHubResourceOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c NotificationHubsClient) ListCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate NotificationHubResourceOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]NotificationHubResource, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

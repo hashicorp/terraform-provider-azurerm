@@ -74,7 +74,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskEphemeralResourceDisk(data),
+			Config: r.disksOSDiskEphemeral(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -89,7 +89,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeralResourceDisk(t *te
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskEphemeral(data),
+			Config: r.disksOSDiskEphemeralResourceDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -501,7 +501,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F8s_v2" # has to be this large for ephemeral disks on Windows
+  sku                 = "Standard_DS4_v2" # has to be this large for ephemeral disks on Windows
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -509,7 +509,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
+    sku       = "2022-datacenter-smalldisk"
     version   = "latest"
   }
 

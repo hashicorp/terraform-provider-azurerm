@@ -104,6 +104,16 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 				Default:      1,
 				ValidateFunc: validation.FloatBetween(0, 1),
 			},
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeMsi),
+					string(streamanalytics.AuthenticationModeConnectionString),
+				}, false),
+			},
 		},
 	}
 }
@@ -138,13 +148,14 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 			Datasource: &streamanalytics.AzureSQLDatabaseOutputDataSource{
 				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDatabase,
 				AzureSQLDatabaseOutputDataSourceProperties: &streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
-					Server:         utils.String(server),
-					Database:       utils.String(databaseName),
-					User:           utils.String(sqlUser),
-					Password:       utils.String(sqlUserPassword),
-					Table:          utils.String(tableName),
-					MaxBatchCount:  utils.Float(d.Get("max_batch_count").(float64)),
-					MaxWriterCount: utils.Float(d.Get("max_writer_count").(float64)),
+					Server:             utils.String(server),
+					Database:           utils.String(databaseName),
+					User:               utils.String(sqlUser),
+					Password:           utils.String(sqlUserPassword),
+					Table:              utils.String(tableName),
+					MaxBatchCount:      utils.Float(d.Get("max_batch_count").(float64)),
+					MaxWriterCount:     utils.Float(d.Get("max_writer_count").(float64)),
+					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 		},
@@ -198,6 +209,7 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("database", v.Database)
 		d.Set("table", v.Table)
 		d.Set("user", v.User)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
 		maxBatchCount := float64(10000)
 		if v.MaxBatchCount != nil {

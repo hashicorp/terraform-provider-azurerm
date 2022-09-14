@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+const TagRuleName = "default"
+
 func SchemaUserInfo() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -92,6 +94,37 @@ func flattenUserInfo(input *logz.UserInfo) []interface{} {
 			"last_name":    lastName,
 			"email":        email,
 			"phone_number": phoneNumber,
+		},
+	}
+}
+
+func schemaTagFilter() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 10,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"action": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(logz.TagActionInclude),
+						string(logz.TagActionExclude),
+					}, false),
+				},
+
+				"value": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+			},
 		},
 	}
 }

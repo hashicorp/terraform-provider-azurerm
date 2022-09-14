@@ -204,7 +204,7 @@ data "azurerm_blueprint_published_version" "test" {
 
 resource "azurerm_resource_group" "test" {
   name     = "accTestRG-bp-%d"
-  location = "%s"
+  location = "westeurope"
 
   tags = {
     testAcc = "true"
@@ -271,7 +271,7 @@ resource "azurerm_blueprint_assignment" "test" {
     azurerm_role_assignment.owner
   ]
 }
-`, subscription, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, subscription, bpName, version, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (BlueprintAssignmentResource) rootManagementGroup(data acceptance.TestData, bpName string, version string) string {

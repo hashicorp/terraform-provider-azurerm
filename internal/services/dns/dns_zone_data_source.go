@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceDnsZone() *pluginsdk.Resource {
@@ -29,6 +30,7 @@ func dataSourceDnsZone() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": {
+				// TODO: we need a CommonSchema type for this which doesn't have ForceNew
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
@@ -51,54 +53,53 @@ func dataSourceDnsZone() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.ZonesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := meta.(*clients.Client).Dns.Zones
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	var (
-		resp dns.Zone
-		err  error
-	)
-	if resourceGroup != "" {
-		resp, err = client.Get(ctx, resourceGroup, name)
+	id := zones.NewDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	var zone *zones.Zone
+	if id.ResourceGroupName != "" {
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error: DNS Zone %q (Resource Group %q) was not found", name, resourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("%s was not found", id)
 			}
-			return fmt.Errorf("reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
+
+		zone = resp.Model
 	} else {
-		var zone *dns.Zone
-		zone, resourceGroup, err = findZone(client, ctx, name)
+		result, resourceGroupName, err := findZone(ctx, client, id.SubscriptionId, id.ZoneName)
 		if err != nil {
 			return err
 		}
 
-		if zone == nil {
-			return fmt.Errorf("Error: DNS Zone %q was not found", name)
+		if resourceGroupName == nil {
+			return fmt.Errorf("unable to locate the Resource Group for DNS Zone %q in Subscription %q", id.ResourceGroupName, subscriptionId)
 		}
 
-		resp = *zone
+		zone = result
+		id.ResourceGroupName = *resourceGroupName
 	}
 
-	resourceId := parse.NewDnsZoneID(subscriptionId, resourceGroup, name)
-	d.SetId(resourceId.ID())
+	if zone == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
 
-	if props := resp.ZoneProperties; props != nil {
+	d.Set("name", id.ZoneName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if props := zone.Properties; props != nil {
 		d.Set("number_of_record_sets", props.NumberOfRecordSets)
 		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
 
@@ -111,36 +112,37 @@ func dataSourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if err := tags.FlattenAndSet(d, zone.Tags); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func findZone(client *dns.ZonesClient, ctx context.Context, name string) (*dns.Zone, string, error) {
-	zonesIterator, err := client.ListComplete(ctx, nil)
+func findZone(ctx context.Context, client *zones.ZonesClient, subscriptionId, name string) (*zones.Zone, *string, error) {
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	zonesIterator, err := client.ListComplete(ctx, subscriptionResourceId, zones.DefaultListOperationOptions())
 	if err != nil {
-		return nil, "", fmt.Errorf("listing DNS Zones: %+v", err)
+		return nil, nil, fmt.Errorf("listing DNS Zones: %+v", err)
 	}
 
-	var found *dns.Zone
-	for zonesIterator.NotDone() {
-		zone := zonesIterator.Value()
+	var found zones.Zone
+	for _, zone := range zonesIterator.Items {
 		if zone.Name != nil && *zone.Name == name {
-			if found != nil {
-				return nil, "", fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
+			if found.Id != nil {
+				return nil, nil, fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
 			}
-			found = &zone
-		}
-		if err := zonesIterator.NextWithContext(ctx); err != nil {
-			return nil, "", fmt.Errorf("listing DNS Zones: %+v", err)
+			found = zone
 		}
 	}
 
-	if found == nil || found.ID == nil {
-		return nil, "", fmt.Errorf("could not find DNS zone with name: %q", name)
+	if found.Id == nil {
+		return nil, nil, fmt.Errorf("could not find DNS zone with name: %q", name)
 	}
 
-	id, err := parse.DnsZoneID(*found.ID)
+	id, err := zones.ParseDnsZoneIDInsensitively(*found.Id)
 	if err != nil {
-		return nil, "", fmt.Errorf("DNS zone id not valid: %+v", err)
+		return nil, nil, fmt.Errorf("parsing %q as a DNS Zone ID: %+v", *found.Id, err)
 	}
-	return found, id.ResourceGroup, nil
+	return &found, &id.ResourceGroupName, nil
 }

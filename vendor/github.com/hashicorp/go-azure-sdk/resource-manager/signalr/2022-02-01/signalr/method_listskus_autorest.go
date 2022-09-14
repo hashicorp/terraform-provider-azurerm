@@ -64,5 +64,6 @@ func (c SignalRClient) responderForListSkus(resp *http.Response) (result ListSku
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

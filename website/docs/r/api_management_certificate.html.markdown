@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.
 
--> **NOTE:** Setting this field requires the `identity` block to be specified in API Management Service, since this identity is used to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires that Secret version isn't specified.
+-> **NOTE:** Setting this field requires the `identity` block to be specified in API Management Service, since this identity is used to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires that Secret version isn't specified.
 
 * `key_vault_identity_client_id` - (Optional) The Client ID of the User Assigned Managed Identity to use for retrieving certificate.
 
@@ -168,7 +168,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Certificate.

@@ -101,7 +101,7 @@ A `unique_key` block supports the following:
 ---
 An `indexing_policy` block supports the following:
 
-* `indexing_mode` - (Optional) Indicates the indexing mode. Possible values include: `Consistent` and `None`. Defaults to `Consistent`.
+* `indexing_mode` - (Optional) Indicates the indexing mode. Possible values include: `consistent` and `none`. Defaults to `consistent`.
 
 * `included_path` - (Optional) One or more `included_path` blocks as defined below. Either `included_path` or `excluded_path` must contain the `path` `/*`
 
@@ -167,7 +167,7 @@ A `spatial_index` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Container.
 * `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.

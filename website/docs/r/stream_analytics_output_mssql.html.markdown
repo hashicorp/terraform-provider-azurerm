@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `user` - (Required) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
 
+* `database` - (Required) The MS SQL database name where the reference table exists. Changing this forces a new resource to be created.
+
 * `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
 
 * `table` - (Required) Table in the database that the output points to. Changing this forces a new resource to be created.
@@ -77,6 +79,8 @@ The following arguments are supported:
 * `max_batch_count` - (Optional) The max batch count to write to the SQL Database. Defaults to `10000`. Possible values are between `1` and `1073741824`.
 
 * `max_writer_count` - (Optional) The max writer count for the SQL Database. Defaults to `1`. Possible values are `0` which bases the writer count on the query partition and `1` which corresponds to a single writer.
+
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
 
 ## Attributes Reference
 
@@ -86,7 +90,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output Microsoft SQL Server Database.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output Microsoft SQL Server Database.

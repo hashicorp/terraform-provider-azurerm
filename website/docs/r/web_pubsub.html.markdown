@@ -90,7 +90,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Web PubSub. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Web PubSub.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`
 
@@ -129,7 +129,7 @@ An `identity` block exports the following:
 ## Timeouts
 
 The `timeouts` block allows you to
-specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web PubSub Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Web PubSub Service.

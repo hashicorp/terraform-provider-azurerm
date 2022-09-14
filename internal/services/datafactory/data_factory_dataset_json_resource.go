@@ -114,9 +114,8 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"path": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -124,9 +123,8 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"filename": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,

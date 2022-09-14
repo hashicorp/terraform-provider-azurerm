@@ -3,6 +3,7 @@ package servicebus
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -130,6 +131,39 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 				string(subscriptions.EntityStatusReceiveDisabled),
 			}, false),
 		},
+
+		"client_scoped_subscription_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"client_scoped_subscription": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
+
+					"is_client_scoped_subscription_shareable": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+						ForceNew: true,
+					},
+
+					"is_client_scoped_subscription_durable": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -140,9 +174,27 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
 	var id subscriptions.Subscriptions2Id
+	name := d.Get("name").(string)
+
+	clientId := ""
+	var isSubShared bool
+	isClintScopedEnabled := d.Get("client_scoped_subscription_enabled").(bool)
+	if isClintScopedEnabled {
+		clientScopedSubsRawData := d.Get("client_scoped_subscription").([]interface{})
+		if len(clientScopedSubsRawData) > 0 {
+			clientScopedSubsProps := clientScopedSubsRawData[0].(map[string]interface{})
+			if clientScopedSubsProps["client_id"] != "" {
+				clientId = clientScopedSubsProps["client_id"].(string)
+			}
+			name = name + "$" + clientId + "$D"
+
+			isSubShared = clientScopedSubsProps["is_client_scoped_subscription_shareable"].(bool)
+		}
+	}
+
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
 		topicId, _ := subscriptions.ParseTopicID(topicIdLit)
-		id = subscriptions.NewSubscriptions2ID(topicId.SubscriptionId, topicId.ResourceGroupName, topicId.NamespaceName, topicId.TopicName, d.Get("name").(string))
+		id = subscriptions.NewSubscriptions2ID(topicId.SubscriptionId, topicId.ResourceGroupName, topicId.NamespaceName, topicId.TopicName, name)
 	}
 
 	if d.IsNewResource() {
@@ -167,7 +219,14 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 			MaxDeliveryCount:                          utils.Int64(int64(d.Get("max_delivery_count").(int))),
 			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
 			Status:                                    &status,
+			IsClientAffine:                            utils.Bool(isClintScopedEnabled),
+			ClientAffineProperties:                    &subscriptions.SBClientAffineProperties{},
 		},
+	}
+
+	if isClintScopedEnabled {
+		parameters.Properties.ClientAffineProperties.IsShared = &isSubShared
+		parameters.Properties.ClientAffineProperties.ClientId = &clientId
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
@@ -217,8 +276,11 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.SubscriptionName)
 	d.Set("topic_id", subscriptions.NewTopicID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName).ID())
+
+	clientScopedEnabled := false
+	userAssignedName := id.SubscriptionName
+	clientId := ""
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -232,12 +294,27 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 			d.Set("status", utils.String(string(*props.Status)))
+			d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
 
 			if count := props.MaxDeliveryCount; count != nil {
 				d.Set("max_delivery_count", int(*count))
 			}
+			if props.IsClientAffine != nil && *props.IsClientAffine {
+				if props.ClientAffineProperties.ClientId != nil {
+					clientId = *props.ClientAffineProperties.ClientId
+				}
+				clientScopedEnabled = true
+			}
+			d.Set("client_scoped_subscription", flattenServiceBusNamespaceClientScopedSubscription(props.ClientAffineProperties))
+
 		}
 	}
+
+	if clientScopedEnabled {
+		suffix := "$" + clientId + "$D"
+		userAssignedName = strings.TrimSuffix(userAssignedName, suffix)
+	}
+	d.Set("name", userAssignedName)
 
 	return nil
 }
@@ -257,4 +334,33 @@ func resourceServiceBusSubscriptionDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func flattenServiceBusNamespaceClientScopedSubscription(clientScopedSubsProps *subscriptions.SBClientAffineProperties) []interface{} {
+	if clientScopedSubsProps == nil {
+		return []interface{}{}
+	}
+
+	var clientId string
+	var isShareable, isDurable bool
+
+	if clientScopedSubsProps.ClientId != nil {
+		clientId = *clientScopedSubsProps.ClientId
+	}
+
+	if clientScopedSubsProps.IsShared != nil {
+		isShareable = *clientScopedSubsProps.IsShared
+	}
+
+	if clientScopedSubsProps.IsDurable != nil {
+		isDurable = *clientScopedSubsProps.IsDurable
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"client_id": clientId,
+			"is_client_scoped_subscription_shareable": isShareable,
+			"is_client_scoped_subscription_durable":   isDurable,
+		},
+	}
 }

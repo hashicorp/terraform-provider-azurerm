@@ -1084,8 +1084,8 @@ func flattenNetAppVolumeMountIPAddresses(input *[]volumes.MountTargetProperties)
 	}
 
 	for _, item := range *input {
-		if item.IpAddress != nil {
-			results = append(results, item.IpAddress)
+		if item.IPAddress != nil {
+			results = append(results, item.IPAddress)
 		}
 	}
 
@@ -1117,7 +1117,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *volumes.VolumePropertie
 }
 
 func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Snapshot == nil {
+	if input == nil || input.Snapshot == nil || *input.Snapshot.SnapshotPolicyId == "" {
 		return []interface{}{}
 	}
 

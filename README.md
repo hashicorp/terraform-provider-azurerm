@@ -60,4 +60,4 @@ resource "azurerm_virtual_network" "example" {
 
 ## Developing & Contributing to the Provider
 
-The [DEVELOPER.md](DEVELOPER.md) file is a basic outline on how to build and develop the provider while more detailed guides geared towards contributors can be found in the [`/contributing`] (https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory of this repository.
+The [DEVELOPER.md](DEVELOPER.md) file is a basic outline on how to build and develop the provider while more detailed guides geared towards contributors can be found in the [`/contributing`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory of this repository.
