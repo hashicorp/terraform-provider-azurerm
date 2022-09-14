@@ -149,11 +149,6 @@ resource "azurerm_disk_pool_managed_disk_attachment" "test" {
   depends_on      = [azurerm_role_assignment.test]
   disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.test.id
-
-  timeouts {
-    create = "60m"
-    delete = "60m"
-  }
 }
 `, a.template(data))
 }
@@ -238,11 +233,6 @@ func (a DisksPoolManagedDiskAttachmentResource) requiresImport(data acceptance.T
 resource "azurerm_disk_pool_managed_disk_attachment" "import" {
   disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.test.id
-
-  timeouts {
-    create = "60m"
-    delete = "60m"
-  }
 }
 `, a.basic(data))
 }
@@ -273,11 +263,6 @@ resource "azurerm_disk_pool_managed_disk_attachment" "second" {
   depends_on      = [azurerm_role_assignment.second]
   disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.second.id
-
-  timeouts {
-    create = "60m"
-    delete = "60m"
-  }
 }
 `, a.basic(data), data.RandomInteger)
 }

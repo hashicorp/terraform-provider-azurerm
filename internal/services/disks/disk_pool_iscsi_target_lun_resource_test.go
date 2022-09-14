@@ -167,7 +167,11 @@ func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *c
 
 	m := disks.DiskPoolIscsiTargetLunModel{}
 
-	err = m.RetryError(60*time.Minute, "waiting for delete DisksPool iscsi target", id.ID(), func() error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return nil, fmt.Errorf("could not retrieve context deadline")
+	}
+	err = m.RetryError(time.Until(deadline), "waiting for delete DisksPool iscsi target", id.ID(), func() error {
 		return client.UpdateThenPoll(ctx, iscsiTargetId, patch)
 	})
 	if err != nil {
@@ -222,11 +226,6 @@ resource "azurerm_disk_pool_iscsi_target_lun" "test%[2]d" {
   iscsi_target_id                      = azurerm_disk_pool_iscsi_target.test.id
   disk_pool_managed_disk_attachment_id = azurerm_disk_pool_managed_disk_attachment.test[%[2]d].id
   name                                 = "test-%[2]d"
-
-  timeouts {
-    create = "60m"
-    delete = "60m"
-  }
 }
 `, tfCode, i)
 	}
@@ -310,10 +309,6 @@ resource "azurerm_disk_pool" "test" {
   tags = {
     "env" = "qa"
   }
-  timeouts {
-    create = "60m"
-    delete = "60m"
-  }
 }
 
 resource "azurerm_disk_pool_managed_disk_attachment" "test" {
@@ -321,11 +316,6 @@ resource "azurerm_disk_pool_managed_disk_attachment" "test" {
   depends_on      = [azurerm_role_assignment.disk_pool_operator, azurerm_role_assignment.vm_contributor]
   disk_pool_id    = azurerm_disk_pool.test.id
   managed_disk_id = azurerm_managed_disk.test[count.index].id
-
-  timeouts {
-    create = "60m"
-    delete = "60m"
-  }
 }
 
 resource "azurerm_disk_pool_iscsi_target" "test" {
