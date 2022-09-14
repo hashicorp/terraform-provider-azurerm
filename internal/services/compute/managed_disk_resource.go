@@ -979,18 +979,26 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
+// shutDownOnResize implements live resize restrictions according to https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks#expand-without-downtime
 func shutDownOnResize(disk compute.Disk, oldSizeGB, newSizeGB int) bool {
 	// OS disks can't be expanded without downtime.
 	if disk.OsType != "" {
-		return true
-	}
-	// Standard HDD and Ultra SSD disks can't be expanded without downtime
-	if disk.Sku.Name == compute.DiskStorageAccountTypesStandardLRS || disk.Sku.Name == compute.DiskStorageAccountTypesUltraSSDLRS {
 		return true
 	}
 	// Disks smaller than 4 TiB can't be expanded to 4 TiB or larger without downtime.
 	if oldSizeGB < 4096 && newSizeGB >= 4096 {
 		return true
 	}
-	return false
+	// Only  Premium SSD v1 and Standard SSD disks support live resize
+	for _, diskType := range []compute.DiskStorageAccountTypes{
+		compute.DiskStorageAccountTypesPremiumLRS,
+		compute.DiskStorageAccountTypesPremiumZRS,
+		compute.DiskStorageAccountTypesStandardSSDLRS,
+		compute.DiskStorageAccountTypesStandardSSDZRS,
+	} {
+		if disk.Sku.Name == diskType {
+			return false
+		}
+	}
+	return true
 }
