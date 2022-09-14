@@ -131,6 +131,9 @@ service/dns:
 service/domain-services:
   - internal/services/domainservices/**/*
 
+service/dynatrace:
+  - internal/services/dynatrace/**/*
+
 service/elastic:
   - internal/services/elastic/**/*
 
