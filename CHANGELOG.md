@@ -1,3 +1,9 @@
+## 3.23.0 (Unreleased)
+
+BUG FIXES: 
+
+* `azurerm_netapp_volume`: add extra validation when `data_protection_snapshot_policy.0. snapshot_policy_id` is empty [GH-18348]
+
 ## 3.22.0 (September 08, 2022)
 
 FEATURES:
