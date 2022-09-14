@@ -1,12 +1,16 @@
 package compute_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.T) {
@@ -24,38 +28,36 @@ func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.
 	})
 }
 
-// This is not a valid test case, so I am removing it. In order to make this work you need to
-// stop and deallocated all VMs in the VMSS in order to enable/disable accelerated networking
-// https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli#enable-accelerated-networking-on-existing-vms
+func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-// func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-// 	r := LinuxVirtualMachineScaleSetResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.networkAcceleratedNetworking(data, false),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep("admin_password"),
-// 		{
-// 			Config: r.networkAcceleratedNetworking(data, true),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep("admin_password"),
-// 		{
-// 			Config: r.networkAcceleratedNetworking(data, false),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep("admin_password"),
-// 	})
-// }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkAcceleratedNetworking(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// Accelerated Networking can only be changed when VM is not running
+				data.CheckWithClientForResource(r.deallocateVirtualMachineScaleSet(), "azurerm_linux_virtual_machine_scale_set.test"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.networkAcceleratedNetworking(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.networkAcceleratedNetworking(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
 
 func TestAccLinuxVirtualMachineScaleSet_networkApplicationGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
@@ -448,21 +450,6 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIPTags(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_RoutingPreferenceIPTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ilpip(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func (r LinuxVirtualMachineScaleSetResource) networkAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -471,7 +458,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F4"
+  sku                 = "Standard_F2"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -1604,56 +1591,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "primary"
-    primary = true
-
-    ip_configuration {
-      name      = "first"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name = "first"
-
-        ip_tag {
-          tag  = "/Sql"
-          type = "FirstPartyUsage"
-        }
-      }
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1711,9 +1648,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) ilpip(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_public_ip" "test" {
   name                = "test-ip-%[2]d"
@@ -1807,4 +1744,24 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(9))
+}
+
+func (LinuxVirtualMachineScaleSetResource) deallocateVirtualMachineScaleSet() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := parse.VirtualMachineScaleSetID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		future, err := client.Compute.VMScaleSetClient.Deallocate(ctx, id.ResourceGroup, id.Name, nil)
+		if err != nil {
+			return err
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Compute.VMScaleSetClient.Client); err != nil {
+			return err
+		}
+
+		return nil
+	}
 }
