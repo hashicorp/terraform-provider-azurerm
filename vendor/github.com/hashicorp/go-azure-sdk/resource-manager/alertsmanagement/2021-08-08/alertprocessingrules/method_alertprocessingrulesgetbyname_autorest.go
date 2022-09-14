@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 import (
 	"context"
@@ -17,22 +17,22 @@ type AlertProcessingRulesGetByNameOperationResponse struct {
 }
 
 // AlertProcessingRulesGetByName ...
-func (c AlertsManagementClient) AlertProcessingRulesGetByName(ctx context.Context, id ActionRuleId) (result AlertProcessingRulesGetByNameOperationResponse, err error) {
+func (c AlertProcessingRulesClient) AlertProcessingRulesGetByName(ctx context.Context, id ActionRuleId) (result AlertProcessingRulesGetByNameOperationResponse, err error) {
 	req, err := c.preparerForAlertProcessingRulesGetByName(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesGetByName", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesGetByName", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesGetByName", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesGetByName", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForAlertProcessingRulesGetByName(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesGetByName", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesGetByName", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (c AlertsManagementClient) AlertProcessingRulesGetByName(ctx context.Contex
 }
 
 // preparerForAlertProcessingRulesGetByName prepares the AlertProcessingRulesGetByName request.
-func (c AlertsManagementClient) preparerForAlertProcessingRulesGetByName(ctx context.Context, id ActionRuleId) (*http.Request, error) {
+func (c AlertProcessingRulesClient) preparerForAlertProcessingRulesGetByName(ctx context.Context, id ActionRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -56,7 +56,7 @@ func (c AlertsManagementClient) preparerForAlertProcessingRulesGetByName(ctx con
 
 // responderForAlertProcessingRulesGetByName handles the response to the AlertProcessingRulesGetByName request. The method always
 // closes the http.Response Body.
-func (c AlertsManagementClient) responderForAlertProcessingRulesGetByName(resp *http.Response) (result AlertProcessingRulesGetByNameOperationResponse, err error) {
+func (c AlertProcessingRulesClient) responderForAlertProcessingRulesGetByName(resp *http.Response) (result AlertProcessingRulesGetByNameOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

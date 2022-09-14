@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 type AlertProcessingRuleOperationPredicate struct {
 	Id       *string

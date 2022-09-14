@@ -1,32 +1,32 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertsmanagement` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules` Documentation
 
-The `alertsmanagement` SDK allows for interaction with the Azure Resource Manager Service `alertsmanagement` (API Version `2021-08-08`).
+The `alertprocessingrules` SDK allows for interaction with the Azure Resource Manager Service `alertsmanagement` (API Version `2021-08-08`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertsmanagement"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 ```
 
 
 ### Client Initialization
 
 ```go
-client := alertsmanagement.NewAlertsManagementClientWithBaseURI("https://management.azure.com")
+client := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `AlertsManagementClient.AlertProcessingRulesCreateOrUpdate`
+### Example Usage: `AlertProcessingRulesClient.AlertProcessingRulesCreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := alertsmanagement.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
+id := alertprocessingrules.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
 
-payload := alertsmanagement.AlertProcessingRule{
+payload := alertprocessingrules.AlertProcessingRule{
 	// ...
 }
 
@@ -41,11 +41,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AlertsManagementClient.AlertProcessingRulesDelete`
+### Example Usage: `AlertProcessingRulesClient.AlertProcessingRulesDelete`
 
 ```go
 ctx := context.TODO()
-id := alertsmanagement.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
+id := alertprocessingrules.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
 
 read, err := client.AlertProcessingRulesDelete(ctx, id)
 if err != nil {
@@ -57,11 +57,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AlertsManagementClient.AlertProcessingRulesGetByName`
+### Example Usage: `AlertProcessingRulesClient.AlertProcessingRulesGetByName`
 
 ```go
 ctx := context.TODO()
-id := alertsmanagement.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
+id := alertprocessingrules.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
 
 read, err := client.AlertProcessingRulesGetByName(ctx, id)
 if err != nil {
@@ -73,11 +73,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AlertsManagementClient.AlertProcessingRulesListByResourceGroup`
+### Example Usage: `AlertProcessingRulesClient.AlertProcessingRulesListByResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := alertsmanagement.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := alertprocessingrules.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.AlertProcessingRulesListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.AlertProcessingRulesListByResourceGroupComplete(ctx, id)
@@ -90,11 +90,11 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `AlertsManagementClient.AlertProcessingRulesListBySubscription`
+### Example Usage: `AlertProcessingRulesClient.AlertProcessingRulesListBySubscription`
 
 ```go
 ctx := context.TODO()
-id := alertsmanagement.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := alertprocessingrules.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.AlertProcessingRulesListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.AlertProcessingRulesListBySubscriptionComplete(ctx, id)
@@ -107,13 +107,13 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `AlertsManagementClient.AlertProcessingRulesUpdate`
+### Example Usage: `AlertProcessingRulesClient.AlertProcessingRulesUpdate`
 
 ```go
 ctx := context.TODO()
-id := alertsmanagement.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
+id := alertprocessingrules.NewActionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "alertProcessingRuleValue")
 
-payload := alertsmanagement.PatchObject{
+payload := alertprocessingrules.PatchObject{
 	// ...
 }
 

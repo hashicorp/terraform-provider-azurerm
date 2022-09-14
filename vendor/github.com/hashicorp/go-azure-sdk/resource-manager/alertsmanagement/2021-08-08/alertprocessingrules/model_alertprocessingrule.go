@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"

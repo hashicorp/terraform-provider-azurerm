@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 import (
 	"context"
@@ -39,29 +39,29 @@ func (r AlertProcessingRulesListBySubscriptionOperationResponse) LoadMore(ctx co
 }
 
 // AlertProcessingRulesListBySubscription ...
-func (c AlertsManagementClient) AlertProcessingRulesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (resp AlertProcessingRulesListBySubscriptionOperationResponse, err error) {
+func (c AlertProcessingRulesClient) AlertProcessingRulesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (resp AlertProcessingRulesListBySubscriptionOperationResponse, err error) {
 	req, err := c.preparerForAlertProcessingRulesListBySubscription(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesListBySubscription", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesListBySubscription", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesListBySubscription", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesListBySubscription", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForAlertProcessingRulesListBySubscription(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesListBySubscription", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesListBySubscription", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // preparerForAlertProcessingRulesListBySubscription prepares the AlertProcessingRulesListBySubscription request.
-func (c AlertsManagementClient) preparerForAlertProcessingRulesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
+func (c AlertProcessingRulesClient) preparerForAlertProcessingRulesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -76,7 +76,7 @@ func (c AlertsManagementClient) preparerForAlertProcessingRulesListBySubscriptio
 }
 
 // preparerForAlertProcessingRulesListBySubscriptionWithNextLink prepares the AlertProcessingRulesListBySubscription request with the given nextLink token.
-func (c AlertsManagementClient) preparerForAlertProcessingRulesListBySubscriptionWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c AlertProcessingRulesClient) preparerForAlertProcessingRulesListBySubscriptionWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -102,7 +102,7 @@ func (c AlertsManagementClient) preparerForAlertProcessingRulesListBySubscriptio
 
 // responderForAlertProcessingRulesListBySubscription handles the response to the AlertProcessingRulesListBySubscription request. The method always
 // closes the http.Response Body.
-func (c AlertsManagementClient) responderForAlertProcessingRulesListBySubscription(resp *http.Response) (result AlertProcessingRulesListBySubscriptionOperationResponse, err error) {
+func (c AlertProcessingRulesClient) responderForAlertProcessingRulesListBySubscription(resp *http.Response) (result AlertProcessingRulesListBySubscriptionOperationResponse, err error) {
 	type page struct {
 		Values   []AlertProcessingRule `json:"value"`
 		NextLink *string               `json:"nextLink"`
@@ -120,19 +120,19 @@ func (c AlertsManagementClient) responderForAlertProcessingRulesListBySubscripti
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result AlertProcessingRulesListBySubscriptionOperationResponse, err error) {
 			req, err := c.preparerForAlertProcessingRulesListBySubscriptionWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesListBySubscription", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesListBySubscription", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesListBySubscription", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesListBySubscription", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForAlertProcessingRulesListBySubscription(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesListBySubscription", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesListBySubscription", result.HttpResponse, "Failure responding to request")
 				return
 			}
 
@@ -143,12 +143,12 @@ func (c AlertsManagementClient) responderForAlertProcessingRulesListBySubscripti
 }
 
 // AlertProcessingRulesListBySubscriptionComplete retrieves all of the results into a single object
-func (c AlertsManagementClient) AlertProcessingRulesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (AlertProcessingRulesListBySubscriptionCompleteResult, error) {
+func (c AlertProcessingRulesClient) AlertProcessingRulesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (AlertProcessingRulesListBySubscriptionCompleteResult, error) {
 	return c.AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate(ctx, id, AlertProcessingRuleOperationPredicate{})
 }
 
 // AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AlertsManagementClient) AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AlertProcessingRuleOperationPredicate) (resp AlertProcessingRulesListBySubscriptionCompleteResult, err error) {
+func (c AlertProcessingRulesClient) AlertProcessingRulesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AlertProcessingRuleOperationPredicate) (resp AlertProcessingRulesListBySubscriptionCompleteResult, err error) {
 	items := make([]AlertProcessingRule, 0)
 
 	page, err := c.AlertProcessingRulesListBySubscription(ctx, id)

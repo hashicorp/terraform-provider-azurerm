@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 import (
 	"encoding/json"
@@ -8,34 +8,35 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ Recurrence = DailyRecurrence{}
+var _ Recurrence = WeeklyRecurrence{}
 
-type DailyRecurrence struct {
+type WeeklyRecurrence struct {
+	DaysOfWeek []DaysOfWeek `json:"daysOfWeek"`
 
 	// Fields inherited from Recurrence
 	EndTime   *string `json:"endTime,omitempty"`
 	StartTime *string `json:"startTime,omitempty"`
 }
 
-var _ json.Marshaler = DailyRecurrence{}
+var _ json.Marshaler = WeeklyRecurrence{}
 
-func (s DailyRecurrence) MarshalJSON() ([]byte, error) {
-	type wrapper DailyRecurrence
+func (s WeeklyRecurrence) MarshalJSON() ([]byte, error) {
+	type wrapper WeeklyRecurrence
 	wrapped := wrapper(s)
 	encoded, err := json.Marshal(wrapped)
 	if err != nil {
-		return nil, fmt.Errorf("marshaling DailyRecurrence: %+v", err)
+		return nil, fmt.Errorf("marshaling WeeklyRecurrence: %+v", err)
 	}
 
 	var decoded map[string]interface{}
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		return nil, fmt.Errorf("unmarshaling DailyRecurrence: %+v", err)
+		return nil, fmt.Errorf("unmarshaling WeeklyRecurrence: %+v", err)
 	}
-	decoded["recurrenceType"] = "Daily"
+	decoded["recurrenceType"] = "Weekly"
 
 	encoded, err = json.Marshal(decoded)
 	if err != nil {
-		return nil, fmt.Errorf("re-marshaling DailyRecurrence: %+v", err)
+		return nil, fmt.Errorf("re-marshaling WeeklyRecurrence: %+v", err)
 	}
 
 	return encoded, nil

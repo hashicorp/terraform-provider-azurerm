@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 import (
 	"context"
@@ -16,22 +16,22 @@ type AlertProcessingRulesDeleteOperationResponse struct {
 }
 
 // AlertProcessingRulesDelete ...
-func (c AlertsManagementClient) AlertProcessingRulesDelete(ctx context.Context, id ActionRuleId) (result AlertProcessingRulesDeleteOperationResponse, err error) {
+func (c AlertProcessingRulesClient) AlertProcessingRulesDelete(ctx context.Context, id ActionRuleId) (result AlertProcessingRulesDeleteOperationResponse, err error) {
 	req, err := c.preparerForAlertProcessingRulesDelete(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesDelete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesDelete", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesDelete", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesDelete", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForAlertProcessingRulesDelete(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesDelete", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesDelete", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (c AlertsManagementClient) AlertProcessingRulesDelete(ctx context.Context, 
 }
 
 // preparerForAlertProcessingRulesDelete prepares the AlertProcessingRulesDelete request.
-func (c AlertsManagementClient) preparerForAlertProcessingRulesDelete(ctx context.Context, id ActionRuleId) (*http.Request, error) {
+func (c AlertProcessingRulesClient) preparerForAlertProcessingRulesDelete(ctx context.Context, id ActionRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -55,7 +55,7 @@ func (c AlertsManagementClient) preparerForAlertProcessingRulesDelete(ctx contex
 
 // responderForAlertProcessingRulesDelete handles the response to the AlertProcessingRulesDelete request. The method always
 // closes the http.Response Body.
-func (c AlertsManagementClient) responderForAlertProcessingRulesDelete(resp *http.Response) (result AlertProcessingRulesDeleteOperationResponse, err error) {
+func (c AlertProcessingRulesClient) responderForAlertProcessingRulesDelete(resp *http.Response) (result AlertProcessingRulesDeleteOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),

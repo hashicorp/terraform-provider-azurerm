@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 import (
 	"context"
@@ -17,22 +17,22 @@ type AlertProcessingRulesCreateOrUpdateOperationResponse struct {
 }
 
 // AlertProcessingRulesCreateOrUpdate ...
-func (c AlertsManagementClient) AlertProcessingRulesCreateOrUpdate(ctx context.Context, id ActionRuleId, input AlertProcessingRule) (result AlertProcessingRulesCreateOrUpdateOperationResponse, err error) {
+func (c AlertProcessingRulesClient) AlertProcessingRulesCreateOrUpdate(ctx context.Context, id ActionRuleId, input AlertProcessingRule) (result AlertProcessingRulesCreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForAlertProcessingRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesCreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesCreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesCreateOrUpdate", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesCreateOrUpdate", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForAlertProcessingRulesCreateOrUpdate(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsManagementClient", "AlertProcessingRulesCreateOrUpdate", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "alertprocessingrules.AlertProcessingRulesClient", "AlertProcessingRulesCreateOrUpdate", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (c AlertsManagementClient) AlertProcessingRulesCreateOrUpdate(ctx context.C
 }
 
 // preparerForAlertProcessingRulesCreateOrUpdate prepares the AlertProcessingRulesCreateOrUpdate request.
-func (c AlertsManagementClient) preparerForAlertProcessingRulesCreateOrUpdate(ctx context.Context, id ActionRuleId, input AlertProcessingRule) (*http.Request, error) {
+func (c AlertProcessingRulesClient) preparerForAlertProcessingRulesCreateOrUpdate(ctx context.Context, id ActionRuleId, input AlertProcessingRule) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -57,7 +57,7 @@ func (c AlertsManagementClient) preparerForAlertProcessingRulesCreateOrUpdate(ct
 
 // responderForAlertProcessingRulesCreateOrUpdate handles the response to the AlertProcessingRulesCreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (c AlertsManagementClient) responderForAlertProcessingRulesCreateOrUpdate(resp *http.Response) (result AlertProcessingRulesCreateOrUpdateOperationResponse, err error) {
+func (c AlertProcessingRulesClient) responderForAlertProcessingRulesCreateOrUpdate(resp *http.Response) (result AlertProcessingRulesCreateOrUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),

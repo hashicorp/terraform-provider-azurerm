@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertsmanagement"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,7 +35,7 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := alertsmanagement.ParseActionRuleID(id)
+			_, err := alertprocessingrules.ParseActionRuleID(id)
 			return err
 		}),
 
@@ -60,7 +60,7 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice(
-								alertsmanagement.PossibleValuesForActionType(), false),
+								alertprocessingrules.PossibleValuesForActionType(), false),
 						},
 						"add_action_group_ids": {
 							Type:     pluginsdk.TypeList,
@@ -102,21 +102,21 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"alert_context": schemaAlertProcessingRuleCondition(
-							alertsmanagement.PossibleValuesForOperator(), nil,
+							alertprocessingrules.PossibleValuesForOperator(), nil,
 						),
 						"alert_rule_id": schemaAlertProcessingRuleCondition(
-							alertsmanagement.PossibleValuesForOperator(), nil,
+							alertprocessingrules.PossibleValuesForOperator(), nil,
 						),
 						"alert_rule_name": schemaAlertProcessingRuleCondition(
-							alertsmanagement.PossibleValuesForOperator(), nil,
+							alertprocessingrules.PossibleValuesForOperator(), nil,
 						),
 						"description": schemaAlertProcessingRuleCondition(
-							alertsmanagement.PossibleValuesForOperator(), nil,
+							alertprocessingrules.PossibleValuesForOperator(), nil,
 						),
 						"monitor_condition": schemaAlertProcessingRuleCondition(
 							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
+								string(alertprocessingrules.OperatorEquals),
+								string(alertprocessingrules.OperatorNotEquals),
 							},
 							[]string{
 								"Fired",
@@ -125,8 +125,8 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 						),
 						"monitor_service": schemaAlertProcessingRuleCondition(
 							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
+								string(alertprocessingrules.OperatorEquals),
+								string(alertprocessingrules.OperatorNotEquals),
 							},
 							// the supported type list is not consistent with the swagger and sdk
 							// https://github.com/Azure/azure-rest-api-specs/issues/9076
@@ -155,8 +155,8 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 						),
 						"severity": schemaAlertProcessingRuleCondition(
 							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
+								string(alertprocessingrules.OperatorEquals),
+								string(alertprocessingrules.OperatorNotEquals),
 							},
 							[]string{
 								"Sev0",
@@ -168,8 +168,8 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 						),
 						"signal_type": schemaAlertProcessingRuleCondition(
 							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
+								string(alertprocessingrules.OperatorEquals),
+								string(alertprocessingrules.OperatorNotEquals),
 							},
 							[]string{
 								"Metric",
@@ -179,15 +179,15 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 							},
 						),
 						"target_resource": schemaAlertProcessingRuleCondition(
-							alertsmanagement.PossibleValuesForOperator(), nil,
+							alertprocessingrules.PossibleValuesForOperator(), nil,
 						),
 						"target_resource_group": schemaAlertProcessingRuleCondition(
-							alertsmanagement.PossibleValuesForOperator(), nil,
+							alertprocessingrules.PossibleValuesForOperator(), nil,
 						),
 						"target_resource_type": schemaAlertProcessingRuleCondition(
 							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
+								string(alertprocessingrules.OperatorEquals),
+								string(alertprocessingrules.OperatorNotEquals),
 							},
 							nil,
 						),
@@ -308,12 +308,12 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 }
 
 func resourceMonitorAlertProcessingRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Monitor.AlertsManagementClient
+	client := meta.(*clients.Client).Monitor.AlertProcessingRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := alertsmanagement.NewActionRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := alertprocessingrules.NewActionRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.AlertProcessingRulesGetByName(ctx, id)
@@ -331,10 +331,10 @@ func resourceMonitorAlertProcessingRuleCreate(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return err
 	}
-	alertProcessingRule := alertsmanagement.AlertProcessingRule{
+	alertProcessingRule := alertprocessingrules.AlertProcessingRule{
 		// Location support "global" only
 		Location: "global",
-		Properties: &alertsmanagement.AlertProcessingRuleProperties{
+		Properties: &alertprocessingrules.AlertProcessingRuleProperties{
 			Actions:     actions,
 			Conditions:  expandAlertProcessingRuleConditions(d.Get("condition").([]interface{})),
 			Description: utils.String(d.Get("description").(string)),
@@ -354,11 +354,11 @@ func resourceMonitorAlertProcessingRuleCreate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceMonitorAlertProcessingRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Monitor.AlertsManagementClient
+	client := meta.(*clients.Client).Monitor.AlertProcessingRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := alertsmanagement.ParseActionRuleID(d.Id())
+	id, err := alertprocessingrules.ParseActionRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -404,11 +404,11 @@ func resourceMonitorAlertProcessingRuleRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceMonitorAlertProcessingRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Monitor.AlertsManagementClient
+	client := meta.(*clients.Client).Monitor.AlertProcessingRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := alertsmanagement.ParseActionRuleID(d.Id())
+	id, err := alertprocessingrules.ParseActionRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -466,11 +466,11 @@ func resourceMonitorAlertProcessingRuleUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceMonitorAlertProcessingRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Monitor.AlertsManagementClient
+	client := meta.(*clients.Client).Monitor.AlertProcessingRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := alertsmanagement.ParseActionRuleID(d.Id())
+	id, err := alertprocessingrules.ParseActionRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -516,41 +516,41 @@ func schemaAlertProcessingRuleCondition(operatorValidateItems, valuesValidateIte
 	}
 }
 
-func expandAlertProcessingRuleActions(input []interface{}) ([]alertsmanagement.Action, error) {
+func expandAlertProcessingRuleActions(input []interface{}) ([]alertprocessingrules.Action, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	v := input[0].(map[string]interface{})
-	actions := make([]alertsmanagement.Action, 0)
-	var action alertsmanagement.Action
+	actions := make([]alertprocessingrules.Action, 0)
+	var action alertprocessingrules.Action
 	addActionGroupIds := v["add_action_group_ids"].([]interface{})
 
 	switch v["type"].(string) {
-	case string(alertsmanagement.ActionTypeAddActionGroups):
+	case string(alertprocessingrules.ActionTypeAddActionGroups):
 		if len(addActionGroupIds) == 0 {
 			return nil, fmt.Errorf("add_action_group_ids must be provided with action type \"AddActionGroups\"")
 		}
-		action = alertsmanagement.AddActionGroups{
+		action = alertprocessingrules.AddActionGroups{
 			ActionGroupIds: *utils.ExpandStringSlice(v["add_action_group_ids"].([]interface{})),
 		}
-	case string(alertsmanagement.ActionTypeRemoveAllActionGroups):
+	case string(alertprocessingrules.ActionTypeRemoveAllActionGroups):
 		if len(addActionGroupIds) != 0 {
 			return nil, fmt.Errorf("add_action_group_ids should not be set with action type \"RemoveAllActionGroups\"")
 		}
-		action = alertsmanagement.RemoveAllActionGroups{}
+		action = alertprocessingrules.RemoveAllActionGroups{}
 	}
 
 	actions = append(actions, action)
 	return actions, nil
 }
 
-func expandAlertProcessingRuleConditions(input []interface{}) *[]alertsmanagement.Condition {
+func expandAlertProcessingRuleConditions(input []interface{}) *[]alertprocessingrules.Condition {
 	if len(input) == 0 {
 		return nil
 	}
 
-	conditions := make([]alertsmanagement.Condition, 0)
+	conditions := make([]alertprocessingrules.Condition, 0)
 	v := input[0].(map[string]interface{})
 	for key, item := range v {
 		field := parseField(key)
@@ -558,8 +558,8 @@ func expandAlertProcessingRuleConditions(input []interface{}) *[]alertsmanagemen
 			prop := item.([]interface{})
 			if len(prop) != 0 {
 				props := prop[0].(map[string]interface{})
-				operator := alertsmanagement.Operator(props["operator"].(string))
-				condition := alertsmanagement.Condition{
+				operator := alertprocessingrules.Operator(props["operator"].(string))
+				condition := alertprocessingrules.Condition{
 					Field:    field,
 					Operator: &operator,
 					Values:   utils.ExpandStringSlice(props["values"].([]interface{})),
@@ -572,19 +572,19 @@ func expandAlertProcessingRuleConditions(input []interface{}) *[]alertsmanagemen
 	return &conditions
 }
 
-func parseField(input string) *alertsmanagement.Field {
-	vals := map[string]alertsmanagement.Field{
-		"alert_context":         alertsmanagement.FieldAlertContext,
-		"alert_rule_id":         alertsmanagement.FieldAlertRuleId,
-		"alert_rule_name":       alertsmanagement.FieldAlertRuleName,
-		"description":           alertsmanagement.FieldDescription,
-		"monitor_condition":     alertsmanagement.FieldMonitorCondition,
-		"monitor_service":       alertsmanagement.FieldMonitorService,
-		"severity":              alertsmanagement.FieldSeverity,
-		"signal_type":           alertsmanagement.FieldSignalType,
-		"target_resource":       alertsmanagement.FieldTargetResource,
-		"target_resource_group": alertsmanagement.FieldTargetResourceGroup,
-		"target_resource_type":  alertsmanagement.FieldTargetResourceType,
+func parseField(input string) *alertprocessingrules.Field {
+	vals := map[string]alertprocessingrules.Field{
+		"alert_context":         alertprocessingrules.FieldAlertContext,
+		"alert_rule_id":         alertprocessingrules.FieldAlertRuleId,
+		"alert_rule_name":       alertprocessingrules.FieldAlertRuleName,
+		"description":           alertprocessingrules.FieldDescription,
+		"monitor_condition":     alertprocessingrules.FieldMonitorCondition,
+		"monitor_service":       alertprocessingrules.FieldMonitorService,
+		"severity":              alertprocessingrules.FieldSeverity,
+		"signal_type":           alertprocessingrules.FieldSignalType,
+		"target_resource":       alertprocessingrules.FieldTargetResource,
+		"target_resource_group": alertprocessingrules.FieldTargetResourceGroup,
+		"target_resource_type":  alertprocessingrules.FieldTargetResourceType,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v
@@ -592,7 +592,7 @@ func parseField(input string) *alertsmanagement.Field {
 	return nil
 }
 
-func expandAlertProcessingRuleSchedule(input []interface{}) *alertsmanagement.Schedule {
+func expandAlertProcessingRuleSchedule(input []interface{}) *alertprocessingrules.Schedule {
 	if len(input) == 0 {
 		return nil
 	}
@@ -608,7 +608,7 @@ func expandAlertProcessingRuleSchedule(input []interface{}) *alertsmanagement.Sc
 		effectiveUntil = utils.String(eu.(string))
 	}
 
-	schedule := alertsmanagement.Schedule{
+	schedule := alertprocessingrules.Schedule{
 		EffectiveFrom:  effectiveFrom,
 		EffectiveUntil: effectiveUntil,
 		Recurrences:    expandAlertProcessingRuleScheduleRecurrences(v["recurrence"].([]interface{})),
@@ -618,36 +618,36 @@ func expandAlertProcessingRuleSchedule(input []interface{}) *alertsmanagement.Sc
 	return &schedule
 }
 
-func expandAlertProcessingRuleScheduleRecurrences(input []interface{}) *[]alertsmanagement.Recurrence {
+func expandAlertProcessingRuleScheduleRecurrences(input []interface{}) *[]alertprocessingrules.Recurrence {
 	if len(input) == 0 {
 		return nil
 	}
 
-	recurrences := make([]alertsmanagement.Recurrence, 0, len(input))
+	recurrences := make([]alertprocessingrules.Recurrence, 0, len(input))
 	v := input[0].(map[string]interface{})
 
 	for _, item := range v["daily"].([]interface{}) {
-		recurrences = append(recurrences, expandAlertProcessingRuleScheduleRecurrence(item, alertsmanagement.RecurrenceTypeDaily))
+		recurrences = append(recurrences, expandAlertProcessingRuleScheduleRecurrence(item, alertprocessingrules.RecurrenceTypeDaily))
 	}
 
 	for _, item := range v["weekly"].([]interface{}) {
-		recurrences = append(recurrences, expandAlertProcessingRuleScheduleRecurrence(item, alertsmanagement.RecurrenceTypeWeekly))
+		recurrences = append(recurrences, expandAlertProcessingRuleScheduleRecurrence(item, alertprocessingrules.RecurrenceTypeWeekly))
 	}
 
 	for _, item := range v["monthly"].([]interface{}) {
-		recurrences = append(recurrences, expandAlertProcessingRuleScheduleRecurrence(item, alertsmanagement.RecurrenceTypeMonthly))
+		recurrences = append(recurrences, expandAlertProcessingRuleScheduleRecurrence(item, alertprocessingrules.RecurrenceTypeMonthly))
 	}
 
 	return &recurrences
 }
 
-func expandAlertProcessingRuleScheduleRecurrence(input interface{}, recurrenceType alertsmanagement.RecurrenceType) *alertsmanagement.Recurrence {
+func expandAlertProcessingRuleScheduleRecurrence(input interface{}, recurrenceType alertprocessingrules.RecurrenceType) *alertprocessingrules.Recurrence {
 	if input == nil {
 		return nil
 	}
 
 	v := input.(map[string]interface{})
-	var recurrence alertsmanagement.Recurrence
+	var recurrence alertprocessingrules.Recurrence
 	var startTime, endTime *string
 
 	if st, ok := v["start_time"]; ok && st.(string) != "" {
@@ -659,19 +659,19 @@ func expandAlertProcessingRuleScheduleRecurrence(input interface{}, recurrenceTy
 	}
 
 	switch recurrenceType {
-	case alertsmanagement.RecurrenceTypeDaily:
-		recurrence = alertsmanagement.DailyRecurrence{
+	case alertprocessingrules.RecurrenceTypeDaily:
+		recurrence = alertprocessingrules.DailyRecurrence{
 			StartTime: startTime,
 			EndTime:   endTime,
 		}
-	case alertsmanagement.RecurrenceTypeWeekly:
-		recurrence = alertsmanagement.WeeklyRecurrence{
+	case alertprocessingrules.RecurrenceTypeWeekly:
+		recurrence = alertprocessingrules.WeeklyRecurrence{
 			StartTime:  startTime,
 			EndTime:    endTime,
 			DaysOfWeek: *expandAlertProcessingRuleScheduleRecurrenceDaysOfWeek(v["days_of_week"].([]interface{})),
 		}
-	case alertsmanagement.RecurrenceTypeMonthly:
-		recurrence = alertsmanagement.MonthlyRecurrence{
+	case alertprocessingrules.RecurrenceTypeMonthly:
+		recurrence = alertprocessingrules.MonthlyRecurrence{
 			StartTime:   startTime,
 			EndTime:     endTime,
 			DaysOfMonth: *expandAlertProcessingRuleScheduleRecurrenceDaysOfMonth(v["days_of_month"].([]interface{})),
@@ -681,10 +681,10 @@ func expandAlertProcessingRuleScheduleRecurrence(input interface{}, recurrenceTy
 	return &recurrence
 }
 
-func expandAlertProcessingRuleScheduleRecurrenceDaysOfWeek(input []interface{}) *[]alertsmanagement.DaysOfWeek {
-	result := make([]alertsmanagement.DaysOfWeek, 0, len(input))
+func expandAlertProcessingRuleScheduleRecurrenceDaysOfWeek(input []interface{}) *[]alertprocessingrules.DaysOfWeek {
+	result := make([]alertprocessingrules.DaysOfWeek, 0, len(input))
 	for _, v := range input {
-		result = append(result, alertsmanagement.DaysOfWeek(v.(string)))
+		result = append(result, alertprocessingrules.DaysOfWeek(v.(string)))
 	}
 
 	return &result
@@ -699,21 +699,21 @@ func expandAlertProcessingRuleScheduleRecurrenceDaysOfMonth(input []interface{})
 	return &result
 }
 
-func flattenAlertProcessingRuleActions(input []alertsmanagement.Action) []interface{} {
+func flattenAlertProcessingRuleActions(input []alertprocessingrules.Action) []interface{} {
 	if input == nil {
 		return nil
 	}
 	result := make([]interface{}, 0)
-	var actionType alertsmanagement.ActionType
+	var actionType alertprocessingrules.ActionType
 	var actionGroupIds []string
 
 	for _, item := range input {
 		switch t := item.(type) {
-		case alertsmanagement.AddActionGroups:
-			actionType = alertsmanagement.ActionTypeAddActionGroups
-			actionGroupIds = item.(alertsmanagement.AddActionGroups).ActionGroupIds
-		case alertsmanagement.RemoveAllActionGroups:
-			actionType = alertsmanagement.ActionTypeRemoveAllActionGroups
+		case alertprocessingrules.AddActionGroups:
+			actionType = alertprocessingrules.ActionTypeAddActionGroups
+			actionGroupIds = item.(alertprocessingrules.AddActionGroups).ActionGroupIds
+		case alertprocessingrules.RemoveAllActionGroups:
+			actionType = alertprocessingrules.ActionTypeRemoveAllActionGroups
 		default:
 			log.Printf("[WARN] Alert Processing Rule got unsupported action type %v", t)
 			continue
@@ -729,7 +729,7 @@ func flattenAlertProcessingRuleActions(input []alertsmanagement.Action) []interf
 	return result
 }
 
-func flattenAlertProcessingRuleConditions(input *[]alertsmanagement.Condition) []interface{} {
+func flattenAlertProcessingRuleConditions(input *[]alertprocessingrules.Condition) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -752,19 +752,19 @@ func flattenAlertProcessingRuleConditions(input *[]alertsmanagement.Condition) [
 	}
 }
 
-func flattenAlertProcessingRuleConditionsField(input *alertsmanagement.Field) string {
-	vals := map[alertsmanagement.Field]string{
-		alertsmanagement.FieldAlertContext:        "alert_context",
-		alertsmanagement.FieldAlertRuleId:         "alert_rule_id",
-		alertsmanagement.FieldAlertRuleName:       "alert_rule_name",
-		alertsmanagement.FieldDescription:         "description",
-		alertsmanagement.FieldMonitorCondition:    "monitor_condition",
-		alertsmanagement.FieldMonitorService:      "monitor_service",
-		alertsmanagement.FieldSeverity:            "severity",
-		alertsmanagement.FieldSignalType:          "signal_type",
-		alertsmanagement.FieldTargetResource:      "target_resource",
-		alertsmanagement.FieldTargetResourceGroup: "target_resource_group",
-		alertsmanagement.FieldTargetResourceType:  "target_resource_type",
+func flattenAlertProcessingRuleConditionsField(input *alertprocessingrules.Field) string {
+	vals := map[alertprocessingrules.Field]string{
+		alertprocessingrules.FieldAlertContext:        "alert_context",
+		alertprocessingrules.FieldAlertRuleId:         "alert_rule_id",
+		alertprocessingrules.FieldAlertRuleName:       "alert_rule_name",
+		alertprocessingrules.FieldDescription:         "description",
+		alertprocessingrules.FieldMonitorCondition:    "monitor_condition",
+		alertprocessingrules.FieldMonitorService:      "monitor_service",
+		alertprocessingrules.FieldSeverity:            "severity",
+		alertprocessingrules.FieldSignalType:          "signal_type",
+		alertprocessingrules.FieldTargetResource:      "target_resource",
+		alertprocessingrules.FieldTargetResourceGroup: "target_resource_group",
+		alertprocessingrules.FieldTargetResourceType:  "target_resource_type",
 	}
 	if v, ok := vals[*input]; ok {
 		return v
@@ -773,7 +773,7 @@ func flattenAlertProcessingRuleConditionsField(input *alertsmanagement.Field) st
 	return string(*input)
 }
 
-func flattenAlertProcessingRuleSchedule(input *alertsmanagement.Schedule) []interface{} {
+func flattenAlertProcessingRuleSchedule(input *alertprocessingrules.Schedule) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -788,23 +788,23 @@ func flattenAlertProcessingRuleSchedule(input *alertsmanagement.Schedule) []inte
 	}
 }
 
-func flattenAlertProcessingRuleRecurrences(input *[]alertsmanagement.Recurrence) []interface{} {
+func flattenAlertProcessingRuleRecurrences(input *[]alertprocessingrules.Recurrence) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 	var recurrenceDaily, recurrenceWeekly, recurrenceMonthly []interface{}
 	for _, item := range *input {
 		switch t := item.(type) {
-		case alertsmanagement.DailyRecurrence:
-			dailyRecurrence := item.(alertsmanagement.DailyRecurrence)
+		case alertprocessingrules.DailyRecurrence:
+			dailyRecurrence := item.(alertprocessingrules.DailyRecurrence)
 			recurrence := map[string]interface{}{
 				"start_time": flattenPtrString(dailyRecurrence.StartTime),
 				"end_time":   flattenPtrString(dailyRecurrence.EndTime),
 			}
 			recurrenceDaily = append(recurrenceDaily, recurrence)
 
-		case alertsmanagement.WeeklyRecurrence:
-			weeklyRecurrence := item.(alertsmanagement.WeeklyRecurrence)
+		case alertprocessingrules.WeeklyRecurrence:
+			weeklyRecurrence := item.(alertprocessingrules.WeeklyRecurrence)
 			recurrence := map[string]interface{}{
 				"days_of_week": flattenAlertProcessingRuleRecurrenceDaysOfWeek(&weeklyRecurrence.DaysOfWeek),
 				"start_time":   flattenPtrString(weeklyRecurrence.StartTime),
@@ -812,8 +812,8 @@ func flattenAlertProcessingRuleRecurrences(input *[]alertsmanagement.Recurrence)
 			}
 			recurrenceWeekly = append(recurrenceWeekly, recurrence)
 
-		case alertsmanagement.MonthlyRecurrence:
-			monthlyRecurrence := item.(alertsmanagement.MonthlyRecurrence)
+		case alertprocessingrules.MonthlyRecurrence:
+			monthlyRecurrence := item.(alertprocessingrules.MonthlyRecurrence)
 			recurrence := map[string]interface{}{
 				"days_of_month": flattenAlertProcessingRuleRecurrenceDaysOfMonth(&monthlyRecurrence.DaysOfMonth),
 				"start_time":    flattenPtrString(monthlyRecurrence.StartTime),
@@ -844,7 +844,7 @@ func flattenPtrString(input *string) string {
 	return *input
 }
 
-func flattenAlertProcessingRuleRecurrenceDaysOfWeek(input *[]alertsmanagement.DaysOfWeek) []interface{} {
+func flattenAlertProcessingRuleRecurrenceDaysOfWeek(input *[]alertprocessingrules.DaysOfWeek) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

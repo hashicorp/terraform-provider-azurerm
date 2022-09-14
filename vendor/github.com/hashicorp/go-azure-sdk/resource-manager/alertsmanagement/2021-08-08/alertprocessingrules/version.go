@@ -1,4 +1,4 @@
-package alertsmanagement
+package alertprocessingrules
 
 import "fmt"
 
@@ -8,5 +8,5 @@ import "fmt"
 const defaultApiVersion = "2021-08-08"
 
 func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/alertsmanagement/%s", defaultApiVersion)
+	return fmt.Sprintf("hashicorp/go-azure-sdk/alertprocessingrules/%s", defaultApiVersion)
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertsmanagement"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,12 +96,12 @@ func TestAccMonitorAlertProcessingRule_update(t *testing.T) {
 }
 
 func (t MonitorAlertProcessingRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := alertsmanagement.ParseActionRuleID(state.ID)
+	id, err := alertprocessingrules.ParseActionRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.AlertsManagementClient.AlertProcessingRulesGetByName(ctx, *id)
+	resp, err := clients.Monitor.AlertProcessingRulesClient.AlertProcessingRulesGetByName(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
