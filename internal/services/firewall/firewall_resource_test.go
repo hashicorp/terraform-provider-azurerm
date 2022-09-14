@@ -189,9 +189,7 @@ func TestAccFirewall_withZones(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").HasValue("2"),
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
-				check.That(data.ResourceName).Key("zones.1").HasValue("3"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
 			),
 		},
 	})
