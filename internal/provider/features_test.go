@@ -913,7 +913,7 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: true,
+					PermanentlyDeleteOnDestroy: !features.FourPointOhBeta(),
 				},
 			},
 		},
