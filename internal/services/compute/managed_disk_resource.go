@@ -407,7 +407,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		props.Encryption = &compute.Encryption{
-			Type:                *encryptionType,
+			Type:                compute.EncryptionType(*encryptionType),
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -667,7 +667,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                *encryptionType,
+				Type:                compute.EncryptionType(*encryptionType),
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {

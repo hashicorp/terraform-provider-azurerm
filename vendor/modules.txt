@@ -204,6 +204,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedh
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance

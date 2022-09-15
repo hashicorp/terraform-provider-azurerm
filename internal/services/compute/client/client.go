@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -19,7 +20,7 @@ type Client struct {
 	DedicatedHostGroupsClient        *dedicatedhostgroups.DedicatedHostGroupsClient
 	DisksClient                      *compute.DisksClient
 	DiskAccessClient                 *compute.DiskAccessesClient
-	DiskEncryptionSetsClient         *compute.DiskEncryptionSetsClient
+	DiskEncryptionSetsClient         *diskencryptionsets.DiskEncryptionSetsClient
 	GalleriesClient                  *compute.GalleriesClient
 	GalleryApplicationsClient        *compute.GalleryApplicationsClient
 	GalleryApplicationVersionsClient *compute.GalleryApplicationVersionsClient
@@ -63,7 +64,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	diskAccessClient := compute.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&diskAccessClient.Client, o.ResourceManagerAuthorizer)
 
-	diskEncryptionSetsClient := compute.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	diskEncryptionSetsClient := diskencryptionsets.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&diskEncryptionSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	galleriesClient := compute.NewGalleriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

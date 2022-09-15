@@ -1390,7 +1390,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                *encryptionType,
+						Type:                compute.EncryptionType(*encryptionType),
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},

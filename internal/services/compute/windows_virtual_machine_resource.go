@@ -1460,7 +1460,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                *encryptionType,
+						Type:                compute.EncryptionType(*encryptionType),
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},
