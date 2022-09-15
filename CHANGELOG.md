@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_batch_pool` - support for the `data_disks`, `disk_encryption`, `extensions`, `node_placement`, `task_scheduling_policy`, `user_accounts`, and `windows` blocks [GH-18226]
 * `azurerm_cosmosdb_account` - support for  User Assigned identities [GH-18378]
 * `azurerm_eventhub_namespace` - support for the `public_network_access_enabled` property [GH-18314]
+* `azurerm_logic_app_standard` - support for the `virtual_network_subnet_id` property for vNet integration [GH-17731]
 * `azurerm_management_group_policy_remediation` - the `policy_definition_id` property has been deprecated in favour of the more accuractly named `policy_definition_reference_id` property [GH-18037]
 * `azurerm_resource_policy_remediation` - the `policy_definition_id` property has been deprecated in favour of the more accuractly named `policy_definition_reference_id` property [GH-18037]
 * `azurerm_resource_group_policy_remediation` - the `policy_definition_id` property has been deprecated in favour of the more accuractly named `policy_definition_reference_id` property [GH-18037]
