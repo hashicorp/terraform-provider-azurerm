@@ -8,8 +8,12 @@ ENHANCEMENTS:
 
 * `azurerm_automation_account` - support for the `hybrid_service_url` property [GH-18320]
 * `azurerm_batch_pool` - support for the `user_assigned_identity_id` property [GH-17104]
-* `azurerm_eventhub_namespace` - support for the `public_network_access_enabled` property [GH-18314]
 * `azurerm_batch_pool` - support for the `data_disks`, `disk_encryption`, `extensions`, `node_placement`, `task_scheduling_policy`, `user_accounts`, and `windows` blocks [GH-18226]
+* `azurerm_eventhub_namespace` - support for the `public_network_access_enabled` property [GH-18314]
+* `azurerm_management_group_policy_remediation` - the `policy_definition_id` property has been deprecated in favour of the more accuractly named `policy_definition_reference_id` property [GH-18037]
+* `azurerm_resource_policy_remediation` - the `policy_definition_id` property has been deprecated in favour of the more accuractly named `policy_definition_reference_id` property [GH-18037]
+* `azurerm_resource_group_policy_remediation` - the `policy_definition_id` property has been deprecated in favour of the more accuractly named `policy_definition_reference_id` property [GH-18037]
+* `azurerm_subscription_policy_remediation` - the `policy_definition_id` property has been deprecated in favour of the more accuractly named `policy_definition_reference_id` property [GH-18037]
 
 BUG FIXES:
 
