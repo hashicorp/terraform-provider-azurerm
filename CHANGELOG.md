@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_api_management_api_schema` - support for the `components` and `definitions` properties [GH-18394]
 * `azurerm_automation_account` - support for the `hybrid_service_url` property [GH-18320]
 * `azurerm_batch_pool` - support for the `user_assigned_identity_id` property [GH-17104]
 * `azurerm_batch_pool` - support for the `data_disks`, `disk_encryption`, `extensions`, `node_placement`, `task_scheduling_policy`, `user_accounts`, and `windows` blocks [GH-18226]
