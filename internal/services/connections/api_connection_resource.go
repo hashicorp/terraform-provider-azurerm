@@ -83,6 +83,11 @@ func resourceConnection() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+			"parameter_value_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 
 			"tags": commonschema.Tags(),
 		},
@@ -118,8 +123,9 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 			Api: &connections.ApiReference{
 				Id: utils.String(managedAppId.ID()),
 			},
-			DisplayName:     utils.String(d.Get("display_name").(string)),
-			ParameterValues: parameterValues,
+			DisplayName:        utils.String(d.Get("display_name").(string)),
+			ParameterValues:    parameterValues,
+			ParameterValueType: utils.String(d.Get("parameter_value_type").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}

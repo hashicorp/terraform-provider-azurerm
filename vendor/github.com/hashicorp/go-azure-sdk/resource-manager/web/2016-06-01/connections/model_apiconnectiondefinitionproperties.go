@@ -17,6 +17,7 @@ type ApiConnectionDefinitionProperties struct {
 	DisplayName              *string                       `json:"displayName,omitempty"`
 	NonSecretParameterValues *map[string]string            `json:"nonSecretParameterValues,omitempty"`
 	ParameterValues          *map[string]string            `json:"parameterValues,omitempty"`
+	ParameterValueType			 *string                       `json:"parameterValueType,omitempty"`
 	Statuses                 *[]ConnectionStatusDefinition `json:"statuses,omitempty"`
 	TestLinks                *[]ApiConnectionTestLink      `json:"testLinks,omitempty"`
 }
