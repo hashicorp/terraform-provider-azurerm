@@ -407,7 +407,13 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("min_recommended_memory_in_gb", minRecommendedMemoryInGB)
 
 		d.Set("os_type", string(props.OsType))
-		d.Set("architecture", string(props.Architecture))
+
+		architecture := string((compute.ArchitectureTypesX64))
+		if props.Architecture != "" {
+			architecture = string(props.Architecture)
+		}
+		d.Set("architecture", architecture)
+
 		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
