@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -219,6 +220,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"virtual_network_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
 		},
 	}
 }
@@ -272,6 +279,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	VirtualNetworkSubnetID := d.Get("virtual_network_subnet_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -311,6 +319,10 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if clientCertMode != "" {
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
+	}
+
+	if VirtualNetworkSubnetID != "" {
+		siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(VirtualNetworkSubnetID)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -400,6 +412,19 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if clientCertMode != "" {
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
+	}
+
+	if d.HasChange("virtual_network_subnet_id") {
+		subnetId := d.Get("virtual_network_subnet_id").(string)
+		if subnetId == "" {
+			if _, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+			}
+			var empty *string
+			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = empty
+		} else {
+			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+		}
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -514,6 +539,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
