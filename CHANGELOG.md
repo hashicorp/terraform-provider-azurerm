@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* **New Datasource**: `azurerm_monitor_data_collection_rule` [GH-18318]
+* **New Data Source**: `private_dns_zone_virtual_network_link` [GH-18045]
+* **New Data Source**: `azurerm_monitor_data_collection_rule` [GH-18318]
 
 ENHANCEMENTS:
 
