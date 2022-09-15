@@ -79,7 +79,7 @@ resource "azurerm_virtual_machine_extension" "example" {
   virtual_machine_id         = azurerm_windows_virtual_machine.example.id
   publisher                  = "Microsoft.GuestConfiguration"
   type                       = "ConfigurationforWindows"
-  type_handler_version       = "1.0"
+  type_handler_version       = "1.29"
   auto_upgrade_minor_version = "true"
 }
 
