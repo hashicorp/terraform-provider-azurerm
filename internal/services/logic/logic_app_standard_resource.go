@@ -106,8 +106,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// TODO: API supports UserAssigned & SystemAssignedUserAssigned too?
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -233,7 +232,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
 
-	id := parse.NewLogicAppStandardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := parse.NewLogicAppStandardID(
+		subscriptionId,
+		d.Get("resource_group_name").(string),
+		d.Get("name").(string),
+	)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -255,7 +258,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v", id.SiteName, *available.Message)
+		return fmt.Errorf(
+			"the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v",
+			id.SiteName,
+			*available.Message,
+		)
 	}
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
@@ -611,7 +618,10 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicLogicAppSettings(
+	d *pluginsdk.ResourceData,
+	endpointSuffix string,
+) ([]web.NameValuePair, error) {
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
@@ -621,7 +631,12 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 
 	storageAccount := d.Get("storage_account_name").(string)
 	accountKey := d.Get("storage_account_access_key").(string)
-	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, accountKey, endpointSuffix)
+	storageConnection := fmt.Sprintf(
+		"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
+		storageAccount,
+		accountKey,
+		endpointSuffix,
+	)
 	functionVersion := d.Get("version").(string)
 
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
@@ -645,7 +660,9 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 		extensionBundleVersion := d.Get("bundle_version").(string)
 
 		if extensionBundleVersion == "" {
-			return nil, fmt.Errorf("when `use_extension_bundle` is true, `bundle_version` must be specified")
+			return nil, fmt.Errorf(
+				"when `use_extension_bundle` is true, `bundle_version` must be specified",
+			)
 		}
 
 		bundleSettings := []web.NameValuePair{
@@ -849,7 +866,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					}, false),
 				},
 
-				//lintignore:XS003
+				// lintignore:XS003
 				"headers": {
 					Type:       pluginsdk.TypeList,
 					Optional:   true,
@@ -858,7 +875,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							//lintignore:S018
+							// lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -868,7 +885,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							//lintignore:S018
+							// lintignore:S018
 							"x_forwarded_for": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -879,7 +896,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							//lintignore:S018
+							// lintignore:S018
 							"x_azure_fdid": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -890,7 +907,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							//lintignore:S018
+							// lintignore:S018
 							"x_fd_health_probe": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -919,7 +936,9 @@ func flattenLogicAppStandardAppSettings(input map[string]*string) map[string]str
 	return output
 }
 
-func flattenLogicAppStandardConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenLogicAppStandardConnectionStrings(
+	input map[string]*web.ConnStringValueTypePair,
+) interface{} {
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
@@ -1240,7 +1259,10 @@ func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interf
 	return identity.FlattenSystemAssigned(transform)
 }
 
-func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]*string, error) {
+func expandLogicAppStandardSettings(
+	d *pluginsdk.ResourceData,
+	endpointSuffix string,
+) (map[string]*string, error) {
 	output := make(map[string]*string)
 	appSettings := expandAppSettings(d)
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -1269,7 +1291,9 @@ func expandAppSettings(d *pluginsdk.ResourceData) []web.NameValuePair {
 	return output
 }
 
-func expandLogicAppStandardConnectionStrings(d *pluginsdk.ResourceData) map[string]*web.ConnStringValueTypePair {
+func expandLogicAppStandardConnectionStrings(
+	d *pluginsdk.ResourceData,
+) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").(*pluginsdk.Set).List()
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -1341,11 +1365,15 @@ func expandLogicAppStandardIpRestriction(input interface{}) ([]web.IPSecurityRes
 		action := restriction["action"].(string)
 
 		if vNetSubnetID != "" && ipAddress != "" && serviceTag != "" {
-			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")
+			return nil, fmt.Errorf(
+				"only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction",
+			)
 		}
 
 		if vNetSubnetID == "" && ipAddress == "" && serviceTag == "" {
-			return nil, fmt.Errorf("one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction")
+			return nil, fmt.Errorf(
+				"one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction",
+			)
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
