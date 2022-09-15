@@ -85,7 +85,9 @@ resource "azurerm_dns_cname_record" "example" {
 
 * `dns_zone_id` - (Optional) The Resource ID of the DNS Zone that is to be used for the Frontdoor Custom Domain.
 
-* `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) Resource ID.
+* `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated Frontdoor Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
+
+->**NOTE:** Currently `pre_validated_cdn_frontdoor_custom_domain_id` only supports domains validated by Static Web App.
 
 * `tls` - (Required) A `tls` block as defined below.
 
@@ -111,9 +113,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `domain_validation_state` - Provisioning substate shows the progress of custom HTTPS enabling/disabling process.
 
-* `expiration_date` - The date time that the token expires
+* `expiration_date` - The date time that the token expires.
 
-* `validation_token` - Challenge used for DNS TXT record or file based validation
+* `validation_token` - Challenge used for DNS TXT record or file based validation.
 
 ## Timeouts
 
