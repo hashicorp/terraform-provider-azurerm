@@ -198,6 +198,8 @@ A `resource_file` block exports the following:
 
 * `storage_container_url` - The URL of the blob container within Azure Blob Storage.
 
+* `user_assigned_identity_id` - An identity reference from pool's user assigned managed identity list.
+
 ---
 
 A `container_configuration` block exports the following:

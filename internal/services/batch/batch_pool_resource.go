@@ -1506,6 +1506,10 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
+					"user_assigned_identity_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
 				},
 			},
 		},
