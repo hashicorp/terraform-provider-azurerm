@@ -160,7 +160,8 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 		// We cannot get specific analytics items without their itemID which is why we need to list all the
 		// available items of a certain type and scope in order to check whether a resource already exists and needs
 		// to be imported first
-		existing, err := client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, itemScopePath, itemScope, insights.ItemTypeParameter(typeName), &includeContent)
+		// https://github.com/Azure/azure-rest-api-specs/issues/20712 itemScopePath should be set to insights.ItemScopePathAnalyticsItems in List method
+		existing, err := client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, insights.ItemScopePathAnalyticsItems, itemScope, insights.ItemTypeParameter(typeName), &includeContent)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Application Insights Analytics Items %+v", err)
