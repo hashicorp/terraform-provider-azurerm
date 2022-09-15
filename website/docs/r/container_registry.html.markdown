@@ -135,7 +135,7 @@ resource "azurerm_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Container Registry. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Container Registry. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
