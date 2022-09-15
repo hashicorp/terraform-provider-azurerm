@@ -34,8 +34,6 @@ type ContactProfileChannelModel struct {
 	Name                      string          `tfschema:"name"`
 	ModulationConfiguration   string          `tfschema:"modulation_configuration"`
 	DemodulationConfiguration string          `tfschema:"demodulation_configuration"`
-	EncodingConfiguration     string          `tfschema:"encoding_configuration"`
-	DecodingConfiguration     string          `tfschema:"decoding_configuration"`
 }
 
 type EndPointModel struct {
@@ -130,18 +128,6 @@ func ChannelSchema() *pluginsdk.Schema {
 				},
 
 				"demodulation_configuration": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"encoding_configuration": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"decoding_configuration": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -314,8 +300,6 @@ func flattenContactProfileChannel(input []contactprofile.ContactProfileLinkChann
 			Name:                      v.Name,
 			ModulationConfiguration:   *v.ModulationConfiguration,
 			DemodulationConfiguration: *v.DemodulationConfiguration,
-			EncodingConfiguration:     *v.EncodingConfiguration,
-			DecodingConfiguration:     *v.DecodingConfiguration,
 		}
 		endPoint := v.EndPoint
 		endPointModel := EndPointModel{
@@ -366,9 +350,7 @@ func expandContactProfileChannel(input []ContactProfileChannelModel) ([]contactp
 		channel := contactprofile.ContactProfileLinkChannel{
 			BandwidthMHz:              v.BandwidthMhz,
 			CenterFrequencyMHz:        v.CenterFrequencyMhz,
-			DecodingConfiguration:     &v.DecodingConfiguration,
 			DemodulationConfiguration: &v.DemodulationConfiguration,
-			EncodingConfiguration:     &v.EncodingConfiguration,
 			EndPoint:                  contactprofile.EndPoint{},
 			ModulationConfiguration:   &v.ModulationConfiguration,
 			Name:                      v.Name,
