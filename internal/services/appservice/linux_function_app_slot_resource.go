@@ -731,9 +731,9 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 				if err != nil {
-					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 				}
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
