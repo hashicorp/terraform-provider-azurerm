@@ -77,9 +77,9 @@ resource "azurerm_dynatrace_tag_rules" "test" {
       value  = "Prod"
       action = "Include"
     }
-    send_aad_logs          = "Enabled"
-    send_activity_logs     = "Enabled"
-    send_subscription_logs = "Enabled"
+    send_aad_logs_enabled          = "Enabled"
+    send_activity_logs_enabled     = "Enabled"
+    send_subscription_logs_enabled = "Enabled"
   }
 
   metric_rules {
@@ -117,25 +117,25 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dynatrace_monitors" "test" {
-  name                            = "acctestacc%[2]s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  identity_type                   = "SystemAssigned"
-  monitoring_status               = "Enabled"
-  marketplace_subscription_status = "Active"
+  name                     = "acctestacc%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  identity_type            = "SystemAssigned"
+  monitoring_status        = "Enabled"
+  marketplace_subscription = "Active"
 
   user_info {
-    first_name    = "Alice"
-    last_name     = "Bobab"
-    email_address = "alice@microsoft.com"
-    phone_number  = "123456"
-    country       = "westus"
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "alice@microsoft.com"
+    phone_number = "123456"
+    country      = "westus"
   }
 
   plan_data {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
-    plan_details   = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
+    plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
     effective_date = "2019-08-30T15:14:33Z"
   }
 }
