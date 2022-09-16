@@ -368,7 +368,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   high_business_impact          = true
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"
-  v1_legacy_mode                = false
+  v1_legacy_mode_enabled        = false
 
   identity {
     type = "SystemAssigned"

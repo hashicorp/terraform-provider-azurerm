@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -107,19 +108,16 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"public_access_behind_virtual_network_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Deprecated:    "`public_access_behind_virtual_network_enabled` will be removed in favour of not supported by API since v2021-10-01.",
-				ConflictsWith: []string{"public_network_access_enabled"},
-			},
-
 			"public_network_access_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"public_access_behind_virtual_network_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"image_build_compute_name": {
@@ -178,7 +176,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
 			},
 
-			"v1_legacy_mode": {
+			"v1_legacy_mode_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -191,6 +189,19 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		// For the time being we should just deprecate and remove this property since it's broken in the API - it doesn't
+		// actually set the property and also isn't returned by the API. Once https://github.com/Azure/azure-rest-api-specs/issues/18340
+		// is fixed we can reassess how to deal with this field.
+		resource.Schema["public_access_behind_virtual_network_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			ForceNew:      true,
+			Deprecated:    "`public_access_behind_virtual_network_enabled` will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"public_network_access_enabled"},
+		}
 	}
 
 	return resource
@@ -239,7 +250,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			V1LegacyMode:        utils.ToPtr(d.Get("v1_legacy_mode").(bool)),
+			V1LegacyMode:        utils.ToPtr(d.Get("v1_legacy_mode_enabled").(bool)),
 			Encryption:          expandedEncryption,
 			StorageAccount:      utils.String(d.Get("storage_account_id").(string)),
 			ApplicationInsights: utils.String(d.Get("application_insights_id").(string)),
@@ -331,9 +342,13 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("image_build_compute_name", props.ImageBuildCompute)
 		d.Set("discovery_url", props.DiscoveryUrl)
 		d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
-		d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)
 		d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
-		d.Set("v1_legacy_mode", props.V1LegacyMode)
+		d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
+
+		if !features.FourPointOhBeta() {
+			d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)
+		}
+
 	}
 
 	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Model.Identity)
