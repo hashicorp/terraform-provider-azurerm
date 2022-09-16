@@ -23,8 +23,8 @@ type MonitorsResourceModel struct {
 	Name                          string            `tfschema:"name"`
 	ResourceGroup                 string            `tfschema:"resource_group_name"`
 	Location                      string            `tfschema:"location"`
-	MonitoringStatus              string            `tfschema:"monitoring_status"`
-	MarketplaceSubscriptionStatus string            `tfschema:"marketplace_subscription_status"`
+	MonitoringStatus              bool              `tfschema:"monitoring_enabled"`
+	MarketplaceSubscriptionStatus string            `tfschema:"marketplace_subscription"`
 	IdentityType                  string            `tfschema:"identity_type"`
 	PlanData                      []PlanData        `tfschema:"plan_data"`
 	UserInfo                      []UserInfo        `tfschema:"user_info"`
@@ -34,13 +34,13 @@ type MonitorsResourceModel struct {
 type PlanData struct {
 	BillingCycle  string `tfschema:"billing_cycle"`
 	EffectiveDate string `tfschema:"effective_date"`
-	PlanDetails   string `tfschema:"plan_details"`
+	PlanDetails   string `tfschema:"plan"`
 	UsageType     string `tfschema:"usage_type"`
 }
 
 type UserInfo struct {
 	Country      string `tfschema:"country"`
-	EmailAddress string `tfschema:"email_address"`
+	EmailAddress string `tfschema:"email"`
 	FirstName    string `tfschema:"first_name"`
 	LastName     string `tfschema:"last_name"`
 	PhoneNumber  string `tfschema:"phone_number"`
@@ -70,17 +70,14 @@ func (r MonitorsResource) Arguments() map[string]*schema.Schema {
 			}, false),
 		},
 
-		"monitoring_status": {
-			Type:     pluginsdk.TypeString,
+		"monitoring_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Enabled",
-				"Disabled",
-			}, false),
+			Default:  true,
 		},
 
-		"marketplace_subscription_status": {
+		"marketplace_subscription": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
@@ -132,7 +129,10 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 			}
 
 			marketplaceSubscriptionServiceStatus := monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)
-			monitoringStatus := monitors.MonitoringStatus(model.MonitoringStatus)
+			monitoringStatus := monitors.MonitoringStatusEnabled
+			if !model.MonitoringStatus {
+				monitoringStatus = monitors.MonitoringStatusDisabled
+			}
 			monitorsProps := monitors.MonitorProperties{
 				MarketplaceSubscriptionStatus: &marketplaceSubscriptionServiceStatus,
 				MonitoringStatus:              &monitoringStatus,
@@ -184,12 +184,16 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 				identityProps := model.Identity
 				userInfo := metadata.ResourceData.Get("user_info").([]interface{})
+				monitoringStatus := true
+				if *props.MonitoringStatus == monitors.MonitoringStatusDisabled {
+					monitoringStatus = false
+				}
 
 				state := MonitorsResourceModel{
 					Name:                          id.MonitorName,
 					ResourceGroup:                 id.ResourceGroupName,
 					Location:                      model.Location,
-					MonitoringStatus:              string(*props.MonitoringStatus),
+					MonitoringStatus:              monitoringStatus,
 					MarketplaceSubscriptionStatus: string(*props.MarketplaceSubscriptionStatus),
 					IdentityType:                  string(identityProps.Type),
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),

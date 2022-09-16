@@ -31,7 +31,7 @@ func SchemaPlanData() *pluginsdk.Schema {
 					ValidateFunc: validation.IsRFC3339Time,
 				},
 
-				"plan_details": {
+				"plan": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -64,7 +64,7 @@ func SchemaUserInfo() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"email_address": {
+				"email": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -133,7 +133,7 @@ func SchemaLogRule() *pluginsdk.Schema {
 			Schema: map[string]*schema.Schema{
 				"filtering_tag": SchemaFilteringTag(),
 
-				"send_aad_logs": {
+				"send_aad_logs_enabled": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -142,7 +142,7 @@ func SchemaLogRule() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"send_activity_logs": {
+				"send_activity_logs_enabled": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -151,7 +151,7 @@ func SchemaLogRule() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"send_subscription_logs": {
+				"send_subscription_logs_enabled": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -295,7 +295,7 @@ func FlattenDynatraceUserInfo(input []interface{}) []UserInfo {
 	v := input[0].(map[string]interface{})
 
 	country := v["country"].(string)
-	emailAddress := v["email_address"].(string)
+	emailAddress := v["email"].(string)
 	firstName := v["first_name"].(string)
 	lastName := v["last_name"].(string)
 	phoneNumber := v["phone_number"].(string)
