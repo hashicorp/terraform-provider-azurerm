@@ -193,12 +193,19 @@ resource "azurerm_managed_application" "import" {
 
 func (r ManagedApplicationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mapp-%d"
+  location = "%s"
+}
 
 resource "azurerm_marketplace_agreement" "test" {
-  publisher = "quantinuumllc1640113159771"
-  offer     = "quantinuum-aq"
-  plan      = "credits1"
+  publisher = "cisco"
+  offer     = "cisco-meraki-vmx"
+  plan      = "cisco-meraki-vmx"
 }
 
 resource "azurerm_managed_application" "test" {
@@ -212,18 +219,28 @@ resource "azurerm_managed_application" "test" {
     name      = azurerm_marketplace_agreement.test.plan
     product   = azurerm_marketplace_agreement.test.offer
     publisher = azurerm_marketplace_agreement.test.publisher
-    version   = "1.0.0"
+    version   = "15.37.1"
   }
 
   parameters = {
+    zone                        = "0"
     location                    = azurerm_resource_group.test.location
+    merakiAuthToken             = "f451adfb-d00b-4612-8799-b29294217d4a"
+    subnetAddressPrefix         = "10.0.0.0/24"
+    subnetName                  = "acctestSubnet"
+    virtualMachineSize          = "Standard_DS12_v2"
+    virtualNetworkAddressPrefix = "10.0.0.0/16"
+    virtualNetworkName          = "acctestVnet"
+    virtualNetworkNewOrExisting = "new"
+    virtualNetworkResourceGroup = "acctestVnetRg"
+    vmName                      = "acctestVM"
   }
 
   tags = {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ManagedApplicationResource) parameterValues(data acceptance.TestData) string {
