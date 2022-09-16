@@ -280,6 +280,63 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"azure_files_identity_based_auth": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"directory_service_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"active_directory": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"domain_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"net_bios_domain_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"forest_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"domain_guid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"domain_sid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"azure_storage_sid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"sam_account_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"account_type": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"default_share_permission": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -413,6 +470,10 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
 		}
 		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+
+		if err := d.Set("azure_files_identity_based_auth", flattenAzureRmStorageAccountAzureFilesIdentityBasedAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+			return fmt.Errorf("setting `azure_files_identity_based_auth`: %+v", err)
+		}
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
@@ -430,4 +491,72 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func flattenAzureRmStorageAccountAzureFilesIdentityBasedAuthentication(input *storage.AzureFilesIdentityBasedAuthentication) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"directory_service_type":   input.DirectoryServiceOptions,
+			"active_directory":         flattenArmStorageAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+			"default_share_permission": input.DefaultSharePermission,
+		},
+	}
+}
+
+func flattenAzureRmStorageAccountActiveDirectoryProperties(input *storage.ActiveDirectoryProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var domainName string
+	if input.DomainName != nil {
+		domainName = *input.DomainName
+	}
+
+	var netBiosDomainName string
+	if input.NetBiosDomainName != nil {
+		netBiosDomainName = *input.NetBiosDomainName
+	}
+
+	var forestName string
+	if input.ForestName != nil {
+		forestName = *input.ForestName
+	}
+
+	var domainGuid string
+	if input.DomainGUID != nil {
+		domainGuid = *input.DomainGUID
+	}
+
+	var domainSid string
+	if input.DomainSid != nil {
+		domainSid = *input.DomainSid
+	}
+
+	var azureStorageSid string
+	if input.AzureStorageSid != nil {
+		azureStorageSid = *input.AzureStorageSid
+	}
+
+	var samAccountName string
+	if input.SamAccountName != nil {
+		samAccountName = *input.SamAccountName
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"domain_name":          domainName,
+			"net_bios_domain_name": netBiosDomainName,
+			"forest_name":          forestName,
+			"domain_guid":          domainGuid,
+			"domain_sid":           domainSid,
+			"azure_storage_sid":    azureStorageSid,
+			"sam_account_name":     samAccountName,
+			"account_type":         string(input.AccountType),
+		},
+	}
 }
