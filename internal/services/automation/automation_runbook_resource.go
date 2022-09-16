@@ -31,9 +31,8 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"uri": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
 				},
 
 				"version": {
