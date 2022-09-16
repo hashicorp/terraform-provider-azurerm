@@ -29,9 +29,9 @@ type MetricRule struct {
 
 type LogRule struct {
 	FilteringTags        []FilteringTag `tfschema:"filtering_tag"`
-	SendAadLogs          string         `tfschema:"send_aad_logs"`
-	SendActivityLogs     string         `tfschema:"send_activity_logs"`
-	SendSubscriptionLogs string         `tfschema:"send_subscription_logs"`
+	SendAadLogs          string         `tfschema:"send_aad_logs_enabled"`
+	SendActivityLogs     string         `tfschema:"send_activity_logs_enabled"`
+	SendSubscriptionLogs string         `tfschema:"send_subscription_logs_enabled"`
 }
 
 type FilteringTag struct {

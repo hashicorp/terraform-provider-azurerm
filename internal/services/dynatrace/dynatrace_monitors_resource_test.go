@@ -90,25 +90,25 @@ func (r MonitorsResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_dynatrace_monitors" "test" {
-  name                            = "acctestacc%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  identity_type                   = "SystemAssigned"
-  monitoring_status               = "Enabled"
-  marketplace_subscription_status = "Active"
+  name                     = "acctestacc%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  identity_type            = "SystemAssigned"
+  monitoring_status        = "Enabled"
+  marketplace_subscription = "Active"
 
   user_info {
-    first_name    = "Alice"
-    last_name     = "Bobab"
-    email_address = "alice@microsoft.com"
-    phone_number  = "123456"
-    country       = "westus"
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "alice@microsoft.com"
+    phone_number = "123456"
+    country      = "westus"
   }
 
   plan_data {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
-    plan_details   = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
+    plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
     effective_date = "2019-08-30T15:14:33Z"
   }
 }
@@ -121,25 +121,25 @@ func (r MonitorsResource) updated(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_dynatrace_monitors" "test" {
-  name                            = "acctestacc%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  identity_type                   = "SystemAssigned"
-  monitoring_status               = "Enabled"
-  marketplace_subscription_status = "Active"
+  name                     = "acctestacc%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  identity_type            = "SystemAssigned"
+  monitoring_status        = "Enabled"
+  marketplace_subscription = "Active"
 
   user_info {
-    first_name    = "Alice"
-    last_name     = "Bobab"
-    email_address = "alice@microsoft.com"
-    phone_number  = "123456"
-    country       = "westus"
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "alice@microsoft.com"
+    phone_number = "123456"
+    country      = "westus"
   }
 
   plan_data {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
-    plan_details   = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
+    plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
     effective_date = "2019-08-30T15:14:33Z"
   }
 
@@ -157,12 +157,12 @@ func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dynatrace_monitors" "import" {
-  name                            = azurerm_dynatrace_monitors.test.name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  identity_type                   = azurerm_dynatrace_monitors.test.identity_type
-  monitoring_status               = azurerm_dynatrace_monitors.test.monitoring_status
-  marketplace_subscription_status = azurerm_dynatrace_monitors.test.marketplace_subscription_status
+  name                     = azurerm_dynatrace_monitors.test.name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  identity_type            = azurerm_dynatrace_monitors.test.identity_type
+  monitoring_status        = azurerm_dynatrace_monitors.test.monitoring_status
+  marketplace_subscription = azurerm_dynatrace_monitors.test.marketplace_subscription_status
 }
 `, template)
 }

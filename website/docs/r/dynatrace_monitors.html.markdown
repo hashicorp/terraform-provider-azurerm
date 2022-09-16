@@ -38,7 +38,7 @@ resource "azurerm_dynatrace_monitors" "example" {
   plan_data {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
-    plan_details   = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
+    plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
     effective_date = "2019-08-30T15:14:33Z"
   }
 }
@@ -74,7 +74,7 @@ A `plan_data` block supports the following:
 
 * `effective_date` - (Optional) Date when plan was applied.
 
-* `plan_details` - (Optional) Plan id as published by Dynatrace.
+* `plan` - (Optional) Plan id as published by Dynatrace.
 
 * `usage_type` - (Optional) Different usage type. Possible values are `PAYG`, `COMMITTED`.
 
