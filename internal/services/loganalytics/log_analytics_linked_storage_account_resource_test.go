@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -143,11 +144,24 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r LogAnalyticsLinkedStorageAccountResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
   data_source_type      = "customlogs"
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  storage_account_ids   = [azurerm_storage_account.test.id]
+}
+`, r.template(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_linked_storage_account" "test" {
+  data_source_type      = "CustomLogs"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id]
@@ -169,7 +183,8 @@ resource "azurerm_log_analytics_linked_storage_account" "import" {
 }
 
 func (r LogAnalyticsLinkedStorageAccountResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account" "test2" {
@@ -187,6 +202,26 @@ resource "azurerm_log_analytics_linked_storage_account" "test" {
   storage_account_ids   = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
 }
 `, r.template(data), data.RandomString)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsas%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_log_analytics_linked_storage_account" "test" {
+  data_source_type      = "CustomLogs"
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  storage_account_ids   = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
+}
+`, r.template(data), data.RandomString)
 }
 
 func (r LogAnalyticsLinkedStorageAccountResource) ingestion(data acceptance.TestData) string {
@@ -194,7 +229,7 @@ func (r LogAnalyticsLinkedStorageAccountResource) ingestion(data acceptance.Test
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "ingestion"
+  data_source_type      = "Ingestion"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id]

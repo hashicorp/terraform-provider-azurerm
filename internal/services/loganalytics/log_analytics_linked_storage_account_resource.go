@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
 		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
 		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
@@ -41,7 +42,6 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				// https://github.com/Azure/azure-rest-api-specs/issues/20619
 				ValidateFunc: validation.StringInSlice([]string{
 					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
 					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
@@ -71,6 +71,12 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOh() {
+		resource.Schema["data_source_type"].DiffSuppressFunc = suppress.CaseDifference
+	}
+
+	return resource
 }
 
 func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -131,6 +137,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("workspace_resource_id", linkedstorageaccounts.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
+	d.Set("data_source_type", string(id.DataSourceType))
 
 	if model := resp.Model; model != nil {
 		props := model.Properties
@@ -139,12 +146,6 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 			storageAccountIds = *props.StorageAccountIds
 		}
 		d.Set("storage_account_ids", storageAccountIds)
-
-		dataSourceType := ""
-		if props.DataSourceType != nil {
-			dataSourceType = string(*props.DataSourceType)
-		}
-		d.Set("data_source_type", dataSourceType)
 	}
 
 	return nil

@@ -34,7 +34,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_linked_storage_account" "example" {
-  data_source_type      = "customlogs"
+  data_source_type      = "CustomLogs"
   resource_group_name   = azurerm_resource_group.example.name
   workspace_resource_id = azurerm_log_analytics_workspace.example.id
   storage_account_ids   = [azurerm_storage_account.example.id]
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `data_source_type` - (Required) The data source type which should be used for this Log Analytics Linked Storage Account. Possible values are `CustomLogs`, `AzureWatson`, `Query`, `Ingestion` and `Alerts`. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
-> **Note:** The `data_source_type` is case-insensitive due to [service API issue](https://github.com/Azure/azure-rest-api-specs/issues/20619). After the API issue is fixed, case-sensitivity will be required in 4.0 or later versions.
+> **Note:** The `data_source_type` is case-insensitive in current 3.x version. And in 4.0 or later versions, Case-sensitivity will be required.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Log Analytics Linked Storage Account should exist. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
