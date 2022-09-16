@@ -208,6 +208,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
+			"gallery_applications": VirtualMachineGalleryApplicationsSchema(),
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
@@ -478,6 +480,9 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		Identity:         identity,
 		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
+			ApplicationProfile: &compute.ApplicationProfile{
+				GalleryApplications: expandVirtualMachineGalleryApplications(d.Get("gallery_applications").([]interface{})),
+			},
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
@@ -795,6 +800,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		extensionsTimeBudget = *props.ExtensionsTimeBudget
 	}
 	d.Set("extensions_time_budget", extensionsTimeBudget)
+
+	if props.ApplicationProfile != nil && props.ApplicationProfile.GalleryApplications != nil {
+		d.Set("gallery_applications", flattenVirtualMachineGalleryApplications(props.ApplicationProfile.GalleryApplications))
+	}
 
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
@@ -1131,6 +1140,13 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("extensions_time_budget") {
 		shouldUpdate = true
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
+	}
+
+	if d.HasChange("gallery_applications") {
+		shouldUpdate = true
+		update.ApplicationProfile = &compute.ApplicationProfile{
+			GalleryApplications: expandVirtualMachineGalleryApplications(d.Get("gallery_applications").([]interface{})),
+		}
 	}
 
 	if d.HasChange("max_bid_price") {
