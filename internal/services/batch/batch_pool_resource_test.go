@@ -1123,7 +1123,7 @@ resource "azurerm_batch_pool" "test" {
       bu  = "Research&Dev"
     }
 
-    container_configuration {
+    container_settings {
       type                  = "DockerCompatible"
       container_image_names = ["centos7"]
       container_registries {
