@@ -166,7 +166,7 @@ output "storage_account_tier" {
 
 * `domain_name` - The primary domain that the AD DNS server is authoritative for.
 
-* `net_bios_domain_name` - The NetBIOS domain name.
+* `netbios_domain_name` - The NetBIOS domain name.
 
 * `forest_name` - The name of the Active Directory forest.
 

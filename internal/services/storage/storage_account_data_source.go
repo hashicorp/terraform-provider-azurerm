@@ -298,7 +298,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
-									"net_bios_domain_name": {
+									"netbios_domain_name": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
