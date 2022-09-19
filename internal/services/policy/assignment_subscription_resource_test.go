@@ -262,6 +262,11 @@ func (r SubscriptionAssignmentTestResource) Exists(ctx context.Context, client *
 	return utils.Bool(true), nil
 }
 
+// subscription assignment for allowed location policy should contain all locations, or it will block some network resource create
+func (r SubscriptionAssignmentTestResource) locations(data acceptance.TestData) string {
+	return fmt.Sprintf(`["%s", "%s", "%s"]`, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
+}
+
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyBasic(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
@@ -281,11 +286,11 @@ resource "azurerm_subscription_policy_assignment" "test" {
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%s"]
+      "value" = %s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyUpdated(data acceptance.TestData) string {
@@ -307,11 +312,11 @@ resource "azurerm_subscription_policy_assignment" "test" {
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[3]s", "%[4]s"]
+      "value" = %[3]s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
@@ -338,11 +343,11 @@ resource "azurerm_subscription_policy_assignment" "test" {
 
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%s"]
+      "value" = %s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
@@ -364,11 +369,11 @@ resource "azurerm_subscription_policy_assignment" "test" {
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[3]s", "%[4]s"]
+      "value" = %s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
