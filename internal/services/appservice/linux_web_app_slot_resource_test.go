@@ -906,7 +906,7 @@ func TestAccLinuxWebAppSlot_vNetIntegration(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_network_subnet_id"),
 	})
 }
 
@@ -921,7 +921,7 @@ func TestAccLinuxWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_network_subnet_id"),
 		{
 			Config: r.vNetIntegrationWebApp_subnet1(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -931,7 +931,7 @@ func TestAccLinuxWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_network_subnet_id"),
 		{
 			Config: r.vNetIntegrationWebApp_subnet2(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -941,14 +941,14 @@ func TestAccLinuxWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_network_subnet_id"),
 		{
 			Config: r.vNetIntegrationWebApp_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_network_subnet_id"),
 	})
 }
 
