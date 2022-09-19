@@ -301,7 +301,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -327,7 +327,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -353,7 +353,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
 
@@ -384,7 +384,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -410,7 +410,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -436,7 +436,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -466,7 +466,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -496,7 +496,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -527,7 +527,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 }
@@ -547,7 +547,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "This is a policy assignment from an acceptance test"
@@ -583,10 +583,10 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_policy_definition" "test" {
-  name                = "acctestpol-%[2]s"
+  name                = "acctestpol-mg-%[2]s"
   policy_type         = "Custom"
   mode                = "All"
-  display_name        = "acctestpol-%[2]s"
+  display_name        = "acctestpol-mg-%[2]s"
   description         = "Description for %[2]s"
   management_group_id = azurerm_management_group.test.id
   metadata            = <<METADATA
@@ -680,7 +680,7 @@ POLICY_RULE
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 }
@@ -697,7 +697,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   metadata = jsonencode({
@@ -713,10 +713,10 @@ func (r ManagementGroupAssignmentTestResource) templateWithCustomPolicy(data acc
 %[1]s
 
 resource "azurerm_policy_definition" "test" {
-  name                = "acctestpol-%[2]s"
+  name                = "acctestpol-mg-%[2]s"
   policy_type         = "Custom"
   mode                = "All"
-  display_name        = "acctestpol-%[2]s"
+  display_name        = "acctestpol-mg-%[2]s"
   management_group_id = azurerm_management_group.test.id
 
   policy_rule = <<POLICY_RULE
@@ -758,7 +758,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -795,7 +795,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_management_group_policy_assignment" "test" {
-  name                 = "acctestpol-%[2]s"
+  name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q

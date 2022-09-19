@@ -272,7 +272,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -298,7 +298,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -324,7 +324,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
 
@@ -355,7 +355,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -381,7 +381,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = azurerm_resource_group.test.location
@@ -407,7 +407,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = azurerm_resource_group.test.location
@@ -437,7 +437,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = azurerm_resource_group.test.location
@@ -467,7 +467,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = azurerm_resource_group.test.location
@@ -502,7 +502,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 }
@@ -520,7 +520,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "This is a policy assignment from an acceptance test"
@@ -559,7 +559,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   metadata = jsonencode({
@@ -620,7 +620,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = azurerm_resource_group.test.location
@@ -652,7 +652,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-rg-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = azurerm_resource_group.test.location

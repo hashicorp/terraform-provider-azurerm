@@ -281,7 +281,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -307,7 +307,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -333,7 +333,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
 
@@ -364,7 +364,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
@@ -390,7 +390,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -416,7 +416,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -446,7 +446,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -476,7 +476,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -511,7 +511,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 }
@@ -529,7 +529,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "This is a policy assignment from an acceptance test"
@@ -568,7 +568,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   metadata = jsonencode({
@@ -624,7 +624,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -661,7 +661,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
