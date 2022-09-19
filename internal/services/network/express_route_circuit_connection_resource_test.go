@@ -176,7 +176,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Equinix-Seattle-SE2"
+  peering_location    = "Silicon Valley"
   bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
 }
