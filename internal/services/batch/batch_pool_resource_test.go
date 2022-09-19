@@ -148,13 +148,14 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
+				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_option").HasValue("Terminate"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
 				check.That(data.ResourceName).Key("fixed_scale.0.resize_timeout").HasValue("PT15M"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_low_priority_nodes").HasValue("0"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 	})
 }
 
@@ -179,7 +180,7 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 	})
 }
 
@@ -206,7 +207,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 		{
 			Config: r.autoScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -271,9 +272,14 @@ func TestAccBatchPool_startTask_complete(t *testing.T) {
 			Config: r.startTask_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
+				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.container_registries.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.container_registries.0.password").HasValue("myPassword"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation",
+			"container_configuration.0.container_registries.0.password",
+			"start_task.0.container_settings.0.registry.0.password"),
 	})
 }
 
@@ -493,16 +499,17 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 			Config: r.fixedScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_option").HasValue("Terminate"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 		{
 			Config: r.fixedScale_completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
 	})
 }
 
@@ -758,6 +765,7 @@ resource "azurerm_batch_pool" "test" {
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
 
   fixed_scale {
+    node_deallocation_option  = "Terminate"
     target_dedicated_nodes    = 2
     resize_timeout            = "PT15M"
     target_low_priority_nodes = 0
@@ -1113,6 +1121,16 @@ resource "azurerm_batch_pool" "test" {
     common_environment_properties = {
       env = "TEST"
       bu  = "Research&Dev"
+    }
+
+    container_configuration {
+      type                  = "DockerCompatible"
+      container_image_names = ["centos7"]
+      container_registries {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      }
     }
 
     user_identity {

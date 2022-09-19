@@ -35,7 +35,7 @@ func flattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []inte
 }
 
 // flattenBatchPoolFixedScaleSettings flattens the fixed scale settings for a Batch pool
-func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []interface{} {
+func flattenBatchPoolFixedScaleSettings(d *pluginsdk.ResourceData, settings *batch.FixedScaleSettings) []interface{} {
 	results := make([]interface{}, 0)
 
 	if settings == nil {
@@ -44,6 +44,11 @@ func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 	}
 
 	result := make(map[string]interface{})
+
+	// for now, this is a writeOnly property, so we treat this as secret.
+	if v, ok := d.GetOk("fixed_scale.0.node_deallocation_option"); ok {
+		result["node_deallocation_option"] = v.(string)
+	}
 
 	if settings.TargetDedicatedNodes != nil {
 		result["target_dedicated_nodes"] = *settings.TargetDedicatedNodes
@@ -89,7 +94,7 @@ func flattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
 }
 
 // flattenBatchPoolStartTask flattens a Batch pool start task
-func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
+func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *batch.StartTask) []interface{} {
 	results := make([]interface{}, 0)
 
 	if startTask == nil {
@@ -103,6 +108,25 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		commandLine = *startTask.CommandLine
 	}
 	result["command_line"] = commandLine
+
+	if startTask.ContainerSettings != nil {
+		containerSettings := make(map[string]interface{})
+		containerSettings["image_name"] = *startTask.ContainerSettings.ImageName
+		containerSettings["working_directory"] = string(startTask.ContainerSettings.WorkingDirectory)
+		if startTask.ContainerSettings.ContainerRunOptions != nil {
+			containerSettings["container_run_options"] = *startTask.ContainerSettings.ContainerRunOptions
+		}
+		if startTask.ContainerSettings.Registry != nil {
+			tmpReg := flattenBatchPoolContainerRegistry(oldConfig, startTask.ContainerSettings.Registry)
+			containerSettings["registry"] = []interface{}{
+				tmpReg,
+			}
+		}
+
+		result["container_settings"] = []interface{}{
+			containerSettings,
+		}
+	}
 
 	waitForSuccess := false
 	if startTask.WaitForSuccess != nil {
@@ -674,6 +698,29 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 
 	if v := startTaskValue["common_environment_properties"].(map[string]interface{}); len(v) > 0 {
 		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
+	}
+
+	if startTaskValue["container_settings"] != nil && len(startTaskValue["container_settings"].([]interface{})) > 0 {
+		var containerSettings batch.TaskContainerSettings
+		containerSettingsList := startTaskValue["container_settings"].([]interface{})
+
+		if len(containerSettingsList) > 0 && containerSettingsList[0] != nil {
+			settingMap := containerSettingsList[0].(map[string]interface{})
+			containerSettings.ImageName = utils.String(settingMap["image_name"].(string))
+			if containerRunOptions, ok := settingMap["container_run_options"]; ok {
+				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
+			}
+			if settingMap["registry"].([]interface{})[0] != nil {
+				containerRegMap := settingMap["registry"].([]interface{})[0].(map[string]interface{})
+				if containerRegistryRef, err := expandBatchPoolContainerRegistry(containerRegMap); err == nil {
+					containerSettings.Registry = containerRegistryRef
+				}
+			}
+			if workingDir, ok := settingMap["working_directory"]; ok {
+				containerSettings.WorkingDirectory = batch.ContainerWorkingDirectory(workingDir.(string))
+			}
+		}
+		startTask.ContainerSettings = &containerSettings
 	}
 
 	return startTask, nil
