@@ -140,6 +140,8 @@ A `start_task` block exports the following:
 
 * `command_line` - The command line executed by the start task.
 
+* `container_settings` - The settings for the container under which the start task runs.
+
 * `task_retry_maximum` - The number of retry count
 
 * `wait_for_success` - A flag that indicates if the Batch pool should wait for the start task to be completed.
@@ -149,6 +151,18 @@ A `start_task` block exports the following:
 * `user_identity` - A `user_identity` block that describes the user identity under which the start task runs.
 
 * `resource_file` - One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
+---
+
+A `container_settings` block exports the following:
+
+* `image_name` - The image to use to create the container in which the task will run.
+
+* `container_run_options` - Additional options to the container create command.
+
+* `registry` - The same reference as `container_registries` block defined as follows.
+
+* `working_directory` - A flag to indicate where the container task working directory is.
 
 ---
 
