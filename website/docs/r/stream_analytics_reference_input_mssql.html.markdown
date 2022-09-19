@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `username` - (Required) The username to connect to the MS SQL database.
 
-* `password` - (Required) The username to connect to the MS SQL database.
+* `password` - (Required) The password to connect to the MS SQL database.
 
 * `refresh_type` - (Required) Defines whether and how the reference data should be refreshed. Accepted values are `Static`, `RefreshPeriodicallyWithFull` and `RefreshPeriodicallyWithDelta`.
 

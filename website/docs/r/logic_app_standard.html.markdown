@@ -11,9 +11,6 @@ description: |-
 
 Manages a Logic App (Standard / Single Tenant)
 
-~> **Note:** To connect an Azure Logic App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
-For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
-
 ## Example Usage (with App Service Plan)
 
 ```hcl
@@ -34,6 +31,8 @@ resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  kind                = "elastic"
+
 
   sku {
     tier = "WorkflowStandard"
@@ -150,6 +149,12 @@ The following arguments are supported:
 
 * `version` - (Optional) The runtime version associated with the Logic App Defaults to `~1`.
 
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -214,10 +219,12 @@ A `cors` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Standard. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Standard. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned` (to enable both).
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Logic App has been created. More details are available below.
 
+~> **NOTE:** The `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 

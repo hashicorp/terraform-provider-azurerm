@@ -38,7 +38,7 @@ resource "azurerm_kusto_cluster" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Kusto Cluster to create. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Kusto Cluster to create. Only lowercase Alphanumeric characters allowed, starting with a letter. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location where the Kusto Cluster should be created. Changing this forces a new resource to be created.
 

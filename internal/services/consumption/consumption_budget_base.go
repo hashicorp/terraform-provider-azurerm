@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
@@ -127,78 +129,6 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 							},
 						},
 					},
-					"not": {
-						Type:         pluginsdk.TypeList,
-						Optional:     true,
-						MaxItems:     1,
-						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"dimension": {
-									Type:         pluginsdk.TypeList,
-									MaxItems:     1,
-									Optional:     true,
-									ExactlyOneOf: []string{"filter.0.not.0.tag"},
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"name": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringInSlice(getDimensionNames(), false),
-											},
-											"operator": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-												Default:  "In",
-												ValidateFunc: validation.StringInSlice([]string{
-													"In",
-												}, false),
-											},
-											"values": {
-												Type:     pluginsdk.TypeList,
-												MinItems: 1,
-												Required: true,
-												Elem: &pluginsdk.Schema{
-													Type:         pluginsdk.TypeString,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-											},
-										},
-									},
-								},
-								"tag": {
-									Type:         pluginsdk.TypeList,
-									MaxItems:     1,
-									Optional:     true,
-									ExactlyOneOf: []string{"filter.0.not.0.dimension"},
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"name": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-											},
-											"operator": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-												Default:  "In",
-												ValidateFunc: validation.StringInSlice([]string{
-													"In",
-												}, false),
-											},
-											"values": {
-												Type:     pluginsdk.TypeList,
-												Required: true,
-												Elem: &pluginsdk.Schema{
-													Type:         pluginsdk.TypeString,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 		},
@@ -311,6 +241,83 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		output["filter"].Elem.(*pluginsdk.Resource).Schema["not"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			Deprecated:   "This property has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.",
+			AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"dimension": {
+						Type:         pluginsdk.TypeList,
+						MaxItems:     1,
+						Optional:     true,
+						ExactlyOneOf: []string{"filter.0.not.0.tag"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(getDimensionNames(), false),
+								},
+								"operator": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "In",
+									ValidateFunc: validation.StringInSlice([]string{
+										"In",
+									}, false),
+								},
+								"values": {
+									Type:     pluginsdk.TypeList,
+									MinItems: 1,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+					"tag": {
+						Type:         pluginsdk.TypeList,
+						MaxItems:     1,
+						Optional:     true,
+						ExactlyOneOf: []string{"filter.0.not.0.dimension"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"operator": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "In",
+									ValidateFunc: validation.StringInSlice([]string{
+										"In",
+									}, false),
+								},
+								"values": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
 	// Consumption Budgets for Management Groups have a different notification schema,
 	// here we override the notification schema in the base resource
 	for k, v := range fields {
@@ -565,7 +572,7 @@ func expandConsumptionBudgetNotifications(input []interface{}) *map[string]budge
 				notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
 			}
 
-			notificationKey := fmt.Sprintf("actual_%s_%f_Percent", string(notification.Operator), notification.Threshold)
+			notificationKey := fmt.Sprintf("%s_%s_%f_Percent", string(thresholdType), string(notification.Operator), notification.Threshold)
 			notifications[notificationKey] = notification
 		}
 	}

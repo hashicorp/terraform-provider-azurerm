@@ -156,6 +156,11 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"virtual_network_subnet_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"site_credential": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -240,6 +245,10 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	appSettings := flattenLogicAppStandardDataSourceAppSettings(appSettingsResp.Properties)
+
+	if err = d.Set("virtual_network_subnet_id", resp.SiteProperties.VirtualNetworkSubnetID); err != nil {
+		return err
+	}
 
 	if err = d.Set("connection_string", flattenLogicAppStandardDataSourceConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
