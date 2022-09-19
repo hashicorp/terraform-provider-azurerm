@@ -1117,6 +1117,16 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
+  container_configuration {
+    type                  = "DockerCompatible"
+    container_image_names = ["centos7"]
+    container_registries {
+      registry_server = "myContainerRegistry.azurecr.io"
+      user_name       = "myUserName"
+      password        = "myPassword"
+    }
+  }
+
   start_task {
     command_line       = "echo 'Hello World from $env'"
     wait_for_success   = true
