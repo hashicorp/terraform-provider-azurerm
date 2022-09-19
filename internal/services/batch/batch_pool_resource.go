@@ -591,6 +591,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 								string(batch.StorageAccountTypePremiumLRS),
 							}, false),
 						},
+						"source_port_ranges": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								Default:      "*",
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 					},
 				},
 			},

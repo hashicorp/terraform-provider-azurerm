@@ -537,6 +537,13 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
+												"source_port_ranges": {
+													Type:     pluginsdk.TypeList,
+													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
 											},
 										},
 									},

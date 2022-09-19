@@ -324,6 +324,8 @@ A `network_security_group_rules` block exports the following:
 
 * `source_address_prefix` - The source address prefix or tag to match for the rule.
 
+* `source_port_ranges` - The source port ranges to match for the rule.
+
 ---
 
 A `task_scheduling_policy` block exports the following:

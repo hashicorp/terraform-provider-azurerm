@@ -1164,6 +1164,21 @@ func expandPoolNetworkSecurityGroupRule(list []interface{}) []batch.NetworkSecur
 		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
 		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
 
+		networkSecurityGroupRuleObject := batch.NetworkSecurityGroupRule{
+			Priority:            &priority,
+			SourceAddressPrefix: &sourceAddressPrefix,
+			Access:              access,
+		}
+
+		portRanges := groupRuleMap["source_port_ranges"].([]interface{})
+		if len(portRanges) > 0 {
+			portRangesResult := make([]string, 0)
+			for _, v := range portRanges {
+				portRangesResult = append(portRangesResult, v.(string))
+			}
+			networkSecurityGroupRuleObject.SourcePortRanges = &portRangesResult
+		}
+
 		networkSecurityGroupRule = append(networkSecurityGroupRule, batch.NetworkSecurityGroupRule{
 			Priority:            &priority,
 			SourceAddressPrefix: &sourceAddressPrefix,
@@ -1220,10 +1235,17 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 					if networkSecurity.SourceAddressPrefix != nil {
 						sourceAddressPrefix = *networkSecurity.SourceAddressPrefix
 					}
+					sourcePortRanges := make([]interface{}, 0)
+					if networkSecurity.SourcePortRanges != nil {
+						for _, sourcePortRange := range *networkSecurity.SourcePortRanges {
+							sourcePortRanges = append(sourcePortRanges, sourcePortRange)
+						}
+					}
 					networkSecurities = append(networkSecurities, map[string]interface{}{
 						"access":                string(networkSecurity.Access),
 						"priority":              priority,
 						"source_address_prefix": sourceAddressPrefix,
+						"source_port_ranges":    sourcePortRanges,
 					})
 				}
 			}
