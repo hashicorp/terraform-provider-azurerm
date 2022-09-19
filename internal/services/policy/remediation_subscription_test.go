@@ -109,7 +109,6 @@ resource "azurerm_subscription_policy_remediation" "test" {
   subscription_id         = data.azurerm_subscription.test.id
   policy_assignment_id    = azurerm_subscription_policy_assignment.test.id
   location_filters        = ["westus"]
-  policy_definition_id    = data.azurerm_policy_definition.test.id
   resource_discovery_mode = "ReEvaluateCompliance"
   failure_percentage      = 0.5
   parallel_deployments    = 3
