@@ -60,6 +60,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 					// It seems only user account is allowed to be elevated access.
 					validation.StringInSlice([]string{
 						"/providers/Microsoft.Subscription",
+						"/providers/Microsoft.Marketplace",
 					}, false),
 
 					billingValidate.EnrollmentID,

@@ -246,6 +246,20 @@ func TestAccRoleAssignment_subscriptionScoped(t *testing.T) {
 	})
 }
 
+func TestAccRoleAssignment_marketPlaceScoped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.marketPlaceScoped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
@@ -584,6 +598,28 @@ resource "azuread_service_principal" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = "/providers/Microsoft.Subscription"
   role_definition_name = "Reader"
+  principal_id         = azuread_service_principal.test.object_id
+}
+`, data.RandomInteger)
+}
+
+func (RoleAssignmentResource) marketPlaceScoped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = "/providers/Microsoft.Marketplace"
+  role_definition_name = "Marketplace Admin"
   principal_id         = azuread_service_principal.test.object_id
 }
 `, data.RandomInteger)

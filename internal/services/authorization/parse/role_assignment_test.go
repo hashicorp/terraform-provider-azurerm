@@ -10,15 +10,15 @@ var _ resourceid.Formatter = RoleAssignmentId{}
 
 func TestRoleAssignmentIDFormatter(t *testing.T) {
 	testData := []struct {
-		SubscriptionId      string
-		ResourceGroup       string
-		ResourceProvider    string
-		ResourceScope       string
-		ManagementGroup     string
-		IsSubscriptionLevel bool
-		Name                string
-		TenantId            string
-		Expected            string
+		SubscriptionId   string
+		ResourceGroup    string
+		ResourceProvider string
+		ResourceScope    string
+		ManagementGroup  string
+		IsRootLevel      bool
+		Name             string
+		TenantId         string
+		Expected         string
 	}{
 		{
 			SubscriptionId:  "",
@@ -91,15 +91,23 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			Expected:         "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/nameStorageAccount/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
 		},
 		{
-			IsSubscriptionLevel: true,
-			Name:                "23456781-2349-8764-5631-234567890121",
-			TenantId:            "34567812-3456-7653-6742-345678901234",
-			Expected:            "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
+			IsRootLevel:      true,
+			ResourceProvider: "Microsoft.Subscription",
+			Name:             "23456781-2349-8764-5631-234567890121",
+			TenantId:         "34567812-3456-7653-6742-345678901234",
+			Expected:         "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
+		},
+		{
+			IsRootLevel:      true,
+			ResourceProvider: "Microsoft.Marketplace",
+			Name:             "23456781-2349-8764-5631-234567890121",
+			TenantId:         "34567812-3456-7653-6742-345678901234",
+			Expected:         "/providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
 		},
 	}
 	for _, v := range testData {
 		t.Logf("testing %+v", v)
-		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.IsSubscriptionLevel)
+		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.IsRootLevel)
 		if err != nil {
 			if v.Expected == "" {
 				continue
@@ -165,8 +173,19 @@ func TestRoleAssignmentID(t *testing.T) {
 			// valid at subscriptions scope
 			Input: "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
 			Expected: &RoleAssignmentId{
-				IsSubscriptionLevel: true,
-				Name:                "23456781-2349-8764-5631-234567890121",
+				IsRootLevel:      true,
+				ResourceProvider: "Microsoft.Subscription",
+				Name:             "23456781-2349-8764-5631-234567890121",
+			},
+		},
+
+		{
+			// valid at marketplace scope
+			Input: "/providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				IsRootLevel:      true,
+				ResourceProvider: "Microsoft.Marketplace",
+				Name:             "23456781-2349-8764-5631-234567890121",
 			},
 		},
 

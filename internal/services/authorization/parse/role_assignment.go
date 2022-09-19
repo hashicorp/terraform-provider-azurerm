@@ -2,36 +2,37 @@ package parse
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 type RoleAssignmentId struct {
-	SubscriptionID      string
-	ResourceGroup       string
-	ManagementGroup     string
-	ResourceScope       string
-	ResourceProvider    string
-	Name                string
-	TenantId            string
-	IsSubscriptionLevel bool
+	SubscriptionID   string
+	ResourceGroup    string
+	ManagementGroup  string
+	ResourceScope    string
+	ResourceProvider string
+	Name             string
+	TenantId         string
+	IsRootLevel      bool
 }
 
-func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId string, isSubLevel bool) (*RoleAssignmentId, error) {
-	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isSubLevel {
-		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, managementGroup or isSubscriptionLevel must be provided")
+func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId string, isRootLevel bool) (*RoleAssignmentId, error) {
+	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isRootLevel {
+		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, managementGroup or isRootLevel must be provided")
 	}
 
 	if managementGroup != "" {
-		if subscriptionId != "" || resourceGroup != "" || isSubLevel {
-			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or isSubscriptionLevel when managementGroup is provided")
+		if subscriptionId != "" || resourceGroup != "" || isRootLevel {
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or isRootLevel when managementGroup is provided")
 		}
 	}
 
-	if isSubLevel {
+	if isRootLevel {
 		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
-			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionLevel is provided")
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or managementGroup when isRootLevel is provided")
 		}
 	}
 
@@ -42,14 +43,14 @@ func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resour
 	}
 
 	return &RoleAssignmentId{
-		SubscriptionID:      subscriptionId,
-		ResourceGroup:       resourceGroup,
-		ResourceProvider:    resourceProvider,
-		ResourceScope:       resourceScope,
-		ManagementGroup:     managementGroup,
-		Name:                name,
-		TenantId:            tenantId,
-		IsSubscriptionLevel: isSubLevel,
+		SubscriptionID:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		ResourceProvider: resourceProvider,
+		ResourceScope:    resourceScope,
+		ManagementGroup:  managementGroup,
+		Name:             name,
+		TenantId:         tenantId,
+		IsRootLevel:      isRootLevel,
 	}, nil
 }
 
@@ -71,9 +72,9 @@ func (id RoleAssignmentId) AzureResourceID() string {
 		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.Name)
 	}
 
-	if id.IsSubscriptionLevel {
-		fmtString := "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.Name)
+	if id.IsRootLevel {
+		fmtString := "/providers/%s/providers/Microsoft.Authorization/roleAssignments/%s"
+		return fmt.Sprintf(fmtString, id.ResourceProvider, id.Name)
 	}
 
 	fmtString := "/subscriptions/%s/providers/Microsoft.Authorization/roleAssignments/%s"
@@ -124,16 +125,6 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if roleAssignmentId.Name, err = id.PopSegment("roleAssignments"); err != nil {
 			return nil, err
 		}
-	case strings.HasPrefix(input, "/providers/Microsoft.Subscription/"):
-		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
-		if len(idParts) != 2 {
-			return nil, fmt.Errorf("could not parse Role Assignment ID %q for subscription scope", input)
-		}
-		roleAssignmentId.IsSubscriptionLevel = true
-		if idParts[1] == "" {
-			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
-		}
-		roleAssignmentId.Name = idParts[1]
 	case strings.HasPrefix(input, "/providers/Microsoft.Management/"):
 		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
 		if len(idParts) != 2 {
@@ -145,7 +136,15 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		roleAssignmentId.Name = idParts[1]
 		roleAssignmentId.ManagementGroup = strings.TrimPrefix(idParts[0], "/providers/Microsoft.Management/managementGroups/")
 	default:
-		return nil, fmt.Errorf("could not parse Role Assignment ID %q", input)
+		re := regexp.MustCompile(`^/providers/(Microsoft.[a-zA-Z]+)/providers/Microsoft.Authorization/roleAssignments/([a-fA-F\d]{8}-[a-fA-F\d]{4}-[a-fA-F\d]{4}-[a-fA-F\d]{4}-[a-fA-F\d]{12})$`)
+		matches := re.FindStringSubmatch(input)
+		if len(matches) != 3 {
+			return nil, fmt.Errorf("could not parse Role Assignment ID %q", input)
+		}
+
+		roleAssignmentId.IsRootLevel = true
+		roleAssignmentId.ResourceProvider = matches[1]
+		roleAssignmentId.Name = matches[2]
 	}
 
 	return &roleAssignmentId, nil
