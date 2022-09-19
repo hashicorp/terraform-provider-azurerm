@@ -356,6 +356,8 @@ func TestAccCosmosDBAccount_complete_tags(t *testing.T) {
 
 func TestAccCosmosDBAccount_completeZoneRedundant_mongo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	// Limited regional availability
+	data.Locations.Primary = "westeurope"
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -379,6 +381,8 @@ func TestAccCosmosDBAccount_completeZoneRedundant_parse(t *testing.T) {
 
 func testAccCosmosDBAccount_zoneRedundantWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	// Limited regional availability
+	data.Locations.Primary = "westeurope"
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -394,6 +398,8 @@ func testAccCosmosDBAccount_zoneRedundantWith(t *testing.T, kind documentdb.Data
 
 func TestAccCosmosDBAccount_zoneRedundant_update_mongo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	// Limited regional availability
+	data.Locations.Primary = "westeurope"
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
