@@ -7,19 +7,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SnapshotPoliciesId{}
+var _ resourceids.ResourceId = SnapshotPolicyId{}
 
-// SnapshotPoliciesId is a struct representing the Resource ID for a Snapshot Policies
-type SnapshotPoliciesId struct {
+// SnapshotPolicyId is a struct representing the Resource ID for a Snapshot Policy
+type SnapshotPolicyId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
 	AccountName        string
 	SnapshotPolicyName string
 }
 
-// NewSnapshotPoliciesID returns a new SnapshotPoliciesId struct
-func NewSnapshotPoliciesID(subscriptionId string, resourceGroupName string, accountName string, snapshotPolicyName string) SnapshotPoliciesId {
-	return SnapshotPoliciesId{
+// NewSnapshotPolicyID returns a new SnapshotPolicyId struct
+func NewSnapshotPolicyID(subscriptionId string, resourceGroupName string, accountName string, snapshotPolicyName string) SnapshotPolicyId {
+	return SnapshotPolicyId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroupName:  resourceGroupName,
 		AccountName:        accountName,
@@ -27,16 +27,16 @@ func NewSnapshotPoliciesID(subscriptionId string, resourceGroupName string, acco
 	}
 }
 
-// ParseSnapshotPoliciesID parses 'input' into a SnapshotPoliciesId
-func ParseSnapshotPoliciesID(input string) (*SnapshotPoliciesId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SnapshotPoliciesId{})
+// ParseSnapshotPolicyID parses 'input' into a SnapshotPolicyId
+func ParseSnapshotPolicyID(input string) (*SnapshotPolicyId, error) {
+	parser := resourceids.NewParserFromResourceIdType(SnapshotPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := SnapshotPoliciesId{}
+	id := SnapshotPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -57,17 +57,17 @@ func ParseSnapshotPoliciesID(input string) (*SnapshotPoliciesId, error) {
 	return &id, nil
 }
 
-// ParseSnapshotPoliciesIDInsensitively parses 'input' case-insensitively into a SnapshotPoliciesId
+// ParseSnapshotPolicyIDInsensitively parses 'input' case-insensitively into a SnapshotPolicyId
 // note: this method should only be used for API response data and not user input
-func ParseSnapshotPoliciesIDInsensitively(input string) (*SnapshotPoliciesId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SnapshotPoliciesId{})
+func ParseSnapshotPolicyIDInsensitively(input string) (*SnapshotPolicyId, error) {
+	parser := resourceids.NewParserFromResourceIdType(SnapshotPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := SnapshotPoliciesId{}
+	id := SnapshotPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -88,29 +88,29 @@ func ParseSnapshotPoliciesIDInsensitively(input string) (*SnapshotPoliciesId, er
 	return &id, nil
 }
 
-// ValidateSnapshotPoliciesID checks that 'input' can be parsed as a Snapshot Policies ID
-func ValidateSnapshotPoliciesID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateSnapshotPolicyID checks that 'input' can be parsed as a Snapshot Policy ID
+func ValidateSnapshotPolicyID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseSnapshotPoliciesID(v); err != nil {
+	if _, err := ParseSnapshotPolicyID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Snapshot Policies ID
-func (id SnapshotPoliciesId) ID() string {
+// ID returns the formatted Snapshot Policy ID
+func (id SnapshotPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s/snapshotPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.SnapshotPolicyName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Snapshot Policies ID
-func (id SnapshotPoliciesId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Snapshot Policy ID
+func (id SnapshotPolicyId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -125,13 +125,13 @@ func (id SnapshotPoliciesId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Snapshot Policies ID
-func (id SnapshotPoliciesId) String() string {
+// String returns a human-readable description of this Snapshot Policy ID
+func (id SnapshotPolicyId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Account Name: %q", id.AccountName),
 		fmt.Sprintf("Snapshot Policy Name: %q", id.SnapshotPolicyName),
 	}
-	return fmt.Sprintf("Snapshot Policies (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Snapshot Policy (%s)", strings.Join(components, "\n"))
 }

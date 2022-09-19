@@ -19,7 +19,7 @@ type CreateOperationResponse struct {
 }
 
 // Create ...
-func (c CapacitiesClient) Create(ctx context.Context, id CapacitiesId, input DedicatedCapacity) (result CreateOperationResponse, err error) {
+func (c CapacitiesClient) Create(ctx context.Context, id CapacityId, input DedicatedCapacity) (result CreateOperationResponse, err error) {
 	req, err := c.preparerForCreate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "capacities.CapacitiesClient", "Create", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c CapacitiesClient) Create(ctx context.Context, id CapacitiesId, input Ded
 }
 
 // CreateThenPoll performs Create then polls until it's completed
-func (c CapacitiesClient) CreateThenPoll(ctx context.Context, id CapacitiesId, input DedicatedCapacity) error {
+func (c CapacitiesClient) CreateThenPoll(ctx context.Context, id CapacityId, input DedicatedCapacity) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
@@ -50,7 +50,7 @@ func (c CapacitiesClient) CreateThenPoll(ctx context.Context, id CapacitiesId, i
 }
 
 // preparerForCreate prepares the Create request.
-func (c CapacitiesClient) preparerForCreate(ctx context.Context, id CapacitiesId, input DedicatedCapacity) (*http.Request, error) {
+func (c CapacitiesClient) preparerForCreate(ctx context.Context, id CapacityId, input DedicatedCapacity) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

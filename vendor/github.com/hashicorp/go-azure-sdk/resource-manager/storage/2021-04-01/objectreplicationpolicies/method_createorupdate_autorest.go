@@ -17,7 +17,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c ObjectReplicationPoliciesClient) CreateOrUpdate(ctx context.Context, id ObjectReplicationPoliciesId, input ObjectReplicationPolicy) (result CreateOrUpdateOperationResponse, err error) {
+func (c ObjectReplicationPoliciesClient) CreateOrUpdate(ctx context.Context, id ObjectReplicationPolicyId, input ObjectReplicationPolicy) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ObjectReplicationPoliciesClient) CreateOrUpdate(ctx context.Context, id 
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c ObjectReplicationPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id ObjectReplicationPoliciesId, input ObjectReplicationPolicy) (*http.Request, error) {
+func (c ObjectReplicationPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id ObjectReplicationPolicyId, input ObjectReplicationPolicy) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
