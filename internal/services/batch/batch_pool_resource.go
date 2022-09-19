@@ -461,6 +461,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"dynamic_vnet_assignment_scope": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							Default:          string(batch.DynamicVNetAssignmentScopeNone),
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.DynamicVNetAssignmentScopeNone),
+								string(batch.DynamicVNetAssignmentScopeJob),
+							}, false),
+						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -548,6 +559,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
+												"source_port_ranges": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Computed: true,
+													ForceNew: true,
+													Elem: &pluginsdk.Schema{
+														Type:         pluginsdk.TypeString,
+														Default:      "*",
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
 											},
 										},
 									},
@@ -590,17 +612,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 								string(batch.StorageAccountTypeStandardLRS),
 								string(batch.StorageAccountTypePremiumLRS),
 							}, false),
-						},
-						"source_port_ranges": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								Default:      "*",
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
 						},
 					},
 				},

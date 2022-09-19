@@ -298,7 +298,13 @@ A `network_configuration` block exports the following:
 
 * `subnet_id` - The ARM resource identifier of the virtual network subnet which the compute nodes of the pool are joined too.
 
+* `dynamic_vnet_assignment_scope` - The scope of dynamic vnet assignment.
+
 * `endpoint_configuration` - The inbound NAT pools that are used to address specific ports on the individual compute node externally.
+
+* `public_ips` - A list of public IP ids that will be allocated to nodes.
+
+* `public_address_provisioning_type` - Type of public IP address provisioning.
 
 ---
 

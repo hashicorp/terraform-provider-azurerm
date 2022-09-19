@@ -1060,6 +1060,10 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	networkConfigValue := list[0].(map[string]interface{})
 	networkConfiguration := &batch.NetworkConfiguration{}
 
+	if v, ok := networkConfigValue["dynamic_vnet_assignment_scope"]; ok {
+		networkConfiguration.DynamicVNetAssignmentScope = batch.DynamicVNetAssignmentScope(v.(string))
+	}
+
 	if v, ok := networkConfigValue["subnet_id"]; ok {
 		if value := v.(string); value != "" {
 			networkConfiguration.SubnetID = &value
@@ -1262,6 +1266,7 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 
 	return []interface{}{
 		map[string]interface{}{
+			"dynamic_vnet_assignment_scope":    string(input.DynamicVNetAssignmentScope),
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
 			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),

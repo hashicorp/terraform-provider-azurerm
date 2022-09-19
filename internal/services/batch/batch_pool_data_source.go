@@ -484,6 +484,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"dynamic_vnet_assignment_scope": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"subnet_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,

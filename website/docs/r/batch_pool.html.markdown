@@ -432,6 +432,8 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
+* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `None`, `Job`.
+
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
@@ -456,11 +458,13 @@ A `endpoint_configuration` block supports the following:
 
 A `network_security_group_rules` block supports the following:
 
-* `access` - The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
+* `access` - (Required) The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
 
-* `priority` - The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
+* `priority` - (Required) The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
 
-* `source_address_prefix` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+* `source_address_prefix` - (Required) The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+
+* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are `*` (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be `*`.
 
 ---
 
