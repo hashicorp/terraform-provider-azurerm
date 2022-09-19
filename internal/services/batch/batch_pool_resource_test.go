@@ -1940,7 +1940,7 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
-    dynamic_vnet_assignment_scope    = "None"
+    dynamic_vnet_assignment_scope    = "none"
     public_address_provisioning_type = "UserManaged"
     public_ips                       = [azurerm_public_ip.test.id]
     subnet_id                        = azurerm_subnet.test.id
