@@ -17,8 +17,6 @@ type CosmosDbNotebookWorkspaceResource struct{}
 
 func TestAccCosmosDbNotebookWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_notebook_workspace", "test")
-	// Limited regional availability
-	data.Locations.Primary = "westeurope"
 	r := CosmosDbNotebookWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,8 +31,6 @@ func TestAccCosmosDbNotebookWorkspace_basic(t *testing.T) {
 
 func TestAccCosmosDbNotebookWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_notebook_workspace", "test")
-	// Limited regional availability
-	data.Locations.Primary = "westeurope"
 	r := CosmosDbNotebookWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
