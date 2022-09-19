@@ -72,8 +72,6 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the source Storage Account. Changing this forces a new Backup Instance Blob Storage to be created.
 
-* `storage_account_location` - (Required) The location of the source Storage Account. Changing this forces a new Backup Instance Blob Storage to be created.
-
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
 ## Attributes Reference
