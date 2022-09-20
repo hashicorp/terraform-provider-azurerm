@@ -2,9 +2,10 @@ package recoveryservices
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationfabrics"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSiteRecoveryFabric() *pluginsdk.Resource {
@@ -55,104 +55,107 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 }
 
 func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	name := d.Get("name").(string)
 
-	client := meta.(*clients.Client).RecoveryServices.FabricClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.FabricClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	id := replicationfabrics.NewReplicationFabricID(subscriptionId, resGroup, vaultName, name)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name)
+		existing, err := client.Get(ctx, id, replicationfabrics.DefaultGetOperationOptions())
 		if err != nil {
 			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasBadRequest(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_fabric", handleAzureSdkForGoBug2824(*existing.ID))
+		if model := existing.Model; model != nil && model.Id != nil && *model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_site_recovery_fabric", *model.Id)
 		}
 	}
 
-	parameters := siterecovery.FabricCreationInput{
-		Properties: &siterecovery.FabricCreationInputProperties{
-			CustomDetails: siterecovery.AzureFabricCreationInput{
-				InstanceType: "Azure",
-				Location:     &location,
+	parameters := replicationfabrics.FabricCreationInput{
+		Properties: &replicationfabrics.FabricCreationInputProperties{
+			CustomDetails: replicationfabrics.AzureFabricCreationInput{
+				Location: &location,
 			},
 		},
 	}
 
-	future, err := client.Create(ctx, name, parameters)
+	err := client.CreateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
-	}
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, id, replicationfabrics.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("retrieving site recovery fabric %s (vault %s): model is nil", name, vaultName)
+	}
+
+	d.SetId(handleAzureSdkForGoBug2824(*model.Id))
 
 	return resourceSiteRecoveryFabricRead(d, meta)
 }
 
 func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.ReplicationFabricID(d.Id())
+	id, err := replicationfabrics.ParseReplicationFabricID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	fabricClient := meta.(*clients.Client).RecoveryServices.FabricClient(id.ResourceGroup, id.VaultName)
+	fabricClient := meta.(*clients.Client).RecoveryServices.FabricClient
 	client := fabricClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, id.Name)
+	resp, err := client.Get(ctx, *id, replicationfabrics.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making read request on site recovery fabric %s: %+v", id.String(), err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if props := resp.Properties; props != nil {
-		if azureDetails, isAzureDetails := props.CustomDetails.AsAzureFabricSpecificDetails(); isAzureDetails {
-			d.Set("location", azureDetails.Location)
-		}
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("making read request on site recovery fabric %s: model is nil", id.String())
 	}
-	d.Set("recovery_vault_name", id.VaultName)
+
+	d.Set("name", model.Name)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	if model.Location != nil {
+		d.Set("location", model.Location)
+	}
+	d.Set("recovery_vault_name", id.ResourceName)
 	return nil
 }
 
 func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.ReplicationFabricID(d.Id())
+	id, err := replicationfabrics.ParseReplicationFabricID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.FabricClient(id.ResourceGroup, id.VaultName)
+	client := meta.(*clients.Client).RecoveryServices.FabricClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	future, err := client.Delete(ctx, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting site recovery fabric %s : %+v", id.String(), err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of site recovery fabric %s : %+v", id.String(), err)
 	}
 
 	return nil
