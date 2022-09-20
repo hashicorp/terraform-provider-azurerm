@@ -248,6 +248,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 					},
 				},
 			},
+			"target_proximity_placement_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 			"network_interface": {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -361,12 +366,13 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
 			PolicyId: &policyId,
 			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
-				FabricObjectId:            sourceVmId,
-				RecoveryContainerId:       &targetProtectionContainerId,
-				RecoveryResourceGroupId:   &targetResourceGroupId,
-				RecoveryAvailabilitySetId: targetAvailabilitySetID,
-				RecoveryAvailabilityZone:  targetAvailabilityZone,
-				VmManagedDisks:            &managedDisks,
+				FabricObjectId:                    sourceVmId,
+				RecoveryContainerId:               &targetProtectionContainerId,
+				RecoveryResourceGroupId:           &targetResourceGroupId,
+				RecoveryAvailabilitySetId:         targetAvailabilitySetID,
+				RecoveryAvailabilityZone:          targetAvailabilityZone,
+				RecoveryProximityPlacementGroupId: utils.String(d.Get("target_proximity_placement_group_id").(string)),
+				VmManagedDisks:                    &managedDisks,
 			},
 		},
 	}
@@ -484,7 +490,8 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			VmNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
-				ManagedDiskUpdateDetails: &managedDisks,
+				ManagedDiskUpdateDetails:          &managedDisks,
+				RecoveryProximityPlacementGroupId: utils.String(d.Get("target_proximity_placement_group_id").(string)),
 			},
 		},
 	}
@@ -551,6 +558,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 			d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
+			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
+
 			if a2aDetails.ProtectedManagedDisks != nil {
 				disksOutput := make([]interface{}, 0)
 				for _, disk := range *a2aDetails.ProtectedManagedDisks {
