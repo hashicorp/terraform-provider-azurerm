@@ -1,8 +1,14 @@
+## 3.24.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to version v0.20220916.1125744 of `github.com/hashicorp/go-azure-sdk` [GH-18446]
+
 ## 3.23.0 (September 15, 2022)
 
 FEATURES:
 
-* **New Data Source**: `private_dns_zone_virtual_network_link` ([#18045](https://github.com/hashicorp/terraform-provider-azurerm/issues/18045))
+* **New Data Source**: `azurerm_private_dns_zone_virtual_network_link` ([#18045](https://github.com/hashicorp/terraform-provider-azurerm/issues/18045))
 * **New Data Source**: `azurerm_monitor_data_collection_rule` ([#18318](https://github.com/hashicorp/terraform-provider-azurerm/issues/18318))
 
 ENHANCEMENTS:
