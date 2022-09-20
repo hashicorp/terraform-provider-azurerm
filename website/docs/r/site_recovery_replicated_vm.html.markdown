@@ -250,6 +250,8 @@ The following arguments are supported:
 
 * `target_boot_diag_storage_account_id` - (Optional) Id of the storage account which the Failover VM should used for boot diagnostic.
 
+* `target_capacity_reservation_group_id` - (Optional) Id of the Capacity reservation group where the new VM should belong to when a failover is done.
+
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover). 
 
 * `network_interface` - (Optional) One or more `network_interface` block.

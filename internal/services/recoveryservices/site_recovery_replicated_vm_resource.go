@@ -258,6 +258,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+			"target_capacity_reservation_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 			"network_interface": {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -371,14 +376,15 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
 			PolicyId: &policyId,
 			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
-				FabricObjectId:                    sourceVmId,
-				RecoveryContainerId:               &targetProtectionContainerId,
-				RecoveryResourceGroupId:           &targetResourceGroupId,
-				RecoveryAvailabilitySetId:         targetAvailabilitySetID,
-				RecoveryAvailabilityZone:          targetAvailabilityZone,
-				RecoveryProximityPlacementGroupId: utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:  utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
-				VmManagedDisks:                    &managedDisks,
+				FabricObjectId:                     sourceVmId,
+				RecoveryContainerId:                &targetProtectionContainerId,
+				RecoveryResourceGroupId:            &targetResourceGroupId,
+				RecoveryAvailabilitySetId:          targetAvailabilitySetID,
+				RecoveryAvailabilityZone:           targetAvailabilityZone,
+				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
+				VmManagedDisks:                     &managedDisks,
 			},
 		},
 	}
@@ -496,9 +502,10 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			VmNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
-				ManagedDiskUpdateDetails:          &managedDisks,
-				RecoveryProximityPlacementGroupId: utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:  utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
+				ManagedDiskUpdateDetails:           &managedDisks,
+				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
 			},
 		},
 	}
@@ -567,6 +574,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
 			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
 			d.Set("target_boot_diag_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
+			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
 
 			if a2aDetails.ProtectedManagedDisks != nil {
 				disksOutput := make([]interface{}, 0)
