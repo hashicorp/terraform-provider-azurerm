@@ -272,12 +272,12 @@ func TestAccBatchPool_startTask_complete(t *testing.T) {
 			Config: r.startTask_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.registry.0.user_name").HasValue("myUserName"),
-				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.registry.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
-				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.registry.0.user_name").HasValue("myUserName"),
-				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.container_run_options").HasValue("cat /proc/cpuinfo"),
-				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.image_name").HasValue("centos7"),
-				check.That(data.ResourceName).Key("start_task.0.container_configuration.0.working_directory ").HasValue("ContainerImageDefault"),
+				check.That(data.ResourceName).Key("start_task.0.container_settings.0.registry.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("start_task.0.container_settings.0.registry.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
+				check.That(data.ResourceName).Key("start_task.0.container_settings.0.registry.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("start_task.0.container_settings.0.container_run_options").HasValue("cat /proc/cpuinfo"),
+				check.That(data.ResourceName).Key("start_task.0.container_settings.0.image_name").HasValue("centos7"),
+				check.That(data.ResourceName).Key("start_task.0.container_settings.0.working_directory").HasValue("ContainerImageDefault"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation",
@@ -1083,15 +1083,9 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) startTask_complete(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
@@ -1103,7 +1097,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1111,9 +1105,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-lts"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 
@@ -1160,7 +1154,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) startTask_userIdentity(data acceptance.TestData) string {

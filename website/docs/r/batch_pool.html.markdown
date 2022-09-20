@@ -296,7 +296,7 @@ A `container_settings` block supports the following:
 
 * `registry` - (Optional) The same reference as `container_registries` block defined as follows.
 
-* `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is "TaskWorkingDirectory", an alternative value is "ContainerImageDefault".
+* `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is `TaskWorkingDirectory`, an alternative value is `ContainerImageDefault`.
 
 ---
 
