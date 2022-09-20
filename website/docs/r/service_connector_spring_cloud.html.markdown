@@ -18,48 +18,41 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_cosmosdb_account" "example" {
-  name                = "example-cosmosdb-account"
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "example" {
+  name                       = "example-key-vault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_service_plan" "example" {
   location            = azurerm_resource_group.example.location
+  name                = "example-service-plan"
   resource_group_name = azurerm_resource_group.example.name
-  offer_type          = "Standard"
-  kind                = "GlobalDocumentDB"
-
-  consistency_policy {
-    consistency_level       = "BoundedStaleness"
-    max_interval_in_seconds = 10
-    max_staleness_prefix    = 200
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.example.location
-    failover_priority = 0
-  }
+  sku_name            = "P1v2"
+  os_type             = "Linux"
 }
 
-resource "azurerm_cosmosdb_sql_database" "example" {
-  name                = "cosmos-sql-db"
-  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
-  account_name        = azurerm_cosmosdb_account.example.name
-  throughput          = 400
-}
-
-resource "azurerm_cosmosdb_sql_container" "example" {
-  name                = "example-container"
-  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
-  account_name        = azurerm_cosmosdb_account.example.name
-  database_name       = azurerm_cosmosdb_sql_database.example.name
-  partition_key_path  = "/definition"
+resource "azurerm_linux_web_app" "example" {
+  location            = azurerm_resource_group.example.location
+  name                = "example-web-app"
+  resource_group_name = azurerm_resource_group.example.name
+  service_plan_id     = azurerm_service_plan.example.id
+  site_config {}
 }
 
 resource "azurerm_spring_cloud_service" "example" {
-  name                = "examplespringcloud"
+  name                = "example-spring-cloud-service"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_spring_cloud_app" "example" {
-  name                = "examplespringcloudapp"
+  name                = "example-spring-cloud-app"
   resource_group_name = azurerm_resource_group.example.name
   service_name        = azurerm_spring_cloud_service.example.name
 
@@ -69,14 +62,14 @@ resource "azurerm_spring_cloud_app" "example" {
 }
 
 resource "azurerm_spring_cloud_java_deployment" "example" {
-  name                = "exampledeployment"
+  name                = "example-java-deployment"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
 }
 
 resource "azurerm_spring_cloud_connection" "example" {
-  name               = "example-serviceconnector"
+  name               = "example-spring-cloud-connection"
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.example.id
-  target_resource_id = azurerm_cosmosdb_sql_database.example.id
+  target_resource_id = azurerm_key_vault.example.id
   authentication {
     type = "systemAssignedIdentity"
   }

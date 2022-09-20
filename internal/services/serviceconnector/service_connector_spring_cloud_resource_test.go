@@ -83,6 +83,21 @@ func TestAccServiceConnectorSpringCloud_complete(t *testing.T) {
 	})
 }
 
+func TestAccServiceConnectorSpringCloudKeyVault_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
+	r := ServiceConnectorSpringCloudResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ServiceConnectorSpringCloudResource) cosmosdbBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -167,6 +182,76 @@ resource "azurerm_spring_cloud_connection" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r ServiceConnectorSpringCloudResource) keyVault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_service_plan" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "testserviceplan%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "P1v2"
+  os_type             = "Linux"
+}
+
+resource "azurerm_linux_web_app" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "linuxwebapp%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  site_config {}
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "testspringcloudservice-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "testspringcloud-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  service_name        = azurerm_spring_cloud_service.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_spring_cloud_java_deployment" "test" {
+  name                = "deploy-%[3]s"
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+}
+
+resource "azurerm_spring_cloud_connection" "test" {
+  name               = "acctestserviceconnector%[1]d"
+  spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
+  target_resource_id = azurerm_key_vault.test.id
+  authentication {
+    type = "systemAssignedIdentity"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r ServiceConnectorSpringCloudResource) template(data acceptance.TestData) string {

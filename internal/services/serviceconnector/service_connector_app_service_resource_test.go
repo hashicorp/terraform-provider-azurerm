@@ -83,6 +83,21 @@ func TestAccServiceConnectorAppService_complete(t *testing.T) {
 	})
 }
 
+func TestAccServiceConnectorAppServiceKeyVault_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
+	r := ServiceConnectorAppServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ServiceConnectorAppServiceResource) cosmosdbBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -154,6 +169,55 @@ resource "azurerm_app_service_connection" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r ServiceConnectorAppServiceResource) keyVault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_service_plan" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "testserviceplan%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "P1v2"
+  os_type             = "Linux"
+}
+
+resource "azurerm_linux_web_app" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "linuxwebapp%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  site_config {}
+}
+
+resource "azurerm_app_service_connection" "test" {
+  name               = "acctestserviceconnector%[1]d"
+  app_service_id     = azurerm_linux_web_app.test.id
+  target_resource_id = azurerm_key_vault.test.id
+  authentication {
+    type = "systemAssignedIdentity"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r ServiceConnectorAppServiceResource) template(data acceptance.TestData) string {
