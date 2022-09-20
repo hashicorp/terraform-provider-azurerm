@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
@@ -21,7 +22,7 @@ import (
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDevTestLabCreateUpdate,
 		Read:   resourceDevTestLabRead,
 		Update: resourceDevTestLabCreateUpdate,
@@ -100,6 +101,21 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["storage_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  string(dtl.Premium),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(dtl.Standard),
+				string(dtl.Premium),
+			}, false),
+			Deprecated: "`storage_type` is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0.",
+		}
+	}
+
+	return resource
 }
 
 func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
