@@ -31,6 +31,8 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 
 ## Argument Reference
 
+The following arguments are supported:
+
 * `name` - (Required) Specifies the name of the FrontDoor Profile. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where this FrontDoor Profile should exist. Changing this forces a new resource to be created.

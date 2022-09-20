@@ -143,6 +143,8 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 
 ## Arguments Reference
 
+The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this Frontdoor Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule to be created.
 
 * `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Frontdoor Rule Set for this Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.

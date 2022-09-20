@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_route"
 description: |-
-  Manages a Frontdoor Route.
+  Manages a CDN FrontDoor Route.
 ---
 
 # azurerm_cdn_frontdoor_route
 
-Manages a Frontdoor Route.
+Manages a CDN FrontDoor Route.
 
 ## Example Usage
 
@@ -103,39 +103,41 @@ resource "azurerm_cdn_frontdoor_route" "example" {
 
 ## Arguments Reference
 
+The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this Frontdoor Route. Valid values must begin with a letter or number, end with a letter or number and may only contain letters, numbers and hypens with a maximum length of 90 characters. Changing this forces a new Frontdoor Route to be created.
 
-* `cdn_frontdoor_endpoint_id` - (Required) The ID of the Frontdoor Route. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_endpoint_id` - (Required) The resource ID of the CDN FrontDoor Endpoint where this CDN FrontDoor Route should exist. Changing this forces a new Frontdoor Route to be created.
 
-* `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group.
+* `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the CDN FrontDoor Origin Group where this CDN FrontDoor Route should be created.
 
 * `cdn_frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs that this Frontdoor Route will link to.
+
+* `forwarding_protocol` - (Required) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
+
+* `patterns_to_match` - (Required) The route patterns of the rule.
 
 * `supported_protocols` - (Required) One or more Protocols supported by this Frontdoor Route. Possible values are `Http` or `Https`.
 
 ~> **NOTE:** If `https_redirect_enabled` is set to `true` the `supported_protocols` field must contain both `Http` and `Https` values.
 
-* `patterns_to_match` - (Reqired) The route patterns of the rule.
-
-* `cdn_frontdoor_custom_domain_ids` - (Optional) One or more resource IDs of the Frontdoor Custom Domains to associate with the Frontdoor Route.
-
-* `link_to_default_domain_enabled` - (Optional) Will the Frontdoor Route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
-
 * `cache` - (Optional) A `cache` block as defined below.
 
 ~> **NOTE:** To to disable caching, do not provide the `cache` block in the configuration file.
 
-* `enabled` - (Optional) Is this Frontdoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
+* `cdn_frontdoor_custom_domain_ids` - (Optional) A list of CDN FrontDoor Custom Domain IDs to associate with this CDN FrontDoor Route.
 
-* `forwarding_protocol` - (Required) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
+* `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from (e.g. `contoso.cloudapp.net/originpath`).
+
+* `cdn_frontdoor_rule_set_ids` - (Optional) A list of the CDN FrontDoor Rule Set IDs which should be assigned to this CDN FrontDoor Route.
+
+* `enabled` - (Optional) Is this Frontdoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 
 * `https_redirect_enabled` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
 ~> **NOTE:** The `https_redirect_enabled` rule is the first rule that will be executed.
 
-* `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
-
-* `cdn_frontdoor_rule_set_ids` - (Optional) One or more Frontdoor Rule Set Resource ID's.
+* `link_to_default_domain_enabled` - (Optional) Will the Frontdoor Route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
 
 ---
 

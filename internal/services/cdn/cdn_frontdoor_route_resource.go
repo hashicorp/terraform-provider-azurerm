@@ -227,19 +227,28 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
 		// This configuration does not cause an error when provisioned, however the http requests that
 		// are supposed to be redirected to https remain http requests
-		if !routeSupportsHttpAndHttps(protocolsRaw) {
-			return fmt.Errorf("'https_redirect_enabled' and 'supported_protocols' conflict. The 'https_redirect_enabled' cannot be set to 'true' unless the 'supported_protocols' field contains both 'HTTP' and 'HTTPS'")
+		err := validate.SupportsBothHttpAndHttps(protocolsRaw, "https_redirect_enabled")
+		if err != nil {
+			return err
 		}
+	}
+
+	// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
+	// enable the link to default domain field
+	linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
+	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	if !linkToDefaultDomain && len(customDomains) == 0 {
+		return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
 	}
 
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
-			CustomDomains:       expandCdnFrontdoorRouteActivatedResourceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})),
+			CustomDomains:       expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
 			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
-			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
+			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
@@ -305,7 +314,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("cdn_frontdoor_custom_domain_ids", domains)
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
-		d.Set("https_redirect_enabled", flattenRouteHttpsRedirectToBool(props.HTTPSRedirect))
+		d.Set("https_redirect_enabled", flattenHttpsRedirectToBool(props.HTTPSRedirect))
 		d.Set("link_to_default_domain_enabled", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
@@ -349,12 +358,20 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
 	}
 
+	var checkCustomDomain bool
+	var checkProtocols bool
+	linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
+	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	httpsRedirect := d.Get("https_redirect_enabled").(bool)
+	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+
 	props := azuresdkhacks.RouteUpdatePropertiesParameters{
 		CustomDomains: existing.RouteProperties.CustomDomains,
 	}
 
 	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
-		props.CustomDomains = expandCdnFrontdoorRouteActivatedResourceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}))
+		checkCustomDomain = true
+		props.CustomDomains = expandCdnFrontdoorRouteActivatedResourceArray(customDomains)
 	}
 
 	if d.HasChange("cache") {
@@ -369,14 +386,14 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.ForwardingProtocol = cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string))
 	}
 
-	var httpsRedirectChanged bool
 	if d.HasChange("https_redirect_enabled") {
-		httpsRedirectChanged = true
-		props.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool))
+		checkProtocols = true
+		props.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
 	}
 
 	if d.HasChange("link_to_default_domain_enabled") {
-		props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool))
+		checkCustomDomain = true
+		props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain)
 	}
 
 	if d.HasChange("cdn_frontdoor_origin_group_id") {
@@ -395,10 +412,8 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.RuleSets = expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{}))
 	}
 
-	var supportedProtocolsChanged bool
 	if d.HasChange("supported_protocols") {
-		supportedProtocolsChanged = true
-		protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+		checkProtocols = true
 		props.SupportedProtocols = expandCdnFrontdoorRouteEndpointProtocolsArray(protocolsRaw)
 	}
 
@@ -406,17 +421,21 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		RouteUpdatePropertiesParameters: &props,
 	}
 
-	if httpsRedirectChanged || supportedProtocolsChanged {
-		httpsRedirect := d.Get("https_redirect_enabled").(bool)
-		protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+	if checkProtocols && httpsRedirect {
+		// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
+		// This configuration does not cause an error when provisioned, however the http requests that
+		// are supposed to be redirected to https remain http requests
+		err := validate.SupportsBothHttpAndHttps(protocolsRaw, "https_redirect_enabled")
+		if err != nil {
+			return err
+		}
+	}
 
-		if httpsRedirect {
-			// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
-			// This configuration does not cause an error when provisioned, however the http requests that
-			// are supposed to be redirected to https remain http requests
-			if !routeSupportsHttpAndHttps(protocolsRaw) {
-				return fmt.Errorf("'https_redirect_enabled' and 'supported_protocols' conflict. The 'https_redirect_enabled' cannot be set to 'true' unless the 'supported_protocols' field contains both 'HTTP' and 'HTTPS'")
-			}
+	if checkCustomDomain {
+		// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
+		// enable the link to default domain field
+		if !linkToDefaultDomain && len(customDomains) == 0 {
+			return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
 		}
 	}
 
@@ -540,7 +559,7 @@ func flattenCdnFrontdoorRouteActivatedResourceArray(inputs *[]cdn.ActivatedResou
 	}
 
 	for _, customDomain := range *inputs {
-		results = append(results, customDomain.ID)
+		results = append(results, *customDomain.ID)
 	}
 
 	return results

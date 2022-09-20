@@ -71,6 +71,8 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
 ## Arguments Reference
 
+The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this Frontdoor Security Policy. Possible values must not be an empty string. Changing this forces a new Frontdoor Security Policy to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The Frontdoor Profile Resource Id that is linked to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.

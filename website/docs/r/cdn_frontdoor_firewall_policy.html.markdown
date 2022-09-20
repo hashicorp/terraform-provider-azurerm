@@ -129,6 +129,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 
 ## Argument Reference
 
+The following arguments are supported:
+
 * `name` - (Required) The name of the policy. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.

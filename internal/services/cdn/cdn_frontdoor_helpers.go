@@ -63,12 +63,8 @@ func flattenEnabledBool(input cdn.EnabledState) bool {
 	return input == cdn.EnabledStateEnabled
 }
 
-func flattenRouteHttpsRedirectToBool(httpsRedirect cdn.HTTPSRedirect) bool {
-	if len(httpsRedirect) == 0 {
-		return false
-	}
-
-	return httpsRedirect == cdn.HTTPSRedirectEnabled
+func flattenHttpsRedirectToBool(input cdn.HTTPSRedirect) bool {
+	return input == cdn.HTTPSRedirectEnabled
 }
 
 func expandFrontDoorTags(tagMap *map[string]string) map[string]*string {
@@ -184,20 +180,6 @@ func frontDoorContentTypes() []string {
 		"text/x-component",
 		"text/x-java-source",
 	}
-}
-
-func routeSupportsHttpAndHttps(supportedProtocols []interface{}) bool {
-	var supportsBoth bool
-	if len(supportedProtocols) == 0 {
-		return supportsBoth
-	}
-
-	protocols := utils.ExpandStringSlice(supportedProtocols)
-	if utils.SliceContainsValue(*protocols, string(cdn.AFDEndpointProtocolsHTTP)) && utils.SliceContainsValue(*protocols, string(cdn.AFDEndpointProtocolsHTTPS)) {
-		supportsBoth = true
-	}
-
-	return supportsBoth
 }
 
 // Takes a Slice of strings and transforms it into a CSV formatted string.

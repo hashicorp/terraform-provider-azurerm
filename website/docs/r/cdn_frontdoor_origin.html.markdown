@@ -192,6 +192,8 @@ resource "azurerm_private_link_service" "example" {
 
 ## Arguments Reference
 
+The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this CDN FrontDoor Origin. Changing this forces a new CDN FrontDoor Origin to be created.
 
 * `cdn_frontdoor_origin_group_id` - (Required) The ID of the CDN FrontDoor Origin Group within which this CDN FrontDoor Origin should exist. Changing this forces a new CDN FrontDoor Origin to be created.
