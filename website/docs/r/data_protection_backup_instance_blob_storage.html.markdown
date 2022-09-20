@@ -68,8 +68,6 @@ The following arguments are supported:
 
 * `location` - The Location in which the Resources should be provisioned.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Backup Instance Blob Storage should exist. Changing this forces a new Backup Instance Blob Storage to be created.
-
 * `vault_id` - (Required) The ID of the Backup Vault within which the Backup Instance Blob Storage should exist. Changing this forces a new Backup Instance Blob Storage to be created.
 
 * `storage_account_id` - (Required) The ID of the source Storage Account. Changing this forces a new Backup Instance Blob Storage to be created.
