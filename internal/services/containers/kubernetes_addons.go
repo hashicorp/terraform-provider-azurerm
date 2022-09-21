@@ -25,7 +25,7 @@ const (
 	ingressApplicationGatewayKey    = "ingressApplicationGateway"
 	openServiceMeshKey              = "openServiceMesh"
 	azureKeyvaultSecretsProviderKey = "azureKeyvaultSecretsProvider"
-	webApplicationRoutingKey        = "webApplicationRouting"
+	webApplicationRoutingKey        = "ingress/webApplicationRouting"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
