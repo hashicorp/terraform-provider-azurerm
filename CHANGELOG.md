@@ -3,6 +3,8 @@
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220916.1125744` of `github.com/hashicorp/go-azure-sdk` [GH-18446]
+* `virtual_machine_extension` - support for the `failure_suppression_enabled` property [GH-18441]
+* `virtual_machine_scale_set_extension` - support for the `failure_suppression_enabled` property [GH-18441]
 
 ## 3.23.0 (September 15, 2022)
 
