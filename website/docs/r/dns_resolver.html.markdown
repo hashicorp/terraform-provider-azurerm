@@ -1,5 +1,5 @@
 ---
-subcategory: "DNS"
+subcategory: "DNS Resolver"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_resolver"
 description: |-
