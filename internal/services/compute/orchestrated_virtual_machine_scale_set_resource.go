@@ -1283,7 +1283,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		}
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("user_data", profile.UserData)
-
 	}
 	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
