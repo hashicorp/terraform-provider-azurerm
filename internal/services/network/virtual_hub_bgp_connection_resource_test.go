@@ -29,12 +29,12 @@ func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccVirtualHubBgpConnection_connection(t *testing.T) {
+func TestAccVirtualHubBgpConnection_virtualWan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	r := VirtualHubBGPConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.connection(data),
+			Config: r.virtualWan(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -110,24 +110,24 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r VirtualHubBGPConnectionResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
 
 resource "azurerm_virtual_hub_ip" "test" {
-  name                         = "acctest-VHub-IP-%[2]d"
+  name                         = "acctest-VHub-IP-%d"
   virtual_hub_id               = azurerm_virtual_hub.test.id
   private_ip_address           = "10.5.1.18"
   private_ip_allocation_method = "Static"
   public_ip_address_id         = azurerm_public_ip.test.id
   subnet_id                    = azurerm_subnet.test.id
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r VirtualHubBGPConnectionResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_virtual_hub_bgp_connection" "test" {
-  name           = "acctest-VHub-BgpConnection-%[2]d"
+  name           = "acctest-VHub-BgpConnection-%d"
   virtual_hub_id = azurerm_virtual_hub.test.id
   peer_asn       = 65514
   peer_ip        = "169.254.21.5"
@@ -137,7 +137,7 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubBGPConnectionResource) connection(data acceptance.TestData) string {
+func (r VirtualHubBGPConnectionResource) virtualWan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,10 +194,10 @@ resource "azurerm_virtual_hub_connection" "test" {
 }
 
 resource "azurerm_virtual_hub_bgp_connection" "test" {
-  name           = "acctest-VHub-BgpConnection-%[1]d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-  peer_asn       = 65514
-  peer_ip        = "10.5.0.1"
+  name                          = "acctest-VHub-BgpConnection-%[1]d"
+  virtual_hub_id                = azurerm_virtual_hub.test.id
+  peer_asn                      = 65514
+  peer_ip                       = "10.5.0.1"
   virtual_network_connection_id = azurerm_virtual_hub_connection.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
