@@ -104,7 +104,7 @@ func resourceDevTestLab() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["storage_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(dtl.Premium),
 			ValidateFunc: validation.StringInSlice([]string{
