@@ -46,6 +46,7 @@ import (
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
+	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/dnsresolver/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	elastic "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
@@ -162,6 +163,7 @@ type Client struct {
 	DigitalTwins          *digitaltwins.Client
 	Disks                 *disks.Client
 	Dns                   *dns_v2018_05_01.Client
+	DNSResolver           *dnsresolver.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
 	EventGrid             *eventgrid.Client
@@ -280,6 +282,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
 	client.Dns = dns.NewClient(o)
+	client.DNSResolver = dnsresolver.NewClient(o)
 	client.DomainServices = domainservices.NewClient(o)
 	client.Elastic = elastic.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
