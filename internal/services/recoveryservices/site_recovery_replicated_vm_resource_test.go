@@ -1450,6 +1450,46 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
+func (r SiteRecoveryReplicatedVmResource) withMultiVmGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+  multi_vm_group_name = "accmultivmgroup"
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  network_interface {
+    source_network_interface_id   = azurerm_network_interface.test.id
+    target_subnet_name            = "snet-%[2]d_2"
+    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(state.ID)
 	if err != nil {
