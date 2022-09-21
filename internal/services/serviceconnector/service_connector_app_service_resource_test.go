@@ -286,12 +286,27 @@ resource "azurerm_linux_web_app" "test" {
   site_config {}
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name = "keyvault%[3]s"
+  location = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled = false
+
+  sku_name = "standard"
+}
+
 resource "azurerm_app_service_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
   vnet_solution      = "privateLink"
+  key_vault_id = azurerm_key_vault.test.id
   authentication {
     type = "systemAssignedIdentity"
   }

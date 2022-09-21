@@ -114,6 +114,8 @@ The following arguments are supported:
 
 * `vnet_solution` - (Optional) The type of the VNet solution. Possible values are `serviceEndpoint`, `privateLink`.
 
+* `secret_store` - (Optional) The key vault id to store secret.
+
 ## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

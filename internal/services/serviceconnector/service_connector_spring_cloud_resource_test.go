@@ -222,16 +222,35 @@ func (r ServiceConnectorSpringCloudResource) complete(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %[1]s
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name = "keyvault%[3]s"
+  location = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled = false
+
+  sku_name = "standard"
+}
+
 resource "azurerm_spring_cloud_connection" "test" {
   name               = "acctestserviceconnector%[2]d"
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
+<<<<<<< HEAD
+=======
+  vnet_solution      = "privateLink"
+  key_vault_id = azurerm_key_vault.test.id
+>>>>>>> e93de10bf4 (azurerm_app_service_connection, azurerm_spring_cloud_connection: add support for key_vault_id)
   authentication {
     type = "systemAssignedIdentity"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r ServiceConnectorSpringCloudResource) template(data acceptance.TestData) string {

@@ -3,6 +3,7 @@ package serviceconnector
 import (
 	"context"
 	"fmt"
+	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -21,12 +22,13 @@ import (
 type SpringCloudConnectorResource struct{}
 
 type SpringCloudConnectorResourceModel struct {
-	Name             string          `tfschema:"name"`
-	SpringCloudId    string          `tfschema:"spring_cloud_id"`
-	TargetResourceId string          `tfschema:"target_resource_id"`
-	ClientType       string          `tfschema:"client_type"`
-	AuthInfo         []AuthInfoModel `tfschema:"authentication"`
-	VnetSolution     string          `tfschema:"vnet_solution"`
+	Name                  string          `tfschema:"name"`
+	SpringCloudId         string          `tfschema:"spring_cloud_id"`
+	TargetResourceId      string          `tfschema:"target_resource_id"`
+	ClientType            string          `tfschema:"client_type"`
+	AuthInfo              []AuthInfoModel `tfschema:"authentication"`
+	VnetSolution          string          `tfschema:"vnet_solution"`
+	SecretStoreKeyVaultId string          `tfschema:"key_vault_id"`
 }
 
 func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
@@ -79,6 +81,12 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 				string(servicelinker.VNetSolutionTypeServiceEndpoint),
 				string(servicelinker.VNetSolutionTypePrivateLink),
 			}, false),
+		},
+
+		"key_vault_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyvaultValidate.VaultID,
 		},
 
 		"authentication": authInfoSchema(),
@@ -151,6 +159,13 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 				serviceConnectorProperties.VNetSolution = &vNetSolution
 			}
 
+			if model.SecretStoreKeyVaultId != "" {
+				secretStore := servicelinker.SecretStore{
+					KeyVaultId: &model.SecretStoreKeyVaultId,
+				}
+				serviceConnectorProperties.SecretStore = &secretStore
+			}
+
 			props := servicelinker.LinkerResource{
 				Id:         utils.String(id.ID()),
 				Name:       utils.String(model.Name),
@@ -205,6 +220,10 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 
 				if props.VNetSolution != nil && props.VNetSolution.Type != nil {
 					state.VnetSolution = string(*props.VNetSolution.Type)
+				}
+
+				if props.SecretStore != nil && props.SecretStore.KeyVaultId != nil {
+					state.SecretStoreKeyVaultId = *props.SecretStore.KeyVaultId
 				}
 
 				return metadata.Encode(&state)
@@ -265,6 +284,13 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 					Type: &vnetSolutionType,
 				}
 				linkerProps.VNetSolution = &vnetSolution
+			}
+
+			if d.HasChange("secret_store") {
+				keyVaultId := state.SecretStoreKeyVaultId
+				linkerProps.SecretStore = &links.SecretStore{
+					KeyVaultId: &keyVaultId,
+				}
 			}
 
 			if d.HasChange("authentication") {
