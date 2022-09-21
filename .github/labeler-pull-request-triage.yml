@@ -108,6 +108,9 @@ service/dns:
   - internal/services/dns/**/*
   - internal/services/privatedns/**/*
 
+service/dns-resolver:
+  - internal/services/dnsresolver/**/*
+
 service/domain-services:
   - internal/services/domainservices/**/*
 
