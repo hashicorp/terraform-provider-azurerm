@@ -124,6 +124,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"target_zone": commonschema.ZoneSingleOptionalForceNew(),
 
+			"target_subnet_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
@@ -406,6 +412,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryAvailabilitySetId:          targetAvailabilitySetID,
 				RecoveryAvailabilityZone:           targetAvailabilityZone,
 				MultiVmGroupName:                   utils.String(d.Get("multi_vm_group_name").(string)),
+				RecoverySubnetName:                 utils.String(d.Get("target_subnet_name").(string)),
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
 				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
 				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
