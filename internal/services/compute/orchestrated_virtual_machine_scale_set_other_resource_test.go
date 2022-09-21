@@ -1234,7 +1234,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 
-  user_data = "%[1]d"
+  user_data = "%[5]s"
 
   tags = {
     "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
