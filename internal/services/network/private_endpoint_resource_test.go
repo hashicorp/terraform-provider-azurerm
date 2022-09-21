@@ -244,6 +244,21 @@ func TestAccPrivateEndpoint_updateToPrivateConnectionAlias(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_WithIPConfigForKeyVault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPConfigForVault(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PrivateEndpointID(state.ID)
 	if err != nil {
@@ -791,6 +806,88 @@ resource "azurerm_private_endpoint" "test" {
 %s
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, tags)
+}
+
+func (r PrivateEndpointResource) withIPConfigForVault(data acceptance.TestData, withTags bool) string {
+
+	return fmt.Sprintf(`
+
+
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "zjhe-acctestRG-privatelink-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.1.0/24"]
+
+  enforce_private_link_service_network_policies = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "val%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "ManageContacts",
+    ]
+
+    key_permissions = [
+      "Create",
+    ]
+
+    secret_permissions = [
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "pe-private-endpoint-test-privateserviceconnection"
+    private_connection_resource_id = azurerm_key_vault.test.id
+    is_manual_connection           = false
+    subresource_names              = ["vault"]
+  }
+
+  ip_configuration {
+    name               = "pe-private-endpoint-test-ip-configuration"
+    private_ip_address = "10.5.1.10"
+    subresource_name   = "vault"
+    member_name        = "default"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+
 }
 
 func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, count int) string {
