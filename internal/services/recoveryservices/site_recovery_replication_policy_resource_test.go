@@ -91,7 +91,7 @@ resource "azurerm_site_recovery_replication_policy" "test" {
 }
 
 func (t SiteRecoveryReplicationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := replicationpolicies.ParseReplicationPoliciesID(state.ID)
+	id, err := replicationpolicies.ParseReplicationPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

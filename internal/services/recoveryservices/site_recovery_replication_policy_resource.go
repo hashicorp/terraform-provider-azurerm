@@ -78,7 +78,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := replicationpolicies.NewReplicationPoliciesID(subscriptionId, resGroup, vaultName, name)
+	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, resGroup, vaultName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -134,7 +134,7 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := replicationpolicies.NewReplicationPoliciesID(subscriptionId, resGroup, vaultName, name)
+	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, resGroup, vaultName, name)
 
 	recoveryPoint := int64(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsistency := int64(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
@@ -168,7 +168,7 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 }
 
 func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := replicationpolicies.ParseReplicationPoliciesID(d.Id())
+	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := replicationpolicies.ParseReplicationPoliciesID(d.Id())
+	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
