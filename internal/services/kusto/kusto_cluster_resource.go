@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO update kusto cluster with pandora sdk
 func resourceKustoCluster() *pluginsdk.Resource {
 	s := &pluginsdk.Resource{
 		Create: resourceKustoClusterCreateUpdate,
