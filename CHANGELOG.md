@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220916.1125744` of `github.com/hashicorp/go-azure-sdk` [GH-18446]
+* `azurerm_api_management_api_operation` - support the `example`, `schema_id`, and `type_name` properties [GH-18409]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `techniques` property [GH-18430]
 * `azurerm_linux_virtual_machine` - support for the `patch_assessment_mode` property [GH-18437]
 * `azurerm_virtual_machine_extension` - support for the `failure_suppression_enabled` property [GH-18441]
