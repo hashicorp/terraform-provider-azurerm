@@ -17,3 +17,6 @@ package cdn
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/rule1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorSecret -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/secrets/secret1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorSecurityPolicy -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/securityPolicy1 -rewrite=true
+
+// CDN FrontDoor Associations
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorCustomDomainAssociation -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1/customDomains/customDomain1 -rewrite=true

@@ -141,15 +141,15 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"cdn_frontdoor_custom_domain_ids": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+			// "cdn_frontdoor_custom_domain_ids": {
+			// 	Type:     pluginsdk.TypeList,
+			// 	Optional: true,
 
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.FrontDoorCustomDomainID,
-				},
-			},
+			// 	Elem: &pluginsdk.Schema{
+			// 		Type:         pluginsdk.TypeString,
+			// 		ValidateFunc: validate.FrontDoorCustomDomainID,
+			// 	},
+			// },
 
 			"link_to_default_domain_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -236,14 +236,17 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
 	// enable the link to default domain field
 	linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
-	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-	if !linkToDefaultDomain && len(customDomains) == 0 {
-		return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
-	}
+
+	//NOTE: This Check can be skipped due to the new association resource
+
+	// customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	// if !linkToDefaultDomain && len(customDomains) == 0 {
+	// 	return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
+	// }
 
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
-			CustomDomains:       expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
+			// CustomDomains:       expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
 			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
@@ -310,8 +313,8 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
-		domains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
-		d.Set("cdn_frontdoor_custom_domain_ids", domains)
+		// domains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+		// d.Set("cdn_frontdoor_custom_domain_ids", domains)
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect_enabled", flattenHttpsRedirectToBool(props.HTTPSRedirect))
@@ -355,13 +358,13 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 	}
 	if existing.RouteProperties == nil {
-		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
+		return fmt.Errorf("retrieving existing %s: 'properties' was nil", *id)
 	}
 
-	var checkCustomDomain bool
+	// var checkCustomDomain bool
 	var checkProtocols bool
 	linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
-	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	// customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 
@@ -369,10 +372,10 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		CustomDomains: existing.RouteProperties.CustomDomains,
 	}
 
-	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
-		checkCustomDomain = true
-		props.CustomDomains = expandCdnFrontdoorRouteActivatedResourceArray(customDomains)
-	}
+	// if d.HasChange("cdn_frontdoor_custom_domain_ids") {
+	// 	checkCustomDomain = true
+	// 	props.CustomDomains = expandCdnFrontdoorRouteActivatedResourceArray(customDomains)
+	// }
 
 	if d.HasChange("cache") {
 		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
@@ -392,7 +395,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("link_to_default_domain_enabled") {
-		checkCustomDomain = true
+		// checkCustomDomain = true
 		props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain)
 	}
 
@@ -431,13 +434,14 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if checkCustomDomain {
-		// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
-		// enable the link to default domain field
-		if !linkToDefaultDomain && len(customDomains) == 0 {
-			return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
-		}
-	}
+	// TODO: Modify this check to work with the association resource now...
+	// if checkCustomDomain {
+	// 	// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
+	// 	// enable the link to default domain field
+	// 	if !linkToDefaultDomain && len(customDomains) == 0 {
+	// 		return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
+	// 	}
+	// }
 
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, payload)
 	if err != nil {
