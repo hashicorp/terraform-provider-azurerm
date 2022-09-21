@@ -368,6 +368,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"web_application_routing_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"private_cluster_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -676,6 +681,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
 		d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
 		d.Set("key_vault_secrets_provider", addOns["key_vault_secrets_provider"])
+		d.Set("web_application_routing_enabled", addOns["web_application_routing_enabled"].(bool))
 
 		agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
@@ -913,6 +919,13 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]*containerservi
 		}
 	}
 
+	webApplicationRoutingEnabled := false
+	if webApplicationRouting := kubernetesAddonProfileLocate(profile, webApplicationRoutingKey); webApplicationRouting != nil {
+		if enabledVal := webApplicationRouting.Enabled; enabledVal != nil {
+			webApplicationRoutingEnabled = *enabledVal
+		}
+	}
+
 	azureKeyVaultSecretsProviders := make([]interface{}, 0)
 	if azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyVaultSecretsProvider != nil {
 		if enabled := azureKeyVaultSecretsProvider.Enabled; enabled != nil && *enabled {
@@ -945,6 +958,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]*containerservi
 		"ingress_application_gateway":        ingressApplicationGateways,
 		"open_service_mesh_enabled":          openServiceMeshEnabled,
 		"key_vault_secrets_provider":         azureKeyVaultSecretsProviders,
+		"web_application_routing_enabled":    webApplicationRoutingEnabled,
 	}
 }
 

@@ -25,6 +25,7 @@ const (
 	ingressApplicationGatewayKey    = "ingressApplicationGateway"
 	openServiceMeshKey              = "openServiceMesh"
 	azureKeyvaultSecretsProviderKey = "azureKeyvaultSecretsProvider"
+	webApplicationRoutingKey        = "webApplicationRouting"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
@@ -36,9 +37,11 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
+		webApplicationRoutingKey,  // Preview feautures are not supported in Azure China
 	},
 	azure.USGovernmentCloud.Name: {
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
+		webApplicationRoutingKey,  // Preview feautures are not supported in Azure Government
 	},
 }
 
@@ -236,6 +239,10 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+		"web_application_routing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 	}
 
 	return out
@@ -334,6 +341,13 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	if ok := d.HasChange("open_service_mesh_enabled"); ok {
 		addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(input["open_service_mesh_enabled"].(bool)),
+			Config:  nil,
+		}
+	}
+
+	if ok := d.HasChange("web_application_routing_enabled"); ok {
+		addonProfiles[webApplicationRoutingKey] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(input["web_application_routing_enabled"].(bool)),
 			Config:  nil,
 		}
 	}
@@ -489,6 +503,13 @@ func flattenKubernetesAddOns(profile map[string]*containerservice.ManagedCluster
 		}
 	}
 
+	webApplicationRoutingEnabled := false
+	if webApplicationRouting := kubernetesAddonProfileLocate(profile, webApplicationRoutingKey); webApplicationRouting != nil {
+		if enabledVal := webApplicationRouting.Enabled; enabledVal != nil {
+			webApplicationRoutingEnabled = *enabledVal
+		}
+	}
+
 	azureKeyVaultSecretsProviders := make([]interface{}, 0)
 	if azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyVaultSecretsProvider != nil {
 		if enabled := azureKeyVaultSecretsProvider.Enabled; enabled != nil && *enabled {
@@ -521,6 +542,7 @@ func flattenKubernetesAddOns(profile map[string]*containerservice.ManagedCluster
 		"ingress_application_gateway":        ingressApplicationGateways,
 		"open_service_mesh_enabled":          openServiceMeshEnabled,
 		"key_vault_secrets_provider":         azureKeyVaultSecretsProviders,
+		"web_application_routing_enabled":    webApplicationRoutingEnabled,
 	}
 }
 
@@ -563,6 +585,7 @@ func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
 		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
 		"open_service_mesh_enabled":        d.Get("open_service_mesh_enabled").(bool),
 		"key_vault_secrets_provider":       d.Get("key_vault_secrets_provider").([]interface{}),
+		"web_application_routing_enabled":  d.Get("web_application_routing_enabled").(bool),
 	}
 }
 
