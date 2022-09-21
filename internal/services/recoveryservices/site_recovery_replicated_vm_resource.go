@@ -137,6 +137,13 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"disk_encryption_info": { //TODO: I'm not sure how to read the property
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     diskEncryptionResource(),
+			},
+
 			"managed_disk": {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -201,56 +208,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Optional:   true,
 							MaxItems:   1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"disk_encryption_key": {
-										Type:       pluginsdk.TypeList,
-										ConfigMode: pluginsdk.SchemaConfigModeAttr,
-										Required:   true,
-										MaxItems:   1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"secret_url": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ForceNew:     true,
-													ValidateFunc: keyVaultValidate.NestedItemId,
-												},
-
-												"vault_id": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ForceNew:     true,
-													ValidateFunc: keyVaultValidate.VaultID,
-												},
-											},
-										},
-									},
-									"key_encryption_key": {
-										Type:       pluginsdk.TypeList,
-										ConfigMode: pluginsdk.SchemaConfigModeAttr,
-										Optional:   true,
-										MaxItems:   1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"key_url": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ForceNew:     true,
-													ValidateFunc: keyVaultValidate.NestedItemId,
-												},
-
-												"vault_id": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ForceNew:     true,
-													ValidateFunc: keyVaultValidate.VaultID,
-												},
-											},
-										},
-									},
-								},
-							},
+							Elem:       diskEncryptionResource(),
 						},
 					},
 				},
@@ -312,6 +270,59 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
+			},
+		},
+	}
+}
+
+func diskEncryptionResource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"disk_encryption_key": {
+				Type:       pluginsdk.TypeList,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Required:   true,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"secret_url": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+
+						"vault_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: keyVaultValidate.VaultID,
+						},
+					},
+				},
+			},
+			"key_encryption_key": {
+				Type:       pluginsdk.TypeList,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Optional:   true,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_url": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+
+						"vault_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: keyVaultValidate.VaultID,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -380,7 +391,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:       &targetDiskType,
 			RecoveryDiskEncryptionSetId:         &targetEncryptionDiskSetID,
-			DiskEncryptionInfo:                  expandTargetDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
+			DiskEncryptionInfo:                  expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
 
@@ -388,6 +399,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
 			PolicyId: &policyId,
 			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
+				DiskEncryptionInfo:                 expandDiskEncryption(d.Get("disk_encryption").([]interface{})),
 				FabricObjectId:                     sourceVmId,
 				RecoveryContainerId:                &targetProtectionContainerId,
 				RecoveryResourceGroupId:            &targetResourceGroupId,
@@ -492,7 +504,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			DiskId:                         &diskId,
 			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:  &targetDiskType,
-			DiskEncryptionInfo:             expandTargetDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
+			DiskEncryptionInfo:             expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
 
@@ -516,6 +528,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			VmNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
+				DiskEncryptionInfo:                 expandDiskEncryption(d.Get("disk_encryption").([]interface{})),
 				ManagedDiskUpdateDetails:           &managedDisks,
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
 				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
@@ -781,7 +794,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 	}
 }
 
-func expandTargetDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprotecteditems.DiskEncryptionInfo {
+func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprotecteditems.DiskEncryptionInfo {
 	if len(diskEncryptionInfoList) == 0 {
 		return &replicationprotecteditems.DiskEncryptionInfo{}
 	}
