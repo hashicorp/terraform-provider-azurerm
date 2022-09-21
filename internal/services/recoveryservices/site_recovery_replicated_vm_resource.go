@@ -263,6 +263,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+			"target_virtual_machine_scale_set_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 			"network_interface": {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -384,6 +389,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
 				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
 				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
 				VmManagedDisks:                     &managedDisks,
 			},
 		},
@@ -506,6 +512,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
 				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
 				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
 			},
 		},
 	}
@@ -575,6 +582,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
 			d.Set("target_boot_diag_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
 			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
+			d.Set("target_virtual_machine_scale_set_id", a2aDetails.RecoveryVirtualMachineScaleSetId)
 
 			if a2aDetails.ProtectedManagedDisks != nil {
 				disksOutput := make([]interface{}, 0)

@@ -75,6 +75,21 @@ func TestAccSiteRecoveryReplicatedVm_withCapacityReservationGroup(t *testing.T) 
 	})
 }
 
+func TestAccSiteRecoveryReplicatedVm_withVMSS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withVMSS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSiteRecoveryReplicatedVm_des(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
@@ -1325,6 +1340,92 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
   target_capacity_reservation_group_id   = azurerm_capacity_reservation_group.test.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  network_interface {
+    source_network_interface_id   = azurerm_network_interface.test.id
+    target_subnet_name            = "snet-%[2]d_2"
+    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+  ]
+}
+
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+}
+
+func (r SiteRecoveryReplicatedVmResource) withVMSS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  upgrade_policy_mode = "Manual"
+  zones               = []
+
+  sku {
+    name     = "Standard_B1s"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%[2]d"
+    admin_username       = "testadmin"
+    admin_password       = "Password1234!"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile-%[2]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  storage_profile_os_disk {
+    name           = "osDiskProfile"
+    caching        = "ReadWrite"
+    create_option  = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+  target_virtual_machine_scale_set_id   = azurerm_virtual_machine_scale_set.test.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
