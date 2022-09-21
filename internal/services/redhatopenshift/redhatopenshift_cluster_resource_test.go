@@ -196,6 +196,20 @@ provider "azurerm" {
 
 provider "azuread" {}
 
+data "azuread_client_config" "test" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-aro-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.object_id
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
   location = "%s"
@@ -244,11 +258,11 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = %q
-    client_secret = %q
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (OpenShiftClusterResource) private(data acceptance.TestData) string {
@@ -258,6 +272,20 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
+
+data "azuread_client_config" "test" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-aro-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.object_id
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
@@ -315,11 +343,11 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = %q
-    client_secret = %q
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (OpenShiftClusterResource) customDomain(data acceptance.TestData) string {
@@ -329,6 +357,20 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
+
+data "azuread_client_config" "test" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-aro-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.object_id
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
@@ -382,11 +424,11 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = %q
-    client_secret = %q
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (OpenShiftClusterResource) basicWithFipsEnabled(data acceptance.TestData) string {
@@ -396,6 +438,20 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
+
+data "azuread_client_config" "test" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-aro-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.object_id
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
@@ -449,11 +505,11 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = %q
-    client_secret = %q
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (OpenShiftClusterResource) encryptionAtHost(data acceptance.TestData) string {
@@ -470,7 +526,19 @@ provider "azurerm" {
 
 provider "azuread" {}
 
-data "azurerm_client_config" "current" {}
+data "azuread_client_config" "test" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-aro-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.object_id
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
@@ -592,13 +660,13 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = %q
-    client_secret = %q
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
   }
 
   depends_on = [
     azurerm_key_vault_access_policy.disk-encryption
   ]
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
