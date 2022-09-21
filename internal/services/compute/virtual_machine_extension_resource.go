@@ -79,6 +79,12 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"failure_suppression_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"settings": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -140,6 +146,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	typeHandlerVersion := d.Get("type_handler_version").(string)
 	autoUpgradeMinor := d.Get("auto_upgrade_minor_version").(bool)
 	enableAutomaticUpgrade := d.Get("automatic_upgrade_enabled").(bool)
+	suppressFailure := d.Get("failure_suppression_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	extension := compute.VirtualMachineExtension{
@@ -150,6 +157,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 			TypeHandlerVersion:      &typeHandlerVersion,
 			AutoUpgradeMinorVersion: &autoUpgradeMinor,
 			EnableAutomaticUpgrade:  &enableAutomaticUpgrade,
+			SuppressFailures:        &suppressFailure,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -223,6 +231,12 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("type_handler_version", props.TypeHandlerVersion)
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
+
+		suppressFailure := false
+		if props.SuppressFailures != nil {
+			suppressFailure = *props.SuppressFailures
+		}
+		d.Set("failure_suppression_enabled", suppressFailure)
 
 		if settings := props.Settings; settings != nil {
 			settingsVal := settings.(map[string]interface{})

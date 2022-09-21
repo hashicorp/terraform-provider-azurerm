@@ -142,6 +142,7 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	if d.IsNewResource() {
 		if v := d.Get("uri"); v != nil && v.(string) != "" {
 			uri = v.(string)
+			parameters.WebhookCreateOrUpdateProperties.URI = &uri
 		} else {
 			resp, err := client.GenerateURI(ctx, id.ResourceGroup, id.AutomationAccountName)
 			if err != nil {

@@ -39,6 +39,8 @@ output "automation_account_id" {
 
 * `endpoint` - The Endpoint for this Automation Account.
 
+* `hybrid_service_url` - The URL of automation hybrid service which is used for hybrid worker on-boarding With this Automation Account.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

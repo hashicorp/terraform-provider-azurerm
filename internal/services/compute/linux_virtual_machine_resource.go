@@ -254,6 +254,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Default: string(compute.LinuxVMGuestPatchModeImageDefault),
 			},
 
+			"patch_assessment_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(compute.LinuxPatchAssessmentModeImageDefault),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
+					string(compute.LinuxPatchAssessmentModeImageDefault),
+				}, false),
+			},
+
 			"proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -505,6 +515,17 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
 			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
 		}
+	}
+
+	if v, ok := d.GetOk("patch_assessment_mode"); ok {
+		if v.(string) == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+		}
+
+		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(v.(string))
 	}
 
 	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
@@ -801,6 +822,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				patchMode = string(patchSettings.PatchMode)
 			}
 			d.Set("patch_mode", patchMode)
+
+			assessmentMode := string(compute.LinuxPatchAssessmentModeImageDefault)
+			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.AssessmentMode != "" {
+				assessmentMode = string(patchSettings.AssessmentMode)
+			}
+			d.Set("patch_assessment_mode", assessmentMode)
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
@@ -1170,6 +1197,29 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = patchSettings
+	}
+
+	if d.HasChange("patch_assessment_mode") {
+		assessmentMode := d.Get("patch_assessment_mode").(string)
+		if assessmentMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !d.Get("provision_vm_agent").(bool) {
+			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+		}
+
+		shouldUpdate = true
+
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(assessmentMode)
 	}
 
 	if d.HasChange("allow_extension_operations") {

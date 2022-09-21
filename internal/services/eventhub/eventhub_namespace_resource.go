@@ -129,6 +129,12 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							}, false),
 						},
 
+						"public_network_access_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"trusted_service_access_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -365,6 +371,10 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
 
+		if !strings.EqualFold(string(*rulesets.Properties.PublicNetworkAccess), string(*parameters.Properties.PublicNetworkAccess)) {
+			return fmt.Errorf("the value of public network access of namespace should be the same as of the network rulesets")
+		}
+
 		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
 		namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
@@ -461,6 +471,10 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		ruleSets := d.Get("network_rulesets")
 		rulesets := networkrulesets.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+		}
+
+		if !strings.EqualFold(string(*rulesets.Properties.PublicNetworkAccess), string(*parameters.Properties.PublicNetworkAccess)) {
+			return fmt.Errorf("the value of public network access of namespace should be the same as of the network rulesets")
 		}
 
 		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
@@ -671,11 +685,17 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 
 	block := input[0].(map[string]interface{})
 
+	publicNetworkAccess := networkrulesets.PublicNetworkAccessFlagEnabled
+	if !block["public_network_access_enabled"].(bool) {
+		publicNetworkAccess = networkrulesets.PublicNetworkAccessFlagDisabled
+	}
+
 	ruleset := networkrulesets.NetworkRuleSetProperties{
 		DefaultAction: func() *networkrulesets.DefaultAction {
 			v := networkrulesets.DefaultAction(block["default_action"].(string))
 			return &v
 		}(),
+		PublicNetworkAccess: &publicNetworkAccess,
 	}
 
 	if v, ok := block["trusted_service_access_enabled"]; ok {
@@ -766,8 +786,13 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 	// TODO: fix this
 
+	publicNetworkAccess := true
+	if ruleset.Model.Properties.PublicNetworkAccess != nil && *ruleset.Model.Properties.PublicNetworkAccess == networkrulesets.PublicNetworkAccessFlagDisabled {
+		publicNetworkAccess = false
+	}
 	return []interface{}{map[string]interface{}{
 		"default_action":                 string(*ruleset.Model.Properties.DefaultAction),
+		"public_network_access_enabled":  publicNetworkAccess,
 		"virtual_network_rule":           vnetBlocks,
 		"ip_rule":                        ipBlocks,
 		"trusted_service_access_enabled": ruleset.Model.Properties.TrustedServiceAccessEnabled,

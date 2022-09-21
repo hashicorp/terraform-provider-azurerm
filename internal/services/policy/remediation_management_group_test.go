@@ -111,7 +111,6 @@ resource "azurerm_management_group_policy_remediation" "test" {
   management_group_id  = azurerm_management_group.test.id
   policy_assignment_id = azurerm_management_group_policy_assignment.test.id
   location_filters     = ["westus"]
-  policy_definition_id = data.azurerm_policy_definition.test.id
 }
 `, r.template(data), data.RandomString)
 }

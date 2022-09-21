@@ -791,9 +791,11 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.systemAssignedIdentity(data, documentdb.DefaultConsistencyLevelSession),
+			Config: r.systemAssignedUserAssignedIdentity(data, documentdb.DefaultConsistencyLevelSession),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
@@ -2277,7 +2279,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) systemAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) systemAssignedUserAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2286,6 +2288,12 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%d"
   location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-user-example"
 }
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -2309,7 +2317,10 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
