@@ -21,6 +21,8 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_monitor_metric_alert` - pass multi criteria to the API in the correct order [GH-18438]
+* `azurerm_monitor_diagnostic_settings` - correctly parsing the case for the `workspace_id` property [GH-18467]
+* `azurerm_security_center_workspace` - correctly parsing the case for the `workspace_id` property [GH-18467]
 
 ## 3.23.0 (September 15, 2022)
 
