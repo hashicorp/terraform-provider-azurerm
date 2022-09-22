@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220916.1125744` of `github.com/hashicorp/go-azure-sdk` [GH-18446]
+* Data Source: `azurerm_automation_account` - exports the `identity` attribute [GH-18478]
 * Data Source: `azurerm_storage_account` - export the `azure_files_identity_based_auth` property [GH-18405]
 * `azurerm_api_management_api_operation` - support the `example`, `schema_id`, and `type_name` properties [GH-18409]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `techniques` property [GH-18430]
