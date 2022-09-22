@@ -187,11 +187,11 @@ func (r AlertProcessingRuleSuppressionResource) Read() sdk.ResourceFunc {
 
 			model := resp.Model
 			if model == nil {
-				return fmt.Errorf("retriving %s: model is null", *id)
+				return fmt.Errorf("retrieving %s: model is null", *id)
 			}
 			properties := model.Properties
 			if properties == nil {
-				return fmt.Errorf("retriving %s: property is null", *id)
+				return fmt.Errorf("retrieving %s: property is null", *id)
 			}
 
 			if model.Tags != nil {
