@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_api_management_api_operation` - support the `example`, `schema_id`, and `type_name` properties [GH-18409]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `techniques` property [GH-18430]
 * `azurerm_linux_virtual_machine` - support for the `patch_assessment_mode` property [GH-18437]
+* `azurerm_private_endpoint` - support for the `custom_network_interface_name` property [GH-18025]
 * `azurerm_virtual_machine_extension` - support for the `failure_suppression_enabled` property [GH-18441]
 * `azurerm_virtual_machine_scale_set_extension` - support for the `failure_suppression_enabled` property [GH-18441]
 * `azurerm_windows_virtual_machine` - support for the `patch_assessment_mode` property [GH-18437]
