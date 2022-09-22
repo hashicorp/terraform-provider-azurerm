@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorAlertProcessingRuleResource struct{}
+type MonitorAlertProcessingRuleSuppressionResource struct{}
 
-func TestAccMonitorAlertProcessingRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule", "test")
-	r := MonitorAlertProcessingRuleResource{}
+func TestAccMonitorAlertProcessingRuleSuppression_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_suppression", "test")
+	r := MonitorAlertProcessingRuleSuppressionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +30,9 @@ func TestAccMonitorAlertProcessingRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAlertProcessingRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule", "test")
-	r := MonitorAlertProcessingRuleResource{}
+func TestAccMonitorAlertProcessingRuleSuppression_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_suppression", "test")
+	r := MonitorAlertProcessingRuleSuppressionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -44,9 +44,9 @@ func TestAccMonitorAlertProcessingRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAlertProcessingRule_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule", "test")
-	r := MonitorAlertProcessingRuleResource{}
+func TestAccMonitorAlertProcessingRuleSuppression_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_suppression", "test")
+	r := MonitorAlertProcessingRuleSuppressionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,9 +59,9 @@ func TestAccMonitorAlertProcessingRule_complete(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAlertProcessingRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule", "test")
-	r := MonitorAlertProcessingRuleResource{}
+func TestAccMonitorAlertProcessingRuleSuppression_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_suppression", "test")
+	r := MonitorAlertProcessingRuleSuppressionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,71 +95,53 @@ func TestAccMonitorAlertProcessingRule_update(t *testing.T) {
 	})
 }
 
-func (t MonitorAlertProcessingRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := alertprocessingrules.ParseActionRuleID(state.ID)
+func (r MonitorAlertProcessingRuleSuppressionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := alertprocessingrules.ParseActionRuleIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := clients.Monitor.AlertProcessingRulesClient.AlertProcessingRulesGetByName(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MonitorAlertProcessingRuleResource) basic(data acceptance.TestData) string {
+func (r MonitorAlertProcessingRuleSuppressionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_monitor_alert_processing_rule" "test" {
+resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
   name                = "acctest-moniter-%d"
   resource_group_name = azurerm_resource_group.test.name
-
-  action {
-    type                 = "AddActionGroups"
-    add_action_group_ids = [azurerm_monitor_action_group.test.id]
-  }
-
-  scopes = [azurerm_resource_group.test.id]
+  scopes              = [azurerm_resource_group.test.id]
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MonitorAlertProcessingRuleResource) requiresImport(data acceptance.TestData) string {
+func (r MonitorAlertProcessingRuleSuppressionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_monitor_alert_processing_rule" "import" {
-  name                = azurerm_monitor_alert_processing_rule.test.name
-  resource_group_name = azurerm_monitor_alert_processing_rule.test.resource_group_name
-
-  action {
-    type                 = azurerm_monitor_alert_processing_rule.test.action.0.type
-    add_action_group_ids = azurerm_monitor_alert_processing_rule.test.action.0.add_action_group_ids
-  }
-
-  scopes = azurerm_monitor_alert_processing_rule.test.scopes
+resource "azurerm_monitor_alert_processing_rule_suppression" "import" {
+  name                = azurerm_monitor_alert_processing_rule_suppression.test.name
+  resource_group_name = azurerm_monitor_alert_processing_rule_suppression.test.resource_group_name
+  scopes              = azurerm_monitor_alert_processing_rule_suppression.test.scopes
 }
 `, r.basic(data))
 }
 
-func (r MonitorAlertProcessingRuleResource) update(data acceptance.TestData) string {
+func (r MonitorAlertProcessingRuleSuppressionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_monitor_alert_processing_rule" "test" {
+resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
   name                = "acctest-moniter-%d"
   resource_group_name = azurerm_resource_group.test.name
-
-  enabled = false
-
-  action {
-    type = "RemoveAllActionGroups"
-  }
-
-  scopes = [azurerm_resource_group.test.id]
+  scopes              = [azurerm_resource_group.test.id]
+  enabled             = false
 
   condition {
     signal_type {
@@ -181,26 +163,22 @@ resource "azurerm_monitor_alert_processing_rule" "test" {
   }
 }
 
+
+
+
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MonitorAlertProcessingRuleResource) complete(data acceptance.TestData) string {
+func (r MonitorAlertProcessingRuleSuppressionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_monitor_alert_processing_rule" "test" {
+resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
   name                = "acctest-moniter-%d"
   resource_group_name = azurerm_resource_group.test.name
-
-  enabled     = false
-  description = "alertprocessingrule-test"
-
-  action {
-    type                 = "AddActionGroups"
-    add_action_group_ids = [azurerm_monitor_action_group.test.id]
-  }
-
-  scopes = [azurerm_resource_group.test.id]
+  description         = "alertprocessingrule-test"
+  scopes              = [azurerm_resource_group.test.id]
+  enabled             = false
 
   condition {
     alert_context {
@@ -292,21 +270,15 @@ resource "azurerm_monitor_alert_processing_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (MonitorAlertProcessingRuleResource) template(data acceptance.TestData) string {
+func (MonitorAlertProcessingRuleSuppressionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
+  name     = "acctestRG-monitor-maprs-%d"
   location = "%s"
 }
-
-resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctest-ag"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

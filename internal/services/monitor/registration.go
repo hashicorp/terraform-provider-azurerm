@@ -25,6 +25,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AlertProcessingRuleActionGroupResource{},
+		AlertProcessingRuleSuppressionResource{},
 		DataCollectionEndpointResource{},
 		DataCollectionRuleAssociationResource{},
 		DataCollectionRuleResource{},
@@ -64,7 +66,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_action_rule_action_group":    resourceMonitorActionRuleActionGroup(),
 		"azurerm_monitor_action_rule_suppression":     resourceMonitorActionRuleSuppression(),
 		"azurerm_monitor_activity_log_alert":          resourceMonitorActivityLogAlert(),
-		"azurerm_monitor_alert_processing_rule":       resourceMonitorAlertProcessingRule(),
 		"azurerm_monitor_diagnostic_setting":          resourceMonitorDiagnosticSetting(),
 		"azurerm_monitor_log_profile":                 resourceMonitorLogProfile(),
 		"azurerm_monitor_metric_alert":                resourceMonitorMetricAlert(),

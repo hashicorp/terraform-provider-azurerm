@@ -1,14 +1,14 @@
 ---
 subcategory: "Monitor"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_monitor_alert_processing_rule"
+page_title: "Azure Resource Manager: azurerm_monitor_alert_processing_rule_suppression"
 description: |-
-  Manages a Alert Processing Rule.
+  Manages an Alert Processing Rule which suppress notifications.
 ---
 
-# azurerm_monitor_alert_processing_rule
+# azurerm_monitor_alert_processing_rule_suppression
 
-Manages a Alert Processing Rule.
+Manages an Alert Processing Rule which suppress notifications.
 
 ## Example Usage
 
@@ -18,21 +18,10 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_monitor_action_group" "example" {
-  name                = "example-action-group"
-  resource_group_name = azurerm_resource_group.example.name
-  short_name          = "exampleactiongroup"
-}
-
-resource "azurerm_monitor_alert_processing_rule" "example" {
+resource "azurerm_monitor_alert_processing_rule_suppression" "example" {
   name                = "example"
   resource_group_name = "example"
   scopes              = [azurerm_resource_group.example.id]
-
-  action {
-    type                 = "AddActionGroups"
-    add_action_group_ids = [azurerm_monitor_action_group.example.id]
-  }
 
   condition {
     target_resource_type {
@@ -70,13 +59,11 @@ resource "azurerm_monitor_alert_processing_rule" "example" {
 
 The following arguments are supported:
 
-* `action` - (Required) A `action` block as defined below.
-
 * `name` - (Required) The name which should be used for this Alert Processing Rule. Changing this forces a new Alert Processing Rule to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Alert Processing Rule should exist. Changing this forces a new Alert Processing Rule to be created.
 
-* `scopes` - (Required) A list of resource IDs which will be the target of alert processing rule.
+* `scopes` - (Required) A list of resource IDs which will be the target of Alert Processing Rule.
 
 ---
 
@@ -89,14 +76,6 @@ The following arguments are supported:
 * `schedule` - (Optional) A `schedule` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Alert Processing Rule.
-
----
-
-A `action` block supports the following:
-
-* `type` - (Required) Action to be applied by the Alert Processing Rule. Possible values are `AddActionGroups`, `RemoveAllActionGroups`.
-
-* `add_action_group_ids` - (Optional) Specifies a list of Action Group IDs. Required if `type` is `AddActionGroups`. 
 
 ---
 
@@ -282,5 +261,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Alert Processing Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_alert_processing_rule.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
+terraform import azurerm_monitor_alert_processing_rule_suppression.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
 ```
