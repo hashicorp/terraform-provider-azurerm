@@ -9,11 +9,13 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220916.1125744` of `github.com/hashicorp/go-azure-sdk` [GH-18446]
+* dependencies: `disks` - updating to use `2022-03-02` [GH-17671]
 * Data Source: `azurerm_automation_account` - exports the `identity` attribute [GH-18478]
 * Data Source: `azurerm_storage_account` - export the `azure_files_identity_based_auth` property [GH-18405]
 * `azurerm_api_management_api_operation` - support the `example`, `schema_id`, and `type_name` properties [GH-18409]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `techniques` property [GH-18430]
 * `azurerm_linux_virtual_machine` - support for the `patch_assessment_mode` property [GH-18437]
+* `azurerm_managed_disk` - support for the `PremiumV2_LRS` type [GH-17671]
 * `azurerm_private_endpoint` - support for the `custom_network_interface_name` property [GH-18025]
 * `azurerm_virtual_machine_extension` - support for the `failure_suppression_enabled` property [GH-18441]
 * `azurerm_virtual_machine_scale_set_extension` - support for the `failure_suppression_enabled` property [GH-18441]
