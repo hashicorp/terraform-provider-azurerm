@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource**: `azurerm_automation_software_update_configuration` [GH-17902]
+* **New Resource**: `azurerm_monitor_alert_processing_rule_action_group` [GH-17006]
+* **New Resource**: `azurerm_monitor_alert_processing_rule_suppression` [GH-17006]
 
 ENHANCEMENTS:
 
@@ -19,7 +21,6 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_monitor_metric_alert` - pass multi criteria to the API in the correct order [GH-18438]
-
 
 ## 3.23.0 (September 15, 2022)
 
