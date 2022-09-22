@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -4791,6 +4792,9 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 
 		agw.SslCertificates = &newSslCertificates
 
+		// ctx has to refresh timeout value or it may timeout
+		ctx, cancel := context.WithTimeout(ctx, time.Minute*90)
+		defer cancel()
 		future, err := clients.Network.ApplicationGatewaysClient.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
 		if err != nil {
 			return fmt.Errorf("Bad: updating AGW: %+v", err)
