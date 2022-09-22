@@ -249,7 +249,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"user_data": {
+			"user_data_base64": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
@@ -384,7 +384,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 	}
 
-	if userData, ok := d.GetOk("user_data"); ok {
+	if userData, ok := d.GetOk("user_data_base64"); ok {
 		virtualMachineProfile.UserData = utils.String(userData.(string))
 	}
 
@@ -1073,9 +1073,9 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChange("user_data") {
+	if d.HasChange("user_data_base64") {
 		updateInstances = true
-		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data").(string))
+		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data_base64").(string))
 	}
 
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
@@ -1282,7 +1282,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
 		}
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-		d.Set("user_data", profile.UserData)
+		d.Set("user_data_base64", profile.UserData)
 	}
 	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 

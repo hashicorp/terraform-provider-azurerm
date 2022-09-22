@@ -101,7 +101,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
-* `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
+* `user_data_base64` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Orchestrated Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
