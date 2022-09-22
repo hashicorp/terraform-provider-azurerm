@@ -12,6 +12,11 @@ ENHANCEMENTS:
 * `azurerm_virtual_machine_scale_set_extension` - support for the `failure_suppression_enabled` property [GH-18441]
 * `azurerm_windows_virtual_machine` - support for the `patch_assessment_mode` property [GH-18437]
 
+BUG FIXES:
+
+* `azurerm_monitor_metric_alert` - pass multi criteria to the API in the correct order [GH-18438]
+
+
 ## 3.23.0 (September 15, 2022)
 
 FEATURES:
