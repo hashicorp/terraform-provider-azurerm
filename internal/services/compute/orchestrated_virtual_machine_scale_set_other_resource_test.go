@@ -279,14 +279,14 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherUserData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.otherUserData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -1234,7 +1234,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 
-  user_data = "%[5]s"
+  user_data = base64encode("%[5]s")
 
   tags = {
     "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
