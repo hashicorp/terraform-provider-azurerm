@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -185,6 +187,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 
 func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	imageClient := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,6 +204,11 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_shared_image_version", id.ID())
+		}
+
+		_, err = imageClient.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
+		if err != nil {
+			return fmt.Errorf("checking for presense of image %s: %+v", id.ImageName, err)
 		}
 	}
 
@@ -252,16 +260,32 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, version)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
+	if d.IsNewResource() {
+		// Due to cache issue, creating image version sometimes can not find parent image even if the image can be retrieved successfully, so adding retry for creation
+		timeout, _ := ctx.Deadline()
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:      []string{"Creating"},
+			Target:       []string{"Created"},
+			Refresh:      sharedImageVersionCreateStateRefreshFunc(ctx, client, id, version),
+			PollInterval: 15 * time.Second,
+			Timeout:      time.Until(timeout),
+		}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
-	}
+		_, err = stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			return err
+		}
+		d.SetId(id.ID())
+	} else {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, version)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 
-	d.SetId(id.ID())
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+		}
+	}
 
 	return resourceSharedImageVersionRead(d, meta)
 }
@@ -379,6 +403,24 @@ func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func sharedImageVersionCreateStateRefreshFunc(ctx context.Context, client *compute.GalleryImageVersionsClient, id parse.SharedImageVersionId, version compute.GalleryImageVersion) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, version)
+		if err != nil {
+			if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusNotFound {
+				return "Creating", "Creating", nil
+			}
+			return nil, "", fmt.Errorf("creating %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return nil, "", fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		}
+
+		return "Created", "Created", nil
+	}
 }
 
 func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImageVersionsClient, id parse.SharedImageVersionId) pluginsdk.StateRefreshFunc {
