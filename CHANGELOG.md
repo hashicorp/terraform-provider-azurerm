@@ -1,5 +1,9 @@
 ## 3.24.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_automation_software_update_configuration` [GH-17902]
+
 ENHANCEMENTS:
 
 * dependencies: updating to version `v0.20220916.1125744` of `github.com/hashicorp/go-azure-sdk` [GH-18446]
