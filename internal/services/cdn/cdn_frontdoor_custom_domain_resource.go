@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -66,11 +65,14 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"pre_validated_custom_domain_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: webValidate.StaticSiteID,
-			},
+			// NOTE: Temporarily removing support for this until after initial release
+			// of the CDN FrontDoor resources
+
+			// "pre_validated_custom_domain_id": {
+			// 	Type:         pluginsdk.TypeString,
+			// 	Optional:     true,
+			// 	ValidateFunc: webValidate.StaticSiteID,
+			// },
 
 			"tls": {
 				Type:     pluginsdk.TypeList,
@@ -85,7 +87,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Optional: true,
 							Default:  string(cdn.AfdCertificateTypeManagedCertificate),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.AfdCertificateTypeAzureFirstPartyManagedCertificate),
+								// string(cdn.AfdCertificateTypeAzureFirstPartyManagedCertificate), // Only valid with 'pre_validated_custom_domain_id'
 								string(cdn.AfdCertificateTypeCustomerCertificate),
 								string(cdn.AfdCertificateTypeManagedCertificate),
 							}, false),
@@ -149,14 +151,14 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_custom_domain", id.ID())
 	}
 
-	preValidatedDomain := d.Get("pre_validated_custom_domain_id").(string)
+	// preValidatedDomain := d.Get("pre_validated_custom_domain_id").(string)
 	dnsZone := d.Get("dns_zone_id").(string)
 	tls := d.Get("tls").([]interface{})
 
 	// DNS Zone field is not supported for a pre-validated custom domain
-	if preValidatedDomain != "" && dnsZone != "" {
-		return fmt.Errorf("the 'dns_zone_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
-	}
+	// if preValidatedDomain != "" && dnsZone != "" {
+	// 	return fmt.Errorf("the 'dns_zone_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
+	// }
 
 	props := cdn.AFDDomain{
 		AFDDomainProperties: &cdn.AFDDomainProperties{
@@ -166,27 +168,38 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	// TODO: Still figuring out the preValidatedDomain bit...
 	// Validate and set TLS settings
-	if preValidatedDomain != "" {
-		props.AFDDomainProperties.PreValidatedCustomDomainResourceID = expandResourceReference(preValidatedDomain)
+	// if preValidatedDomain != "" {
+	// 	props.AFDDomainProperties.PreValidatedCustomDomainResourceID = expandResourceReference(preValidatedDomain)
 
-		tlsSettings, err := expandTlsParameters(tls, true)
-		if err != nil {
-			return err
-		}
+	// 	tlsSettings, err := expandTlsParameters(tls, true)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		props.AFDDomainProperties.TLSSettings = tlsSettings
-	} else {
-		if dnsZone != "" {
-			props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
-		}
+	// 	props.AFDDomainProperties.TLSSettings = tlsSettings
+	// } else {
+	// 	if dnsZone != "" {
+	// 		props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
+	// 	}
 
-		tlsSettings, err := expandTlsParameters(tls, false)
-		if err != nil {
-			return err
-		}
+	// 	tlsSettings, err := expandTlsParameters(tls, false)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		props.AFDDomainProperties.TLSSettings = tlsSettings
+	// 	props.AFDDomainProperties.TLSSettings = tlsSettings
+	// }
+
+	if dnsZone != "" {
+		props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
 	}
+
+	tlsSettings, err := expandTlsParameters(tls, false)
+	if err != nil {
+		return err
+	}
+
+	props.AFDDomainProperties.TLSSettings = tlsSettings
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, props)
 	if err != nil {
@@ -230,9 +243,9 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 		}
 
-		if err := d.Set("pre_validated_custom_domain_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
-			return fmt.Errorf("setting `pre_validated_custom_domain_id`: %+v", err)
-		}
+		// if err := d.Set("pre_validated_custom_domain_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
+		// 	return fmt.Errorf("setting `pre_validated_custom_domain_id`: %+v", err)
+		// }
 
 		if err := d.Set("tls", flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)); err != nil {
 			return fmt.Errorf("setting `tls`: %+v", err)
@@ -259,12 +272,12 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	dnsZone := d.Get("dns_zone_id").(string)
 	tls := d.Get("tls").([]interface{})
-	preValidatedDomain := d.Get("pre_validated_custom_domain_id").(string)
+	// preValidatedDomain := d.Get("pre_validated_custom_domain_id").(string)
 
-	// DNS Zone field is not supported for a pre-validated custom domain
-	if preValidatedDomain != "" && dnsZone != "" {
-		return fmt.Errorf("the 'dns_zone_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
-	}
+	// // DNS Zone field is not supported for a pre-validated custom domain
+	// if preValidatedDomain != "" && dnsZone != "" {
+	// 	return fmt.Errorf("the 'dns_zone_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
+	// }
 
 	props := cdn.AFDDomainUpdateParameters{
 		AFDDomainUpdatePropertiesParameters: &cdn.AFDDomainUpdatePropertiesParameters{},
@@ -274,23 +287,34 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	// since there's 3 of these and this is a separate update method, can we conditionally set these (using if d.HasChange("dns_zone_id") { .. } etc
 
 	// Validate and set TLS settings
-	if preValidatedDomain != "" {
-		props.AFDDomainUpdatePropertiesParameters.PreValidatedCustomDomainResourceID = expandResourceReference(preValidatedDomain)
+	// if preValidatedDomain != "" {
+	// 	props.AFDDomainUpdatePropertiesParameters.PreValidatedCustomDomainResourceID = expandResourceReference(preValidatedDomain)
 
-		props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, true)
-		if err != nil {
-			return err
-		}
-	} else {
-		if dnsZone != "" {
-			props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
-		}
+	// 	props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, true)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	if dnsZone != "" {
+	// 		props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
+	// 	}
 
-		props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, false)
-		if err != nil {
-			return err
-		}
+	// 	props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, false)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+
+	// --- Temporary code from else statement to remove PreValidateDomain ---
+	if dnsZone != "" {
+		props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
 	}
+
+	props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, false)
+	if err != nil {
+		return err
+	}
+	// --- Temporary code from else statement to remove PreValidateDomain ---
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, props)
 	if err != nil {
@@ -343,21 +367,33 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	tls := cdn.AFDDomainHTTPSParameters{}
 
 	// NOTE: If this is a pre-validated domain you cannot pass a secret?
-	if isPreValidatedDomain {
-		if secret != "" {
-			return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
-		}
-	} else {
-		if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
-			return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
-		} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
-			return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
-		}
+	// if isPreValidatedDomain {
+	// 	if secret != "" {
+	// 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
+	// 	}
+	// } else {
+	// 	if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
+	// 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
+	// 	} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
+	// 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
+	// 	}
 
-		if secret != "" {
-			tls.Secret = expandResourceReference(secret)
-		}
+	// 	if secret != "" {
+	// 		tls.Secret = expandResourceReference(secret)
+	// 	}
+	// }
+
+	// --- Temporary code from else statement to remove PreValidateDomain ---
+	if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
+		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
+	} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
+		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
 	}
+
+	if secret != "" {
+		tls.Secret = expandResourceReference(secret)
+	}
+	// --- Temporary code from else statement to remove PreValidateDomain ---
 
 	// NOTE: Minimum TLS Version is required in both pre-validated and not pre-validated
 	// custom domains and the schema defaults the value to TLS 1.2

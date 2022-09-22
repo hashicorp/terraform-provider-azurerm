@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
+func TestFrontDoorCustomDomainAssociationDefaultID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -65,56 +65,56 @@ func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
 		},
 
 		{
-			// missing AssociatioinName
+			// missing AssociatioinDefaultName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for AssociatioinName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioin/",
+			// missing value for AssociatioinDefaultName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioinDefault/",
 			Valid: false,
 		},
 
 		{
 			// missing RouteName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioin/assoc1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioinDefault/assoc1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for RouteName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioin/assoc1/routes/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioinDefault/assoc1/routes/",
 			Valid: false,
 		},
 
 		{
 			// missing CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioin/assoc1/routes/route1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioinDefault/assoc1/routes/route1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioin/assoc1/routes/route1/customDomains/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioinDefault/assoc1/routes/route1/customDomains/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioin/assoc1/routes/route1/customDomains/customDomain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associatioinDefault/assoc1/routes/route1/customDomains/customDomain1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/AFDENDPOINTS/ENDPOINT1/ASSOCIATIOIN/ASSOC1/ROUTES/ROUTE1/CUSTOMDOMAINS/CUSTOMDOMAIN1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/AFDENDPOINTS/ENDPOINT1/ASSOCIATIOINDEFAULT/ASSOC1/ROUTES/ROUTE1/CUSTOMDOMAINS/CUSTOMDOMAIN1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := FrontDoorCustomDomainAssociationID(tc.Input, "test")
+		_, errors := FrontDoorCustomDomainAssociationDefaultID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

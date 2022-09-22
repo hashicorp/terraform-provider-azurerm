@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -151,11 +152,11 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			// 	},
 			// },
 
-			"link_to_default_domain_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+			// "link_to_default_domain_enabled": {
+			// 	Type:     pluginsdk.TypeBool,
+			// 	Optional: true,
+			// 	Default:  false,
+			// },
 
 			"cdn_frontdoor_origin_path": {
 				Type:     pluginsdk.TypeString,
@@ -235,7 +236,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
 	// enable the link to default domain field
-	linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
+	// linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
 
 	//NOTE: This Check can be skipped due to the new association resource
 
@@ -251,7 +252,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
-			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain),
+			LinkToDefaultDomain: cdn.LinkToDefaultDomainEnabled, // This is a hack due to service code architecture
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
@@ -318,7 +319,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect_enabled", flattenHttpsRedirectToBool(props.HTTPSRedirect))
-		d.Set("link_to_default_domain_enabled", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
+		// d.Set("link_to_default_domain_enabled", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
@@ -353,6 +354,11 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	// I now need to lock this resource when updating because the association resources may also be trying
+	// to update it as well...
+	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
+
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
 		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
@@ -363,7 +369,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// var checkCustomDomain bool
 	var checkProtocols bool
-	linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
+	// linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
 	// customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
@@ -394,10 +400,10 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
 	}
 
-	if d.HasChange("link_to_default_domain_enabled") {
-		// checkCustomDomain = true
-		props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain)
-	}
+	// if d.HasChange("link_to_default_domain_enabled") {
+	// 	// checkCustomDomain = true
+	// 	props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain)
+	// }
 
 	if d.HasChange("cdn_frontdoor_origin_group_id") {
 		props.OriginGroup = expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string))
@@ -420,7 +426,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.SupportedProtocols = expandCdnFrontdoorRouteEndpointProtocolsArray(protocolsRaw)
 	}
 
-	payload := azuresdkhacks.RouteUpdateParameters{
+	updatePrarams := azuresdkhacks.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &props,
 	}
 
@@ -434,7 +440,6 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	// TODO: Modify this check to work with the association resource now...
 	// if checkCustomDomain {
 	// 	// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
 	// 	// enable the link to default domain field
@@ -443,7 +448,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// 	}
 	// }
 
-	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, payload)
+	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, updatePrarams)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -469,6 +474,11 @@ func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+
+	// I now need to lock this resource when updating because the association resources may also be trying
+	// to update it as well...
+	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {

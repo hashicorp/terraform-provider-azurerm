@@ -25,21 +25,22 @@ func expandEnabledBoolToRouteHttpsRedirect(isEnabled bool) cdn.HTTPSRedirect {
 	return cdn.HTTPSRedirectDisabled
 }
 
-func expandEnabledBoolToLinkToDefaultDomain(isEnabled bool) cdn.LinkToDefaultDomain {
-	if isEnabled {
-		return cdn.LinkToDefaultDomainEnabled
-	}
+// TODO: Remove if Association resources work...
+// func expandEnabledBoolToLinkToDefaultDomain(isEnabled bool) cdn.LinkToDefaultDomain {
+// 	if isEnabled {
+// 		return cdn.LinkToDefaultDomainEnabled
+// 	}
 
-	return cdn.LinkToDefaultDomainDisabled
-}
+// 	return cdn.LinkToDefaultDomainDisabled
+// }
 
-func flattenLinkToDefaultDomainToBool(linkToDefaultDomain cdn.LinkToDefaultDomain) bool {
-	if len(linkToDefaultDomain) == 0 {
-		return false
-	}
+// func flattenLinkToDefaultDomainToBool(linkToDefaultDomain cdn.LinkToDefaultDomain) bool {
+// 	if len(linkToDefaultDomain) == 0 {
+// 		return false
+// 	}
 
-	return linkToDefaultDomain == cdn.LinkToDefaultDomainEnabled
-}
+// 	return linkToDefaultDomain == cdn.LinkToDefaultDomainEnabled
+// }
 
 func expandResourceReference(input string) *cdn.ResourceReference {
 	if len(input) == 0 {
@@ -208,4 +209,32 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 	}
 
 	return results
+}
+
+func RouteContainsCustomDomain(input []interface{}, customDomain string) bool {
+	for _, key := range input {
+		v := key.(string)
+		if strings.EqualFold(v, customDomain) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func RemoveCustomDomain(input []interface{}, customDomain string) []interface{} {
+	out := make([]interface{}, 0)
+	if len(input) == 0 {
+		return out
+	}
+
+	for _, key := range input {
+		v := key.(string)
+		if strings.EqualFold(v, customDomain) {
+			continue
+		}
+		out = append(out, key)
+	}
+
+	return out
 }
