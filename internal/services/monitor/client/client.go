@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
@@ -24,6 +25,7 @@ type Client struct {
 
 	// alerts management
 	ActionRulesClient             *alertsmanagement.ActionRulesClient
+	AlertProcessingRulesClient    *alertprocessingrules.AlertProcessingRulesClient
 	SmartDetectorAlertRulesClient *alertsmanagement.SmartDetectorAlertRulesClient
 
 	// Monitor
@@ -52,6 +54,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ActionRulesClient := alertsmanagement.NewActionRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActionRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	AlertProcessingRulesClient := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&AlertProcessingRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	SmartDetectorAlertRulesClient := alertsmanagement.NewSmartDetectorAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SmartDetectorAlertRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -106,6 +111,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionGroupsClient:                   &ActionGroupsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
 		AlertRulesClient:                     &AlertRulesClient,
+		AlertProcessingRulesClient:           &AlertProcessingRulesClient,
 		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
 		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,
 		DataCollectionRulesClient:            &DataCollectionRulesClient,
