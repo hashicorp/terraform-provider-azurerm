@@ -147,6 +147,8 @@ A `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16` and `18`.
 
+~> **Note:** please set the node version using `node_version`, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` in app setting.
+
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
@@ -396,6 +398,8 @@ A `site_config` block supports the following:
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Linux Function App to Application Insights.
 
+~> **Note:** please use `application_insights_connection_string` and `application_insights_key` to set the `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
+
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
 ~> **Note:** If this is set, there must not be an application setting `FUNCTIONS_WORKER_RUNTIME`.
@@ -417,6 +421,8 @@ A `site_config` block supports the following:
 * `health_check_path` - (Optional) The path to be checked for this function app health.
 
 * `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
+
+~> **Note:** please use `health_check_eviction_time_in_min` to set the `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
 * `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
