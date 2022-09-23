@@ -299,7 +299,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	parameters.Identity = identity
-
+	// TODO: retry checkNameAvailability before Create, see https://github.com/Azure/AppConfiguration/issues/677
 	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}

@@ -260,32 +260,6 @@ func TestAccAppConfiguration_softDeleteRecoveryDisabled(t *testing.T) {
 	})
 }
 
-func TestAccAppConfiguration_softDeletePurgeThenRecreate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
-	r := AppConfigurationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// create it regularly
-			Config: r.softDeleteRecoveryDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			// delete the app configuration and purge the soft-deleted
-			Config: r.softDeleteAbsentPurge(data),
-		},
-		{
-			// attempting to re-create it
-			Config: r.softDeleteRecoveryDisabled(data),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAppConfiguration_purgeProtectionEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
@@ -826,26 +800,6 @@ resource "azurerm_app_configuration" "test" {
   purge_protection_enabled = "%t"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
-}
-
-func (AppConfigurationResource) softDeleteAbsentPurge(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    app_configuration {
-      purge_soft_delete_on_destroy = true
-      recover_soft_deleted         = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
-  location = "%s"
-}
-
-
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppConfigurationResource) softDeleteAbsent(data acceptance.TestData) string {
