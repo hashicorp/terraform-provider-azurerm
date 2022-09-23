@@ -48,7 +48,7 @@ func dataSourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 
 func dataSourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := replicationpolicies.NewReplicationPoliciesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
+	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
 
 	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

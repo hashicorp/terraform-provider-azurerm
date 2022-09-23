@@ -66,5 +66,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_site_recovery_protection_container_mapping": resourceSiteRecoveryProtectionContainerMapping(),
 		"azurerm_site_recovery_replicated_vm":                resourceSiteRecoveryReplicatedVM(),
 		"azurerm_site_recovery_replication_policy":           resourceSiteRecoveryReplicationPolicy(),
+		"azurerm_site_recovery_recover_plan":                 resourceSiteRecoveryRecoverPlan(),
 	}
 }

@@ -1273,7 +1273,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  target_proximity_placement_group_id   = azurerm_proximity_placement_group.test.id
+  target_proximity_placement_group_id     = azurerm_proximity_placement_group.test.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -1295,6 +1295,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   ]
 }
 
+
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
@@ -1303,9 +1304,9 @@ func (r SiteRecoveryReplicatedVmResource) withBootDiagStorageAccount(data accept
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                = "acctestrpl%[2]d"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
+  name                     = "acctestrpl%[2]d"
+  location                 = azurerm_resource_group.test2.location
+  resource_group_name      = azurerm_resource_group.test2.name
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
@@ -1322,7 +1323,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  target_boot_diag_storage_account_id   = azurerm_storage_account.test.id
+  target_boot_diag_storage_account_id     = azurerm_storage_account.test.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -1343,6 +1344,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
+
 
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -1369,7 +1371,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  target_capacity_reservation_group_id   = azurerm_capacity_reservation_group.test.id
+  target_capacity_reservation_group_id    = azurerm_capacity_reservation_group.test.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -1390,6 +1392,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
+
 
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -1455,7 +1458,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  target_virtual_machine_scale_set_id   = azurerm_virtual_machine_scale_set.test.id
+  target_virtual_machine_scale_set_id     = azurerm_virtual_machine_scale_set.test.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -1477,6 +1480,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   ]
 }
 
+
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
@@ -1492,7 +1496,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-  multi_vm_group_name = "accmultivmgroup"
+  multi_vm_group_name                       = "accmultivmgroup"
 
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
@@ -1543,7 +1547,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-  disk_encryption_info =  azurerm_disk_encryption_set.test3.id
+  disk_encryption_info                      = azurerm_disk_encryption_set.test3.id
 
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
@@ -1584,7 +1588,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
 
-  target_subnet_name = "acctestsubnet%[2]d"
+  target_subnet_name                      = "acctestsubnet%[2]d"
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
