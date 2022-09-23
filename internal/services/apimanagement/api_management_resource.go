@@ -1245,10 +1245,6 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 		output.IdentityClientID = utils.String(v)
 	}
 
-	if v, ok := input["certificate_source"].(string); ok && v != "" {
-		output.CertificateSource = apimanagement.CertificateSource(v)
-	}
-
 	return output
 }
 
