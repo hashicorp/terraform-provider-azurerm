@@ -47,13 +47,13 @@ output "automation_account_id" {
 
 An `identity` block exports the following:
 
-* `type` - The type of Managed Service Identity that is configured on this API Management Service.
+* `type` - The type of Managed Service Identity that is configured on this Automation Account.
 
-* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Automation Account.
 
-* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Automation Account.
 
-* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this API Management Service.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Automation Account.
 
 ## Timeouts
 
