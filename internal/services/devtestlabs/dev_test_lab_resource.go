@@ -142,15 +142,18 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	storageType := d.Get("storage_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Lab{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
-		LabProperties: &dtl.LabProperties{
+	}
+
+	if !features.FourPointOhBeta() {
+		storageType := d.Get("storage_type").(string)
+		parameters.LabProperties = &dtl.LabProperties{
 			LabStorageType: dtl.StorageType(storageType),
-		},
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LabName, parameters)
@@ -195,8 +198,9 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if props := read.LabProperties; props != nil {
-		d.Set("storage_type", string(props.LabStorageType))
-
+		if !features.FourPointOhBeta() {
+			d.Set("storage_type", string(props.LabStorageType))
+		}
 		// Computed fields
 		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
 		d.Set("default_storage_account_id", props.DefaultStorageAccount)
