@@ -192,8 +192,6 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						"member_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ForceNew:     true,
-							Default:      "default",
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -755,12 +753,16 @@ func expandPrivateEndpointIPConfigurations(input []interface{}) *[]network.Priva
 		privateIPAddress := v["private_ip_address"].(string)
 		subResourceName := v["subresource_name"].(string)
 		name := v["name"].(string)
+		memberName := subResourceName
+		if val := v["member_name"].(string); val != "" {
+			memberName = val
+		}
 		result := network.PrivateEndpointIPConfiguration{
 			Name: utils.String(name),
 			PrivateEndpointIPConfigurationProperties: &network.PrivateEndpointIPConfigurationProperties{
 				PrivateIPAddress: utils.String(privateIPAddress),
 				GroupID:          utils.String(subResourceName),
-				MemberName:       utils.String(v["member_name"].(string)),
+				MemberName:       utils.String(memberName),
 			},
 		}
 		results = append(results, result)

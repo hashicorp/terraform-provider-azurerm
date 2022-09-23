@@ -201,7 +201,7 @@ An `ip_configuration` supports the following:
 
 * `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
 
-* `member_name` - (Optional) Specifies the member name of this IP address applies to. `member_name` corresponds to `group_id`, the default value is `default`.
+* `member_name` - (Optional) Specifies the member name of the group which this IP address applies to. It reuses the value of `subresource_name` if not provided or empty value provided.
 
 ## Attributes Reference
 
