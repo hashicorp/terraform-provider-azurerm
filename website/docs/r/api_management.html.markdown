@@ -118,6 +118,8 @@ A `additional_location` block supports the following:
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
 
+* `gateway_disabled` - (Optional) Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
+
 ---
 
 A `certificate` block supports the following:
@@ -414,6 +416,10 @@ The `hostname_configuration` block exports the following:
 * `thumbprint` - The thumbprint of the certificate.
 
 * `subject` - The subject of the certificate.
+
+* `certificate_source` - The source of the certificate.
+
+* `certificate_status` - The status of the certificate.
 
 
 ## Timeouts
