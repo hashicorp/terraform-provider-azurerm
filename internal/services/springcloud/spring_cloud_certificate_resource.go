@@ -3,6 +3,7 @@ package springcloud
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
@@ -105,7 +106,7 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		cert.Properties = &appplatform.KeyVaultCertificateProperties{
-			VaultURI:         &keyVaultCertificateId.KeyVaultBaseUrl,
+			VaultURI:         utils.String(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
 			KeyVaultCertName: &keyVaultCertificateId.Name,
 		}
 	}

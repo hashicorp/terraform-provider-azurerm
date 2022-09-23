@@ -70,7 +70,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupPoliciesID,
+				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
 		},
 	}
@@ -100,7 +100,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 
 	diskId, _ := computeParse.ManagedDiskID(d.Get("disk_id").(string))
 	location := location.Normalize(d.Get("location").(string))
-	policyId, _ := backuppolicies.ParseBackupPoliciesID(d.Get("backup_policy_id").(string))
+	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 	snapshotResourceGroupId := resourceParse.NewResourceGroupID(subscriptionId, d.Get("snapshot_resource_group_name").(string))
 
 	parameters := backupinstances.BackupInstanceResource{

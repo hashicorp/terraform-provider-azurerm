@@ -29,6 +29,7 @@ func TestAccAutomationAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("dsc_server_endpoint").Exists(),
 				check.That(data.ResourceName).Key("dsc_primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("dsc_secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("hybrid_service_url").Exists(),
 			),
 		},
 		data.ImportStep(),

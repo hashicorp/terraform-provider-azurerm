@@ -16,7 +16,7 @@ type QueriesDeleteOperationResponse struct {
 }
 
 // QueriesDelete ...
-func (c QueryPackQueriesClient) QueriesDelete(ctx context.Context, id QueriesId) (result QueriesDeleteOperationResponse, err error) {
+func (c QueryPackQueriesClient) QueriesDelete(ctx context.Context, id QueryId) (result QueriesDeleteOperationResponse, err error) {
 	req, err := c.preparerForQueriesDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "querypackqueries.QueryPackQueriesClient", "QueriesDelete", nil, "Failure preparing request")
@@ -39,7 +39,7 @@ func (c QueryPackQueriesClient) QueriesDelete(ctx context.Context, id QueriesId)
 }
 
 // preparerForQueriesDelete prepares the QueriesDelete request.
-func (c QueryPackQueriesClient) preparerForQueriesDelete(ctx context.Context, id QueriesId) (*http.Request, error) {
+func (c QueryPackQueriesClient) preparerForQueriesDelete(ctx context.Context, id QueryId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

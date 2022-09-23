@@ -69,7 +69,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Hub Namespace. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Hub Namespace. Possible values are `SystemAssigned` or `UserAssigned`.
 
 ~> **Note:** Due to the limitation of the current Azure API, once an EventHub Namespace has been assigned an identity, it cannot be removed.
 
@@ -78,6 +78,10 @@ A `identity` block supports the following:
 A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
+
+* `public_network_access` - (Optional)  Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+
+* ~> **Note:** The public network access setting at the network rule sets level should be the same as it's at the namespace level.
 
 * `trusted_service_access_enabled` - (Optional) Whether Trusted Microsoft Services are allowed to bypass firewall.
 

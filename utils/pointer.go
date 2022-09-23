@@ -27,3 +27,10 @@ func String(input string) *string {
 func ToPtr[E any](e E) *E {
 	return &e
 }
+
+func StringSlice(input []string) *[]string {
+	if input == nil {
+		return nil
+	}
+	return &input
+}

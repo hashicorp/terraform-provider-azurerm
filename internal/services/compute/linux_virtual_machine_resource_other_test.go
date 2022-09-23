@@ -744,6 +744,46 @@ func TestAccLinuxVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherPatchAssessmentModeDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherPatchAssessmentModeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("patch_assessment_mode").HasValue("ImageDefault"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherPatchAssessmentModeUpdate(t *testing.T) {
+	t.Skip("Skipping the update test before GA of Patch Assessment Mode `AutomaticByPlatform`")
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherPatchAssessmentModeAutomaticByPlatform(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherPatchAssessmentModeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("patch_assessment_mode").HasValue("ImageDefault"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LinuxVirtualMachineResource) otherPatchMode(data acceptance.TestData, patchMode string) string {
 	return fmt.Sprintf(`
 %s
@@ -778,6 +818,76 @@ resource "azurerm_linux_virtual_machine" "test" {
   patch_mode = "%s"
 }
 `, r.template(data), data.RandomInteger, patchMode)
+}
+
+func (r LinuxVirtualMachineResource) otherPatchAssessmentModeDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherPatchAssessmentModeAutomaticByPlatform(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  patch_assessment_mode = "AutomaticByPlatform"
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) otherAllowExtensionOperationsDefault(data acceptance.TestData) string {
@@ -1300,6 +1410,7 @@ func (r LinuxVirtualMachineResource) otherSkipShutdownAndForceDelete(data accept
 provider "azurerm" {
   features {
     virtual_machine {
+      delete_os_disk_on_deletion     = true
       skip_shutdown_and_force_delete = true
     }
   }
@@ -2095,7 +2206,8 @@ locals {
 provider "azurerm" {
   features {
     virtual_machine {
-      graceful_shutdown = %t
+      delete_os_disk_on_deletion = true
+      graceful_shutdown          = %t
     }
   }
 }

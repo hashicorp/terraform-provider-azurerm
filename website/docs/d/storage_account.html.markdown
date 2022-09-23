@@ -132,6 +132,8 @@ output "storage_account_tier" {
 
 * `infrastructure_encryption_enabled` - Is infrastructure encryption enabled? See [here](https://docs.microsoft.com/azure/storage/common/infrastructure-encryption-enable/)
     for more information.
+
+* `azure_files_authentication` - A `azure_files_authentication` block as documented below.
 ---
 
 * `custom_domain` supports the following:
@@ -149,6 +151,30 @@ output "storage_account_tier" {
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
+
+---
+
+`azure_files_authentication` supports the following:
+
+* `directory_type` - The directory service used for this Storage Account.
+
+* `active_directory` - An `active_directory` block as documented below.
+
+---
+
+`active_directory` supports the following:
+
+* `domain_name` - The primary domain that the AD DNS server is authoritative for.
+
+* `netbios_domain_name` - The NetBIOS domain name.
+
+* `forest_name` - The name of the Active Directory forest.
+
+* `domain_guid` - The domain GUID.
+
+* `domain_sid` - The domain security identifier.
+
+* `storage_sid` - The security identifier for Azure Storage.
 
 ## Timeouts
 

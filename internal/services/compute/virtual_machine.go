@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -321,7 +322,7 @@ func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSys
 	return &disk, nil
 }
 
-func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.DisksClient, input *compute.OSDisk) ([]interface{}, error) {
+func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksClient, input *compute.OSDisk) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
@@ -358,15 +359,15 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
 
 		if input.ManagedDisk.ID != nil {
-			id, err := parse.ManagedDiskID(*input.ManagedDisk.ID)
+			id, err := disks.ParseDiskID(*input.ManagedDisk.ID)
 			if err != nil {
 				return nil, err
 			}
 
-			disk, err := disksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+			disk, err := disksClient.Get(ctx, *id)
 			if err != nil {
 				// turns out ephemeral disks aren't returned/available here
-				if !utils.ResponseWasNotFound(disk.Response) {
+				if !response.WasNotFound(disk.HttpResponse) {
 					return nil, err
 				}
 			}
@@ -374,21 +375,21 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 			// Ephemeral Disks get an ARM ID but aren't available via the regular API
 			// ergo fingers crossed we've got it from the resource because ¯\_(ツ)_/¯
 			// where else we'd be able to pull it from
-			if !utils.ResponseWasNotFound(disk.Response) {
+			if !response.WasNotFound(disk.HttpResponse) {
 				// whilst this is available as `input.ManagedDisk.StorageAccountType` it's not returned there
 				// however it's only available there for ephemeral os disks
-				if disk.Sku != nil && storageAccountType == "" {
-					storageAccountType = string(disk.Sku.Name)
+				if disk.Model.Sku != nil && storageAccountType == "" {
+					storageAccountType = string(*disk.Model.Sku.Name)
 				}
 
 				// same goes for Disk Size GB apparently
-				if diskSizeGb == 0 && disk.DiskProperties != nil && disk.DiskProperties.DiskSizeGB != nil {
-					diskSizeGb = int(*disk.DiskProperties.DiskSizeGB)
+				if diskSizeGb == 0 && disk.Model.Properties != nil && disk.Model.Properties.DiskSizeGB != nil {
+					diskSizeGb = int(*disk.Model.Properties.DiskSizeGB)
 				}
 
 				// same goes for Disk Encryption Set Id apparently
-				if disk.Encryption != nil && disk.Encryption.DiskEncryptionSetID != nil {
-					diskEncryptionSetId = *disk.Encryption.DiskEncryptionSetID
+				if disk.Model.Properties.Encryption != nil && disk.Model.Properties.Encryption.DiskEncryptionSetId != nil {
+					diskEncryptionSetId = *disk.Model.Properties.Encryption.DiskEncryptionSetId
 				}
 			}
 		}

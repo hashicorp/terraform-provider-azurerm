@@ -579,13 +579,13 @@ func (r MsSqlManagedInstanceResource) expandSkuName(skuName string) (*sql.Sku, e
 
 func (r MsSqlManagedInstanceResource) normalizeSku(sku string) string {
 	switch sku {
-	case "MIBC64G8IH":
+	case "MIBC64G8IH", "BC_G8IH":
 		return "BC_Gen8IH"
-	case "MIBC64G8IM":
+	case "MIBC64G8IM", "BC_G8IM":
 		return "BC_Gen8IM"
-	case "MIGP4G8IH":
+	case "MIGP4G8IH", "GP_G8IH":
 		return "GP_Gen8IH"
-	case "MIGP4G8IM":
+	case "MIGP4G8IM", "GP_G8IM":
 		return "GP_Gen8IM"
 	}
 

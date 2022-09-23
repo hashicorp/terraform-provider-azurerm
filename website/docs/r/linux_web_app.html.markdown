@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).
 
 * `logs` - (Optional) A `logs` block as defined below.
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 ---
 
-A `action` block supports the following:
+An `action` block supports the following:
 
 * `action_type` - (Required) Predefined action to be taken to an Auto Heal trigger. Possible values include: `Recycle`.
 
@@ -109,7 +109,7 @@ A `action` block supports the following:
 
 ---
 
-A `active_directory` block supports the following:
+An `active_directory` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
 
@@ -123,7 +123,7 @@ A `active_directory` block supports the following:
 
 ---
 
-A `application_logs` block supports the following:
+An `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
@@ -147,11 +147,11 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions of Java vary depending on the `java_server` and `java_server_version`, as well as security and fixes to major versions. Please see Azure documentation for the latest information.
 
-~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from command line via `az webapp list-runtimes --linux`. 
+~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`. 
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, and `16-lts`. This property conflicts with `java_version`.
 
-~> **NOTE:** 10.x versions have been / are being deprecated so may cease to work for new resources in future and may be removed from the provider. 
+~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider. 
 
 * `php_version` - (Optional) The version of PHP to run. Possible values include `7.4`, and `8.0`.
 
@@ -163,7 +163,7 @@ An `application_stack` block supports the following:
 
 ---
 
-A `auth_settings` block supports the following:
+An `auth_settings` block supports the following:
 
 * `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Linux Web App?
 
@@ -183,7 +183,7 @@ A `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Linux Web App.
+* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity that issues access tokens for this Linux Web App.
 
 ~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
 
@@ -201,7 +201,7 @@ A `auth_settings` block supports the following:
 
 ---
 
-A `auto_heal_setting` block supports the following:
+An `auto_heal_setting` block supports the following:
 
 * `action` - (Optional) A `action` block as defined above.
 
@@ -209,7 +209,7 @@ A `auto_heal_setting` block supports the following:
 
 ---
 
-A `azure_blob_storage` block supports the following:
+An `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
@@ -263,7 +263,7 @@ A `facebook` block supports the following:
 
 A `file_system` block supports the following:
 
-* `retention_in_days` - (Required) The retention period in days. A values of `0` means no retention.
+* `retention_in_days` - (Required) The retention period in days. A value of `0` means no retention.
 
 * `retention_in_mb` - (Required) The maximum size in megabytes that log files can use.
 
@@ -317,7 +317,7 @@ A `http_logs` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Web App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Web App. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Web App.
 
@@ -325,7 +325,7 @@ An `identity` block supports the following:
 
 ---
 
-A `ip_restriction` block supports the following:
+An `ip_restriction` block supports the following:
 
 * `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
 
@@ -349,9 +349,9 @@ A `logs` block supports the following:
 
 * `application_logs` - (Optional) A `application_logs` block as defined above.
 
-* `detailed_error_messages` - (Optional) Should detailed error messages be enabled.
+* `detailed_error_messages` - (Optional) Should detailed error messages be enabled?
 
-* `failed_request_tracing` - (Optional) Should failed request tracing be enabled.
+* `failed_request_tracing` - (Optional) Should the failed request tracing be enabled?
 
 * `http_logs` - (Optional) An `http_logs` block as defined above.
 
@@ -385,7 +385,7 @@ A `schedule` block supports the following:
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day`, `Hour`
 
-* `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.
+* `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of the age of backup? Defaults to `false`.
 
 * `retention_period_days` - (Optional) After how many days backups should be deleted.
 
@@ -419,13 +419,15 @@ A `site_config` block supports the following:
 
 ~> **NOTE:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
 
-* `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
+* `api_definition_url` - (Optional) The URL to the API Definition for this Linux Web App.
+
+* `api_management_api_id` - (Optional) The API Management API ID this Linux Web App is associated with.
 
 * `app_command_line` - (Optional) The App command line to launch.
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled. Required with `auto_heal_setting`.
+* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled? Required with `auto_heal_setting`.
 
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
@@ -437,7 +439,7 @@ A `site_config` block supports the following:
 
 * `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
 
-* `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include: `AllAllowed`, `FtpsOnly`, `Disabled`.
+* `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include `AllAllowed`, `FtpsOnly`, and `Disabled`.
 
 ~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it. 
 
@@ -453,11 +455,11 @@ A `site_config` block supports the following:
 
 * `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
 
-* `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`.
+* `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include `Integrated`, and `Classic`.
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `remote_debugging` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
+* `remote_debugging` - (Optional) Should Remote Debugging be enabled? Defaults to `false`.
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
 
@@ -467,11 +469,11 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Web App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `true`.
+* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker? Defaults to `true`.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
-* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled? Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service.
 
@@ -566,7 +568,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_address_list` - A `possible_outbound_ip_address_list` block as defined below.
 
-* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
+* `possible_outbound_ip_addresses` - A comma-separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 * `site_credential` - A `site_credential` block as defined below.
 

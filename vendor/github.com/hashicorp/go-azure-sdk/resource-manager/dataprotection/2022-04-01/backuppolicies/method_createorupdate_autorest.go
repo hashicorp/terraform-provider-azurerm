@@ -17,7 +17,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c BackupPoliciesClient) CreateOrUpdate(ctx context.Context, id BackupPoliciesId, input BaseBackupPolicyResource) (result CreateOrUpdateOperationResponse, err error) {
+func (c BackupPoliciesClient) CreateOrUpdate(ctx context.Context, id BackupPolicyId, input BaseBackupPolicyResource) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backuppolicies.BackupPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c BackupPoliciesClient) CreateOrUpdate(ctx context.Context, id BackupPolic
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c BackupPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id BackupPoliciesId, input BaseBackupPolicyResource) (*http.Request, error) {
+func (c BackupPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id BackupPolicyId, input BaseBackupPolicyResource) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -80,7 +80,7 @@ func TestAccLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
 }
 
 func (t LogAnalyticsSavedSearchResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := savedsearches.ParseSavedSearcheID(fmt.Sprintf("/%s", strings.TrimPrefix(state.ID, "/")))
+	id, err := savedsearches.ParseSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(state.ID, "/")))
 	if err != nil {
 		return nil, err
 	}

@@ -456,7 +456,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"cors_rule": common.SchemaCorsRule(),
 
@@ -940,16 +940,14 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
 	d.Set("kind", string(resp.Kind))
 
-	if v := resp.Identity; v != nil {
-		if err := d.Set("identity", flattenAccountIdentity(v)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
+	identity, err := flattenAccountIdentity(resp.Identity)
+	if err != nil {
+		return err
 	}
+	d.Set("identity", identity)
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
@@ -1545,22 +1543,31 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 }
 
 func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &documentdb.ManagedServiceIdentity{
+	out := documentdb.ManagedServiceIdentity{
 		Type: documentdb.ResourceIdentityType(string(expanded.Type)),
-	}, nil
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+		}
+	}
+	return &out, nil
+
 }
 
-func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interface{} {
-	var transform *identity.SystemAssigned
+func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		if input.PrincipalID != nil {
 			transform.PrincipalId = *input.PrincipalID
@@ -1568,9 +1575,16 @@ func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interfac
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *documentdb.AnalyticalStorageConfiguration {

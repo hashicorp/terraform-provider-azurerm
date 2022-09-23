@@ -152,6 +152,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ForceNew:         true,
 				ValidateFunc:     location.EnhancedValidate,
 				StateFunc:        location.StateFunc,

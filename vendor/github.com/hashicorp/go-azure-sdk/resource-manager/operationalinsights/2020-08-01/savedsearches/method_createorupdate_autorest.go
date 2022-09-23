@@ -17,7 +17,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c SavedSearchesClient) CreateOrUpdate(ctx context.Context, id SavedSearcheId, input SavedSearch) (result CreateOrUpdateOperationResponse, err error) {
+func (c SavedSearchesClient) CreateOrUpdate(ctx context.Context, id SavedSearchId, input SavedSearch) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "savedsearches.SavedSearchesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c SavedSearchesClient) CreateOrUpdate(ctx context.Context, id SavedSearche
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c SavedSearchesClient) preparerForCreateOrUpdate(ctx context.Context, id SavedSearcheId, input SavedSearch) (*http.Request, error) {
+func (c SavedSearchesClient) preparerForCreateOrUpdate(ctx context.Context, id SavedSearchId, input SavedSearch) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
