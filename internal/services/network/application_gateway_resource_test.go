@@ -4765,6 +4765,11 @@ resource "azurerm_application_gateway" "test" {
 
 func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		// ctx has to refresh timeout value, or it may cause timeout when `WaitForCompletionRef`
+		// `time.Minute*90` is the timeout value for ApplicationGatewayResource Create
+		ctx, cancel := context.WithTimeout(ctx, time.Minute*90)
+		defer cancel()
+
 		gatewayName := state.Attributes["name"]
 		resourceGroup := state.Attributes["resource_group_name"]
 
@@ -4792,9 +4797,6 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 
 		agw.SslCertificates = &newSslCertificates
 
-		// ctx has to refresh timeout value or it may timeout
-		ctx, cancel := context.WithTimeout(ctx, time.Minute*90)
-		defer cancel()
 		future, err := clients.Network.ApplicationGatewaysClient.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
 		if err != nil {
 			return fmt.Errorf("Bad: updating AGW: %+v", err)
