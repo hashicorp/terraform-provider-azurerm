@@ -163,7 +163,13 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, d.Get("maintenance_configuration_name").(string))
+	maintenanceName := "SQL_Default"
+	if d.Get("elastic_pool_id").(string) == "" && d.Get("maintenance_configuration_name").(string) != "" {
+		// get maintenance name only if elastic pool is not used
+		maintenanceName = d.Get("maintenance_configuration_name").(string)
+	}
+	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, maintenanceName)
+
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
@@ -976,7 +982,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"maintenance_configuration_name": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Default:       "SQL_Default",
+			Computed:      true,
 			ConflictsWith: []string{"elastic_pool_id"},
 			ValidateFunc:  validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 		},
