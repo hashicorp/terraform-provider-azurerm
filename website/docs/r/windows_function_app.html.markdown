@@ -145,8 +145,6 @@ A `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16` and `~18`.
 
-~> **Note:** please set the node version using `node_version`, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` in app setting.
-
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
 
 * `use_custom_runtime` - (Optional) Should the Windows Function App use a custom runtime?
@@ -437,6 +435,8 @@ A `site_config` block supports the following:
 A `sticky_settings` block exports the following:
 
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+~> **Note:** please set the node version using `node_version`, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` in app setting.
 
 * `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 

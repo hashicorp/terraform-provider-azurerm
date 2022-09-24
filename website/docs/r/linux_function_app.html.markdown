@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
+~> **Note:** please set the node version using `node_version`, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` in app setting.
+
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `backup` - (Optional) A `backup` block as defined below.
@@ -146,8 +148,6 @@ A `application_stack` block supports the following:
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16` and `18`.
-
-~> **Note:** please set the node version using `node_version`, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` in app setting.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
 
