@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_automation_account` - exports the `identity` attribute ([#18478](https://github.com/hashicorp/terraform-provider-azurerm/issues/18478))
 * Data Source: `azurerm_storage_account` - export the `azure_files_identity_based_auth` property ([#18405](https://github.com/hashicorp/terraform-provider-azurerm/issues/18405))
 * `azurerm_api_management_api_operation` - support the `example`, `schema_id`, and `type_name` properties ([#18409](https://github.com/hashicorp/terraform-provider-azurerm/issues/18409))
+* `azurerm_cognitive_account` - support for the `customer_managed_key` property [GH-18516]
 * `azurerm_data_factory_flowlet_data_flow` - support for the `rejected_linked_service` property [GH-18056]
 * `azurerm_data_factory_data_flow` - support for the `rejected_linked_service` property [GH-18056]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `techniques` property ([#18430](https://github.com/hashicorp/terraform-provider-azurerm/issues/18430))
