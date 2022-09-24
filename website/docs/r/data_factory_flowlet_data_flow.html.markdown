@@ -264,7 +264,17 @@ A `sink` block supports the following:
 
 * `name` - (Required) The name for the Data Flow Source.
 
+* `rejected_linked_service` - (Optional) A `rejected_linked_service` block as defined below.
+
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
+
+---
+
+A `rejected_linked_service` block supports the following:
+
+* `name` - (Required) The name for the Data Factory Linked Service with schema.
+
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
 ---
 
