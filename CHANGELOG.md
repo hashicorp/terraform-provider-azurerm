@@ -13,6 +13,8 @@ ENHANCEMENTS:
 * Data Source: `azurerm_automation_account` - exports the `identity` attribute ([#18478](https://github.com/hashicorp/terraform-provider-azurerm/issues/18478))
 * Data Source: `azurerm_storage_account` - export the `azure_files_identity_based_auth` property ([#18405](https://github.com/hashicorp/terraform-provider-azurerm/issues/18405))
 * `azurerm_api_management_api_operation` - support the `example`, `schema_id`, and `type_name` properties ([#18409](https://github.com/hashicorp/terraform-provider-azurerm/issues/18409))
+* `azurerm_data_factory_flowlet_data_flow` - support for the `rejected_linked_service` property [GH-18056]
+* `azurerm_data_factory_data_flow` - support for the `rejected_linked_service` property [GH-18056]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `techniques` property ([#18430](https://github.com/hashicorp/terraform-provider-azurerm/issues/18430))
 * `azurerm_linux_virtual_machine` - support for the `patch_assessment_mode` property ([#18437](https://github.com/hashicorp/terraform-provider-azurerm/issues/18437))
 * `azurerm_managed_disk` - support for the `PremiumV2_LRS` type ([#17671](https://github.com/hashicorp/terraform-provider-azurerm/issues/17671))
