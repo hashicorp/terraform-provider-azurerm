@@ -295,13 +295,15 @@ type ApplicationGatewaySslPolicyType string
 const (
 	// ApplicationGatewaySslPolicyTypeCustom ...
 	ApplicationGatewaySslPolicyTypeCustom ApplicationGatewaySslPolicyType = "Custom"
+	// ApplicationGatewaySslPolicyTypeCustomV2 ...
+	ApplicationGatewaySslPolicyTypeCustomV2 ApplicationGatewaySslPolicyType = "CustomV2"
 	// ApplicationGatewaySslPolicyTypePredefined ...
 	ApplicationGatewaySslPolicyTypePredefined ApplicationGatewaySslPolicyType = "Predefined"
 )
 
 // PossibleApplicationGatewaySslPolicyTypeValues returns an array of possible values for the ApplicationGatewaySslPolicyType const type.
 func PossibleApplicationGatewaySslPolicyTypeValues() []ApplicationGatewaySslPolicyType {
-	return []ApplicationGatewaySslPolicyType{ApplicationGatewaySslPolicyTypeCustom, ApplicationGatewaySslPolicyTypePredefined}
+	return []ApplicationGatewaySslPolicyType{ApplicationGatewaySslPolicyTypeCustom, ApplicationGatewaySslPolicyTypeCustomV2, ApplicationGatewaySslPolicyTypePredefined}
 }
 
 // ApplicationGatewaySslProtocol enumerates the values for application gateway ssl protocol.
@@ -314,11 +316,13 @@ const (
 	ApplicationGatewaySslProtocolTLSv11 ApplicationGatewaySslProtocol = "TLSv1_1"
 	// ApplicationGatewaySslProtocolTLSv12 ...
 	ApplicationGatewaySslProtocolTLSv12 ApplicationGatewaySslProtocol = "TLSv1_2"
+	// ApplicationGatewaySslProtocolTLSv13 ...
+	ApplicationGatewaySslProtocolTLSv13 ApplicationGatewaySslProtocol = "TLSv1_3"
 )
 
 // PossibleApplicationGatewaySslProtocolValues returns an array of possible values for the ApplicationGatewaySslProtocol const type.
 func PossibleApplicationGatewaySslProtocolValues() []ApplicationGatewaySslProtocol {
-	return []ApplicationGatewaySslProtocol{ApplicationGatewaySslProtocolTLSv10, ApplicationGatewaySslProtocolTLSv11, ApplicationGatewaySslProtocolTLSv12}
+	return []ApplicationGatewaySslProtocol{ApplicationGatewaySslProtocolTLSv10, ApplicationGatewaySslProtocolTLSv11, ApplicationGatewaySslProtocolTLSv12, ApplicationGatewaySslProtocolTLSv13}
 }
 
 // ApplicationGatewayTier enumerates the values for application gateway tier.
