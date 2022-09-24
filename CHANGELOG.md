@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `techniques` property ([#18430](https://github.com/hashicorp/terraform-provider-azurerm/issues/18430))
 * `azurerm_linux_virtual_machine` - support for the `patch_assessment_mode` property ([#18437](https://github.com/hashicorp/terraform-provider-azurerm/issues/18437))
 * `azurerm_managed_disk` - support for the `PremiumV2_LRS` type ([#17671](https://github.com/hashicorp/terraform-provider-azurerm/issues/17671))
+* `azurerm_orchestrated_virtual_machine_scale_set` - support for the `user_data_base64` property [GH-18486]
 * `azurerm_private_endpoint` - support for the `custom_network_interface_name` property ([#18025](https://github.com/hashicorp/terraform-provider-azurerm/issues/18025))
 * `azurerm_virtual_machine_extension` - support for the `failure_suppression_enabled` property ([#18441](https://github.com/hashicorp/terraform-provider-azurerm/issues/18441))
 * `azurerm_virtual_machine_scale_set_extension` - support for the `failure_suppression_enabled` property ([#18441](https://github.com/hashicorp/terraform-provider-azurerm/issues/18441))
