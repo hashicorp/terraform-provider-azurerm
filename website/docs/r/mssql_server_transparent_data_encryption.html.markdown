@@ -156,6 +156,8 @@ The following arguments are supported:
 
 ~> **NOTE:** If `server_id` denotes a secondary server deployed for disaster recovery purposes, then the `key_vault_key_id` should be the same key used for the primary server's transparent data encryption. Both primary and secondary servers should be encrypted with same key material.
 
+* `auto_rotation_enabled` - (Optional) When enabled, the server will continuously check the key vault for any new versions of the key being used as the TDE protector. If a new version of the key is detected, the TDE protector on the server will be automatically rotated to the latest key version within 60 minutes.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
