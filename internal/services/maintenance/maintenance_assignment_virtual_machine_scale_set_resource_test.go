@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -47,17 +48,19 @@ func TestAccMaintenanceAssignmentVirtualMachineScaleSet_requiresImport(t *testin
 }
 
 func (MaintenanceAssignmentVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MaintenanceAssignmentVirtualMachineScaleSetID(state.ID)
+	maVmScaleSetID, err := parse.MaintenanceAssignmentVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id.VirtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", id.VirtualMachineScaleSetId.Name)
+	id := configurationassignments.NewProviderID(maVmScaleSetID.VirtualMachineScaleSetId.SubscriptionId, maVmScaleSetID.VirtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", maVmScaleSetID.VirtualMachineScaleSetId.Name)
+
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine Scale Set (target resource id: %q): %v", id.VirtualMachineScaleSetIdRaw, err)
+		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine Scale Set (target resource id: %q): %v", maVmScaleSetID.VirtualMachineScaleSetIdRaw, err)
 	}
 
-	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {

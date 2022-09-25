@@ -913,7 +913,23 @@ func TestAccLinuxFunctionAppSlot_identityKeyVaultIdentity(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_msiStorageAccount(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_msiStorageAccountElastic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_msiStorageAccountStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -1013,6 +1029,21 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlotASEv3_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withASEV3(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2321,7 +2352,11 @@ resource "azurerm_linux_function_app_slot" "test" {
     type = "SystemAssigned"
   }
 
-  site_config {}
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
@@ -2804,4 +2839,44 @@ resource "azurerm_linux_function_app_slot" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    vnet_route_all_enabled = true
+  }
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%[3]d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    vnet_route_all_enabled = true
+  }
+}
+
+`, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
 }

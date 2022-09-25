@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
@@ -21,7 +22,7 @@ import (
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDevTestLabCreateUpdate,
 		Read:   resourceDevTestLabRead,
 		Update: resourceDevTestLabCreateUpdate,
@@ -100,6 +101,21 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["storage_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(dtl.Premium),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(dtl.Standard),
+				string(dtl.Premium),
+			}, false),
+			Deprecated: "`storage_type` is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0.",
+		}
+	}
+
+	return resource
 }
 
 func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -126,15 +142,18 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	storageType := d.Get("storage_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Lab{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
-		LabProperties: &dtl.LabProperties{
+	}
+
+	if !features.FourPointOhBeta() {
+		storageType := d.Get("storage_type").(string)
+		parameters.LabProperties = &dtl.LabProperties{
 			LabStorageType: dtl.StorageType(storageType),
-		},
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LabName, parameters)
@@ -179,8 +198,9 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if props := read.LabProperties; props != nil {
-		d.Set("storage_type", string(props.LabStorageType))
-
+		if !features.FourPointOhBeta() {
+			d.Set("storage_type", string(props.LabStorageType))
+		}
 		// Computed fields
 		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
 		d.Set("default_storage_account_id", props.DefaultStorageAccount)

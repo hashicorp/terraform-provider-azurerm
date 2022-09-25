@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Windows Function App should exist. Changing this forces a new Windows Function App to be created.
 
-* `name` - (Required) The name which should be used for this Windows Function App. Changing this forces a new Windows Function App to be created.
+* `name` - (Required) The name which should be used for this Windows Function App. Changing this forces a new Windows Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Windows Function App should exist. Changing this forces a new Windows Function App to be created.
 
@@ -143,7 +143,7 @@ A `application_stack` block supports the following:
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, and `~16`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16` and `~18`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
 
@@ -409,6 +409,8 @@ A `site_config` block supports the following:
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`.
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Scale Monitoring of the Functions Runtime be enabled? 
+
+~> **NOTE:** Functions runtime scale monitoring can only be enabled for Elastic Premium Function Apps or Workflow Standard Logic Apps and requires a minimum prewarmed instance count of 1.
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 

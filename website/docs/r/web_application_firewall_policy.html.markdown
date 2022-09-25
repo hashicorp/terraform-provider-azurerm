@@ -186,11 +186,31 @@ The `managed_rules` block supports the following:
 
 The `exclusion` block supports the following:
 
-* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames`, `RequestHeaderValues`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection.
 
 * `selector_match_operator` - (Required) Describes operator to be matched. Possible values: `Contains`, `EndsWith`, `Equals`, `EqualsAny`, `StartsWith`.
+
+* `excluded_rule_set` - (Optional) One or more `excluded_rule_set` block defined below.
+
+---
+
+The `excluded_rule_set` block supports the following:
+
+* `type` - (Optional) The rule set type. The only possible value is `OWASP` . Defaults to `OWASP`.
+
+* `version` - (Optional) The rule set version. The only possible value is `3.2` . Defaults to `3.2`.
+
+* `rule_group` - (Optional) One or more `rule_group` block defined below.
+
+---
+
+The `rule_group` block supports the following:
+
+* `rule_group_name` - (Required) The name of rule group for exclusion.
+
+* `excluded_rules` - (Optional) One or more Rule IDs for exclusion.
 
 ---
 

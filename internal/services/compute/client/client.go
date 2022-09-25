@@ -4,8 +4,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -13,9 +16,9 @@ type Client struct {
 	AvailabilitySetsClient           *availabilitysets.AvailabilitySetsClient
 	CapacityReservationsClient       *compute.CapacityReservationsClient
 	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
-	DedicatedHostsClient             *compute.DedicatedHostsClient
-	DedicatedHostGroupsClient        *compute.DedicatedHostGroupsClient
-	DisksClient                      *compute.DisksClient
+	DedicatedHostsClient             *dedicatedhosts.DedicatedHostsClient
+	DedicatedHostGroupsClient        *dedicatedhostgroups.DedicatedHostGroupsClient
+	DisksClient                      *disks.DisksClient
 	DiskAccessClient                 *compute.DiskAccessesClient
 	DiskEncryptionSetsClient         *compute.DiskEncryptionSetsClient
 	GalleriesClient                  *compute.GalleriesClient
@@ -49,13 +52,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	capacityReservationGroupsClient := compute.NewCapacityReservationGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&capacityReservationGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	dedicatedHostsClient := compute.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	dedicatedHostsClient := dedicatedhosts.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dedicatedHostsClient.Client, o.ResourceManagerAuthorizer)
 
-	dedicatedHostGroupsClient := compute.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	dedicatedHostGroupsClient := dedicatedhostgroups.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	disksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	disksClient := disks.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
 
 	diskAccessClient := compute.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

@@ -131,6 +131,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				Default:  "ResultCount",
 				ValidateFunc: validation.StringInSlice([]string{
 					"ResultCount",
+					"Number",
 				}, false),
 			},
 			"severity": {

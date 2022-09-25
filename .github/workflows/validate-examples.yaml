@@ -1,5 +1,9 @@
 ---
 name: Validate Examples
+
+permissions:
+  pull-requests: read
+
 on:
   pull_request:
     types: ['opened', 'synchronize']

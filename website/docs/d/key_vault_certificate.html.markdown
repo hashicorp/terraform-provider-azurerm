@@ -147,4 +147,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate.
+* `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.

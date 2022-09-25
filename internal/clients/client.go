@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
+	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -32,6 +33,7 @@ import (
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 	customproviders "github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders/client"
+	dashboard "github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard/client"
 	datamigration "github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/client"
 	databoxedge "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/client"
 	databricks "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
@@ -82,6 +84,7 @@ import (
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
+	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
@@ -97,6 +100,7 @@ import (
 	securityCenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
+	serviceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
 	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
@@ -145,6 +149,7 @@ type Client struct {
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
 	CustomProviders       *customproviders.Client
+	Dashboard             *dashboard.Client
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
@@ -156,7 +161,7 @@ type Client struct {
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
 	Disks                 *disks.Client
-	Dns                   *dns.Client
+	Dns                   *dns_v2018_05_01.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
 	EventGrid             *eventgrid.Client
@@ -195,6 +200,7 @@ type Client struct {
 	NetApp                *netapp.Client
 	Network               *network.Client
 	NotificationHubs      *notificationhub.Client
+	Orbital               *orbital.Client
 	Policy                *policy.Client
 	Portal                *portal.Client
 	Postgres              *postgres.Client
@@ -210,6 +216,7 @@ type Client struct {
 	SecurityCenter        *securityCenter.Client
 	Sentinel              *sentinel.Client
 	ServiceBus            *serviceBus.Client
+	ServiceConnector      *serviceConnector.Client
 	ServiceFabric         *serviceFabric.Client
 	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
@@ -260,6 +267,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
+	client.Dashboard = dashboard.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataboxEdge = databoxedge.NewClient(o)
@@ -310,6 +318,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
+	client.Orbital = orbital.NewClient(o)
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
@@ -325,6 +334,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
+	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
 	client.SignalR = signalr.NewClient(o)

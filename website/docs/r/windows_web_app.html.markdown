@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_cert_enabled` is `false`
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 

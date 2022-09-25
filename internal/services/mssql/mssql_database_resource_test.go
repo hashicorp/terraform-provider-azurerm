@@ -51,14 +51,19 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
+	maintenance_configuration_name := "SQL_Default"
+	if data.Locations.Primary == "westeurope" {
+		maintenance_configuration_name = "SQL_WestEurope_DB_2"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
-				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("maintenance_configuration_name").HasValue(maintenance_configuration_name),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
@@ -745,6 +750,8 @@ resource "azurerm_mssql_database" "test" {
   max_size_gb  = 1
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
+
+  maintenance_configuration_name = azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
 
   storage_account_type = "Local"
 

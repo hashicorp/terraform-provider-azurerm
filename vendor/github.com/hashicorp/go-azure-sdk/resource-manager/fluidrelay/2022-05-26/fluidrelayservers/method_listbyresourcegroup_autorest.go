@@ -60,50 +60,6 @@ func (c FluidRelayServersClient) ListByResourceGroup(ctx context.Context, id com
 	return
 }
 
-// ListByResourceGroupComplete retrieves all of the results into a single object
-func (c FluidRelayServersClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, FluidRelayServerOperationPredicate{})
-}
-
-// ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c FluidRelayServersClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate FluidRelayServerOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
-	items := make([]FluidRelayServer, 0)
-
-	page, err := c.ListByResourceGroup(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListByResourceGroupCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListByResourceGroup prepares the ListByResourceGroup request.
 func (c FluidRelayServersClient) preparerForListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c FluidRelayServersClient) responderForListByResourceGroup(resp *http.Resp
 		}
 	}
 	return
+}
+
+// ListByResourceGroupComplete retrieves all of the results into a single object
+func (c FluidRelayServersClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, FluidRelayServerOperationPredicate{})
+}
+
+// ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c FluidRelayServersClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate FluidRelayServerOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
+	items := make([]FluidRelayServer, 0)
+
+	page, err := c.ListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListByResourceGroupCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

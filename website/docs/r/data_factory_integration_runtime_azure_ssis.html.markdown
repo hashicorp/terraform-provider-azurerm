@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `express_custom_setup` - (Optional) An `express_custom_setup` block as defined below.
 
+* `express_vnet_integration` - (Optional) A `express_vnet_integration` block as defined below.
+
 * `package_store` - (Optional) One or more `package_store` block as defined below.
   
 * `proxy` - (Optional) A `proxy` block as defined below.
@@ -102,6 +104,12 @@ An `express_custom_setup` block supports the following:
 * `powershell_version` - (Optional) The version of Azure Powershell installed for the Azure-SSIS Integration Runtime.
 
 ~> **NOTE** At least one of `env`, `powershell_version`, `component` and `command_key` should be specified.
+
+---
+
+A `express_vnet_integration` block supports the following:
+
+* `subnet_id` - (Required) id of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.
 
 ---
 

@@ -101,7 +101,7 @@ A `unique_key` block supports the following:
 ---
 An `indexing_policy` block supports the following:
 
-* `indexing_mode` - (Optional) Indicates the indexing mode. Possible values include: `Consistent` and `None`. Defaults to `Consistent`.
+* `indexing_mode` - (Optional) Indicates the indexing mode. Possible values include: `consistent` and `none`. Defaults to `consistent`.
 
 * `included_path` - (Optional) One or more `included_path` blocks as defined below. Either `included_path` or `excluded_path` must contain the `path` `/*`
 

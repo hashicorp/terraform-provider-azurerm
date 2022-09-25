@@ -110,6 +110,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(web.ClientCertModeOptional),
 				string(web.ClientCertModeRequired),
+				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
 		},
 
@@ -278,7 +279,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 						}
 					}
 				}
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.%s", webApp.Name, servicePlanId.ServerfarmName, nameSuffix))
+				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
 				availabilityRequest.IsFqdn = utils.Bool(true)
 			}
 

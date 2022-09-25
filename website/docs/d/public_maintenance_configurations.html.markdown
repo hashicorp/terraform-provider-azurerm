@@ -28,7 +28,7 @@ output "name" {
 
 * `location` - The Azure location to filter the list of Public Maintenance Configurations against.
 
-* `scope` - The scope to filter the list of Public Maintenance Configurations against. Possible values are `All`, `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` and `SQLManagedInstance`.
+* `scope` - The scope to filter the list of Public Maintenance Configurations against. Possible values are `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` and `SQLManagedInstance`.
 
 * `recur_every` - The recurring window to filter the list of Public Maintenance Configurations against. Possible values are `Monday-Thursday` and `Friday-Sunday`
 

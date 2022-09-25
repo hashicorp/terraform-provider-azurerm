@@ -59,50 +59,6 @@ func (c AuthorizationsClient) List(ctx context.Context, id PrivateCloudId) (resp
 	return
 }
 
-// ListComplete retrieves all of the results into a single object
-func (c AuthorizationsClient) ListComplete(ctx context.Context, id PrivateCloudId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, ExpressRouteAuthorizationOperationPredicate{})
-}
-
-// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AuthorizationsClient) ListCompleteMatchingPredicate(ctx context.Context, id PrivateCloudId, predicate ExpressRouteAuthorizationOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]ExpressRouteAuthorization, 0)
-
-	page, err := c.List(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForList prepares the List request.
 func (c AuthorizationsClient) preparerForList(ctx context.Context, id PrivateCloudId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c AuthorizationsClient) responderForList(resp *http.Response) (result List
 		}
 	}
 	return
+}
+
+// ListComplete retrieves all of the results into a single object
+func (c AuthorizationsClient) ListComplete(ctx context.Context, id PrivateCloudId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, ExpressRouteAuthorizationOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c AuthorizationsClient) ListCompleteMatchingPredicate(ctx context.Context, id PrivateCloudId, predicate ExpressRouteAuthorizationOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]ExpressRouteAuthorization, 0)
+
+	page, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
