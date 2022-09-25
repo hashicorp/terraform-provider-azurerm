@@ -436,7 +436,7 @@ A `sticky_settings` block exports the following:
 
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 
-~> **Note:** please set the node version using `node_version`, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` in app setting.
+~> **Note:** please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting.
 
 * `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 

@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** please set the node version using `node_version`, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` in app setting.
+~> **Note:** please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting. 
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
