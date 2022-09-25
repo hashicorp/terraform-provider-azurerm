@@ -168,7 +168,6 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
-	serverKeysClient := meta.(*clients.Client).MSSQL.ServerKeysClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
