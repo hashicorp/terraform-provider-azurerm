@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting. 
+~> **Note:** please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting. For storage related properties, terraform will set the related properties such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting based on the storage setting such as `storage_account_access_key` in config, you don't need to specify it in app_setting block directly. 
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
