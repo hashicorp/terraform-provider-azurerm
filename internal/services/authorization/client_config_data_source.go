@@ -45,7 +45,7 @@ func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) 
 	_, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId("armClientConfig")
 	d.Set("client_id", client.Account.ClientId)
 	d.Set("object_id", client.Account.ObjectId)
 	d.Set("subscription_id", client.Account.SubscriptionId)
