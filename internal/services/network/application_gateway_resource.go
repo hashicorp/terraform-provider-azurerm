@@ -1461,9 +1461,15 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
 										}, false),
 									},
 

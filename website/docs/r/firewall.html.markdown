@@ -80,9 +80,7 @@ The following arguments are supported:
 
 * `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which allows force-tunnelling of traffic to be performed by the firewall. Adding or removing this block or changing the `subnet_id` in an existing block forces a new resource to be created.
 
-* `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert`,`Deny` and `""`(empty string). Defaults to `Alert`.
-
--> **NOTE:** If `virtual_hub_settting` is specified, the `threat_intel_mode` has to be explicitly set as `""`.
+* `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`.
 
 * `virtual_hub` - (Optional) A `virtual_hub` block as documented below.
 

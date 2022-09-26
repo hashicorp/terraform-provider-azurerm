@@ -1410,6 +1410,7 @@ func (r LinuxVirtualMachineResource) otherSkipShutdownAndForceDelete(data accept
 provider "azurerm" {
   features {
     virtual_machine {
+      delete_os_disk_on_deletion     = true
       skip_shutdown_and_force_delete = true
     }
   }
@@ -2205,7 +2206,8 @@ locals {
 provider "azurerm" {
   features {
     virtual_machine {
-      graceful_shutdown = %t
+      delete_os_disk_on_deletion = true
+      graceful_shutdown          = %t
     }
   }
 }

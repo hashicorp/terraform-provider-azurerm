@@ -237,9 +237,9 @@ func (r LinuxVirtualMachineResource) imageFromPlan(data acceptance.TestData) str
 %s
 
 resource "azurerm_marketplace_agreement" "test" {
-  publisher = "cloudbees"
-  offer     = "jenkins-operations-center"
-  plan      = "jenkins-operations-center-solo"
+  publisher = "cloudwhizsolutions"
+  offer     = "jenkins-docker-container-with-ubuntu-server"
+  plan      = "jenkins-docker-container-with-ubuntu-server-cw"
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -266,15 +266,15 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   plan {
-    name      = "jenkins-operations-center-solo"
-    product   = "jenkins-operations-center"
-    publisher = "cloudbees"
+    name      = "jenkins-docker-container-with-ubuntu-server-cw"
+    product   = "jenkins-docker-container-with-ubuntu-server"
+    publisher = "cloudwhizsolutions"
   }
 
   source_image_reference {
-    publisher = "cloudbees"
-    offer     = "jenkins-operations-center"
-    sku       = "jenkins-operations-center-solo"
+    publisher = "cloudwhizsolutions"
+    offer     = "jenkins-docker-container-with-ubuntu-server"
+    sku       = "jenkins-docker-container-with-ubuntu-server-cw"
     version   = "latest"
   }
 
