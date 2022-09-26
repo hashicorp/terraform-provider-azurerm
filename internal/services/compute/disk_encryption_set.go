@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 )
 
 // retrieveDiskEncryptionSetEncryptionType returns encryption type of the disk encryption set
@@ -19,11 +19,12 @@ func retrieveDiskEncryptionSetEncryptionType(ctx context.Context, client *disken
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	var encryptionType *diskencryptionsets.DiskEncryptionSetType
+	var encryptionType *disks.EncryptionType
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil && props.EncryptionType != nil {
-			v := disks.EncryptionType(props.EncryptionType.(string))
+			s := props.EncryptionType
+			v := disks.EncryptionType(*s)
 			encryptionType = &v
 		}
 	}
