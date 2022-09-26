@@ -3,7 +3,7 @@ package authentication
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-multierror"
@@ -17,7 +17,7 @@ type oidcAuth struct {
 	clientId            string
 	environment         string
 	idToken             string
-	idTokenPath         string
+	idTokenFilePath     string
 	idTokenRequestToken string
 	idTokenRequestUrl   string
 	tenantId            string
@@ -29,7 +29,7 @@ func (a oidcAuth) build(b Builder) (authMethod, error) {
 		clientId:            b.ClientID,
 		environment:         b.Environment,
 		idToken:             b.IDToken,
-		idTokenPath:         b.IDTokenPath,
+		idTokenFilePath:     b.IDTokenFilePath,
 		idTokenRequestUrl:   b.IDTokenRequestURL,
 		idTokenRequestToken: b.IDTokenRequestToken,
 		tenantId:            b.TenantID,
@@ -38,7 +38,7 @@ func (a oidcAuth) build(b Builder) (authMethod, error) {
 }
 
 func (a oidcAuth) isApplicable(b Builder) bool {
-	return b.SupportsOIDCAuth && b.UseMicrosoftGraph && (b.IDToken != "" || b.IDTokenPath != "" || (b.IDTokenRequestURL != "" && b.IDTokenRequestToken != ""))
+	return b.SupportsOIDCAuth && b.UseMicrosoftGraph && (b.IDToken != "" || b.IDTokenFilePath != "" || (b.IDTokenRequestURL != "" && b.IDTokenRequestToken != ""))
 }
 
 func (a oidcAuth) name() string {
@@ -55,7 +55,7 @@ func (a oidcAuth) getMSALToken(ctx context.Context, api environments.Api, _ auto
 		return nil, fmt.Errorf("environment config error: %v", err)
 	}
 
-	if a.idToken == "" && a.idTokenPath == "" {
+	if a.idToken == "" && a.idTokenFilePath == "" {
 		conf := auth.GitHubOIDCConfig{
 			Environment:         environment,
 			TenantID:            a.tenantId,
@@ -70,11 +70,15 @@ func (a oidcAuth) getMSALToken(ctx context.Context, api environments.Api, _ auto
 
 	idToken := a.idToken
 
-	if a.idTokenPath != "" {
-		idToken, err = a.readTokenFile(a.idTokenPath)
+	if a.idTokenFilePath != "" {
+		idToken, err = a.readTokenFile(a.idTokenFilePath)
 
 		if err != nil {
 			return nil, fmt.Errorf("reading token file: %v", err)
+		}
+
+		if a.idToken != "" && a.idToken != idToken {
+			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file")
 		}
 	}
 
@@ -92,7 +96,7 @@ func (a oidcAuth) getMSALToken(ctx context.Context, api environments.Api, _ auto
 }
 
 func (a oidcAuth) readTokenFile(f string) (string, error) {
-	idTokenData, err := ioutil.ReadFile(f)
+	idTokenData, err := os.ReadFile(f)
 
 	if err != nil {
 		return "", fmt.Errorf("reading OIDC Token %q: %v", f, err)
@@ -121,12 +125,12 @@ func (a oidcAuth) validate() error {
 		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Client ID"))
 	}
 
-	if a.idTokenRequestUrl == "" && a.idToken == "" && a.idTokenPath == "" {
-		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token or ID Token Path or ID Token Request URL"))
+	if a.idTokenRequestUrl == "" && a.idToken == "" && a.idTokenFilePath == "" {
+		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token or ID Token File Path or ID Token Request URL"))
 	}
 
-	if a.idTokenRequestToken == "" && a.idToken == "" && a.idTokenPath == "" {
-		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token or ID Token Path or ID Token Request Token"))
+	if a.idTokenRequestToken == "" && a.idToken == "" && a.idTokenFilePath == "" {
+		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token or ID Token File Path or ID Token Request Token"))
 	}
 
 	return err.ErrorOrNil()
