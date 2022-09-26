@@ -33,7 +33,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := linkedstorageaccounts.ParseDataSourceTypeIDInsensitively(id) // TODO remove insensitive parsing in 4.0
+			_, err := linkedstorageaccounts.ParseDataSourceTypeID(id)
 			return err
 		}),
 
@@ -120,7 +120,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := linkedstorageaccounts.ParseDataSourceTypeIDInsensitively(d.Id()) // TODO remove insensitive parsing in 4.0
+	id, err := linkedstorageaccounts.ParseDataSourceTypeID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func resourceLogAnalyticsLinkedStorageAccountDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := linkedstorageaccounts.ParseDataSourceTypeIDInsensitively(d.Id()) // TODO remove insensitive parsing in 4.0
+	id, err := linkedstorageaccounts.ParseDataSourceTypeID(d.Id())
 	if err != nil {
 		return err
 	}
