@@ -77,18 +77,10 @@ resource "azurerm_nginx_deployment" "test" {
   managed_resource_group   = "example"
   diagnose_support_enabled = true
 
-  //logging_storage_account {
-  //  name           = azurerm_storage_account.test.name
-  //}
-
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
   }
-  //frontend_private {
-  //  ip_address        = "10.0.2.10"
-  //  allocation_method = "Static"
-  //  subnet_id         = azurerm_subnet.test.id
-  //}
+
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
@@ -103,8 +95,6 @@ func (a DeploymentResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
-
-
 %s
 
 resource "azurerm_nginx_deployment" "test" {
@@ -114,10 +104,6 @@ resource "azurerm_nginx_deployment" "test" {
   managed_resource_group   = "example"
   location                 = azurerm_resource_group.test.location
   diagnose_support_enabled = false
-
-  //logging_storage_account {
-  //  name = azurerm_storage_account.test.name
-  //}
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
