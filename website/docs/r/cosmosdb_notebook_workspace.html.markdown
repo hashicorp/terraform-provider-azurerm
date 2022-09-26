@@ -10,6 +10,8 @@ description: |-
 
 Manages an SQL Notebook Workspace.
 
+!> CosmosDb Notebook Workspace is now Deprecated - as such the `azurerm_cosmosdb_notebook_workspace` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl

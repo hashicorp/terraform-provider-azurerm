@@ -34,6 +34,8 @@ func resourceCosmosDbNotebookWorkspace() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: `CosmosDb Notebook Workspace is now Deprecated - as such the 'azurerm_cosmosdb_notebook_workspace' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
