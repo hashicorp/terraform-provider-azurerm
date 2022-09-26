@@ -46,7 +46,7 @@ func TestAccLinuxVirtualMachine_imageFromPlan(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
+			Config: r.empty(),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, sku)),
 			),
@@ -399,6 +399,14 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (LinuxVirtualMachineResource) empty() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
 }
 
 func (r LinuxVirtualMachineResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {

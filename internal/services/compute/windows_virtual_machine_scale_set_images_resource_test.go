@@ -186,7 +186,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
+			Config: r.empty(),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, sku)),
 			),
@@ -754,6 +754,14 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, r.template(data), publisher, offer, sku)
+}
+
+func (WindowsVirtualMachineScaleSetResource) empty() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
 }
 
 func (r WindowsVirtualMachineScaleSetResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {

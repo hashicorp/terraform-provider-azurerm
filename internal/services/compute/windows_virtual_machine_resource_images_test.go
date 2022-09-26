@@ -46,7 +46,7 @@ func TestAccWindowsVirtualMachine_imageFromPlan(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
+			Config: r.empty(),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, sku)),
 			),
@@ -358,6 +358,14 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (WindowsVirtualMachineResource) empty() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
 }
 
 func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {

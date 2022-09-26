@@ -166,12 +166,12 @@ func TestAccLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 	publisher := "cloudwhizsolutions"
-	offer := "ubuntu-20-04-minimal-lts-cw"
-	sku := "ubuntu-20-04-lts-minimal-cw"
+	offer := "jenkins-with-centos-7-7-cw"
+	sku := "jenkins-with-centos-77-cw"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
+			Config: r.empty(),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, sku)),
 			),
@@ -750,6 +750,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, r.template(data), data.RandomInteger, publisher, offer, sku)
+}
+
+func (LinuxVirtualMachineScaleSetResource) empty() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
 }
 
 func (r LinuxVirtualMachineScaleSetResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {
