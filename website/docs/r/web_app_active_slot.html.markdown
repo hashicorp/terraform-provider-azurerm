@@ -84,10 +84,10 @@ resource "azurerm_linux_web_app" "example" {
 }
 
 resource "azurerm_linux_web_app_slot" "example" {
-  name                = "example-linux-web-app-slot"
-  app_service_name    = azurerm_linux_web_app.example.name
-  location            = azurerm_service_plan.example.location
-  service_plan_id     = azurerm_service_plan.example.id
+  name             = "example-linux-web-app-slot"
+  app_service_name = azurerm_linux_web_app.example.name
+  location         = azurerm_service_plan.example.location
+  service_plan_id  = azurerm_service_plan.example.id
 
   site_config {}
 }
