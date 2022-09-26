@@ -46,6 +46,7 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 			"resource_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
