@@ -129,9 +129,9 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"managed_resource_group": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			//ForceNew:     true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
