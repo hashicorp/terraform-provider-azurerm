@@ -1,16 +1,12 @@
 package compute_test
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.T) {
@@ -37,8 +33,6 @@ func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *t
 			Config: r.networkAcceleratedNetworking(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// Accelerated Networking can only be changed when VM is not running
-				data.CheckWithClientForResource(r.deallocateVirtualMachineScaleSet(), "azurerm_linux_virtual_machine_scale_set.test"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -458,7 +452,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
+  sku                 = "Standard_D2s_v3" # intentional for accelerated networking
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -1744,24 +1738,4 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(9))
-}
-
-func (LinuxVirtualMachineScaleSetResource) deallocateVirtualMachineScaleSet() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
-	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.VirtualMachineScaleSetID(state.ID)
-		if err != nil {
-			return err
-		}
-
-		future, err := client.Compute.VMScaleSetClient.Deallocate(ctx, id.ResourceGroup, id.Name, nil)
-		if err != nil {
-			return err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Compute.VMScaleSetClient.Client); err != nil {
-			return err
-		}
-
-		return nil
-	}
 }
