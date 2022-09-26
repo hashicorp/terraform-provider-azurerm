@@ -69,7 +69,9 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, instead of specifying `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting. For storage related properties, terraform will set the related properties such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting based on the storage setting such as `storage_account_access_key` in config, you don't need to specify it in app_setting block directly. 
+~> **Note:** for runtime related properties, please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, terraform will assign the values to the key `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting.
+~> **Note:** For storage related properties, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
+~> **Note:** for application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
@@ -397,8 +399,6 @@ A `site_config` block supports the following:
 * `application_insights_connection_string` - (Optional) The Connection String for linking the Linux Function App to Application Insights.
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Linux Function App to Application Insights.
-
-~> **Note:** please use `application_insights_connection_string` and `application_insights_key` to set the `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
 
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
