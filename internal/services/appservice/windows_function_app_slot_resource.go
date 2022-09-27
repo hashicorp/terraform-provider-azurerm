@@ -595,11 +595,11 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 			var isCustomHandler *bool
-			if metadata.ResourceData.Get("use_custom_runtime") != "" {
+			if _, ok := metadata.ResourceData.GetOk("use_custom_runtime"); ok {
 				*isCustomHandler = metadata.ResourceData.Get("use_custom_runtime").(bool)
 			}
 			var isDotnetIsolated *bool
-			if metadata.ResourceData.Get("use_dotnet_isolated_runtime") != "" {
+			if _, ok := metadata.ResourceData.GetOk("use_dotnet_isolated_runtime"); ok {
 				*isDotnetIsolated = metadata.ResourceData.Get("use_dotnet_isolated_runtime").(bool)
 			}
 			nodeVersion := ""
