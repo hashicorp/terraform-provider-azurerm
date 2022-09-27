@@ -2,7 +2,9 @@
 
 ENHANCEMENTS:
 
+dependencies: `machinelearning` - updating to use `2022-05-01` [GH-17671]
 * `azurerm_virtual_hub_bgp_connection` - support for the `virtual_network_connection_id` property [GH-18469]
+* `azurerm_machine_learning_workspace` - support for the `public_network_access_enabled` and `v1_legacy_mode` properties [GH-18469]
 
 ## 3.24.0 (September 22, 2022)
 
