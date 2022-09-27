@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
@@ -512,12 +513,20 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"classification_included": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ValidateFunc: validation.StringInSlice(func() (vs []string) {
+						ValidateFunc: func(i interface{}, s string) (warns []string, errors []error) {
+							possibleValuesMap := map[string]struct{}{}
 							for _, v := range automation.PossibleWindowsUpdateClassesValues() {
-								vs = append(vs, string(v))
+								possibleValuesMap[string(v)] = struct{}{}
+							}
+							// A comma separated string with required values (only for windows)
+							for _, key := range strings.Split(i.(string), ",") {
+								key = strings.TrimSpace(key)
+								if _, ok := possibleValuesMap[key]; !ok {
+									errors = append(errors, fmt.Errorf("%s not allowed for classification_included", key))
+								}
 							}
 							return
-						}(), false),
+						},
 					},
 
 					"excluded_knowledge_base_numbers": {
