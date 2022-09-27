@@ -163,22 +163,8 @@ resource "azurerm_subnet" "test" {
       name = "NGINX.NGINXPLUS/nginxDeployments"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
-        //"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"
       ]
     }
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "acct%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
