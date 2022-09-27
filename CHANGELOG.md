@@ -1,3 +1,9 @@
+## 3.25.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_virtual_hub_bgp_connection` - support for the `virtual_network_connection_id` property [GH-18469]
+
 ## 3.24.0 (September 22, 2022)
 
 FEATURES:
