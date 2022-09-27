@@ -49,6 +49,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 					string(linkedstorageaccounts.DataSourceTypeAlerts),
 					string(linkedstorageaccounts.DataSourceTypeIngestion),
 				}, !features.FourPointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
