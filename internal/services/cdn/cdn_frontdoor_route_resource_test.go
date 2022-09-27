@@ -30,11 +30,6 @@ func TestAccCdnFrontDoorRoute_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
-		{
-			// You must delete the route first to disassociate the endpoint from the origin and origin group
-			Config: r.destroy(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		},
 	})
 }
 
@@ -49,11 +44,6 @@ func TestAccCdnFrontDoorRoute_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-		{
-			// You must delete the route first to disassociate the endpoint from the origin and origin group
-			Config: r.destroy(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		},
 	})
 }
 
@@ -68,11 +58,6 @@ func TestAccCdnFrontDoorRoute_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
-		{
-			// You must delete the route first to disassociate the endpoint from the origin and origin group
-			Config: r.destroy(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		},
 	})
 }
 
@@ -94,11 +79,6 @@ func TestAccCdnFrontDoorRoute_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
-		{
-			// You must delete the route first to disassociate the endpoint from the origin and origin group
-			Config: r.destroy(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		},
 	})
 }
 
@@ -174,60 +154,6 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontDoorRouteResource) destroy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%[1]d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "accTestProfile-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard_AzureFrontDoor"
-}
-
-resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "accTestOriginGroup-%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  load_balancing {
-    additional_latency_in_milliseconds = 0
-    sample_size                        = 16
-    successful_samples_required        = 3
-  }
-}
-
-resource "azurerm_cdn_frontdoor_origin" "test" {
-  name                          = "accTestOrigin-%[1]d"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-
-  enabled                        = true
-  certificate_name_check_enabled = false
-  host_name                      = "contoso.com"
-  http_port                      = 80
-  https_port                     = 443
-  origin_host_header             = "www.contoso.com"
-  priority                       = 1
-  weight                         = 1
-}
-
-resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "accTestEndpoint-%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-
-resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "accTestRuleSet%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
 func (r CdnFrontDoorRouteResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -238,10 +164,8 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
-
-  link_to_default_domain_enabled = true
-  patterns_to_match              = ["/*"]
-  supported_protocols            = ["Http", "Https"]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
@@ -256,10 +180,8 @@ resource "azurerm_cdn_frontdoor_route" "import" {
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
-
-  link_to_default_domain_enabled = true
-  patterns_to_match              = ["/*"]
-  supported_protocols            = ["Http", "Https"]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
 }
 `, config)
 }
@@ -276,12 +198,11 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
   cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.test.id]
 
-  enabled                        = true
-  forwarding_protocol            = "HttpsOnly"
-  https_redirect_enabled         = true
-  link_to_default_domain_enabled = true
-  patterns_to_match              = ["/*"]
-  supported_protocols            = ["Http", "Https"]
+  enabled                = true
+  forwarding_protocol    = "HttpsOnly"
+  https_redirect_enabled = true
+  patterns_to_match      = ["/*"]
+  supported_protocols    = ["Http", "Https"]
 
   cache {
     query_strings                 = ["foo", "bar"]
@@ -302,13 +223,12 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-  enabled                        = true
-  forwarding_protocol            = "HttpOnly"
-  https_redirect_enabled         = false
-  link_to_default_domain_enabled = true
-  patterns_to_match              = ["/*"]
-  cdn_frontdoor_rule_set_ids     = [azurerm_cdn_frontdoor_rule_set.test.id]
-  supported_protocols            = ["Https"]
+  enabled                    = true
+  forwarding_protocol        = "HttpOnly"
+  https_redirect_enabled     = false
+  patterns_to_match          = ["/*"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
+  supported_protocols        = ["Https"]
 
   cache {
     query_strings                 = ["bar"]

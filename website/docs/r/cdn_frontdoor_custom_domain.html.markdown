@@ -3,14 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile_custom_domain"
 description: |-
-  Manages a Frontdoor Custom Domain.
+  Manages a CDN FrontDoor Custom Domain.
 ---
 
 # azurerm_cdn_frontdoor_profile_custom_domain
 
-Manages a Frontdoor Custom Domain.
-
-!>**IMPORTANT:** To delete a Custom Domain you must first disassociate the Custom Domain from the Frontdoor Route by removing the Custom Domains Resource ID from the Frontdoor Routes `cdn_frontdoor_custom_domain_ids` field. Once the Frontdoor Route has been updated, and the change to the Route has been provisioned to Azure, you may then remove the Custom Domain from your configuration file.
+Manages a CDN FrontDoor Custom Domain.
 
 !>**IMPORTANT:** If you are using Terraform to manage your DNS Auth and DNS CNAME records for your Custom Domain you will need to add configuration blocks for both the `azurerm_dns_txt_record`(see the `Example DNS Auth TXT Record Usage` below) and the `azurerm_dns_cname_record`(see the `Example CNAME Record Usage` below) to your configuration file.
 
@@ -37,6 +35,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = "contoso.com"
+
+  associate_with_cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -79,17 +79,19 @@ resource "azurerm_dns_cname_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Custom Domain. Possible values must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number and contain only letters, numbers and hyphens. Changing this forces a new Frontdoor Custom Domain to be created.
+* `name` - (Required) The name which should be used for this CDN FrontDoor Custom Domain. Possible values must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number and contain only letters, numbers and hyphens. Changing this forces a new CDN FrontDoor Custom Domain to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
-* `host_name` - (Required) The host name of the domain. Changing this forces a new Frontdoor Custom Domain to be created.
+* `host_name` - (Required) The host name of the domain. Changing this forces a new CDN FrontDoor Custom Domain to be created.
 
-* `dns_zone_id` - (Optional) The Resource ID of the DNS Zone that is to be used for the Frontdoor Custom Domain.
+* `associate_with_cdn_frontdoor_route_id` (Optional) - The resource ID of the CDN FrontDoor Route this Custom Domain should be associated with.
 
-* `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated Frontdoor Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
+* `dns_zone_id` - (Optional) The Resource ID of the DNS Zone that is to be used for the CDN FrontDoor Custom Domain.
 
-->**NOTE:** Currently `pre_validated_cdn_frontdoor_custom_domain_id` only supports domains validated by Static Web App.
+<!-- * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated CDN FrontDoor Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
+
+->**NOTE:** Currently `pre_validated_cdn_frontdoor_custom_domain_id` only supports domains validated by Static Web App. -->
 
 * `tls` - (Required) A `tls` block as defined below.
 
@@ -111,7 +113,7 @@ A `tls` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Custom Domain.
+* `id` - The ID of the CDN FrontDoor Custom Domain.
 
 * `expiration_date` - The date time that the token expires.
 
@@ -121,14 +123,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 12 hours) Used when creating the Frontdoor Custom Domain.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Custom Domain.
-* `update` - (Defaults to 24 hours) Used when updating the Frontdoor Custom Domain.
-* `delete` - (Defaults to 12 hours) Used when deleting the Frontdoor Custom Domain.
+* `create` - (Defaults to 12 hours) Used when creating the CDN FrontDoor Custom Domain.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Custom Domain.
+* `update` - (Defaults to 24 hours) Used when updating the CDN FrontDoor Custom Domain.
+* `delete` - (Defaults to 12 hours) Used when deleting the CDN FrontDoor Custom Domain.
 
 ## Import
 
-Frontdoor Custom Domains can be imported using the `resource id`, e.g.
+CDN FrontDoor Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1

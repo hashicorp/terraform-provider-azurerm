@@ -65,12 +65,6 @@ func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 	})
 }
 
-// TODO: Due to the validation logic in the service you cannot update the custom domain until
-// it has been approved. Need to add a txt validator to facilitate testing the update functionality.
-// These checks must include, Domain ownership validation (auth txt record), endpoint association,
-// cert provisioning, and cname recored validation.
-// NOTE: e2e validation of all of the above may take up 30 minutes to complete.
-
 func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorCustomDomainID(state.ID)
 	if err != nil {

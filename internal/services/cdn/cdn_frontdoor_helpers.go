@@ -6,6 +6,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -25,7 +30,7 @@ func expandEnabledBoolToRouteHttpsRedirect(isEnabled bool) cdn.HTTPSRedirect {
 	return cdn.HTTPSRedirectDisabled
 }
 
-// TODO: Remove if Association resources work...
+// TODO: May not need these anymore... remove if the association resource tests work...
 // func expandEnabledBoolToLinkToDefaultDomain(isEnabled bool) cdn.LinkToDefaultDomain {
 // 	if isEnabled {
 // 		return cdn.LinkToDefaultDomainEnabled
@@ -211,10 +216,11 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 	return results
 }
 
-func RouteContainsCustomDomain(input []interface{}, customDomain string) bool {
+// determins if the slice contains the value case-insensitively
+func sliceContainsString(input []interface{}, value string) bool {
 	for _, key := range input {
 		v := key.(string)
-		if strings.EqualFold(v, customDomain) {
+		if strings.EqualFold(v, value) {
 			return true
 		}
 	}
@@ -222,7 +228,8 @@ func RouteContainsCustomDomain(input []interface{}, customDomain string) bool {
 	return false
 }
 
-func RemoveCustomDomain(input []interface{}, customDomain string) []interface{} {
+// returns the slice with the value removed case-insensitively
+func sliceRemoveString(input []interface{}, value string) []interface{} {
 	out := make([]interface{}, 0)
 	if len(input) == 0 {
 		return out
@@ -230,11 +237,119 @@ func RemoveCustomDomain(input []interface{}, customDomain string) []interface{} 
 
 	for _, key := range input {
 		v := key.(string)
-		if strings.EqualFold(v, customDomain) {
+		if strings.EqualFold(v, value) {
 			continue
 		}
 		out = append(out, key)
 	}
 
 	return out
+}
+
+func checkIfRouteExists(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRouteId, resourceName string) ([]interface{}, *cdn.RouteProperties, error) {
+	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
+	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer routeCancel()
+
+	// Check to see if the route exists
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s: retrieving existing %s: %+v", resourceName, *id, err)
+	}
+
+	props := resp.RouteProperties
+	if props == nil {
+		return nil, nil, fmt.Errorf("%s: %s properties are 'nil': %+v", resourceName, *id, err)
+	}
+
+	customDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+
+	return customDomains, props, nil
+}
+
+func addCustomDomainAssociationToRoute(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) (bool, error) {
+	var associationFailed bool
+
+	// Check to see if the route still exists or not...
+	customDomains, props, err := checkIfRouteExists(d, meta, routeId, cdnFrontDoorCustomDomainResourceName)
+	if err != nil {
+		return associationFailed, err
+	}
+
+	// Check to make sure the custom domain is not already associated with the route
+	// if it is, then there is nothing for us to do...
+	isAssociated := sliceContainsString(customDomains, customDomainID.ID())
+
+	// if it is not associated update the route to add the association...
+	if !isAssociated {
+		customDomains = append(customDomains, customDomainID.ID())
+		err := updateRouteAssociations(d, meta, routeId, customDomains, props, customDomainID)
+		if err != nil {
+			return associationFailed, err
+		}
+	}
+
+	return !associationFailed, nil
+}
+
+func removeCustomDomainAssociationFromRoute(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
+	// Check to see if the route still exists or not...
+	customDomains, props, err := checkIfRouteExists(d, meta, routeId, cdnFrontDoorCustomDomainResourceName)
+	if err != nil {
+		return err
+	}
+
+	// Check to make sure the custom domain is still associated with the route
+	isAssociated := sliceContainsString(customDomains, customDomainID.ID())
+
+	if isAssociated {
+		// it is, now remove the association...
+		newDomains := sliceRemoveString(customDomains, customDomainID.ID())
+		err := updateRouteAssociations(d, meta, routeId, newDomains, props, customDomainID)
+		if err != nil {
+			return err
+		}
+
+		// remove the field from state...
+		d.Set("associate_with_cdn_frontdoor_route_id", "")
+	}
+
+	return nil
+}
+
+func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomains []interface{}, props *cdn.RouteProperties, customDomainID *parse.FrontDoorCustomDomainId) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
+	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
+	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer routeCancel()
+
+	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
+		CustomDomains: expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
+	}
+
+	// NOTE: You must pull the Cache Configuration from the existing route else you will get a diff
+	// because a nil value means disabled
+	if props.CacheConfiguration != nil {
+		updateProps.CacheConfiguration = props.CacheConfiguration
+	}
+
+	// NOTE: If there are no more custom domains associated with the route you must flip the
+	// 'link to default domain' field to 'true' else the route will be in an invalid state...
+	if len(customDomains) == 0 {
+		updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
+	}
+
+	updatePrarams := azuresdkhacks.RouteUpdateParameters{
+		RouteUpdatePropertiesParameters: &updateProps,
+	}
+
+	future, err := workaroundsClient.Update(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updatePrarams)
+	if err != nil {
+		return fmt.Errorf("%s: updating the association with %s: %+v", *customDomainID, *routeId, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("%s: waiting to update the association with %s: %+v", *customDomainID, *routeId, err)
+	}
+
+	return nil
 }

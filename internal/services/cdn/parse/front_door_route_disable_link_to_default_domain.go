@@ -9,54 +9,51 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type FrontDoorCustomDomainAssociationId struct {
-	SubscriptionId   string
-	ResourceGroup    string
-	ProfileName      string
-	AfdEndpointName  string
-	AssociatioinName string
-	RouteName        string
-	CustomDomainName string
+type FrontDoorRouteDisableLinkToDefaultDomainId struct {
+	SubscriptionId                 string
+	ResourceGroup                  string
+	ProfileName                    string
+	AfdEndpointName                string
+	RouteName                      string
+	DisableLinkToDefaultDomainName string
 }
 
-func NewFrontDoorCustomDomainAssociationID(subscriptionId, resourceGroup, profileName, afdEndpointName, associatioinName, routeName, customDomainName string) FrontDoorCustomDomainAssociationId {
-	return FrontDoorCustomDomainAssociationId{
-		SubscriptionId:   subscriptionId,
-		ResourceGroup:    resourceGroup,
-		ProfileName:      profileName,
-		AfdEndpointName:  afdEndpointName,
-		AssociatioinName: associatioinName,
-		RouteName:        routeName,
-		CustomDomainName: customDomainName,
+func NewFrontDoorRouteDisableLinkToDefaultDomainID(subscriptionId, resourceGroup, profileName, afdEndpointName, routeName, disableLinkToDefaultDomainName string) FrontDoorRouteDisableLinkToDefaultDomainId {
+	return FrontDoorRouteDisableLinkToDefaultDomainId{
+		SubscriptionId:                 subscriptionId,
+		ResourceGroup:                  resourceGroup,
+		ProfileName:                    profileName,
+		AfdEndpointName:                afdEndpointName,
+		RouteName:                      routeName,
+		DisableLinkToDefaultDomainName: disableLinkToDefaultDomainName,
 	}
 }
 
-func (id FrontDoorCustomDomainAssociationId) String() string {
+func (id FrontDoorRouteDisableLinkToDefaultDomainId) String() string {
 	segments := []string{
-		fmt.Sprintf("Custom Domain Name %q", id.CustomDomainName),
+		fmt.Sprintf("Disable Link To Default Domain Name %q", id.DisableLinkToDefaultDomainName),
 		fmt.Sprintf("Route Name %q", id.RouteName),
-		fmt.Sprintf("Associatioin Name %q", id.AssociatioinName),
 		fmt.Sprintf("Afd Endpoint Name %q", id.AfdEndpointName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Front Door Custom Domain Association", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Front Door Route Disable Link To Default Domain", segmentsStr)
 }
 
-func (id FrontDoorCustomDomainAssociationId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/afdEndpoints/%s/associatioin/%s/routes/%s/customDomains/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociatioinName, id.RouteName, id.CustomDomainName)
+func (id FrontDoorRouteDisableLinkToDefaultDomainId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/afdEndpoints/%s/routes/%s/disableLinkToDefaultDomain/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, id.DisableLinkToDefaultDomainName)
 }
 
-// FrontDoorCustomDomainAssociationID parses a FrontDoorCustomDomainAssociation ID into an FrontDoorCustomDomainAssociationId struct
-func FrontDoorCustomDomainAssociationID(input string) (*FrontDoorCustomDomainAssociationId, error) {
+// FrontDoorRouteDisableLinkToDefaultDomainID parses a FrontDoorRouteDisableLinkToDefaultDomain ID into an FrontDoorRouteDisableLinkToDefaultDomainId struct
+func FrontDoorRouteDisableLinkToDefaultDomainID(input string) (*FrontDoorRouteDisableLinkToDefaultDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontDoorCustomDomainAssociationId{
+	resourceId := FrontDoorRouteDisableLinkToDefaultDomainId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -75,13 +72,10 @@ func FrontDoorCustomDomainAssociationID(input string) (*FrontDoorCustomDomainAss
 	if resourceId.AfdEndpointName, err = id.PopSegment("afdEndpoints"); err != nil {
 		return nil, err
 	}
-	if resourceId.AssociatioinName, err = id.PopSegment("associatioin"); err != nil {
-		return nil, err
-	}
 	if resourceId.RouteName, err = id.PopSegment("routes"); err != nil {
 		return nil, err
 	}
-	if resourceId.CustomDomainName, err = id.PopSegment("customDomains"); err != nil {
+	if resourceId.DisableLinkToDefaultDomainName, err = id.PopSegment("disableLinkToDefaultDomain"); err != nil {
 		return nil, err
 	}
 
@@ -92,19 +86,19 @@ func FrontDoorCustomDomainAssociationID(input string) (*FrontDoorCustomDomainAss
 	return &resourceId, nil
 }
 
-// FrontDoorCustomDomainAssociationIDInsensitively parses an FrontDoorCustomDomainAssociation ID into an FrontDoorCustomDomainAssociationId struct, insensitively
-// This should only be used to parse an ID for rewriting, the FrontDoorCustomDomainAssociationID
+// FrontDoorRouteDisableLinkToDefaultDomainIDInsensitively parses an FrontDoorRouteDisableLinkToDefaultDomain ID into an FrontDoorRouteDisableLinkToDefaultDomainId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontDoorRouteDisableLinkToDefaultDomainID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func FrontDoorCustomDomainAssociationIDInsensitively(input string) (*FrontDoorCustomDomainAssociationId, error) {
+func FrontDoorRouteDisableLinkToDefaultDomainIDInsensitively(input string) (*FrontDoorRouteDisableLinkToDefaultDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontDoorCustomDomainAssociationId{
+	resourceId := FrontDoorRouteDisableLinkToDefaultDomainId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -141,18 +135,6 @@ func FrontDoorCustomDomainAssociationIDInsensitively(input string) (*FrontDoorCu
 		return nil, err
 	}
 
-	// find the correct casing for the 'associatioin' segment
-	associatioinKey := "associatioin"
-	for key := range id.Path {
-		if strings.EqualFold(key, associatioinKey) {
-			associatioinKey = key
-			break
-		}
-	}
-	if resourceId.AssociatioinName, err = id.PopSegment(associatioinKey); err != nil {
-		return nil, err
-	}
-
 	// find the correct casing for the 'routes' segment
 	routesKey := "routes"
 	for key := range id.Path {
@@ -165,15 +147,15 @@ func FrontDoorCustomDomainAssociationIDInsensitively(input string) (*FrontDoorCu
 		return nil, err
 	}
 
-	// find the correct casing for the 'customDomains' segment
-	customDomainsKey := "customDomains"
+	// find the correct casing for the 'disableLinkToDefaultDomain' segment
+	disableLinkToDefaultDomainKey := "disableLinkToDefaultDomain"
 	for key := range id.Path {
-		if strings.EqualFold(key, customDomainsKey) {
-			customDomainsKey = key
+		if strings.EqualFold(key, disableLinkToDefaultDomainKey) {
+			disableLinkToDefaultDomainKey = key
 			break
 		}
 	}
-	if resourceId.CustomDomainName, err = id.PopSegment(customDomainsKey); err != nil {
+	if resourceId.DisableLinkToDefaultDomainName, err = id.PopSegment(disableLinkToDefaultDomainKey); err != nil {
 		return nil, err
 	}
 

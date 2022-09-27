@@ -142,22 +142,6 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// "cdn_frontdoor_custom_domain_ids": {
-			// 	Type:     pluginsdk.TypeList,
-			// 	Optional: true,
-
-			// 	Elem: &pluginsdk.Schema{
-			// 		Type:         pluginsdk.TypeString,
-			// 		ValidateFunc: validate.FrontDoorCustomDomainID,
-			// 	},
-			// },
-
-			// "link_to_default_domain_enabled": {
-			// 	Type:     pluginsdk.TypeBool,
-			// 	Optional: true,
-			// 	Default:  false,
-			// },
-
 			"cdn_frontdoor_origin_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -234,25 +218,16 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
-	// enable the link to default domain field
-	// linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
-
-	//NOTE: This Check can be skipped due to the new association resource
-
-	// customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-	// if !linkToDefaultDomain && len(customDomains) == 0 {
-	// 	return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
-	// }
-
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
-			// CustomDomains:       expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
-			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
-			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
-			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
-			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
-			LinkToDefaultDomain: cdn.LinkToDefaultDomainEnabled, // This is a hack due to service code architecture
+			CacheConfiguration: expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
+			EnabledState:       expandEnabledBool(d.Get("enabled").(bool)),
+			ForwardingProtocol: cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
+			HTTPSRedirect:      expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
+			// NOTE: Hack due to the API's design, must create the route with the link to default
+			// domain as true else you will receive an error from the service this value is now
+			// controled by the cdn_frontdoor_route_unlink_default_domain resource... :/
+			LinkToDefaultDomain: cdn.LinkToDefaultDomainEnabled,
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
@@ -314,12 +289,9 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
-		// domains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
-		// d.Set("cdn_frontdoor_custom_domain_ids", domains)
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect_enabled", flattenHttpsRedirectToBool(props.HTTPSRedirect))
-		// d.Set("link_to_default_domain_enabled", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
@@ -354,8 +326,9 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	// I now need to lock this resource when updating because the association resources may also be trying
-	// to update it as well...
+	// NOTE: I now need to lock this resource when updating because the
+	// cdn_frontdoor_route_unlink_default_domain resources may also be
+	// trying to update it as well...
 	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
 	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
 
@@ -367,21 +340,13 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving existing %s: 'properties' was nil", *id)
 	}
 
-	// var checkCustomDomain bool
 	var checkProtocols bool
-	// linkToDefaultDomain := d.Get("link_to_default_domain_enabled").(bool)
-	// customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 
 	props := azuresdkhacks.RouteUpdatePropertiesParameters{
 		CustomDomains: existing.RouteProperties.CustomDomains,
 	}
-
-	// if d.HasChange("cdn_frontdoor_custom_domain_ids") {
-	// 	checkCustomDomain = true
-	// 	props.CustomDomains = expandCdnFrontdoorRouteActivatedResourceArray(customDomains)
-	// }
 
 	if d.HasChange("cache") {
 		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
@@ -399,11 +364,6 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		checkProtocols = true
 		props.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
 	}
-
-	// if d.HasChange("link_to_default_domain_enabled") {
-	// 	// checkCustomDomain = true
-	// 	props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain)
-	// }
 
 	if d.HasChange("cdn_frontdoor_origin_group_id") {
 		props.OriginGroup = expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string))
@@ -439,14 +399,6 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 	}
-
-	// if checkCustomDomain {
-	// 	// NOTE: Route requires at least one domain, so if you do not supply a custom domain you must
-	// 	// enable the link to default domain field
-	// 	if !linkToDefaultDomain && len(customDomains) == 0 {
-	// 		return fmt.Errorf("at least one domain is required for the 'azurerm_cdn_frontdoor_route'. Please provide a CDN FrontDoor Custom Domain ID in the 'cdn_frontdoor_custom_domain_ids' field or set the 'link_to_default_domain_enabled' to 'true'")
-	// 	}
-	// }
 
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, updatePrarams)
 	if err != nil {
