@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strconv"
 	"strings"
@@ -37,7 +38,7 @@ var (
 )
 
 func resourceEventHubNamespace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceEventHubNamespaceCreate,
 		Read:   resourceEventHubNamespaceRead,
 		Update: resourceEventHubNamespaceUpdate,
@@ -89,11 +90,10 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// zone redundant is computed by service based on the availability of availability zone feature.
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
+				Computed: true,
 			},
 
 			"dedicated_cluster_id": {
@@ -239,6 +239,15 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+	if !features.FourPointOhBeta() {
+		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		}
+	}
+	return resource
 }
 
 func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -265,7 +274,6 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
-	zoneRedundant := d.Get("zone_redundant").(bool)
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -285,9 +293,12 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if !features.FourPointOhBeta() {
+		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -339,7 +350,6 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
-	zoneRedundant := d.Get("zone_redundant").(bool)
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -359,9 +369,12 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if !features.FourPointOhBeta() {
+		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {

@@ -600,7 +600,6 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = "1"
-  zone_redundant      = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -843,7 +842,6 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   capacity            = "2"
-  zone_redundant      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
