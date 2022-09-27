@@ -61,7 +61,7 @@ resource "azurerm_dns_txt_record" "example" {
 
 ## Example CNAME Record Usage
 
-!>**IMPORTANT:** You **must** include the `depends_on` meta-argument which references both the `azurerm_cdn_frontdoor_route` and the `azurerm_cdn_frontdoor_security_policy` that are associated with your Custom Domain. The reason for these `depends_on` meta-arguments is because all of the resources for the Custom Domain need to be associated within FrontDoor before the CNAME record is written to the domains DNS, else the CNAME validation will fail and FrontDoor will not enable traffic to the Domain.
+!>**IMPORTANT:** You **must** include the `depends_on` meta-argument which references both the `azurerm_cdn_frontdoor_route` and the `azurerm_cdn_frontdoor_security_policy` that are associated with your Custom Domain. The reason for these `depends_on` meta-arguments is because all of the resources for the Custom Domain need to be associated within FrontDoor before the CNAME record can be written to the domains DNS, else the CNAME validation will fail and FrontDoor will not enable traffic to the Domain.
 
 ```hcl
 resource "azurerm_dns_cname_record" "example" {
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `associate_with_cdn_frontdoor_route_id` (Optional) - The resource ID of the CDN FrontDoor Route this Custom Domain should be associated with.
 
-* `dns_zone_id` - (Optional) The Resource ID of the DNS Zone that is to be used for the CDN FrontDoor Custom Domain.
+* `dns_zone_id` - (Optional) The ID of the DNS Zone which should be used for this FrontDoor Custom Domain.
 
 <!-- * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated CDN FrontDoor Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
 

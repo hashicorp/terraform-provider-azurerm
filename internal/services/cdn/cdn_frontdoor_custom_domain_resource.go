@@ -315,9 +315,9 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	dnsZone := d.Get("dns_zone_id").(string)
-	tls := d.Get("tls").([]interface{})
+	// tls := d.Get("tls").([]interface{})
 	// preValidatedDomain := d.Get("pre_validated_custom_domain_id").(string)
+	// dnsZone := d.Get("dns_zone_id").(string)
 
 	// // DNS Zone field is not supported for a pre-validated custom domain
 	// if preValidatedDomain != "" && dnsZone != "" {
@@ -348,13 +348,39 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	// }
 
 	// --- Temporary code from else statement to remove PreValidateDomain ---
-	if dnsZone != "" {
-		props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
+	// --- NOTE: This code has been updated from the original else statement per PR review...
+	if d.HasChange("dns_zone_id") {
+		if dnsZone := d.Get("dns_zone_id").(string); dnsZone != "" {
+			props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
+		}
 	}
 
-	props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, false)
-	if err != nil {
-		return err
+	if d.HasChange("tls") {
+		tls := &cdn.AFDDomainHTTPSParameters{}
+		tlsSettings := d.Get("tls").([]interface{})
+		v := tlsSettings[0].(map[string]interface{})
+
+		secret := v["cdn_frontdoor_secret_id"].(string)
+
+		// NOTE: Cert type has to always be passed in the update else you will get a
+		// "AfdDomain.TlsSettings.CertificateType' is required but it was not set" error
+		tls.CertificateType = cdn.AfdCertificateType(v["certificate_type"].(string))
+
+		if d.HasChange("tls.0.cdn_frontdoor_secret_id") {
+			tls.Secret = expandResourceReference(secret)
+		}
+
+		if d.HasChange("tls.0.minimum_tls_version") {
+			tls.MinimumTLSVersion = cdn.AfdMinimumTLSVersion(v["minimum_tls_version"].(string))
+		}
+
+		if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
+			return fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
+		} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
+			return fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
+		}
+
+		props.AFDDomainUpdatePropertiesParameters.TLSSettings = tls
 	}
 	// --- Temporary code from else statement to remove PreValidateDomain ---
 
