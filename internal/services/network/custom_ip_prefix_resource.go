@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 type commissionedAction string
@@ -158,7 +158,7 @@ func resourceCustomIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		parameters.Zones = &zones
 	}
@@ -319,7 +319,7 @@ func resourceCustomIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if v := props.AuthorizationMessage; v != nil {
 			authMessage := strings.Split(*v, "|")
 			if len(authMessage) == 3 {
-				d.Set("roa_expiration_date", authMessage[1])
+				d.Set("roa_expiration_date", authMessage[2])
 			}
 		}
 		d.Set("wan_validation_signed_message", props.SignedMessage)

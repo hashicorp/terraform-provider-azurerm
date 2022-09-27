@@ -26,7 +26,7 @@ resource "azurerm_custom_ip_prefix" "example" {
   cidr                          = "0.0.0.0/24"
   action                        = "Provision"
   roa_expiration_date           = "20991212"
-  wan_validation_signed_message = "singed message for WAN validation"
+  wan_validation_signed_message = "signed message for WAN validation"
   zones                         = ["1", "2", "3"]
 
   tags = {

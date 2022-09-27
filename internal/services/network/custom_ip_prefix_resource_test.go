@@ -16,7 +16,23 @@ import (
 type CustomIpPrefixResource struct {
 }
 
-func TestAccCustomIpPrefix_withIpv4(t *testing.T) {
+func TestAccCustomIpPrefixIpv4(t *testing.T) {
+	// Only one test IPv4 range "194.41.20.0/24" could be provided to run tests, and the IP range could only create one resource at a time, so run the tests sequentially.
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"ipv4": {
+			"basic":                             testAccCustomIpPrefix_withIpv4,
+			"update":                            testAccCustomIpPrefix_ipv4Update,
+			"fromCommissionedTodoProvision":     testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_provision,
+			"fromDeprovisionedTodoCommission":   testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_commission,
+			"fromDeprovisionedTodoDecommission": testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_decommission,
+			"fromCommissionedTodoDeprovision":   testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_deprovision,
+			"complete":                          testAccCustomIpPrefix_ipv4Complete,
+			"requiresImport":                    testAccCustomIpPrefix_requiresImport,
+		},
+	})
+}
+
+func testAccCustomIpPrefix_withIpv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -32,7 +48,7 @@ func TestAccCustomIpPrefix_withIpv4(t *testing.T) {
 	})
 }
 
-func TestAccCustomIpPrefix_ipv4Update(t *testing.T) {
+func testAccCustomIpPrefix_ipv4Update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -68,7 +84,7 @@ func TestAccCustomIpPrefix_ipv4Update(t *testing.T) {
 	})
 }
 
-func TestAccCustomIpPrefix_ipv4Update_from_commissioned_todo_provision(t *testing.T) {
+func testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_provision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -97,7 +113,7 @@ func TestAccCustomIpPrefix_ipv4Update_from_commissioned_todo_provision(t *testin
 	})
 }
 
-func TestAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_commission(t *testing.T) {
+func testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_commission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -126,7 +142,7 @@ func TestAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_commission(t *test
 	})
 }
 
-func TestAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_decommission(t *testing.T) {
+func testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_decommission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -155,7 +171,7 @@ func TestAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_decommission(t *te
 	})
 }
 
-func TestAccCustomIpPrefix_ipv4Update_from_commissioned_todo_deprovision(t *testing.T) {
+func testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_deprovision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -184,7 +200,7 @@ func TestAccCustomIpPrefix_ipv4Update_from_commissioned_todo_deprovision(t *test
 	})
 }
 
-func TestAccCustomIpPrefix_ipv4Complete(t *testing.T) {
+func testAccCustomIpPrefix_ipv4Complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -199,7 +215,7 @@ func TestAccCustomIpPrefix_ipv4Complete(t *testing.T) {
 	})
 }
 
-func TestAccCustomIpPrefix_requiresImport(t *testing.T) {
+func testAccCustomIpPrefix_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
@@ -312,7 +328,7 @@ resource "azurerm_custom_ip_prefix" "test" {
   zones                         = ["1", "2", "3"]
   action                        = "Provision"
   roa_expiration_date           = "20991212"
-  wan_validation_signed_message = "singed message for WAN validation"
+  wan_validation_signed_message = "signed message for WAN validation"
 
   tags = {
     env = "test"
