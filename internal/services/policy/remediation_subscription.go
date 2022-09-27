@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +23,7 @@ import (
 )
 
 func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmSubscriptionPolicyRemediationCreateUpdate,
 		Read:   resourceArmSubscriptionPolicyRemediationRead,
 		Update: resourceArmSubscriptionPolicyRemediationCreateUpdate,
@@ -90,12 +91,9 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 				},
 			},
 
-			"policy_definition_id": {
+			"policy_definition_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.PolicyDefinitionID,
 			},
 
 			"resource_discovery_mode": {
@@ -109,6 +107,18 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["policy_definition_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validate.PolicyDefinitionID,
+			Deprecated:       "`policy_definition_id` will be removed in version 4.0 of the AzureRM Provider in favour of `policy_definition_reference_id`.",
+		}
+	}
+	return resource
 }
 
 func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

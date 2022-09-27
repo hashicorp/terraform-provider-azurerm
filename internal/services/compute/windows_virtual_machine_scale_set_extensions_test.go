@@ -1129,8 +1129,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   extension {
     name                       = "AzurePolicyforWindows"
     publisher                  = "Microsoft.GuestConfiguration"
-    type                       = "ConfigurationforLinux"
-    type_handler_version       = "1.0"
+    type                       = "ConfigurationforWindows"
+    type_handler_version       = "1.29"
     auto_upgrade_minor_version = false
     automatic_upgrade_enabled  = true
   }

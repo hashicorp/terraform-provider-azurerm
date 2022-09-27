@@ -23,3 +23,10 @@ func Float(input float64) *float64 {
 func String(input string) *string {
 	return &input
 }
+
+func StringSlice(input []string) *[]string {
+	if input == nil {
+		return nil
+	}
+	return &input
+}

@@ -146,6 +146,8 @@ The `log_analytics_workspace` block supports the following:
 
 * `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
+-> **Note:** This will be defaulted to `false` in the next major version of the Azure Provider (4.0).
+
 ---
 
 The `resource_group` block supports the following:

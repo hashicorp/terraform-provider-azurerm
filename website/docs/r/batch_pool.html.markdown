@@ -126,9 +126,19 @@ The following arguments are supported:
 
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
 
+* `data_disks` - (Optional) A `data_disks` block describes the data disk settings.
+
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
+* `disk_encryption` - (Optional) A `disk_encryption` block describes the disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
+
+* `extensions` - (Optional) An `extensions` block as defined below.
+
+* `inter_node_communication` - (Optional) Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to `Disabled`. Values allowed are `Disabled` and `Enabled`.
+
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `license_type` - (Optional) The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: "Windows_Server" - The on-premises license is for Windows Server. "Windows_Client" - The on-premises license is for Windows Client.
 
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
@@ -148,6 +158,16 @@ The following arguments are supported:
 
 * `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool.
 
+* `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool.
+
+* `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
+
+* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread.
+
+* `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
+
+* `windows` - A `windows` block that describes the Windows configuration in the pool.
+
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
@@ -159,6 +179,55 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Only possible value is `UserAssigned`.
 
  * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+
+---
+
+A `data_disks` block supports the following:
+
+* `lun` - (Required) The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun. The value must be between 0 and 63, inclusive.
+
+* `caching` - (Required) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. The default value for caching is "none". For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/.
+
+* `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
+
+* `storage_account_type` - (Optional) The storage account type to be used for the data disk. If omitted, the default is "Standard_LRS". Values are: "Standard_LRS" - The data disk should use standard locally redundant storage. "Premium_LRS" - The data disk should use premium locally redundant storage.
+
+A `disk_encryption` block supports the following:
+
+The disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
+
+* `disk_encryption_target` - (Required) On Linux pool, only \"TemporaryDisk\" is supported; on Windows pool, \"OsDisk\" and \"TemporaryDisk\" must be specified.
+
+---
+
+An `extensions` block supports the following:
+
+The virtual machine extension for the pool.
+If specified, the extensions mentioned in this configuration will be installed on each node.
+
+* `name` - (Required) The name of the virtual machine extension.
+
+* `publisher` - (Required) The name of the extension handler publisher.The name of the extension handler publisher.
+
+* `type` - (Required) The type of the extensions.
+
+* `type_handler_version` - (Optional) The version of script handler.
+
+* `auto_upgrade_minor_version` - (Optional) Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
+
+* `settings_json` - (Optional) JSON formatted public settings for the extension.
+
+* `protected_settings` - (Optional) The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
+
+* `provision_after_extensions` - (Optional) The collection of extension names. Collection of extension names after which this extension needs to be provisioned.
+
+---
+
+A `node_placement` block supports the following:
+
+Node placement Policy type on Batch Pools. Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy.
+
+* `policy` - (Required) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing.
 
 ---
 
@@ -270,6 +339,8 @@ A `resource_file` block supports the following:
 * `http_url` - (Optional) The URL of the file to download. If the URL is Azure Blob Storage, it must be readable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read permissions on the blob, or set the ACL for the blob or its container to allow public access.
 
 * `storage_container_url` - (Optional) The URL of the blob container within Azure Blob Storage. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
+
+* `user_assigned_identity_id` - (Optional) An identity reference from pool's user assigned managed identity list.
 
 ~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
@@ -390,6 +461,52 @@ A `network_security_group_rules` block supports the following:
 * `priority` - The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
 
 * `source_address_prefix` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+
+---
+
+A `task_scheduling_policy` block supports the following:
+
+* `node_fill_type` - (Required) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
+
+---
+
+A `user_accounts` block supports the following:
+
+* `name` - (Required) The name of the user account.
+
+* `password` - (Required) The password for the user account.
+
+* `elevation_level` - (Required) The elevation level of the user account. "NonAdmin" - The auto user is a standard user without elevated access. "Admin" - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin.
+
+* `linux_user_configuration` - (Optional) The `linux_user_configuration` block defined below is a linux-specific user configuration for the user account. This property is ignored if specified on a Windows pool. If not specified, the user is created with the default options.
+
+* `windows_user_configuration` - (Optional) The `windows_user_configuration` block defined below is a windows-specific user configuration for the user account. This property can only be specified if the user is on a Windows pool. If not specified and on a Windows pool, the user is created with the default options.
+
+---
+
+A `linux_user_configuration` block supports the following:
+
+* `uid` - (Optional) The group ID for the user account. The `uid` and `gid` properties must be specified together or not at all. If not specified the underlying operating system picks the gid.
+
+* `gid` - (Optional) The user ID of the user account. The `uid` and `gid` properties must be specified together or not at all. If not specified the underlying operating system picks the uid.
+
+* `ssh_private_key` - (Optional) The SSH private key for the user account. The private key must not be password protected. The private key is used to automatically configure asymmetric-key based authentication for SSH between nodes in a Linux pool when the pool's enableInterNodeCommunication property is true (it is ignored if enableInterNodeCommunication is false). It does this by placing the key pair into the user's .ssh directory. If not specified, password-less SSH is not configured between nodes (no modification of the user's .ssh directory is done).
+
+---
+
+A `windows_user_configuration` block supports the following:
+
+* `login_mode` - (Optional) Specifies login mode for the user. The default value for VirtualMachineConfiguration pools is interactive mode and for CloudServiceConfiguration pools is batch mode. Values supported are "Batch" and "Interactive".
+
+---
+
+A `windows` block supports the following:
+
+Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
+
+* `enable_automatic_updates` - (Required) Whether automatic updates are enabled on the virtual machine. If omitted, the default value is true.
+
+---
 
 ## Attributes Reference
 

@@ -177,7 +177,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.562"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("64"),
 			),
 		},
 		data.ImportStep(),
@@ -190,7 +190,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("4"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("tags.bAr").HasValue("fOo"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("63"),
 			),
 		},
 		data.ImportStep(),
@@ -522,7 +522,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   protocols                        = ["NFSv3"]
   storage_quota_in_gb              = 200
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
-  throughput_in_mibps              = 3.2
+  throughput_in_mibps              = 3.125
 
   export_policy_rule {
     rule_index        = 1
@@ -657,7 +657,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
+  throughput_in_mibps = 64
 
   export_policy_rule {
     rule_index        = 1
@@ -707,7 +707,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
-  throughput_in_mibps = 65
+  throughput_in_mibps = 63
 
   export_policy_rule {
     rule_index        = 1

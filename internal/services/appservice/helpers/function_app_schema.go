@@ -1066,7 +1066,8 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"12",
 						"14",
-						"16", // preview LTS Support
+						"16",
+						"18", // preview LTS Support
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1312,6 +1313,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"~12",
 						"~14",
 						"~16",
+						"~18",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",

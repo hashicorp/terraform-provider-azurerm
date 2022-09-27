@@ -66,6 +66,36 @@ func TestAccPrivateEndpoint_updateTag(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_updateNicName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withCustomNicName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_network_interface_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
@@ -422,6 +452,26 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) withCustomNicName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                          = "acctest-privatelink-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  subnet_id                     = azurerm_subnet.endpoint.id
+  custom_network_interface_name = "acctest-privatelink-%d-nic"
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger)
 }
 
 func (r PrivateEndpointResource) requestMessage(data acceptance.TestData, msg string) string {
