@@ -1418,6 +1418,11 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"docker_compose_file": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
