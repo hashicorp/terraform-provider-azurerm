@@ -942,8 +942,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 	if nodeVersion != "" {
 		winFunctionAppStack.NodeVersion = nodeVersion
 	}
-	winFunctionAppStack.CustomHandler = isCustomHandler
-	winFunctionAppStack.DotNetIsolated = isDotnetIsolated
+	winFunctionAppStack.CustomHandler = *isCustomHandler
+	winFunctionAppStack.DotNetIsolated = *isDotnetIsolated
 	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
 		if err != nil {
