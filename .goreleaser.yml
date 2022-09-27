@@ -15,8 +15,8 @@ builds:
     flags:
       - -trimpath
     goos:
-      - darwin
-      - freebsd
+      #- darwin
+      #- freebsd
       - linux
       - windows
     goarch:
