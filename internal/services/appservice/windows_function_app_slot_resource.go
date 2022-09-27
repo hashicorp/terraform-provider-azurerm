@@ -595,16 +595,20 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 			isCustomHandler := false
+			isDotnetIsolated := false
 			nodeVersion := ""
 			appSetting := state.AppSettings
 			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "custom" {
 				isCustomHandler = true
 			}
+			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "dotnet-isolated" {
+				isDotnetIsolated = true
+			}
 			if appSetting["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
 				nodeVersion = appSetting["WEBSITE_NODE_DEFAULT_VERSION"]
 			}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig, isCustomHandler, nodeVersion)
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig, isCustomHandler, nodeVersion, isDotnetIsolated)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}

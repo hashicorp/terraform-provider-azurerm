@@ -2023,7 +2023,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	return result, nil
 }
 
-func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, isCustomHandler bool, nodeVersion string) (*SiteConfigWindowsFunctionApp, error) {
+func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, isCustomHandler bool, nodeVersion string, isDotNetIsolated bool) (*SiteConfigWindowsFunctionApp, error) {
 	if functionAppSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -2094,6 +2094,8 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, 
 	if nodeVersion != "" {
 		winFunctionAppStack.NodeVersion = nodeVersion
 	}
+	winFunctionAppStack.CustomHandler = isCustomHandler
+	winFunctionAppStack.DotNetIsolated = isDotNetIsolated
 	if functionAppSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSiteConfig.WindowsFxVersion)
 		if err != nil {

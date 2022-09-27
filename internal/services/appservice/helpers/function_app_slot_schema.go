@@ -869,7 +869,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, isCustomHandler bool, nodeVersion string) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, isCustomHandler bool, nodeVersion string, isDotnetIsolated bool) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -942,6 +942,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 	if nodeVersion != "" {
 		winFunctionAppStack.NodeVersion = nodeVersion
 	}
+	winFunctionAppStack.CustomHandler = isCustomHandler
+	winFunctionAppStack.DotNetIsolated = isDotnetIsolated
 	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
 		if err != nil {
