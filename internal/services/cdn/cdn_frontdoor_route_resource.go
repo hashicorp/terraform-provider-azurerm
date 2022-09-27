@@ -226,7 +226,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			HTTPSRedirect:      expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
 			// NOTE: Hack due to the API's design, must create the route with the link to default
 			// domain as true else you will receive an error from the service this value is now
-			// controled by the cdn_frontdoor_route_unlink_default_domain resource... :/
+			// controlled by the cdn_frontdoor_route_unlink_default_domain resource... :/
 			LinkToDefaultDomain: cdn.LinkToDefaultDomainEnabled,
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),

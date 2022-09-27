@@ -84,7 +84,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 	// create the resource id
 	uuid, err := uuid.GenerateUUID()
 	if err != nil {
-		return fmt.Errorf("generating UUID for the 'azurerum_cdn_frontdoor_route_disable_link_to_default_domain': %+v", err)
+		return fmt.Errorf("generating UUID for the 'azurerm_cdn_frontdoor_route_disable_link_to_default_domain': %+v", err)
 	}
 	id := parse.NewFrontDoorRouteDisableLinkToDefaultDomainID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, uuid)
 
@@ -116,25 +116,25 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 
 		_, err = customDomainClient.Get(customDomainCtx, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName)
 		if err != nil {
-			return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *customDomainId, err)
+			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *customDomainId, err)
 		}
 	}
 
 	routeResp, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
-		return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
+		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
 	}
 
 	props := routeResp.RouteProperties
 	if props == nil {
-		return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
+		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
 	}
 
 	// If it is already disabled skip updating the the resource...
 	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
 		customDomainsProps := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 		if len(customDomainsProps) == 0 {
-			return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: it is invalid to unlink the default domain if the route does not have at least one custom domain associated with it, got 0 associated custom domains")
+			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: it is invalid to unlink the default domain if the route does not have at least one custom domain associated with it, got 0 associated custom domains")
 		}
 
 		updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
@@ -175,40 +175,37 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 
 	routeId, err := parse.FrontDoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
 	if err != nil {
-		return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: %+v", err)
+		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %+v", err)
 	}
 
 	routeResp, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
-		return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
+		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
 	}
 
 	props := routeResp.RouteProperties
 	if props == nil {
-		return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
+		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
 	}
 
-	// NOTE: This has to be done in case your are deleting your
-	// "azurerum_cdn_frontdoor_route_disable_link_to_default_domain"
-	// resource from your config file which means that you want
-	// to revert your "link to default domain" value from "false"
-	// back to "true"... (resource has no update function)
+	// NOTE: to keep from throwing the below errors when you attempt to
+	// remove the resource from your configuration file I had to implement
+	// it with a d.HasChange check...
 	if d.HasChange("cdn_frontdoor_route_id") {
 		if _, new := d.GetChange("cdn_frontdoor_route_id"); new != "" {
 			// Check to make sure the custom domains are associated with the route
 			resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 			customDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 
-			// make sure the custom domain is associated with the route,
 			// if it is not associated with the route raise an error...
 			for _, v := range resourceCustomDomains {
 				customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
 				if err != nil {
-					return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: unable to parse %q: %+v", v.(string), err)
+					return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: unable to parse %q: %+v", v.(string), err)
 				}
 
 				if !sliceContainsString(customDomains, customDomain.ID()) {
-					return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: the custom domain %q is currently unassociated with the defined route %q. Please remove the 'azurerum_cdn_frontdoor_route_disable_link_to_default_domain' resource from your configuration file", customDomain.CustomDomainName, routeId.RouteName)
+					return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: the custom domain %q is currently unassociated with the defined route %q. Please remove the 'azurerm_cdn_frontdoor_route_disable_link_to_default_domain' resource from your configuration file", customDomain.CustomDomainName, routeId.RouteName)
 				}
 			}
 
@@ -249,12 +246,12 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 			return nil
 		}
 
-		return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
+		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
 	}
 
 	props := routeResp.RouteProperties
 	if props == nil {
-		return fmt.Errorf("azurerum_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
+		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
 	}
 
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{

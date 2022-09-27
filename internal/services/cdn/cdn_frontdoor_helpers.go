@@ -216,7 +216,7 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 	return results
 }
 
-// determins if the slice contains the value case-insensitively
+// determines if the slice contains the value case-insensitively
 func sliceContainsString(input []interface{}, value string) bool {
 	for _, key := range input {
 		v := key.(string)

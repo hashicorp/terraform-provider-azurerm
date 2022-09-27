@@ -371,7 +371,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	// and associate/unassociate the custom domain with the route, if that field was defined/removed...
 	if d.HasChange("associate_with_cdn_frontdoor_route_id") {
 		var writeFieldToState bool
-		action := associationAction(none)
+		action := none
 
 		old, new := d.GetChange("associate_with_cdn_frontdoor_route_id")
 		oldRouteValue := old.(string)
@@ -380,12 +380,13 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		// If the old value was "" and the new value is something we are adding an association (lock only new value route)
 		// if the old value was something and it isn't the same as the new value we are associating the custom domain with a different route (lock both new and old routes)
 		// if the old value was something and the new value is "" we are removing the association with the route (lock only the old value route)
-		if oldRouteValue == "" && newRouteValue != "" {
-			action = associationAction(add)
-		} else if oldRouteValue != "" && newRouteValue == "" {
-			action = associationAction(remove)
-		} else if oldRouteValue != "" && newRouteValue != "" && !strings.EqualFold(oldRouteValue, newRouteValue) {
-			action = associationAction(swap)
+		switch true {
+		case (oldRouteValue == "" && newRouteValue != ""):
+			action = add
+		case (oldRouteValue != "" && newRouteValue == ""):
+			action = remove
+		case (oldRouteValue != "" && newRouteValue != "" && !strings.EqualFold(oldRouteValue, newRouteValue)):
+			action = swap
 		}
 
 		// the only other possibility here is that the old and new value
