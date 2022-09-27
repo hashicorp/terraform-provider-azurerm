@@ -1,0 +1,373 @@
+{
+  "ConfigurationProfiles": {
+    "schema": {
+      "name": {
+        "id": "ConfigurationProfiles-name-417901828"
+      },
+      "resource_group_name": {
+        "id": "ConfigurationProfiles-resourceGroupName-2758644312"
+      },
+      "location": {
+        "id": "ConfigurationProfiles-location-590330261"
+      },
+      "configuration": {
+        "id": "ConfigurationProfiles-configuration-1593539497"
+      },
+      "type": {
+        "id": "ConfigurationProfiles-type-668966555"
+      },
+      "tags": {
+        "id": "ConfigurationProfiles-tags-496376680"
+      }
+    },
+    "deleted": {}
+  },
+  "ConfigurationProfilesVersions": {
+    "schema": {
+      "name": {
+        "id": "ConfigurationProfilesVersions-name-2249225806"
+      },
+      "resource_group_name": {
+        "id": "ConfigurationProfilesVersions-resourceGroupName-2521441697"
+      },
+      "location": {
+        "id": "ConfigurationProfilesVersions-location-2191241269"
+      },
+      "configuration_profile_name": {
+        "id": "ConfigurationProfilesVersions-configurationProfileName-749509678"
+      },
+      "configuration": {
+        "id": "ConfigurationProfilesVersions-configuration-2292127859"
+      },
+      "type": {
+        "id": "ConfigurationProfilesVersions-type-2424298927"
+      },
+      "tags": {
+        "id": "ConfigurationProfilesVersions-tags-1160852625"
+      }
+    },
+    "deleted": {}
+  },
+  "ConfigurationProfileAssignments": {
+    "schema": {
+      "name": {
+        "id": "ConfigurationProfileAssignments-name-2305469502"
+      },
+      "resource_group_name": {
+        "id": "ConfigurationProfileAssignments-resourceGroupName-1449309234"
+      },
+      "vm_name": {
+        "id": "ConfigurationProfileAssignments-vmName-2108638131"
+      },
+      "configuration_profile": {
+        "id": "ConfigurationProfileAssignments-configurationProfile-933521595"
+      },
+      "managed_by": {
+        "id": "ConfigurationProfileAssignments-managedBy-2602144293"
+      },
+      "target_id": {
+        "id": "ConfigurationProfileAssignments-targetId-656663291"
+      },
+      "type": {
+        "id": "ConfigurationProfileAssignments-type-3032800255"
+      }
+    },
+    "deleted": {}
+  },
+  "ConfigurationProfileHCRPAssignments": {
+    "schema": {
+      "name": {
+        "id": "ConfigurationProfileHCRPAssignments-name-652656261"
+      },
+      "resource_group_name": {
+        "id": "ConfigurationProfileHCRPAssignments-resourceGroupName-2686832426"
+      },
+      "machine_name": {
+        "id": "ConfigurationProfileHCRPAssignments-machineName-2649268595"
+      },
+      "configuration_profile": {
+        "id": "ConfigurationProfileHCRPAssignments-configurationProfile-1922612581"
+      },
+      "managed_by": {
+        "id": "ConfigurationProfileHCRPAssignments-managedBy-2973350789"
+      },
+      "target_id": {
+        "id": "ConfigurationProfileHCRPAssignments-targetId-1938482085"
+      },
+      "type": {
+        "id": "ConfigurationProfileHCRPAssignments-type-255112527"
+      }
+    },
+    "deleted": {}
+  },
+  "ConfigurationProfileHCIAssignments": {
+    "schema": {
+      "name": {
+        "id": "ConfigurationProfileHCIAssignments-name-1226998040"
+      },
+      "resource_group_name": {
+        "id": "ConfigurationProfileHCIAssignments-resourceGroupName-250799109"
+      },
+      "cluster_name": {
+        "id": "ConfigurationProfileHCIAssignments-clusterName-1807917969"
+      },
+      "configuration_profile": {
+        "id": "ConfigurationProfileHCIAssignments-configurationProfile-2490626305"
+      },
+      "managed_by": {
+        "id": "ConfigurationProfileHCIAssignments-managedBy-2850872299"
+      },
+      "target_id": {
+        "id": "ConfigurationProfileHCIAssignments-targetId-1197985037"
+      },
+      "type": {
+        "id": "ConfigurationProfileHCIAssignments-type-2692404985"
+      }
+    },
+    "deleted": {}
+  },
+  "definitions": {
+    "ConfigurationProfiles-name-417901828": {
+      "schema_path": "/ConfigurationProfiles/name",
+      "ids": [
+        "/ConfigurationProfiles//name#1",
+        "/ConfigurationProfiles/name#0",
+        "/ConfigurationProfiles/name#1",
+        "/ConfigurationProfiles/parameters/name#1"
+      ]
+    },
+    "ConfigurationProfiles-resourceGroupName-2758644312": {
+      "schema_path": "/ConfigurationProfiles/resourceGroupName",
+      "ids": [
+        "/ConfigurationProfiles/resourceGroupName#0",
+        "/ConfigurationProfiles/resourceGroupName#1"
+      ]
+    },
+    "ConfigurationProfiles-location-590330261": {
+      "schema_path": "/ConfigurationProfiles/location",
+      "ids": [
+        "/ConfigurationProfiles//location#4",
+        "/ConfigurationProfiles/parameters/location#4"
+      ]
+    },
+    "ConfigurationProfiles-configuration-1593539497": {
+      "schema_path": "/ConfigurationProfiles/configuration",
+      "ids": [
+        "/ConfigurationProfiles//properties/configuration#0",
+        "/ConfigurationProfiles/parameters/properties/configuration#0"
+      ]
+    },
+    "ConfigurationProfiles-type-668966555": {
+      "schema_path": "/ConfigurationProfiles/type",
+      "ids": [
+        "/ConfigurationProfiles//type#2",
+        "/ConfigurationProfiles/parameters/type#2"
+      ]
+    },
+    "ConfigurationProfiles-tags-496376680": {
+      "schema_path": "/ConfigurationProfiles/tags",
+      "ids": [
+        "/ConfigurationProfiles//tags#3",
+        "/ConfigurationProfiles/parameters/tags#0",
+        "/ConfigurationProfiles/parameters/tags#3"
+      ]
+    },
+    "ConfigurationProfilesVersions-name-2249225806": {
+      "schema_path": "/ConfigurationProfilesVersions/name",
+      "ids": [
+        "/ConfigurationProfilesVersions//name#1",
+        "/ConfigurationProfilesVersions/name#1",
+        "/ConfigurationProfilesVersions/name#2",
+        "/ConfigurationProfilesVersions/parameters/name#1"
+      ]
+    },
+    "ConfigurationProfilesVersions-resourceGroupName-2521441697": {
+      "schema_path": "/ConfigurationProfilesVersions/resourceGroupName",
+      "ids": [
+        "/ConfigurationProfilesVersions/resourceGroupName#0",
+        "/ConfigurationProfilesVersions/resourceGroupName#2"
+      ]
+    },
+    "ConfigurationProfilesVersions-location-2191241269": {
+      "schema_path": "/ConfigurationProfilesVersions/location",
+      "ids": [
+        "/ConfigurationProfilesVersions//location#4",
+        "/ConfigurationProfilesVersions/parameters/location#4"
+      ]
+    },
+    "ConfigurationProfilesVersions-configurationProfileName-749509678": {
+      "schema_path": "/ConfigurationProfilesVersions/configurationProfileName",
+      "ids": [
+        "/ConfigurationProfilesVersions/configurationProfileName#0",
+        "/ConfigurationProfilesVersions/configurationProfileName#1"
+      ]
+    },
+    "ConfigurationProfilesVersions-configuration-2292127859": {
+      "schema_path": "/ConfigurationProfilesVersions/configuration",
+      "ids": [
+        "/ConfigurationProfilesVersions//properties/configuration#0",
+        "/ConfigurationProfilesVersions/parameters/properties/configuration#0"
+      ]
+    },
+    "ConfigurationProfilesVersions-type-2424298927": {
+      "schema_path": "/ConfigurationProfilesVersions/type",
+      "ids": [
+        "/ConfigurationProfilesVersions//type#2",
+        "/ConfigurationProfilesVersions/parameters/type#2"
+      ]
+    },
+    "ConfigurationProfilesVersions-tags-1160852625": {
+      "schema_path": "/ConfigurationProfilesVersions/tags",
+      "ids": [
+        "/ConfigurationProfilesVersions//tags#3",
+        "/ConfigurationProfilesVersions/parameters/tags#3"
+      ]
+    },
+    "ConfigurationProfileAssignments-name-2305469502": {
+      "schema_path": "/ConfigurationProfileAssignments/name",
+      "ids": [
+        "/ConfigurationProfileAssignments//name#1",
+        "/ConfigurationProfileAssignments/name#0",
+        "/ConfigurationProfileAssignments/name#1",
+        "/ConfigurationProfileAssignments/parameters/name#1"
+      ]
+    },
+    "ConfigurationProfileAssignments-resourceGroupName-1449309234": {
+      "schema_path": "/ConfigurationProfileAssignments/resourceGroupName",
+      "ids": [
+        "/ConfigurationProfileAssignments/resourceGroupName#0",
+        "/ConfigurationProfileAssignments/resourceGroupName#1"
+      ]
+    },
+    "ConfigurationProfileAssignments-vmName-2108638131": {
+      "schema_path": "/ConfigurationProfileAssignments/vmName",
+      "ids": [
+        "/ConfigurationProfileAssignments/vmName#2"
+      ]
+    },
+    "ConfigurationProfileAssignments-configurationProfile-933521595": {
+      "schema_path": "/ConfigurationProfileAssignments/configurationProfile",
+      "ids": [
+        "/ConfigurationProfileAssignments//properties/configurationProfile#0",
+        "/ConfigurationProfileAssignments/parameters/properties/configurationProfile#0"
+      ]
+    },
+    "ConfigurationProfileAssignments-managedBy-2602144293": {
+      "schema_path": "/ConfigurationProfileAssignments/managedBy",
+      "ids": [
+        "/ConfigurationProfileAssignments//managedBy#4",
+        "/ConfigurationProfileAssignments/parameters/managedBy#4"
+      ]
+    },
+    "ConfigurationProfileAssignments-targetId-656663291": {
+      "schema_path": "/ConfigurationProfileAssignments/targetId",
+      "ids": [
+        "/ConfigurationProfileAssignments//properties/targetId#1",
+        "/ConfigurationProfileAssignments/parameters/properties/targetId#1"
+      ]
+    },
+    "ConfigurationProfileAssignments-type-3032800255": {
+      "schema_path": "/ConfigurationProfileAssignments/type",
+      "ids": [
+        "/ConfigurationProfileAssignments//type#2",
+        "/ConfigurationProfileAssignments/parameters/type#2"
+      ]
+    },
+    "ConfigurationProfileHCRPAssignments-name-652656261": {
+      "schema_path": "/ConfigurationProfileHCRPAssignments/name",
+      "ids": [
+        "/ConfigurationProfileHCRPAssignments//name#1",
+        "/ConfigurationProfileHCRPAssignments/name#2",
+        "/ConfigurationProfileHCRPAssignments/parameters/name#1"
+      ]
+    },
+    "ConfigurationProfileHCRPAssignments-resourceGroupName-2686832426": {
+      "schema_path": "/ConfigurationProfileHCRPAssignments/resourceGroupName",
+      "ids": [
+        "/ConfigurationProfileHCRPAssignments/resourceGroupName#0"
+      ]
+    },
+    "ConfigurationProfileHCRPAssignments-machineName-2649268595": {
+      "schema_path": "/ConfigurationProfileHCRPAssignments/machineName",
+      "ids": [
+        "/ConfigurationProfileHCRPAssignments/machineName#1"
+      ]
+    },
+    "ConfigurationProfileHCRPAssignments-configurationProfile-1922612581": {
+      "schema_path": "/ConfigurationProfileHCRPAssignments/configurationProfile",
+      "ids": [
+        "/ConfigurationProfileHCRPAssignments//properties/configurationProfile#0",
+        "/ConfigurationProfileHCRPAssignments/parameters/properties/configurationProfile#0"
+      ]
+    },
+    "ConfigurationProfileHCRPAssignments-managedBy-2973350789": {
+      "schema_path": "/ConfigurationProfileHCRPAssignments/managedBy",
+      "ids": [
+        "/ConfigurationProfileHCRPAssignments//managedBy#4",
+        "/ConfigurationProfileHCRPAssignments/parameters/managedBy#4"
+      ]
+    },
+    "ConfigurationProfileHCRPAssignments-targetId-1938482085": {
+      "schema_path": "/ConfigurationProfileHCRPAssignments/targetId",
+      "ids": [
+        "/ConfigurationProfileHCRPAssignments//properties/targetId#1",
+        "/ConfigurationProfileHCRPAssignments/parameters/properties/targetId#1"
+      ]
+    },
+    "ConfigurationProfileHCRPAssignments-type-255112527": {
+      "schema_path": "/ConfigurationProfileHCRPAssignments/type",
+      "ids": [
+        "/ConfigurationProfileHCRPAssignments//type#2",
+        "/ConfigurationProfileHCRPAssignments/parameters/type#2"
+      ]
+    },
+    "ConfigurationProfileHCIAssignments-name-1226998040": {
+      "schema_path": "/ConfigurationProfileHCIAssignments/name",
+      "ids": [
+        "/ConfigurationProfileHCIAssignments//name#1",
+        "/ConfigurationProfileHCIAssignments/name#2",
+        "/ConfigurationProfileHCIAssignments/parameters/name#1"
+      ]
+    },
+    "ConfigurationProfileHCIAssignments-resourceGroupName-250799109": {
+      "schema_path": "/ConfigurationProfileHCIAssignments/resourceGroupName",
+      "ids": [
+        "/ConfigurationProfileHCIAssignments/resourceGroupName#0"
+      ]
+    },
+    "ConfigurationProfileHCIAssignments-clusterName-1807917969": {
+      "schema_path": "/ConfigurationProfileHCIAssignments/clusterName",
+      "ids": [
+        "/ConfigurationProfileHCIAssignments/clusterName#1"
+      ]
+    },
+    "ConfigurationProfileHCIAssignments-configurationProfile-2490626305": {
+      "schema_path": "/ConfigurationProfileHCIAssignments/configurationProfile",
+      "ids": [
+        "/ConfigurationProfileHCIAssignments//properties/configurationProfile#0",
+        "/ConfigurationProfileHCIAssignments/parameters/properties/configurationProfile#0"
+      ]
+    },
+    "ConfigurationProfileHCIAssignments-managedBy-2850872299": {
+      "schema_path": "/ConfigurationProfileHCIAssignments/managedBy",
+      "ids": [
+        "/ConfigurationProfileHCIAssignments//managedBy#4",
+        "/ConfigurationProfileHCIAssignments/parameters/managedBy#4"
+      ]
+    },
+    "ConfigurationProfileHCIAssignments-targetId-1197985037": {
+      "schema_path": "/ConfigurationProfileHCIAssignments/targetId",
+      "ids": [
+        "/ConfigurationProfileHCIAssignments//properties/targetId#1",
+        "/ConfigurationProfileHCIAssignments/parameters/properties/targetId#1"
+      ]
+    },
+    "ConfigurationProfileHCIAssignments-type-2692404985": {
+      "schema_path": "/ConfigurationProfileHCIAssignments/type",
+      "ids": [
+        "/ConfigurationProfileHCIAssignments//type#2",
+        "/ConfigurationProfileHCIAssignments/parameters/type#2"
+      ]
+    }
+  }
+}

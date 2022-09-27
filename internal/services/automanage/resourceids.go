@@ -1,0 +1,8 @@
+package automanage
+
+// leaving the Automanage prefix here to avoid stuttering the property name for now
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AutomanageConfigurationProfile -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AutomanageConfigurationProfilesVersion -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1/versions/version1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AutomanageConfigurationProfileAssignment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Automanage/configurationProfileAssignments/configurationProfileAssignment1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AutomanageConfigurationProfileHCRPAssignment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.Automanage/configurationProfileAssignments/configurationProfileAssignment1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AutomanageConfigurationProfileHCIAssignment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AzureStackHci/clusters/cluster1/providers/Microsoft.Automanage/configurationProfileAssignments/configurationProfileAssignment1
