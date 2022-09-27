@@ -1,32 +1,44 @@
 package automanage
 
 import (
+	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/mgmt/2022-05-04/automanage"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"log"
+	"time"
 )
 
-func resourceAutomanageConfigurationProfilesVersion() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomanageConfigurationProfilesVersion() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomanageConfigurationProfilesVersionCreateUpdate,
 		Read:   resourceAutomanageConfigurationProfilesVersionRead,
 		Update: resourceAutomanageConfigurationProfilesVersionCreateUpdate,
 		Delete: resourceAutomanageConfigurationProfilesVersionDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AutomanageConfigurationProfilesVersionID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -36,18 +48,18 @@ func resourceAutomanageConfigurationProfilesVersion() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"configuration_profile_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"configuration": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -55,7 +67,7 @@ func resourceAutomanageConfigurationProfilesVersion() *schema.Resource {
 		},
 	}
 }
-func resourceAutomanageConfigurationProfilesVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfilesVersionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Automanage.ConfigurationProfilesVersionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -96,7 +108,7 @@ func resourceAutomanageConfigurationProfilesVersionCreateUpdate(d *schema.Resour
 	return resourceAutomanageConfigurationProfilesVersionRead(d, meta)
 }
 
-func resourceAutomanageConfigurationProfilesVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfilesVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automanage.ConfigurationProfilesVersionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,16 +118,16 @@ func resourceAutomanageConfigurationProfilesVersionRead(d *schema.ResourceData, 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.Name, id.ResourceGroup)
+	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ConfigurationProfileName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] automanage %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfilesVersion %q (Resource Group %q / configurationProfileName %q): %+v", id.Name, id.ResourceGroup, id.ConfigurationProfileName, err)
+		return fmt.Errorf("retrieving Automanage ConfigurationProfilesVersion %q (Resource Group %q / configurationProfileName %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, id.ConfigurationProfileName, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.ConfigurationProfileName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("configuration_profile_name", id.ConfigurationProfileName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -130,7 +142,7 @@ func resourceAutomanageConfigurationProfilesVersionRead(d *schema.ResourceData, 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceAutomanageConfigurationProfilesVersionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfilesVersionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automanage.ConfigurationProfilesVersionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,8 +152,8 @@ func resourceAutomanageConfigurationProfilesVersionDelete(d *schema.ResourceData
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileName, id.Name); err != nil {
-		return fmt.Errorf("deleting Automanage ConfigurationProfilesVersion %q (Resource Group %q / configurationProfileName %q): %+v", id.Name, id.ResourceGroup, id.ConfigurationProfileName, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileName, id.ConfigurationProfileName); err != nil {
+		return fmt.Errorf("deleting Automanage ConfigurationProfilesVersion %q (Resource Group %q / configurationProfileName %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, id.ConfigurationProfileName, err)
 	}
 	return nil
 }

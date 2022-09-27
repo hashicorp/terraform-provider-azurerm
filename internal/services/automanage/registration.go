@@ -1,5 +1,7 @@
 package automanage
 
+import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+
 type Registration struct{}
 
 // Name is the name of this Service
@@ -14,20 +16,9 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
-// SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
-		"azurerm_automanage_configuration_profile":                dataSourceAutomanageConfigurationProfile(),
-		"azurerm_automanage_configuration_profiles_version":       dataSourceAutomanageConfigurationProfilesVersion(),
-		"azurerm_automanage_configuration_profile_assignment":     dataSourceAutomanageConfigurationProfileAssignment(),
-		"azurerm_automanage_configuration_profile_hcrpassignment": dataSourceAutomanageConfigurationProfileHCRPAssignment(),
-		"azurerm_automanage_configuration_profile_hciassignment":  dataSourceAutomanageConfigurationProfileHCIAssignment(),
-	}
-}
-
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_automanage_configuration_profile":                resourceAutomanageConfigurationProfile(),
 		"azurerm_automanage_configuration_profiles_version":       resourceAutomanageConfigurationProfilesVersion(),
 		"azurerm_automanage_configuration_profile_assignment":     resourceAutomanageConfigurationProfileAssignment(),

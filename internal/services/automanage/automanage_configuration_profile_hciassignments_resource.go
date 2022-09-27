@@ -1,32 +1,42 @@
 package automanage
 
 import (
-	uuid "github.com/gofrs/uuid"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/mgmt/2022-05-04/automanage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceAutomanageConfigurationProfileHCIAssignment() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomanageConfigurationProfileHCIAssignment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate,
 		Read:   resourceAutomanageConfigurationProfileHCIAssignmentRead,
 		Update: resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate,
 		Delete: resourceAutomanageConfigurationProfileHCIAssignmentDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AutomanageConfigurationProfileHCIAssignmentID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -34,34 +44,34 @@ func resourceAutomanageConfigurationProfileHCIAssignment() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"cluster_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"configuration_profile": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"managed_by": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"target_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
-func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -98,7 +108,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *schema.R
 	return resourceAutomanageConfigurationProfileHCIAssignmentRead(d, meta)
 }
 
-func resourceAutomanageConfigurationProfileHCIAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileHCIAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +139,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceAutomanageConfigurationProfileHCIAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileHCIAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

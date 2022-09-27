@@ -1,11 +1,14 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = AutomanageConfigurationProfilesVersionId{}
+var _ resourceids.Id = AutomanageConfigurationProfilesVersionId{}
 
 func TestAutomanageConfigurationProfilesVersionIDFormatter(t *testing.T) {
 	actual := NewAutomanageConfigurationProfilesVersionID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "configurationProfile1", "version1").ID()
@@ -21,51 +24,61 @@ func TestAutomanageConfigurationProfilesVersionID(t *testing.T) {
 		Error    bool
 		Expected *AutomanageConfigurationProfilesVersionId
 	}{
+
 		{
 			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			// missing subscriptions
+			// missing SubscriptionId
 			Input: "/",
 			Error: true,
 		},
+
 		{
-			// missing value for subscriptions
+			// missing value for SubscriptionId
 			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			// missing resourceGroups
+			// missing ResourceGroup
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
+
 		{
-			// missing value for resourceGroups
+			// missing value for ResourceGroup
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			// missing configurationProfiles
+			// missing ConfigurationProfileName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/",
 			Error: true,
 		},
+
 		{
-			// missing value for configurationProfiles
+			// missing value for ConfigurationProfileName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/",
 			Error: true,
 		},
+
 		{
-			// missing versions
+			// missing VersionName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1/",
 			Error: true,
 		},
+
 		{
-			// missing value for versions
+			// missing value for VersionName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1/versions/",
 			Error: true,
 		},
+
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1/versions/version1",
@@ -73,9 +86,10 @@ func TestAutomanageConfigurationProfilesVersionID(t *testing.T) {
 				SubscriptionId:           "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:            "resourceGroup1",
 				ConfigurationProfileName: "configurationProfile1",
-				Name:                     "version1",
+				VersionName:              "version1",
 			},
 		},
+
 		{
 			// upper-cased
 			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.AUTOMANAGE/CONFIGURATIONPROFILES/CONFIGURATIONPROFILE1/VERSIONS/VERSION1",
@@ -91,23 +105,24 @@ func TestAutomanageConfigurationProfilesVersionID(t *testing.T) {
 			if v.Error {
 				continue
 			}
-			t.Fatalf("Expected a value but got an error: %s", err)
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
 		if actual.ConfigurationProfileName != v.Expected.ConfigurationProfileName {
 			t.Fatalf("Expected %q but got %q for ConfigurationProfileName", v.Expected.ConfigurationProfileName, actual.ConfigurationProfileName)
 		}
-
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		if actual.VersionName != v.Expected.VersionName {
+			t.Fatalf("Expected %q but got %q for VersionName", v.Expected.VersionName, actual.VersionName)
 		}
 	}
 }

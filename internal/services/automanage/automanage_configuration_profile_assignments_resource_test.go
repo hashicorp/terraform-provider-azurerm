@@ -2,7 +2,16 @@ package automanage_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomanageConfigurationProfileAssignmentResource struct{}
@@ -82,12 +91,12 @@ func (r AutomanageConfigurationProfileAssignmentResource) Exists(ctx context.Con
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automanage.ConfigurationProfileAssignmentClient.Get(ctx, id.ResourceGroup, id.Name, id.VMName)
+	resp, err := client.Automanage.ConfigurationProfileAssignmentClient.Get(ctx, id.ResourceGroup, id.ConfigurationProfileAssignmentName, id.VirtualMachineName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.Name, id.ResourceGroup, id.VMName, err)
+		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 	return utils.Bool(true), nil
 }
