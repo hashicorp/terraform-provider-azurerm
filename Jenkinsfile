@@ -7,7 +7,7 @@ pipeline {
         stage('Test Build') {
             steps {
               script {
-                docker.image("dockerhub.rnd.amadeus.net/docker-production-iac/iac/terraform-automation-azr:master-004346b").inside("-u iacuser") {
+                docker.image("dockerhub.rnd.amadeus.net/docker-production/iac/terraform-automation-azr:2.7.2").inside("-u iacuser") {
                   sh 'wget -O /tmp/goreleaser.tar.gz https://github.com/goreleaser/goreleaser/releases/download/v1.11.4/goreleaser_Linux_x86_64.tar.gz'
                   sh 'tar -xf -C /tmp/ /tmp/goreleaser.tar.gz'
                   sh '/tmp/goreleaser -h'
