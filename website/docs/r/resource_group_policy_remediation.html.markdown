@@ -78,9 +78,19 @@ The following arguments are supported:
 
 * `policy_definition_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
 
+~> **Note:** This property has been deprecated and will be removed in version 4.0 of the provider in favour of `policy_definition_reference_id`.
+
+* `policy_definition_reference_id` - (Optional) The unique ID for the policy definition reference within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
+
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
 
 * `resource_discovery_mode` - (Optional) The way that resources to remediate are discovered. Possible values are `ExistingNonCompliant`, `ReEvaluateCompliance`. Defaults to `ExistingNonCompliant`.
+
+* `failure_percentage` - (Optional) A number between 0.0 to 1.0 representing the percentage failure threshold. The remediation will fail if the percentage of failed remediation operations (i.e. failed deployments) exceeds this threshold.
+
+* `parallel_deployments` - (Optional) Determines how many resources to remediate at any given time. Can be used to increase or reduce the pace of the remediation. If not provided, the default parallel deployments value is used.
+
+* `resource_count` (Optional) Determines the max number of resources that can be remediated by the remediation job. If not provided, the default resource count is used.
 
 ## Attributes Reference
 

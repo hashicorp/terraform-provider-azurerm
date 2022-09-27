@@ -140,7 +140,7 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+		if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
 

@@ -148,7 +148,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
+		properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(settings)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
@@ -205,7 +205,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+		if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
 

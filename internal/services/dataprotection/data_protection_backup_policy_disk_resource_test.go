@@ -88,7 +88,7 @@ func TestAccDataProtectionBackupPolicyDisk_update(t *testing.T) {
 }
 
 func (r DataProtectionBackupPolicyDiskResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPoliciesID(state.ID)
+	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

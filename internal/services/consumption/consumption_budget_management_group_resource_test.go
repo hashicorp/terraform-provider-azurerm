@@ -299,16 +299,6 @@ resource "azurerm_consumption_budget_management_group" "test" {
         "baz",
       ]
     }
-
-    not {
-      tag {
-        name = "zip"
-        values = [
-          "zap",
-          "zop"
-        ]
-      }
-    }
   }
 
   notification {

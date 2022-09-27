@@ -62,7 +62,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicyNonComplianceMess
 			Config: r.withBuiltInPolicyNonComplianceMessageUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("non_compliance_message").DoesNotExist(),
+				check.That(data.ResourceName).Key("non_compliance_message.0").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),

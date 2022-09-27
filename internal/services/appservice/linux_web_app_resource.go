@@ -113,6 +113,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(web.ClientCertModeOptional),
 				string(web.ClientCertModeRequired),
+				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
 		},
 

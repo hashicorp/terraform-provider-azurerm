@@ -237,7 +237,7 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypeStandardSSDZRS(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSStorageAccountType(data, "StandardSSD_ZRS"),
+			Config: r.diskOSStorageAccountTypeWithRestrictedLocation(data, "StandardSSD_ZRS", "westeurope"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -252,7 +252,7 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypePremiumZRS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSStorageAccountType(data, "Premium_ZRS"),
+			Config: r.diskOSStorageAccountTypeWithRestrictedLocation(data, "Premium_ZRS", "westeurope"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -825,6 +825,12 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data), accountType)
+}
+
+func (r WindowsVirtualMachineResource) diskOSStorageAccountTypeWithRestrictedLocation(data acceptance.TestData, accountType string, location string) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+	return r.diskOSStorageAccountType(data, accountType)
 }
 
 func (r WindowsVirtualMachineResource) diskOSWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {

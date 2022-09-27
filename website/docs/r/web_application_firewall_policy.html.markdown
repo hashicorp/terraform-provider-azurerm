@@ -186,7 +186,7 @@ The `managed_rules` block supports the following:
 
 The `exclusion` block supports the following:
 
-* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames`, `RequestHeaderValues`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection.
 

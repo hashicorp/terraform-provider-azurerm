@@ -152,6 +152,21 @@ func TestAccStreamAnalyticsOutputEventHub_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputEventHub_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
+	r := StreamAnalyticsOutputEventhubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func (r StreamAnalyticsOutputEventhubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	jobName := state.Attributes["stream_analytics_job_name"]
@@ -363,6 +378,30 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
   }
 }
 `, template)
+}
+
+func (r StreamAnalyticsOutputEventhubResource) authenticationMode(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_eventhub" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_name             = azurerm_eventhub.test.name
+  servicebus_namespace      = azurerm_eventhub_namespace.test.name
+  shared_access_policy_key  = azurerm_eventhub_namespace.test.name
+  shared_access_policy_name = "RootManageSharedAccessKey"
+  authentication_mode       = "Msi"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+    format   = "Array"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) template(data acceptance.TestData) string {
