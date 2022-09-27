@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones). Changing this forces a new resource to be created. Defaults to `false`.
 
+~> **Note:** `zone_redundant` is computed by api based on the availability zone in each region. User's input will be overridden. It will turn into a computed property in 4.0 provider.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
