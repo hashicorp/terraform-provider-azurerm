@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotectioncontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -29,7 +30,7 @@ type Client struct {
 	ContainerMappingClient                    *replicationprotectioncontainermappings.ReplicationProtectionContainerMappingsClient
 	NetworkMappingClient                      func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient
 	ReplicationMigrationItemsClient           *replicationprotecteditems.ReplicationProtectedItemsClient
-	ReplicationRecoverPlanClient              func(resourceGroupName string, vaultName string) siterecovery.ReplicationRecoveryPlansClient
+	ReplicationRecoverPlanClient              *replicationrecoveryplans.ReplicationRecoveryPlansClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -84,11 +85,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	replicationMigrationItemsClient := replicationprotecteditems.NewReplicationProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&replicationMigrationItemsClient.Client, o.ResourceManagerAuthorizer)
 
-	replicationRecoverPlanClient := func(resourceGroupName string, vaultName string) siterecovery.ReplicationRecoveryPlansClient {
-		client := siterecovery.NewReplicationRecoveryPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
-		o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
-		return client
-	}
+	replicationRecoverPlanClient := replicationrecoveryplans.NewReplicationRecoveryPlansClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&replicationRecoverPlanClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		ProtectableItemsClient:                    &protectableItemsClient,
@@ -107,6 +105,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ContainerMappingClient:                    &containerMappingClient,
 		NetworkMappingClient:                      networkMappingClient,
 		ReplicationMigrationItemsClient:           &replicationMigrationItemsClient,
-		ReplicationRecoverPlanClient:              replicationRecoverPlanClient,
+		ReplicationRecoverPlanClient:              &replicationRecoverPlanClient,
 	}
 }
