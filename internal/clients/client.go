@@ -21,6 +21,7 @@ import (
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
+	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	azureStackHCI "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 	batch "github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/client"
@@ -139,6 +140,7 @@ type Client struct {
 	AppService            *appService.Client
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
+	Automanage            *automanage.Client
 	Automation            *automation.Client
 	AzureStackHCI         *azureStackHCI.Client
 	Batch                 *batch.Client

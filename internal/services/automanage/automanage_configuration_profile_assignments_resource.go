@@ -1,32 +1,42 @@
 package automanage
 
 import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/mgmt/2022-05-04/automanage"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceAutomanageConfigurationProfileAssignment() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomanageConfigurationProfileAssignment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomanageConfigurationProfileAssignmentCreateUpdate,
 		Read:   resourceAutomanageConfigurationProfileAssignmentRead,
 		Update: resourceAutomanageConfigurationProfileAssignmentCreateUpdate,
 		Delete: resourceAutomanageConfigurationProfileAssignmentDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AutomanageConfigurationProfileAssignmentID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -34,34 +44,34 @@ func resourceAutomanageConfigurationProfileAssignment() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"vm_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"configuration_profile": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"managed_by": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"target_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
-func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileAssignmentClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -98,7 +108,7 @@ func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *schema.Reso
 	return resourceAutomanageConfigurationProfileAssignmentRead(d, meta)
 }
 
-func resourceAutomanageConfigurationProfileAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileAssignmentClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,18 +118,18 @@ func resourceAutomanageConfigurationProfileAssignmentRead(d *schema.ResourceData
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VMName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ConfigurationProfileAssignmentName, id.VirtualMachineName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] automanage %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.Name, id.ResourceGroup, id.VMName, err)
+		return fmt.Errorf("retrieving Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.ConfigurationProfileAssignmentName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("vm_name", id.VMName)
+	d.Set("vm_name", id.VirtualMachineName)
 	if props := resp.Properties; props != nil {
 		d.Set("configuration_profile", props.ConfigurationProfile)
 		d.Set("target_id", props.TargetID)
@@ -129,7 +139,7 @@ func resourceAutomanageConfigurationProfileAssignmentRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceAutomanageConfigurationProfileAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileAssignmentClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,8 +149,8 @@ func resourceAutomanageConfigurationProfileAssignmentDelete(d *schema.ResourceDa
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.VMName); err != nil {
-		return fmt.Errorf("deleting Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.Name, id.ResourceGroup, id.VMName, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileAssignmentName, id.VirtualMachineName); err != nil {
+		return fmt.Errorf("deleting Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 	return nil
 }

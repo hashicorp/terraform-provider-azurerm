@@ -2,7 +2,16 @@ package automanage_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomanageConfigurationProfileResource struct{}
@@ -82,12 +91,12 @@ func (r AutomanageConfigurationProfileResource) Exists(ctx context.Context, clie
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automanage.ConfigurationProfileClient.Get(ctx, id.Name, id.ResourceGroup)
+	resp, err := client.Automanage.ConfigurationProfileClient.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfile %q (Resource Group %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, err)
 	}
 	return utils.Bool(true), nil
 }

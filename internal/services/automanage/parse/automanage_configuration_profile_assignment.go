@@ -1,50 +1,75 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type AutomanageConfigurationProfileAssignmentId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	VMName         string
-	Name           string
+	SubscriptionId                     string
+	ResourceGroup                      string
+	VirtualMachineName                 string
+	ConfigurationProfileAssignmentName string
 }
 
-func NewAutomanageConfigurationProfileAssignmentID(subscriptionId string, resourcegroup string, vmname string, name string) AutomanageConfigurationProfileAssignmentId {
+func NewAutomanageConfigurationProfileAssignmentID(subscriptionId, resourceGroup, virtualMachineName, configurationProfileAssignmentName string) AutomanageConfigurationProfileAssignmentId {
 	return AutomanageConfigurationProfileAssignmentId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourcegroup,
-		VMName:         vmname,
-		Name:           name,
+		SubscriptionId:                     subscriptionId,
+		ResourceGroup:                      resourceGroup,
+		VirtualMachineName:                 virtualMachineName,
+		ConfigurationProfileAssignmentName: configurationProfileAssignmentName,
 	}
+}
+
+func (id AutomanageConfigurationProfileAssignmentId) String() string {
+	segments := []string{
+		fmt.Sprintf("Configuration Profile Assignment Name %q", id.ConfigurationProfileAssignmentName),
+		fmt.Sprintf("Virtual Machine Name %q", id.VirtualMachineName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Automanage Configuration Profile Assignment", segmentsStr)
 }
 
 func (id AutomanageConfigurationProfileAssignmentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s/providers/Microsoft.Automanage/configurationProfileAssignments/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VMName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.ConfigurationProfileAssignmentName)
 }
 
+// AutomanageConfigurationProfileAssignmentID parses a AutomanageConfigurationProfileAssignment ID into an AutomanageConfigurationProfileAssignmentId struct
 func AutomanageConfigurationProfileAssignmentID(input string) (*AutomanageConfigurationProfileAssignmentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing automanageConfigurationProfileAssignment ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	automanageConfigurationProfileAssignment := AutomanageConfigurationProfileAssignmentId{
+	resourceId := AutomanageConfigurationProfileAssignmentId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
-	if automanageConfigurationProfileAssignment.VMName, err = id.PopSegment("virtualMachines"); err != nil {
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.VirtualMachineName, err = id.PopSegment("virtualMachines"); err != nil {
 		return nil, err
 	}
-	if automanageConfigurationProfileAssignment.Name, err = id.PopSegment("configurationProfileAssignments"); err != nil {
+	if resourceId.ConfigurationProfileAssignmentName, err = id.PopSegment("configurationProfileAssignments"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &automanageConfigurationProfileAssignment, nil
+	return &resourceId, nil
 }
