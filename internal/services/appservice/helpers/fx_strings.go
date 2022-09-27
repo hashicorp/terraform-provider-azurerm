@@ -42,6 +42,9 @@ func decodeApplicationStackLinux(fxString string, dockerRegistryURL string) Appl
 	case "RUBY":
 		result.RubyVersion = parts[1]
 
+	case "COMPOSE":
+		result.DockerComposeFile = parts[1]
+
 	default: // DOCKER is the expected default here as "custom" images require it
 		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
 			dockerData := dockerParts[0]

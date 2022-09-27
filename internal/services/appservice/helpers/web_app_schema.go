@@ -1054,62 +1054,66 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			Schema: func() map[string]*pluginsdk.Schema {
+				s := map[string]*pluginsdk.Schema{
+					"dotnet_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"php_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"php_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"python_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"python_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"node_version": { // Discarded by service if JavaVersion is specified
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"node_version": { // Discarded by service if JavaVersion is specified
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"java_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"java_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"java_container": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"java_container": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"java_container_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"java_container_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"docker_container_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"docker_container_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"docker_container_registry": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+					"docker_container_tag": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 
-				"docker_container_tag": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"current_stack": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
+					"current_stack": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				}
+				if !features.FourPointOhBeta() {
+					s["docker_container_registry"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					}
+				}
+				return s
+			}(),
 		},
 	}
 }
@@ -1124,6 +1128,7 @@ type ApplicationStackLinux struct {
 	JavaServerVersion   string `tfschema:"java_server_version"`
 	DockerImageTag      string `tfschema:"docker_image_tag"`
 	DockerImage         string `tfschema:"docker_image"`
+	DockerComposeFile   string `tfschema:"docker_compose_file"`
 	RubyVersion         string `tfschema:"ruby_version"`
 }
 
@@ -1146,6 +1151,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1171,6 +1177,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1197,6 +1204,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1223,6 +1231,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1248,6 +1257,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1271,6 +1281,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					// TODO - Needs notes in the docs for this to help users navigate the inconsistencies in the service. e.g. jre8 va java8 etc
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1308,6 +1319,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1325,6 +1337,24 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
+						"site_config.0.application_stack.0.docker_image",
+					},
+				},
+
+				"docker_compose_file": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
+					ConflictsWith: []string{
 						"site_config.0.application_stack.0.docker_image",
 					},
 				},
@@ -3144,6 +3174,8 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 				} else {
 					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
 				}
+			} else if linuxAppStack.DockerComposeFile != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("COMPOSE|%s", linuxAppStack.DockerComposeFile))
 			}
 		} else {
 			expanded.LinuxFxVersion = utils.String("")

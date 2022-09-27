@@ -878,7 +878,7 @@ func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.docker(data, "mcr.microsoft.com/appsvc/staticsite", "latest"),
+			Config: r.docker(data, "appsvc/staticsite", "latest"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
