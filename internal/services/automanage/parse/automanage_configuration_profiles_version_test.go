@@ -1,7 +1,7 @@
 package parse
 
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 	"testing"
 )
 
