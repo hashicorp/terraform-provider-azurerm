@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
+* `public_network_access` - The Public Network Access setting of this App Configuration.
+  
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
 * `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
@@ -95,6 +97,6 @@ A `secondary_write_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.

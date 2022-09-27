@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -152,7 +155,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostID,
+				ValidateFunc: dedicatedhosts.ValidateHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -164,7 +167,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostGroupID,
+				ValidateFunc: dedicatedhostgroups.ValidateHostGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -194,8 +197,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -240,6 +243,16 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					string(compute.WindowsVMGuestPatchModeAutomaticByOS),
 					string(compute.WindowsVMGuestPatchModeAutomaticByPlatform),
 					string(compute.WindowsVMGuestPatchModeManual),
+				}, false),
+			},
+
+			"patch_assessment_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(compute.WindowsPatchAssessmentModeImageDefault),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
+					string(compute.WindowsPatchAssessmentModeImageDefault),
 				}, false),
 			},
 
@@ -297,6 +310,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					computeValidate.ImageID,
 					computeValidate.SharedImageID,
 					computeValidate.SharedImageVersionID,
+					computeValidate.CommunityGalleryImageID,
+					computeValidate.CommunityGalleryImageVersionID,
+					computeValidate.SharedGalleryImageID,
+					computeValidate.SharedGalleryImageVersionID,
 				),
 			},
 
@@ -438,6 +455,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	patchMode := d.Get("patch_mode").(string)
+	assessmentMode := d.Get("patch_assessment_mode").(string)
 	hotPatch := d.Get("hotpatching_enabled").(bool)
 	size := d.Get("size").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -523,6 +541,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
 	}
 
+	if assessmentMode == string(compute.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+		return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+	}
+
 	if isHotpatchImage && patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
 		return fmt.Errorf("%q must always be set to %q when %q points to a hotpatch enabled image", "patch_mode", "AutomaticByPlatform", "source_image_reference")
 	}
@@ -551,6 +573,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
 		PatchMode:         compute.WindowsVMGuestPatchMode(patchMode),
 		EnableHotpatching: utils.Bool(hotPatch),
+		AssessmentMode:    compute.WindowsPatchAssessmentMode(assessmentMode),
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -840,10 +863,17 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
 
+			assessmentMode := string(compute.WindowsPatchAssessmentModeImageDefault)
 			if patchSettings := config.PatchSettings; patchSettings != nil {
 				d.Set("patch_mode", patchSettings.PatchMode)
 				d.Set("hotpatching_enabled", patchSettings.EnableHotpatching)
+
+				if patchSettings.AssessmentMode != "" {
+					assessmentMode = string(patchSettings.AssessmentMode)
+				}
 			}
+
+			d.Set("patch_assessment_mode", assessmentMode)
 
 			d.Set("timezone", config.TimeZone)
 
@@ -882,6 +912,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		var storageImageId string
 		if profile.ImageReference != nil && profile.ImageReference.ID != nil {
 			storageImageId = *profile.ImageReference.ID
+		}
+		if profile.ImageReference != nil && profile.ImageReference.CommunityGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.CommunityGalleryImageID
+		}
+		if profile.ImageReference != nil && profile.ImageReference.SharedGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.SharedGalleryImageID
 		}
 		d.Set("source_image_id", storageImageId)
 
@@ -1038,6 +1074,29 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string))
+	}
+
+	if d.HasChange("patch_assessment_mode") {
+		assessmentMode := d.Get("patch_assessment_mode").(string)
+		if assessmentMode == string(compute.WindowsPatchAssessmentModeAutomaticByPlatform) && !d.Get("provision_vm_agent").(bool) {
+			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+		}
+
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		if update.OsProfile.WindowsConfiguration.PatchSettings == nil {
+			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
+		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = compute.WindowsPatchAssessmentMode(assessmentMode)
 	}
 
 	if d.HasChange("hotpatching_enabled") {
@@ -1368,23 +1427,21 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		log.Printf("[DEBUG] Resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB..", diskName, id.Name, id.ResourceGroup, newSize)
 
 		disksClient := meta.(*clients.Client).Compute.DisksClient
+		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		id := disks.NewDiskID(subscriptionId, id.ResourceGroup, diskName)
 
-		update := compute.DiskUpdate{
-			DiskUpdateProperties: &compute.DiskUpdateProperties{
-				DiskSizeGB: utils.Int32(int32(newSize)),
+		update := disks.DiskUpdate{
+			Properties: &disks.DiskUpdateProperties{
+				DiskSizeGB: utils.Int64(int64(newSize)),
 			},
 		}
 
-		future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
+		err := disksClient.UpdateThenPoll(ctx, id, update)
 		if err != nil {
-			return fmt.Errorf("resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for resize of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-		}
-
-		log.Printf("[DEBUG] Resized OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.Name, id.ResourceGroup, newSize)
+		log.Printf("[DEBUG] Resized OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.DiskName, id.ResourceGroupName, newSize)
 	}
 
 	if d.HasChange("os_disk.0.disk_encryption_set_id") {
@@ -1398,26 +1455,24 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 
 			disksClient := meta.(*clients.Client).Compute.DisksClient
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			id := disks.NewDiskID(subscriptionId, id.ResourceGroup, diskName)
 
-			update := compute.DiskUpdate{
-				DiskUpdateProperties: &compute.DiskUpdateProperties{
-					Encryption: &compute.Encryption{
-						Type:                *encryptionType,
-						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+			update := disks.DiskUpdate{
+				Properties: &disks.DiskUpdateProperties{
+					Encryption: &disks.Encryption{
+						Type:                encryptionType,
+						DiskEncryptionSetId: utils.String(diskEncryptionSetId),
 					},
 				},
 			}
 
-			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
+			err = disksClient.UpdateThenPoll(ctx, id, update)
 			if err != nil {
-				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-			}
-
-			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.DiskName, id.ResourceGroupName, diskEncryptionSetId)
 		} else {
 			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
@@ -1530,24 +1585,24 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if managedDiskId != "" {
-			diskId, err := parse.ManagedDiskID(managedDiskId)
+			diskId, err := disks.ParseDiskID(managedDiskId)
 			if err != nil {
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.DiskName)
+			diskDeleteFuture, err := disksClient.Delete(ctx, *diskId)
 			if err != nil {
-				if !response.WasNotFound(diskDeleteFuture.Response()) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+				if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
 				}
 			}
-			if !response.WasNotFound(diskDeleteFuture.Response()) {
-				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+			if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
+				if err := diskDeleteFuture.Poller.PollUntilDone(); err != nil {
+					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroup)
+			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroupName)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q) - cannot determine OS Disk ID.", id.Name, id.ResourceGroup)
 		}

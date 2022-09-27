@@ -61,5 +61,6 @@ func (c ConsumerGroupsClient) responderForDelete(resp *http.Response) (result De
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

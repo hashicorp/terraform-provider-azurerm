@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Spring Cloud Deployment with a Java runtime.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with basic and standard tier.
+
 ## Example Usage
 
 ```hcl
@@ -97,7 +99,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Deployment.

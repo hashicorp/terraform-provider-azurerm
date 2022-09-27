@@ -135,7 +135,7 @@ resource "azurerm_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Container Registry. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Container Registry. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
@@ -152,6 +152,8 @@ The following arguments are supported:
 ~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
 
 ~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
+
+~> **NOTE:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
@@ -288,7 +290,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
 * `update` - (Defaults to 30 minutes) Used when updating the Container Registry.

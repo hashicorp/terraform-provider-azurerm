@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Gateway Route Config.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 ## Example Usage
 
 ```hcl
@@ -70,6 +72,8 @@ The following arguments are supported:
 
 * `route` - (Optional) One or more `route` blocks as defined below.
 
+* `open_api` - (Optional) One or more `open_api` blocks as defined below.
+
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 
 ---
@@ -94,6 +98,12 @@ A `route` block supports the following:
 
 * `uri` - (Optional) Specifies the full uri which will override `appName`.
 
+---
+
+A `open_api` block supports the following:
+
+* `uri` - (Optional) The URI of OpenAPI specification.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -102,7 +112,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Gateway Route Config.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Gateway Route Config.

@@ -75,7 +75,7 @@ func (d DiskPoolIscsiTargetLunModel) ResourceType() string {
 
 func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			m := DiskPoolIscsiTargetLunModel{}
 			err := metadata.Decode(&m)
@@ -195,7 +195,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 
 func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			m := DiskPoolIscsiTargetLunModel{}
 			err := metadata.Decode(&m)

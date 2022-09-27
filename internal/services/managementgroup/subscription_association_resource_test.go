@@ -17,12 +17,37 @@ import (
 
 type ManagementGroupSubscriptionAssociation struct{}
 
-func TestAccManagementGroupSubscriptionAssociation_basic(t *testing.T) {
+// NOTE: this is a combined test rather than separate split out tests due to
+// all testcases in this file share the same subscription instance so that
+// these testcases have to be run sequentially.
+
+func TestAccManagementGroupSubscriptionAssociation(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"Resource": {
+			"basic":          testAccManagementGroupSubscriptionAssociation_basic,
+			"requiresImport": testAccManagementGroupSubscriptionAssociation_requiresImport,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccManagementGroupSubscriptionAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
 
 	r := ManagementGroupSubscriptionAssociation{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -32,12 +57,12 @@ func TestAccManagementGroupSubscriptionAssociation_basic(t *testing.T) {
 	})
 }
 
-func TestAccManagementGroupSubscriptionAssociation_requiresImport(t *testing.T) {
+func testAccManagementGroupSubscriptionAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
 
 	r := ManagementGroupSubscriptionAssociation{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(

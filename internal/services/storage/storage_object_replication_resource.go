@@ -122,8 +122,8 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	srcId := objectreplicationpolicies.NewObjectReplicationPoliciesID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.AccountName, "default")
-	dstId := objectreplicationpolicies.NewObjectReplicationPoliciesID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.AccountName, "default")
+	srcId := objectreplicationpolicies.NewObjectReplicationPolicyID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.AccountName, "default")
+	dstId := objectreplicationpolicies.NewObjectReplicationPolicyID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.AccountName, "default")
 
 	resp, err := client.List(ctx, *dstAccount)
 	if err != nil {

@@ -94,6 +94,12 @@ A `form_parameter` block supports the following:
 * `default_value` - (Optional) The default value for this Form Parameter.
 
 * `values` - (Optional) One or more acceptable values for this Form Parameter.
+ 
+* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+
+* `schema_id` - (Optional) The name of the Schema.
+
+* `type_name` - (Optional) The type name defined by the Schema.
 
 ---
 
@@ -111,6 +117,11 @@ A `header` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Header.
 
+* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+
+* `schema_id` - (Optional) The name of the Schema.
+
+* `type_name` - (Optional) The type name defined by the Schema.
 ---
 
 A `query_parameter` block supports the following:
@@ -126,6 +137,12 @@ A `query_parameter` block supports the following:
 * `default_value` - (Optional) The default value for this Query Parameter.
 
 * `values` - (Optional) One or more acceptable values for this Query Parameter.
+
+* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+
+* `schema_id` - (Optional) The name of the Schema.
+
+* `type_name` - (Optional) The type name defined by the Schema.
 
 ---
 
@@ -187,6 +204,12 @@ A `template_parameter` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Template Parameter.
 
+* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+
+* `schema_id` - (Optional) The name of the Schema.
+
+* `type_name` - (Optional) The type name defined by the Schema.
+
 ---
 
 ## Attributes Reference
@@ -197,7 +220,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.

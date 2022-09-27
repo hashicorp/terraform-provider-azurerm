@@ -64,5 +64,6 @@ func (c FluidRelayServersClient) responderForGetKeys(resp *http.Response) (resul
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

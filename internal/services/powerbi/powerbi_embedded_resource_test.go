@@ -109,7 +109,7 @@ func TestAccPowerBIEmbedded_requiresImport(t *testing.T) {
 }
 
 func (PowerBIEmbeddedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := capacities.ParseCapacitiesID(state.ID)
+	id, err := capacities.ParseCapacityID(state.ID)
 	if err != nil {
 		return nil, err
 	}

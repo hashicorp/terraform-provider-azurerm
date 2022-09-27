@@ -72,6 +72,9 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 		{
 			// provision a standard Virtual Machine with an Unmanaged Disk
 			Config: r.imagesFromVirtualMachinePrerequisitesWithVM(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(WindowsVirtualMachineResource{}.generalizeVirtualMachine, "azurerm_virtual_machine.source"),
+			),
 		},
 		{
 			// then delete the Virtual Machine
@@ -419,7 +422,9 @@ resource "azurerm_virtual_machine" "source" {
     admin_password = "P@ssword1234!"
   }
 
-  os_profile_windows_config {}
+  os_profile_windows_config {
+    provision_vm_agent = true
+  }
 }
 `, r.imagesFromVirtualMachinePrerequisites(data))
 }

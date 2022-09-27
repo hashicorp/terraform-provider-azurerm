@@ -64,5 +64,6 @@ func (c NotificationHubsClient) responderForGetPnsCredentials(resp *http.Respons
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
