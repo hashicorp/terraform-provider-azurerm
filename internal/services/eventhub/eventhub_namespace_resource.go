@@ -257,16 +257,20 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			oldSku, newSku := d.GetChange("sku")
-			if d.HasChange("sku") {
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
-					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
-					d.ForceNew("sku")
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				oldSku, newSku := d.GetChange("sku")
+				if d.HasChange("sku") {
+					if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
+						log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
+						d.ForceNew("sku")
+					}
 				}
-			}
-			return nil
-		}),
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
+		),
 	}
 	if !features.FourPointOhBeta() {
 		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
