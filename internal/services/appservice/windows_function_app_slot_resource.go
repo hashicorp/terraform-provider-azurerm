@@ -594,15 +594,21 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
-			isCustomHandler := false
-			isDotnetIsolated := false
+			var isCustomHandler *bool
+			if metadata.ResourceData.Get("use_custom_runtime") != "" {
+				*isCustomHandler = metadata.ResourceData.Get("use_custom_runtime").(bool)
+			}
+			var isDotnetIsolated *bool
+			if metadata.ResourceData.Get("use_dotnet_isolated_runtime") != "" {
+				*isDotnetIsolated = metadata.ResourceData.Get("use_dotnet_isolated_runtime").(bool)
+			}
 			nodeVersion := ""
 			appSetting := state.AppSettings
 			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "custom" {
-				isCustomHandler = true
+				*isCustomHandler = true
 			}
 			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "dotnet-isolated" {
-				isDotnetIsolated = true
+				*isDotnetIsolated = true
 			}
 			if appSetting["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
 				nodeVersion = appSetting["WEBSITE_NODE_DEFAULT_VERSION"]
