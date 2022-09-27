@@ -380,7 +380,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		// If the old value was "" and the new value is something we are adding an association (lock only new value route)
 		// if the old value was something and it isn't the same as the new value we are associating the custom domain with a different route (lock both new and old routes)
 		// if the old value was something and the new value is "" we are removing the association with the route (lock only the old value route)
-		switch true {
+		switch {
 		case (oldRouteValue == "" && newRouteValue != ""):
 			action = add
 		case (oldRouteValue != "" && newRouteValue == ""):
