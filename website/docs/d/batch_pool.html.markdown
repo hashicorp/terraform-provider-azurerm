@@ -140,7 +140,7 @@ A `start_task` block exports the following:
 
 * `command_line` - The command line executed by the start task.
 
-* `container_settings` - The settings for the container under which the start task runs.
+* `container` - The settings for the container under which the start task runs.
 
 * `task_retry_maximum` - The number of retry count
 
@@ -154,7 +154,7 @@ A `start_task` block exports the following:
 
 ---
 
-A `container_settings` block exports the following:
+A `container` block exports the following:
 
 * `image_name` - The image to use to create the container in which the task will run.
 

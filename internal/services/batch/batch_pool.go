@@ -123,7 +123,7 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *bat
 			}
 		}
 
-		result["container_settings"] = []interface{}{
+		result["container"] = []interface{}{
 			containerSettings,
 		}
 	}
@@ -700,9 +700,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
 	}
 
-	if startTaskValue["container_settings"] != nil && len(startTaskValue["container_settings"].([]interface{})) > 0 {
+	if startTaskValue["container"] != nil && len(startTaskValue["container"].([]interface{})) > 0 {
 		var containerSettings batch.TaskContainerSettings
-		containerSettingsList := startTaskValue["container_settings"].([]interface{})
+		containerSettingsList := startTaskValue["container"].([]interface{})
 
 		if len(containerSettingsList) > 0 && containerSettingsList[0] != nil {
 			settingMap := containerSettingsList[0].(map[string]interface{})

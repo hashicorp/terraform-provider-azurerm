@@ -272,17 +272,17 @@ func TestAccBatchPool_startTask_complete(t *testing.T) {
 			Config: r.startTask_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("start_task.0.container_settings.0.registry.0.user_name").HasValue("myUserName"),
-				check.That(data.ResourceName).Key("start_task.0.container_settings.0.registry.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
-				check.That(data.ResourceName).Key("start_task.0.container_settings.0.registry.0.user_name").HasValue("myUserName"),
-				check.That(data.ResourceName).Key("start_task.0.container_settings.0.container_run_options").HasValue("cat /proc/cpuinfo"),
-				check.That(data.ResourceName).Key("start_task.0.container_settings.0.image_name").HasValue("centos7"),
-				check.That(data.ResourceName).Key("start_task.0.container_settings.0.working_directory").HasValue("ContainerImageDefault"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.container_run_options").HasValue("cat /proc/cpuinfo"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.image_name").HasValue("centos7"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.working_directory").HasValue("ContainerImageDefault"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation",
 			"container_configuration.0.container_registries.0.password",
-			"start_task.0.container_settings.0.registry.0.password"),
+			"start_task.0.container.0.registry.0.password"),
 	})
 }
 
@@ -1130,7 +1130,7 @@ resource "azurerm_batch_pool" "test" {
       bu  = "Research&Dev"
     }
 
-    container_settings {
+    container {
       container_run_options = "cat /proc/cpuinfo"
       image_name            = "centos7"
       registry {

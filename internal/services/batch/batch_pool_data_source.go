@@ -575,7 +575,7 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"container_settings": {
+		"container": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
