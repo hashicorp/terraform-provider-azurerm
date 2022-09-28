@@ -208,7 +208,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"gallery_applications": VirtualMachineGalleryApplicationsSchema(),
+			"gallery_application": VirtualMachineGalleryApplicationSchema(),
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
@@ -481,7 +481,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			ApplicationProfile: &compute.ApplicationProfile{
-				GalleryApplications: expandVirtualMachineGalleryApplications(d.Get("gallery_applications").([]interface{})),
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 			},
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
@@ -802,7 +802,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("extensions_time_budget", extensionsTimeBudget)
 
 	if props.ApplicationProfile != nil && props.ApplicationProfile.GalleryApplications != nil {
-		d.Set("gallery_applications", flattenVirtualMachineGalleryApplications(props.ApplicationProfile.GalleryApplications))
+		d.Set("gallery_application", flattenVirtualMachineGalleryApplication(props.ApplicationProfile.GalleryApplications))
 	}
 
 	// defaulted since BillingProfile isn't returned if it's unset
@@ -1142,10 +1142,10 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
-	if d.HasChange("gallery_applications") {
+	if d.HasChange("gallery_application") {
 		shouldUpdate = true
 		update.ApplicationProfile = &compute.ApplicationProfile{
-			GalleryApplications: expandVirtualMachineGalleryApplications(d.Get("gallery_applications").([]interface{})),
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 		}
 	}
 

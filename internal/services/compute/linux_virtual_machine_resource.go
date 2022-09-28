@@ -206,7 +206,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"gallery_applications": VirtualMachineGalleryApplicationsSchema(),
+			"gallery_application": VirtualMachineGalleryApplicationSchema(),
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
@@ -447,7 +447,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			ApplicationProfile: &compute.ApplicationProfile{
-				GalleryApplications: expandVirtualMachineGalleryApplications(d.Get("gallery_applications").([]interface{})),
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 			},
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
@@ -729,7 +729,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
 	if props.ApplicationProfile != nil && props.ApplicationProfile.GalleryApplications != nil {
-		d.Set("gallery_applications", flattenVirtualMachineGalleryApplications(props.ApplicationProfile.GalleryApplications))
+		d.Set("gallery_application", flattenVirtualMachineGalleryApplication(props.ApplicationProfile.GalleryApplications))
 	}
 
 	licenseType := ""
@@ -1048,10 +1048,10 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
-	if d.HasChange("gallery_applications") {
+	if d.HasChange("gallery_application") {
 		shouldUpdate = true
 		update.ApplicationProfile = &compute.ApplicationProfile{
-			GalleryApplications: expandVirtualMachineGalleryApplications(d.Get("gallery_applications").([]interface{})),
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 		}
 	}
 

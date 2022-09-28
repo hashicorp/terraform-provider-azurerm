@@ -486,21 +486,21 @@ func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsP
 	}
 }
 
-func VirtualMachineGalleryApplicationsSchema() *pluginsdk.Schema {
+func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 100,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"package_reference_id": {
+				"version_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.GalleryApplicationVersionID,
 				},
 
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
-				"configuration_reference_blob_uri": {
+				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -524,15 +524,15 @@ func VirtualMachineGalleryApplicationsSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineGalleryApplications(input []interface{}) *[]compute.VMGalleryApplication {
+func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGalleryApplication {
 	out := make([]compute.VMGalleryApplication, 0)
 	if len(input) == 0 {
 		return &out
 	}
 
 	for _, v := range input {
-		packageReferenceId := v.(map[string]interface{})["package_reference_id"].(string)
-		configurationReference := v.(map[string]interface{})["configuration_reference_blob_uri"].(string)
+		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
 		order := v.(map[string]interface{})["order"].(int)
 		tag := v.(map[string]interface{})["tag"].(string)
 
@@ -549,7 +549,7 @@ func expandVirtualMachineGalleryApplications(input []interface{}) *[]compute.VMG
 	return &out
 }
 
-func flattenVirtualMachineGalleryApplications(input *[]compute.VMGalleryApplication) []interface{} {
+func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplication) []interface{} {
 	if len(*input) == 0 {
 		return nil
 	}
@@ -577,10 +577,10 @@ func flattenVirtualMachineGalleryApplications(input *[]compute.VMGalleryApplicat
 		}
 
 		app := map[string]interface{}{
-			"package_reference_id":             packageReferenceId,
-			"configuration_reference_blob_uri": configurationReference,
-			"order":                            order,
-			"tag":                              tag,
+			"version_id":             packageReferenceId,
+			"configuration_blob_uri": configurationReference,
+			"order":                  order,
+			"tag":                    tag,
 		}
 
 		out = append(out, app)

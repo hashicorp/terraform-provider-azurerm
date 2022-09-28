@@ -367,38 +367,38 @@ func TestAccWindowsVirtualMachine_otherEdgeZone(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachine_otherGalleryApplications(t *testing.T) {
+func TestAccWindowsVirtualMachine_otherGalleryApplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplications(data),
+			Config: r.otherGalleryApplication(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherGalleryApplicationsUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherGalleryApplicationsRemoved(data),
+			Config: r.otherGalleryApplicationUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherGalleryApplications(data),
+			Config: r.otherGalleryApplicationRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherGalleryApplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1668,7 +1668,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineResource) otherGalleryApplications(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherGalleryApplication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1695,14 +1695,14 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
   }
 }
-`, r.otherGalleryApplicationsTemplate(data))
+`, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineResource) otherGalleryApplicationsUpdated(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherGalleryApplicationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1729,22 +1729,22 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
-    order                = 1
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
+    order      = 1
   }
 
-  gallery_applications {
-    package_reference_id             = azurerm_gallery_application_version.test2.id
-    order                            = 2
-    configuration_reference_blob_uri = azurerm_storage_blob.test2.id
-    tag                              = "app2"
+  gallery_application {
+    version_id             = azurerm_gallery_application_version.test2.id
+    order                  = 2
+    configuration_blob_uri = azurerm_storage_blob.test2.id
+    tag                    = "app2"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data))
+`, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineResource) otherGalleryApplicationsRemoved(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherGalleryApplicationRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1771,10 +1771,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data))
+`, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineResource) otherGalleryApplicationsTemplate(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

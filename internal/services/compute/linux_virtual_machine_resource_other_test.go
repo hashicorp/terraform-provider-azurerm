@@ -261,38 +261,38 @@ func TestAccLinuxVirtualMachine_otherCustomData(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachine_otherGalleryApplications(t *testing.T) {
+func TestAccLinuxVirtualMachine_otherGalleryApplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplications(data),
+			Config: r.otherGalleryApplication(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherGalleryApplicationsUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.otherGalleryApplicationsRemoved(data),
+			Config: r.otherGalleryApplicationUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherGalleryApplications(data),
+			Config: r.otherGalleryApplicationRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherGalleryApplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -1298,7 +1298,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.otherBootDiagnosticsTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherGalleryApplications(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherGalleryApplication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1329,14 +1329,14 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
   }
 }
-`, r.otherGalleryApplicationsTemplate(data), data.RandomInteger)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherGalleryApplicationsUpdated(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherGalleryApplicationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1367,22 +1367,22 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
-    order                = 1
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
+    order      = 1
   }
 
-  gallery_applications {
-    package_reference_id             = azurerm_gallery_application_version.test2.id
-    order                            = 2
-    configuration_reference_blob_uri = azurerm_storage_blob.test2.id
-    tag                              = "app2"
+  gallery_application {
+    version_id             = azurerm_gallery_application_version.test2.id
+    order                  = 2
+    configuration_blob_uri = azurerm_storage_blob.test2.id
+    tag                    = "app2"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data), data.RandomInteger)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherGalleryApplicationsRemoved(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherGalleryApplicationRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1413,10 +1413,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data), data.RandomInteger)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherGalleryApplicationsTemplate(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

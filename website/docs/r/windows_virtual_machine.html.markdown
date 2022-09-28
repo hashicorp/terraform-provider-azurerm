@@ -143,7 +143,7 @@ The following arguments are supported:
 
 * `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to 90 minutes (`PT1H30M`).
 
-* `gallery_applications` - (Optional) A `gallery_applications` block as defined below.
+* `gallery_application` - (Optional) A `gallery_application` block as defined below.
 
 * `hotpatching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` or `false`. Defaults to `false`. For more information about hot patching please see the [product documentation](https://docs.microsoft.com/azure/automanage/automanage-hotpatch).
 
@@ -245,13 +245,11 @@ A `diff_disk_settings` block supports the following:
 
 ---
 
-A `gallery_applications` block supports the following:
+A `gallery_application` block supports the following:
 
-* `package_reference_id` - (Required) Specifies the Gallery Application Version resource ID.
+* `version_id` - (Required) Specifies the Gallery Application Version resource ID.
 
--> **NOTE:** The `package_reference_id` should be in the form of `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/applications/application1/versions/version1`.
-
-* `configuration_reference_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
+* `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
 
 * `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`.
 
