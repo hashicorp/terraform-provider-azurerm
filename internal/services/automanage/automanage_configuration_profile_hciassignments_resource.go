@@ -118,16 +118,16 @@ func resourceAutomanageConfigurationProfileHCIAssignmentRead(d *pluginsdk.Resour
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.ConfigurationProfileAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] automanage %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("retrieving Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.ConfigurationProfileAssignmentName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cluster_name", id.ClusterName)
 	if props := resp.Properties; props != nil {
@@ -149,8 +149,8 @@ func resourceAutomanageConfigurationProfileHCIAssignmentDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name); err != nil {
-		return fmt.Errorf("deleting Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.ConfigurationProfileAssignmentName); err != nil {
+		return fmt.Errorf("deleting Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 	return nil
 }

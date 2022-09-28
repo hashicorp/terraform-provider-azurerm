@@ -91,12 +91,12 @@ func (r AutomanageConfigurationProfileHCIAssignmentResource) Exists(ctx context.
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automanage.ConfigurationProfileHCIAssignmentClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.Automanage.ConfigurationProfileHCIAssignmentClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.ConfigurationProfileAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 	return utils.Bool(true), nil
 }

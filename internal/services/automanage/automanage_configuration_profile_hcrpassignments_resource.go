@@ -117,16 +117,16 @@ func resourceAutomanageConfigurationProfileHCRPAssignmentRead(d *pluginsdk.Resou
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MachineName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MachineName, id.ConfigurationProfileAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] automanage %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfileHCRPAssignment %q (Resource Group %q / machineName %q): %+v", id.Name, id.ResourceGroup, id.MachineName, err)
+		return fmt.Errorf("retrieving Automanage ConfigurationProfileHCRPAssignment %q (Resource Group %q / machineName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.MachineName, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.ConfigurationProfileAssignmentName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("machine_name", id.MachineName)
 	if props := resp.Properties; props != nil {
@@ -148,8 +148,8 @@ func resourceAutomanageConfigurationProfileHCRPAssignmentDelete(d *pluginsdk.Res
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.MachineName, id.Name); err != nil {
-		return fmt.Errorf("deleting Automanage ConfigurationProfileHCRPAssignment %q (Resource Group %q / machineName %q): %+v", id.Name, id.ResourceGroup, id.MachineName, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.MachineName, id.ConfigurationProfileAssignmentName); err != nil {
+		return fmt.Errorf("deleting Automanage ConfigurationProfileHCRPAssignment %q (Resource Group %q / machineName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.MachineName, err)
 	}
 	return nil
 }
