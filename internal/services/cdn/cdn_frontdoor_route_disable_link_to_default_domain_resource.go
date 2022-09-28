@@ -81,6 +81,18 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 		return err
 	}
 
+	// make sure the custom domains and the route all belong to the same profile
+	for _, v := range customDomains {
+		customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
+		if err != nil {
+			return err
+		}
+
+		if customDomainId.ProfileName != routeId.ProfileName {
+			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: the configuration is invalid, the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", customDomainId.CustomDomainName, customDomainId.ProfileName, routeId.RouteName, routeId.ProfileName)
+		}
+	}
+
 	// create the resource id
 	uuid, err := uuid.GenerateUUID()
 	if err != nil {
@@ -134,7 +146,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
 		customDomainsProps := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 		if len(customDomainsProps) == 0 {
-			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: it is invalid to unlink the default domain if the route does not have at least one custom domain associated with it, got 0 associated custom domains")
+			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: it is invalid to disable the 'link to default domain' field of the CDN Front Door Route it the route does not have at least one custom domain associated with it, got 0 associated CDN Front Door Custom Domains")
 		}
 
 		updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
@@ -228,7 +240,17 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	routeId, err := parse.FrontDoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
+	currentRoute := d.Get("cdn_frontdoor_route_id").(string)
+
+	// If this delete was due to a change you need to revert
+	// the old route not the new route...
+	if d.HasChange("cdn_frontdoor_route_id") {
+		if oldRoute, _ := d.GetChange("cdn_frontdoor_route_id"); oldRoute.(string) != "" {
+			currentRoute = oldRoute.(string)
+		}
+	}
+
+	routeId, err := parse.FrontDoorRouteID(currentRoute)
 	if err != nil {
 		return err
 	}

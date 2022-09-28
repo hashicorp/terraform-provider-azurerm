@@ -18,15 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type associationAction byte
-
-const (
-	add    associationAction = 1 << iota // 1
-	remove                               // 2
-	swap                                 // 4
-	none                                 // 8
-)
-
 func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorCustomDomainCreate,
@@ -85,15 +76,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			// NOTE: Temporarily removing support for this until after initial release
-			// of the CDN FrontDoor resources
-
-			// "pre_validated_custom_domain_id": {
-			// 	Type:         pluginsdk.TypeString,
-			// 	Optional:     true,
-			// 	ValidateFunc: webValidate.StaticSiteID,
-			// },
-
 			"tls": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -107,7 +89,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Optional: true,
 							Default:  string(cdn.AfdCertificateTypeManagedCertificate),
 							ValidateFunc: validation.StringInSlice([]string{
-								// string(cdn.AfdCertificateTypeAzureFirstPartyManagedCertificate), // Only valid with 'pre_validated_custom_domain_id'
 								string(cdn.AfdCertificateTypeCustomerCertificate),
 								string(cdn.AfdCertificateTypeManagedCertificate),
 							}, false),
@@ -160,6 +141,16 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := parse.NewFrontDoorCustomDomainID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
 
+	if route := d.Get("associate_with_cdn_frontdoor_route_id").(string); route != "" {
+		routeId, err := parse.FrontDoorRouteID(route)
+		if err != nil {
+			return err
+		}
+		if id.ProfileName != routeId.ProfileName {
+			return fmt.Errorf("azurerm_cdn_frontdoor_custom_domain: the configuration is invalid, the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", id.CustomDomainName, id.ProfileName, routeId.RouteName, routeId.ProfileName)
+		}
+	}
+
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -175,40 +166,11 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	dnsZone := d.Get("dns_zone_id").(string)
 	tls := d.Get("tls").([]interface{})
 
-	// DNS Zone field is not supported for a pre-validated custom domain
-	// if preValidatedDomain != "" && dnsZone != "" {
-	// 	return fmt.Errorf("the 'dns_zone_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
-	// }
-
 	props := cdn.AFDDomain{
 		AFDDomainProperties: &cdn.AFDDomainProperties{
 			HostName: utils.String(d.Get("host_name").(string)),
 		},
 	}
-
-	// TODO: Still figuring out the preValidatedDomain bit...
-	// Validate and set TLS settings
-	// if preValidatedDomain != "" {
-	// 	props.AFDDomainProperties.PreValidatedCustomDomainResourceID = expandResourceReference(preValidatedDomain)
-
-	// 	tlsSettings, err := expandTlsParameters(tls, true)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	props.AFDDomainProperties.TLSSettings = tlsSettings
-	// } else {
-	// 	if dnsZone != "" {
-	// 		props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
-	// 	}
-
-	// 	tlsSettings, err := expandTlsParameters(tls, false)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	props.AFDDomainProperties.TLSSettings = tlsSettings
-	// }
 
 	if dnsZone != "" {
 		props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
@@ -288,10 +250,6 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 		}
 
-		// if err := d.Set("pre_validated_custom_domain_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
-		// 	return fmt.Errorf("setting `pre_validated_custom_domain_id`: %+v", err)
-		// }
-
 		if err := d.Set("tls", flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)); err != nil {
 			return fmt.Errorf("setting `tls`: %+v", err)
 		}
@@ -315,40 +273,20 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	// tls := d.Get("tls").([]interface{})
-	// preValidatedDomain := d.Get("pre_validated_custom_domain_id").(string)
-	// dnsZone := d.Get("dns_zone_id").(string)
-
-	// // DNS Zone field is not supported for a pre-validated custom domain
-	// if preValidatedDomain != "" && dnsZone != "" {
-	// 	return fmt.Errorf("the 'dns_zone_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
-	// }
+	if route := d.Get("associate_with_cdn_frontdoor_route_id").(string); route != "" {
+		routeId, err := parse.FrontDoorRouteID(route)
+		if err != nil {
+			return err
+		}
+		if id.ProfileName != routeId.ProfileName {
+			return fmt.Errorf("azurerm_cdn_frontdoor_custom_domain: the configuration is invalid, the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", id.CustomDomainName, id.ProfileName, routeId.RouteName, routeId.ProfileName)
+		}
+	}
 
 	props := cdn.AFDDomainUpdateParameters{
 		AFDDomainUpdatePropertiesParameters: &cdn.AFDDomainUpdatePropertiesParameters{},
 	}
 
-	// Validate and set TLS settings
-	// if preValidatedDomain != "" {
-	// 	props.AFDDomainUpdatePropertiesParameters.PreValidatedCustomDomainResourceID = expandResourceReference(preValidatedDomain)
-
-	// 	props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, true)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	if dnsZone != "" {
-	// 		props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
-	// 	}
-
-	// 	props.AFDDomainUpdatePropertiesParameters.TLSSettings, err = expandTlsParameters(tls, false)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	// --- Temporary code from else statement to remove PreValidateDomain ---
-	// --- NOTE: This code has been updated from the original else statement per PR review...
 	if d.HasChange("dns_zone_id") {
 		if dnsZone := d.Get("dns_zone_id").(string); dnsZone != "" {
 			props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
@@ -366,7 +304,9 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		// "AfdDomain.TlsSettings.CertificateType' is required but it was not set" error
 		tls.CertificateType = cdn.AfdCertificateType(v["certificate_type"].(string))
 
-		if d.HasChange("tls.0.cdn_frontdoor_secret_id") {
+		// NOTE: Secret always needs to be passed if it is defined else you will
+		// receive a 500 Internal Server Error
+		if secret != "" {
 			tls.Secret = expandResourceReference(secret)
 		}
 
@@ -382,7 +322,6 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 		props.AFDDomainUpdatePropertiesParameters.TLSSettings = tls
 	}
-	// --- Temporary code from else statement to remove PreValidateDomain ---
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, props)
 	if err != nil {
@@ -397,7 +336,6 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	// and associate/unassociate the custom domain with the route, if that field was defined/removed...
 	if d.HasChange("associate_with_cdn_frontdoor_route_id") {
 		var writeFieldToState bool
-		action := none
 
 		old, new := d.GetChange("associate_with_cdn_frontdoor_route_id")
 		oldRouteValue := old.(string)
@@ -406,22 +344,11 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		// If the old value was "" and the new value is something we are adding an association (lock only new value route)
 		// if the old value was something and it isn't the same as the new value we are associating the custom domain with a different route (lock both new and old routes)
 		// if the old value was something and the new value is "" we are removing the association with the route (lock only the old value route)
+		// the only other possibility here is that the old and new value are not empty and are the same value, which is a no op so do nothing...
+
 		switch {
 		case (oldRouteValue == "" && newRouteValue != ""):
-			action = add
-		case (oldRouteValue != "" && newRouteValue == ""):
-			action = remove
-		case (oldRouteValue != "" && newRouteValue != "" && !strings.EqualFold(oldRouteValue, newRouteValue)):
-			action = swap
-		}
-
-		// the only other possibility here is that the old and new value
-		// are not empty and are the same value, which is a no op so do nothing...
-
-		// NOTE: the vars 'cdnFrontDoorRouteResourceName' and 'cdnFrontDoorCustomDomainResourceName' are defined
-		// in the "cdn_frontdoor_route_unlink_default_domain_resource.go" file
-		switch action {
-		case add:
+			// Add
 			newRouteId, err := parse.FrontDoorRouteID(newRouteValue)
 			if err != nil {
 				return err
@@ -437,7 +364,8 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 				return err
 			}
 
-		case remove:
+		case (oldRouteValue != "" && newRouteValue == ""):
+			// Remove
 			oldRouteId, err := parse.FrontDoorRouteID(oldRouteValue)
 			if err != nil {
 				return err
@@ -453,7 +381,8 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 				return err
 			}
 
-		case swap:
+		case (oldRouteValue != "" && newRouteValue != "" && !strings.EqualFold(oldRouteValue, newRouteValue)):
+			// Swap
 			oldRouteId, err := parse.FrontDoorRouteID(oldRouteValue)
 			if err != nil {
 				return err
@@ -482,7 +411,6 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 			if err != nil {
 				return err
 			}
-
 		}
 
 		// Now that all of the routes have been processed and updated correctly
@@ -554,24 +482,6 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 
 	tls := cdn.AFDDomainHTTPSParameters{}
 
-	// NOTE: If this is a pre-validated domain you cannot pass a secret?
-	// if isPreValidatedDomain {
-	// 	if secret != "" {
-	// 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'pre_validated_custom_domain_id' is passed")
-	// 	}
-	// } else {
-	// 	if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
-	// 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
-	// 	} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
-	// 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
-	// 	}
-
-	// 	if secret != "" {
-	// 		tls.Secret = expandResourceReference(secret)
-	// 	}
-	// }
-
-	// --- Temporary code from else statement to remove PreValidateDomain ---
 	if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
 	} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
@@ -581,7 +491,6 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	if secret != "" {
 		tls.Secret = expandResourceReference(secret)
 	}
-	// --- Temporary code from else statement to remove PreValidateDomain ---
 
 	// NOTE: Minimum TLS Version is required in both pre-validated and not pre-validated
 	// custom domains and the schema defaults the value to TLS 1.2
