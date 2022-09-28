@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: `machinelearning` - updating to use `2022-05-01` [GH-17671]
 * dependencies: updating to version `v0.20220921.1082044` of `github.com/hashicorp/go-azure-sdk` [GH-18557]
+* Provider: support for the `oidc_token_file_path` property & `ARM_OIDC_TOKEN_FILE_PATH` environment variable [GH-18335]
 * Data Source: `azurerm_databricks_workspace` - exports the `location` propertuy [GH-18521]
 * `azurerm_storage_account` - support for the `multichannel_enabled` property [GH-17999]
 * `azurerm_machine_learning_workspace` - support for the `public_network_access_enabled` and `v1_legacy_mode` properties [GH-18469]
