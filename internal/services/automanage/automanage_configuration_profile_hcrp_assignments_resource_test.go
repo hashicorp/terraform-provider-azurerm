@@ -123,7 +123,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-sub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes       = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -164,7 +164,7 @@ resource "azurerm_virtual_machine" "test" {
   name                  = "acctest-vm-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
+  network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
