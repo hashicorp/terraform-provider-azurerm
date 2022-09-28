@@ -322,6 +322,75 @@ func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDo
 	})
 }
 
+func TestAccResourceKubernetesCluster_webAppRouting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ingressProfile(data, r.webAppRoutingBlock(utils.String("azurerm_dns_zone.test.id"))),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_app_routing.#").HasValue("1"),
+				check.That(data.ResourceName).Key("web_app_routing.0.dns_zone_resource_id").MatchesOtherKey(check.That("azurerm_dns_zone.test").Key("id")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccResourceKubernetesCluster_webAppRoutingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ingressProfile(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_app_routing.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressProfile(data, r.webAppRoutingBlock(utils.String("azurerm_dns_zone.test.id"))),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_app_routing.#").HasValue("1"),
+				check.That(data.ResourceName).Key("web_app_routing.0.dns_zone_resource_id").MatchesOtherKey(check.That("azurerm_dns_zone.test").Key("id")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressProfile(data, r.webAppRoutingBlock(utils.String("azurerm_dns_zone.test_alt.id"))),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_app_routing.#").HasValue("1"),
+				check.That(data.ResourceName).Key("web_app_routing.0.dns_zone_resource_id").MatchesOtherKey(check.That("azurerm_dns_zone.test_alt").Key("id")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressProfile(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_app_routing.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressProfile(data, r.webAppRoutingBlock(utils.String("azurerm_dns_zone.test.id"))),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_app_routing.#").HasValue("1"),
+				check.That(data.ResourceName).Key("web_app_routing.0.dns_zone_resource_id").MatchesOtherKey(check.That("azurerm_dns_zone.test").Key("id")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressProfile(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_app_routing.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) edgeZone(data acceptance.TestData, controlPlaneVersion, tag string) string {
 	// WestUS has an edge zone available - so hard-code to that
 	data.Locations.Primary = "westus"
@@ -358,4 +427,63 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, tag)
+}
+
+func (KubernetesClusterResource) webAppRoutingBlock(dnsResourceId *string) string {
+	template := `
+	web_app_routing {
+	dns_zone_resource_id = %s
+  }
+`
+	if dnsResourceId == nil {
+		dnsResourceId = utils.String("null")
+	}
+	r := fmt.Sprintf(template, *dnsResourceId)
+	return r
+}
+
+func (KubernetesClusterResource) ingressProfile(data acceptance.TestData, webAppRoutingBlock string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%[1]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_zone" "test_alt" {
+  name                = "acctestzonealt%[1]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name          = "default"
+    node_count    = 1
+    vm_size       = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  %[3]s
+
+  depends_on = [
+    azurerm_dns_zone.test
+  ]
+}
+  `, data.RandomInteger, data.Locations.Primary, webAppRoutingBlock)
 }

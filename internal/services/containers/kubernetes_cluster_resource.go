@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	dnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -248,6 +249,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
+			"web_app_routing": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"dns_zone_resource_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: dnsValidate.ValidateDnsZoneIDInsensitively,
+						},
+					},
+				},
+			},
 
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
@@ -1135,6 +1151,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 	microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 
+	ingressProfileRaw := d.Get("web_app_routing").([]interface{})
+	ingressProfile, err := expandKubernetesClusterIngressProfile(d, ingressProfileRaw)
+	if err != nil {
+		return err
+	}
+
 	parameters := containerservice.ManagedCluster{
 		Name:             utils.String(id.ManagedClusterName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -1161,6 +1183,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			HTTPProxyConfig:        httpProxyConfig,
 			OidcIssuerProfile:      oidcIssuerProfile,
 			SecurityProfile:        microsoftDefender,
+			IngressProfile:         ingressProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1608,6 +1631,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.SecurityProfile = microsoftDefender
 	}
 
+	if d.HasChange("web_app_routing") {
+		updateCluster = true
+		ingressProfileRaw := d.Get("web_app_routing").([]interface{})
+		ingressProfile, err := expandKubernetesClusterIngressProfile(d, ingressProfileRaw)
+		if err != nil {
+			return err
+		}
+		existing.IngressProfile = ingressProfile
+	}
+
 	if updateCluster {
 		// If Defender was explicitly disabled in a prior update then we should strip security profile from the request
 		// body to prevent errors in cases where Defender is disabled for the entire subscription
@@ -1875,6 +1908,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
+		}
+
+		var ingressProfile = flattenKubernetesClusterIngressProfile(props.IngressProfile)
+		if err := d.Set("web_app_routing", ingressProfile); err != nil {
+			return fmt.Errorf("setting `web_app_routing`: %+v", err)
 		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
@@ -3050,6 +3088,35 @@ func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input [
 	}
 }
 
+func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) (*containerservice.ManagedClusterIngressProfile, error) {
+	if len(input) == 0 && d.HasChange("web_app_routing") {
+		return &containerservice.ManagedClusterIngressProfile{
+			WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
+				Enabled:           utils.Bool(false),
+				DNSZoneResourceID: utils.String(""),
+			},
+		}, nil
+	}
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	dnsZoneResourceId := ""
+	config := make(map[string]interface{})
+	if input[0] != nil {
+		config = input[0].(map[string]interface{})
+	}
+	if i, ok := config["dns_zone_resource_id"]; ok {
+		dnsZoneResourceId = i.(string)
+	}
+	return &containerservice.ManagedClusterIngressProfile{
+		WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
+			Enabled:           utils.Bool(true),
+			DNSZoneResourceID: utils.String(dnsZoneResourceId),
+		},
+	}, nil
+}
+
 func flattenKubernetesClusterMicrosoftDefender(input *containerservice.ManagedClusterSecurityProfile) []interface{} {
 	if input == nil || input.AzureDefender == nil || (input.AzureDefender.Enabled != nil && !*input.AzureDefender.Enabled) {
 		return []interface{}{}
@@ -3065,6 +3132,21 @@ func flattenKubernetesClusterMicrosoftDefender(input *containerservice.ManagedCl
 			"log_analytics_workspace_id": logAnalyticsWorkspace,
 		},
 	}
+}
+
+func flattenKubernetesClusterIngressProfile(p *containerservice.ManagedClusterIngressProfile) []interface{} {
+	if p == nil || p.WebAppRouting == nil || p.WebAppRouting.Enabled == nil || !*p.WebAppRouting.Enabled {
+		return nil
+	}
+
+	var dnsZoneResourceId string
+	if *p.WebAppRouting.Enabled && p.WebAppRouting.DNSZoneResourceID != nil {
+		dnsZoneResourceId = *p.WebAppRouting.DNSZoneResourceID
+	}
+
+	return []interface{}{map[string]interface{}{
+		"dns_zone_resource_id": utils.String(dnsZoneResourceId),
+	}}
 }
 
 func expandEdgeZone(input string) *containerservice.ExtendedLocation {
