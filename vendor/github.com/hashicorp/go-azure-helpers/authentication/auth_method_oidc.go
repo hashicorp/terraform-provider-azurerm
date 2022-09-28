@@ -78,7 +78,7 @@ func (a oidcAuth) getMSALToken(ctx context.Context, api environments.Api, _ auto
 		}
 
 		if a.idToken != "" && a.idToken != idToken {
-			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file")
+			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
 		}
 	}
 
