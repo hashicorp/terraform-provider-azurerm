@@ -55,7 +55,8 @@ func resourceAutomanageConfigurationProfilesVersion() *pluginsdk.Resource {
 
 			"configuration": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"type": {
@@ -91,7 +92,10 @@ func resourceAutomanageConfigurationProfilesVersionCreateUpdate(d *pluginsdk.Res
 		}
 	}
 
-	configuration, _ := structure.ExpandJsonFromString(d.Get("configuration").(string))
+	configuration, err := structure.ExpandJsonFromString(d.Get("configuration").(string))
+	if err != nil {
+		return fmt.Errorf("creating/updating Automanage ConfigurationProfilesVersion failed for expand json from configuration string with error msg %s", err)
+	}
 
 	parameters := automanage.ConfigurationProfile{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -118,16 +122,16 @@ func resourceAutomanageConfigurationProfilesVersionRead(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ConfigurationProfileName, id.ResourceGroup)
+	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.VersionName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] automanage %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfilesVersion %q (Resource Group %q / configurationProfileName %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, id.ConfigurationProfileName, err)
+		return fmt.Errorf("retrieving Automanage ConfigurationProfilesVersion %q (Resource Group %q / configurationProfileName %q): %+v", id.VersionName, id.ResourceGroup, id.ConfigurationProfileName, err)
 	}
-	d.Set("name", id.ConfigurationProfileName)
+	d.Set("name", id.VersionName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("configuration_profile_name", id.ConfigurationProfileName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -152,7 +156,7 @@ func resourceAutomanageConfigurationProfilesVersionDelete(d *pluginsdk.ResourceD
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileName, id.ConfigurationProfileName); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.VersionName, id.ConfigurationProfileName); err != nil {
 		return fmt.Errorf("deleting Automanage ConfigurationProfilesVersion %q (Resource Group %q / configurationProfileName %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, id.ConfigurationProfileName, err)
 	}
 	return nil

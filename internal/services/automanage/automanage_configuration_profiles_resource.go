@@ -50,6 +50,7 @@ func resourceAutomanageConfigurationProfile() *pluginsdk.Resource {
 
 			"configuration": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 
@@ -83,7 +84,10 @@ func resourceAutomanageConfigurationProfileCreate(d *pluginsdk.ResourceData, met
 		return tf.ImportAsExistsError("azurerm_automanage_configuration_profile", id)
 	}
 
-	configuration, _ := structure.ExpandJsonFromString(d.Get("configuration").(string))
+	configuration, err := structure.ExpandJsonFromString(d.Get("configuration").(string))
+	if err != nil {
+		return fmt.Errorf("creating azurerm_automanage_configuration_profile failed for expand json from configuration string with error msg %s", err)
+	}
 
 	parameters := automanage.ConfigurationProfile{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -125,7 +129,10 @@ func resourceAutomanageConfigurationProfileRead(d *pluginsdk.ResourceData, meta 
 	if props := resp.Properties; props != nil {
 		if props.Configuration != nil {
 			configurationValue := props.Configuration.(map[string]interface{})
-			configurationStr, _ := structure.FlattenJsonToString(configurationValue)
+			configurationStr, err := structure.FlattenJsonToString(configurationValue)
+			if err != nil {
+				return fmt.Errorf("read azurerm_automanage_configuration_profile failed for flattern json to configuration string with error msg %s", err)
+			}
 			d.Set("configuration", configurationStr)
 		}
 	}
@@ -143,13 +150,8 @@ func resourceAutomanageConfigurationProfileUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	parameters := automanage.ConfigurationProfileUpdate{
-		Properties: &automanage.ConfigurationProfileProperties{},
-	}
-	if d.HasChange("configuration") {
-		configuration, _ := structure.ExpandJsonFromString(d.Get("configuration").(string))
-		parameters.Properties.Configuration = configuration
-	}
+	parameters := automanage.ConfigurationProfileUpdate{}
+	// PATCH update only support tags
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
