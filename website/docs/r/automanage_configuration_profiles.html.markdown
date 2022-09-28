@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the automanage ConfigurationProfile should exist. Changing this forces a new automanage ConfigurationProfile to be created.
 
-* `configuration` - (Required) configuration dictionary of the configuration profile.
+* `configuration` - (Required) configuration dictionary of the configuration profile. Changing this forces a new automanage ConfigurationProfile to be created.
 
 ---
 

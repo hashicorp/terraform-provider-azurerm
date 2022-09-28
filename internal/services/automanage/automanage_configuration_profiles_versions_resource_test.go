@@ -116,6 +116,7 @@ resource "azurerm_automanage_configuration_profile" "test" {
   name = "acctest-acp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location = azurerm_resource_group.test.location
+  configuration = "{\"Antimalware/Enable\":false,\"AzureSecurityCenter/Enable\":true,\"Backup/Enable\":false,\"BootDiagnostics/Enable\":true,\"ChangeTrackingAndInventory/Enable\":true,\"GuestConfiguration/Enable\":true,\"LogAnalytics/Enable\":true,\"UpdateManagement/Enable\":true,\"VMInsights/Enable\":true}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -129,6 +130,7 @@ resource "azurerm_automanage_configuration_profiles_version" "test" {
   name = "acctest-acpv-%d"
   resource_group_name = azurerm_resource_group.test.name
   location = azurerm_resource_group.test.location
+  configuration = "{\"Antimalware/Enable\":false,\"AzureSecurityCenter/Enable\":true,\"Backup/Enable\":false,\"BootDiagnostics/Enable\":true,\"ChangeTrackingAndInventory/Enable\":true,\"GuestConfiguration/Enable\":true,\"LogAnalytics/Enable\":true,\"UpdateManagement/Enable\":true,\"VMInsights/Enable\":true}"
   configuration_profile_name = azurerm_automanage_configuration_profile.test.name
 }
 `, template, data.RandomInteger)
@@ -158,7 +160,7 @@ resource "azurerm_automanage_configuration_profiles_version" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location = azurerm_resource_group.test.location
   configuration_profile_name = azurerm_automanage_configuration_profile.test.name
-  configuration = "{\"Antimalware/Enable\":false,\"AzureSecurityCenter/Enable\":true,\"Backup/Enable\":false,\"BootDiagnostics/Enable\":true,\"ChangeTrackingAndInventory/Enable\":true,\"GuestConfiguration/Enable\":true,\"LogAnalytics/Enable\":true,\"UpdateManagement/Enable\":true,\"VMInsights/Enable\":true}"
+  configuration = "{\"Antimalware/Enable\":false,\"AzureSecurityCenter/Enable\":false,\"Backup/Enable\":false,\"BootDiagnostics/Enable\":true,\"ChangeTrackingAndInventory/Enable\":true,\"GuestConfiguration/Enable\":true,\"LogAnalytics/Enable\":true,\"UpdateManagement/Enable\":true,\"VMInsights/Enable\":true}"
   tags = {
     ENV = "Test"
   }

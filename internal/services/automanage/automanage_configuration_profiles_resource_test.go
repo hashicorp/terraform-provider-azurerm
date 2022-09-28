@@ -137,6 +137,7 @@ resource "azurerm_automanage_configuration_profile" "import" {
   name = azurerm_automanage_configuration_profile.test.name
   resource_group_name = azurerm_automanage_configuration_profile.test.resource_group_name
   location = azurerm_automanage_configuration_profile.test.location
+  configuration = "{\"Antimalware/Enable\":false,\"AzureSecurityCenter/Enable\":true,\"Backup/Enable\":false,\"BootDiagnostics/Enable\":true,\"ChangeTrackingAndInventory/Enable\":true,\"GuestConfiguration/Enable\":true,\"LogAnalytics/Enable\":true,\"UpdateManagement/Enable\":true,\"VMInsights/Enable\":true}"
 }
 `, config)
 }
