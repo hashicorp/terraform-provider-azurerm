@@ -1,3 +1,19 @@
+## 3.25.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: `machinelearning` - updating to use `2022-05-01` [GH-17671]
+* dependencies: updating to version `v0.20220921.1082044` of `github.com/hashicorp/go-azure-sdk` [GH-18557]
+* Data Source: `azurerm_databricks_workspace` - exports the `location` propertuy [GH-18521]
+* `azurerm_storage_account` - support for the `multichannel_enabled` property [GH-17999]
+* `azurerm_machine_learning_workspace` - support for the `public_network_access_enabled` and `v1_legacy_mode` properties [GH-18469]
+* `azurerm_virtual_hub_bgp_connection` - support for the `virtual_network_connection_id` property [GH-18469]
+
+BUG FIXES:
+
+* Data Source: `azurerm_key_vault_certificate_data` - correctly create PEM private key block header for EC keys [GH-18419]
+* `azurerm_log_analytics_linked_storage_account` - correctly `data_source_type` case handling [GH-18116]
+
 ## 3.24.0 (September 22, 2022)
 
 FEATURES:

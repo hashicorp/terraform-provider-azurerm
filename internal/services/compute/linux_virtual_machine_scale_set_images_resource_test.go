@@ -1,11 +1,16 @@
 package compute_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
@@ -160,10 +165,19 @@ func TestAccLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 func TestAccLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
+	publisher := "cloudwhizsolutions"
+	offer := "jenkins-with-centos-7-7-cw"
+	sku := "jenkins-with-centos-77-cw"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesPlan(data),
+			Config: r.empty(),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, sku)),
+			),
+		},
+		{
+			Config: r.imagesPlan(data, publisher, offer, sku),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -683,18 +697,18 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) imagesPlan(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) imagesPlan(data acceptance.TestData, publisher string, offer string, sku string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_marketplace_agreement" "test" {
-  publisher = "cloudwhizsolutions"
-  offer     = "jenkins-docker-container-with-ubuntu-server"
-  plan      = "jenkins-docker-container-with-ubuntu-server-cw"
+  publisher = "%[3]s"
+  offer     = "%[4]s"
+  plan      = "%[5]s"
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
+  name                = "acctestvmss-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_F2"
@@ -705,9 +719,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   disable_password_authentication = false
 
   source_image_reference {
-    publisher = "cloudwhizsolutions"
-    offer     = "jenkins-docker-container-with-ubuntu-server"
-    sku       = "jenkins-docker-container-with-ubuntu-server-cw"
+    publisher = "%[3]s"
+    offer     = "%[4]s"
+    sku       = "%[5]s"
     version   = "latest"
   }
 
@@ -728,12 +742,46 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   plan {
-    name      = "jenkins-docker-container-with-ubuntu-server-cw"
-    product   = "jenkins-docker-container-with-ubuntu-server"
-    publisher = "cloudwhizsolutions"
+    publisher = "%[3]s"
+    product   = "%[4]s"
+    name      = "%[5]s"
   }
 
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, publisher, offer, sku)
+}
+
+func (LinuxVirtualMachineScaleSetResource) empty() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
+}
+
+func (r LinuxVirtualMachineScaleSetResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		client := clients.Compute.MarketplaceAgreementsClient
+		id := parse.NewPlanID(client.SubscriptionID, publisher, offer, sku)
+
+		existing, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
+		if err != nil {
+			return err
+		}
+
+		if props := existing.AgreementProperties; props != nil {
+			if accepted := props.Accepted; accepted != nil && *accepted {
+				resp, err := client.Cancel(ctx, id.AgreementName, id.OfferName, id.Name)
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return fmt.Errorf("marketplace agreement %q does not exist", id)
+					}
+					return fmt.Errorf("canceling Marketplace Agreement : %+v", err)
+				}
+			}
+		}
+
+		return nil
+	}
 }

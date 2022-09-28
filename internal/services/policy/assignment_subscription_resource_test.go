@@ -262,6 +262,11 @@ func (r SubscriptionAssignmentTestResource) Exists(ctx context.Context, client *
 	return utils.Bool(true), nil
 }
 
+// subscription assignment for allowed location policy should contain all locations, or it will block some network resource create
+func (r SubscriptionAssignmentTestResource) locations(data acceptance.TestData) string {
+	return fmt.Sprintf(`["%s", "%s", "%s"]`, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
+}
+
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyBasic(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
@@ -276,16 +281,16 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%s"]
+      "value" = %s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyUpdated(data acceptance.TestData) string {
@@ -302,16 +307,16 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[3]s", "%[4]s"]
+      "value" = %[3]s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
@@ -328,7 +333,7 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
 
@@ -338,11 +343,11 @@ resource "azurerm_subscription_policy_assignment" "test" {
 
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%s"]
+      "value" = %s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
@@ -359,16 +364,16 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[3]s", "%[4]s"]
+      "value" = %s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
@@ -385,7 +390,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -411,7 +416,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -441,7 +446,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -471,7 +476,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -506,7 +511,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 }
@@ -524,7 +529,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "This is a policy assignment from an acceptance test"
@@ -563,7 +568,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   metadata = jsonencode({
@@ -619,7 +624,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -656,7 +661,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q

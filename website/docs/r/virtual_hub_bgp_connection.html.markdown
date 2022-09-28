@@ -78,6 +78,8 @@ The following arguments are supported:
 
 * `peer_ip` - (Optional) The peer IP address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
 
+* `virtual_network_connection_id` - (Optional) The ID of virtual network connection.
+
 ## Attributes Reference
 
 The following attributes are exported:
