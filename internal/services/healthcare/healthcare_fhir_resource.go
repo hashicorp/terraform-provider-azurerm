@@ -185,8 +185,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Computed: true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -240,12 +239,6 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	if hasValues {
 		parameters.FhirServiceProperties.AccessPolicies = expandAccessPolicy(accessPolicyObjectIds.(*pluginsdk.Set).List())
 	}
-
-	publicNetworkAccess := healthcareapis.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
-	}
-	parameters.FhirServiceProperties.PublicNetworkAccess = publicNetworkAccess
 
 	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
 	if hasValues {
@@ -365,12 +358,6 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 			AccessPolicies:              expandAccessPolicy(d.Get("access_policy_object_ids").(*pluginsdk.Set).List()),
 		},
 	}
-
-	publicNetworkAccess := healthcareapis.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
-	}
-	parameters.FhirServiceProperties.PublicNetworkAccess = publicNetworkAccess
 
 	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
 	if hasValues {
