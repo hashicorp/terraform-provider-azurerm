@@ -17,7 +17,7 @@ import (
 type AutomanageConfigurationProfileHCIAssignmentResource struct{}
 
 func TestAccAutomanageConfigurationProfileHCIAssignment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hciassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hci_assignment", "test")
 	r := AutomanageConfigurationProfileHCIAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccAutomanageConfigurationProfileHCIAssignment_basic(t *testing.T) {
 }
 
 func TestAccAutomanageConfigurationProfileHCIAssignment_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hciassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hci_assignment", "test")
 	r := AutomanageConfigurationProfileHCIAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccAutomanageConfigurationProfileHCIAssignment_requiresImport(t *testin
 }
 
 func TestAccAutomanageConfigurationProfileHCIAssignment_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hciassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hci_assignment", "test")
 	r := AutomanageConfigurationProfileHCIAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccAutomanageConfigurationProfileHCIAssignment_complete(t *testing.T) {
 }
 
 func TestAccAutomanageConfigurationProfileHCIAssignment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hciassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hci_assignment", "test")
 	r := AutomanageConfigurationProfileHCIAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -199,7 +199,7 @@ func (r AutomanageConfigurationProfileHCIAssignmentResource) basic(data acceptan
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_automanage_configuration_profile_hciassignment" "test" {
+resource "azurerm_automanage_configuration_profile_hci_assignment" "test" {
   name = "acctest-acph-%d"
   resource_group_name = azurerm_resource_group.test.name
   cluster_name = "myClusterName"
@@ -212,10 +212,10 @@ func (r AutomanageConfigurationProfileHCIAssignmentResource) requiresImport(data
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_automanage_configuration_profile_hciassignment" "import" {
-  name = azurerm_automanage_configuration_profile_hciassignment.test.name
-  resource_group_name = azurerm_automanage_configuration_profile_hciassignment.test.resource_group_name
-  cluster_name = azurerm_automanage_configuration_profile_hciassignment.test.cluster_name
+resource "azurerm_automanage_configuration_profile_hci_assignment" "import" {
+  name = azurerm_automanage_configuration_profile_hci_assignment.test.name
+  resource_group_name = azurerm_automanage_configuration_profile_hci_assignment.test.resource_group_name
+  cluster_name = azurerm_automanage_configuration_profile_hci_assignment.test.cluster_name
 }
 `, config)
 }
@@ -225,7 +225,7 @@ func (r AutomanageConfigurationProfileHCIAssignmentResource) complete(data accep
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_automanage_configuration_profile_hciassignment" "test" {
+resource "azurerm_automanage_configuration_profile_hci_assignment" "test" {
   name = "acctest-acph-%d"
   resource_group_name = azurerm_resource_group.test.name
   cluster_name = "myClusterName"

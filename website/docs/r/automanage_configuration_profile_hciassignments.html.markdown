@@ -1,12 +1,12 @@
 ---
 subcategory: "Automanage"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automanage_configuration_profile_hciassignment"
+page_title: "Azure Resource Manager: azurerm_automanage_configuration_profile_hci_assignment"
 description: |-
   Manages a automanage ConfigurationProfileHCIAssignment.
 ---
 
-# azurerm_automanage_configuration_profile_hciassignment
+# azurerm_automanage_configuration_profile_hci_assignment
 
 Manages a automanage ConfigurationProfileHCIAssignment.
 
@@ -144,5 +144,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 automanage ConfigurationProfileHCIAssignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automanage_configuration_profile_hciassignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AzureStackHci/clusters/cluster1/providers/Microsoft.Automanage/configurationProfileAssignments/configurationProfileAssignment1
+terraform import azurerm_automanage_configuration_profile_hci_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AzureStackHci/clusters/cluster1/providers/Microsoft.Automanage/configurationProfileAssignments/configurationProfileAssignment1
 ```

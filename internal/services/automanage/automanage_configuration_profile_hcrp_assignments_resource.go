@@ -90,7 +90,7 @@ func resourceAutomanageConfigurationProfileHCRPAssignmentCreateUpdate(d *plugins
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_automanage_configuration_profile_hcrpassignment", id)
+			return tf.ImportAsExistsError("azurerm_automanage_configuration_profile_hcrp_assignment", id)
 		}
 	}
 
