@@ -188,7 +188,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "CDC-Canberra"
-  bandwidth_in_gbps   = 10
+  bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
 }
 
@@ -197,7 +197,7 @@ resource "azurerm_express_route_circuit" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
-  bandwidth_in_gbps     = 5
+  bandwidth_in_gbps     = 1
 
   sku {
     tier   = "Premium"
