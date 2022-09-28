@@ -122,6 +122,7 @@ func (r AutomanageConfigurationProfileResource) basic(data acceptance.TestData) 
 resource "azurerm_automanage_configuration_profile" "test" {
   name = "acctest-acp-%d"
   resource_group_name = azurerm_resource_group.test.name
+  configuration = "{\"Antimalware/Enable\":false,\"AzureSecurityCenter/Enable\":true,\"Backup/Enable\":false,\"BootDiagnostics/Enable\":true,\"ChangeTrackingAndInventory/Enable\":true,\"GuestConfiguration/Enable\":true,\"LogAnalytics/Enable\":true,\"UpdateManagement/Enable\":true,\"VMInsights/Enable\":true}"
   location = azurerm_resource_group.test.location
 }
 `, template, data.RandomInteger)
