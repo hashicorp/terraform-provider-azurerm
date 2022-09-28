@@ -157,6 +157,10 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 			requireAdditionalUpdate = true
 		}
 
+		if d.IsNewResource() && autoKeyRotationEnabled {
+			requireAdditionalUpdate = true
+		}
+
 		keyVaultKeyId := v.(string)
 		keyVaultDetails, err := storageCacheRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 		if err != nil {
@@ -241,6 +245,13 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+
+	//wait for HPC Cache provision state to be succeeded.
+	//cacheClient := meta.(*clients.Client).HPCCache.CachesClient
+	//_, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, resourceGroup, name, d)
+	//if err != nil {
+	//	return fmt.Errorf("waiting for the HPC Cache provision state %s (Resource Group: %s) : %+v", name, resourceGroup, err)
+	//}
 
 	return resourceHPCCacheRead(d, meta)
 }
