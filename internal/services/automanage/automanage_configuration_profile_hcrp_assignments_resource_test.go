@@ -17,7 +17,7 @@ import (
 type AutomanageConfigurationProfileHCRPAssignmentResource struct{}
 
 func TestAccAutomanageConfigurationProfileHCRPAssignment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrpassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrp_assignment", "test")
 	r := AutomanageConfigurationProfileHCRPAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccAutomanageConfigurationProfileHCRPAssignment_basic(t *testing.T) {
 }
 
 func TestAccAutomanageConfigurationProfileHCRPAssignment_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrpassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrp_assignment", "test")
 	r := AutomanageConfigurationProfileHCRPAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccAutomanageConfigurationProfileHCRPAssignment_requiresImport(t *testi
 }
 
 func TestAccAutomanageConfigurationProfileHCRPAssignment_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrpassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrp_assignment", "test")
 	r := AutomanageConfigurationProfileHCRPAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccAutomanageConfigurationProfileHCRPAssignment_complete(t *testing.T) 
 }
 
 func TestAccAutomanageConfigurationProfileHCRPAssignment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrpassignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_hcrp_assignment", "test")
 	r := AutomanageConfigurationProfileHCRPAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -199,7 +199,7 @@ func (r AutomanageConfigurationProfileHCRPAssignmentResource) basic(data accepta
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_automanage_configuration_profile_hcrpassignment" "test" {
+resource "azurerm_automanage_configuration_profile_hcrp_assignment" "test" {
   name = "acctest-acph-%d"
   resource_group_name = azurerm_resource_group.test.name
   machine_name = "myMachineName"
@@ -212,10 +212,10 @@ func (r AutomanageConfigurationProfileHCRPAssignmentResource) requiresImport(dat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_automanage_configuration_profile_hcrpassignment" "import" {
-  name = azurerm_automanage_configuration_profile_hcrpassignment.test.name
-  resource_group_name = azurerm_automanage_configuration_profile_hcrpassignment.test.resource_group_name
-  machine_name = azurerm_automanage_configuration_profile_hcrpassignment.test.machine_name
+resource "azurerm_automanage_configuration_profile_hcrp_assignment" "import" {
+  name = azurerm_automanage_configuration_profile_hcrp_assignment.test.name
+  resource_group_name = azurerm_automanage_configuration_profile_hcrp_assignment.test.resource_group_name
+  machine_name = azurerm_automanage_configuration_profile_hcrp_assignment.test.machine_name
 }
 `, config)
 }
@@ -225,7 +225,7 @@ func (r AutomanageConfigurationProfileHCRPAssignmentResource) complete(data acce
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_automanage_configuration_profile_hcrpassignment" "test" {
+resource "azurerm_automanage_configuration_profile_hcrp_assignment" "test" {
   name = "acctest-acph-%d"
   resource_group_name = azurerm_resource_group.test.name
   machine_name = "myMachineName"

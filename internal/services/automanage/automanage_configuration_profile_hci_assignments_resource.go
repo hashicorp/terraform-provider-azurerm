@@ -91,7 +91,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *pluginsd
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_automanage_configuration_profile_hciassignment", id)
+			return tf.ImportAsExistsError("azurerm_automanage_configuration_profile_hci_assignment", id)
 		}
 	}
 

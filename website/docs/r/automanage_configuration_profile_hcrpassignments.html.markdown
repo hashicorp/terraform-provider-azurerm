@@ -1,12 +1,12 @@
 ---
 subcategory: "Automanage"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automanage_configuration_profile_hcrpassignment"
+page_title: "Azure Resource Manager: azurerm_automanage_configuration_profile_hcrp_assignment"
 description: |-
   Manages a automanage ConfigurationProfileHCRPAssignment.
 ---
 
-# azurerm_automanage_configuration_profile_hcrpassignment
+# azurerm_automanage_configuration_profile_hcrp_assignment
 
 Manages a automanage ConfigurationProfileHCRPAssignment.
 
@@ -144,5 +144,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 automanage ConfigurationProfileHCRPAssignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automanage_configuration_profile_hcrpassignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.Automanage/configurationProfileAssignments/configurationProfileAssignment1
+terraform import azurerm_automanage_configuration_profile_hcrp_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.Automanage/configurationProfileAssignments/configurationProfileAssignment1
 ```
