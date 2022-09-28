@@ -29,6 +29,8 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"location": commonschema.LocationComputed(),
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -76,6 +78,7 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("workspace_id", model.Properties.WorkspaceId)
 		d.Set("workspace_url", model.Properties.WorkspaceUrl)
+		d.Set("location", model.Location)
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}

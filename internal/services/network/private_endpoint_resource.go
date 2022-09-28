@@ -85,6 +85,12 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				},
 			},
 
+			"custom_network_interface_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"private_dns_zone_group": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -299,6 +305,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
@@ -308,7 +315,8 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
-			IPConfigurations: expandPrivateEndpointIPConfigurations(ipConfigurations),
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -448,6 +456,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := network.PrivateEndpoint{
@@ -458,7 +467,8 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
-			IPConfigurations: expandPrivateEndpointIPConfigurations(ipConfigurations),
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -626,6 +636,12 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			subnetId = *props.Subnet.ID
 		}
 		d.Set("subnet_id", subnetId)
+		customNicName := ""
+		if props.CustomNetworkInterfaceName != nil {
+			customNicName = *props.CustomNetworkInterfaceName
+		}
+		d.Set("custom_network_interface_name", customNicName)
+
 	}
 
 	privateDnsZoneConfigs := make([]interface{}, 0)

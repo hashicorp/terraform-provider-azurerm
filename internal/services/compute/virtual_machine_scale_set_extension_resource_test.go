@@ -92,6 +92,27 @@ func TestAccVirtualMachineScaleSetExtension_extensionChaining(t *testing.T) {
 	})
 }
 
+func TestAccVirtualMachineScaleSetExtension_failureSuppressionEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicLinux(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicLinuxWithFailureSuppressionEnabledUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
@@ -494,6 +515,24 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   type                         = "ConfigurationforLinux"
   type_handler_version         = "1.0"
   automatic_upgrade_enabled    = true
+}
+`, r.templateLinux(data), data.RandomInteger)
+}
+
+func (r VirtualMachineScaleSetExtensionResource) basicLinuxWithFailureSuppressionEnabledUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine_scale_set_extension" "test" {
+  name                         = "acctestExt-%d"
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
+  publisher                    = "Microsoft.Azure.Extensions"
+  type                         = "CustomScript"
+  type_handler_version         = "2.0"
+  failure_suppression_enabled  = true
+  settings = jsonencode({
+    "commandToExecute" = "echo $HOSTNAME"
+  })
 }
 `, r.templateLinux(data), data.RandomInteger)
 }
