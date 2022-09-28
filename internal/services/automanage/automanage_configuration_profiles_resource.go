@@ -50,7 +50,7 @@ func resourceAutomanageConfigurationProfile() *pluginsdk.Resource {
 
 			"configuration": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 			},
 
 			"type": {
