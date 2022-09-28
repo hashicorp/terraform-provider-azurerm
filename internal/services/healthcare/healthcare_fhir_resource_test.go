@@ -125,6 +125,35 @@ func TestAccHealthcareApiFhirService_updateCors(t *testing.T) {
 	})
 }
 
+func TestAccHealthcareApiFhirService_publicNetworkingDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
+	r := HealthcareApiFhirServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccHealthcareApiFhirService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
 	r := HealthcareApiFhirServiceResource{}
@@ -410,6 +439,26 @@ resource "azurerm_healthcare_fhir_service" "test" {
   configuration_export_storage_account_name = azurerm_storage_account.test.name
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r HealthcareApiFhirServiceResource) publicNetworkEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_healthcare_fhir_service" "test" {
+  name                          = "fhir%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  workspace_id                  = azurerm_healthcare_workspace.test.id
+  kind                          = "fhir-R4"
+  public_network_access_enabled = "%t"
+
+  authentication {
+    authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
+    audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
+  }
+}
+`, r.template(data), data.RandomInteger, enabled)
 }
 
 func (HealthcareApiFhirServiceResource) template(data acceptance.TestData) string {

@@ -183,6 +183,12 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -234,6 +240,12 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	if hasValues {
 		parameters.FhirServiceProperties.AccessPolicies = expandAccessPolicy(accessPolicyObjectIds.(*pluginsdk.Set).List())
 	}
+
+	publicNetworkAccess := healthcareapis.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
+	}
+	parameters.FhirServiceProperties.PublicNetworkAccess = publicNetworkAccess
 
 	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
 	if hasValues {
@@ -314,6 +326,9 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
 			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 		}
+		if props.PublicNetworkAccess != "" {
+			d.Set("public_network_access_enabled", props.PublicNetworkAccess == healthcareapis.PublicNetworkAccessEnabled)
+		}
 
 		if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
 			return err
@@ -350,6 +365,12 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 			AccessPolicies:              expandAccessPolicy(d.Get("access_policy_object_ids").(*pluginsdk.Set).List()),
 		},
 	}
+
+	publicNetworkAccess := healthcareapis.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
+	}
+	parameters.FhirServiceProperties.PublicNetworkAccess = publicNetworkAccess
 
 	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
 	if hasValues {
