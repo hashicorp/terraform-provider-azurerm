@@ -12,8 +12,8 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-azure-helpers v0.40.0
-	github.com/hashicorp/go-azure-sdk v0.20220921.1082044
+	github.com/hashicorp/go-azure-helpers v0.41.0
+	github.com/hashicorp/go-azure-sdk v0.20220916.1125744
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
