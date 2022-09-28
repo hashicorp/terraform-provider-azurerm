@@ -2,7 +2,8 @@
 
 ENHANCEMENTS:
 
-dependencies: `machinelearning` - updating to use `2022-05-01` [GH-17671]
+* dependencies: `machinelearning` - updating to use `2022-05-01` [GH-17671]
+* Data Source: `azurerm_databricks_workspace` - exports the `location` propertuy [GH-18521]
 * `azurerm_storage_account` - support for the `multichannel_enabled` property [GH-17999]
 * `azurerm_machine_learning_workspace` - support for the `public_network_access_enabled` and `v1_legacy_mode` properties [GH-18469]
 * `azurerm_virtual_hub_bgp_connection` - support for the `virtual_network_connection_id` property [GH-18469]
