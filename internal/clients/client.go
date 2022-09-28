@@ -263,6 +263,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.AppService = appService.NewClient(o)
 	client.Attestation = attestation.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
+	client.Automanage = automanage.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	client.Batch = batch.NewClient(o)
