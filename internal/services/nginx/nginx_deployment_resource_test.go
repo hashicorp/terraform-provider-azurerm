@@ -63,6 +63,20 @@ func TestAccNginxDeployment_update(t *testing.T) {
 	})
 }
 
+func TestAccNginxDeployment_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
+	r := DeploymentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUser(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (a DeploymentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -115,6 +129,40 @@ resource "azurerm_nginx_deployment" "test" {
 
   tags = {
     foo = "bar2"
+  }
+}
+`, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) identityUser(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_nginx_deployment" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "publicpreview_Monthly_gmz7xq9ge3py"
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
   }
 }
 `, a.template(data), data.RandomInteger)

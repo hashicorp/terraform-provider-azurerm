@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `diagnose_support_enabled` - (Optional) Should the diagnosis support be enabled?
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `frontend_private` - (Optional) One or more `frontend_private` blocks as defined below. Changing this forces a new Nginx Deployment to be created.
 
 * `frontend_public` - (Optional) A `frontend_public` block as defined below. Changing this forces a new Nginx Deployment to be created.
@@ -61,6 +63,14 @@ The following arguments are supported:
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new Nginx Deployment to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Nginx Deployment.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values is `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,19 +35,20 @@ type NetworkInterface struct {
 }
 
 type DeploymentModel struct {
-	ResourceGroupName      string                  `tfschema:"resource_group_name"`
-	Name                   string                  `tfschema:"name"`
-	NginxVersion           string                  `tfschema:"nginx_version"`
-	Sku                    string                  `tfschema:"sku"`
-	ManagedResourceGroup   string                  `tfschema:"managed_resource_group"`
-	Location               string                  `tfschema:"location"`
-	DiagnoseSupportEnabled bool                    `tfschema:"diagnose_support_enabled"`
-	IpAddress              string                  `tfschema:"ip_address"`
-	LoggingStorageAccount  []LoggingStorageAccount `tfschema:"logging_storage_account"`
-	FrontendPublic         []FrontendPublic        `tfschema:"frontend_public"`
-	FrontendPrivate        []FrontendPrivate       `tfschema:"frontend_private"`
-	NetworkInterface       []NetworkInterface      `tfschema:"network_interface"`
-	Tags                   map[string]string       `tfschema:"tags"`
+	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
+	Name                   string                                     `tfschema:"name"`
+	NginxVersion           string                                     `tfschema:"nginx_version"`
+	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Sku                    string                                     `tfschema:"sku"`
+	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
+	Location               string                                     `tfschema:"location"`
+	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	IpAddress              string                                     `tfschema:"ip_address"`
+	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
+	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
+	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
+	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
+	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
 func (d *DeploymentModel) LoadSDK(model *nginxdeployment.NginxDeployment) {
@@ -127,6 +129,10 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"publicpreview_Monthly_gmz7xq9ge3py",
 				}, false),
 		},
+
+		// only UserIdentity supported, but api defined as SystemAndUserAssigned
+		// issue link: https://github.com/Azure/azure-rest-api-specs/issues/20914
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"managed_resource_group": {
 			Type:         pluginsdk.TypeString,
@@ -262,6 +268,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			subscriptionID := meta.Client.Account.SubscriptionId
 			id := nginxdeployment.NewNginxDeploymentID(subscriptionID, model.ResourceGroupName, model.Name)
 			existing, err := client.DeploymentsGet(ctx, id)
+
 			if !response.WasNotFound(existing.HttpResponse) {
 				if err != nil {
 					return fmt.Errorf("retreiving %s: %v", id, err)
@@ -273,6 +280,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			req.Name = pointer.FromString(model.Name)
 			req.Location = pointer.FromString(model.Location)
 			req.Tags = pointer.FromMapOfStringStrings(model.Tags)
+
 			if model.Sku != "" {
 				sku := nginxdeployment.ResourceSku{Name: model.Sku}
 				req.Sku = &sku
@@ -280,6 +288,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
 			prop.ManagedResourceGroup = pointer.FromString(model.ManagedResourceGroup)
+
 			if len(model.LoggingStorageAccount) > 0 {
 				prop.Logging = &nginxdeployment.NginxLogging{
 					StorageAccount: &nginxdeployment.NginxStorageAccount{
@@ -288,6 +297,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 					},
 				}
 			}
+
 			prop.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
 			prop.NetworkProfile = &nginxdeployment.NginxNetworkProfile{
 				FrontEndIPConfiguration:       &nginxdeployment.NginxFrontendIPConfiguration{},
@@ -322,6 +332,12 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			req.Properties = prop
+
+			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding user identities: %+v", err)
+			}
+
 			future, err := client.DeploymentsCreate(ctx, id, req)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
@@ -362,6 +378,12 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 			output.ResourceGroupName = id.ResourceGroupName
 			output.Name = id.DeploymentName
 
+			if id, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity); err != nil {
+				return fmt.Errorf("flattening `identity`: %v", err)
+			} else {
+				output.Identity = *id
+			}
+
 			return meta.Encode(&output)
 		},
 	}
@@ -387,6 +409,12 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if meta.ResourceData.HasChange("tags") {
 				req.Tags = pointer.FromMapOfStringStrings(model.Tags)
+			}
+
+			if meta.ResourceData.HasChange("identity") {
+				if req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity); err != nil {
+					return fmt.Errorf("expanding user identities: %+v", err)
+				}
 			}
 
 			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
