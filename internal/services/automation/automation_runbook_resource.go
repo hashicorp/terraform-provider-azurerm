@@ -162,7 +162,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 
 						"content_link": contentLinkSchema(true),
 
-						"in_edit": {
+						"edit_mode_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -497,11 +497,14 @@ func expandDraft(inputs []interface{}) *automation.RunbookDraft {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
+
 	input := inputs[0].(map[string]interface{})
 	var res automation.RunbookDraft
+
 	res.DraftContentLink = expandContentLink(input["content_link"].([]interface{}))
-	res.InEdit = utils.Bool(input["in_edit"].(bool))
+	res.InEdit = utils.Bool(input["edit_mode_enabled"].(bool))
 	res.Parameters = map[string]*automation.RunbookParameter{}
+
 	for _, iparam := range input["parameters"].([]interface{}) {
 		param := iparam.(map[string]interface{})
 		key := param["key"].(string)
@@ -512,10 +515,12 @@ func expandDraft(inputs []interface{}) *automation.RunbookDraft {
 			DefaultValue: utils.String(param["default_value"].(string)),
 		}
 	}
+
 	var types []string
 	for _, v := range input["output_types"].([]interface{}) {
 		types = append(types, v.(string))
 	}
+
 	if len(types) > 0 {
 		res.OutputTypes = &types
 	}

@@ -131,7 +131,7 @@ The `hash` block supports:
 
 The `draft` block supports:
 
-* `in_edit` - (Optional) Whether the draft in edit mode.
+* `edit_mode_enabled` - (Optional) Whether the draft in edit mode.
 
 * `content_link` (Optioinal) The Draft Content Link defined as `publish_content_link` above.
 
