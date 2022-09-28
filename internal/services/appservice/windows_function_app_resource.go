@@ -617,32 +617,13 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 			}
 
-			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
-			var isCustomHandler *bool
-			if _, ok := metadata.ResourceData.GetOk("use_custom_runtime"); ok {
-				*isCustomHandler = metadata.ResourceData.Get("use_custom_runtime").(bool)
-			}
-			var isDotnetIsolated *bool
-			if _, ok := metadata.ResourceData.GetOk("use_dotnet_isolated_runtime"); ok {
-				*isDotnetIsolated = metadata.ResourceData.Get("use_dotnet_isolated_runtime").(bool)
-			}
-			nodeVersion := ""
-			appSetting := state.AppSettings
-			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "custom" {
-				*isCustomHandler = true
-			}
-			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "dotnet-isolated" {
-				*isDotnetIsolated = true
-			}
-			if appSetting["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
-				nodeVersion = appSetting["WEBSITE_NODE_DEFAULT_VERSION"]
-			}
-
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig, isCustomHandler, nodeVersion, isDotnetIsolated)
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
+
+			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
@@ -1023,6 +1004,9 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 		case "WEBSITE_NODE_DEFAULT_VERSION":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_NODE_DEFAULT_VERSION"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
+				m.SiteConfig[0].ApplicationStack[0].NodeVersion = utils.NormalizeNilableString(v)
 			}
 
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":

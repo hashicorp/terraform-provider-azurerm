@@ -869,7 +869,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, isCustomHandler *bool, nodeVersion string, isDotnetIsolated *bool) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -935,15 +935,13 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 	}
 
 	var winFunctionAppStack ApplicationStackWindowsFunctionApp
-	winFunctionAppStack.JavaVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.JavaVersion)
-	winFunctionAppStack.PowerShellCoreVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.PowerShellVersion)
-
-	// we need to target the Node versions in app_setting {WEBSITE_NODE_DEFAULT_VERSION}
-	if nodeVersion != "" {
-		winFunctionAppStack.NodeVersion = nodeVersion
+	if functionAppSlotSiteConfig.JavaVersion != nil && *functionAppSlotSiteConfig.JavaVersion != "" {
+		winFunctionAppStack.JavaVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.JavaVersion)
 	}
-	winFunctionAppStack.CustomHandler = *isCustomHandler
-	winFunctionAppStack.DotNetIsolated = *isDotnetIsolated
+	if functionAppSlotSiteConfig.PowerShellVersion != nil && *functionAppSlotSiteConfig.PowerShellVersion != "" {
+		winFunctionAppStack.PowerShellCoreVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.PowerShellVersion)
+	}
+
 	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
 		if err != nil {

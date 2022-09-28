@@ -2023,7 +2023,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	return result, nil
 }
 
-func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, isCustomHandler *bool, nodeVersion string, isDotNetIsolated *bool) (*SiteConfigWindowsFunctionApp, error) {
+func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionApp, error) {
 	if functionAppSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -2087,29 +2087,30 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, 
 		}
 	}
 
-	var winFunctionAppStack ApplicationStackWindowsFunctionApp
-	winFunctionAppStack.JavaVersion = utils.NormalizeNilableString(functionAppSiteConfig.JavaVersion)
-	winFunctionAppStack.PowerShellCoreVersion = utils.NormalizeNilableString(functionAppSiteConfig.PowerShellVersion)
-	// we need to target the Node versions in app_setting {WEBSITE_NODE_DEFAULT_VERSION}
-	if nodeVersion != "" {
-		winFunctionAppStack.NodeVersion = nodeVersion
+	var winFunctionAppStack []ApplicationStackWindowsFunctionApp
+	if functionAppSiteConfig.JavaVersion != nil && *functionAppSiteConfig.JavaVersion != "" {
+		appStack := ApplicationStackWindowsFunctionApp{
+			JavaVersion: utils.NormalizeNilableString(functionAppSiteConfig.JavaVersion),
+		}
+		winFunctionAppStack = append(winFunctionAppStack, appStack)
 	}
-	if isCustomHandler != nil {
-		winFunctionAppStack.CustomHandler = *isCustomHandler
+	if functionAppSiteConfig.PowerShellVersion != nil && *functionAppSiteConfig.PowerShellVersion != "" {
+		appStack := ApplicationStackWindowsFunctionApp{
+			PowerShellCoreVersion: utils.NormalizeNilableString(functionAppSiteConfig.PowerShellVersion),
+		}
+		winFunctionAppStack = append(winFunctionAppStack, appStack)
 	}
-	if isDotNetIsolated != nil {
-		winFunctionAppStack.DotNetIsolated = *isDotNetIsolated
-	}
+
 	if functionAppSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSiteConfig.WindowsFxVersion)
 		if err != nil {
 			return nil, fmt.Errorf("flattening site config: %s", err)
 		}
 		if len(decoded) > 0 {
-			winFunctionAppStack = decoded[0]
+			winFunctionAppStack = decoded
 		}
 	}
-	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{winFunctionAppStack}
+	result.ApplicationStack = winFunctionAppStack
 
 	return result, nil
 }

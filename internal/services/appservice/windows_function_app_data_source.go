@@ -325,33 +325,12 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 			}
 
-			functionApp.unpackWindowsFunctionAppSettings(appSettingsResp)
-			var isCustomHandler *bool
-			if metadata.ResourceData.Get("use_custom_runtime") != "" {
-				*isCustomHandler = metadata.ResourceData.Get("use_custom_runtime").(bool)
-			}
-			var isDotnetIsolated *bool
-			if metadata.ResourceData.Get("use_dotnet_isolated_runtime") != "" {
-				*isDotnetIsolated = metadata.ResourceData.Get("use_dotnet_isolated_runtime").(bool)
-			}
-			nodeVersion := ""
-			appSetting := functionApp.AppSettings
-			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "custom" {
-				*isCustomHandler = true
-			}
-			if appSetting["FUNCTIONS_WORKER_RUNTIME"] == "dotnet-isolated" {
-				*isDotnetIsolated = true
-			}
-			if appSetting["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
-				nodeVersion = appSetting["WEBSITE_NODE_DEFAULT_VERSION"]
-			}
-
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig, isCustomHandler, nodeVersion, isDotnetIsolated)
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
-
 			functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
+			functionApp.unpackWindowsFunctionAppSettings(appSettingsResp)
 
 			functionApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
