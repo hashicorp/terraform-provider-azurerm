@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_key_vault_certificate_data` - correctly create PEM private key block header for EC keys [GH-18419]
 * `azurerm_log_analytics_linked_storage_account` - correctly `data_source_type` case handling [GH-18116]
 
 ## 3.24.0 (September 22, 2022)
