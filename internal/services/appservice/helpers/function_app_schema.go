@@ -2088,6 +2088,17 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 	}
 
 	var winFunctionAppStack []ApplicationStackWindowsFunctionApp
+
+	if functionAppSiteConfig.WindowsFxVersion != nil {
+		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSiteConfig.WindowsFxVersion)
+		if err != nil {
+			return nil, fmt.Errorf("flattening site config: %s", err)
+		}
+		if len(decoded) > 0 {
+			winFunctionAppStack = decoded
+		}
+	}
+
 	if functionAppSiteConfig.JavaVersion != nil && *functionAppSiteConfig.JavaVersion != "" {
 		appStack := ApplicationStackWindowsFunctionApp{
 			JavaVersion: utils.NormalizeNilableString(functionAppSiteConfig.JavaVersion),
@@ -2101,15 +2112,6 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		winFunctionAppStack = append(winFunctionAppStack, appStack)
 	}
 
-	if functionAppSiteConfig.WindowsFxVersion != nil {
-		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSiteConfig.WindowsFxVersion)
-		if err != nil {
-			return nil, fmt.Errorf("flattening site config: %s", err)
-		}
-		if len(decoded) > 0 {
-			winFunctionAppStack = decoded
-		}
-	}
 	result.ApplicationStack = winFunctionAppStack
 
 	return result, nil

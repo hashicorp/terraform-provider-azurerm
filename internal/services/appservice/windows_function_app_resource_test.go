@@ -906,7 +906,7 @@ func TestAccWindowsFunctionApp_appStackUpdateTags(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionApp_appStackJava(t *testing.T) {
+func TestAccWindowsFunctionApp_appStack(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
 

@@ -934,25 +934,31 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 		}
 	}
 
-	var winFunctionAppStack ApplicationStackWindowsFunctionApp
-	if functionAppSlotSiteConfig.JavaVersion != nil && *functionAppSlotSiteConfig.JavaVersion != "" {
-		winFunctionAppStack.JavaVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.JavaVersion)
-	}
-	if functionAppSlotSiteConfig.PowerShellVersion != nil && *functionAppSlotSiteConfig.PowerShellVersion != "" {
-		winFunctionAppStack.PowerShellCoreVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.PowerShellVersion)
-	}
-
+	var winFunctionAppSlotStack []ApplicationStackWindowsFunctionApp
 	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
 		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
 		if err != nil {
 			return nil, fmt.Errorf("flattening site config: %s", err)
 		}
 		if len(decoded) > 0 {
-			winFunctionAppStack = decoded[0]
+			winFunctionAppSlotStack = decoded
 		}
 	}
-	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{winFunctionAppStack}
 
+	if functionAppSlotSiteConfig.JavaVersion != nil && *functionAppSlotSiteConfig.JavaVersion != "" {
+		appStack := ApplicationStackWindowsFunctionApp{
+			JavaVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.JavaVersion),
+		}
+		winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
+	}
+	if functionAppSlotSiteConfig.PowerShellVersion != nil && *functionAppSlotSiteConfig.PowerShellVersion != "" {
+		appStack := ApplicationStackWindowsFunctionApp{
+			PowerShellCoreVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.PowerShellVersion),
+		}
+		winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
+	}
+
+	result.ApplicationStack = winFunctionAppSlotStack
 	return result, nil
 }
 

@@ -845,8 +845,14 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
+
 		case "WEBSITE_NODE_DEFAULT_VERSION":
-			m.SiteConfig[0].ApplicationStack[0].NodeVersion = utils.NormalizeNilableString(v)
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_NODE_DEFAULT_VERSION"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
+				m.SiteConfig[0].ApplicationStack[0].NodeVersion = utils.NormalizeNilableString(v)
+			}
 
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {

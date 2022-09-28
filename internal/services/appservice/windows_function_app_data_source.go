@@ -329,6 +329,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
+
 			functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 			functionApp.unpackWindowsFunctionAppSettings(appSettingsResp)
 
@@ -381,7 +382,11 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION":
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
+				m.SiteConfig[0].ApplicationStack[0].NodeVersion = utils.NormalizeNilableString(v)
+			}
+
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 		case "WEBSITE_CONTENTSHARE":
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
