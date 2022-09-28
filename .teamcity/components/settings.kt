@@ -63,6 +63,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Data Lake has a low quota
         "datalake" to testConfiguration(parallelism = 2),
 
+        // DNS Resolver is only available in certain locations
+        "dnsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
+
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
