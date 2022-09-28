@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
@@ -69,6 +70,14 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationDisplayName,
 			},
 
+			"identity": commonschema.SystemAssignedIdentityOptional(),
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -128,23 +137,40 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		displayName = id.ResourceGroupName
 	}
 
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
+	publicNetworkAccess := apps.PublicNetworkAccessEnabled
 	app := apps.App{
 		Properties: &apps.AppProperties{
-			DisplayName: &displayName,
-			Subdomain:   &subdomain,
-			Template:    &template,
+			DisplayName:         &displayName,
+			PublicNetworkAccess: &publicNetworkAccess,
+			Subdomain:           &subdomain,
+			Template:            &template,
 		},
 		Sku: apps.AppSkuInfo{
 			Name: apps.AppSku(d.Get("sku").(string)),
 		},
+		Identity: identity,
 		Location: d.Get("location").(string),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// Public Network Access can only be disabled after creation
+	if d.Get("public_network_access_enabled").(bool) == false {
+		publicNetworkAccess := apps.PublicNetworkAccessDisabled
+		app.Properties.PublicNetworkAccess = &publicNetworkAccess
+		if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
+			return fmt.Errorf("updating `public_network_access_enabled` to false for %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -175,6 +201,22 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			Subdomain:   &subdomain,
 			Template:    &template,
 		},
+	}
+
+	if d.HasChange("identity") {
+		identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		appPatch.Identity = identity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := apps.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = apps.PublicNetworkAccessEnabled
+		}
+		appPatch.Properties.PublicNetworkAccess = &publicNetworkAccess
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, appPatch); err != nil {
@@ -215,6 +257,16 @@ func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("sub_domain", props.Subdomain)
 			d.Set("display_name", props.DisplayName)
 			d.Set("template", props.Template)
+
+			publicNetworkAccess := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == apps.PublicNetworkAccessDisabled {
+				publicNetworkAccess = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+		}
+
+		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {

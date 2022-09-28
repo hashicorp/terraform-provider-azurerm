@@ -48,17 +48,37 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A `display_name` name. Custom display name for the IoT Central application. Default is resource name. 
 
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the IoT Central Application. Defaults to `true`.
+
 * `sku` - (Optional) A `sku` name. Possible values is `ST1`, `ST2`, Default value is `ST1`
 
 * `template` - (Optional) A `template` name. IoT Central application template name. Default is a custom application.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
+The `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this IoT Central Application. The only possible value is `SystemAssigned`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the IoT Central Application.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
