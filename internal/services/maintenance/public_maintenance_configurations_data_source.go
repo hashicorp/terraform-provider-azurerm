@@ -174,7 +174,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("setting `configs`: %+v", err)
 	}
 
-	d.SetId(fmt.Sprintf("publicMaintenanceConfigurations/location:%s/scope:%s/recurEvery:%s", locationFilter, scopeFilter, recurEveryFilterRaw))
+	d.SetId(fmt.Sprintf("publicMaintenanceConfigurations/location=%s;scope=%s;recurEvery=%s", locationFilter, scopeFilter, recurEveryFilterRaw))
 	return nil
 }
 
