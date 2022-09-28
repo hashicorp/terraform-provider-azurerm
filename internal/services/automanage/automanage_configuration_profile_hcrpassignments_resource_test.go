@@ -91,12 +91,12 @@ func (r AutomanageConfigurationProfileHCRPAssignmentResource) Exists(ctx context
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automanage.ConfigurationProfileHCRPAssignmentClient.Get(ctx, id.ResourceGroup, id.MachineName, id.Name)
+	resp, err := client.Automanage.ConfigurationProfileHCRPAssignmentClient.Get(ctx, id.ResourceGroup, id.MachineName, id.ConfigurationProfileAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfileHCRPAssignment %q (Resource Group %q / machineName %q): %+v", id.Name, id.ResourceGroup, id.MachineName, err)
+		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfileHCRPAssignment %q (Resource Group %q / machineName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.MachineName, err)
 	}
 	return utils.Bool(true), nil
 }
