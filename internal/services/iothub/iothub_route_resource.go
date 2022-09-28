@@ -42,6 +42,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
 					"Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
