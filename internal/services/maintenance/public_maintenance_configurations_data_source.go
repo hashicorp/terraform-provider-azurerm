@@ -1,6 +1,7 @@
 package maintenance
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -174,7 +175,8 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("setting `configs`: %+v", err)
 	}
 
-	d.SetId(fmt.Sprintf("publicMaintenanceConfigurations/location=%s;scope=%s;recurEvery=%s", locationFilter, scopeFilter, recurEveryFilterRaw))
+	id := fmt.Sprintf("publicMaintenanceConfigurations/location=%s;scope=%s;recurEvery=%s", locationFilter, scopeFilter, recurEveryFilterRaw)
+	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 	return nil
 }
 

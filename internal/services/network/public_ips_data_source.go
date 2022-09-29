@@ -1,6 +1,7 @@
 package network
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
@@ -128,7 +129,8 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		filteredIPAddresses = append(filteredIPAddresses, element)
 	}
 
-	d.SetId(fmt.Sprintf("networkPublicIPs/resourceGroup/%s/namePrefix=%s;attachmentStatus=%s;allocationType=%s", resourceGroup, prefix, attachmentStatus, allocationType))
+	id := fmt.Sprintf("networkPublicIPs/resourceGroup/%s/namePrefix=%s;attachmentStatus=%s;allocationType=%s", resourceGroup, prefix, attachmentStatus, allocationType)
+	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 
 	results := flattenDataSourcePublicIPs(filteredIPAddresses)
 	if err := d.Set("public_ips", results); err != nil {
