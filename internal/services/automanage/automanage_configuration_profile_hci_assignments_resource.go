@@ -51,7 +51,7 @@ func resourceAutomanageConfigurationProfileHCIAssignment() *pluginsdk.Resource {
 
 			"configuration_profile": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 			},
 
 			"managed_by": {
