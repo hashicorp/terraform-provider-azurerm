@@ -221,7 +221,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
   operating_system      = "Windows"
 
   windows {
-    classification_included = "Critical, Security"
+    classifications_included = ["Critical", "Security"]
     reboot                  = "IfRequired"
   }
 
