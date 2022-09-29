@@ -16,26 +16,12 @@ import (
 
 type AutomanageConfigurationProfileAssignmentResource struct{}
 
-func TestAccAutomanageConfigurationProfileAssignment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_assignment", "test")
-	r := AutomanageConfigurationProfileAssignmentResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAutomanageConfigurationProfileAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_assignment", "test")
 	r := AutomanageConfigurationProfileAssignmentResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -50,34 +36,6 @@ func TestAccAutomanageConfigurationProfileAssignment_complete(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAutomanageConfigurationProfileAssignment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile_assignment", "test")
-	r := AutomanageConfigurationProfileAssignmentResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -190,25 +148,17 @@ resource "azurerm_virtual_machine" "test" {
   os_profile_windows_config {
     timezone = "Pacific Standard Time"
   }
+
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r AutomanageConfigurationProfileAssignmentResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_automanage_configuration_profile_assignment" "test" {
-  name = "acctest-acpa-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  vm_name = azurerm_virtual_machine.test.name
-}
-`, template, data.RandomInteger)
-}
-
 func (r AutomanageConfigurationProfileAssignmentResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+	config := r.complete(data)
 	return fmt.Sprintf(`
 %s
 
@@ -216,6 +166,7 @@ resource "azurerm_automanage_configuration_profile_assignment" "import" {
   name = azurerm_automanage_configuration_profile_assignment.test.name
   resource_group_name = azurerm_automanage_configuration_profile_assignment.test.resource_group_name
   vm_name = azurerm_automanage_configuration_profile_assignment.test.vm_name
+  configuration_profile = azurerm_automanage_configuration_profile_assignment.test.configuration_profile
 }
 `, config)
 }
@@ -226,10 +177,10 @@ func (r AutomanageConfigurationProfileAssignmentResource) complete(data acceptan
 %s
 
 resource "azurerm_automanage_configuration_profile_assignment" "test" {
-  name = "acctest-acpa-%d"
+  name = "default"
   resource_group_name = azurerm_resource_group.test.name
   vm_name = azurerm_virtual_machine.test.name
   configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
-`, template, data.RandomInteger)
+`, template)
 }
