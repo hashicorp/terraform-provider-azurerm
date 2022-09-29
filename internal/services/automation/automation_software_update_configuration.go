@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
@@ -273,10 +274,13 @@ func targetsFromSDK(prop *automation.TargetProperties) []Target {
 }
 
 type Windows struct {
-	Classification string   `tfschema:"classification_included"`
-	ExcludedKbs    []string `tfschema:"excluded_knowledge_base_numbers"`
-	IncludedKbs    []string `tfschema:"included_knowledge_base_numbers"`
-	RebootSetting  string   `tfschema:"reboot"`
+	// Classification Deprecated, use Classifications instead
+	Classification string `tfschema:"classification_included"`
+
+	Classifications []string `tfschema:"classifications_included"`
+	ExcludedKbs     []string `tfschema:"excluded_knowledge_base_numbers"`
+	IncludedKbs     []string `tfschema:"included_knowledge_base_numbers"`
+	RebootSetting   string   `tfschema:"reboot"`
 }
 
 type SoftwareUpdateConfigurationModel struct {
@@ -320,8 +324,12 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 
 	if len(s.Windows) > 0 {
 		w := s.Windows[0]
+
 		upd.Windows = &automation.WindowsProperties{
-			IncludedUpdateClassifications: automation.WindowsUpdateClasses(w.Classification),
+			IncludedUpdateClassifications: automation.WindowsUpdateClasses(strings.Join(w.Classifications, ",")),
+		}
+		if len(w.Classifications) == 0 && w.Classification != "" {
+			upd.Windows.IncludedUpdateClassifications = automation.WindowsUpdateClasses(w.Classification)
 		}
 
 		if w.RebootSetting != "" {
@@ -413,7 +421,12 @@ func (s *SoftwareUpdateConfigurationModel) LoadSDKModel(prop *automation.Softwar
 					ExcludedKbs:    pointer.ToSliceOfStrings(w.ExcludedKbNumbers),
 					IncludedKbs:    pointer.ToSliceOfStrings(w.IncludedKbNumbers),
 					RebootSetting:  utils.NormalizeNilableString(w.RebootSetting),
-				}}
+				},
+			}
+
+			for _, v := range strings.Split(string(w.IncludedUpdateClassifications), ",") {
+				s.Windows[0].Classifications = append(s.Windows[0].Classifications, strings.TrimSpace(v))
+			}
 		}
 
 		s.Duration = utils.NormalizeNilableString(conf.Duration)
@@ -506,18 +519,40 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 		"windows": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 
 					"classification_included": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						Computed:      true,
+						ConflictsWith: []string{"windows.0.classifications_included"},
+						AtLeastOneOf:  []string{"windows.0.classification_included", "windows.0.classifications_included"},
+						Deprecated:    "windows classification can be set as a list, use `classifications_included` instead.",
 						ValidateFunc: validation.StringInSlice(func() (vs []string) {
 							for _, v := range automation.PossibleWindowsUpdateClassesValues() {
 								vs = append(vs, string(v))
 							}
 							return
 						}(), false),
+					},
+
+					"classifications_included": {
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						Computed:      true,
+						ConflictsWith: []string{"windows.0.classification_included"},
+						AtLeastOneOf:  []string{"windows.0.classification_included", "windows.0.classifications_included"},
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(func() (res []string) {
+								for _, v := range automation.PossibleWindowsUpdateClassesValues() {
+									res = append(res, string(v))
+								}
+								return
+							}(), false),
+						},
 					},
 
 					"excluded_knowledge_base_numbers": {
