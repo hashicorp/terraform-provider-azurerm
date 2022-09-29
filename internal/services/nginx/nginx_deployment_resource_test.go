@@ -88,7 +88,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
   location                 = azurerm_resource_group.test.location
-  managed_resource_group   = "example"
   diagnose_support_enabled = true
 
   frontend_public {
@@ -115,7 +114,6 @@ resource "azurerm_nginx_deployment" "test" {
   name                     = "acctest-%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
-  managed_resource_group   = "example"
   location                 = azurerm_resource_group.test.location
   diagnose_support_enabled = false
 
