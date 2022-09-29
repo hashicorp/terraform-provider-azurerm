@@ -222,7 +222,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
   windows {
     classifications_included = ["Critical", "Security"]
-    reboot                  = "IfRequired"
+    reboot                   = "IfRequired"
   }
 
   duration            = "PT1H1M1S"
