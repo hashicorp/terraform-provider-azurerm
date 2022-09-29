@@ -87,8 +87,6 @@ The following arguments are supported:
 
 * `configuration_export_storage_account_name` - (Optional) Specifies the name of the storage account which the operation configuration information is exported to.
 
-* `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled.
-
 ---
 An `identity` block supports the following:
 
@@ -126,6 +124,8 @@ A `oci_artifact` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Healthcare FHIR Service.
+
+* `public_network_access_enabled` - Whether public networks access is enabled.
 
 ## Timeouts
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
