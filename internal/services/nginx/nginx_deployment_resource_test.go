@@ -179,7 +179,7 @@ resource "azurerm_resource_group" "test" {
 
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest3144"
+  name                = "acctest%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allocation_method   = "Static"
@@ -198,7 +198,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
+  name                 = "subbet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
