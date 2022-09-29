@@ -1467,6 +1467,11 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
+		var gatewayDisabled bool
+		if prop.DisableGateway != nil {
+			gatewayDisabled = *prop.DisableGateway
+		}
+
 		results = append(results, map[string]interface{}{
 			"capacity":                      capacity,
 			"gateway_regional_url":          gatewayRegionalUrl,
@@ -1476,7 +1481,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			"public_ip_addresses":           publicIPAddresses,
 			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
 			"zones":                         zones.Flatten(prop.Zones),
-			"gateway_disabled":              *prop.DisableGateway,
+			"gateway_disabled":              gatewayDisabled,
 		})
 	}
 
