@@ -207,6 +207,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
+			"gallery_application": VirtualMachineGalleryApplicationSchema(),
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
@@ -455,6 +457,9 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Identity:         identity,
 		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
+			ApplicationProfile: &compute.ApplicationProfile{
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+			},
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
@@ -744,6 +749,10 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		capacityReservationGroupId = *props.CapacityReservation.CapacityReservationGroup.ID
 	}
 	d.Set("capacity_reservation_group_id", capacityReservationGroupId)
+
+	if props.ApplicationProfile != nil && props.ApplicationProfile.GalleryApplications != nil {
+		d.Set("gallery_application", flattenVirtualMachineGalleryApplication(props.ApplicationProfile.GalleryApplications))
+	}
 
 	licenseType := ""
 	if props.LicenseType != nil {
@@ -1065,6 +1074,13 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("extensions_time_budget") {
 		shouldUpdate = true
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
+	}
+
+	if d.HasChange("gallery_application") {
+		shouldUpdate = true
+		update.ApplicationProfile = &compute.ApplicationProfile{
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+		}
 	}
 
 	if d.HasChange("max_bid_price") {
