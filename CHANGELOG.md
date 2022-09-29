@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * Provider: support for the `oidc_token_file_path` property & `ARM_OIDC_TOKEN_FILE_PATH` environment variable [GH-18335]
 * Data Source: `azurerm_databricks_workspace` - exports the `location` propertuy [GH-18521]
 * `azurerm_api_management` - support for the `additional_location.gateway_disabled`, `certificate_source`, and `certificate_status` properties [GH-18508]
+* `azurerm_automation_software_update_configuration` - the `classification` property has been deprecated in favour of the `classifications` property that supports multiple values [GH-18539]
 * `azurerm_iotcentral_application` - support for the `identity` and `public_network_access_enabled` properties [GH-18564]
 * `azurerm_machine_learning_workspace` - support for the `public_network_access_enabled` and `v1_legacy_mode` properties [GH-18469]
 * `azurerm_storage_account` - support for the `multichannel_enabled` property [GH-17999]
