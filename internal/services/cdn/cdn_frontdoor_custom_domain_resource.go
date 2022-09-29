@@ -1,6 +1,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -126,6 +127,16 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			if diff.HasChange("associate_with_cdn_frontdoor_route_id") {
+				if old, _ := diff.GetChange("associate_with_cdn_frontdoor_route_id"); old != "" {
+					return diff.ForceNew("associate_with_cdn_frontdoor_route_id")
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 

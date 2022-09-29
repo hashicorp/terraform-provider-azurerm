@@ -353,3 +353,61 @@ func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeI
 
 	return nil
 }
+
+func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interface{}, routeCustomDomains []interface{}, routeName string, routeProfile string) error {
+	// Make sure the resource is referencing all of the custom domains that are associated with the route...
+	missingDomains := make([]string, 0)
+
+	for _, v := range routeCustomDomains {
+		customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse %q: %+v", v.(string), err)
+		}
+
+		if !sliceContainsString(resourceCustomDomains, customDomain.ID()) {
+			missingDomains = append(missingDomains, fmt.Sprintf("%q", customDomain.ID()))
+		}
+	}
+
+	if len(missingDomains) > 0 {
+		return fmt.Errorf("does not contain all of the CDN Front Door Custom Domains that are associated with the CDN Front Door Route(Name: %q). Please add the following CDN Front Door Custom Domain(s) to your configuration file: %s", routeName, strings.Join(missingDomains, ", "))
+	}
+
+	// Make sure all of the custom domains that are referenced by the resource are actually associated with the route...
+	notAssociated := make([]string, 0)
+
+	for _, v := range resourceCustomDomains {
+		customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse %q: %+v", v.(string), err)
+		}
+
+		if !sliceContainsString(routeCustomDomains, customDomain.ID()) {
+			notAssociated = append(notAssociated, fmt.Sprintf("%q", customDomain.ID()))
+		}
+	}
+
+	if len(notAssociated) > 0 {
+		return fmt.Errorf("contains CDN Front Door Custom Domains that are not associated with the CDN Front Door Route(Name: %q). Please remove the following CDN Front Door Custom Domain(s) from your configuration file: %s", routeName, strings.Join(notAssociated, ", "))
+	}
+
+	// The code should never get here with the above two checks, but if it does make sure all of the custom domains belong to the same profile as the route...
+	wrongProfile := make([]string, 0)
+
+	for _, v := range resourceCustomDomains {
+		customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
+		if err != nil {
+			return err
+		}
+
+		if customDomain.ProfileName != routeProfile {
+			wrongProfile = append(wrongProfile, fmt.Sprintf("%q", customDomain.ID()))
+		}
+	}
+
+	if len(wrongProfile) > 0 {
+		return fmt.Errorf("the following CDN Front Door Custom Domain(s) do not belong to the expected CDN Front Door Profile(Name: %q): %s", routeProfile, strings.Join(wrongProfile, ", "))
+	}
+
+	return nil
+}

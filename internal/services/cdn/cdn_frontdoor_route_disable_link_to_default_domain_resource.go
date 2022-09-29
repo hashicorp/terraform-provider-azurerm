@@ -1,6 +1,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -24,6 +25,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate,
 		Read:   resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead,
+		Update: resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate,
 		Delete: resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -51,7 +53,6 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomain() *pluginsdk.Resource {
 			"cdn_frontdoor_custom_domain_ids": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				ForceNew: true,
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -59,14 +60,15 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomain() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// TODO: validate if moving validation here fixes the issues...
+			return nil
+		}),
 	}
 }
 
 func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	customDomainClient := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
-	customDomainCtx, customDomainCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer customDomainCancel()
-
 	routeClient := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(routeClient)
 	routeCtx, routeCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -81,22 +83,10 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 		return err
 	}
 
-	// make sure the custom domains and the route all belong to the same profile
-	for _, v := range customDomains {
-		customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
-		if err != nil {
-			return err
-		}
-
-		if customDomainId.ProfileName != routeId.ProfileName {
-			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: the configuration is invalid, the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", customDomainId.CustomDomainName, customDomainId.ProfileName, routeId.RouteName, routeId.ProfileName)
-		}
-	}
-
 	// create the resource id
 	uuid, err := uuid.GenerateUUID()
 	if err != nil {
-		return fmt.Errorf("generating UUID for the 'azurerm_cdn_frontdoor_route_disable_link_to_default_domain': %+v", err)
+		return fmt.Errorf("generating UUID: %+v", err)
 	}
 	id := parse.NewFrontDoorRouteDisableLinkToDefaultDomainID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, uuid)
 
@@ -118,37 +108,31 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 		defer locks.UnlockByName(customDomainId.CustomDomainName, cdnFrontDoorCustomDomainResourceName)
 	}
 
-	// NOTE: Make sure the route and the custom domains exist since we are attempting
-	// to add an association with the custom domain to the route resource
-	for _, v := range customDomains {
-		customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
-		if err != nil {
-			return err
-		}
-
-		_, err = customDomainClient.Get(customDomainCtx, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName)
-		if err != nil {
-			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *customDomainId, err)
-		}
-	}
-
 	routeResp, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
-		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
+		return fmt.Errorf("retrieving existing %s: %+v", *routeId, err)
 	}
 
 	props := routeResp.RouteProperties
 	if props == nil {
-		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
+		return fmt.Errorf("%s properties are 'nil': %+v", *routeId, err)
 	}
 
-	// If it is already disabled skip updating the the resource...
-	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
-		customDomainsProps := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
-		if len(customDomainsProps) == 0 {
-			return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: it is invalid to disable the 'link to default domain' field of the CDN Front Door Route it the route does not have at least one custom domain associated with it, got 0 associated CDN Front Door Custom Domains")
-		}
+	resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 
+	// make sure its valid to disable the LinkToDefaultDomain on this route...
+	if len(routeCustomDomains) == 0 {
+		return fmt.Errorf("it is invalid to disable the 'LinkToDefaultDomain' for the CDN Front Door Route(Name: %s) since the route does not have any CDN Front Door Custom Domains associated with it", routeId.RouteName)
+	}
+
+	// validate the custom domains...
+	if err := validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
+		return err
+	}
+
+	// If it is already disabled do not update the route...
+	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
 		updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
 			CustomDomains: expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
 		}
@@ -174,8 +158,9 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 		}
 	}
 
-	// Everything was successful
 	d.SetId(id.ID())
+	d.Set("cdn_frontdoor_route_id", routeId.ID())
+	d.Set("cdn_frontdoor_custom_domain_ids", customDomains)
 
 	return resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d, meta)
 }
@@ -187,44 +172,62 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 
 	routeId, err := parse.FrontDoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
 	if err != nil {
-		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %+v", err)
+		return fmt.Errorf("unable to parse CDN Front Door Route ID: %+v", err)
 	}
 
 	routeResp, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
-		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
+		return fmt.Errorf("retrieving existing %s: %+v", *routeId, err)
 	}
 
 	props := routeResp.RouteProperties
 	if props == nil {
-		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
+		return fmt.Errorf("%s properties are 'nil': %+v", *routeId, err)
 	}
 
-	// NOTE: to keep from throwing the below errors when you attempt to
-	// remove the resource from your configuration file I had to implement
-	// it with a d.HasChange check...
-	if d.HasChange("cdn_frontdoor_route_id") {
-		if _, new := d.GetChange("cdn_frontdoor_route_id"); new != "" {
-			// Check to make sure the custom domains are associated with the route
-			resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-			customDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 
-			// if it is not associated with the route raise an error...
-			for _, v := range resourceCustomDomains {
-				customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
-				if err != nil {
-					return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: unable to parse %q: %+v", v.(string), err)
-				}
-
-				if !sliceContainsString(customDomains, customDomain.ID()) {
-					return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: the custom domain %q is currently unassociated with the defined route %q. Please remove the 'azurerm_cdn_frontdoor_route_disable_link_to_default_domain' resource from your configuration file", customDomain.CustomDomainName, routeId.RouteName)
-				}
-			}
-
-			d.Set("cdn_frontdoor_route_id", routeId.ID())
-			d.Set("cdn_frontdoor_custom_domain_ids", customDomains)
-		}
+	if len(routeCustomDomains) == 0 {
+		return fmt.Errorf("there are currently no CDN Front Door Custom Domains associated with the CDN Front Door Route(Name: %q). Please remove the resource from your configuration file", routeId.RouteName)
 	}
+
+	// In case someone updates this value in portal...
+	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
+		return fmt.Errorf("the 'link to default domain' field has been 'enabled' on the CDN Front Door Route(Name: %q). Please remove the resource from your configuration file, apply and then re-add the resource", routeId.RouteName)
+	}
+
+	return nil
+}
+
+func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	routeClient := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
+	routeCtx, routeCancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer routeCancel()
+
+	routeId, err := parse.FrontDoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
+	if err != nil {
+		return fmt.Errorf("unable to parse CDN Front Door Route ID: %+v", err)
+	}
+
+	routeResp, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *routeId, err)
+	}
+
+	props := routeResp.RouteProperties
+	if props == nil {
+		return fmt.Errorf("%s properties are 'nil': %+v", *routeId, err)
+	}
+
+	resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+
+	// validate the custom domains...
+	if err := validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
+		return err
+	}
+
+	d.Set("cdn_frontdoor_custom_domain_ids", resourceCustomDomains)
 
 	return nil
 }
@@ -268,12 +271,12 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 			return nil
 		}
 
-		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: retrieving existing %s: %+v", *routeId, err)
+		return fmt.Errorf("retrieving existing %s: %+v", *routeId, err)
 	}
 
 	props := routeResp.RouteProperties
 	if props == nil {
-		return fmt.Errorf("azurerm_cdn_frontdoor_route_disable_link_to_default_domain: %s properties are 'nil': %+v", *routeId, err)
+		return fmt.Errorf("%s properties are 'nil': %+v", *routeId, err)
 	}
 
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
@@ -286,20 +289,23 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 		updateProps.CacheConfiguration = props.CacheConfiguration
 	}
 
-	// NOTE: If you are deleting this resource you are reseting the
-	// value to the default of true...
-	updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
+	// NOTE: Only update LinkToDefaultDomain to enabled if there are not any custom domains associated with the route
+	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 
-	updatePrarams := azuresdkhacks.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &updateProps,
-	}
+	if len(routeCustomDomains) == 0 {
+		updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
 
-	future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updatePrarams)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(routeCtx, routeClient.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+		updatePrarams := azuresdkhacks.RouteUpdateParameters{
+			RouteUpdatePropertiesParameters: &updateProps,
+		}
+
+		future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updatePrarams)
+		if err != nil {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
+		}
+		if err = future.WaitForCompletionRef(routeCtx, routeClient.Client); err != nil {
+			return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+		}
 	}
 
 	// Everything was successful

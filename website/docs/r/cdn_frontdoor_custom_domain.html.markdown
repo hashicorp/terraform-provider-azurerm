@@ -87,6 +87,8 @@ The following arguments are supported:
 
 * `associate_with_cdn_frontdoor_route_id` (Optional) - The resource ID of the CDN FrontDoor Route this Custom Domain should be associated with.
 
+->**NOTE:** Once a CDN Front Door Custom Domain has been associated with a CDN Front Door Route changing this value will force a new CDN Front Door Custom Domain to be created.
+
 * `dns_zone_id` - (Optional) The ID of the DNS Zone which should be used for this FrontDoor Custom Domain.
 
 <!-- * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated CDN FrontDoor Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
