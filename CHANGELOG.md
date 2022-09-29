@@ -1,5 +1,11 @@
 ## 3.25.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_cdn_frontdoor_route` [GH-18231]
+* **New Resource:** `azurerm_cdn_frontdoor_custom_domain` [GH-18231]
+* **New Resource:** `azurerm_cdn_route_disable_link_to_default_domain` [GH-18231]
+
 ENHANCEMENTS:
 
 * dependencies: `machinelearning` - updating to use `2022-05-01` [GH-17671]
