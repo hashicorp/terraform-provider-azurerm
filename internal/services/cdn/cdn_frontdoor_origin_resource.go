@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	privateLinkServiceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -22,7 +23,7 @@ import (
 )
 
 func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorOriginCreate,
 		Read:   resourceCdnFrontDoorOriginRead,
 		Update: resourceCdnFrontDoorOriginUpdate,
@@ -67,10 +68,22 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"health_probes_enabled": {
+			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Computed: !features.FourPointOhBeta(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return true
+				}(),
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"health_probes_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"http_port": {
@@ -144,6 +157,20 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		// The API comments about this properties function is incorrect, it does
+		// not disable the health probes it disabled the origin resource itself
+		resource.Schema["health_probes_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`health_probes_enabled` will be removed in favour of the `enabled` property in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"enabled"},
+		}
+	}
+
+	return resource
 }
 
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -187,9 +214,17 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	skuName := profile.Sku.Name
 
+	var enabled bool
+	if !features.FourPointOhBeta() {
+		enabled = d.Get("health_probes_enabled").(bool)
+	}
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
+		enabled = d.Get("enabled").(bool)
+	}
+
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 	props := &cdn.AFDOriginProperties{
-		EnabledState:                expandEnabledBool(d.Get("health_probes_enabled").(bool)),
+		EnabledState:                expandEnabledBool(enabled),
 		EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 		HostName:                    utils.String(d.Get("host_name").(string)),
 		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -253,7 +288,10 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
-		d.Set("health_probes_enabled", flattenEnabledBool(props.EnabledState))
+		if !features.FourPointOhBeta() {
+			d.Set("health_probes_enabled", flattenEnabledBool(props.EnabledState))
+		}
+		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
 		d.Set("https_port", props.HTTPSPort)
@@ -281,8 +319,13 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("certificate_name_check_enabled") {
 		params.EnforceCertificateNameCheck = utils.Bool(d.Get("certificate_name_check_enabled").(bool))
 	}
-	if d.HasChange("health_probes_enabled") {
-		params.EnabledState = expandEnabledBool(d.Get("health_probes_enabled").(bool))
+	if !features.FourPointOhBeta() {
+		if d.HasChange("health_probes_enabled") {
+			params.EnabledState = expandEnabledBool(d.Get("health_probes_enabled").(bool))
+		}
+	}
+	if d.HasChange("enabled") {
+		params.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
 	}
 	if d.HasChange("host_name") {
 		params.HostName = utils.String(d.Get("host_name").(string))

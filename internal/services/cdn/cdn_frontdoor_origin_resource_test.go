@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -28,6 +29,24 @@ func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccCdnFrontDoorOrigin_basicThreePointOh(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+		r := CdnFrontDoorOriginResource{}
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basicThreePointOh(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		t.Skip("Test no longer valid due to deprecation of the 'health_probes_enabled' field in the 4.x version of the provider")
+	}
 }
 
 func TestAccCdnFrontDoorOrigin_requiresImport(t *testing.T) {
@@ -264,7 +283,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                           = azurerm_resource_group.test.name
   virtual_network_name                          = azurerm_virtual_network.test.name
   address_prefixes                              = ["10.5.1.0/24"]
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_public_ip" "test" {
@@ -398,6 +417,31 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
+  enabled                        = true
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorOriginResource) basicThreePointOh(data acceptance.TestData) string {
+	template := r.template(data, "Standard_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-cdnfdorigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+
   health_probes_enabled          = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
@@ -419,7 +463,7 @@ resource "azurerm_cdn_frontdoor_origin" "import" {
   name                          = azurerm_cdn_frontdoor_origin.test.name
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -444,7 +488,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -469,7 +513,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -494,7 +538,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_storage_account.test.primary_blob_host
   origin_host_header             = azurerm_storage_account.test.primary_blob_host
@@ -524,7 +568,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_storage_account.test.primary_web_host
   origin_host_header             = azurerm_storage_account.test.primary_web_host
@@ -554,7 +598,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_linux_web_app.test.default_hostname
   origin_host_header             = azurerm_linux_web_app.test.default_hostname
@@ -584,7 +628,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_private_link_service.test.nat_ip_configuration.0.private_ip_address
   origin_host_header             = azurerm_private_link_service.test.nat_ip_configuration.0.private_ip_address
@@ -601,9 +645,9 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 }
 
 func (CdnFrontDoorOriginResource) template(data acceptance.TestData, profileSku string, isLoadBalancer bool) string {
-	// NOTE: This is a hack for what I believe is a bug in the CDN Frontdoor API. I am currently speaking with the service
-	// team about how to correctly fix this issue, but in the meantime this is what we need to do to get this scenario to
-	// work.
+	// NOTE: This is a hack (the private link service dependency in the profile resource) for what I believe is a bug in
+	// the CDN Frontdoor API. I am currently speaking with the service team about how to correctly fix this issue,
+	// but in the meantime this is what we need to do to get this scenario to work.
 	var loadBalancerDependsOn string
 	if isLoadBalancer {
 		loadBalancerDependsOn = "depends_on = [azurerm_private_link_service.test]"

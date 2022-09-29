@@ -149,7 +149,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "accTestOrigin-%[1]d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80

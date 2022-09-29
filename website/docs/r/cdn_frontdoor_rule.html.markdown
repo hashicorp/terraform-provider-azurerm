@@ -10,7 +10,7 @@ description: |-
 
 Manages a Frontdoor Rule.
 
-!>**IMPORTANT:** To create the Frontdoor Rules resource successfully you **must** add a `depends_on` attribute to the `azurerm_cdn_frontdoor_rule` code block and reference both the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group` that are associated with the Frontdoor Rule resource.
+!>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin`, `azurerm_cdn_frontdoor_origin_group` and the `azurerm_cdn_frontdoor_route` that are associated with the Rule resource. The `azurerm_cdn_frontdoor_route` definition has been excluded from the below `Example Usage`, for brevity, but has been included in the `depends_on` meta-argument as an example of the correct way to define the `azurerm_cdn_frontdoor_rule` resource.
 
 ## Example Usage
 
@@ -76,7 +76,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_rule" "example" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example]
+  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example, azurerm_cdn_frontdoor_route.example]
 
   name                      = "examplerule"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.example.id
@@ -157,11 +157,11 @@ The following arguments are supported:
 
 * `behavior_on_match` - (Optional) If this rule is a match should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
 
-* `conditions` - (Optional) An `conditions` block as defined below.
+* `conditions` - (Optional) A `conditions` block as defined below.
 
 ---
 
-A `actions` block supports the following:
+An `actions` block supports the following:
 
 ->**NOTE:** You may include upto 5 separate actions in the `actions` block.
 
@@ -179,19 +179,19 @@ Some actions support `Action Server Variables` which provide access to structure
 
 ---
 
-A `url_redirect_action` block supports the following:
+An `url_redirect_action` block supports the following:
 
 * `redirect_type` - (Required) The response type to return to the requestor. Possible values include `Moved`, `Found` , `TemporaryRedirect` or `PermanentRedirect`.
 
-* `destination_hostname` - (Required) The host name you want the request to be redirected to. Leave blank to preserve the incoming host.
+* `destination_hostname` - (Required) The host name you want the request to be redirected to. The value must be a string between `0` and `2048` characters in length, leave blank to preserve the incoming host. Defaults to an empty string.
 
 * `redirect_protocol` - (Optional) The protocol the request will be redirected as. Possible values include `MatchRequest`, `Http` or `Https`. Defaults to `MatchRequest`.
 
-* `destination_path` - (Optional) The path to use in the redirect. Include the leading `/`. Leave blank to preserve the incoming path.
+* `destination_path` - (Optional) The path to use in the redirect. The value must be a string and include the leading `/`, leave blank to preserve the incoming path. Defaults to an empty string.
 
-* `query_string` - (Optional) The query string used in the redirect URL. Don't include the leading `?`. Leave blank to preserve the incoming query string.
+* `query_string` - (Optional) The query string used in the redirect URL. The value must be in the &lt;key>=&lt;value> or &lt;key>={`action_server_variable`} format and must not include the leading `?`, leave blank to preserve the incoming query string. Defaults to an empty string.
 
-* `destination_fragment` - (Optional) The fragment to use in the redirect. Leave blank to preserve the incoming fragment.
+* `destination_fragment` - (Optional) The fragment to use in the redirect. The value must be a string between `0` and `1024` characters in length, leave blank to preserve the incoming fragment. Defaults to an empty string.
 
 ---
 
@@ -217,7 +217,7 @@ A `route_configuration_override_action` block supports the following:
 
 ---
 
-A `url_rewrite_action` block supports the following:
+An `url_rewrite_action` block supports the following:
 
 * `source_pattern` - (Required) The source pattern in the URL path to replace. This uses prefix-based matching. For example, to match all URL paths use a forward slash `"/"` as the source pattern value.
 
@@ -319,7 +319,7 @@ A `host_name_condition` block supports the following:
 
 * `match_values` - (Required) A list of one or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -401,7 +401,7 @@ A `query_string_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the query string to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -417,7 +417,7 @@ A `post_args_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the `POST` argument to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -431,7 +431,7 @@ A `request_uri_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request URL to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -447,7 +447,7 @@ A `request_header_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -463,7 +463,7 @@ A `request_body_condition` block supports the following:
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -479,7 +479,7 @@ A `request_scheme_condition` block supports the following:
 
 ---
 
-A `url_path_condition` block supports the following:
+An `url_path_condition` block supports the following:
 
 ->The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
 
@@ -489,11 +489,11 @@ A `url_path_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request path to match. Don't include the leading slash (`/`). If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
-A `url_file_extension_condition` block supports the following:
+An `url_file_extension_condition` block supports the following:
 
 ->The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
 
@@ -503,11 +503,11 @@ A `url_file_extension_condition` block supports the following:
 
 * `match_values` - (Required) A list of one or more string or integer values(e.g. "1") representing the value of the request file extension to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
-A `url_filename_condition` block supports the following:
+An `url_filename_condition` block supports the following:
 
 ->The `url_filename_condition` identifies requests that include the specified file name in the request URL.
 
@@ -517,7 +517,7 @@ A `url_filename_condition` block supports the following:
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -545,11 +545,11 @@ A `cookies_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transform` - (Optional) A Conditional operator. Possible values include `Lowercase` , `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
 
 ---
 
-A `is_device_condition` block supports the following:
+An `is_device_condition` block supports the following:
 
 ->Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
 
