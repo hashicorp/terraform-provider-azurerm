@@ -74,6 +74,9 @@ service/cost-management:
 service/custom-resource-provider:
   - internal/services/customproviders/**/*
 
+service/dashboard:
+  - internal/services/dashboard/**/*
+
 service/data-factory:
   - internal/services/datafactory/**/*
 
@@ -107,6 +110,9 @@ service/dns:
 
 service/domain-services:
   - internal/services/domainservices/**/*
+
+service/elastic:
+  - internal/services/elastic/**/*
 
 service/event-grid:
   - internal/services/eventgrid/**/*

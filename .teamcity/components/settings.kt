@@ -39,14 +39,23 @@ var serviceTestConfigurationOverrides = mapOf(
         //Blueprints are constrained on the number of targets available - these execute quickly, so can be serialised
         "blueprints" to testConfiguration(parallelism = 1),
 
+        // CDN is only available in certain locations
+        "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true)),
+
         // "cognitive" is expensive - Monday, Wednesday, Friday
         "cognitive" to testConfiguration(daysOfWeek = "2,4,6"),
 
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
+        //Confidential Ledger
+        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
+
+        // Custom Providers is only available in certain locations
+        "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
@@ -57,11 +66,17 @@ var serviceTestConfigurationOverrides = mapOf(
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
+        // Elastic can't provision many in parallel
+        "elastic" to testConfiguration(parallelism = 1),
+
         // HPC Cache has a 4 instance per subscription quota as of early 2021
         "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
+
+        // IoT Central is only available in certain locations
+        "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
@@ -69,14 +84,17 @@ var serviceTestConfigurationOverrides = mapOf(
          // Logic uses app service which is only available in certain locations
          "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+         // Logz is only available in certain locations
+         "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
-        // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "2,4,6"),
+        // netapp has a max of 10 accounts per subscription so lets limit it to 3 to account for broken ones, run Monday, Wednesday, Friday
+        "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         "policy" to testConfiguration(useAltSubscription = true),
 
