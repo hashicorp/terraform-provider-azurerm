@@ -6,15 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -63,13 +61,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.ReplicationRolePrimary),
 					string(redis.ReplicationRoleSecondary),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: func() pluginsdk.SchemaDiffSuppressFunc {
-					if !features.ThreePointOhBeta() {
-						return suppress.CaseDifference
-					}
-					return nil
-				}(),
+				}, false),
 			},
 
 			"name": {

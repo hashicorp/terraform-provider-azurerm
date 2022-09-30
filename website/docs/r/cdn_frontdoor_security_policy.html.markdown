@@ -54,7 +54,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 resource "azurerm_cdn_frontdoor_security_policy" "example" {
   name                     = "Example-Security-Policy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.example.id
 
   security_policies {
     firewall {
@@ -96,7 +95,7 @@ A `firewall` block supports the following:
 
 ---
 
-A `association` block supports the following:
+An `association` block supports the following:
 
 * `domain` - (Required) One or more `domain` blocks as defined below. Changing this forces a new Frontdoor Security Policy to be created.
 
@@ -106,7 +105,7 @@ A `association` block supports the following:
 
 A `domain` block supports the following:
 
-~>**NOTE:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked Frontdoor Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
+~> **NOTE:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked Frontdoor Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
 
 * `cdn_frontdoor_domain_id` - (Required) The Resource Id of the **Frontdoor Custom Domain** or **Frontdoor Endpoint** that should be bound to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 

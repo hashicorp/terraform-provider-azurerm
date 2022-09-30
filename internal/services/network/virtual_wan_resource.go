@@ -5,12 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,7 +41,7 @@ func resourceVirtualWan() *pluginsdk.Resource {
 }
 
 func resourceVirtualWanSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -86,17 +85,6 @@ func resourceVirtualWanSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["allow_vnet_to_vnet_traffic"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
-		}
-	}
-
-	return out
 }
 
 func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -185,9 +173,6 @@ func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
-		if !features.ThreePointOhBeta() {
-			d.Set("allow_vnet_to_vnet_traffic", false)
-		}
 		d.Set("type", props.Type)
 	}
 

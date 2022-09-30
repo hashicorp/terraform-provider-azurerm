@@ -70,7 +70,7 @@ The following arguments are supported:
 
 ---
 
-* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
+* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
 * `auth_settings` - (Optional) an `auth_settings` block as detailed below.
 
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as detailed below.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the storage account for the Function App Slot.
 
@@ -110,9 +110,15 @@ The following arguments are supported:
 
 ~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
 
-~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
+
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
 ---
 
@@ -256,7 +262,7 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
@@ -318,7 +324,7 @@ A `google` block supports the following:
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.
 
 ---
 
@@ -384,7 +390,7 @@ An `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
 
-* `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7`.
+* `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , and `7.2`.
 
 * `python_version` - (Optional) The version of Python to use. Possible values include `3.9`, `3.8`, and `3.7`.
 
@@ -420,7 +426,7 @@ A `docker` block supports the following:
 
 A `headers` block supports the following:
 
-~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/en-us/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
+~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
@@ -513,7 +519,7 @@ A `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App Slot.
 * `update` - (Defaults to 30 minutes) Used when updating the Linux Function App Slot.
@@ -525,5 +531,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A Linux Function App Slot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import linux_function_app_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
+terraform import azurerm_linux_function_app_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 ```

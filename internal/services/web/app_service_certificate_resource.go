@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -170,10 +169,6 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("expiration_date", expirationDate)
 		d.Set("thumbprint", props.Thumbprint)
-
-		if hep := props.HostingEnvironmentProfile; !features.ThreePointOhBeta() && hep != nil {
-			d.Set("hosting_environment_profile_id", hep.ID)
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -202,7 +197,7 @@ func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -284,14 +279,4 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["hosting_environment_profile_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been deprecated and replaced with `app_service_plan_id`",
-		}
-	}
-	return out
 }

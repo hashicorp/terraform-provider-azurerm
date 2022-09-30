@@ -3,36 +3,41 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_origin"
 description: |-
-  Manages a Frontdoor Origin.
+  Manages a `CDN FrontDoor Origin.`
 ---
 
 # azurerm_cdn_frontdoor_origin
 
-Manages a Frontdoor Origin.
+Manages a CDN FrontDoor Origin.
+
+!>**IMPORTANT:** If you are attempting to implement an Origin that uses its own Private Link Service with a Load Balancer the Profile resource in your configuration file **must** hava a `depends_on` meta-argument which references the `azurerm_private_link_service`, see `Example Usage With Private Link Service` below.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-frontdoor-profile"
+  name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "example" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Premium_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
-  name                     = "example-originGroup"
-  cdn_frontdoor_profile_id = azurerm_frontdoor_profile.example.id
+  name                     = "example-origingroup"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {}
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
-  name                                  = "example-origin"
-  cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = false
 
   host_name          = "contoso.com"
@@ -48,12 +53,12 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-frontdoor-profile"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "saexample"
+  name                     = "examplestoracc"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Premium"
@@ -70,21 +75,24 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-resource "azurerm_frontdoor_profile" "example" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Premium_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
-  name                     = "example-originGroup"
-  cdn_frontdoor_profile_id = azurerm_frontdoor_profile.example.id
+  name                     = "example-origin-group"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {}
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_storage_account.example.primary_blob_host
   origin_host_header             = azurerm_storage_account.example.primary_blob_host
@@ -100,33 +108,119 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 }
 ```
 
+## Example Usage With Private Link Service
+
+```hcl
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  depends_on = [azurerm_private_link_service.example]
+
+  name                = "profile-example"
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Premium_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
+  name                     = "group-example"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "vn-example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "example" {
+  name                                          = "sn-example"
+  resource_group_name                           = azurerm_resource_group.example.name
+  virtual_network_name                          = azurerm_virtual_network.example.name
+  address_prefixes                              = ["10.5.1.0/24"]
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_public_ip" "example" {
+  name                = "ip-example"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "example" {
+  name                = "lb-example"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  frontend_ip_configuration {
+    name                 = azurerm_public_ip.example.name
+    public_ip_address_id = azurerm_public_ip.example.id
+  }
+}
+
+resource "azurerm_private_link_service" "example" {
+  name                = "pls-example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  visibility_subscription_ids                 = [data.azurerm_client_config.current.subscription_id]
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
+
+  nat_ip_configuration {
+    name                       = "primary"
+    private_ip_address         = "10.5.1.17"
+    private_ip_address_version = "IPv4"
+    subnet_id                  = azurerm_subnet.example.id
+    primary                    = true
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Origin. Possible values must be between 2 and 90 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens. Changing this forces a new Frontdoor Origin to be created.
+* `name` - (Required) The name which should be used for this CDN FrontDoor Origin. Changing this forces a new CDN FrontDoor Origin to be created.
 
-* `cdn_frontdoor_origin_group_id` - (Required) The ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Origin Group to be created.
+* `cdn_frontdoor_origin_group_id` - (Required) The ID of the CDN FrontDoor Origin Group within which this CDN FrontDoor Origin should exist. Changing this forces a new CDN FrontDoor Origin to be created.
 
-* `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported. This should be unique across all Frontdoor Origins in a Frontdoor Endpoint.
+* `host_name` - (Required) The IPv4 address, IPv6 address or Domain name of the Origin.
 
-* `cdn_frontdoor_origin_id` - (Optional) Resource ID.
+!> **IMPORTANT:** This must be unique across all CDN FrontDoor Origins within a CDN FrontDoor Endpoint.
 
-* `health_probes_enabled` - (Optional) Are health probes enabled against origins defined under the origin group? Health probes can only be disabled if there is a single enabled origin in single enabled origin group. Possible values are `true` or `false`. Defaults to `true`.
+* `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
-* `certificate_name_check_enabled` - (Optional) Whether to enable certificate name check at origin level. Possible values are `true` or `false`. Defaults to `false`.
+* `enabled` - (Optional) Should the origin be enabled? Possible values are `true` or `false`. Defaults to `true`.
 
-* `private_link` - (Optional) A `private_link` block as defined below.
-
-->**NOTE:** A `private_link` field is only valid if the Frontdoor Profile is a `Premium_AzureFrontDoor` SKU and the Frontdoor Origins `certificate_name_check_enabled` field is set to `true`.
+-> **NOTE:** In version 4.0 of the provider this value will default to `true`, however due to the deprecation of the `health_probes_enabled` property in version 3.x of the AzureRM Provider this value will need to be explicitly set until the 4.0 provider is released.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
 * `https_port` - (Optional) The value of the HTTPS port. Must be between `1` and `65535`. Defaults to `443`.
 
-* `origin_host_header` - (Optional) The host header value sent to the origin with each request. Possible values include an `IPv4` IP address, `IPv6` IP address or a valid `domain name`. If you leave field undefined, the request's hostname determines this value. Azure Frontdoor Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin's hostname. This field's value overrides the host header defined in the Frontdoor Endpoint. For more information on how to properly set the origin host header value please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/origin?pivots=front-door-standard-premium#origin-host-header).
+* `origin_host_header` - (Optional) The host header value (an IPv4 address, IPv6 address or Domain name) which is sent to the origin with each request. If unspecified the hostname from the request will be used. 
 
-* `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy. Must be between `1` and `5`(inclusive). Defaults to `1`.
+-> Azure FrontDoor Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin's hostname. This field's value overrides the host header defined in the FrontDoor Endpoint. For more information on how to properly set the origin host header value please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/origin?pivots=front-door-standard-premium#origin-host-header).
+
+* `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy. Must be between `1` and `5` (inclusive). Defaults to `1`.
+
+* `private_link` - (Optional) A `private_link` block as defined below.
+
+-> **NOTE:** Private Link requires that the CDN FrontDoor Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
 
 * `weight` - (Optional) The weight of the origin in a given origin group for load balancing. Must be between `1` and `1000`. Defaults to `500`.
 
@@ -134,17 +228,21 @@ The following arguments are supported:
 
 A `private_link` block supports the following:
 
-!>**IMPORTANT:** The approval of the Private Link Endpoint is currently a manual step in this process. For more information please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
+~> **NOTE:** At this time the Private Link Endpoint **must be approved manually** - for more information and region availability please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
 
-!>**IMPORTANT:** Due to a bug in the service teams code, if you are attempting to destroy a `Private Link Endpoint` connection to a `azurerm_lb`(e.g. `Azure Load Balancer`) resource within your CDN Frontdoor Origin resource which requires you to standup your own `azurerm_private_link_service`. You **MUST** add a `depends_on` attribute to your `azurerm_cdn_frontdoor_profile` which references the `azurerm_private_link_service`(e.g. `depends_on = [azurerm_private_link_service.example]`). If this step is skipped you will receive a `Private link service /subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/Microsoft.Network/privateLinkServices/{privateLinkService} cannot be deleted since it has N private endpoint connections. Please delete all private endpoint connections before deleting the private link service.` error.
+!> **IMPORTANT:** Origin support for direct private end point connectivity is limited to `Storage (Azure Blobs)`, `App Services` and `internal load balancers`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
 
-* `request_message` - (Optional) The request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for CDN Frontdoor Private Link Origin`.
+!> **IMPORTANT:** To associate a Load Balancer with a CDN FrontDoor Origin via Private LInk you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the CDN FrontDoor Service. 
 
-* `target_type` - (Optional) `TBD` (`**NOTE:**` as of right now I know these are valid `blob`, `blob_secondary`, `web` or `sites`. This value is not valid for `Load Balancer` resources which you must stand up your own Private Link Service).
+* `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for CDN Frontdoor Private Link Origin`.
 
-* `location` - (Required) The location of the private link resource, for performance reasons this value should match the location of the `private_link_target_id` resource.
+* `target_type` - (Optional) Specifies the type of target for this Private Link Endpoint. Possible values are `blob`, `blob_secondary`, `web` and `sites`.
 
-* `private_link_target_id` - (Required) The resource ID of the Azure resource to connect to via the private link(e.g. `azurerm_storage_account.example.id`).
+-> **NOTE:** `target_type` cannot be specified when using a Load Balancer as an Origin.
+
+* `location` - (Required) Specifies the location where the Private Link resource should exist.
+
+* `private_link_target_id` - (Required) The ID of the Azure Resource to connect to via the Private Link.
 
 ---
 
@@ -159,20 +257,20 @@ A `private_link` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Origin.
+* `id` - The ID of the CDN FrontDoor Origin.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Origin.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Origin.
-* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Origin.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Origin.
+* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Origin.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Origin.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN FrontDoor Origin.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Origin.
 
 ## Import
 
-Frontdoor Origins can be imported using the `resource id`, e.g.
+CDN FrontDoor Origin can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_origin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1/origins/origin1

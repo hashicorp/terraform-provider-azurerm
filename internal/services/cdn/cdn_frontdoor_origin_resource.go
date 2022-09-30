@@ -2,13 +2,17 @@ package cdn
 
 import (
 	"fmt"
-	"strings"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	privateLinkServiceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -18,12 +22,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorOriginCreate,
-		Read:   resourceCdnFrontdoorOriginRead,
-		Update: resourceCdnFrontdoorOriginUpdate,
-		Delete: resourceCdnFrontdoorOriginDelete,
+func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
+	resource := &pluginsdk.Resource{
+		Create: resourceCdnFrontDoorOriginCreate,
+		Read:   resourceCdnFrontDoorOriginRead,
+		Update: resourceCdnFrontDoorOriginUpdate,
+		Delete: resourceCdnFrontDoorOriginDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -33,7 +37,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorOriginID(id)
+			_, err := parse.FrontDoorOriginID(id)
 			return err
 		}),
 
@@ -42,42 +46,44 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CdnFrontdoorOriginName,
+				ValidateFunc: validate.FrontDoorOriginName,
 			},
 
 			"cdn_frontdoor_origin_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorOriginGroupID,
+				ValidateFunc: validate.FrontDoorOriginGroupID,
 			},
 
-			// HostName cannot be null or empty.;
 			"host_name": {
-				Type:         pluginsdk.TypeString,
+				Type: pluginsdk.TypeString,
+				// HostName cannot be null or empty.
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// NOTE: In swagger this is the Azure Origin... this is not currently used and is not what I thought is was
-			// This value can be: storage (Azure Blobs), Storage (Classic), Storage (Static Website), Cloud Service,
-			// App Service, Static Web App, API Management, Application Gateway, Public IP Address or a Traffic Manager.
-			// Currently, this functionality is being exposed via the origin_host_header field.
-
-			// "cdn_frontdoor_origin_id": {
-			// 	Type:     pluginsdk.TypeString,
-			// 	Optional: true,
-			// },
-
-			"health_probes_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"certificate_name_check_enabled": {
 				Type:     pluginsdk.TypeBool,
+				Required: true,
+			},
+
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return true
+				}(),
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"health_probes_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"http_port": {
@@ -108,22 +114,13 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 5),
 			},
 
-			"weight": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      500,
-				ValidateFunc: validation.IntBetween(1, 1000),
-			},
-
 			"private_link": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// TODO: does this want to be normalized?
-						// WS: Fixed
-						"location": azure.SchemaLocation(),
+						"location": commonschema.Location(),
 
 						"private_link_target_id": {
 							Type:         pluginsdk.TypeString,
@@ -134,34 +131,60 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 						"request_message": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      "Access request for CDN Frontdoor Private Link Origin",
+							Default:      "Access request for CDN FrontDoor Private Link Origin",
 							ValidateFunc: validation.StringLenBetween(1, 140),
 						},
 
 						"target_type": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice(cdnFrontdoorPrivateLinkTargetTypes(), false),
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"blob",
+								"blob_secondary",
+								"sites",
+								"web",
+							}, false),
 						},
 					},
 				},
 			},
+
+			"weight": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      500,
+				ValidateFunc: validation.IntBetween(1, 1000),
+			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		// The API comments about this properties function is incorrect, it does
+		// not disable the health probes it disabled the origin resource itself
+		resource.Schema["health_probes_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`health_probes_enabled` will be removed in favour of the `enabled` property in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"enabled"},
+		}
+	}
+
+	return resource
 }
 
-func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	originGroupId, err := parse.FrontdoorOriginGroupID(d.Get("cdn_frontdoor_origin_group_id").(string))
+	originGroupId, err := parse.FrontDoorOriginGroupID(d.Get("cdn_frontdoor_origin_group_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontdoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
+	id := parse.NewFrontDoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -175,7 +198,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 	// I need to get the profile SKU so I know if it is valid or not to define a private link as
 	// private links are only allowed in the premium sku...
-	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+	profileId := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
@@ -187,15 +210,21 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if profile.Sku == nil {
-		return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
+		return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
 	}
 	skuName := profile.Sku.Name
 
+	var enabled bool
+	if !features.FourPointOhBeta() {
+		enabled = d.Get("health_probes_enabled").(bool)
+	}
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
+		enabled = d.Get("enabled").(bool)
+	}
+
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 	props := &cdn.AFDOriginProperties{
-		// AzureOrigin is currently not used, service team asked me to temporarily remove it from the resource
-		// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-		EnabledState:                convertCdnFrontdoorBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
+		EnabledState:                expandEnabledBool(enabled),
 		EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 		HostName:                    utils.String(d.Get("host_name").(string)),
 		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -228,15 +257,15 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorOriginRead(d, meta)
+	return resourceCdnFrontDoorOriginRead(d, meta)
 }
 
-func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorOriginID(d.Id())
+	id, err := parse.FrontDoorOriginID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -251,20 +280,18 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("name", id.OriginName)
-	d.Set("cdn_frontdoor_origin_group_id", parse.NewFrontdoorOriginGroupID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
+	d.Set("cdn_frontdoor_origin_group_id", parse.NewFrontDoorOriginGroupID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
 
 	if props := resp.AFDOriginProperties; props != nil {
-
-		// if err := d.Set("cdn_frontdoor_origin_id", flattenResourceReference(props.AzureOrigin)); err != nil {
-		// 	return fmt.Errorf("setting `cdn_frontdoor_origin_id`: %+v", err)
-		// }
-
-		if props.SharedPrivateLinkResource != nil {
-			d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource))
+		if err := d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource)); err != nil {
+			return fmt.Errorf("setting 'private_link': %+v", err)
 		}
 
-		d.Set("health_probes_enabled", convertCdnFrontdoorEnabledStateToBool(&props.EnabledState))
 		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
+		if !features.FourPointOhBeta() {
+			d.Set("health_probes_enabled", flattenEnabledBool(props.EnabledState))
+		}
+		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
 		d.Set("https_port", props.HTTPSPort)
@@ -276,62 +303,77 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorOriginID(d.Id())
+	id, err := parse.FrontDoorOriginID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	// I need to get the profile SKU so I know if it is valid or not to define a private link as
-	// private links are only allowed in the premium sku...
-	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
-	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
-	if err != nil {
-		if utils.ResponseWasNotFound(profile.Response) {
-			return fmt.Errorf("retrieving parent %s: not found", profileId)
+	params := cdn.AFDOriginUpdatePropertiesParameters{}
+
+	if d.HasChange("certificate_name_check_enabled") {
+		params.EnforceCertificateNameCheck = utils.Bool(d.Get("certificate_name_check_enabled").(bool))
+	}
+	if !features.FourPointOhBeta() {
+		if d.HasChange("health_probes_enabled") {
+			params.EnabledState = expandEnabledBool(d.Get("health_probes_enabled").(bool))
 		}
-
-		return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 	}
-	if profile.Sku == nil {
-		return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
+	if d.HasChange("enabled") {
+		params.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
 	}
-	skuName := profile.Sku.Name
-
-	originHostHeader := d.Get("origin_host_header").(string)
-	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
-
-	props := cdn.AFDOriginUpdateParameters{
-		AFDOriginUpdatePropertiesParameters: &cdn.AFDOriginUpdatePropertiesParameters{
-			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                convertCdnFrontdoorBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
-			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
-			HostName:                    utils.String(d.Get("host_name").(string)),
-			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
-			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
-			Priority:                    utils.Int32(int32(d.Get("priority").(int))),
-			Weight:                      utils.Int32(int32(d.Get("weight").(int))),
-		},
+	if d.HasChange("host_name") {
+		params.HostName = utils.String(d.Get("host_name").(string))
 	}
-
+	if d.HasChange("http_port") {
+		params.HTTPPort = utils.Int32(int32(d.Get("http_port").(int)))
+	}
+	if d.HasChange("https_port") {
+		params.HTTPSPort = utils.Int32(int32(d.Get("https_port").(int)))
+	}
+	if d.HasChange("origin_host_header") {
+		params.OriginHostHeader = utils.String(d.Get("origin_host_header").(string))
+	}
 	if d.HasChange("private_link") {
+		// I need to get the profile SKU so I know if it is valid or not to define a private link as
+		// private links are only allowed in the premium sku...
+		profileId := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+		profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+		if err != nil {
+			if utils.ResponseWasNotFound(profile.Response) {
+				return fmt.Errorf("retrieving parent %s: not found", profileId)
+			}
+
+			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
+		}
+		if profile.Sku == nil {
+			return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
+		}
+		skuName := profile.Sku.Name
+
+		enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)
 		if err != nil {
 			return err
 		}
-		props.SharedPrivateLinkResource = privateLinkSettings
+		params.SharedPrivateLinkResource = privateLinkSettings
+	}
+	if d.HasChange("priority") {
+		params.Priority = utils.Int32(int32(d.Get("priority").(int)))
+	}
+	if d.HasChange("weight") {
+		params.Weight = utils.Int32(int32(d.Get("weight").(int)))
 	}
 
-	if originHostHeader != "" {
-		props.OriginHostHeader = utils.String(originHostHeader)
+	payload := cdn.AFDOriginUpdateParameters{
+		AFDOriginUpdatePropertiesParameters: &params,
 	}
-
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, props)
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -339,29 +381,35 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceCdnFrontdoorOriginRead(d, meta)
+	return resourceCdnFrontDoorOriginRead(d, meta)
 }
 
-func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO: Check to see if there is a Load Balancer Private Link connected,
-	// if so disconnect the Private Link association with the Frontdoor Origin
-	// else the destroy will fail because the Private Link Service has an active
-	// Private Link Endpoint connection...
-
-	// It looks like Frontdoor does remove the Private link, I just need to poll here until it is removed...
-	// Investigate this further...
-	// TODO: what's the deal with this? ^
-	// WS: There is a bug in the service code, for only the load balancer scenario, the private link connection is not removed until the
-	// origin is totally destroyed. The workaround for this issue is to put a depends_on the private link service to the origin so the origin
-	// will be deleted first before the private link service is destroyed.
-	id, err := parse.FrontdoorOriginID(d.Id())
+	id, err := parse.FrontDoorOriginID(d.Id())
 	if err != nil {
 		return err
 	}
+
+	// @tombuildsstuff: JC/WS to dig into if we need to conditionally remove the Private Link
+	// via an Update before deletion - presumably we'd also need a Lock on the private link resource
+
+	/*
+		original:
+			// TODO: Check to see if there is a Load Balancer Private Link connected,
+			// if so disconnect the Private Link association with the Frontdoor Origin
+			// else the destroy will fail because the Private Link Service has an active
+			// Private Link Endpoint connection...
+
+			// It looks like Frontdoor does remove the Private link, I just need to poll here until it is removed...
+			// Investigate this further...
+			// WS: There is a bug in the service code, for only the load balancer scenario, the private link connection is not removed until the
+			// origin is totally destroyed. The workaround for this issue is to put a depends_on the private link service to the origin so the origin
+			// will be deleted first before the private link service is destroyed.
+	*/
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
 	if err != nil {
@@ -384,11 +432,11 @@ func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableC
 	}
 
 	if skuName != cdn.SkuNamePremiumAzureFrontDoor {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when the Frontdoor Profile is using a %q SKU, got %q", cdn.SkuNamePremiumAzureFrontDoor, skuName)
+		return nil, fmt.Errorf("the 'private_link' field can only be configured when the Frontdoor Profile is using a 'Premium_AzureFrontDoor' SKU, got %q", skuName)
 	}
 
 	if !enableCertNameCheck {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when `certificate_name_check_enabled` is set to `true`")
+		return nil, fmt.Errorf("the 'private_link' field can only be configured when 'certificate_name_check_enabled' is set to 'true'")
 	}
 
 	// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
@@ -399,13 +447,13 @@ func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableC
 	_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
 	if err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
-		return nil, fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s but got %[4]q", "private_link", "target_type", strings.Join(cdnFrontdoorPrivateLinkTargetTypes(), ", "), targetType)
+		return nil, fmt.Errorf("either 'private_link' or 'target_type' must be specified")
 	}
 
 	config := input[0].(map[string]interface{})
 
 	resourceId := config["private_link_target_id"].(string)
-	location := azure.NormalizeLocation(config["location"].(string))
+	location := location.Normalize(config["location"].(string))
 	groupId := config["target_type"].(string)
 	requestMessage := config["request_message"].(string)
 
@@ -429,11 +477,6 @@ func flattenPrivateLinkSettings(input *cdn.SharedPrivateLinkResourceProperties) 
 		privateLinkTargetId = *input.PrivateLink.ID
 	}
 
-	location := ""
-	if input.PrivateLinkLocation != nil {
-		location = *input.PrivateLinkLocation
-	}
-
 	requestMessage := ""
 	if input.RequestMessage != nil {
 		requestMessage = *input.RequestMessage
@@ -446,7 +489,7 @@ func flattenPrivateLinkSettings(input *cdn.SharedPrivateLinkResourceProperties) 
 
 	return []interface{}{
 		map[string]interface{}{
-			"location":               location,
+			"location":               location.NormalizeNilable(input.PrivateLinkLocation),
 			"private_link_target_id": privateLinkTargetId,
 			"request_message":        requestMessage,
 			"target_type":            targetType,

@@ -6,10 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -43,7 +42,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 }
 
 func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -153,20 +152,6 @@ func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		out["hub_to_vitual_network_traffic_allowed"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
-		}
-
-		out["vitual_network_to_hub_gateways_traffic_allowed"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
-		}
-	}
-	return out
 }
 
 func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -269,14 +254,6 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
-
-		if !features.ThreePointOhBeta() {
-			// The following two attributes are deprecated by API (which will always return `true`).
-			// Hence, we explicitly set them to `false` (as false is the default value when users omit that property).
-			d.Set("hub_to_vitual_network_traffic_allowed", false)
-			d.Set("vitual_network_to_hub_gateways_traffic_allowed", false)
-		}
-
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)
 		remoteVirtualNetworkId := ""
 		if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {

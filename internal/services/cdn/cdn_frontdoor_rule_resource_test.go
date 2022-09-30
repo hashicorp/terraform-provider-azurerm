@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorRuleResource struct{}
+type CdnFrontDoorRuleResource struct{}
 
-func TestAccCdnFrontdoorRule_basic(t *testing.T) {
+func TestAccCdnFrontDoorRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
-	r := CdnFrontdoorRuleResource{}
+	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -30,9 +30,9 @@ func TestAccCdnFrontdoorRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRule_actionOnly(t *testing.T) {
+func TestAccCdnFrontDoorRule_actionOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
-	r := CdnFrontdoorRuleResource{}
+	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.actionOnly(data),
@@ -44,9 +44,9 @@ func TestAccCdnFrontdoorRule_actionOnly(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRule_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
-	r := CdnFrontdoorRuleResource{}
+	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -58,9 +58,9 @@ func TestAccCdnFrontdoorRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRule_complete(t *testing.T) {
+func TestAccCdnFrontDoorRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
-	r := CdnFrontdoorRuleResource{}
+	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -72,9 +72,9 @@ func TestAccCdnFrontdoorRule_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRule_update(t *testing.T) {
+func TestAccCdnFrontDoorRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
-	r := CdnFrontdoorRuleResource{}
+	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -93,10 +93,9 @@ func TestAccCdnFrontdoorRule_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRule_invalidCacheDuration(t *testing.T) {
-	// TODO: can't this be a unit test?
+func TestAccCdnFrontDoorRule_invalidCacheDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
-	r := CdnFrontdoorRuleResource{}
+	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidCacheDuration(data),
@@ -105,8 +104,8 @@ func TestAccCdnFrontdoorRule_invalidCacheDuration(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorRuleID(state.ID)
+func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.FrontDoorRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +121,7 @@ func (r CdnFrontdoorRuleResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorRuleResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -132,6 +131,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "accTestProfile-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
@@ -149,7 +149,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "accTestOrigin-%[1]d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -166,7 +166,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontdoorRuleResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -198,7 +198,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorRuleResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -227,7 +227,7 @@ resource "azurerm_cdn_frontdoor_rule" "import" {
 `, config)
 }
 
-func (r CdnFrontdoorRuleResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -303,7 +303,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorRuleResource) update(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -370,7 +370,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorRuleResource) actionOnly(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) actionOnly(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -401,7 +401,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorRuleResource) invalidCacheDuration(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) invalidCacheDuration(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {

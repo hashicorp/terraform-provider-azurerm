@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,16 +60,15 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			},
 
 			"frequency": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.ScheduleFrequencyDay),
 					string(automation.ScheduleFrequencyHour),
 					string(automation.ScheduleFrequencyMonth),
 					string(automation.ScheduleFrequencyOneTime),
 					string(automation.ScheduleFrequencyWeek),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			// ignored when frequency is `OneTime`
@@ -106,7 +104,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      getDefaultTimezone(),
+				Default:      "Etc/UTC",
 				ValidateFunc: azvalidate.AzureTimeZoneString(),
 			},
 
@@ -123,8 +121,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 						string(automation.ScheduleDayFriday),
 						string(automation.ScheduleDaySaturday),
 						string(automation.ScheduleDaySunday),
-					}, !features.ThreePointOhBeta()),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					}, false),
 				},
 				Set:           set.HashStringIgnoreCase,
 				ConflictsWith: []string{"month_days", "monthly_occurrence"},
@@ -150,9 +147,8 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(automation.ScheduleDayMonday),
 								string(automation.ScheduleDayTuesday),
@@ -161,7 +157,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 								string(automation.ScheduleDayFriday),
 								string(automation.ScheduleDaySaturday),
 								string(automation.ScheduleDaySunday),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 						"occurrence": {
 							Type:     pluginsdk.TypeInt,
@@ -181,7 +177,12 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
 			if frequency == "onetime" && interval.(int) > 0 {
-				return fmt.Errorf("`interval` cannot be set when frequency is `OneTime`")
+				// because `interval` is optional and computed, so interval value can exist even it removed from configuration
+				// have to check it in raw config
+				intervalVal := diff.GetRawConfig().GetAttr("interval")
+				if !intervalVal.IsNull() {
+					return fmt.Errorf("`interval` cannot be set when frequency is `OneTime`")
+				}
 			}
 
 			_, hasWeekDays := diff.GetOk("week_days")
@@ -430,11 +431,4 @@ func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.Advanc
 		}
 	}
 	return flattenedMonthlyOccurrences
-}
-
-func getDefaultTimezone() string {
-	if features.ThreePointOhBeta() {
-		return "Etc/UTC"
-	}
-	return "UTC"
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -106,50 +105,38 @@ func (ApiManagementCustomDomainResource) Exists(ctx context.Context, clients *cl
 }
 
 func (r ApiManagementCustomDomainResource) basic(data acceptance.TestData) string {
-	attrName := "gateway"
-	if !features.ThreePointOhBeta() {
-		attrName = "proxy"
-	}
-	snippet := fmt.Sprintf(`  %s {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
-  }
-`, attrName)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-%s
+  gateway {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
 
   developer_portal {
     host_name    = "portal.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data, true), snippet)
+`, r.template(data, true))
 }
 
 func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) string {
-	attrName := "gateway"
-	if !features.ThreePointOhBeta() {
-		attrName = "proxy"
-	}
-	snippet := fmt.Sprintf(`  %s {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
-  }
-`, attrName)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-%s
+  gateway {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
 }
-`, r.template(data, true), snippet)
+`, r.template(data, true))
 }
 
 func (r ApiManagementCustomDomainResource) developerPortalOnly(data acceptance.TestData) string {
@@ -168,29 +155,23 @@ resource "azurerm_api_management_custom_domain" "test" {
 }
 
 func (r ApiManagementCustomDomainResource) requiresImport(data acceptance.TestData) string {
-	attrName := "gateway"
-	if !features.ThreePointOhBeta() {
-		attrName = "proxy"
-	}
-	snippet := fmt.Sprintf(`  %s {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
-  }
-`, attrName)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
-%s
+  gateway {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
 
   developer_portal {
     host_name    = "portal.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.basic(data), snippet)
+`, r.basic(data))
 }
 
 func (ApiManagementCustomDomainResource) template(data acceptance.TestData, systemAssignedIdentity bool) string {

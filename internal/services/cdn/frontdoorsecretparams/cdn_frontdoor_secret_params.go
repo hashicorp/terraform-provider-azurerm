@@ -1,4 +1,4 @@
-package cdnfrontdoorsecretparams
+package CdnFrontDoorsecretparams
 
 import (
 	"context"
@@ -10,37 +10,37 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorSecretParameters struct {
+type CdnFrontDoorSecretParameters struct {
 	TypeName   cdn.TypeBasicSecretParameters
 	ConfigName string
 }
 
-type CdnFrontdoorSecretMappings struct {
-	UrlSigningKey                     CdnFrontdoorSecretParameters
-	ManagedCertificate                CdnFrontdoorSecretParameters
-	CustomerCertificate               CdnFrontdoorSecretParameters
-	AzureFirstPartyManagedCertificate CdnFrontdoorSecretParameters
+type CdnFrontDoorSecretMappings struct {
+	UrlSigningKey                     CdnFrontDoorSecretParameters
+	ManagedCertificate                CdnFrontDoorSecretParameters
+	CustomerCertificate               CdnFrontDoorSecretParameters
+	AzureFirstPartyManagedCertificate CdnFrontDoorSecretParameters
 }
 
-func InitializeCdnFrontdoorSecretMappings() *CdnFrontdoorSecretMappings {
-	m := new(CdnFrontdoorSecretMappings)
+func InitializeCdnFrontDoorSecretMappings() *CdnFrontDoorSecretMappings {
+	m := new(CdnFrontDoorSecretMappings)
 
-	m.UrlSigningKey = CdnFrontdoorSecretParameters{
+	m.UrlSigningKey = CdnFrontDoorSecretParameters{
 		TypeName:   cdn.TypeBasicSecretParametersTypeURLSigningKey,
 		ConfigName: "url_signing_key",
 	}
 
-	m.ManagedCertificate = CdnFrontdoorSecretParameters{
+	m.ManagedCertificate = CdnFrontDoorSecretParameters{
 		TypeName:   cdn.TypeBasicSecretParametersTypeManagedCertificate,
 		ConfigName: "managed_certificate",
 	}
 
-	m.CustomerCertificate = CdnFrontdoorSecretParameters{
+	m.CustomerCertificate = CdnFrontDoorSecretParameters{
 		TypeName:   cdn.TypeBasicSecretParametersTypeCustomerCertificate,
 		ConfigName: "customer_certificate",
 	}
 
-	m.AzureFirstPartyManagedCertificate = CdnFrontdoorSecretParameters{
+	m.AzureFirstPartyManagedCertificate = CdnFrontDoorSecretParameters{
 		TypeName:   cdn.TypeBasicSecretParametersTypeAzureFirstPartyManagedCertificate,
 		ConfigName: "azure_first_party_managed_certificate",
 	}
@@ -48,11 +48,10 @@ func InitializeCdnFrontdoorSecretMappings() *CdnFrontdoorSecretMappings {
 	return m
 }
 
-func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicSecretParameters, error) {
-	m := InitializeCdnFrontdoorSecretMappings()
+func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicSecretParameters, error) {
+	m := InitializeCdnFrontDoorSecretMappings()
 	item := input[0].(map[string]interface{})
 
-	// New Direction: Parse the certificate id (e.g. URL) and derive the rest of the information from there...
 	certificateBaseURL := item["key_vault_certificate_id"].(string)
 	certificateId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(certificateBaseURL)
 	if err != nil {
@@ -70,7 +69,7 @@ func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input 
 	}
 
 	if keyVaultBaseId == nil {
-		return nil, fmt.Errorf("unexpected %q Key Vault Resource ID retrieved from the Key Vault Base URL %q", "nil", certificateId.KeyVaultBaseUrl)
+		return nil, fmt.Errorf("unexpected nil Key Vault Resource ID retrieved from the Key Vault Base URL %q", certificateId.KeyVaultBaseUrl)
 	}
 
 	keyVaultId, err := keyVaultParse.VaultID(*keyVaultBaseId)
@@ -78,7 +77,7 @@ func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input 
 		return nil, err
 	}
 
-	secretSource := keyVaultParse.NewResourceManagerSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, certificateId.Name)
+	secretSource := keyVaultParse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, certificateId.Name)
 
 	customerCertificate := &cdn.CustomerCertificateParameters{
 		Type: m.CustomerCertificate.TypeName,

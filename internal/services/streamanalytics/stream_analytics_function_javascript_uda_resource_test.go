@@ -96,6 +96,28 @@ func TestAccStreamAnalyticsFunctionJavaScriptUDA_update(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsFunctionJavaScriptUDA_isConfigurationParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_uda", "test")
+	r := StreamAnalyticsFunctionJavaScriptUDAResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.isConfigurationParameter(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.isConfigurationParameter(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StreamAnalyticsFunctionJavaScriptUDAResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FunctionID(state.ID)
 	if err != nil {
@@ -243,6 +265,43 @@ SCRIPT
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r StreamAnalyticsFunctionJavaScriptUDAResource) isConfigurationParameter(data acceptance.TestData, isConfigurationParameter bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_function_javascript_uda" "test" {
+  name                    = "acctestinput-%d"
+  stream_analytics_job_id = azurerm_stream_analytics_job.test.id
+
+  script = <<SCRIPT
+function main() {
+    this.init = function () {
+        this.state = 0;
+    }
+
+    this.accumulate = function (value, timestamp) {
+        this.state += value;
+    }
+
+    this.computeResult = function () {
+        return this.state;
+    }
+}
+SCRIPT
+
+
+  input {
+    type                    = "bigint"
+    configuration_parameter = %t
+  }
+
+  output {
+    type = "bigint"
+  }
+}
+`, r.template(data), data.RandomInteger, isConfigurationParameter)
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDAResource) template(data acceptance.TestData) string {

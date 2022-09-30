@@ -47,7 +47,8 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "example" {
   property_columns          = ["col1", "col2"]
 
   serialization {
-    format = "Avro"
+    type   = "Csv"
+    format = "Array"
   }
 }
 ```
@@ -73,6 +74,8 @@ The following arguments are supported:
 * `serialization` - (Required) A `serialization` block as defined below.
 
 * `property_columns` - (Optional) A list of property columns to add to the Service Bus Topic output.
+
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
 
 * `system_property_columns` - (Optional) A key-value pair of system property columns that will be attached to the outgoing messages for the Service Bus Topic Output.
 
@@ -104,7 +107,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output ServiceBus Topic.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output ServiceBus Topic.

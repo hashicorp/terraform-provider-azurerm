@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 resource "azurerm_container_registry" "example" {
-  name                = "example-acr"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku                 = "Basic"
@@ -129,7 +129,7 @@ A `custom` block supports the following:
 
 * `login_server` - (Required) The login server of the custom Container Registry.
 
-* `identity` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `system`.
+* `identity` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `[system]`.
 
 * `password` - (Optional) The password for logging into the custom Container Registry. It can be either a plain text of password, or a Keyvault Secret ID.
 
@@ -269,7 +269,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry Task.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Task.

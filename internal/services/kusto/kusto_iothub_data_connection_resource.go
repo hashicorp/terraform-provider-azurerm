@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -121,6 +121,17 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"database_routing_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.DatabaseRoutingSingle),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.DatabaseRoutingSingle),
+					string(kusto.DatabaseRoutingMulti),
+				}, false),
+			},
+
 			"event_system_properties": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -173,6 +184,10 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 		IotHubConnectionProperties: iotHubDataConnectionProperties,
 	}
 
+	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
+		dataConnection.DatabaseRouting = kusto.DatabaseRouting(databaseRouting.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection)
 	if err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
@@ -218,6 +233,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
+			d.Set("database_routing_type", props.DatabaseRouting)
 			d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
 			d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
 		}

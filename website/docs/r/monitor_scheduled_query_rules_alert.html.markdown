@@ -20,21 +20,21 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_application_insights" "example" {
   name                = "appinsights"
-  location            = var.location
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights" "example2" {
   name                = "appinsights2"
-  location            = var.location
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
 
 # Example: Alerting Action with result count trigger
 resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
-  name                = format("%s-queryrule", var.prefix)
+  name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -59,46 +59,14 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
     operator  = "GreaterThan"
     threshold = 3
   }
-}
-
-# Example: Alerting Action with metric trigger
-resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
-  name                = format("%s-queryrule", var.prefix)
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  action {
-    action_group           = []
-    email_subject          = "Email Header"
-    custom_webhook_payload = "{}"
-  }
-  data_source_id = azurerm_application_insights.example.id
-  description    = "Query results grouped into AggregatedValue; alert when results cross threshold"
-  enabled        = true
-  # Count all requests with server error result code grouped into 5-minute bins by HTTP operation
-  query       = <<-QUERY
-  requests
-    | where tolong(resultCode) >= 500
-    | summarize AggregatedValue = count() by operation_Name, bin(timestamp, 5m)
-QUERY
-  severity    = 1
-  frequency   = 5
-  time_window = 30
-  trigger {
-    operator  = "GreaterThan"
-    threshold = 3
-    metric_trigger {
-      operator            = "GreaterThan"
-      threshold           = 1
-      metric_trigger_type = "Total"
-      metric_column       = "operation_Name"
-    }
+  tags = {
+    foo = "bar"
   }
 }
 
 # Example: Alerting Action Cross-Resource
 resource "azurerm_monitor_scheduled_query_rules_alert" "example2" {
-  name                = format("%s-queryrule2", var.prefix)
+  name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -127,6 +95,9 @@ QUERY
     operator  = "GreaterThan"
     threshold = 3
   }
+  tags = {
+    foo = "bar"
+  }
 }
 ```
 
@@ -149,6 +120,7 @@ The following arguments are supported:
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
 * `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (inclusive).
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -183,7 +155,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Scheduled Query Rule Alert.
 * `update` - (Defaults to 30 minutes) Used when updating the Scheduled Query Rule Alert.
@@ -195,5 +167,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Scheduled Query Rule Alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledqueryrules/myrulename
+terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
 ```

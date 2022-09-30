@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorRuleSet() *pluginsdk.Resource {
+func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorRuleSetCreate,
-		Read:   resourceCdnFrontdoorRuleSetRead,
-		Delete: resourceCdnFrontdoorRuleSetDelete,
+		Create: resourceCdnFrontDoorRuleSetCreate,
+		Read:   resourceCdnFrontDoorRuleSetRead,
+		Delete: resourceCdnFrontDoorRuleSetDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -27,47 +27,39 @@ func resourceCdnFrontdoorRuleSet() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorRuleSetID(id)
+			_, err := parse.FrontDoorRuleSetID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: there's validation requirements in the test limiting this to 8 random chars, can we match that here?
-				// WS: Fixed
-				ValidateFunc: validate.CdnFrontdoorRuleSetName,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FrontDoorRuleSetName,
 			},
 
 			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorProfileID,
-			},
-
-			"cdn_frontdoor_profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				ValidateFunc: validate.FrontDoorProfileID,
 			},
 		},
 	}
 }
 
-func resourceCdnFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontdoorRuleSetID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
-
+	id := parse.NewFrontDoorRuleSetID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName)
 		if err != nil {
@@ -81,21 +73,20 @@ func resourceCdnFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	_, err = client.Create(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName)
-	if err != nil {
+	if _, err = client.Create(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorRuleSetRead(d, meta)
+	return resourceCdnFrontDoorRuleSetRead(d, meta)
 }
 
-func resourceCdnFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorRuleSetID(d.Id())
+	id, err := parse.FrontDoorRuleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -110,21 +101,17 @@ func resourceCdnFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.RuleSetName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
-
-	if props := resp.RuleSetProperties; props != nil {
-		d.Set("cdn_frontdoor_profile_name", props.ProfileName)
-	}
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	return nil
 }
 
-func resourceCdnFrontdoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorRuleSetID(d.Id())
+	id, err := parse.FrontDoorRuleSetID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -82,7 +81,7 @@ func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
 }
 
 func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
-	out := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -108,16 +107,6 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 			},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		s := out.Elem.(*pluginsdk.Resource)
-		s.Schema["sample"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favour of `example`",
-		}
-	}
-	return out
 }
 
 func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
@@ -140,12 +129,6 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		if vs["example"] != nil {
 			examplesRaw := vs["example"].([]interface{})
 			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
-		} else if !features.ThreePointOhBeta() && vs["sample"] != nil {
-			defaultExample := map[string]interface{}{
-				"name":  "default",
-				"value": vs["sample"],
-			}
-			examples = ExpandApiManagementOperationParameterExampleContract([]interface{}{defaultExample})
 		}
 
 		output := apimanagement.RepresentationContract{
@@ -194,7 +177,11 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 			output["content_type"] = *v.ContentType
 		}
 
-		output["form_parameter"] = FlattenApiManagementOperationParameterContract(v.FormParameters)
+		formParameter, err := FlattenApiManagementOperationParameterContract(v.FormParameters)
+		if err != nil {
+			return nil, err
+		}
+		output["form_parameter"] = formParameter
 
 		if v.Examples != nil {
 			example, err := FlattenApiManagementOperationParameterExampleContract(v.Examples)
@@ -253,6 +240,18 @@ func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
 					},
 					Set: pluginsdk.HashString,
 				},
+
+				"example": SchemaApiManagementOperationParameterExampleContract(),
+
+				"schema_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"type_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -274,6 +273,14 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 		required := vs["required"].(bool)
 		valuesRaw := vs["values"].(*pluginsdk.Set).List()
 
+		schemaId := vs["schema_id"].(string)
+		typeName := vs["type_name"].(string)
+		examples := make(map[string]*apimanagement.ParameterExampleContract)
+		if vs["example"] != nil {
+			examplesRaw := vs["example"].([]interface{})
+			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
+		}
+
 		output := apimanagement.ParameterContract{
 			Name:         utils.String(name),
 			Description:  utils.String(description),
@@ -281,6 +288,9 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 			Required:     utils.Bool(required),
 			DefaultValue: nil,
 			Values:       utils.ExpandStringSlice(valuesRaw),
+			SchemaID:     utils.String(schemaId),
+			TypeName:     utils.String(typeName),
+			Examples:     examples,
 		}
 
 		// DefaultValue must be included in Values, else it returns error
@@ -295,9 +305,9 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 	return &outputs
 }
 
-func FlattenApiManagementOperationParameterContract(input *[]apimanagement.ParameterContract) []interface{} {
+func FlattenApiManagementOperationParameterContract(input *[]apimanagement.ParameterContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -326,17 +336,32 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 
 		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, utils.FlattenStringSlice(v.Values))
 
+		if v.Examples != nil {
+			example, err := FlattenApiManagementOperationParameterExampleContract(v.Examples)
+			if err != nil {
+				return nil, err
+			}
+			output["example"] = example
+		}
+
+		if v.SchemaID != nil {
+			output["schema_id"] = *v.SchemaID
+		}
+
+		if v.TypeName != nil {
+			output["type_name"] = *v.TypeName
+		}
+
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }
 
 func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {

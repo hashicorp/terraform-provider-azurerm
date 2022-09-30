@@ -71,15 +71,15 @@ The following arguments are supported:
     the topic to be partitioned across multiple message brokers. Defaults to false.
     Changing this forces a new resource to be created.
 
--> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-partitioning) for more information.
+-> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-partitioning) for more information.
 
 * `max_message_size_in_kilobytes` - (Optional) Integer value which controls the maximum size of
     a message allowed on the topic for Premium SKU. For supported values see the "Large messages support"
-    section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-premium-messaging#large-messages-support-preview).
+    section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-premium-messaging#large-messages-support-preview).
 
 * `max_size_in_megabytes` - (Optional) Integer value which controls the size of
     memory allocated for the topic. For supported values see the "Queue/topic size"
-    section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas).
+    section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
 * `requires_duplicate_detection` - (Optional) Boolean flag which controls whether
     the Topic requires duplicate detection. Defaults to false. Changing this forces
@@ -96,7 +96,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Topic.
 * `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Topic.
@@ -108,5 +108,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Service Bus Topics can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_topic.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1
+terraform import azurerm_servicebus_topic.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceBus/namespaces/sbns1/topics/sntopic1
 ```

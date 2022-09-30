@@ -15,8 +15,31 @@ Manages an Extension for a Virtual Machine Scale Set.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example"
+  location = "West Europe"
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
-  #...
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Standard_F2"
+  admin_username      = "adminuser"
+  instances           = 1
+
+  network_interface {
+    name = "example"
+
+    ip_configuration {
+      name = "internal"
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set_extension" "example" {
@@ -59,6 +82,10 @@ $ az vmss extension image list --location westus -o table
 
 * `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? Defaults to `false`.
 
+* `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`. Defaults to `false`.
+
+-> **NOTE:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
+
 * `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
@@ -79,7 +106,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Scale Set Extension.
 * `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Scale Set Extension.

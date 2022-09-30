@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -36,39 +34,6 @@ func TestAccFunctionApp_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccFunctionApp_deprecatedConnectionString(t *testing.T) {
-	if features.ThreePointOhBeta() {
-		t.Skipf("This test does not apply on v3.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-	r := FunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.deprecatedConnectionString(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
-	if features.ThreePointOhBeta() {
-		t.Skipf("This test does not apply on v3.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-	r := FunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.deprecatedConnectionStringBothSpecifiedError(data),
-			ExpectError: regexp.MustCompile("both `storage_account_name` and `storage_account_access_key` must be specified"),
-		},
 	})
 }
 
@@ -3383,87 +3348,6 @@ resource "azurerm_function_app" "test" {
       action     = "Allow"
     }
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r FunctionAppResource) deprecatedConnectionString(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_function_app" "test" {
-  name                       = "acctest-%[1]d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r FunctionAppResource) deprecatedConnectionStringBothSpecifiedError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_function_app" "test" {
-  name                 = "acctest-%[1]d-func"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  app_service_plan_id  = azurerm_app_service_plan.test.id
-  storage_account_name = azurerm_storage_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

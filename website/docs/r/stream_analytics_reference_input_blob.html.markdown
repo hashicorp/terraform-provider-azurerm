@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_stream_analytics_reference_input_blob
 
-Manages a Stream Analytics Reference Input Blob. Reference data (also known as a lookup table) is a finite data set that is static or slowly changing in nature, used to perform a lookup or to correlate with your data stream. Learn more [here](https://docs.microsoft.com/en-us/azure/stream-analytics/stream-analytics-use-reference-data#azure-blob-storage).
+Manages a Stream Analytics Reference Input Blob. Reference data (also known as a lookup table) is a finite data set that is static or slowly changing in nature, used to perform a lookup or to correlate with your data stream. Learn more [here](https://docs.microsoft.com/azure/stream-analytics/stream-analytics-use-reference-data#azure-blob-storage).
 
 ## Example Usage
 
@@ -77,6 +77,8 @@ The following arguments are supported:
 
 * `time_format` - (Required) The time format. Wherever `{time}` appears in `path_pattern`, the value of this property is used as the time format instead.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Analytics Reference Input. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 * `serialization` - (Required) A `serialization` block as defined below.
 
 ---
@@ -101,7 +103,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Reference Input Blob.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Reference Input Blob.

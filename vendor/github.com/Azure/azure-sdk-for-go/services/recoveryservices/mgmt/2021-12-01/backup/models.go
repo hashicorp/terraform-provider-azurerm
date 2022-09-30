@@ -84,7 +84,7 @@ type AzureBackupServerContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -1211,7 +1211,7 @@ type AzureIaaSClassicComputeVMContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -1716,7 +1716,7 @@ type AzureIaaSComputeVMContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -2841,8 +2841,14 @@ func (aispi AzureIaaSVMProtectedItem) AsBasicProtectedItem() (BasicProtectedItem
 
 // AzureIaaSVMProtectedItemExtendedInfo additional information on Azure IaaS VM specific backup item.
 type AzureIaaSVMProtectedItemExtendedInfo struct {
-	// OldestRecoveryPoint - The oldest backup copy available for this backup item.
+	// OldestRecoveryPoint - The oldest backup copy available for this backup item across all tiers.
 	OldestRecoveryPoint *date.Time `json:"oldestRecoveryPoint,omitempty"`
+	// OldestRecoveryPointInVault - The oldest backup copy available for this backup item in vault tier
+	OldestRecoveryPointInVault *date.Time `json:"oldestRecoveryPointInVault,omitempty"`
+	// OldestRecoveryPointInArchive - The oldest backup copy available for this backup item in archive tier
+	OldestRecoveryPointInArchive *date.Time `json:"oldestRecoveryPointInArchive,omitempty"`
+	// NewestRecoveryPointInArchive - The latest backup copy available for this backup item in archive tier
+	NewestRecoveryPointInArchive *date.Time `json:"newestRecoveryPointInArchive,omitempty"`
 	// RecoveryPointCount - Number of backup copies available for this backup item.
 	RecoveryPointCount *int32 `json:"recoveryPointCount,omitempty"`
 	// PolicyInconsistent - Specifies if backup policy associated with the backup item is inconsistent.
@@ -2856,6 +2862,10 @@ type AzureIaaSVMProtectionPolicy struct {
 	SchedulePolicy BasicSchedulePolicy `json:"schedulePolicy,omitempty"`
 	// RetentionPolicy - Retention policy with the details on backup copy retention ranges.
 	RetentionPolicy BasicRetentionPolicy `json:"retentionPolicy,omitempty"`
+	// TieringPolicy - Tiering policy to automatically move RPs to another tier
+	// Key is Target Tier, defined in RecoveryPointTierType enum.
+	// Tiering policy specifies the criteria to move RP to the target tier.
+	TieringPolicy map[string]*TieringPolicy `json:"tieringPolicy"`
 	// InstantRpRetentionRangeInDays - Instant RP retention policy range in days
 	InstantRpRetentionRangeInDays *int32 `json:"instantRpRetentionRangeInDays,omitempty"`
 	// TimeZone - TimeZone optional input as string. For example: TimeZone = "Pacific Standard Time".
@@ -2879,6 +2889,9 @@ func (aispp AzureIaaSVMProtectionPolicy) MarshalJSON() ([]byte, error) {
 	}
 	objectMap["schedulePolicy"] = aispp.SchedulePolicy
 	objectMap["retentionPolicy"] = aispp.RetentionPolicy
+	if aispp.TieringPolicy != nil {
+		objectMap["tieringPolicy"] = aispp.TieringPolicy
+	}
 	if aispp.InstantRpRetentionRangeInDays != nil {
 		objectMap["instantRpRetentionRangeInDays"] = aispp.InstantRpRetentionRangeInDays
 	}
@@ -2973,6 +2986,15 @@ func (aispp *AzureIaaSVMProtectionPolicy) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				aispp.RetentionPolicy = retentionPolicy
+			}
+		case "tieringPolicy":
+			if v != nil {
+				var tieringPolicy map[string]*TieringPolicy
+				err = json.Unmarshal(*v, &tieringPolicy)
+				if err != nil {
+					return err
+				}
+				aispp.TieringPolicy = tieringPolicy
 			}
 		case "instantRpRetentionRangeInDays":
 			if v != nil {
@@ -3282,7 +3304,7 @@ type AzureSQLAGWorkloadContainerProtectionContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -3423,7 +3445,7 @@ type AzureSQLContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -3879,7 +3901,7 @@ type AzureStorageContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -4316,7 +4338,7 @@ type AzureVMAppContainerProtectionContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -5194,8 +5216,14 @@ func (avwpi AzureVMWorkloadProtectedItem) AsBasicProtectedItem() (BasicProtected
 // AzureVMWorkloadProtectedItemExtendedInfo additional information on Azure Workload for SQL specific
 // backup item.
 type AzureVMWorkloadProtectedItemExtendedInfo struct {
-	// OldestRecoveryPoint - The oldest backup copy available for this backup item.
+	// OldestRecoveryPoint - The oldest backup copy available for this backup item across all tiers.
 	OldestRecoveryPoint *date.Time `json:"oldestRecoveryPoint,omitempty"`
+	// OldestRecoveryPointInVault - The oldest backup copy available for this backup item in vault tier
+	OldestRecoveryPointInVault *date.Time `json:"oldestRecoveryPointInVault,omitempty"`
+	// OldestRecoveryPointInArchive - The oldest backup copy available for this backup item in archive tier
+	OldestRecoveryPointInArchive *date.Time `json:"oldestRecoveryPointInArchive,omitempty"`
+	// NewestRecoveryPointInArchive - The latest backup copy available for this backup item in archive tier
+	NewestRecoveryPointInArchive *date.Time `json:"newestRecoveryPointInArchive,omitempty"`
 	// RecoveryPointCount - Number of backup copies available for this backup item.
 	RecoveryPointCount *int32 `json:"recoveryPointCount,omitempty"`
 	// PolicyState - Indicates consistency of policy object and policy applied to this backup item.
@@ -7825,7 +7853,7 @@ type AzureWorkloadContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -11713,7 +11741,7 @@ type DpmContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -12997,7 +13025,7 @@ type GenericContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -13623,7 +13651,7 @@ type IaaSVMContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -13670,7 +13698,7 @@ func unmarshalBasicIaaSVMContainerArray(body []byte) ([]BasicIaaSVMContainer, er
 
 // MarshalJSON is the custom marshaler for IaaSVMContainer.
 func (isc IaaSVMContainer) MarshalJSON() ([]byte, error) {
-	isc.ContainerType = ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer
+	isc.ContainerType = ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer
 	objectMap := make(map[string]interface{})
 	if isc.VirtualMachineID != nil {
 		objectMap["virtualMachineId"] = isc.VirtualMachineID
@@ -15619,7 +15647,7 @@ type MabContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -18291,7 +18319,7 @@ type ProtectionContainer struct {
 	HealthStatus *string `json:"healthStatus,omitempty"`
 	// ProtectableObjectType - Type of the protectable object associated with this container
 	ProtectableObjectType *string `json:"protectableObjectType,omitempty"`
-	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
+	// ContainerType - Possible values include: 'ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines', 'ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer', 'ContainerTypeBasicProtectionContainerContainerTypeStorageContainer', 'ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer', 'ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer', 'ContainerTypeBasicProtectionContainerContainerTypeDPMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeGenericContainer', 'ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer', 'ContainerTypeBasicProtectionContainerContainerTypeWindows'
 	ContainerType ContainerTypeBasicProtectionContainer `json:"containerType,omitempty"`
 }
 
@@ -18343,7 +18371,7 @@ func unmarshalBasicProtectionContainer(body []byte) (BasicProtectionContainer, e
 		var gc GenericContainer
 		err := json.Unmarshal(body, &gc)
 		return gc, err
-	case string(ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer):
+	case string(ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer):
 		var isc IaaSVMContainer
 		err := json.Unmarshal(body, &isc)
 		return isc, err
@@ -21700,6 +21728,24 @@ type SubProtectionPolicy struct {
 	SchedulePolicy BasicSchedulePolicy `json:"schedulePolicy,omitempty"`
 	// RetentionPolicy - Retention policy with the details on backup copy retention ranges.
 	RetentionPolicy BasicRetentionPolicy `json:"retentionPolicy,omitempty"`
+	// TieringPolicy - Tiering policy to automatically move RPs to another tier.
+	// Key is Target Tier, defined in RecoveryPointTierType enum.
+	// Tiering policy specifies the criteria to move RP to the target tier.
+	TieringPolicy map[string]*TieringPolicy `json:"tieringPolicy"`
+}
+
+// MarshalJSON is the custom marshaler for SubProtectionPolicy.
+func (spp SubProtectionPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if spp.PolicyType != "" {
+		objectMap["policyType"] = spp.PolicyType
+	}
+	objectMap["schedulePolicy"] = spp.SchedulePolicy
+	objectMap["retentionPolicy"] = spp.RetentionPolicy
+	if spp.TieringPolicy != nil {
+		objectMap["tieringPolicy"] = spp.TieringPolicy
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SubProtectionPolicy struct.
@@ -21736,6 +21782,15 @@ func (spp *SubProtectionPolicy) UnmarshalJSON(body []byte) error {
 				}
 				spp.RetentionPolicy = retentionPolicy
 			}
+		case "tieringPolicy":
+			if v != nil {
+				var tieringPolicy map[string]*TieringPolicy
+				err = json.Unmarshal(*v, &tieringPolicy)
+				if err != nil {
+					return err
+				}
+				spp.TieringPolicy = tieringPolicy
+			}
 		}
 	}
 
@@ -21760,6 +21815,23 @@ type TargetRestoreInfo struct {
 	DatabaseName *string `json:"databaseName,omitempty"`
 	// TargetDirectoryForFileRestore - Target directory location for restore as files.
 	TargetDirectoryForFileRestore *string `json:"targetDirectoryForFileRestore,omitempty"`
+}
+
+// TieringPolicy tiering Policy for a target tier.
+// If the policy is not specified for a given target tier, service retains the existing configured tiering
+// policy for that tier
+type TieringPolicy struct {
+	// TieringMode - Tiering Mode to control automatic tiering of recovery points. Supported values are:
+	// 1. TierRecommended: Tier all recovery points recommended to be tiered
+	// 2. TierAfter: Tier all recovery points after a fixed period, as specified in duration + durationType below.
+	// 3. DoNotTier: Do not tier any recovery points. Possible values include: 'TieringModeInvalid', 'TieringModeTierRecommended', 'TieringModeTierAfter', 'TieringModeDoNotTier'
+	TieringMode TieringMode `json:"tieringMode,omitempty"`
+	// Duration - Number of days/weeks/months/years to retain backups in current tier before tiering.
+	// Used only if TieringMode is set to TierAfter
+	Duration *int32 `json:"duration,omitempty"`
+	// DurationType - Retention duration type: days/weeks/months/years
+	// Used only if TieringMode is set to TierAfter. Possible values include: 'RetentionDurationTypeInvalid', 'RetentionDurationTypeDays', 'RetentionDurationTypeWeeks', 'RetentionDurationTypeMonths', 'RetentionDurationTypeYears'
+	DurationType RetentionDurationType `json:"durationType,omitempty"`
 }
 
 // TokenInformation the token information details.

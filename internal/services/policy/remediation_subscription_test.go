@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,20 +47,20 @@ func TestAccAzureRMSubscriptionPolicyRemediation_complete(t *testing.T) {
 }
 
 func (r SubscriptionPolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionPolicyRemediationID(state.ID)
+	id, err := remediations.ParseRemediationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Policy.RemediationsClient.GetAtSubscription(ctx, id.SubscriptionId, id.RemediationName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	resp, err := client.Policy.RemediationsClient.RemediationsGetAtSubscription(ctx, *id)
+	if err != nil || resp.Model == nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Remediation %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.RemediationProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r SubscriptionPolicyRemediationResource) template(data acceptance.TestData) string {
@@ -75,16 +76,16 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[1]d"
+  name                 = "acctestpa-sub-%[1]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[2]s", "%[3]s"]
+      "value" = ["%[2]s", "%[3]s", "%[4]s"]
     }
   })
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r SubscriptionPolicyRemediationResource) basic(data acceptance.TestData) string {
@@ -108,8 +109,10 @@ resource "azurerm_subscription_policy_remediation" "test" {
   subscription_id         = data.azurerm_subscription.test.id
   policy_assignment_id    = azurerm_subscription_policy_assignment.test.id
   location_filters        = ["westus"]
-  policy_definition_id    = data.azurerm_policy_definition.test.id
   resource_discovery_mode = "ReEvaluateCompliance"
+  failure_percentage      = 0.5
+  parallel_deployments    = 3
+  resource_count          = 3
 }
 `, r.template(data), data.RandomString)
 }

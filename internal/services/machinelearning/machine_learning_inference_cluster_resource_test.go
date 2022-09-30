@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -149,20 +148,20 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 
 func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	inferenceClusterClient := client.MachineLearning.ComputeClient
-	id, err := parse.InferenceClusterID(state.ID)
+	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := inferenceClusterClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+	resp, err := inferenceClusterClient.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Inference Cluster %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r InferenceClusterResource) basic(data acceptance.TestData) string {
@@ -349,32 +348,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 
 func (r InferenceClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.templateDevTest(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                          = "AIC-%d"
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                      = azurerm_resource_group.test.location
-  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "DevTest"
-  identity {
-    type = "SystemAssigned,UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-}
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
-	}
-
 	return fmt.Sprintf(`
 %s
 

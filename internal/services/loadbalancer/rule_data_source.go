@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -53,11 +51,7 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id := parse.NewLoadBalancingRuleID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
-	resourceGroup := id.ResourceGroup
-	if !features.ThreePointOhBeta() {
-		resourceGroup = d.Get("resource_group_name").(string)
-	}
-	resp, err := lbRuleClient.Get(ctx, resourceGroup, *loadBalancer.Name, name)
+	resp, err := lbRuleClient.Get(ctx, id.ResourceGroup, *loadBalancer.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
@@ -115,7 +109,7 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func dataSourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -185,10 +179,4 @@ func dataSourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["resource_group_name"] = commonschema.ResourceGroupNameForDataSource()
-	}
-
-	return out
 }

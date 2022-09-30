@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "app_service_source_control_slot: azurerm_app_service_source_control_slot"
+page_title: "Azure Resource Manager: azurerm_app_service_source_control_slot"
 description: |-
   Manages an App Service Source Control Slot.
 ---
@@ -123,7 +123,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control Slot.
@@ -134,5 +134,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 an App Service Source Control Slot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
+terraform import azurerm_app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 ```

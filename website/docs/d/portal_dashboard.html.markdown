@@ -28,9 +28,11 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the shared Azure Portal Dashboard.
-
 * `resource_group_name` - (Required) Specifies the name of the resource group the shared Azure Portal Dashboard is located in.
+
+* `name` - (Optional) Specifies the name of the shared Azure Portal Dashboard.
+
+* `display_name` - (Optional) Specifies the display name of the shared Azure Portal Dashboard.
 
 ## Attributes Reference
 
@@ -46,7 +48,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the shared Azure Dashboard.
 

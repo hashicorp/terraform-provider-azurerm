@@ -51,12 +51,12 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-resource "azurerm_storage_account_network_rules" "test" {
-  storage_account_id = azurerm_storage_account.test.id
+resource "azurerm_storage_account_network_rules" "example" {
+  storage_account_id = azurerm_storage_account.example.id
 
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.1"]
-  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  virtual_network_subnet_ids = [azurerm_subnet.example.id]
   bypass                     = ["Metrics"]
 }
 ```
@@ -104,7 +104,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the  Network Rules for this Storage Account.
 * `update` - (Defaults to 60 minutes) Used when updating the Network Rules for this Storage Account.

@@ -93,8 +93,8 @@ const (
 	ContainerTypeBasicProtectionContainerContainerTypeDPMContainer ContainerTypeBasicProtectionContainer = "DPMContainer"
 	// ContainerTypeBasicProtectionContainerContainerTypeGenericContainer ...
 	ContainerTypeBasicProtectionContainerContainerTypeGenericContainer ContainerTypeBasicProtectionContainer = "GenericContainer"
-	// ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer ...
-	ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer ContainerTypeBasicProtectionContainer = "IaaSVMContainer"
+	// ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer ...
+	ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer ContainerTypeBasicProtectionContainer = "IaasVMContainer"
 	// ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines ...
 	ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines ContainerTypeBasicProtectionContainer = "Microsoft.ClassicCompute/virtualMachines"
 	// ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines ...
@@ -113,7 +113,7 @@ const (
 
 // PossibleContainerTypeBasicProtectionContainerValues returns an array of possible values for the ContainerTypeBasicProtectionContainer const type.
 func PossibleContainerTypeBasicProtectionContainerValues() []ContainerTypeBasicProtectionContainer {
-	return []ContainerTypeBasicProtectionContainer{ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer, ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer, ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer, ContainerTypeBasicProtectionContainerContainerTypeDPMContainer, ContainerTypeBasicProtectionContainerContainerTypeGenericContainer, ContainerTypeBasicProtectionContainerContainerTypeIaaSVMContainer, ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines, ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines, ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer, ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer, ContainerTypeBasicProtectionContainerContainerTypeStorageContainer, ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer, ContainerTypeBasicProtectionContainerContainerTypeWindows}
+	return []ContainerTypeBasicProtectionContainer{ContainerTypeBasicProtectionContainerContainerTypeAzureBackupServerContainer, ContainerTypeBasicProtectionContainerContainerTypeAzureSQLContainer, ContainerTypeBasicProtectionContainerContainerTypeAzureWorkloadContainer, ContainerTypeBasicProtectionContainerContainerTypeDPMContainer, ContainerTypeBasicProtectionContainerContainerTypeGenericContainer, ContainerTypeBasicProtectionContainerContainerTypeIaasVMContainer, ContainerTypeBasicProtectionContainerContainerTypeMicrosoftClassicComputevirtualMachines, ContainerTypeBasicProtectionContainerContainerTypeMicrosoftComputevirtualMachines, ContainerTypeBasicProtectionContainerContainerTypeProtectionContainer, ContainerTypeBasicProtectionContainerContainerTypeSQLAGWorkLoadContainer, ContainerTypeBasicProtectionContainerContainerTypeStorageContainer, ContainerTypeBasicProtectionContainerContainerTypeVMAppContainer, ContainerTypeBasicProtectionContainerContainerTypeWindows}
 }
 
 // CopyOptions enumerates the values for copy options.
@@ -1729,6 +1729,25 @@ const (
 // PossibleSupportStatusValues returns an array of possible values for the SupportStatus const type.
 func PossibleSupportStatusValues() []SupportStatus {
 	return []SupportStatus{SupportStatusDefaultOFF, SupportStatusDefaultON, SupportStatusInvalid, SupportStatusNotSupported, SupportStatusSupported}
+}
+
+// TieringMode enumerates the values for tiering mode.
+type TieringMode string
+
+const (
+	// TieringModeDoNotTier ...
+	TieringModeDoNotTier TieringMode = "DoNotTier"
+	// TieringModeInvalid ...
+	TieringModeInvalid TieringMode = "Invalid"
+	// TieringModeTierAfter ...
+	TieringModeTierAfter TieringMode = "TierAfter"
+	// TieringModeTierRecommended ...
+	TieringModeTierRecommended TieringMode = "TierRecommended"
+)
+
+// PossibleTieringModeValues returns an array of possible values for the TieringMode const type.
+func PossibleTieringModeValues() []TieringMode {
+	return []TieringMode{TieringModeDoNotTier, TieringModeInvalid, TieringModeTierAfter, TieringModeTierRecommended}
 }
 
 // Type enumerates the values for type.

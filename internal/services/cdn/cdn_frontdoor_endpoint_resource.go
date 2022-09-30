@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
+func resourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorEndpointCreate,
-		Read:   resourceCdnFrontdoorEndpointRead,
-		Update: resourceCdnFrontdoorEndpointUpdate,
-		Delete: resourceCdnFrontdoorEndpointDelete,
+		Create: resourceCdnFrontDoorEndpointCreate,
+		Read:   resourceCdnFrontDoorEndpointRead,
+		Update: resourceCdnFrontDoorEndpointUpdate,
+		Delete: resourceCdnFrontDoorEndpointDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -32,7 +32,7 @@ func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorEndpointID(id)
+			_, err := parse.FrontDoorEndpointID(id)
 			return err
 		}),
 
@@ -41,14 +41,14 @@ func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CdnFrontdoorEndpointName,
+				ValidateFunc: validate.FrontDoorEndpointName,
 			},
 
 			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorProfileID,
+				ValidateFunc: validate.FrontDoorProfileID,
 			},
 
 			"enabled": {
@@ -57,37 +57,27 @@ func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"tags": commonschema.Tags(),
+
 			"host_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-
-			// BUG: Not currently exposed in swagger
-			// "origin_response_timeout_seconds": {
-			// 	Type:     pluginsdk.TypeInt,
-			// 	Optional: true,
-			// 	Default:  60,
-			// },
-			// TODO: why are we exposing this? it's available from the FrontDoorProfile (which users will be referencing, above) so seems unnecessary?
-			// WS: Fixed
-
-			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontdoorEndpointID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
-
+	id := parse.NewFrontDoorEndpointID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -103,7 +93,7 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize("global")),
 		AFDEndpointProperties: &cdn.AFDEndpointProperties{
-			EnabledState: convertCdnFrontdoorBoolToEnabledState(d.Get("enabled").(bool)),
+			EnabledState: expandEnabledBool(d.Get("enabled").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -119,15 +109,15 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorEndpointRead(d, meta)
+	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
-func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorEndpointID(d.Id())
+	id, err := parse.FrontDoorEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -142,26 +132,22 @@ func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.AfdEndpointName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDEndpointProperties; props != nil {
-		d.Set("enabled", convertCdnFrontdoorEnabledStateToBool(&props.EnabledState))
+		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("host_name", props.HostName)
 	}
 
-	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
-		return err
-	}
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorEndpointID(d.Id())
+	id, err := parse.FrontDoorEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -170,9 +156,7 @@ func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("enabled") {
 		props.AFDEndpointPropertiesUpdateParameters = &cdn.AFDEndpointPropertiesUpdateParameters{
-			EnabledState: convertCdnFrontdoorBoolToEnabledState(d.Get("enabled").(bool)),
-			// TODO: support `origin_response_timeout_seconds` in time
-			// OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),
+			EnabledState: expandEnabledBool(d.Get("enabled").(bool)),
 		}
 	}
 
@@ -188,15 +172,15 @@ func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceCdnFrontdoorEndpointRead(d, meta)
+	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
-func resourceCdnFrontdoorEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorEndpointID(d.Id())
+	id, err := parse.FrontDoorEndpointID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -11,9 +11,6 @@ description: |-
 
 Manages a Logic App (Standard / Single Tenant)
 
-~> **Note:** To connect an Azure Logic App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
-For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
-
 ## Example Usage (with App Service Plan)
 
 ```hcl
@@ -34,6 +31,8 @@ resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  kind                = "elastic"
+
 
   sku {
     tier = "WorkflowStandard"
@@ -116,7 +115,7 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Logic App
 
-* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
+* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
 ~> **NOTE:** There are a number of application settings that will be managed for you by this resource type and *shouldn't* be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `WEBSITE_CONTENTSHARE` is detailed below. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
 
@@ -150,6 +149,12 @@ The following arguments are supported:
 
 * `version` - (Optional) The runtime version associated with the Logic App Defaults to `~1`.
 
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -172,7 +177,7 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this Logic App Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
+* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this Logic App Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this Logic App Only affects apps on the Premium plan.
 
@@ -214,10 +219,12 @@ A `cors` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Standard. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Standard. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned` (to enable both).
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Logic App has been created. More details are available below.
 
+~> **NOTE:** The `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -292,7 +299,7 @@ The `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App
 * `update` - (Defaults to 30 minutes) Used when updating the Logic App

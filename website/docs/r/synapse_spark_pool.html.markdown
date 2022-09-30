@@ -40,6 +40,10 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_spark_pool" "example" {
@@ -101,7 +105,7 @@ The following arguments are supported:
 
 * `compute_isolation_enabled` - (Optional) Indicates whether compute isolation is enabled or not. Defaults to `false`. 
 
-~> **NOTE:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
+~> **NOTE:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
 
 * `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
   
@@ -115,7 +119,7 @@ The following arguments are supported:
 
 * `spark_events_folder` - (Optional) The Spark events folder. Defaults to `/events`.
 
-* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` and `3.1`. Defaults to `2.4`.
+* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` and `3.1` and `3.2`. Defaults to `2.4`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Spark Pool.
 
@@ -157,7 +161,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Spark Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Spark Pool.

@@ -20,7 +20,7 @@ data "azurerm_traffic_manager_profile" "example" {
 }
 
 output "traffic_routing_method" {
-  value = data.azurerm_traffic_manager_profile.traffic_routing_method
+  value = data.azurerm_traffic_manager_profile.example.traffic_routing_method
 }
 ```
 
@@ -82,6 +82,6 @@ A `custom_header` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Location.

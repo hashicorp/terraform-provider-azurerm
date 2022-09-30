@@ -2,18 +2,21 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	CassandraClient                  *documentdb.CassandraResourcesClient
-	CassandraClustersClient          *documentdb.CassandraClustersClient
+	CassandraClustersClient          *managedcassandras.ManagedCassandrasClient
 	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
 	GremlinClient                    *documentdb.GremlinResourcesClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
 	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
 	RestorableDatabaseAccountsClient *documentdb.RestorableDatabaseAccountsClient
+	SqlDedicatedGatewayClient        *sqldedicatedgateway.SqlDedicatedGatewayClient
 	SqlClient                        *documentdb.SQLResourcesClient
 	SqlResourceClient                *documentdb.SQLResourcesClient
 	TableClient                      *documentdb.TableResourcesClient
@@ -23,7 +26,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	cassandraClient := documentdb.NewCassandraResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&cassandraClient.Client, o.ResourceManagerAuthorizer)
 
-	cassandraClustersClient := documentdb.NewCassandraClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	cassandraClustersClient := managedcassandras.NewManagedCassandrasClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&cassandraClustersClient.Client, o.ResourceManagerAuthorizer)
 
 	cassandraDatacentersClient := documentdb.NewCassandraDataCentersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -44,6 +47,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	restorableDatabaseAccountsClient := documentdb.NewRestorableDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDatabaseAccountsClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlDedicatedGatewayClient := sqldedicatedgateway.NewSqlDedicatedGatewayClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&sqlDedicatedGatewayClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlClient := documentdb.NewSQLResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlClient.Client, o.ResourceManagerAuthorizer)
 
@@ -62,6 +68,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		MongoDbClient:                    &mongoDbClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
 		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,
+		SqlDedicatedGatewayClient:        &sqlDedicatedGatewayClient,
 		SqlClient:                        &sqlClient,
 		SqlResourceClient:                &sqlResourceClient,
 		TableClient:                      &tableClient,

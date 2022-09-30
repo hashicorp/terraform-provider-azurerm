@@ -28,7 +28,8 @@ func ResponseErrorIsRetryable(err error) bool {
 		err = arerr.Original
 	}
 
-	switch e := err.(type) { // nolint gocritic
+	// nolint gocritic
+	switch e := err.(type) {
 	case net.Error:
 		if e.Temporary() || e.Timeout() {
 			return true

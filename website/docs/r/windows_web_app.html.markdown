@@ -27,6 +27,7 @@ resource "azurerm_service_plan" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "P1v2"
+  os_type             = "Windows"
 }
 
 resource "azurerm_windows_web_app" "example" {
@@ -65,7 +66,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_cert_enabled` is `false`
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
@@ -75,7 +76,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `logs` - (Optional) A `logs` block as defined below.
 
@@ -83,7 +84,17 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App.
+
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+
+* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Web App.
 
 ---
 
@@ -125,7 +136,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
 
-~> **NOTE:** The value of `dotnetcore` is for use in combination with `dotnet_version` set to `v3.0` only.
+~> **NOTE:** The value of `dotnetcore` is for use in combination with `dotnet_version` set to `core3.1` only.
 
 * `docker_container_name` - (Optional) The name of the Docker Container. For example `azure-app-service/samples/aspnethelloworld`
 
@@ -133,7 +144,7 @@ An `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
 
-* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v3.0`, `v4.0`, `v5.0`, and `v6.0`.
+* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include  `v2.0`,`v3.0`,`core3.1`, `v4.0`, `v5.0`, and `v6.0`.
 
 * `java_container` - (Optional) The Java container type to use when `current_stack` is set to `java`. Possible values include `JAVA`, `JETTY`, and `TOMCAT`. Required with `java_version` and `java_container_version`.
 
@@ -287,13 +298,13 @@ A `google` block supports the following:
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes. 
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes. 
 
 ---
 
 A `headers` block supports the following:
 
-~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/en-us/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
+~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
@@ -413,7 +424,9 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
+
+~> **NOTE:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 
@@ -466,6 +479,8 @@ A `site_config` block supports the following:
 * `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
+
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
 
@@ -607,7 +622,7 @@ A `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Windows Web App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Windows Web App.

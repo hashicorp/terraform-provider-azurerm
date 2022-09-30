@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -62,6 +62,14 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"addon_json": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
 			"arguments": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -115,30 +123,16 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"500m",
-								"1",
-								"2",
-								"3",
-								"4",
-							}, false),
+							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"memory": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"512Mi",
-								"1Gi",
-								"2Gi",
-								"3Gi",
-								"4Gi",
-								"5Gi",
-								"6Gi",
-								"7Gi",
-								"8Gi",
-							}, false),
+							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -181,6 +175,11 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
 	}
 
+	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
+	if err != nil {
+		return err
+	}
+
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -198,6 +197,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 				},
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
+				AddonConfigs:         addonConfig,
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -248,6 +248,9 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {
 				return fmt.Errorf("setting `quota`: %+v", err)
+			}
+			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
+				return fmt.Errorf("setting `addon_json`: %s", err)
 			}
 		}
 		if source, ok := resp.Properties.Source.AsCustomContainerUserSourceInfo(); ok && source != nil {

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -150,19 +149,19 @@ func TestAccComputeCluster_identity(t *testing.T) {
 
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.ComputeClient
-	id, err := parse.ComputeClusterID(state.ID)
+	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	computeResource, err := computeClusterClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+	computeResource, err := computeClusterClient.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(computeResource.Response) {
+		if response.WasNotFound(computeResource.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Compute Cluster %q: %+v", state.ID, err)
 	}
-	return utils.Bool(computeResource.Properties != nil), nil
+	return utils.Bool(computeResource.Model.Properties != nil), nil
 }
 
 func (r ComputeClusterResource) basic(data acceptance.TestData) string {
@@ -337,35 +336,6 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 
 func (r ComputeClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.template_basic(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-resource "azurerm_machine_learning_compute_cluster" "test" {
-  name                          = "CC-%d"
-  location                      = azurerm_resource_group.test.location
-  vm_priority                   = "LowPriority"
-  vm_size                       = "STANDARD_DS2_V2"
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  scale_settings {
-    min_node_count                       = 0
-    max_node_count                       = 1
-    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
-  }
-  identity {
-    type = "SystemAssigned,UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-}
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
-	}
-
 	return fmt.Sprintf(`
 %s
 resource "azurerm_user_assigned_identity" "test" {

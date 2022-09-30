@@ -58,7 +58,7 @@ func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
 func RuleActionUrlRedirectFragment() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^([^#].*)?$"),
-		"the Url Fragment must not start with a hash",
+		"the Url Fragment must not start with a hash.",
 	)
 }
 

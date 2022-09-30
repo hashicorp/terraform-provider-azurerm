@@ -111,7 +111,7 @@ A `permissions` block contains:
 
 * `list` - Should List permissions be enabled for this SAS?
 
-Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas)
+Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/create-service-sas)
 for additional details on the fields above.
 
 ## Attributes Reference
@@ -120,6 +120,6 @@ for additional details on the fields above.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Blob Container.

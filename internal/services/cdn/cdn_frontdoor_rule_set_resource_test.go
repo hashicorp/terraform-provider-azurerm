@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorRuleSetResource struct{}
+type CdnFrontDoorRuleSetResource struct{}
 
-func TestAccCdnFrontdoorRuleSet_basic(t *testing.T) {
+func TestAccCdnFrontDoorRuleSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
-	r := CdnFrontdoorRuleSetResource{}
+	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccCdnFrontdoorRuleSet_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRuleSet_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorRuleSet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
-	r := CdnFrontdoorRuleSetResource{}
+	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccCdnFrontdoorRuleSet_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorRuleSet_complete(t *testing.T) {
+func TestAccCdnFrontDoorRuleSet_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
-	r := CdnFrontdoorRuleSetResource{}
+	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,8 +57,8 @@ func TestAccCdnFrontdoorRuleSet_complete(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorRuleSetID(state.ID)
+func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.FrontDoorRuleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -71,24 +71,11 @@ func (r CdnFrontdoorRuleSetResource) Exists(ctx context.Context, clients *client
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorRuleSetResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "accTestProfile-%d"
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r CdnFrontdoorRuleSetResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleSetResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -98,13 +85,13 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "accTestRuleSet%d"
+  name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r CdnFrontdoorRuleSetResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleSetResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -116,7 +103,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "import" {
 `, config)
 }
 
-func (r CdnFrontdoorRuleSetResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleSetResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -126,8 +113,23 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "accTestRuleSet%d"
+  name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, template, data.RandomIntOfLength(8))
+}
+
+func (CdnFrontDoorRuleSetResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-cdn-afdx-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctest-fdprofile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

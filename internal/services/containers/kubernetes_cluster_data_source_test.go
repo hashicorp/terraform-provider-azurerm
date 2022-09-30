@@ -70,6 +70,21 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotThree(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -138,6 +153,25 @@ func TestAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.docker_bridge_cidr").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_advancedNetworkingNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingNoneConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("none"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.docker_bridge_cidr").Exists(),
@@ -549,6 +583,17 @@ data "azurerm_kubernetes_cluster" "test" {
 `, KubernetesClusterResource{}.roleBasedAccessControlConfig(data))
 }
 
+func (KubernetesClusterDataSource) roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data, ""))
+}
+
 func (KubernetesClusterDataSource) localAccountDisabled(data acceptance.TestData, tenantId string) string {
 	return fmt.Sprintf(`
 %s
@@ -591,6 +636,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.advancedNetworkingConfig(data, "azure"))
+}
+
+func (KubernetesClusterDataSource) advancedNetworkingNoneConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.advancedNetworkingConfig(data, "none"))
 }
 
 func (KubernetesClusterDataSource) advancedNetworkingAzureCalicoPolicyConfig(data acceptance.TestData) string {

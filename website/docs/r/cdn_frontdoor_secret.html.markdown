@@ -26,6 +26,9 @@ Manages a Frontdoor Secret.
 
 ```hcl
 data "azurerm_client_config" "current" {}
+data "azuread_service_principal" "frontdoor" {
+  display_name = "Microsoft.AzureFrontDoor-Cdn"
+}
 
 resource "azurerm_key_vault" "example" {
   name                       = "example-keyvault"
@@ -44,7 +47,7 @@ resource "azurerm_key_vault" "example" {
   # Frontdoor Enterprise Application Object ID(e.g. Microsoft.AzureFrontDoor-Cdn)
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application
+    object_id = data.azuread_service_principal.frontdoor.object_id
 
     secret_permissions = [
       "Get",
@@ -54,7 +57,7 @@ resource "azurerm_key_vault" "example" {
   # Terraform Service Principal
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id of the Service Principal that Terraform is running as
+    object_id = data.azurerm_client_config.current.object_id # <- Object Id of the Service Principal that Terraform is running as
 
     certificate_permissions = [
       "Get",
@@ -82,7 +85,7 @@ resource "azurerm_cdn_frontdoor_secret" "example" {
   name                     = "example-customer-managed-secret"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.id
     }
@@ -98,11 +101,11 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The Resource ID of the Frontdoor Profile. Changing this forces a new Frontdoor Secret to be created.
 
-* `secret_parameters` - (Required) A `secret_parameters` block as defined below. Changing this forces a new Frontdoor Secret to be created.
+* `secret` - (Required) A `secret` block as defined below. Changing this forces a new Frontdoor Secret to be created.
 
 ---
 
-A `secret_parameters` block supports the following:
+A `secret` block supports the following:
 
 * `customer_certificate` - (Required) A `customer_certificate` block as defined below. Changing this forces a new Frontdoor Secret to be created.
 

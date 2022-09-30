@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_endpoint"
 description: |-
-  Manages a Frontdoor Endpoint.
+  Manages a FrontDoor Endpoint.
 ---
 
 # azurerm_cdn_frontdoor_endpoint
 
-Manages a Frontdoor Endpoint.
+Manages a FrontDoor Endpoint.
 
 ## Example Usage
 
@@ -21,13 +21,12 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_endpoint" "example" {
-  name                            = "example-endpoint"
-  cdn_frontdoor_profile_id        = azurerm_cdn_frontdoor_profile.example.id
-  enabled                         = true
-  origin_response_timeout_seconds = 120
+  name                     = "example-endpoint"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 
   tags = {
     ENV = "example"
@@ -39,38 +38,36 @@ resource "azurerm_cdn_frontdoor_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Endpoint. Possible values must be between 2 and 46 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens. Changing this forces a new Frontdoor Endpoint to be created.
+* `name` - (Required) The name which should be used for this CDN FrontDoor Endpoint. Changing this forces a new CDN FrontDoor Endpoint to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Endpoint to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the FrontDoor Profile within which this FrontDoor Endpoint should exist. Changing this forces a new CDN FrontDoor Endpoint to be created.
 
-* `enabled` - (Optional) Should this Frontdoor Endpoint be used? Possible values include `true` or `false`. Defaults to `true`.
+---
 
-* `origin_response_timeout_seconds` - (Optional) Send and receive timeout on forwarding request to the origin. When timeout is reached, the request fails and returns. Defaults to `120` seconds.
+* `enabled` - (Optional) Specifies if this CDN FrontDoor Endpoint is enabled? Defaults to `true`.
 
-~> **NOTE:** Due to a bug in the service code the `origin_response_timeout_seconds` will always be set to the default value of `120` seconds.
-
-* `tags` - (Optional) A mapping of tags which should be assigned to the Frontdoor Endpoint.
+* `tags` - (Optional) Specifies a mapping of tags which should be assigned to the CDN FrontDoor Endpoint.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Endpoint.
+* `id` - The ID of this CDN FrontDoor Endpoint.
 
-* `host_name` - The host name of the Frontdoor Endpoint structured as `\[endpointName\].\[DNSZone\]`(e.g. contoso.azureedge.net).
+* `host_name` - The host name of the CDN FrontDoor Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Endpoint.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Endpoint.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Endpoint.
+* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN FrontDoor Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Endpoint.
 
 ## Import
 
-Frontdoor Endpoints can be imported using the `resource id`, e.g.
+CDN FrontDoor Endpoints can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1

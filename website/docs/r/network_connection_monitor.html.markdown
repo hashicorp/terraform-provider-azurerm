@@ -97,14 +97,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   name                = "example-Workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_connection_monitor" "example" {
-  name                 = "example-Monitor"
-  network_watcher_name = azurerm_network_watcher.example.name
-  resource_group_name  = azurerm_resource_group.example.name
-  location             = azurerm_network_watcher.example.location
+  name               = "example-Monitor"
+  network_watcher_id = azurerm_network_watcher.example.id
+  location           = azurerm_network_watcher.example.location
 
   endpoint {
     name               = "source"
@@ -140,7 +139,6 @@ resource "azurerm_network_connection_monitor" "example" {
     destination_endpoints    = ["destination"]
     source_endpoints         = ["source"]
     test_configuration_names = ["tcpName"]
-    disable                  = false
   }
 
   notes = "examplenote"
@@ -301,7 +299,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Connection Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Connection Monitor.

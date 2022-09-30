@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNotificationHubNamespace() *pluginsdk.Resource {
@@ -56,7 +55,7 @@ func dataSourceNotificationHubNamespace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 
 			"servicebus_endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -72,10 +71,10 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -83,25 +82,29 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	sku := flattenNotificationHubDataSourceNamespacesSku(resp.Sku)
-	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		sku := flattenNotificationHubDataSourceNamespacesSku(model.Sku)
+		if err := d.Set("sku", sku); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("enabled", props.Enabled)
+			d.Set("namespace_type", props.NamespaceType)
+			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
+		}
+
+		return d.Set("tags", tags.Flatten(model.Tags))
 	}
 
-	if props := resp.NamespaceProperties; props != nil {
-		d.Set("enabled", props.Enabled)
-		d.Set("namespace_type", props.NamespaceType)
-		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenNotificationHubDataSourceNamespacesSku(input *notificationhubs.Sku) []interface{} {
+func flattenNotificationHubDataSourceNamespacesSku(input *namespaces.Sku) []interface{} {
 	outputs := make([]interface{}, 0)
 	if input == nil {
 		return outputs

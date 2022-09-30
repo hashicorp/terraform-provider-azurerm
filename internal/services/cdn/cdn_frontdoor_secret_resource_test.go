@@ -3,6 +3,8 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -14,15 +16,12 @@ import (
 )
 
 type CdnFrontdoorSecretResource struct {
-	// TODO: as per the other refactored resources, we need to find a way of running these
-	// we can make that opt-in via an env var (as per the other tests) - but this shouldn't
-	// require code changes to enable/disable the tests
-	DoNotRunFrontdooCustomDomainTests bool
+	DoNotRunFrontDoorCustomDomainTests string
 }
 
-func TestAccCdnFrontdoorSecret_basic(t *testing.T) {
+func TestAccCdnFrontDoorSecret_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
-	r := CdnFrontdoorSecretResource{DoNotRunFrontdooCustomDomainTests: true}
+	r := CdnFrontdoorSecretResource{os.Getenv("ARM_TEST_DO_NOT_RUN_CDN_FRONT_DOOR_CUSTOM_DOMAIN")}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -36,9 +35,9 @@ func TestAccCdnFrontdoorSecret_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecret_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorSecret_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
-	r := CdnFrontdoorSecretResource{DoNotRunFrontdooCustomDomainTests: true}
+	r := CdnFrontdoorSecretResource{os.Getenv("ARM_TEST_DO_NOT_RUN_CDN_FRONT_DOOR_CUSTOM_DOMAIN")}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -52,9 +51,9 @@ func TestAccCdnFrontdoorSecret_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecret_complete(t *testing.T) {
+func TestAccCdnFrontDoorSecret_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
-	r := CdnFrontdoorSecretResource{DoNotRunFrontdooCustomDomainTests: true}
+	r := CdnFrontdoorSecretResource{os.Getenv("ARM_TEST_DO_NOT_RUN_CDN_FRONT_DOOR_CUSTOM_DOMAIN")}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -69,7 +68,7 @@ func TestAccCdnFrontdoorSecret_complete(t *testing.T) {
 }
 
 func (r CdnFrontdoorSecretResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorSecretID(state.ID)
+	id, err := parse.FrontDoorSecretID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +85,11 @@ func (r CdnFrontdoorSecretResource) Exists(ctx context.Context, clients *clients
 }
 
 func (r CdnFrontdoorSecretResource) preCheck(t *testing.T) {
-	if r.DoNotRunFrontdooCustomDomainTests {
+	if r.DoNotRunFrontDoorCustomDomainTests == "" {
+		t.Skipf("`ARM_TEST_DO_NOT_RUN_CDN_FRONT_DOOR_CUSTOM_DOMAIN` must be set for acceptance tests")
+	}
+
+	if strings.EqualFold(r.DoNotRunFrontDoorCustomDomainTests, "true") {
 		t.Skipf("`azurerm_cdn_frontdoor_secret` currently is not testable due to service requirements")
 	}
 }
@@ -101,6 +104,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -118,7 +122,7 @@ resource "azurerm_cdn_frontdoor_secret" "test" {
   name                     = "accTestSecret-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.id
     }
@@ -136,7 +140,7 @@ resource "azurerm_cdn_frontdoor_secret" "import" {
   name                     = azurerm_cdn_frontdoor_secret.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.id
     }
@@ -158,7 +162,7 @@ resource "azurerm_cdn_frontdoor_secret" "test" {
   name                     = "accTestSecret-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  secret_parameters {
+  secret {
     customer_certificate {
       key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
     }

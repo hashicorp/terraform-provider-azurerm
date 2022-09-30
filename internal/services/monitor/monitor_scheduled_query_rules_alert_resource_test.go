@@ -307,6 +307,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
       metric_column       = "TimeGenerated"
     }
   }
+
+  tags = {
+    Env = "test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)
 }

@@ -9,12 +9,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -57,8 +55,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskCreateOptionCopy),
 					string(compute.DiskCreateOptionImport),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"source_uri": {
@@ -86,6 +83,11 @@ func resourceSnapshot() *pluginsdk.Resource {
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
+
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -146,7 +148,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
+		properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(settings)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
@@ -203,9 +205,17 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+		if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
+
+		trustedLaunchEnabled := false
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

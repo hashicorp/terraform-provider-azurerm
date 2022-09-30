@@ -52,7 +52,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enable_partitioning` - Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.
 
-* `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas).
+* `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
 * `requires_duplicate_detection` - Boolean flag which controls whether the Topic requires duplicate detection. 
 
@@ -62,6 +62,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Topic.

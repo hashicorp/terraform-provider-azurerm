@@ -69,9 +69,11 @@ The following attributes are exported:
 
 * `disk_size_gb` - The Size of the Snapshotted Disk in GB.
 
+* `trusted_launch_enabled` - Whether Trusted Launch is enabled for the Snapshot.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Snapshot.
 * `update` - (Defaults to 30 minutes) Used when updating the Snapshot.

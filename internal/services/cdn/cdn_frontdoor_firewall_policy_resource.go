@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,20 +19,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: why is this using the Legacy API call?
-// WS: Because only 3 versions the legacy API supports the correct sku field.
-// The service team made the call to reuse the existing legacy API and extend the
-// sku values in lieu of creating a whole new WAF resource for AFDx.
-
-func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
+func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorFirewallPolicyCreate,
-		Read:   resourceCdnFrontdoorFirewallPolicyRead,
-		Update: resourceCdnFrontdoorFirewallPolicyUpdate,
-		Delete: resourceCdnFrontdoorFirewallPolicyDelete,
+		Create: resourceCdnFrontDoorFirewallPolicyCreate,
+		Read:   resourceCdnFrontDoorFirewallPolicyRead,
+		Update: resourceCdnFrontDoorFirewallPolicyUpdate,
+		Delete: resourceCdnFrontDoorFirewallPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorPolicyID(id)
+			_, err := parse.FrontDoorFirewallPolicyID(id)
 			return err
 		}),
 
@@ -49,19 +43,27 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LegacyFrontdoorWAFName,
+				ValidateFunc: validate.FrontDoorFirewallPolicyName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Default:  string(frontdoor.SkuNameStandardAzureFrontDoor),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(frontdoor.SkuNameStandardAzureFrontDoor),
 					string(frontdoor.SkuNamePremiumAzureFrontDoor),
+				}, false),
+			},
+
+			"mode": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(frontdoor.PolicyModeDetection),
+					string(frontdoor.PolicyModePrevention),
 				}, false),
 			},
 
@@ -69,16 +71,6 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-			},
-
-			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(frontdoor.PolicyModeDetection),
-					string(frontdoor.PolicyModePrevention),
-				}, false),
-				Default: string(frontdoor.PolicyModePrevention),
 			},
 
 			"redirect_url": {
@@ -102,7 +94,7 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 			"custom_block_response_body": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.LegacyCustomBlockResponseBody,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"custom_rule": {
@@ -167,10 +159,6 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 							MaxItems: 10,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									// TODO - rename to "variable" for consistency
-									// WS: The existing frontdoor firewall policy also calls this field "match_variable"
-									// I feel it would be confusing to our customers if we called it "variable" in one
-									// and "match_variable" in the other one.
 									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -187,10 +175,6 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// TODO - rename to "value" for consistency
-									// WS: The existing frontdoor firewall policy also calls this field "match_values"
-									// I feel it would be confusing to our customers if we called it "value" in one
-									// and "match_values" in the other one.
 									"match_values": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -275,8 +259,7 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 
 						"action": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(frontdoor.ActionTypeBlock),
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(frontdoor.ActionTypeAllow),
 								string(frontdoor.ActionTypeLog),
@@ -425,8 +408,7 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 
 												"action": {
 													Type:     pluginsdk.TypeString,
-													Optional: true,
-													Default:  frontdoor.ActionTypeBlock,
+													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(frontdoor.ActionTypeAllow),
 														string(frontdoor.ActionTypeLog),
@@ -457,8 +439,8 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorLegacyPoliciesClient
+func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorLegacyFirewallPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -467,13 +449,13 @@ func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	log.Printf("[INFO] preparing args for Cdn Frontdoor %q Firewall Policy(Resource Group: %q)", name, resourceGroup)
-	id := parse.NewFrontdoorPolicyID(subscriptionId, resourceGroup, name)
+	id := parse.NewFrontDoorFirewallPolicyID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Cdn Frontdoor Firewall Policy %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
@@ -497,13 +479,12 @@ func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 
 	if sku != string(frontdoor.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
-		return fmt.Errorf("the `managed_rule` field is only supported with the %q sku, got %q", frontdoor.SkuNamePremiumAzureFrontDoor, sku)
+		return fmt.Errorf("the 'managed_rule' field is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
 
 	payload := frontdoor.WebApplicationFirewallPolicy{
-		Name:     utils.String(id.FrontDoorWebApplicationFirewallPolicyName),
 		Location: utils.String(location.Normalize("Global")),
 		Sku: &frontdoor.Sku{
 			Name: frontdoor.SkuName(sku),
@@ -515,7 +496,7 @@ func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 			},
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
-		Tags: convertCdnFrontdoorTags(tags.Expand(t)),
+		Tags: expandFrontDoorTags(tags.Expand(t)),
 	}
 
 	if managedRules != nil {
@@ -544,15 +525,15 @@ func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorFirewallPolicyRead(d, meta)
+	return resourceCdnFrontDoorFirewallPolicyRead(d, meta)
 }
 
-func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorLegacyPoliciesClient
+func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorLegacyFirewallPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorPolicyID(d.Id())
+	id, err := parse.FrontDoorFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -563,11 +544,11 @@ func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if existing.Sku == nil {
-		return fmt.Errorf("retrieving %s: `sku` was nil", *id)
+		return fmt.Errorf("retrieving %s: 'sku' was nil", *id)
 	}
 
 	if existing.WebApplicationFirewallPolicyProperties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+		return fmt.Errorf("retrieving %s: 'properties' was nil", *id)
 	}
 
 	props := *existing.WebApplicationFirewallPolicyProperties
@@ -601,10 +582,8 @@ func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	if d.HasChange("managed_rule") {
 		managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
-		// TODO: shouldn't this be checking the number of rules?
-		// WS: I don't think that is necessary since the schema limits this to 100 rules.
 		if existing.Sku.Name != frontdoor.SkuNamePremiumAzureFrontDoor && managedRules != nil {
-			return fmt.Errorf("the `managed_rule` field is only supported when using the sku %q, got %q", frontdoor.SkuNamePremiumAzureFrontDoor, existing.Sku.Name)
+			return fmt.Errorf("the 'managed_rule' field is only supported when using the sku 'Premium_AzureFrontDoor', got %q", existing.Sku.Name)
 		}
 		if managedRules != nil {
 			props.ManagedRules = managedRules
@@ -613,7 +592,7 @@ func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
-		existing.Tags = convertCdnFrontdoorTags(tags.Expand(t))
+		existing.Tags = expandFrontDoorTags(tags.Expand(t))
 	}
 
 	existing.WebApplicationFirewallPolicyProperties = &props
@@ -625,15 +604,15 @@ func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceCdnFrontdoorFirewallPolicyRead(d, meta)
+	return resourceCdnFrontDoorFirewallPolicyRead(d, meta)
 }
 
-func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorLegacyPoliciesClient
+func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorLegacyFirewallPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorPolicyID(d.Id())
+	id, err := parse.FrontDoorFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -659,43 +638,39 @@ func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	if properties := resp.WebApplicationFirewallPolicyProperties; properties != nil {
 		if policy := properties.PolicySettings; policy != nil {
-			if policy.EnabledState != "" {
-				d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
-			}
-			if policy.Mode != "" {
-				d.Set("mode", string(policy.Mode))
-			}
+			d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
+			d.Set("mode", string(policy.Mode))
 			d.Set("redirect_url", policy.RedirectURL)
 			d.Set("custom_block_response_status_code", policy.CustomBlockResponseStatusCode)
 			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 		}
 
 		if err := d.Set("custom_rule", flattenCdnFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
-			return fmt.Errorf("flattening `custom_rule`: %+v", err)
+			return fmt.Errorf("flattening 'custom_rule': %+v", err)
 		}
 
-		if err := d.Set("frontend_endpoint_ids", flattenCdnFrontdoorFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
-			return fmt.Errorf("flattening `frontend_endpoint_ids`: %+v", err)
+		if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
+			return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
 		}
 
 		if err := d.Set("managed_rule", flattenCdnFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
-			return fmt.Errorf("flattening `managed_rule`: %+v", err)
+			return fmt.Errorf("flattening 'managed_rule': %+v", err)
 		}
 	}
 
-	if err := tags.FlattenAndSet(d, convertCdnFrontdoorTagsToTagsFlatten(resp.Tags)); err != nil {
+	if err := tags.FlattenAndSet(d, flattenFrontDoorTags(resp.Tags)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceCdnFrontdoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorLegacyPoliciesClient
+func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorLegacyFirewallPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorPolicyID(d.Id())
+	id, err := parse.FrontDoorFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -714,10 +689,6 @@ func resourceCdnFrontdoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 
 func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
 	if len(input) == 0 {
-		// TODO: shouldn't this be returning an empty object, so the nested item gets cleared out?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
 		return nil
 	}
 
@@ -759,10 +730,6 @@ func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []frontdoor.MatchCondition {
 	result := make([]frontdoor.MatchCondition, 0)
 	if len(input) == 0 {
-		// TODO: shouldn't this be returning an empty slice?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
 		return nil
 	}
 
@@ -799,10 +766,6 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []frontdoor.
 func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.TransformType {
 	result := make([]frontdoor.TransformType, 0)
 	if len(input) == 0 {
-		// TODO: shouldn't this be returning an empty slice?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
 		return nil
 	}
 
@@ -815,10 +778,6 @@ func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.Tran
 
 func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
 	if len(input) == 0 {
-		// TODO: shouldn't this be an empty object?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
 		return nil
 	}
 
@@ -834,12 +793,10 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 		ruleGroupOverrides := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides)
 
 		managedRuleSet := frontdoor.ManagedRuleSet{
-			// TODO: RuleSetAction is also available here?
-			// WS: Fixed, exposed RuleSetAction
 			Exclusions:         exclusions,
+			RuleSetVersion:     &version,
 			RuleGroupOverrides: ruleGroupOverrides,
 			RuleSetType:        &ruleType,
-			RuleSetVersion:     &version,
 		}
 
 		if action != "" {
@@ -857,10 +814,6 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]frontdoor.ManagedRuleExclusion {
 	results := make([]frontdoor.ManagedRuleExclusion, 0)
 	if len(input) == 0 {
-		// TODO: shouldn't this be returning an empty slice so we can nil it out?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
 		return nil
 	}
 
@@ -884,10 +837,6 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
 	result := make([]frontdoor.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
-		// TODO: shouldn't this be returning an empty slice?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
 		return nil
 	}
 
@@ -911,10 +860,6 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 func expandCdnFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.ManagedRuleOverride {
 	result := make([]frontdoor.ManagedRuleOverride, 0)
 	if len(input) == 0 {
-		// TODO: shouldn't this be returning an empty slice?
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
 		return nil
 	}
 
@@ -1017,10 +962,10 @@ func flattenCdnFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchConditio
 		results = append(results, map[string]interface{}{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
-			"negation_condition": negateCondition, // TODO: why isn't this negate_condition in the schema? WS: For consistency with all of the other existing firewall policies(e.g. web application and legacy frontdoor).
+			"negation_condition": negateCondition,
 			"operator":           string(v.Operator),
 			"selector":           selector,
-			"transforms":         flattenCdnFrontdoorTransformSlice(v.Transforms),
+			"transforms":         flattenTransformSlice(v.Transforms),
 		})
 	}
 
@@ -1044,8 +989,6 @@ func flattenCdnFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList
 			ruleSetVersion = *r.RuleSetVersion
 		}
 
-		// TODO: actions are also returned from the API?
-		// WS: Fixed
 		ruleSetAction := ""
 		if r.RuleSetAction != "" {
 			ruleSetAction = string(r.RuleSetAction)

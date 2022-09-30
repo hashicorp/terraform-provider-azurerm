@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,10 +36,10 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -64,6 +64,31 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
+			},
+
+			"backup_storage_customer_key_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.NestedItemId,
+			},
+
+			"base64_encoded_yaml_fragment": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"disk_sku": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "P30",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"managed_disk_customer_key_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 
 			"node_count": {
@@ -116,8 +141,21 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 			Sku:                utils.String(d.Get("sku_name").(string)),
 			AvailabilityZone:   utils.Bool(d.Get("availability_zones_enabled").(bool)),
 			DiskCapacity:       utils.Int32(int32(d.Get("disk_count").(int))),
+			DiskSku:            utils.String(d.Get("disk_sku").(string)),
 			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		},
+	}
+
+	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
+		body.Properties.BackupStorageCustomerKeyURI = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
+		body.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
+		body.Properties.ManagedDiskCustomerKeyURI = utils.String(v.(string))
 	}
 
 	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName, body)
@@ -161,8 +199,12 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 		if res := props; res != nil {
 			d.Set("delegated_management_subnet_id", props.DelegatedSubnetID)
 			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
+			d.Set("backup_storage_customer_key_uri", props.BackupStorageCustomerKeyURI)
+			d.Set("base64_encoded_yaml_fragment", props.Base64EncodedCassandraYamlFragment)
+			d.Set("managed_disk_customer_key_uri", props.ManagedDiskCustomerKeyURI)
 			d.Set("node_count", props.NodeCount)
 			d.Set("disk_count", int(*props.DiskCapacity))
+			d.Set("disk_sku", props.DiskSku)
 			d.Set("sku_name", props.Sku)
 			d.Set("availability_zones_enabled", props.AvailabilityZone)
 		}
@@ -185,7 +227,20 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 			DelegatedSubnetID:  utils.String(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
 			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+			DiskSku:            utils.String(d.Get("disk_sku").(string)),
 		},
+	}
+
+	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
+		body.Properties.BackupStorageCustomerKeyURI = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
+		body.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
+		body.Properties.ManagedDiskCustomerKeyURI = utils.String(v.(string))
 	}
 
 	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName, body)
@@ -197,21 +252,21 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting on update for %q: %+v", id, err)
 	}
 
-	// In case the node_count is changed, we need to further poll the node count until the update takes effect.
-	if d.HasChange("node_count") {
-		oldNodeCountRaw, _ := d.GetChange("node_count")
-		oldNodeCount := oldNodeCountRaw.(int)
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{"-1", strconv.Itoa(oldNodeCount)},
-			Target:     []string{strconv.Itoa(d.Get("node_count").(int))},
-			Refresh:    cassandraDatacenterStateRefreshFunc(ctx, client, *id),
-			MinTimeout: 30 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
-		}
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/19078
+	// There is a long running issue on updating this resource.
+	// The API cannot update the property after WaitForCompletionRef is returned.
+	// It has to wait a while after that. Then the property can be updated successfully.
+	stateConf := &pluginsdk.StateChangeConf{
+		Delay:      1 * time.Minute,
+		Pending:    []string{string(documentdb.ManagedCassandraProvisioningStateUpdating)},
+		Target:     []string{string(documentdb.ManagedCassandraProvisioningStateSucceeded)},
+		Refresh:    cassandraDatacenterStateRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
+	}
 
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for the updating of node_count in %q to take effect: %+v", id, err)
-		}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	return resourceCassandraDatacenterRead(d, meta)
@@ -244,18 +299,14 @@ func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface
 
 func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *documentdb.CassandraDataCentersClient, id parse.CassandraDatacenterId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		nodeCount := "-1"
-		resp, err := client.Get(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName)
+		res, err := client.Get(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName)
 		if err != nil {
-			return resp, nodeCount, fmt.Errorf("retrieving %q while waiting for node count to update: %+v", id, err)
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 		}
 
-		if props := resp.Properties; props != nil {
-			if props.NodeCount != nil {
-				nodeCount = strconv.Itoa(int(*props.NodeCount))
-			}
+		if res.Properties != nil && res.Properties.ProvisioningState != "" {
+			return res, string(res.Properties.ProvisioningState), nil
 		}
-
-		return resp, nodeCount, nil
+		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func schemaCdnFrontdoorOperator() *pluginsdk.Schema {
+func schemaCdnFrontDoorOperator() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Required: true,
@@ -26,8 +26,7 @@ func schemaCdnFrontdoorOperator() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
-	// TODO: if there's only one possible value, and it's defaulted - we don't need to expose this field for now?
+func schemaCdnFrontDoorOperatorEqualOnly() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -38,7 +37,7 @@ func schemaCdnFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorOperatorRemoteAddress() *pluginsdk.Schema {
+func schemaCdnFrontDoorOperatorRemoteAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -51,7 +50,7 @@ func schemaCdnFrontdoorOperatorRemoteAddress() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorOperatorSocketAddress() *pluginsdk.Schema {
+func schemaCdnFrontDoorOperatorSocketAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -63,7 +62,7 @@ func schemaCdnFrontdoorOperatorSocketAddress() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorNegateCondition() *pluginsdk.Schema {
+func schemaCdnFrontDoorNegateCondition() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
@@ -71,27 +70,25 @@ func schemaCdnFrontdoorNegateCondition() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 25,
 
-		// In some cases it is valid for this to be an empty string
 		Elem: &pluginsdk.Schema{
+			// In some cases it is valid for this to be an empty string
 			Type: pluginsdk.TypeString,
 		},
 	}
 }
 
-func schemaCdnFrontdoorServerPortMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorServerPortMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		// TODO: should this be a set?
 		Type:     pluginsdk.TypeSet,
 		Required: true,
 		MaxItems: 2,
 
-		// In some cases it is valid for this to be an empty string
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -102,7 +99,7 @@ func schemaCdnFrontdoorServerPortMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorSslProtocolMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Required: true,
@@ -119,7 +116,7 @@ func schemaCdnFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorUrlPathConditionMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorUrlPathConditionMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -127,12 +124,12 @@ func schemaCdnFrontdoorUrlPathConditionMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: validate.CdnFrontdoorUrlPathConditionMatchValue,
+			ValidateFunc: validate.CdnFrontDoorUrlPathConditionMatchValue,
 		},
 	}
 }
 
-func schemaCdnFrontdoorMatchValuesRequired() *pluginsdk.Schema {
+func schemaCdnFrontDoorMatchValuesRequired() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -145,7 +142,7 @@ func schemaCdnFrontdoorMatchValuesRequired() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorRequestMethodMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Required: true,
@@ -166,10 +163,8 @@ func schemaCdnFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorProtocolMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorProtocolMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		// TODO: if this is MaxItems: 1, should this be a string?
-		// WS: This is a list because the up level interface is a list
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -178,8 +173,6 @@ func schemaCdnFrontdoorProtocolMatchValues() *pluginsdk.Schema {
 			Type:    pluginsdk.TypeString,
 			Default: "HTTP",
 			ValidateFunc: validation.StringInSlice([]string{
-				// TODO: are there constants for these?
-				// TODO: other APIs use `Http` and `Https`, is that casing consistent in the API?
 				"HTTP",
 				"HTTPS",
 			}, false),
@@ -187,7 +180,7 @@ func schemaCdnFrontdoorProtocolMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorIsDeviceMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -196,8 +189,6 @@ func schemaCdnFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				// TODO: are there constants for these?
-				// WS: No, these values do not have constants.
 				"Mobile",
 				"Desktop",
 			}, false),
@@ -205,7 +196,7 @@ func schemaCdnFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
+func schemaCdnFrontDoorHttpVersionMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Required: true,
@@ -223,7 +214,7 @@ func schemaCdnFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
 	}
 }
 
-func schemaCdnFrontdoorRuleTransforms() *pluginsdk.Schema {
+func schemaCdnFrontDoorRuleTransforms() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,

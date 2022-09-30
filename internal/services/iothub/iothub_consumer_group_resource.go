@@ -63,7 +63,7 @@ func resourceIotHubConsumerGroup() *pluginsdk.Resource {
 
 func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
-	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM IoTHub Consumer Group creation.")

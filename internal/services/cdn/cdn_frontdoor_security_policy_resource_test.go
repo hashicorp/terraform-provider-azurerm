@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorSecurityPolicyResource struct{}
+type CdnFrontDoorSecurityPolicyResource struct{}
 
-func TestAccCdnFrontdoorSecurityPolicy_basic(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -25,15 +25,27 @@ func TestAccCdnFrontdoorSecurityPolicy_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: we can remove these import-ignores by fixing the resource
-		// WS: Fixed, custom domain needs the profile id during create because it needs the name
 		data.ImportStep("azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
 
-func TestAccCdnFrontdoorSecurityPolicy_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_basicEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorSecurityPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,9 +57,23 @@ func TestAccCdnFrontdoorSecurityPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecurityPolicy_complete(t *testing.T) {
+func TestAccCdnFrontDoorSecurityPolicy_requiresImportEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
-	r := CdnFrontdoorSecurityPolicyResource{}
+	r := CdnFrontDoorSecurityPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImportEndpoint),
+	})
+}
+
+func TestAccCdnFrontDoorSecurityPolicy_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
+	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -55,14 +81,26 @@ func TestAccCdnFrontdoorSecurityPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: we can remove these import-ignores by fixing the resource
-		// WS: Fixed, custom domain needs the profile id during create because it needs the name
 		data.ImportStep("azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorSecurityPolicyID(state.ID)
+func TestAccCdnFrontDoorSecurityPolicy_completeEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
+	r := CdnFrontDoorSecurityPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r CdnFrontDoorSecurityPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.FrontDoorSecurityPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +117,7 @@ func (r CdnFrontdoorSecurityPolicyResource) Exists(ctx context.Context, clients 
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -116,6 +154,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "preview-0.1"
+    action  = "Block"
 
     override {
       rule_group_name = "PHP"
@@ -131,6 +170,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "BotProtection"
     version = "preview-0.1"
+    action  = "Block"
   }
 }
 
@@ -160,7 +200,82 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) templateEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%[1]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.fabrikam.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  custom_rule {
+    name                           = "Rule1"
+    enabled                        = true
+    priority                       = 1
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "Block"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
+    }
+  }
+
+  managed_rule {
+    type    = "DefaultRuleSet"
+    version = "preview-0.1"
+    action  = "Block"
+
+    override {
+      rule_group_name = "PHP"
+
+      rule {
+        rule_id = "933111"
+        enabled = false
+        action  = "Block"
+      }
+    }
+  }
+
+  managed_rule {
+    type    = "BotProtection"
+    version = "preview-0.1"
+    action  = "Block"
+  }
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%[1]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "accTestProfile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "acctest-cdnfdendpoint-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r CdnFrontDoorSecurityPolicyResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -190,7 +305,37 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) basicEndpoint(data acceptance.TestData) string {
+	template := r.templateEndpoint(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_security_policy" "test" {
+  name                     = "accTestSecPol%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.test.id
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorSecurityPolicyResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -216,7 +361,33 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
 `, config, data.RandomInteger)
 }
 
-func (r CdnFrontdoorSecurityPolicyResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorSecurityPolicyResource) requiresImportEndpoint(data acceptance.TestData) string {
+	config := r.basicEndpoint(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_security_policy" "import" {
+  name                     = "accTestSecPol%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.test.id
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+`, config, data.RandomInteger)
+}
+
+func (r CdnFrontDoorSecurityPolicyResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -236,6 +407,36 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
       association {
         domain {
           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorSecurityPolicyResource) completeEndpoint(data acceptance.TestData) string {
+	template := r.templateEndpoint(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_security_policy" "test" {
+  name                     = "accTestSecPol%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.test.id
         }
 
         patterns_to_match = ["/*"]

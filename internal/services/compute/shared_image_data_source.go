@@ -41,6 +41,11 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"architecture": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"os_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -131,6 +136,7 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("architecture", string(props.Architecture))
 		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)

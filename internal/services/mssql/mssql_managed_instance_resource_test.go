@@ -1184,6 +1184,21 @@ func TestAccMsSqlManagedInstance_multipleDnsZonePartners(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedInstance_withMaintenanceConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withMaintenanceConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func (r MsSqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ManagedInstanceID(state.ID)
 	if err != nil {
@@ -2320,4 +2335,37 @@ resource "azurerm_subnet_route_table_association" "secondary_2" {
   route_table_id = azurerm_route_table.secondary_2.id
 }
 `, data.RandomInteger, data.Locations.Secondary, managedInstanceStaticRoutes)
+}
+
+func (r MsSqlManagedInstanceResource) withMaintenanceConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  maintenance_configuration_name = "SQL_Default"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }

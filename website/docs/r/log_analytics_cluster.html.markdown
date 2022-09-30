@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below. Changing this forces a new Log Analytics Cluster to be created.
 
-* `size_gb` - (Optional) The capacity of the Log Analytics Cluster specified in GB/day. Defaults to 1000.
+* `size_gb` - (Optional) The capacity of the Log Analytics Cluster is specified in GB/day. Possible values include `500`, `1000`, `2000` or `5000`. Defaults to `1000`.
 
-~> **NOTE:** The `size_gb` can be in the range of 1000 to 3000 GB per day and must be in steps of 100 GB. For `size_gb` levels higher than 3000 GB per day, please contact your Microsoft contact to enable it.
+~> **NOTE:** The cluster capacity must start at 500 GB and can be set to 1000, 2000 or 5000 GB/day. For more information on cluster costs, see [Dedicated clusters](https://docs.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#dedicated-clusters).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Cluster.
 
@@ -87,7 +87,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the Log Analytics Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Cluster.

@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -19,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
+func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorProfileCreate,
-		Read:   resourceCdnFrontdoorProfileRead,
-		Update: resourceCdnFrontdoorProfileUpdate,
-		Delete: resourceCdnFrontdoorProfileDelete,
+		Create: resourceCdnFrontDoorProfileCreate,
+		Read:   resourceCdnFrontDoorProfileRead,
+		Update: resourceCdnFrontDoorProfileUpdate,
+		Delete: resourceCdnFrontDoorProfileDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -34,7 +33,7 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorProfileID(id)
+			_, err := parse.FrontDoorProfileID(id)
 			return err
 		}),
 
@@ -43,50 +42,46 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CdnFrontdoorName,
+				ValidateFunc: validate.FrontDoorName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			// TODO: how is this different to the Resource ID?
-			// WS: This is the UUID of the actual Frontdoor service which is returned by the RP. Maybe I should change the name of the field to make it more clear that this is different than the ID field?
-			"cdn_frontdoor_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
-				ForceNew:     true,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      120,
 				ValidateFunc: validation.IntBetween(16, 240),
 			},
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
+				Required: true,
 				ForceNew: true,
-				Optional: true,
-				Default:  string(cdn.SkuNameStandardAzureFrontDoor),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(cdn.SkuNamePremiumAzureFrontDoor),
 					string(cdn.SkuNameStandardAzureFrontDoor),
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
+
+			"resource_guid": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontdoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
+	id := parse.NewFrontDoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -119,15 +114,15 @@ func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorProfileRead(d, meta)
+	return resourceCdnFrontDoorProfileRead(d, meta)
 }
 
-func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorProfileID(d.Id())
+	id, err := parse.FrontDoorProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -145,8 +140,11 @@ func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.ProfileProperties; props != nil {
-		d.Set("cdn_frontdoor_id", props.FrontDoorID)
 		d.Set("response_timeout_seconds", props.OriginResponseTimeoutSeconds)
+
+		// whilst this is returned in the API as FrontDoorID other resources refer to
+		// this as the Resource GUID, so we will for consistency
+		d.Set("resource_guid", props.FrontDoorID)
 	}
 
 	skuName := ""
@@ -155,19 +153,15 @@ func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("sku_name", skuName)
 
-	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
-		return err
-	}
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceCdnFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorProfileID(d.Id())
+	id, err := parse.FrontDoorProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -185,15 +179,15 @@ func resourceCdnFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	return resourceCdnFrontdoorProfileRead(d, meta)
+	return resourceCdnFrontDoorProfileRead(d, meta)
 }
 
-func resourceCdnFrontdoorProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorProfileID(d.Id())
+	id, err := parse.FrontDoorProfileID(d.Id())
 	if err != nil {
 		return err
 	}

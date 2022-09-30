@@ -50,33 +50,26 @@ func resourceDataFactoryDataFlow() *pluginsdk.Resource {
 
 			"script": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				AtLeastOneOf: []string{"script", "script_lines"},
+			},
+
+			"script_lines": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"script", "script_lines"},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 
 			"source": SchemaForDataFlowSourceAndSink(),
 
 			"sink": SchemaForDataFlowSourceAndSink(),
 
-			"transformation": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"description": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
+			"transformation": SchemaForDataFlowSourceTransformation(),
 
 			"annotations": {
 				Type:     pluginsdk.TypeList,
@@ -148,6 +141,10 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	if v, ok := d.GetOk("script_lines"); ok {
+		mappingDataFlow.ScriptLines = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
 	dataFlow := datafactory.DataFlowResource{
 		Properties: &mappingDataFlow,
 	}
@@ -202,6 +199,7 @@ func resourceDataFactoryDataFlowRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if prop := mappingDataFlow.MappingDataFlowTypeProperties; prop != nil {
 		d.Set("script", prop.Script)
+		d.Set("script_lines", prop.ScriptLines)
 
 		if err := d.Set("source", flattenDataFactoryDataFlowSource(prop.Sources)); err != nil {
 			return fmt.Errorf("setting `source`: %+v", err)
@@ -232,43 +230,4 @@ func resourceDataFactoryDataFlowDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func expandDataFactoryDataFlowTransformation(input []interface{}) *[]datafactory.Transformation {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	result := make([]datafactory.Transformation, 0)
-	for _, v := range input {
-		raw := v.(map[string]interface{})
-		result = append(result, datafactory.Transformation{
-			Description: utils.String(raw["description"].(string)),
-			Name:        utils.String(raw["name"].(string)),
-		})
-	}
-	return &result
-}
-
-func flattenDataFactoryDataFlowTransformation(input *[]datafactory.Transformation) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for _, v := range *input {
-		name := ""
-		description := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		if v.Description != nil {
-			description = *v.Description
-		}
-		result = append(result, map[string]interface{}{
-			"name":        name,
-			"description": description,
-		})
-	}
-	return result
 }

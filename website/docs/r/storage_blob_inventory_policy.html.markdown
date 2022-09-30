@@ -97,7 +97,7 @@ A `rules` block supports the following:
 
 * `scope` - (Required) The scope of the inventory for this rule. Possible values are `Blob` and `Container`.
 
-* `schema_fields` - (Required) A list of fields to be included in the inventory. See the [Azure API reference](https://docs.microsoft.com/en-us/rest/api/storagerp/blob-inventory-policies/create-or-update#blobinventorypolicydefinition) for all the supported fields.
+* `schema_fields` - (Required) A list of fields to be included in the inventory. See the [Azure API reference](https://docs.microsoft.com/rest/api/storagerp/blob-inventory-policies/create-or-update#blobinventorypolicydefinition) for all the supported fields.
 
 ---
 
@@ -111,7 +111,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Blob Inventory Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Blob Inventory Policy.

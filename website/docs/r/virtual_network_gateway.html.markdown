@@ -144,13 +144,15 @@ The following arguments are supported:
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunnelling*). Refer to the
-    [Azure documentation on forced tunnelling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
+    [Azure documentation on forced tunnelling](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
     If not specified, forced tunnelling is disabled.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network Gateway should exist. Changing this forces a new Virtual Network Gateway to be created.
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled
   for this Virtual Network Gateway. Defaults to `false`.
+  
+* `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
 
@@ -293,7 +295,7 @@ The `peering_addresses` supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Network Gateway.
 * `update` - (Defaults to 60 minutes) Used when updating the Virtual Network Gateway.

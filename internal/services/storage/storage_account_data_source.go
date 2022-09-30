@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -37,6 +37,8 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": commonschema.LocationComputed(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"account_kind": {
 				Type:     pluginsdk.TypeString,
@@ -278,6 +280,51 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"azure_files_authentication": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"directory_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"active_directory": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"domain_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"netbios_domain_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"forest_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"domain_guid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"domain_sid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"storage_sid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -411,12 +458,24 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
 		}
 		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+
+		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
+		}
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
 		storageAccountKeys := *accessKeys
 		d.Set("primary_access_key", storageAccountKeys[0].Value)
 		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	}
+
+	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

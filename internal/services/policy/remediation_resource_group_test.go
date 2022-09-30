@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,20 +47,20 @@ func TestAccAzureRMResourceGroupPolicyRemediation_complete(t *testing.T) {
 }
 
 func (r ResourceGroupPolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ResourceGroupPolicyRemediationID(state.ID)
+	id, err := remediations.ParseProviderRemediationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Policy.RemediationsClient.GetAtResourceGroup(ctx, id.SubscriptionId, id.ResourceGroup, id.RemediationName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	resp, err := client.Policy.RemediationsClient.RemediationsGetAtResourceGroup(ctx, *id)
+	if err != nil || resp.Model == nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Remediation %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.RemediationProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r ResourceGroupPolicyRemediationResource) template(data acceptance.TestData) string {
@@ -108,7 +109,7 @@ PARAMETERS
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
-  name                 = "acctestpa-%[1]s"
+  name                 = "acctestpa-rg-%[1]s"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 
@@ -146,8 +147,10 @@ resource "azurerm_resource_group_policy_remediation" "test" {
   resource_group_id       = azurerm_resource_group_policy_assignment.test.resource_group_id
   policy_assignment_id    = azurerm_resource_group_policy_assignment.test.id
   location_filters        = ["westus"]
-  policy_definition_id    = azurerm_policy_definition.test.id
   resource_discovery_mode = "ReEvaluateCompliance"
+  failure_percentage      = 0.5
+  parallel_deployments    = 3
+  resource_count          = 3
 }
 `, r.template(data), data.RandomString)
 }

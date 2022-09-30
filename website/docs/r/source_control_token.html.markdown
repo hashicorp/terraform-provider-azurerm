@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the App Service Source GitHub Token.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source GitHub Token.
@@ -51,5 +51,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Source GitHub Tokens can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_github_token.example /providers/Microsoft.Web/sourcecontrols/GitHub
+terraform import azurerm_source_control_token.example /providers/Microsoft.Web/sourceControls/GitHub
 ```

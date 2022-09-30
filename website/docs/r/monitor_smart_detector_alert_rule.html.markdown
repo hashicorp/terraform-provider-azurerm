@@ -28,7 +28,7 @@ resource "azurerm_application_insights" "example" {
 resource "azurerm_monitor_action_group" "example" {
   name                = "example-action-group"
   resource_group_name = azurerm_resource_group.example.name
-  short_name          = "exampleactiongroup"
+  short_name          = "example"
 }
 
 resource "azurerm_monitor_smart_detector_alert_rule" "example" {
@@ -40,7 +40,7 @@ resource "azurerm_monitor_smart_detector_alert_rule" "example" {
   detector_type       = "FailureAnomaliesDetector"
 
   action_group {
-    ids = [azurerm_monitor_action_group.test.id]
+    ids = [azurerm_monitor_action_group.example.id]
   }
 }
 ```
@@ -89,7 +89,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Monitor Smart Detector Alert Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Smart Detector Alert Rule.

@@ -33,7 +33,7 @@ resource "azurerm_route" "example" {
   resource_group_name = azurerm_resource_group.example.name
   route_table_name    = azurerm_route_table.example.name
   address_prefix      = "10.1.0.0/16"
-  next_hop_type       = "vnetlocal"
+  next_hop_type       = "VnetLocal"
 }
 ```
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `route_table_name` - (Required) The name of the route table within which create the route. Changing this forces a new resource to be created.
 
-* `address_prefix` - (Required) The destination to which the route applies. Can be CIDR (such as `10.1.0.0/16`) or [Azure Service Tag](https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview) (such as `ApiManagement`, `AzureBackup` or `AzureMonitor`) format.
+* `address_prefix` - (Required) The destination to which the route applies. Can be CIDR (such as `10.1.0.0/16`) or [Azure Service Tag](https://docs.microsoft.com/azure/virtual-network/service-tags-overview) (such as `ApiManagement`, `AzureBackup` or `AzureMonitor`) format.
 
 * `next_hop_type` - (Required) The type of Azure hop the packet should be sent to. Possible values are `VirtualNetworkGateway`, `VnetLocal`, `Internet`, `VirtualAppliance` and `None`.
 
@@ -61,7 +61,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Route.
 * `update` - (Defaults to 30 minutes) Used when updating the Route.

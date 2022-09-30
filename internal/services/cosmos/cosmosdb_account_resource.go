@@ -10,13 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,7 +28,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -115,12 +113,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// resource fields
 			"offer_type": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"analytical_storage": {
@@ -183,16 +180,15 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(documentdb.DatabaseAccountKindGlobalDocumentDB),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 					string(documentdb.DatabaseAccountKindMongoDB),
 					string(documentdb.DatabaseAccountKindParse),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"ip_range_filter": func() *schema.Schema {
@@ -259,16 +255,15 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"consistency_level": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.DefaultConsistencyLevelBoundedStaleness),
 								string(documentdb.DefaultConsistencyLevelConsistentPrefix),
 								string(documentdb.DefaultConsistencyLevelEventual),
 								string(documentdb.DefaultConsistencyLevelSession),
 								string(documentdb.DefaultConsistencyLevelStrong),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"max_interval_in_seconds": {
@@ -326,27 +321,20 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-								out := []string{
-									"EnableAggregationPipeline",
-									"EnableCassandra",
-									"EnableGremlin",
-									"EnableTable",
-									"EnableServerless",
-									"EnableMongo",
-									"MongoDBv3.4",
-									"mongoEnableDocLevelTTL",
-									"DisableRateLimitingResponses",
-									"AllowSelfServeUpgradeToMongo36",
-								}
-								if !features.ThreePointOhBeta() {
-									out = append(out, "EnableAnalyticalStorage")
-								}
-								return validation.StringInSlice(out, !features.ThreePointOhBeta())
-							}(),
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"EnableAggregationPipeline",
+								"EnableCassandra",
+								"EnableGremlin",
+								"EnableTable",
+								"EnableServerless",
+								"EnableMongo",
+								"MongoDBv3.4",
+								"mongoEnableDocLevelTTL",
+								"DisableRateLimitingResponses",
+								"AllowSelfServeUpgradeToMongo36",
+							}, false),
 						},
 					},
 				},
@@ -406,6 +394,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					string(documentdb.ServerVersionThreeFullStopTwo),
 					string(documentdb.ServerVersionThreeFullStopSix),
 					string(documentdb.ServerVersionFourFullStopZero),
+					string(documentdb.ServerVersionFourFullStopTwo),
 				}, false),
 			},
 
@@ -467,7 +456,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"cors_rule": common.SchemaCorsRule(),
 
@@ -951,16 +940,14 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
 	d.Set("kind", string(resp.Kind))
 
-	if v := resp.Identity; v != nil {
-		if err := d.Set("identity", flattenAccountIdentity(v)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
+	identity, err := flattenAccountIdentity(resp.Identity)
+	if err != nil {
+		return err
 	}
+	d.Set("identity", identity)
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
@@ -975,7 +962,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
 		defaultIdentity := props.DefaultIdentity
-		if defaultIdentity == nil {
+		if defaultIdentity == nil || *defaultIdentity == "" {
 			defaultIdentity = utils.String("FirstPartyIdentity")
 		}
 		d.Set("default_identity_type", defaultIdentity)
@@ -1359,7 +1346,7 @@ func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccou
 	locationSet := pluginsdk.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
 	}
-	if account == nil {
+	if account == nil || *account.FailoverPolicies == nil {
 		return &locationSet
 	}
 
@@ -1556,22 +1543,31 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 }
 
 func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &documentdb.ManagedServiceIdentity{
+	out := documentdb.ManagedServiceIdentity{
 		Type: documentdb.ResourceIdentityType(string(expanded.Type)),
-	}, nil
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+		}
+	}
+	return &out, nil
+
 }
 
-func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interface{} {
-	var transform *identity.SystemAssigned
+func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		if input.PrincipalID != nil {
 			transform.PrincipalId = *input.PrincipalID
@@ -1579,9 +1575,16 @@ func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interfac
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *documentdb.AnalyticalStorageConfiguration {

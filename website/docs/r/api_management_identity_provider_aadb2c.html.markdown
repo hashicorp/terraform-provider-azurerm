@@ -28,21 +28,19 @@ resource "azurerm_api_management" "example" {
 }
 
 resource "azuread_application" "example" {
-  name                       = "acctestAM-%[5]d"
-  oauth2_allow_implicit_flow = true
-  reply_urls                 = ["https://${azurerm_api_management.test.name}.developer.azure-api.net/signin"]
+  display_name = "acctestam-example"
 }
 
 resource "azuread_application_password" "example" {
-  application_object_id = azuread_application.test.object_id
+  application_object_id = azuread_application.example.object_id
   end_date_relative     = "36h"
-  value                 = "P@55w0rD!%[7]s"
 }
 
 resource "azurerm_api_management_identity_provider_aadb2c" "example" {
+  resource_group_name = azurerm_resource_group.example.name
   api_management_name = azurerm_api_management.example.name
   client_id           = azuread_application.example.application_id
-  client_secret       = "P@55w0rD!%[7]s"
+  client_secret       = "P@55w0rD!"
   allowed_tenant      = "myb2ctenant.onmicrosoft.com"
   signin_tenant       = "myb2ctenant.onmicrosoft.com"
   authority           = "myb2ctenant.b2clogin.com"
@@ -89,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Azure AD B2C Identity Provider.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Azure AD B2C Identity Provider.

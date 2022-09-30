@@ -25,6 +25,7 @@ type Config struct {
 
 	GetAuthenticatedObjectID         func(context.Context) (*string, error)
 	AuthenticatedAsAServicePrincipal bool
+	AuthenticatedViaOIDC             bool
 
 	// A Custom Resource Manager Endpoint
 	// at this time this should only be applicable for Azure Stack.

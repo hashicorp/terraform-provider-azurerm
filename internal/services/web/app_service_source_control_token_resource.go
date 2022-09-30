@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -34,7 +33,7 @@ func resourceAppServiceSourceControlToken() *pluginsdk.Resource {
 			return nil
 		}),
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_app_service_source_control_token` resource has been superseded by the `azurerm_source_control_token` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+		DeprecationMessage: "The `azurerm_app_service_source_control_token` resource has been superseded by the `azurerm_source_control_token` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

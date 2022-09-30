@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/edgemodules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/sdk/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -16,6 +16,7 @@ import (
 type VideoAnalyzerEdgeModuleResource struct{}
 
 func TestAccVideoAnalyzerEdgeModule_basic(t *testing.T) {
+	t.Skip("Skipping as video analyzer is deprecated")
 	data := acceptance.BuildTestData(t, "azurerm_video_analyzer_edge_module", "test")
 	r := VideoAnalyzerEdgeModuleResource{}
 
@@ -31,6 +32,7 @@ func TestAccVideoAnalyzerEdgeModule_basic(t *testing.T) {
 }
 
 func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
+	t.Skip("Skipping as video analyzer is deprecated")
 	data := acceptance.BuildTestData(t, "azurerm_video_analyzer_edge_module", "test")
 	r := VideoAnalyzerEdgeModuleResource{}
 
@@ -46,12 +48,12 @@ func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
 }
 
 func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := videoanalyzer.ParseEdgeModuleID(state.ID)
+	id, err := edgemodules.ParseEdgeModuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.VideoAnalyzer.VideoAnalyzersClient.EdgeModulesGet(ctx, *id)
+	resp, err := clients.VideoAnalyzer.EdgeModuleClient.EdgeModulesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

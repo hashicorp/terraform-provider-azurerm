@@ -17,10 +17,13 @@ type SubscriptionAssignmentResource struct {
 func (r SubscriptionAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringIsNotWhiteSpace,
+				validation.StringDoesNotContainAny("/"),
+			),
 		},
 		"subscription_id": {
 			Type:         pluginsdk.TypeString,

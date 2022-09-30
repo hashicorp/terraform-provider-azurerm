@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
+func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorSecurityPolicyCreate,
 		Read:   resourceCdnFrontdoorSecurityPolicyRead,
@@ -30,17 +30,15 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorSecurityPolicyID(id)
+			_, err := parse.FrontDoorSecurityPolicyID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: validation
-				// WS: There are literally no rules for what this string can be. Fixed
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -48,7 +46,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorProfileID,
+				ValidateFunc: validate.FrontDoorProfileID,
 			},
 
 			"security_policies": {
@@ -70,12 +68,10 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 
 									"cdn_frontdoor_firewall_policy_id": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ForceNew: true,
-										// TODO: validation for the ID type
-										// WS: Fixed
-										ValidateFunc: validate.FrontdoorPolicyID,
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.FrontDoorFirewallPolicyID,
 									},
 
 									"association": {
@@ -96,14 +92,11 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
-
-															// WS: I changed this to a generic name from 'cdn_frontdoor_custom_domain_id' because
-															// this value can be either a custom domain id or a endpoint id...
 															"cdn_frontdoor_domain_id": {
 																Type:         pluginsdk.TypeString,
 																Required:     true,
 																ForceNew:     true,
-																ValidateFunc: validate.CdnFrontdoorDomainID,
+																ValidateFunc: validate.FrontDoorSecurityPolicyDomainID,
 															},
 
 															"active": {
@@ -119,7 +112,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeList,
 													Required: true,
 													ForceNew: true,
-													MaxItems: 25,
+													MaxItems: 1,
 
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
@@ -146,49 +139,41 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// WS: I need to have the fake profile id field here because
-	// I need the profile name and the last I knew we wanted to get
-	// away from using the name as a field and use ID which we can parse
-	// to get the same data?
-	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
+	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
 	securityPolicyName := d.Get("name").(string)
-	id := parse.NewFrontdoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
+	id := parse.NewFrontDoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
 	}
 
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve the %q from the linked %q: %+v", "sku_name", "azurerm_cdn_frontdoor_profile", err)
+		return fmt.Errorf("unable to retrieve the 'sku_name' from the linked 'azurerm_cdn_frontdoor_profile': %+v", err)
 	}
 
 	if profile.Sku == nil {
-		return fmt.Errorf("retreving the parent %q: `sku` was nil", *profileId)
+		return fmt.Errorf("retreving the parent %q: 'sku' was nil", *profileId)
 	}
 
 	isStandardSku := strings.HasPrefix(strings.ToLower(string(profile.Sku.Name)), "standard")
-	params := cdn.BasicSecurityPolicyPropertiesParameters(nil)
 
-	if secPol, ok := d.GetOk("security_policies"); ok {
-		params, err = cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(secPol.([]interface{}), isStandardSku)
-		if err != nil {
-			return fmt.Errorf("expanding %q: %+v", "security_policies", err)
-		}
+	params, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
+	if err != nil {
+		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
 
 	props := cdn.SecurityPolicy{
@@ -215,7 +200,7 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorSecurityPolicyID(d.Id())
+	id, err := parse.FrontDoorSecurityPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -226,16 +211,45 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Frontdoor Security Policy %q (Resource Group %q): %+v", id.SecurityPolicyName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.SecurityPolicyName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.SecurityPolicyProperties; props != nil {
-		securityPolicy, err := cdnfrontdoorsecurityparams.FlattenCdnFrontdoorFirewallPolicyParameters(props.Parameters)
-		if err != nil {
-			return fmt.Errorf("flattening %s: %+v", id, err)
+		waf, ok := props.Parameters.AsSecurityPolicyWebApplicationFirewallParameters()
+		if !ok {
+			return fmt.Errorf("flattening %s: %s", id, "expected security policy web application firewall parameters")
+		}
+
+		// we know it's a firewall policy at this point,
+		// create the objects to hold the policy data
+		associations := make([]interface{}, 0)
+
+		wafPolicyId := ""
+		if waf.WafPolicy != nil && waf.WafPolicy.ID != nil {
+			wafPolicyId = *waf.WafPolicy.ID
+		}
+
+		if waf.Associations != nil {
+			for _, item := range *waf.Associations {
+				associations = append(associations, map[string]interface{}{
+					"domain":            cdnfrontdoorsecurityparams.FlattenSecurityPoliciesActivatedResourceReference(item.Domains),
+					"patterns_to_match": utils.FlattenStringSlice(item.PatternsToMatch),
+				})
+			}
+		}
+
+		securityPolicy := []interface{}{
+			map[string]interface{}{
+				"firewall": []interface{}{
+					map[string]interface{}{
+						"association":                      associations,
+						"cdn_frontdoor_firewall_policy_id": wafPolicyId,
+					},
+				},
+			},
 		}
 
 		d.Set("security_policies", securityPolicy)
@@ -249,7 +263,7 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorSecurityPolicyID(d.Id())
+	id, err := parse.FrontDoorSecurityPolicyID(d.Id())
 	if err != nil {
 		return err
 	}

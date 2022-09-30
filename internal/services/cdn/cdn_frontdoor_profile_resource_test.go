@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorProfileResource struct{}
+type CdnFrontDoorProfileResource struct{}
 
-func TestAccCdnFrontdoorProfile_basic(t *testing.T) {
+func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-	r := CdnFrontdoorProfileResource{}
+	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccCdnFrontdoorProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorProfile_requiresImport(t *testing.T) {
+func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-	r := CdnFrontdoorProfileResource{}
+	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccCdnFrontdoorProfile_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorProfile_complete(t *testing.T) {
+func TestAccCdnFrontDoorProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-	r := CdnFrontdoorProfileResource{}
+	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccCdnFrontdoorProfile_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorProfile_update(t *testing.T) {
+func TestAccCdnFrontDoorProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-	r := CdnFrontdoorProfileResource{}
+	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,8 +78,8 @@ func TestAccCdnFrontdoorProfile_update(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorProfileID(state.ID)
+func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.FrontDoorProfileID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -95,16 +95,7 @@ func (r CdnFrontdoorProfileResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorProfileResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%d"
-  location = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r CdnFrontdoorProfileResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -114,37 +105,27 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "accTestProfile-%d"
+  name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "Standard_AzureFrontDoor"
-
-  tags = {
-    ENV = "Test"
-  }
+  sku_name            = "Standard_AzureFrontDoor"
 }
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorProfileResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cdn_frontdoor_profile" "import" {
   name                = azurerm_cdn_frontdoor_profile.test.name
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "Standard_AzureFrontDoor"
-
-  tags = {
-    ENV = "Test"
-  }
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
 }
 `, config)
 }
 
-func (r CdnFrontdoorProfileResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -154,9 +135,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "accTestProfile-%d"
-  resource_group_name = azurerm_resource_group.test.name
-
+  name                     = "acctestprofile-%d"
+  resource_group_name      = azurerm_resource_group.test.name
   response_timeout_seconds = 240
   sku_name                 = "Premium_AzureFrontDoor"
 
@@ -167,7 +147,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorProfileResource) update(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -179,13 +159,22 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
 
   response_timeout_seconds = 120
-  sku_name                 = "Premium_AzureFrontDoor"
 
   tags = {
     ENV = "Production"
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (CdnFrontDoorProfileResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +34,8 @@ func testAccBotChannelWebChat_basic(t *testing.T) {
 func testAccBotChannelWebChat_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

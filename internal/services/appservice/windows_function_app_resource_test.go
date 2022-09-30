@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -27,6 +28,23 @@ func TestAccWindowsFunctionApp_basicBasicPlan(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionApp_basicRuntimeCheck(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.runtimeScaleCheck(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.runtime_scale_monitoring_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -275,9 +293,9 @@ func TestAccWindowsFunctionApp_stickySettings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -304,9 +322,9 @@ func TestAccWindowsFunctionApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -328,9 +346,9 @@ func TestAccWindowsFunctionApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -453,6 +471,7 @@ func TestAccWindowsFunctionApp_elasticPremiumComplete(t *testing.T) {
 			Config: r.elasticComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
 			),
 		},
 		data.ImportStep(),
@@ -877,6 +896,32 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_appStackUpdateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackNode(data, SkuConsumptionPlan, "~14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("Node|~14"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appStackNodeWithTags(data, SkuConsumptionPlan, "~14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("Node|~14"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsFunctionApp_appStackJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -983,7 +1028,39 @@ func TestAccWindowsFunctionApp_updateStorageAccount(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionApp_msiStorageAccount(t *testing.T) {
+func TestAccWindowsFunctionApp_msiStorageAccountConsumption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuConsumptionPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionApp_msiStorageAccountElastic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionApp_msiStorageAccountStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
 
@@ -1055,6 +1132,105 @@ func TestAccWindowsFunctionApp_storageAccountKeyVaultSecretVersionless(t *testin
 	})
 }
 
+func TestAccWindowsFunctionApp_vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionApp_vNetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_subnet2(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test2").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppASEv3_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withASEV3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// Outputs
+
+func TestAccWindowsFunctionApp_basicOutputs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	ipListRegex := regexp.MustCompile(`(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(,){0,1})+`)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("outbound_ip_addresses").MatchesRegex(ipListRegex),
+				check.That(data.ResourceName).Key("outbound_ip_address_list.#").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").MatchesRegex(ipListRegex),
+				check.That(data.ResourceName).Key("possible_outbound_ip_address_list.#").Exists(),
+				check.That(data.ResourceName).Key("default_hostname").MatchesRegex(regexp.MustCompile(`(.)+`)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists
 
 func (r WindowsFunctionAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1096,6 +1272,31 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) runtimeScaleCheck(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    runtime_scale_monitoring_enabled = true
+    pre_warmed_instance_count        = 1
+  }
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
@@ -1256,9 +1457,10 @@ resource "azurerm_windows_function_app" "test" {
   site_config {}
 
   app_settings = {
-    foo    = "bar"
-    secret = "sauce"
-    third  = "degree"
+    foo                                     = "bar"
+    secret                                  = "sauce"
+    third                                   = "degree"
+    "Special chars: !@#$%%^&*()_+-=' \";/?" = "Supported by the Azure portal"
   }
 
   connection_string {
@@ -1279,9 +1481,15 @@ resource "azurerm_windows_function_app" "test" {
     type  = "PostgreSQL"
   }
 
+  connection_string {
+    name  = "Special chars: !@#$%%^&*()_+-=' \";/?"
+    value = "characters-supported-by-the-Azure-portal"
+    type  = "Custom"
+  }
+
   sticky_settings {
-    app_setting_names       = ["foo", "secret"]
-    connection_string_names = ["First", "Third"]
+    app_setting_names       = ["foo", "secret", "Special chars: !@#$%%^&*()_+-=' \";/?"]
+    connection_string_names = ["First", "Third", "Special chars: !@#$%%^&*()_+-=' \";/?"]
   }
 }
 `, r.template(data, SkuStandardPlan), data.RandomInteger)
@@ -1551,6 +1759,19 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
+    scm_ip_restriction {
+      ip_address = "fd80::/64"
+      name       = "test-scm-restriction-v6"
+      priority   = 124
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
     use_32_bit_worker  = true
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
@@ -1724,6 +1945,19 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
+    scm_ip_restriction {
+      ip_address = "fd80::/64"
+      name       = "test-scm-restriction-v6"
+      priority   = 124
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
     use_32_bit_worker  = true
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
@@ -1813,6 +2047,8 @@ resource "azurerm_windows_function_app" "test" {
       powershell_core_version = "7"
     }
 
+    elastic_instance_minimum = 5
+
     default_documents = [
       "first.html",
       "second.jsp",
@@ -1844,6 +2080,19 @@ resource "azurerm_windows_function_app" "test" {
       ip_address = "10.20.20.20/32"
       name       = "test-scm-restriction"
       priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    scm_ip_restriction {
+      ip_address = "fd80::/64"
+      name       = "test-scm-restriction-v6"
+      priority   = 124
       action     = "Allow"
       headers {
         x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
@@ -2216,6 +2465,36 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
 }
 
+func (r WindowsFunctionAppResource) appStackNodeWithTags(data acceptance.TestData, planSku string, nodeVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      node_version = "%s"
+    }
+  }
+
+  tags = {
+    env = "TestAcc"
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, nodeVersion)
+}
+
 func (r WindowsFunctionAppResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2301,7 +2580,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-LFA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -2457,7 +2736,11 @@ resource "azurerm_windows_function_app" "test" {
     type = "SystemAssigned"
   }
 
-  site_config {}
+  site_config {
+    application_stack {
+      dotnet_version = "6"
+    }
+  }
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
@@ -2668,7 +2951,7 @@ func (WindowsFunctionAppResource) template(data acceptance.TestData, planSku str
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%d"
+  name     = "acctestRG-WFA-%d"
   location = "%s"
 }
 
@@ -2796,4 +3079,198 @@ resource "azurerm_service_plan" "test" {
   sku_name            = "%[4]s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku)
+}
+
+func (r WindowsFunctionAppResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                       = "acctest-WFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {}
+}
+
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) vNetIntegration_subnet1(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                       = "acctest-WFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  virtual_network_subnet_id  = azurerm_subnet.test1.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {}
+}
+
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) vNetIntegration_subnet2(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                       = "acctest-WFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  virtual_network_subnet_id  = azurerm_subnet.test2.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {}
+}
+
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) withASEV3(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    vnet_route_all_enabled = true
+  }
+}
+
+`, ServicePlanResource{}.aseV3(data), data.RandomString, data.RandomInteger)
 }

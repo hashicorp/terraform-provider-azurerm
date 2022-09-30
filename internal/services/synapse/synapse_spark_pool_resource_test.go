@@ -91,6 +91,38 @@ func TestAccSynapseSparkPool_update(t *testing.T) {
 	})
 }
 
+func TestAccSynapseSparkPool_sparkVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sparkVersion(data, "2.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+		{
+			Config: r.sparkVersion(data, "3.1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+		{
+			Config: r.sparkVersion(data, "3.2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+	})
+}
+
 func TestAccSynapseSparkPool_isolation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	r := SynapseSparkPoolResource{}
@@ -182,6 +214,22 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_count           = 3
 }
 `, template, data.RandomString)
+}
+
+func (r SynapseSparkPoolResource) sparkVersion(data acceptance.TestData, sparkVersion string) string {
+	template := r.template(data, data.Locations.Primary)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_spark_pool" "test" {
+  name                 = "acctestSSP%s"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  node_size_family     = "MemoryOptimized"
+  node_size            = "Small"
+  node_count           = 3
+  spark_version        = "%s"
+}
+`, template, data.RandomString, sparkVersion)
 }
 
 func (r SynapseSparkPoolResource) requiresImport(data acceptance.TestData) string {

@@ -75,7 +75,7 @@ func (d DiskPoolIscsiTargetLunModel) ResourceType() string {
 
 func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			m := DiskPoolIscsiTargetLunModel{}
 			err := metadata.Decode(&m)
@@ -126,7 +126,11 @@ func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = d.RetryError(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), "waiting for creation DisksPool iscsi target", id.ID(), func() error {
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+			err = d.RetryError(time.Until(deadline), "waiting for creation DisksPool iscsi target", id.ID(), func() error {
 				return client.UpdateThenPoll(ctx, *iscsiTargetId, patch)
 			})
 			if err != nil {
@@ -191,7 +195,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 
 func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			m := DiskPoolIscsiTargetLunModel{}
 			err := metadata.Decode(&m)
@@ -240,7 +244,11 @@ func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			return d.RetryError(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), "waiting for delete DisksPool iscsi target lun", id.ID(), func() error {
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+			return d.RetryError(time.Until(deadline), "waiting for delete DisksPool iscsi target lun", id.ID(), func() error {
 				return client.UpdateThenPoll(ctx, *iscsiTargetId, patch)
 			})
 		},
