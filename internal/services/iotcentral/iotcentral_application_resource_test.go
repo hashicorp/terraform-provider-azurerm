@@ -24,6 +24,7 @@ func TestAccIoTCentralApplication_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctest-iotcentralapp-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("sku").HasValue("ST1"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),

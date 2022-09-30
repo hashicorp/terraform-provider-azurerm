@@ -134,7 +134,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = id.ResourceGroupName
+		displayName = id.ResourceName
 	}
 
 	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
