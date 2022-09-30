@@ -267,13 +267,11 @@ func checkIfRouteExists(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 	return customDomains, props, nil
 }
 
-func addCustomDomainAssociationToRoute(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) (bool, error) {
-	var associationFailed bool
-
+func addCustomDomainAssociationToRoute(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
 	// Check to see if the route still exists or not...
 	customDomains, props, err := checkIfRouteExists(d, meta, routeId, cdnFrontDoorCustomDomainResourceName)
 	if err != nil {
-		return associationFailed, err
+		return err
 	}
 
 	// Check to make sure the custom domain is not already associated with the route
@@ -285,11 +283,11 @@ func addCustomDomainAssociationToRoute(d *pluginsdk.ResourceData, meta interface
 		customDomains = append(customDomains, customDomainID.ID())
 		err := updateRouteAssociations(d, meta, routeId, customDomains, props, customDomainID)
 		if err != nil {
-			return associationFailed, err
+			return err
 		}
 	}
 
-	return !associationFailed, nil
+	return nil
 }
 
 func removeCustomDomainAssociationFromRoute(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
@@ -408,6 +406,19 @@ func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interfa
 
 	if len(notAssociated) > 0 {
 		return fmt.Errorf("contains CDN Front Door Custom Domains that are not associated with the CDN Front Door Route(Name: %q). Please remove the following CDN Front Door Custom Domain(s) from your CDN Route Disable Link To Default Domain configuration: %s", routeName, strings.Join(notAssociated, ", "))
+	}
+
+	return nil
+}
+
+func validateCustomDomainRouteProfile(route string, customDomainID *parse.FrontDoorCustomDomainId) error {
+	routeId, err := parse.FrontDoorRouteID(route)
+	if err != nil {
+		return err
+	}
+
+	if customDomainID.ProfileName != routeId.ProfileName {
+		return fmt.Errorf("azurerm_cdn_frontdoor_custom_domain: the configuration is invalid, the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", customDomainID.CustomDomainName, customDomainID.ProfileName, routeId.RouteName, routeId.ProfileName)
 	}
 
 	return nil

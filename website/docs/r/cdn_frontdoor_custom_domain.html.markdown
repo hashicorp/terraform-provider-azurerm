@@ -36,7 +36,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = "contoso.com"
 
-  associate_with_cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
+  associate_with_cdn_frontdoor_route_ids = [azurerm_cdn_frontdoor_route.example.id]
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -85,9 +85,7 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name of the domain. Changing this forces a new CDN FrontDoor Custom Domain to be created.
 
-* `associate_with_cdn_frontdoor_route_id` (Optional) - The resource ID of the CDN FrontDoor Route this Custom Domain should be associated with.
-
-->**NOTE:** Once a CDN Front Door Custom Domain has been associated with a CDN Front Door Route changing this value will force a new CDN Front Door Custom Domain to be created.
+* `associate_with_cdn_frontdoor_route_ids` (Optional) - One or more CDN FrontDoor Route resource IDs for which this Custom Domain should be associated with.
 
 * `dns_zone_id` - (Optional) The ID of the DNS Zone which should be used for this FrontDoor Custom Domain.
 
