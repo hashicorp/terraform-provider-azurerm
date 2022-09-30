@@ -252,7 +252,7 @@ To provision a Custom Image, the following fields are applicable:
 
 A `fixed_scale` block supports the following:
 
-* `node_deallocation_option` - (Optional) Write-only property. It determines what to do with a node and its running task(s) if the pool size is decreasing. Values are `Requeue`, `RetainedData`, `TaskCompletion` and `Terminate`.
+* `node_deallocation_method` - (Optional) It determines what to do with a node and its running task(s) if the pool size is decreasing. Values are `Requeue`, `RetainedData`, `TaskCompletion` and `Terminate`.
 
 * `target_dedicated_nodes` - (Optional) The number of nodes in the Batch pool. Defaults to `1`.
 

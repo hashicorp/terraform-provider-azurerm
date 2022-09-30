@@ -46,8 +46,8 @@ func flattenBatchPoolFixedScaleSettings(d *pluginsdk.ResourceData, settings *bat
 	result := make(map[string]interface{})
 
 	// for now, this is a writeOnly property, so we treat this as secret.
-	if v, ok := d.GetOk("fixed_scale.0.node_deallocation_option"); ok {
-		result["node_deallocation_option"] = v.(string)
+	if v, ok := d.GetOk("fixed_scale.0.node_deallocation_method"); ok {
+		result["node_deallocation_method"] = v.(string)
 	}
 
 	if settings.TargetDedicatedNodes != nil {

@@ -84,10 +84,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// Property `node_deallocation_option` is set to be a writeOnly property by service team
+						// Property `node_deallocation_method` is set to be a writeOnly property by service team
 						// It can only perform on PUT operation and is not able to perform GET operation
-						// Here we treat `node_deallocation_option` the same as a secret value.
-						"node_deallocation_option": {
+						// Here we treat `node_deallocation_method` the same as a secret value.
+						// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/20948
+						"node_deallocation_method": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -1285,8 +1286,7 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 		}
 
 		fixedScaleSettings := fixedScale[0].(map[string]interface{})
-
-		nodeDeallocationOption := batch.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_option"].(string))
+		nodeDeallocationOption := batch.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_method"].(string))
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
 		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)

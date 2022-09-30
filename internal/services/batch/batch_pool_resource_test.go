@@ -148,14 +148,14 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
-				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_option").HasValue("Terminate"),
+				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_method").HasValue("Terminate"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
 				check.That(data.ResourceName).Key("fixed_scale.0.resize_timeout").HasValue("PT15M"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_low_priority_nodes").HasValue("0"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 	})
 }
 
@@ -180,7 +180,7 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 	})
 }
 
@@ -207,7 +207,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 		{
 			Config: r.autoScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -502,17 +502,17 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 			Config: r.fixedScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_option").HasValue("Terminate"),
+				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_method").HasValue("Terminate"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 		{
 			Config: r.fixedScale_completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_option"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 	})
 }
 
@@ -768,7 +768,7 @@ resource "azurerm_batch_pool" "test" {
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
 
   fixed_scale {
-    node_deallocation_option  = "Terminate"
+    node_deallocation_method  = "Terminate"
     target_dedicated_nodes    = 2
     resize_timeout            = "PT15M"
     target_low_priority_nodes = 0
@@ -1131,8 +1131,8 @@ resource "azurerm_batch_pool" "test" {
     }
 
     container {
-      run_options       = "cat /proc/cpuinfo"
-      image_name        = "centos7"
+      run_options = "cat /proc/cpuinfo"
+      image_name  = "centos7"
       registry {
         registry_server = "myContainerRegistry.azurecr.io"
         user_name       = "myUserName"
