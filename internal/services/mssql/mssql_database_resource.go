@@ -254,6 +254,9 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
 		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
 	}
+	if _, dbok := d.GetOk("import"); ok && createMode.(string) != string(sql.CreateModeDefault) && dbok {
+		return fmt.Errorf("import can only be used when create_mode is Default")
+	}
 
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
