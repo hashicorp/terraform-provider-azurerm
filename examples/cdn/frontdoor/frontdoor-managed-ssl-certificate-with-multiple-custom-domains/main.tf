@@ -287,6 +287,8 @@ resource "azurerm_dns_txt_record" "fabrikam" {
 }
 
 resource "azurerm_dns_cname_record" "contoso" {
+  depends_on = [azurerm_cdn_frontdoor_route.example, azurerm_cdn_frontdoor_security_policy.example]
+
   name                = "contoso"
   zone_name           = azurerm_dns_zone.example.name
   resource_group_name = azurerm_resource_group.example.name
