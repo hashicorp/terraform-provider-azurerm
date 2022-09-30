@@ -10,6 +10,8 @@ description: |-
 
 Manages a CDN FrontDoor Origin.
 
+!>**IMPORTANT:** If you are attempting to implement an Origin that uses its own Private Link Service with a Load Balancer the Profile resource in your configuration file **must** hava a `depends_on` meta-argument which references the `azurerm_private_link_service`, see `Example Usage With Private Link Service` below.
+
 ## Example Usage
 
 ```hcl
@@ -35,7 +37,7 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = false
 
   host_name          = "contoso.com"
@@ -90,7 +92,7 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
-  health_probes_enabled          = true
+  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_storage_account.example.primary_blob_host
   origin_host_header             = azurerm_storage_account.example.primary_blob_host
@@ -102,6 +104,88 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
     target_type            = "blob"
     location               = azurerm_storage_account.example.location
     private_link_target_id = azurerm_storage_account.example.id
+  }
+}
+```
+
+## Example Usage With Private Link Service
+
+```hcl
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  depends_on = [azurerm_private_link_service.example]
+
+  name                = "profile-example"
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Premium_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
+  name                     = "group-example"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "vn-example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "example" {
+  name                                          = "sn-example"
+  resource_group_name                           = azurerm_resource_group.example.name
+  virtual_network_name                          = azurerm_virtual_network.example.name
+  address_prefixes                              = ["10.5.1.0/24"]
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_public_ip" "example" {
+  name                = "ip-example"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "example" {
+  name                = "lb-example"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  frontend_ip_configuration {
+    name                 = azurerm_public_ip.example.name
+    public_ip_address_id = azurerm_public_ip.example.id
+  }
+}
+
+resource "azurerm_private_link_service" "example" {
+  name                = "pls-example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  visibility_subscription_ids                 = [data.azurerm_client_config.current.subscription_id]
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
+
+  nat_ip_configuration {
+    name                       = "primary"
+    private_ip_address         = "10.5.1.17"
+    private_ip_address_version = "IPv4"
+    subnet_id                  = azurerm_subnet.example.id
+    primary                    = true
   }
 }
 ```
@@ -120,9 +204,9 @@ The following arguments are supported:
 
 * `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
-* `health_probes_enabled` - (Optional) Should the health probes be enabled against the origins defined within the origin group? Possible values are `true` or `false`. Defaults to `true`. 
+* `enabled` - (Optional) Should the origin be enabled? Possible values are `true` or `false`. Defaults to `true`.
 
--> **NOTE:** Health probes can only be disabled if there is a single enabled origin in single enabled origin group
+-> **NOTE:** In version 4.0 of the provider this value will default to `true`, however due to the deprecation of the `health_probes_enabled` property in version 3.x of the AzureRM Provider this value will need to be explicitly set until the 4.0 provider is released.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 

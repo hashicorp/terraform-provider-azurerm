@@ -154,6 +154,8 @@ The following arguments are supported:
 
 * `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to 90 minutes (`PT1H30M`).
 
+* `gallery_application` - (Optional) A `gallery_application` block as defined below.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `patch_assessment_mode` - (Optional) Specifies the mode of VM Guest Patching for the Virtual Machine. Possible values are `AutomaticByPlatform` or `ImageDefault`. Defaults to `ImageDefault`.
@@ -245,6 +247,18 @@ A `diff_disk_settings` block supports the following:
 * `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
 
 * `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk` and `ResourceDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
+
+---
+
+A `gallery_application` block supports the following:
+
+* `version_id` - (Required) Specifies the Gallery Application Version resource ID.
+
+* `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
+
+* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`.
+
+* `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value.
 
 ---
 

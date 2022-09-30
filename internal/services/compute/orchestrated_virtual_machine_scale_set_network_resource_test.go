@@ -47,7 +47,36 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicAcceleratedNetworking(t *tes
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicAcceleratedNetworking(data),
+			Config: r.basicAcceleratedNetworking(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_basicAcceleratedNetworkingUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAcceleratedNetworking(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.basicAcceleratedNetworking(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.basicAcceleratedNetworking(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -402,7 +431,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -421,7 +450,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_D4_v2"
+  sku_name  = "Standard_D2s_v3" # intentional for accelerated networking
   instances = 2
 
   platform_fault_domain_count = 2
@@ -439,7 +468,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   network_interface {
     name                          = "TestNetworkProfile-%[1]d"
     primary                       = true
-    enable_accelerated_networking = true
+    enable_accelerated_networking = %[4]t
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -466,7 +495,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), enabled)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData) string {
@@ -1094,7 +1123,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
         name                    = "TestPublicIPConfiguration"
         domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
-        sku_name                = "Basic_Regional"
+        sku_name                = "Standard_Regional"
       }
     }
   }

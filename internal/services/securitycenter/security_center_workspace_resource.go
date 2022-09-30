@@ -159,7 +159,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("scope", properties.Scope)
 		workspaceId := ""
 		if properties.WorkspaceID != nil {
-			id, err := workspaces.ParseWorkspaceID(*properties.WorkspaceID)
+			id, err := workspaces.ParseWorkspaceIDInsensitively(*properties.WorkspaceID)
 			if err != nil {
 				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
 			}

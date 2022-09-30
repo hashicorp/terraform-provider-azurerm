@@ -19,8 +19,9 @@ func (r Registration) Resources() []sdk.Resource {
 		AutomationConnectionTypeResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
-		WatcherResource{},
+		SoftwareUpdateConfigurationResource{},
 		SourceControlResource{},
+		WatcherResource{},
 	}
 }
 

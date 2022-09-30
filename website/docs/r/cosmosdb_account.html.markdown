@@ -221,6 +221,8 @@ A `identity` block supports the following:
 
 * `type` - (Required) The Type of Managed Identity assigned to this Cosmos account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Cosmos Account.
+
 ---
 
 A `restore` block supports the following:
