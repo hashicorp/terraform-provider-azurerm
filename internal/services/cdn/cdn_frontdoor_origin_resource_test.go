@@ -416,8 +416,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -462,8 +462,8 @@ func (r CdnFrontDoorOriginResource) requiresImport(data acceptance.TestData) str
 resource "azurerm_cdn_frontdoor_origin" "import" {
   name                          = azurerm_cdn_frontdoor_origin.test.name
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -487,8 +487,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -512,8 +512,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
@@ -537,8 +537,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_storage_account.test.primary_blob_host
   origin_host_header             = azurerm_storage_account.test.primary_blob_host
@@ -567,8 +567,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_storage_account.test.primary_web_host
   origin_host_header             = azurerm_storage_account.test.primary_web_host
@@ -597,8 +597,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_linux_web_app.test.default_hostname
   origin_host_header             = azurerm_linux_web_app.test.default_hostname
@@ -627,8 +627,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-cdnfdorigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_private_link_service.test.nat_ip_configuration.0.private_ip_address
   origin_host_header             = azurerm_private_link_service.test.nat_ip_configuration.0.private_ip_address
