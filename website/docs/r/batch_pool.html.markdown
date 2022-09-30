@@ -292,7 +292,7 @@ A `container` block supports the following:
 
 * `image_name` - (Required) The image to use to create the container in which the task will run. This is the full image reference, as would be specified to "docker pull". If no tag is provided as part of the image name, the tag ":latest" is used as a default.
 
-* `container_run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
+* `run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
 
 * `registry` - (Optional) The same reference as `container_registries` block defined as follows.
 

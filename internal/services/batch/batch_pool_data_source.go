@@ -580,7 +580,7 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
-					"container_run_options": {
+					"run_options": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},

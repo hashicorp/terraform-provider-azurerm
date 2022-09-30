@@ -158,7 +158,7 @@ A `container` block exports the following:
 
 * `image_name` - The image to use to create the container in which the task will run.
 
-* `container_run_options` - Additional options to the container create command.
+* `run_options` - Additional options to the container create command.
 
 * `registry` - The same reference as `container_registries` block defined as follows.
 

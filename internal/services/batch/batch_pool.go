@@ -114,7 +114,7 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *bat
 		containerSettings["image_name"] = *startTask.ContainerSettings.ImageName
 		containerSettings["working_directory"] = string(startTask.ContainerSettings.WorkingDirectory)
 		if startTask.ContainerSettings.ContainerRunOptions != nil {
-			containerSettings["container_run_options"] = *startTask.ContainerSettings.ContainerRunOptions
+			containerSettings["run_options"] = *startTask.ContainerSettings.ContainerRunOptions
 		}
 		if startTask.ContainerSettings.Registry != nil {
 			tmpReg := flattenBatchPoolContainerRegistry(oldConfig, startTask.ContainerSettings.Registry)
@@ -707,7 +707,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		if len(containerSettingsList) > 0 && containerSettingsList[0] != nil {
 			settingMap := containerSettingsList[0].(map[string]interface{})
 			containerSettings.ImageName = utils.String(settingMap["image_name"].(string))
-			if containerRunOptions, ok := settingMap["container_run_options"]; ok {
+			if containerRunOptions, ok := settingMap["run_options"]; ok {
 				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
 			}
 			if settingMap["registry"].([]interface{})[0] != nil {
