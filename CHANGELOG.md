@@ -10,7 +10,7 @@ ENHANCEMENTS:
 
 * dependencies: `machinelearning` - updating to use `2022-05-01` [GH-17671]
 * dependencies: updating to version `v0.20220921.1082044` of `github.com/hashicorp/go-azure-sdk` [GH-18557]
-* Provider: support for the `oidc_token_file_path` property & `ARM_OIDC_TOKEN_FILE_PATH` environment variable [GH-18335]
+* provider: support for the `oidc_token_file_path` property and `ARM_OIDC_TOKEN_FILE_PATH` environment variable [GH-18335]
 * Data Source: `azurerm_databricks_workspace` - exports the `location` propertuy [GH-18521]
 * `azurerm_api_management` - support for the `additional_location.gateway_disabled`, `certificate_source`, and `certificate_status` properties [GH-18508]
 * `azurerm_automation_software_update_configuration` - the `classification` property has been deprecated in favour of the `classifications` property that supports multiple values [GH-18539]
