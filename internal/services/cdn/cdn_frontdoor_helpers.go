@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -267,49 +268,69 @@ func checkIfRouteExists(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 	return customDomains, props, nil
 }
 
-func addCustomDomainAssociationToRoute(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
-	// Check to see if the route still exists or not...
-	customDomains, props, err := checkIfRouteExists(d, meta, routeId, cdnFrontDoorCustomDomainResourceName)
-	if err != nil {
-		return err
-	}
-
-	// Check to make sure the custom domain is not already associated with the route
-	// if it is, then there is nothing for us to do...
-	isAssociated := sliceContainsString(customDomains, customDomainID.ID())
-
-	// if it is not associated update the route to add the association...
-	if !isAssociated {
-		customDomains = append(customDomains, customDomainID.ID())
-		err := updateRouteAssociations(d, meta, routeId, customDomains, props, customDomainID)
+func addCustomDomainAssociationToRoutes(d *pluginsdk.ResourceData, meta interface{}, route []interface{}, customDomainID *parse.FrontDoorCustomDomainId) error {
+	// NOTE: This is very inefficient because it will update the route multipule times to and multiple domains... fix this...
+	for _, v := range route {
+		route, err := routeIDWithErrorTxt(v.(string))
 		if err != nil {
 			return err
+		}
+
+		// lock the route resource for update...
+		locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
+		defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
+
+		// Check to see if the route still exists or not...
+		// NOTE: the custom domains that are returned are the ones from the route GET call...
+		// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
+		customDomains, props, err := checkIfRouteExists(d, meta, route, cdnFrontDoorCustomDomainResourceName)
+		if err != nil {
+			return err
+		}
+
+		isAssociated := sliceContainsString(customDomains, customDomainID.ID())
+
+		// if it is not associated update the route to add the association...
+		if !isAssociated {
+			err := updateRouteAssociations(d, meta, route, customDomains, props, customDomainID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func removeCustomDomainAssociationFromRoute(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
-	// Check to see if the route still exists or not...
-	customDomains, props, err := checkIfRouteExists(d, meta, routeId, cdnFrontDoorCustomDomainResourceName)
-	if err != nil {
-		return err
-	}
-
-	// Check to make sure the custom domain is still associated with the route
-	isAssociated := sliceContainsString(customDomains, customDomainID.ID())
-
-	if isAssociated {
-		// it is, now remove the association...
-		newDomains := sliceRemoveString(customDomains, customDomainID.ID())
-		err := updateRouteAssociations(d, meta, routeId, newDomains, props, customDomainID)
+func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta interface{}, route []interface{}, customDomainID *parse.FrontDoorCustomDomainId) error {
+	for _, v := range route {
+		route, err := routeIDWithErrorTxt(v.(string))
 		if err != nil {
 			return err
 		}
 
-		// remove the field from state...
-		d.Set("associate_with_cdn_frontdoor_route_id", "")
+		// lock the route resource for update...
+		locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
+		defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
+
+		// Check to see if the route still exists or not...
+		// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
+		customDomains, props, err := checkIfRouteExists(d, meta, route, cdnFrontDoorCustomDomainResourceName)
+		if err != nil {
+			return err
+		}
+
+		// Check to make sure the custom domain is still associated with the route
+		isAssociated := sliceContainsString(customDomains, customDomainID.ID())
+
+		if isAssociated {
+			// it is, now removed the association...
+			newDomains := sliceRemoveString(customDomains, customDomainID.ID())
+			err := updateRouteAssociations(d, meta, route, newDomains, props, customDomainID)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -411,14 +432,49 @@ func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interfa
 	return nil
 }
 
-func validateCustomDomainRouteProfile(route string, customDomainID *parse.FrontDoorCustomDomainId) error {
-	routeId, err := parse.FrontDoorRouteID(route)
-	if err != nil {
-		return err
+func validateCustomDomainRoutesProfile(routes []interface{}, customDomainID *parse.FrontDoorCustomDomainId) error {
+	for _, route := range routes {
+		routeId, err := routeIDWithErrorTxt(route.(string))
+		if err != nil {
+			return err
+		}
+
+		if customDomainID.ProfileName != routeId.ProfileName {
+			return fmt.Errorf("the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", customDomainID.CustomDomainName, customDomainID.ProfileName, routeId.RouteName, routeId.ProfileName)
+		}
 	}
 
-	if customDomainID.ProfileName != routeId.ProfileName {
-		return fmt.Errorf("azurerm_cdn_frontdoor_custom_domain: the configuration is invalid, the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", customDomainID.CustomDomainName, customDomainID.ProfileName, routeId.RouteName, routeId.ProfileName)
+	return nil
+}
+
+func routeIDWithErrorTxt(route string) (*parse.FrontDoorRouteId, error) {
+	routeId, err := parse.FrontDoorRouteID(route)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse CDN FrontDoor Route ID: %+v", err)
+	}
+
+	return routeId, nil
+}
+
+func customDomainIDWithErrorTxt(route string) (*parse.FrontDoorCustomDomainId, error) {
+	customDomainId, err := parse.FrontDoorCustomDomainID(route)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain ID: %+v", err)
+	}
+
+	return customDomainId, nil
+}
+
+// checks to make sure the list of routes and the custom domain belong to the same profile
+func hasDuplicateRoute(route []interface{}) error {
+	k := make(map[string]bool)
+
+	for _, v := range route {
+		if _, d := k[strings.ToLower(v.(string))]; !d {
+			k[strings.ToLower(v.(string))] = true
+		} else {
+			return fmt.Errorf("duplicate CDN FrontDoor Route, please remove the CDN FrontDoor Route(ID: %q) from your configuration file", v.(string))
+		}
 	}
 
 	return nil
