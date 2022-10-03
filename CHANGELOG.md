@@ -1,3 +1,7 @@
+## 3.26.0 (Unreleased)
+
+* **New Resource:** `azurerm_iotcentral_application_network_rule_set` [GH-18589]
+
 ## 3.25.0 (September 29, 2022)
 
 FEATURES:
