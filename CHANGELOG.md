@@ -1,6 +1,13 @@
 ## 3.26.0 (Unreleased)
 
+FEATURES:
+
 * **New Resource:** `azurerm_iotcentral_application_network_rule_set` [GH-18589]
+
+BUG FIXES:
+
+* `azurerm_linux_function_app_slot` - read app settings from the correct endpoint [GH-18396]
+* `azurerm_windows_function_app_slot` - read app settings from the correct endpoint [GH-18396]
 
 ## 3.25.0 (September 29, 2022)
 
