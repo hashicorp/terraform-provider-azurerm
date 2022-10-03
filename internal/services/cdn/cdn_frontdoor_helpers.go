@@ -287,8 +287,7 @@ func addCustomDomainAssociationToRoutes(d *pluginsdk.ResourceData, meta interfac
 
 			// if it is not associated update the route to add the association...
 			if !isAssociated {
-				err := updateRouteAssociations(d, meta, route, customDomains, props, customDomainID)
-				if err != nil {
+				if err := updateRouteAssociations(d, meta, route, customDomains, props, customDomainID); err != nil {
 					return err
 				}
 			}
@@ -456,7 +455,7 @@ func validateCustomDomainRoutesProfileAndEndpoints(routes []interface{}, customD
 
 			if nextRouteId, err := routeIDWithErrorTxt(nextRoute.(string)); err != nil {
 				return err
-			} else {
+			} else if err == nil {
 				if routeId.AfdEndpointName != nextRouteId.AfdEndpointName {
 					return fmt.Errorf("the CDN FrontDoor Route(Name: %q) and CDN FrontDoor Route(Name: %q) do not reference the same CDN FrontDoor Endpoint(Name: %q), all CDN FrontDoor Routes must reference the same CDN FrontDoor Endpoint %q to associate this CDN FrontDoor Custom Domain with more than one CDN FrontDoor Route", routeId.RouteName, nextRouteId.RouteName, routeId.AfdEndpointName, routeId.RouteName)
 				}
