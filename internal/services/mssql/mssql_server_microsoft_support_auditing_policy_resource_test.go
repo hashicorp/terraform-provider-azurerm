@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MsSqlServerExtendedAuditingPolicyResource struct{}
+type MsSqlServerMicrosoftSupportAuditingPolicyResource struct{}
 
-func TestAccMsSqlServerExtendedAuditingPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server_extended_auditing_policy", "test")
-	r := MsSqlServerExtendedAuditingPolicyResource{}
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
+	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +30,9 @@ func TestAccMsSqlServerExtendedAuditingPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServerExtendedAuditingPolicy_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server_extended_auditing_policy", "test")
-	r := MsSqlServerExtendedAuditingPolicyResource{}
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
+	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,9 +45,9 @@ func TestAccMsSqlServerExtendedAuditingPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServerExtendedAuditingPolicy_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server_extended_auditing_policy", "test")
-	r := MsSqlServerExtendedAuditingPolicyResource{}
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
+	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,9 +60,9 @@ func TestAccMsSqlServerExtendedAuditingPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServerExtendedAuditingPolicy_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server_extended_auditing_policy", "test")
-	r := MsSqlServerExtendedAuditingPolicyResource{}
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
+	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,9 +96,9 @@ func TestAccMsSqlServerExtendedAuditingPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServerExtendedAuditingPolicy_storageAccBehindFireWall(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server_extended_auditing_policy", "test")
-	r := MsSqlServerExtendedAuditingPolicyResource{}
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_storageAccBehindFireWall(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
+	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -111,7 +111,7 @@ func TestAccMsSqlServerExtendedAuditingPolicy_storageAccBehindFireWall(t *testin
 	})
 }
 
-func (MsSqlServerExtendedAuditingPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MsSqlServerMicrosoftSupportAuditingPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerExtendedAuditingPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (MsSqlServerExtendedAuditingPolicyResource) Exists(ctx context.Context, cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (MsSqlServerExtendedAuditingPolicyResource) template(data acceptance.TestData) string {
+func (MsSqlServerMicrosoftSupportAuditingPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -159,11 +159,11 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r MsSqlServerExtendedAuditingPolicyResource) basic(data acceptance.TestData) string {
+func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id                  = azurerm_mssql_server.test.id
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
@@ -171,11 +171,11 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlServerExtendedAuditingPolicyResource) requiresImport(data acceptance.TestData) string {
+func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_mssql_server_extended_auditing_policy" "import" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "import" {
   server_id                  = azurerm_mssql_server.test.id
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
@@ -183,11 +183,11 @@ resource "azurerm_mssql_server_extended_auditing_policy" "import" {
 `, r.template(data))
 }
 
-func (r MsSqlServerExtendedAuditingPolicyResource) complete(data acceptance.TestData) string {
+func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id                               = azurerm_mssql_server.test.id
   storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test.primary_access_key
@@ -199,7 +199,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlServerExtendedAuditingPolicyResource) disabled(data acceptance.TestData) string {
+func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) disabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 provider "azurerm" {
@@ -220,7 +220,7 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "AdminPassword123!"
 }
 
-resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id = azurerm_mssql_server.test.id
   enabled   = false
 }
@@ -228,7 +228,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r MsSqlServerExtendedAuditingPolicyResource) update(data acceptance.TestData) string {
+func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -240,7 +240,7 @@ resource "azurerm_storage_account" "test2" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id                               = azurerm_mssql_server.test.id
   storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
@@ -250,7 +250,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (MsSqlServerExtendedAuditingPolicyResource) storageAccountBehindFireWall(data acceptance.TestData) string {
+func (MsSqlServerMicrosoftSupportAuditingPolicyResource) storageAccountBehindFireWall(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -308,7 +308,7 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = azurerm_mssql_server.test.identity.0.principal_id
 }
 
-resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id        = azurerm_mssql_server.test.id
   storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
 
