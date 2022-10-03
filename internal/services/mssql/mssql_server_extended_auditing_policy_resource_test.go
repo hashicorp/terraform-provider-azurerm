@@ -167,6 +167,8 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id                  = azurerm_mssql_server.test.id
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+	microsoft_support_audit_enabled = true
 }
 `, r.template(data))
 }

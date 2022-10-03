@@ -177,6 +177,8 @@ The following arguments are supported:
 
 * `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
 
+* `microsoft_support_audit_enabled` - (Optional) Enable audit events of Microsoft support operations? `log_monitoring_enabled` should also be enabled for it to work. Diagnostic Settings with `DevOpsOperationsAudit` diagnostic logs category on the master database should also be created.
+
 * `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 
 ## Attributes Reference
