@@ -1,14 +1,14 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_mssql_server_extended_auditing_policy"
+page_title: "Azure Resource Manager: azurerm_mssql_server_microsoft_support_auditing_policy"
 description: |-
-  Manages a MS SQL Server Extended Auditing Policy.
+  Manages a MS SQL Server Microsoft Support Auditing Policy.
 ---
 
-# azurerm_mssql_server_extended_auditing_policy
+# azurerm_mssql_server_microsoft_support_auditing_policy
 
-Manages a MS SQL Server Extended Auditing Policy.
+Manages a MS SQL Server Microsoft Support Auditing Policy.
 
 
 ## Example Usage
@@ -40,12 +40,10 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_mssql_server_extended_auditing_policy" "example" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "example" {
   server_id                               = azurerm_mssql_server.example.id
   storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-  storage_account_access_key_is_secondary = false
-  retention_in_days                       = 6
 }
 ```
 
@@ -142,10 +140,9 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-resource "azurerm_mssql_server_extended_auditing_policy" "example" {
+resource "azurerm_mssql_server_microsoft_support_auditing_policy" "example" {
   storage_endpoint       = azurerm_storage_account.example.primary_blob_endpoint
   server_id              = azurerm_mssql_server.example.id
-  retention_in_days      = 6
   log_monitoring_enabled = false
 
   storage_account_subscription_id = azurerm_subscription.primary.subscription_id
@@ -169,11 +166,7 @@ The following arguments are supported:
 
 * `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all extended auditing logs.
 
-* `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
-
 * `storage_account_access_key` - (Optional) The access key to use for the auditing storage account.
-
-* `storage_account_access_key_is_secondary` - (Optional) Is `storage_account_access_key` value the storage's secondary key?
 
 * `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
 
@@ -183,21 +176,21 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the MS SQL Server Extended Auditing Policy.
+* `id` - The ID of the MS SQL Server Microsoft Support Auditing Policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the MS SQL Server Extended Auditing Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Server Extended Auditing Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Server Extended Auditing Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Server Extended Auditing Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the MS SQL Server Microsoft Support Auditing Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Server Microsoft Support Auditing Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Server Microsoft Support Auditing Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Server Microsoft Support Auditing Policy.
 
 ## Import
 
-MS SQL Server Extended Auditing Policies can be imported using the `resource id`, e.g.
+MS SQL Server Microsoft Support Auditing Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_server_extended_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/servers/sqlServer1/extendedAuditingSettings/default
+terraform import azurerm_mssql_server_microsoft_support_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/servers/sqlServer1/extendedAuditingSettings/default
 ```
