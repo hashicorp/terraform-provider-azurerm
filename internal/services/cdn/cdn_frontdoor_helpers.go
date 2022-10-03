@@ -247,7 +247,7 @@ func sliceRemoveString(input []interface{}, value string) []interface{} {
 	return out
 }
 
-func checkIfRouteExists(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRouteId, resourceName string) ([]interface{}, *cdn.RouteProperties, error) {
+func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRouteId, resourceName string) ([]interface{}, *cdn.RouteProperties, error) {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer routeCancel()
@@ -269,32 +269,28 @@ func checkIfRouteExists(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 }
 
 func addCustomDomainAssociationToRoutes(d *pluginsdk.ResourceData, meta interface{}, route []interface{}, customDomainID *parse.FrontDoorCustomDomainId) error {
-	// NOTE: This is very inefficient because it will update the route multipule times to and multiple domains... fix this...
 	for _, v := range route {
-		route, err := routeIDWithErrorTxt(v.(string))
-		if err != nil {
+		if route, err := routeIDWithErrorTxt(v.(string)); err != nil {
 			return err
-		}
+		} else {
+			// lock the route resource for update...
+			locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
+			defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
 
-		// lock the route resource for update...
-		locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
-		defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
-
-		// Check to see if the route still exists or not...
-		// NOTE: the custom domains that are returned are the ones from the route GET call...
-		// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
-		customDomains, props, err := checkIfRouteExists(d, meta, route, cdnFrontDoorCustomDomainResourceName)
-		if err != nil {
-			return err
-		}
-
-		isAssociated := sliceContainsString(customDomains, customDomainID.ID())
-
-		// if it is not associated update the route to add the association...
-		if !isAssociated {
-			err := updateRouteAssociations(d, meta, route, customDomains, props, customDomainID)
+			// Check to see if the route still exists or not...
+			customDomains, props, err := getRouteProperties(d, meta, route, cdnFrontDoorCustomDomainResourceName)
 			if err != nil {
 				return err
+			}
+
+			isAssociated := sliceContainsString(customDomains, customDomainID.ID())
+
+			// if it is not associated update the route to add the association...
+			if !isAssociated {
+				err := updateRouteAssociations(d, meta, route, customDomains, props, customDomainID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -304,31 +300,29 @@ func addCustomDomainAssociationToRoutes(d *pluginsdk.ResourceData, meta interfac
 
 func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta interface{}, route []interface{}, customDomainID *parse.FrontDoorCustomDomainId) error {
 	for _, v := range route {
-		route, err := routeIDWithErrorTxt(v.(string))
-		if err != nil {
+		if route, err := routeIDWithErrorTxt(v.(string)); err != nil {
 			return err
-		}
+		} else {
+			// lock the route resource for update...
+			locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
+			defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
 
-		// lock the route resource for update...
-		locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
-		defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
-
-		// Check to see if the route still exists or not...
-		// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
-		customDomains, props, err := checkIfRouteExists(d, meta, route, cdnFrontDoorCustomDomainResourceName)
-		if err != nil {
-			return err
-		}
-
-		// Check to make sure the custom domain is still associated with the route
-		isAssociated := sliceContainsString(customDomains, customDomainID.ID())
-
-		if isAssociated {
-			// it is, now removed the association...
-			newDomains := sliceRemoveString(customDomains, customDomainID.ID())
-			err := updateRouteAssociations(d, meta, route, newDomains, props, customDomainID)
+			// Check to see if the route still exists or not...
+			// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
+			customDomains, props, err := getRouteProperties(d, meta, route, cdnFrontDoorCustomDomainResourceName)
 			if err != nil {
 				return err
+			}
+
+			// Check to make sure the custom domain is still associated with the route
+			isAssociated := sliceContainsString(customDomains, customDomainID.ID())
+
+			if isAssociated {
+				// it is, now removed the association...
+				newDomains := sliceRemoveString(customDomains, customDomainID.ID())
+				if err := updateRouteAssociations(d, meta, route, newDomains, props, customDomainID); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -389,7 +383,7 @@ func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interfa
 	}
 
 	if len(wrongProfile) > 0 {
-		return fmt.Errorf("the following CDN Front Door Custom Domain(s) do not belong to the expected CDN Front Door Profile(Name: %q). Please remove the following CDN Front Door Custom Domain(s) from your CDN Route Disable Link To Default Domain configuration: %s", routeProfile, strings.Join(wrongProfile, ", "))
+		return fmt.Errorf("the following CDN FrontDoor Custom Domain(s) do not belong to the expected CDN FrontDoor Profile(Name: %q). Please remove the following CDN FrontDoor Custom Domain(s) from your CDN Route Disable Link To Default Domain configuration: %s", routeProfile, strings.Join(wrongProfile, ", "))
 	}
 
 	// Make sure the resource is referencing all of the custom domains that are associated with the route...
@@ -408,7 +402,7 @@ func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interfa
 	}
 
 	if len(missingDomains) > 0 {
-		return fmt.Errorf("does not contain all of the CDN Front Door Custom Domains that are associated with the CDN Front Door Route(Name: %q). Please add the following CDN Front Door Custom Domain(s) to your CDN Route Disable Link To Default Domain configuration: %s", routeName, strings.Join(missingDomains, ", "))
+		return fmt.Errorf("does not contain all of the CDN FrontDoor Custom Domains that are associated with the CDN FrontDoor Route(Name: %q). Please add the following CDN FrontDoor Custom Domain(s) to your CDN Route Disable Link To Default Domain configuration: %s", routeName, strings.Join(missingDomains, ", "))
 	}
 
 	// Make sure all of the custom domains that are referenced by the resource are actually associated with the route...
@@ -426,56 +420,102 @@ func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interfa
 	}
 
 	if len(notAssociated) > 0 {
-		return fmt.Errorf("contains CDN Front Door Custom Domains that are not associated with the CDN Front Door Route(Name: %q). Please remove the following CDN Front Door Custom Domain(s) from your CDN Route Disable Link To Default Domain configuration: %s", routeName, strings.Join(notAssociated, ", "))
+		return fmt.Errorf("contains CDN FrontDoor Custom Domains that are not associated with the CDN FrontDoor Route(Name: %q). Please remove the following CDN FrontDoor Custom Domain(s) from your CDN Route Disable Link To Default Domain configuration: %s", routeName, strings.Join(notAssociated, ", "))
 	}
 
 	return nil
 }
 
-func validateCustomDomainRoutesProfile(routes []interface{}, customDomainID *parse.FrontDoorCustomDomainId) error {
-	for _, route := range routes {
-		routeId, err := routeIDWithErrorTxt(route.(string))
-		if err != nil {
+// Validates that the CDN FrontDoor Custom Domain can be associated with the CDN FrontDoor Route or not
+func validateCustomDomainRoutesProfileAndEndpoints(routes []interface{}, customDomainID *parse.FrontDoorCustomDomainId) error {
+	if len(routes) > 1 {
+		// check for duplicates...
+		if err := hasDuplicateRoute(routes); err != nil {
 			return err
 		}
+	}
 
-		if customDomainID.ProfileName != routeId.ProfileName {
-			return fmt.Errorf("the Front Door Custom Domain(Name: %q, Profile: %q) and the Front Door Route(Name: %q, Profile: %q) must belong to the same Front Door Profile", customDomainID.CustomDomainName, customDomainID.ProfileName, routeId.RouteName, routeId.ProfileName)
+	for i, route := range routes {
+		var routeId *parse.FrontDoorRouteId
+
+		// validate route and custom domain profiles match...
+		if v, err := routeIDWithErrorTxt(route.(string)); err != nil {
+			return err
+		} else {
+			routeId = v
+			if customDomainID.ProfileName != routeId.ProfileName {
+				return fmt.Errorf("the CDN FrontDoor Custom Domain(Name: %q, Profile: %q) and the CDN FrontDoor Route(Name: %q, Profile: %q) must belong to the same CDN FrontDoor Profile", customDomainID.CustomDomainName, customDomainID.ProfileName, routeId.RouteName, routeId.ProfileName)
+			}
+		}
+
+		// validate all routes are using the same endpoint...
+		for t, nextRoute := range routes {
+			if i == t {
+				continue
+			}
+
+			if nextRouteId, err := routeIDWithErrorTxt(nextRoute.(string)); err != nil {
+				return err
+			} else {
+				if routeId.AfdEndpointName != nextRouteId.AfdEndpointName {
+					return fmt.Errorf("the CDN FrontDoor Route(Name: %q) and CDN FrontDoor Route(Name: %q) do not reference the same CDN FrontDoor Endpoint(Name: %q), all CDN FrontDoor Routes must reference the same CDN FrontDoor Endpoint %q to associate this CDN FrontDoor Custom Domain with more than one CDN FrontDoor Route", routeId.RouteName, nextRouteId.RouteName, routeId.AfdEndpointName, routeId.RouteName)
+				}
+			}
 		}
 	}
 
 	return nil
 }
 
+// Returns a verbose CDN FrontDoor Route parse error message
 func routeIDWithErrorTxt(route string) (*parse.FrontDoorRouteId, error) {
 	routeId, err := parse.FrontDoorRouteID(route)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse CDN FrontDoor Route ID: %+v", err)
+		return nil, fmt.Errorf("unable to parse CDN FrontDoor Route ID %q [validateCustomDomainRoutesProfileAndEndpoints:first loop]: %+v", route, err)
 	}
 
 	return routeId, nil
 }
 
-func customDomainIDWithErrorTxt(route string) (*parse.FrontDoorCustomDomainId, error) {
-	customDomainId, err := parse.FrontDoorCustomDomainID(route)
+// Returns a verbose CDN FrontDoor Custom Domain parse error message
+func customDomainIDWithErrorTxt(customDomain string) (*parse.FrontDoorCustomDomainId, error) {
+	customDomainId, err := parse.FrontDoorCustomDomainID(customDomain)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain ID: %+v", err)
+		return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain ID %q: %+v", customDomain, err)
 	}
 
 	return customDomainId, nil
 }
 
-// checks to make sure the list of routes and the custom domain belong to the same profile
-func hasDuplicateRoute(route []interface{}) error {
+// Checks to make sure the list of CDN FrontDoor Routes does not contain duplicate entries
+func hasDuplicateRoute(routes []interface{}) error {
 	k := make(map[string]bool)
 
-	for _, v := range route {
+	for _, v := range routes {
 		if _, d := k[strings.ToLower(v.(string))]; !d {
 			k[strings.ToLower(v.(string))] = true
 		} else {
-			return fmt.Errorf("duplicate CDN FrontDoor Route, please remove the CDN FrontDoor Route(ID: %q) from your configuration file", v.(string))
+			return fmt.Errorf("duplicate CDN FrontDoor Route detected, please remove all duplivate entries for the CDN FrontDoor Route(ID: %q) from your 'azurerm_cdn_frontdoor_custom_domain' configuration block", v.(string))
 		}
 	}
 
 	return nil
+}
+
+// Determines what CDN FrontDoor Routes need to be removed/disassociated from this CDN FrontDoor Custom Domain
+func getRemoveRoutesDelta(oldRoutes []interface{}, newRoutes []interface{}) ([]interface{}, []interface{}) {
+	remove := make([]interface{}, 0)
+	shared := make([]interface{}, 0)
+
+	// just find what old routes are not in the new route list...
+	for _, oldRoute := range oldRoutes {
+		if !sliceContainsString(newRoutes, oldRoute.(string)) {
+			remove = append(remove, oldRoute.(string))
+		} else {
+			shared = append(shared, oldRoute.(string))
+		}
+
+	}
+
+	return remove, shared
 }
