@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
@@ -91,6 +92,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"template": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Computed:     true,
 				ValidateFunc: validate.ApplicationTemplateName,
 			},
@@ -187,20 +189,35 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	displayName := d.Get("display_name").(string)
-	if displayName == "" {
-		displayName = id.ResourceName
+	existing, err := client.Get(ctx, *id)
+	if err != nil || existing.Model == nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	subdomain := d.Get("sub_domain").(string)
-	template := d.Get("template").(string)
-	appPatch := apps.AppPatch{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		Properties: &apps.AppProperties{
-			DisplayName: &displayName,
-			Subdomain:   &subdomain,
-			Template:    &template,
-		},
+	if existing.Model.Properties == nil {
+		existing.Model.Properties = &apps.AppProperties{}
+	}
+
+	if d.HasChange("sub_domain") {
+		existing.Model.Properties.Subdomain = utils.String(d.Get("sub_domain").(string))
+	}
+
+	if d.HasChange("display_name") {
+		existing.Model.Properties.DisplayName = utils.String(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("sku") {
+		existing.Model.Sku = apps.AppSkuInfo{
+			Name: apps.AppSku(d.Get("sku").(string)),
+		}
+	}
+
+	if d.HasChange("template") {
+		existing.Model.Properties.Template = utils.String(d.Get("template").(string))
+	}
+
+	if d.HasChange("tags") {
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if d.HasChange("identity") {
@@ -208,7 +225,7 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		appPatch.Identity = identity
+		existing.Model.Identity = identity
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -216,10 +233,10 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if d.Get("public_network_access_enabled").(bool) {
 			publicNetworkAccess = apps.PublicNetworkAccessEnabled
 		}
-		appPatch.Properties.PublicNetworkAccess = &publicNetworkAccess
+		existing.Model.Properties.PublicNetworkAccess = &publicNetworkAccess
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, appPatch); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 

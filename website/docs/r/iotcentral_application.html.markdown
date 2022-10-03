@@ -52,9 +52,9 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the IoT Central Application. Defaults to `true`.
 
-* `sku` - (Optional) A `sku` name. Possible values is `ST1`, `ST2`, Default value is `ST1`
+* `sku` - (Optional) A `sku` name. Possible values is `ST0`, `ST1`, `ST2`, Default value is `ST1`
 
-* `template` - (Optional) A `template` name. IoT Central application template name. Default is a custom application.
+* `template` - (Optional) A `template` name. IoT Central application template name. Default is a custom application. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
