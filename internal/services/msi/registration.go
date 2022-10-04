@@ -5,10 +5,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// TODO: we should probably rename this Identity, or move into Authorization
+type Registration struct {
+	autoRegistration
+}
 
-type Registration struct{}
-
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -17,14 +18,22 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Managed Service Identities"
+	return r.autoRegistration.Name()
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	dataSources := []sdk.DataSource{}
+	dataSources = append(dataSources, r.autoRegistration.DataSources()...)
+	return dataSources
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return r.autoRegistration.Resources()
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
-	return []string{
-		"Authorization",
-	}
+	return r.autoRegistration.WebsiteCategories()
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
