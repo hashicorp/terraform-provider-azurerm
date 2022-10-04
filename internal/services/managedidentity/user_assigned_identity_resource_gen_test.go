@@ -1,4 +1,4 @@
-package msi_test
+package managedidentity_test
 
 import (
 	"context"
@@ -72,7 +72,7 @@ func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *client
 		return nil, err
 	}
 
-	resp, err := client.MSI.UserAssignedIdentitiesClient.UserAssignedIdentitiesGet(ctx, *id)
+	resp, err := client.ManagedIdentity.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

@@ -67,13 +67,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
@@ -223,7 +223,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			media.Registration{},
 			mixedreality.Registration{},
 			monitor.Registration{},
-			msi.Registration{},
+			managedidentity.Registration{},
 			mssql.Registration{},
 			mysql.Registration{},
 			netapp.Registration{},

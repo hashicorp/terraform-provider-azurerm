@@ -1,4 +1,4 @@
-package msi
+package managedidentity
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
@@ -16,7 +16,9 @@ func (a autoRegistration) DataSources() []sdk.DataSource {
 }
 
 func (a autoRegistration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		UserAssignedIdentityResource{},
+	}
 }
 
 func (a autoRegistration) WebsiteCategories() []string {
