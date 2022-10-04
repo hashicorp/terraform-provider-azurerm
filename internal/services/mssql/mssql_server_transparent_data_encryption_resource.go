@@ -45,6 +45,7 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: mssqlValidate.ServerID,
 			},
+
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
