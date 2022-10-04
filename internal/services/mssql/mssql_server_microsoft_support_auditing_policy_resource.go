@@ -50,11 +50,12 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"storage_endpoint": {
+			"blob_storage_endpoint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
+
 			"storage_account_access_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -107,7 +108,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 
 	params := sql.ServerDevOpsAuditingSettings{
 		ServerDevOpsAuditSettingsProperties: &sql.ServerDevOpsAuditSettingsProperties{
-			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
+			StorageEndpoint:             utils.String(d.Get("blob_storage_endpoint").(string)),
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
@@ -182,7 +183,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.Resource
 	d.Set("server_id", serverResp.ID)
 
 	if props := resp.ServerDevOpsAuditSettingsProperties; props != nil {
-		d.Set("storage_endpoint", props.StorageEndpoint)
+		d.Set("blob_storage_endpoint", props.StorageEndpoint)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 		d.Set("enabled", props.State == sql.BlobAuditingPolicyStateEnabled)
 

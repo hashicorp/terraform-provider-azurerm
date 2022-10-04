@@ -51,10 +51,12 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			},
 
 			"storage_endpoint": {
+				// TODO 4.0: rename to `blob_storage_endpoint`
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
+
 			"storage_account_access_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
