@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.42.0` of `github.com/hashicorp/go-azure-helpers` [GH-18601]
+* dependencies: updating to `v0.20221004.1155444` of `github.com/hashicorp/go-azure-sdk` [GH-18628]
 * `azurerm_batch_pool` - support for the `node_deallocation_method`, `dynamic_vnet_assignment_scope`, and `source_port_ranges` properties [GH-18436]
 
 BUG FIXES:
