@@ -50,6 +50,7 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+
 			"auto_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
