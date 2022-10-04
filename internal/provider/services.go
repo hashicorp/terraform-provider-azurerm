@@ -114,7 +114,7 @@ import (
 //go:generate go run ../tools/generator-services/main.go -path=../../
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
-	return []sdk.TypedServiceRegistration{
+	services := []sdk.TypedServiceRegistration{
 		aadb2c.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
@@ -151,6 +151,8 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		search.Registration{},
 		web.Registration{},
 	}
+	services = append(services, autoRegisteredTypedServices()...)
+	return services
 }
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
