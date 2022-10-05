@@ -33,7 +33,7 @@ service/attestation:
 
 service/authorization:
   - internal/services/authorization/**/*
-  - internal/services/msi/**/*
+  - internal/services/managedidentity/**/*
 
 service/automation:
   - internal/services/automation/**/*
