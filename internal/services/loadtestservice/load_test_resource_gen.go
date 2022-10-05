@@ -1,4 +1,4 @@
-package loadtest
+package loadtestservice
 
 import (
 	"context"
@@ -73,7 +73,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.LoadTest.LoadTestsClient
+			client := metadata.Client.LoadTestService.LoadTests
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := loadtests.NewLoadTestID(subscriptionId, model.ResourceGroup, model.Name)
 
@@ -107,7 +107,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 func (r LoadTestResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTest.LoadTestsClient
+			client := metadata.Client.LoadTestService.LoadTests
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -146,7 +146,7 @@ func (r LoadTestResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client := metadata.Client.LoadTest.LoadTestsClient
+			client := metadata.Client.LoadTestService.LoadTests
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -184,7 +184,7 @@ func (r LoadTestResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client := metadata.Client.LoadTest.LoadTestsClient
+			client := metadata.Client.LoadTestService.LoadTests
 
 			_, err = client.Delete(ctx, *id)
 			if err != nil {
