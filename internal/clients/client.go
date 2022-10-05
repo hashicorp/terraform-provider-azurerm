@@ -78,7 +78,6 @@ import (
 	media "github.com/hashicorp/terraform-provider-azurerm/internal/services/media/client"
 	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
-	msi "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
@@ -195,7 +194,6 @@ type Client struct {
 	Media                 *media.Client
 	MixedReality          *mixedreality.Client
 	Monitor               *monitor.Client
-	MSI                   *msi.Client
 	MSSQL                 *mssql.Client
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
@@ -316,7 +314,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Media = media.NewClient(o)
 	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
-	client.MSI = msi.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
