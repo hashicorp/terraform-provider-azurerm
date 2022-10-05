@@ -72,7 +72,7 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := parse.FrontDoorProfileIDInsensitively(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorEndpointID(d.Id())
+	id, err := parse.FrontDoorEndpointIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorEndpointID(d.Id())
+	id, err := parse.FrontDoorEndpointIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorEndpointID(d.Id())
+	id, err := parse.FrontDoorEndpointIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

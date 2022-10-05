@@ -46,12 +46,14 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				Deprecated:   "the 'cdn_frontdoor_route_disable_link_to_default_domain' resource has been deprecated and will be removed from the 4.0 AzureRM provider. Please use the 'link_to_default_domain' field in the 'cdn_frontdoor_route' resource to control this value",
 				ValidateFunc: validate.FrontDoorRouteID,
 			},
 
 			"cdn_frontdoor_custom_domain_ids": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
+				Type:       pluginsdk.TypeList,
+				Required:   true,
+				Deprecated: "the 'cdn_frontdoor_route_disable_link_to_default_domain' resource has been deprecated and will be removed from the 4.0 AzureRM provider. Please use the 'link_to_default_domain' field in the 'cdn_frontdoor_route' resource to control this value",
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,

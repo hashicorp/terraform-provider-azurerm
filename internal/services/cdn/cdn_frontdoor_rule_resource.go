@@ -618,7 +618,7 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	ruleSetId, err := parse.FrontDoorRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
+	ruleSetId, err := parse.FrontDoorRuleSetIDInsensitively(d.Get("cdn_frontdoor_rule_set_id").(string))
 	if err != nil {
 		return err
 	}
@@ -678,7 +678,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorRuleID(d.Id())
+	id, err := parse.FrontDoorRuleIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -726,7 +726,7 @@ func resourceCdnFrontDoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorRuleID(d.Id())
+	id, err := parse.FrontDoorRuleIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -783,7 +783,7 @@ func resourceCdnFrontDoorRuleDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorRuleID(d.Id())
+	id, err := parse.FrontDoorRuleIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

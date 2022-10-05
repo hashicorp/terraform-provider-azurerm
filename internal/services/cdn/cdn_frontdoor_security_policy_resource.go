@@ -140,7 +140,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 
 	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := parse.FrontDoorProfileIDInsensitively(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorSecurityPolicyID(d.Id())
+	id, err := parse.FrontDoorSecurityPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -263,7 +263,7 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorSecurityPolicyID(d.Id())
+	id, err := parse.FrontDoorSecurityPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

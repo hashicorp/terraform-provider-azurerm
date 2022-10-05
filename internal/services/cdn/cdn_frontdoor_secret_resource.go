@@ -98,7 +98,7 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := parse.FrontDoorProfileIDInsensitively(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorSecretID(d.Id())
+	id, err := parse.FrontDoorSecretIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func resourceCdnFrontDoorSecretDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorSecretID(d.Id())
+	id, err := parse.FrontDoorSecretIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
