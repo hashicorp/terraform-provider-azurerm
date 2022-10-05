@@ -1,4 +1,4 @@
-package msi
+package managedidentity
 
 import (
 	"fmt"
@@ -55,7 +55,7 @@ func dataSourceArmUserAssignedIdentity() *pluginsdk.Resource {
 }
 
 func dataSourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSI.UserAssignedIdentitiesClient
+	client := meta.(*clients.Client).ManagedIdentity.ManagedIdentities
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

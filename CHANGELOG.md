@@ -1,3 +1,20 @@
+## 3.26.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_iotcentral_application_network_rule_set` [GH-18589]
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.43.0` of `github.com/hashicorp/go-azure-helpers` [GH-18630]
+* dependencies: updating to `v0.20221004.1155444` of `github.com/hashicorp/go-azure-sdk` [GH-18628]
+* `azurerm_batch_pool` - support for the `node_deallocation_method`, `dynamic_vnet_assignment_scope`, and `source_port_ranges` properties [GH-18436]
+
+BUG FIXES:
+
+* `azurerm_linux_function_app_slot` - read app settings from the correct endpoint [GH-18396]
+* `azurerm_windows_function_app_slot` - read app settings from the correct endpoint [GH-18396]
+
 ## 3.25.0 (September 29, 2022)
 
 FEATURES:

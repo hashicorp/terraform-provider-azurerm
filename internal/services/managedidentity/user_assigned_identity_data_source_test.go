@@ -1,4 +1,4 @@
-package msi_test
+package managedidentity_test
 
 import (
 	"fmt"

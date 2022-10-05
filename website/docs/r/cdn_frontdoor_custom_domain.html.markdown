@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_dns_zone" "example" {
-  name                = "afdx-terraform.azfdtest.xyz "
+  name                = "sub-domain.domain.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 

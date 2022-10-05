@@ -1,4 +1,4 @@
-package loadtest_test
+package loadtestservice_test
 
 import (
 	"context"
@@ -89,7 +89,7 @@ func (r LoadTestResource) Exists(ctx context.Context, client *clients.Client, st
 		return nil, err
 	}
 
-	resp, err := client.LoadTest.LoadTestsClient.Get(ctx, *id)
+	resp, err := client.LoadTestService.LoadTests.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

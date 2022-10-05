@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -83,6 +84,20 @@ func resourceBatchPool() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						// Property `node_deallocation_method` is set to be a writeOnly property by service team
+						// It can only perform on PUT operation and is not able to perform GET operation
+						// Here we treat `node_deallocation_method` the same as a secret value.
+						// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/20948
+						"node_deallocation_method": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeDeallocationOptionRequeue),
+								string(batch.ComputeNodeDeallocationOptionRetainedData),
+								string(batch.ComputeNodeDeallocationOptionTaskCompletion),
+								string(batch.ComputeNodeDeallocationOptionTerminate),
+							}, false),
+						},
 						"target_dedicated_nodes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -153,34 +168,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:   true,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"registry_server": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"user_assigned_identity_id": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ForceNew:     true,
-										ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-										Description:  "The User Assigned Identity to use for Container Registry access.",
-									},
-									"user_name": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"password": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ForceNew:     true,
-										Sensitive:    true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
+								Schema: containerRegistry(),
 							},
 							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
@@ -461,6 +449,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"dynamic_vnet_assignment_scope": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							Default:          string(batch.DynamicVNetAssignmentScopeNone),
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.DynamicVNetAssignmentScopeNone),
+								string(batch.DynamicVNetAssignmentScopeJob),
+							}, false),
+						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -547,6 +546,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Required:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"source_port_ranges": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Computed: true,
+													ForceNew: true,
+													Elem: &pluginsdk.Schema{
+														Type:         pluginsdk.TypeString,
+														Default:      "*",
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
 												},
 											},
 										},
@@ -1080,7 +1090,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
 				return fmt.Errorf("flattening `auto_scale`: %+v", err)
 			}
-			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
+			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
 		}
@@ -1198,7 +1208,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("flattening `certificate`: %+v", err)
 		}
 
-		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
+		d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 		if props.MountConfiguration != nil {
@@ -1276,12 +1286,13 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 		}
 
 		fixedScaleSettings := fixedScale[0].(map[string]interface{})
-
+		nodeDeallocationOption := batch.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_method"].(string))
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
 		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
 
 		scaleSettings.FixedScale = &batch.FixedScaleSettings{
+			NodeDeallocationOption: nodeDeallocationOption,
 			ResizeTimeout:          &resizeTimeout,
 			TargetDedicatedNodes:   &targetDedicatedNodes,
 			TargetLowPriorityNodes: &targetLowPriorityNodes,
@@ -1415,6 +1426,40 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"container": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"run_options": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"image_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"registry": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: containerRegistry(),
+						},
+					},
+					"working_directory": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(batch.ContainerWorkingDirectoryTaskWorkingDirectory),
+							string(batch.ContainerWorkingDirectoryContainerImageDefault),
+						}, false),
+					},
+				},
+			},
+		},
+
 		"task_retry_maximum": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
@@ -1512,6 +1557,37 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+	}
+}
+
+func containerRegistry() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"registry_server": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"user_assigned_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Container Registry access.",
+		},
+		"user_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
