@@ -1,4 +1,4 @@
-package loadtest
+package loadtestservice
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -6,28 +6,26 @@ import (
 
 var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
-type Registration struct{}
+type Registration struct {
+	autoRegistration
+}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/load-test"
 }
 
 func (r Registration) WebsiteCategories() []string {
-	return []string{
-		"Load Test",
-	}
+	return r.autoRegistration.WebsiteCategories()
 }
 
 func (r Registration) Name() string {
-	return "Load Test"
+	return r.autoRegistration.Name()
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return r.autoRegistration.DataSources()
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		LoadTestResource{},
-	}
+	return r.autoRegistration.Resources()
 }
