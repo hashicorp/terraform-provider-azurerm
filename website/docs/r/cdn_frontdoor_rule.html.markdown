@@ -10,7 +10,7 @@ description: |-
 
 Manages a Frontdoor Rule.
 
-!>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin`, `azurerm_cdn_frontdoor_origin_group` and the `azurerm_cdn_frontdoor_route` that are associated with the Rule resource. The `azurerm_cdn_frontdoor_route` definition has been excluded from the below `Example Usage`, for brevity, but has been included in the `depends_on` meta-argument as an example of the correct way to define the `azurerm_cdn_frontdoor_rule` resource.
+!>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
 ## Example Usage
 
@@ -58,8 +58,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                       = true
 
-  health_probes_enabled          = true
   certificate_name_check_enabled = false
 
   host_name          = azurerm_cdn_frontdoor_endpoint.example.host_name
@@ -76,7 +76,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_rule" "example" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example, azurerm_cdn_frontdoor_route.example]
+  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example]
 
   name                      = "examplerule"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.example.id

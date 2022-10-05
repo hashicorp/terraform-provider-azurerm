@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_dns_zone" "example" {
-  name                = "afdx-terraform.azfdtest.xyz "
+  name                = "sub-domain.domain.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
@@ -85,9 +85,7 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name of the domain. Changing this forces a new CDN FrontDoor Custom Domain to be created.
 
-* `associate_with_cdn_frontdoor_route_id` (Optional) - The resource ID of the CDN FrontDoor Route this Custom Domain should be associated with.
-
-->**NOTE:** Once a CDN Front Door Custom Domain has been associated with a CDN Front Door Route changing this value will force a new CDN Front Door Custom Domain to be created.
+* `associate_with_cdn_frontdoor_route_id` (Optional) - The resource ID of the CDN FrontDoor Route this CDN FrontDoor Custom Domain should be associated with.
 
 * `dns_zone_id` - (Optional) The ID of the DNS Zone which should be used for this FrontDoor Custom Domain.
 
