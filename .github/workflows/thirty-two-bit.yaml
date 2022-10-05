@@ -2,6 +2,7 @@
 name: 32 Bit Build
 
 permissions:
+  contents: read
   pull-requests: read
 
 on:

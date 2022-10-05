@@ -2,6 +2,7 @@
 name: Validate Examples
 
 permissions:
+  contents: read
   pull-requests: read
 
 on:
