@@ -768,7 +768,6 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.ProximityPlacementGroupID = utils.String(proximityPlacementGroupId)
 	}
 
-	profile.WorkloadRuntime = ""
 	if workloadRunTime := raw["workload_runtime"].(string); workloadRunTime != "" {
 		profile.WorkloadRuntime = containerservice.WorkloadRuntime(workloadRunTime)
 	}
