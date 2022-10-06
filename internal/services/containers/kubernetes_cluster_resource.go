@@ -563,6 +563,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
+									"managed_outbound_ipv6_count": {
+										Type:          pluginsdk.TypeInt,
+										Optional:      true,
+										Computed:      true,
+										ValidateFunc:  validation.IntBetween(1, 100),
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+									},
 									"outbound_ip_prefix_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
@@ -1485,6 +1492,18 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				loadBalancerProfile.OutboundIPPrefixes = nil
 			}
 
+			if key := "network_profile.0.load_balancer_profile.0.managed_outbound_ipv6_count"; d.HasChange(key) {
+				managedOutboundIPV6Count := d.Get(key).(int)
+				if loadBalancerProfile.ManagedOutboundIPs == nil {
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
+				}
+				loadBalancerProfile.ManagedOutboundIPs.CountIPv6 = utils.Int32(int32(managedOutboundIPV6Count))
+
+				// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+				loadBalancerProfile.OutboundIPs = nil
+				loadBalancerProfile.OutboundIPPrefixes = nil
+			}
+
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
 				outboundIPAddress := d.Get(key)
 				if v := outboundIPAddress.(*pluginsdk.Set).List(); len(v) == 0 {
@@ -2310,6 +2329,15 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 		}
 	}
 
+	if ipv6Count := config["managed_outbound_ipv6_count"]; ipv6Count != nil {
+		if c := int32(ipv6Count.(int)); c > 0 {
+			if profile.ManagedOutboundIPs == nil {
+				profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
+			}
+			profile.ManagedOutboundIPs.CountIPv6 = &c
+		}
+	}
+
 	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
 		profile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
 	}
@@ -2440,6 +2468,10 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		if ips := lbp.ManagedOutboundIPs; ips != nil {
 			if count := ips.Count; count != nil {
 				lb["managed_outbound_ip_count"] = count
+			}
+
+			if countIPv6 := ips.CountIPv6; countIPv6 != nil {
+				lb["managed_outbound_ipv6_count"] = countIPv6
 			}
 		}
 

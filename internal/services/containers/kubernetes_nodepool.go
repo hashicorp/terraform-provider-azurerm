@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -117,6 +118,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 					},
 
+					"message_of_the_day": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
 					"min_count": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
@@ -226,6 +234,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 					},
 
+					"scale_down_mode": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(containerservice.ScaleDownModeDelete),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(containerservice.ScaleDownModeDeallocate),
+							string(containerservice.ScaleDownModeDelete),
+						}, false),
+					},
+
 					"host_group_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -234,6 +253,15 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"upgrade_settings": upgradeSettingsSchema(),
+
+					"workload_runtime": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(containerservice.WorkloadRuntimeOCIContainer),
+						}, false),
+					},
 				}
 
 				s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
@@ -605,6 +633,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			MaxPods:                   defaultCluster.MaxPods,
 			OsType:                    defaultCluster.OsType,
 			MaxCount:                  defaultCluster.MaxCount,
+			MessageOfTheDay:           defaultCluster.MessageOfTheDay,
 			MinCount:                  defaultCluster.MinCount,
 			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
 			EnableFIPS:                defaultCluster.EnableFIPS,
@@ -622,8 +651,10 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			NodeLabels:                defaultCluster.NodeLabels,
 			NodeTaints:                defaultCluster.NodeTaints,
 			PodSubnetID:               defaultCluster.PodSubnetID,
+			ScaleDownMode:             defaultCluster.ScaleDownMode,
 			Tags:                      defaultCluster.Tags,
 			UpgradeSettings:           defaultCluster.UpgradeSettings,
+			WorkloadRuntime:           defaultCluster.WorkloadRuntime,
 		},
 	}
 }
@@ -688,6 +719,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.MaxPods = utils.Int32(maxPods)
 	}
 
+	if v := raw["message_of_the_day"].(string); v != "" {
+		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+		profile.MessageOfTheDay = &messageOfTheDayEncoded
+	}
+
 	if prefixID := raw["node_public_ip_prefix_id"].(string); prefixID != "" {
 		profile.NodePublicIPPrefixID = utils.String(prefixID)
 	}
@@ -709,6 +745,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.PodSubnetID = utils.String(podSubnetID)
 	}
 
+	profile.ScaleDownMode = containerservice.ScaleDownModeDelete
+	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
+		profile.ScaleDownMode = containerservice.ScaleDownMode(scaleDownMode)
+	}
+
 	if ultraSSDEnabled, ok := raw["ultra_ssd_enabled"]; ok {
 		profile.EnableUltraSSD = utils.Bool(ultraSSDEnabled.(bool))
 	}
@@ -727,6 +768,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 
 	if proximityPlacementGroupId := raw["proximity_placement_group_id"].(string); proximityPlacementGroupId != "" {
 		profile.ProximityPlacementGroupID = utils.String(proximityPlacementGroupId)
+	}
+
+	if workloadRunTime := raw["workload_runtime"].(string); workloadRunTime != "" {
+		profile.WorkloadRuntime = containerservice.WorkloadRuntime(workloadRunTime)
 	}
 
 	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
@@ -1013,6 +1058,15 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		maxPods = int(*agentPool.MaxPods)
 	}
 
+	messageOfTheDay := ""
+	if agentPool.MessageOfTheDay != nil {
+		messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay)
+		if err != nil {
+			return nil, err
+		}
+		messageOfTheDay = string(messageOfTheDayDecoded)
+	}
+
 	minCount := 0
 	if agentPool.MinCount != nil {
 		minCount = int(*agentPool.MinCount)
@@ -1080,6 +1134,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		proximityPlacementGroupId = *agentPool.ProximityPlacementGroupID
 	}
 
+	scaleDownMode := containerservice.ScaleDownModeDelete
+	if agentPool.ScaleDownMode != "" {
+		scaleDownMode = agentPool.ScaleDownMode
+	}
+
 	vmSize := ""
 	if agentPool.VMSize != nil {
 		vmSize = *agentPool.VMSize
@@ -1087,6 +1146,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	capacityReservationGroupId := ""
 	if agentPool.CapacityReservationGroupID != nil {
 		capacityReservationGroupId = *agentPool.CapacityReservationGroupID
+	}
+
+	workloadRunTime := ""
+	if agentPool.WorkloadRuntime != "" {
+		workloadRunTime = string(agentPool.WorkloadRuntime)
 	}
 
 	upgradeSettings := flattenUpgradeSettings(agentPool.UpgradeSettings)
@@ -1104,6 +1168,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		"kubelet_disk_type":             string(agentPool.KubeletDiskType),
 		"max_count":                     maxCount,
 		"max_pods":                      maxPods,
+		"message_of_the_day":            messageOfTheDay,
 		"min_count":                     minCount,
 		"name":                          name,
 		"node_count":                    count,
@@ -1113,10 +1178,12 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		"os_disk_size_gb":               osDiskSizeGB,
 		"os_disk_type":                  string(osDiskType),
 		"os_sku":                        string(agentPool.OsSKU),
+		"scale_down_mode":               string(scaleDownMode),
 		"tags":                          tags.Flatten(agentPool.Tags),
 		"type":                          string(agentPool.Type),
 		"ultra_ssd_enabled":             enableUltraSSD,
 		"vm_size":                       vmSize,
+		"workload_runtime":              workloadRunTime,
 		"pod_subnet_id":                 podSubnetId,
 		"orchestrator_version":          orchestratorVersion,
 		"proximity_placement_group_id":  proximityPlacementGroupId,
