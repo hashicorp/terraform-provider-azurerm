@@ -482,12 +482,34 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 
+						"pod_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
 						"service_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
+						},
+
+						"service_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 
 						"load_balancer_sku": {
@@ -606,6 +628,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+
 						"ip_versions": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -2243,6 +2266,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		networkProfile.PodCidr = utils.String(podCidr)
 	}
 
+	if v, ok := config["pod_cidrs"]; ok {
+		networkProfile.PodCidrs = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
 	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
 		dockerBridgeCidr := v.(string)
 		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
@@ -2251,6 +2278,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
 		serviceCidr := v.(string)
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
+	}
+
+	if v, ok := config["service_cidrs"]; ok {
+		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	return &networkProfile, nil
@@ -2473,7 +2504,9 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
 			"pod_cidr":              podCidr,
+			"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
 			"service_cidr":          serviceCidr,
+			"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
 			"outbound_type":         string(profile.OutboundType),
 		},
 	}
