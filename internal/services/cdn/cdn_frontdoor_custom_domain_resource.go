@@ -53,26 +53,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontDoorProfileID,
 			},
 
-			// NOTE: Was afraid of this "Error: Cycle: azurerm_cdn_frontdoor_custom_domain.wodan, azurerm_cdn_frontdoor_route.wodan"
-			// have to create a 'azurerm_cdn_frontdoor_custom_domain_routes_association' resource to manage the associations between
-			// the routes and the custom domains for delete/destroy operation...
-			"cdn_frontdoor_route_ids": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"associate_with_cdn_frontdoor_route_id"}
-					}
-					return []string{}
-				}(),
-
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.FrontDoorRouteID,
-				},
-			},
-
 			"dns_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -139,15 +119,9 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["associate_with_cdn_frontdoor_route_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Deprecated: "'associate_with_cdn_frontdoor_route_id' is no longer used and and will be removed in version 4.0 of the AzureRM provider. Please use the 'cdn_frontdoor_custom_domains_ids' field in the 'cdn_frontdoor_route' resource to control the CDN FrontDoor Custom Domain association(s) with the CDN FrontDoor Route",
-			ConflictsWith: func() []string {
-				if !features.FourPointOhBeta() {
-					return []string{"cdn_frontdoor_route_ids"}
-				}
-				return []string{}
-			}(),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Deprecated:   "'associate_with_cdn_frontdoor_route_id' is no longer used and and will be removed in version 4.0 of the AzureRM provider. Please use the 'cdn_frontdoor_custom_domains_ids' field in the 'cdn_frontdoor_route' resource to control the CDN FrontDoor Custom Domain association(s) with the CDN FrontDoor Route",
 			ValidateFunc: validate.FrontDoorRouteID,
 		}
 	}
@@ -166,14 +140,6 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	id := parse.NewFrontDoorCustomDomainID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
-
-	// validate the routes...
-	routes := d.Get("cdn_frontdoor_route_ids").([]interface{})
-	if len(routes) != 0 {
-		if err := validateCustomDomainRoutes(routes, &id); err != nil {
-			return err
-		}
-	}
 
 	dnsZone := d.Get("dns_zone_id").(string)
 	tls := d.Get("tls").([]interface{})
@@ -205,30 +171,6 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
-	d.Set("cdn_frontdoor_route_ids", routes)
-
-	// Associate the custom domain with the route, if that field was passed...
-	// if !features.FourPointOhBeta() {
-	// 	if route := d.Get("associate_with_cdn_frontdoor_route_id").(string); route != "" {
-	// 		routes := []interface{}{route}
-
-	// 		if err = addCustomDomainAssociationToRoutes(d, meta, routes, &id); err != nil {
-	// 			return err
-	// 		} else {
-	// 			d.Set("associate_with_cdn_frontdoor_route_id", route)
-	// 		}
-	// 	}
-	// }
-
-	// // NOTE: To associate a custom domain with more than one route, you must also make sure that all of the routes point to the same endpoint
-	// // NOTE: I also now have to wait until all of the front door custom domains are created befor I move on here?
-	// if routes := d.Get("associate_with_cdn_frontdoor_route_ids").([]interface{}); len(routes) != 0 {
-	// 	if err = addCustomDomainAssociationToRoutes(d, meta, routes, &id); err != nil {
-	// 		return err
-	// 	} else {
-	// 		d.Set("associate_with_cdn_frontdoor_route_ids", routes)
-	// 	}
-	// }
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
@@ -238,7 +180,7 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := customDomainIDWithErrorTxt(d.Id())
+	id, err := friendlyCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -249,6 +191,7 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
@@ -272,8 +215,6 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	d.Set("cdn_frontdoor_route_ids", d.Get("cdn_frontdoor_route_ids").([]interface{}))
-
 	return nil
 }
 
@@ -285,19 +226,6 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	id, err := parse.FrontDoorCustomDomainID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	// validate the routes...
-	if d.HasChange("cdn_frontdoor_route_ids") {
-		routes := d.Get("cdn_frontdoor_route_ids").([]interface{})
-
-		if len(routes) != 0 {
-			if err := validateCustomDomainRoutes(routes, id); err != nil {
-				return fmt.Errorf("azurerm_cdn_frontdoor_custom_domain: the 'cdn_frontdoor_route_ids' field is invalid: %+v", err)
-			}
-		}
-
-		d.Set("cdn_frontdoor_route_ids", routes)
 	}
 
 	props := cdn.AFDDomainUpdateParameters{
@@ -349,94 +277,6 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	// Now that the Custom Domain has been updated we need to ensure the referential integrity of the route resource
-	// and associate/unassociate the custom domain with the route(s), if that field was defined/removed...
-
-	// if !features.FourPointOhBeta() {
-	// 	if route := d.Get("associate_with_cdn_frontdoor_route_id").(string); route != "" {
-	// 		if d.HasChange("associate_with_cdn_frontdoor_route_id") {
-	// 			old, new := d.GetChange("associate_with_cdn_frontdoor_route_id")
-	// 			oldRoute := []interface{}{old.(string)}
-	// 			newRoute := []interface{}{new.(string)}
-
-	// 			switch {
-	// 			case (len(oldRoute) == 0 && len(newRoute) != 0):
-	// 				// Add
-	// 				if err := addCustomDomainAssociationToRoutes(d, meta, newRoute, id); err != nil {
-	// 					return err
-	// 				}
-
-	// 				d.Set("associate_with_cdn_frontdoor_route_id", new.(string))
-
-	// 			case (len(oldRoute) != 0 && len(newRoute) == 0):
-	// 				// Remove
-	// 				if err := removeCustomDomainAssociationFromRoutes(d, meta, newRoute, id); err != nil {
-	// 					return err
-	// 				}
-
-	// 				d.Set("associate_with_cdn_frontdoor_route_id", "")
-
-	// 			case (len(oldRoute) != 0 && len(newRoute) != 0 && !strings.EqualFold(old.(string), new.(string))):
-	// 				// Swap
-	// 				if err = removeCustomDomainAssociationFromRoutes(d, meta, oldRoute, id); err != nil {
-	// 					return err
-	// 				}
-
-	// 				d.Set("associate_with_cdn_frontdoor_route_id", "")
-
-	// 				// add the association to the new route...
-	// 				if err = addCustomDomainAssociationToRoutes(d, meta, newRoute, id); err != nil {
-	// 					return err
-	// 				}
-
-	// 				d.Set("associate_with_cdn_frontdoor_route_id", new.(string))
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	// if d.HasChange("cdn_frontdoor_route_ids") {
-	// 	if routes := d.Get("cdn_frontdoor_route_ids").([]interface{}); len(routes) != 0 {
-	// 		old, new := d.GetChange("associate_with_cdn_frontdoor_route_ids")
-	// 		oldRoutes := old.([]interface{})
-	// 		newRoutes := new.([]interface{})
-
-	// 		switch {
-	// 		case (len(oldRoutes) == 0 && len(newRoutes) != 0):
-	// 			// Add
-	// 			if err = addCustomDomainAssociationToRoutes(d, meta, newRoutes, id); err != nil {
-	// 				return err
-	// 			}
-
-	// 			d.Set("associate_with_cdn_frontdoor_route_ids", newRoutes)
-
-	// 		case (len(oldRoutes) != 0 && len(newRoutes) == 0):
-	// 			// Remove
-	// 			if err = removeCustomDomainAssociationFromRoutes(d, meta, oldRoutes, id); err != nil {
-	// 				return err
-	// 			}
-
-	// 			d.Set("associate_with_cdn_frontdoor_route_ids", []interface{}{})
-
-	// 		case (len(oldRoutes) != 0 && len(newRoutes) != 0):
-	// 			// Swap
-	// 			if removeRoutes, sharedRoutes := getRemoveRoutesDelta(oldRoutes, newRoutes); len(removeRoutes) != 0 {
-	// 				if err = removeCustomDomainAssociationFromRoutes(d, meta, removeRoutes, id); err != nil {
-	// 					return err
-	// 				}
-
-	// 				d.Set("associate_with_cdn_frontdoor_route_ids", sharedRoutes)
-	// 			}
-
-	// 			if err = addCustomDomainAssociationToRoutes(d, meta, newRoutes, id); err != nil {
-	// 				return err
-	// 			}
-
-	// 			d.Set("associate_with_cdn_frontdoor_route_ids", newRoutes)
-	// 		}
-	// 	}
-	// }
-
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
 
@@ -448,15 +288,6 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 	id, err := parse.FrontDoorCustomDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
-	}
-
-	// NOTE: If the custom domain is still associated with a route you cannot delete the custom domain
-	// without the service throwing an error. You must first update the route to remove the association...
-	if routes := d.Get("cdn_frontdoor_route_ids").([]interface{}); len(routes) != 0 {
-		// remove the association from the old route..
-		if err := removeCustomDomainAssociationFromRoutes(d, meta, routes, id); err != nil {
-			return err
-		}
 	}
 
 	// delete the custom domain...

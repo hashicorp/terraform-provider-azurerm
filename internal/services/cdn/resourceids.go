@@ -20,3 +20,4 @@ package cdn
 
 // CDN FrontDoor "Associations"
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorRouteDisableLinkToDefaultDomain -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1/disableLinkToDefaultDomain/disableLinkToDefaultDomain1 -rewrite=true
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontDoorCustomDomainAssociation -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/associations/assoc1 -rewrite=true

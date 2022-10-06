@@ -220,10 +220,27 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
 	}
 
+	var customDomains []interface{}
+	var originIds []interface{}
+	var originGroupId *cdn.ResourceReference
+	var ruleSetIds *[]cdn.ResourceReference
+
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+	orginGroupIdRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
+	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
-	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	rawOriginIds := d.Get("cdn_frontdoor_origin_ids").([]interface{})
+	rawCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+
+	for _, customDomain := range rawCustomDomains {
+		id, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain.(string))
+		if err != nil {
+			return err
+		}
+
+		customDomains = append(customDomains, id.ID())
+	}
 
 	if httpsRedirect {
 		// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
@@ -249,6 +266,22 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if orginGroupIdRaw != "" {
+		id, err := parse.FrontDoorOriginGroupIDInsensitively(orginGroupIdRaw)
+		if err != nil {
+			return err
+		}
+
+		originGroupId = expandResourceReference(id.ID())
+	}
+
+	tmp, err := normalizeRuleSetIds(ruleSetIdsRaw)
+	if err != nil {
+		return err
+	}
+
+	ruleSetIds = expandCdnFrontdoorRouteResourceReferenceArray(tmp)
+
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
 			CustomDomains:       expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
@@ -257,9 +290,9 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
 			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain),
-			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
+			OriginGroup:         originGroupId,
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
+			RuleSets:            ruleSetIds,
 			SupportedProtocols:  expandCdnFrontdoorRouteEndpointProtocolsArray(protocolsRaw),
 		},
 	}
@@ -281,8 +314,17 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
-	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+	for _, originId := range rawOriginIds {
+		id, err := parse.FrontDoorOriginIDInsensitively(originId.(string))
+		if err != nil {
+			return err
+		}
+
+		originIds = append(originIds, id.ID())
+	}
+
+	if len(originIds) != 0 {
+		d.Set("cdn_frontdoor_origin_ids", originIds)
 	}
 
 	return resourceCdnFrontDoorRouteRead(d, meta)
@@ -352,6 +394,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// TODO: Fix Casing on update
 	id, err := parse.FrontDoorRouteIDInsensitively(d.Id())
 	if err != nil {
 		return err
@@ -366,14 +409,22 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	var checkProtocols bool
+	var customDomains []interface{}
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
-	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
+	rawCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 
-	props := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains: existing.RouteProperties.CustomDomains,
+	for _, customDomain := range rawCustomDomains {
+		id, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain.(string))
+		if err != nil {
+			return err
+		}
+
+		customDomains = append(customDomains, id.ID())
 	}
+
+	props := azuresdkhacks.RouteUpdatePropertiesParameters{}
 
 	if d.HasChange("cache") {
 		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
@@ -569,10 +620,8 @@ func flattenCdnFrontdoorRouteActivatedResourceArray(inputs *[]cdn.ActivatedResou
 	}
 
 	for _, customDomain := range *inputs {
-		// Normalize these values in the configuration file
-		// we know they are valid because they were set on the
-		// resource... if these are modified in the portal the
-		// will all be lowercased...
+		// Normalize these values in the configuration file we know they are valid because they were set on the
+		// resource... if these are modified in the portal the will all be lowercased...
 		id, _ := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
 		results = append(results, id.ID())
 	}
