@@ -42,10 +42,10 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *containerserv
 
 				ipVersions := profile["ip_versions"].([]interface{})
 				if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
-					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [IPv4, IPv6] in order to specify multiple values in `service_cidrs`")
+					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
 				}
 				if len(podCidrs) == 2 && len(ipVersions) != 2 {
-					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [IPv4, IPv6] in order to specify multiple values in `pod_cidrs`")
+					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
 				}
 			}
 		}
