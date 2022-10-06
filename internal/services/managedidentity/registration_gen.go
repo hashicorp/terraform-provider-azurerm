@@ -1,5 +1,7 @@
 package managedidentity
 
+// NOTE: this file is generated - manual changes will be overwritten.
+
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 var _ sdk.TypedServiceRegistration = autoRegistration{}
@@ -7,21 +9,21 @@ var _ sdk.TypedServiceRegistration = autoRegistration{}
 type autoRegistration struct {
 }
 
-func (a autoRegistration) Name() string {
-	return "Managed Service Identities"
+func (autoRegistration) Name() string {
+	return "ManagedIdentity"
 }
 
-func (a autoRegistration) DataSources() []sdk.DataSource {
+func (autoRegistration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
 }
 
-func (a autoRegistration) Resources() []sdk.Resource {
+func (autoRegistration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		UserAssignedIdentityResource{},
 	}
 }
 
-func (a autoRegistration) WebsiteCategories() []string {
+func (autoRegistration) WebsiteCategories() []string {
 	return []string{
 		"Authorization",
 	}
