@@ -23,4 +23,4 @@ jobs:
           PR_TITLE: "Auto PR: Regenerating based on (${{ github.sha }})"
           PR_BODY: "Regenerating the Terraform Provider based on the latest changes"
           PR_TARGET: "main"
-          GITHUB_TOKEN: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}
+          GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}
