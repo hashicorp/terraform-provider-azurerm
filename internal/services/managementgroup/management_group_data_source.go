@@ -44,10 +44,27 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 			},
 
 			"subscription_ids": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
+			},
+
+			"management_group_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
+			"all_subscription_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
+			"all_management_group_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 		},
 	}
@@ -90,11 +107,29 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 
-		subscriptionIds, err := flattenManagementGroupDataSourceSubscriptionIds(props.Children)
-		if err != nil {
-			return fmt.Errorf("flattening `subscription_ids`: %+v", err)
+		subscriptionIds := []interface{}{}
+		mgmtgroupIds := []interface{}{}
+		if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, false); err != nil {
+			return fmt.Errorf("flattening direct children resources: %+v", err)
 		}
-		d.Set("subscription_ids", subscriptionIds)
+		if err := d.Set("subscription_ids", subscriptionIds); err != nil {
+			return fmt.Errorf("setting `subscription_ids`: %v", err)
+		}
+		if err := d.Set("management_group_ids", mgmtgroupIds); err != nil {
+			return fmt.Errorf("setting `management_group_ids`: %v", err)
+		}
+
+		subscriptionIds = []interface{}{}
+		mgmtgroupIds = []interface{}{}
+		if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, true); err != nil {
+			return fmt.Errorf("flattening all children resources: %+v", err)
+		}
+		if err := d.Set("all_subscription_ids", subscriptionIds); err != nil {
+			return fmt.Errorf("setting `all_subscription_ids`: %v", err)
+		}
+		if err := d.Set("all_management_group_ids", mgmtgroupIds); err != nil {
+			return fmt.Errorf("setting `all_management_group_ids`: %v", err)
+		}
 
 		parentId := ""
 		if details := props.Details; details != nil {
@@ -141,26 +176,37 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 	return results[0], nil
 }
 
-func flattenManagementGroupDataSourceSubscriptionIds(input *[]managementgroups.ChildInfo) (*pluginsdk.Set, error) {
-	subscriptionIds := &pluginsdk.Set{F: pluginsdk.HashString}
+func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]interface{}, input *[]managementgroups.ChildInfo, recursive bool) error {
 	if input == nil {
-		return subscriptionIds, nil
+		return nil
 	}
 
 	for _, child := range *input {
 		if child.ID == nil {
 			continue
 		}
-
-		id, err := parseManagementGroupSubscriptionID(*child.ID)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to parse child Subscription ID %+v", err)
+		switch child.Type {
+		case managementgroups.Type1MicrosoftManagementmanagementGroups:
+			id, err := parse.ManagementGroupID(*child.ID)
+			if err != nil {
+				return fmt.Errorf("Unable to parse child Management Group ID %+v", err)
+			}
+			*mgmtgroupIds = append(*mgmtgroupIds, id.ID())
+		case managementgroups.Type1Subscriptions:
+			id, err := parseManagementGroupSubscriptionID(*child.ID)
+			if err != nil {
+				return fmt.Errorf("Unable to parse child Subscription ID %+v", err)
+			}
+			*subscriptionIds = append(*subscriptionIds, id.subscriptionId)
+		default:
+			continue
 		}
-
-		if id != nil {
-			subscriptionIds.Add(id.subscriptionId)
+		if recursive {
+			if err := flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds, child.Children, recursive); err != nil {
+				return err
+			}
 		}
 	}
 
-	return subscriptionIds, nil
+	return nil
 }

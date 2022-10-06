@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -68,17 +68,17 @@ func TestAccPostgreSQLServerKey_requiresImport(t *testing.T) {
 }
 
 func (t PostgreSQLServerKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerKeyID(state.ID)
+	id, err := serverkeys.ParseKeyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.ServerKeysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
+	resp, err := clients.Postgres.ServerKeysClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql Server Key (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PostgreSQLServerKeyResource) template(data acceptance.TestData) string {

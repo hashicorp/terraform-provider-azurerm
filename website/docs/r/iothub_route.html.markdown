@@ -78,7 +78,7 @@ resource "azurerm_iothub_route" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the route.
+* `name` - (Required) The name of the route. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group under which the IotHub Route resource has to be created. Changing this forces a new resource to be created.
 
@@ -102,7 +102,7 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Route.
 * `update` - (Defaults to 30 minutes) Used when updating the IotHub Route.

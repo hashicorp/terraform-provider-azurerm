@@ -58,7 +58,7 @@ func TestAccServiceBusTopic_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_service_fabric_cluster"),
+			ExpectError: acceptance.RequiresImportError("azurerm_servicebus_topic"),
 		},
 	})
 }

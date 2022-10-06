@@ -48,9 +48,13 @@ The following arguments are supported:
 
 * `group_name` - (Required) The name of the Power BI group. Use this property to help remember which specific Power BI group id was used.
 
+* `token_user_principal_name` - (Optional) The user principal name (UPN) of the user that was used to obtain the refresh token. 
+
+* `token_user_display_name` - (Optional) The user display name of the user that was used to obtain the refresh token.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output for PowerBI.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output for PowerBI.

@@ -264,7 +264,7 @@ func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *
 	for _, item := range input {
 		if item != nil {
 			results = append(results, dedicatedhsms.NetworkInterface{
-				PrivateIpAddress: utils.String(item.(string)),
+				PrivateIPAddress: utils.String(item.(string)),
 			})
 		}
 	}
@@ -297,8 +297,8 @@ func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]dedicatedhsm
 	}
 
 	for _, item := range *input {
-		if item.PrivateIpAddress != nil {
-			results = append(results, *item.PrivateIpAddress)
+		if item.PrivateIPAddress != nil {
+			results = append(results, *item.PrivateIPAddress)
 		}
 	}
 

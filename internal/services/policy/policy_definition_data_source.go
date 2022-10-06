@@ -71,6 +71,14 @@ func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"role_definition_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -118,6 +126,8 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	policyRule := policyDefinition.PolicyRule.(map[string]interface{})
 	if policyRuleStr := flattenJSON(policyRule); policyRuleStr != "" {
 		d.Set("policy_rule", policyRuleStr)
+		roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
+		d.Set("role_definition_ids", roleIDs)
 	} else {
 		return fmt.Errorf("flattening Policy Definition Rule %q: %+v", name, err)
 	}

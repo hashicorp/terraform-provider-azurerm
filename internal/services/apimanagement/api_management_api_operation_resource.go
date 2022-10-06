@@ -221,7 +221,11 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("flattening `response`: %+v", err)
 		}
 
-		flattenedTemplateParams := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+		flattenedTemplateParams, err := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+		if err != nil {
+			return err
+		}
+
 		if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
 			return fmt.Errorf("flattening `template_parameter`: %+v", err)
 		}
@@ -301,8 +305,18 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 		output["description"] = *input.Description
 	}
 
-	output["header"] = schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
-	output["query_parameter"] = schemaz.FlattenApiManagementOperationParameterContract(input.QueryParameters)
+	header, err := schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
+	if err != nil {
+		return nil, err
+	}
+	output["header"] = header
+
+	queryParameter, err := schemaz.FlattenApiManagementOperationParameterContract(input.QueryParameters)
+	if err != nil {
+		return nil, err
+	}
+	output["query_parameter"] = queryParameter
+
 	representation, err := schemaz.FlattenApiManagementOperationRepresentation(input.Representations)
 	if err != nil {
 		return nil, err
@@ -365,7 +379,11 @@ func flattenApiManagementOperationResponseContract(input *[]apimanagement.Respon
 			output["status_code"] = int(*v.StatusCode)
 		}
 
-		output["header"] = schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
+		header, err := schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
+		if err != nil {
+			return nil, err
+		}
+		output["header"] = header
 
 		representation, err := schemaz.FlattenApiManagementOperationRepresentation(v.Representations)
 		if err != nil {

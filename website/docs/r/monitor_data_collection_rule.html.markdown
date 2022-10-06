@@ -72,7 +72,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
       sampling_frequency_in_seconds = 10
-      counter_specifiers            = ["Processor(*)\\%% Processor Time"]
+      counter_specifiers            = ["Processor(*)\\% Processor Time"]
       name                          = "test-datasource-perfcounter"
     }
 
@@ -98,7 +98,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
   tags = {
     foo = "bar"
   }
-  depend_on = [
+  depends_on = [
     azurerm_log_analytics_solution.example
   ]
 }
@@ -194,7 +194,7 @@ A `performance_counter` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `sampling_frequency_in_seconds` - (Required) The number of seconds between consecutive counter measurements (samples). The value should be integer between 1 and 300 inclusive.
+* `sampling_frequency_in_seconds` - (Required) The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `300` inclusive.
 
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values are `Microsoft-InsightsMetrics`,and `Microsoft-Perf`.
 
@@ -208,7 +208,7 @@ A `syslog` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
--> **Note:** Syslog data source has only one possible streams value which is "Microsoft-Syslog".
+-> **Note:** Syslog data source has only one possible streams value which is `Microsoft-Syslog`.
 
 ---
 
@@ -228,7 +228,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Collection Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Collection Rule.

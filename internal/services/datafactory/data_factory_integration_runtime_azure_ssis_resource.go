@@ -111,6 +111,21 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"express_vnet_integration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.SubnetID,
+						},
+					},
+				},
+			},
+
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -450,8 +465,9 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 		Description: &description,
 		Type:        datafactory.TypeBasicIntegrationRuntimeTypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
-			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d),
-			SsisProperties:    expandDataFactoryIntegrationRuntimeAzureSsisProperties(d),
+			ComputeProperties:      expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d),
+			SsisProperties:         expandDataFactoryIntegrationRuntimeAzureSsisProperties(d),
+			CustomerVirtualNetwork: expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(d.Get("express_vnet_integration").([]interface{})),
 		},
 	}
 
@@ -550,6 +566,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		if err := d.Set("proxy", flattenDataFactoryIntegrationRuntimeAzureSsisProxy(ssisProps.DataProxyProperties)); err != nil {
 			return fmt.Errorf("setting `proxy`: %+v", err)
 		}
+	}
+
+	if err := d.Set("express_vnet_integration", flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(managedIntegrationRuntime.CustomerVirtualNetwork)); err != nil {
+		return fmt.Errorf("setting `express_vnet_integration`: %+v", err)
 	}
 
 	return nil
@@ -795,6 +815,16 @@ func expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input [
 		reference.Store.Parameters = v
 	}
 	return reference
+}
+
+func expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(input []interface{}) *datafactory.IntegrationRuntimeCustomerVirtualNetwork {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+	return &datafactory.IntegrationRuntimeCustomerVirtualNetwork{
+		SubnetID: utils.String(raw["subnet_id"].(string)),
+	}
 }
 
 func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
@@ -1043,6 +1073,21 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input 
 			"parameters":          parameters,
 			"secret_name":         secretName,
 			"secret_version":      secretVersion,
+		},
+	}
+}
+
+func flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(input *datafactory.IntegrationRuntimeCustomerVirtualNetwork) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	subnetId := ""
+	if input.SubnetID != nil {
+		subnetId = *input.SubnetID
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"subnet_id": subnetId,
 		},
 	}
 }

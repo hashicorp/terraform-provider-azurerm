@@ -343,8 +343,6 @@ The deprecated field `security.enabled_triple_des_ciphers` will be removed in fa
 
 ### Resource: `azurerm_application_gateway`
 
-The field `probe.match.body` will become Required.
-
 The field `probe.match.status_code` will become Required.
 
 ### Resource: `azurerm_app_service`
@@ -1356,6 +1354,8 @@ The deprecated field `instrumentation_key` will be removed since it is no longer
 The default value for the field `min_tls_version` will change from `TLS1_0` to `TLS1_2`.
 
 The field `allow_blob_public_access` will be removed in favour of the `allow_nested_items_to_be_public` property.
+
+The field `customer_managed_key` is no longer Computed - this means that if you wish to manage CMK via the `azurerm_storage_account_customer_managed_key` resource, you must use `ignore_changes` on the `customer_managed_key` field.
 
 The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 

@@ -49,6 +49,21 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudGatewayID,
 			},
 
+			"open_api": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+					},
+				},
+			},
+
 			"spring_cloud_app_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -125,6 +140,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
@@ -153,6 +169,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
+			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
@@ -193,6 +210,10 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		d.Set("spring_cloud_app_id", props.AppResourceID)
 		if err := d.Set("route", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)
+		}
+
+		if err := d.Set("open_api", flattenGatewayRouteConfigOpenApi(props.OpenAPI)); err != nil {
+			return fmt.Errorf("setting `open_api`: %+v", err)
 		}
 	}
 	return nil
@@ -282,4 +303,32 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 		})
 	}
 	return results
+}
+
+func expandGatewayRouteConfigOpenApi(input []interface{}) *appplatform.GatewayRouteConfigOpenAPIProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	return &appplatform.GatewayRouteConfigOpenAPIProperties{
+		URI: utils.String(config["uri"].(string)),
+	}
+}
+
+func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenAPIProperties) interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	uri := ""
+	if input.URI != nil {
+		uri = *input.URI
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"uri": uri,
+		},
+	}
 }

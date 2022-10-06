@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `storage_account_type` - (Required) The type of storage to use for the managed disk. Possible values are `Standard_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `Premium_ZRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
+* `storage_account_type` - (Required) The type of storage to use for the managed disk. Possible values are `Standard_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
 
 -> **Note:** Azure Ultra Disk Storage is only available in a region that support availability zones and can only enabled on the following VM series: `ESv3`, `DSv3`, `FSv3`, `LSv2`, `M` and `Mv2`. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 
@@ -112,6 +112,8 @@ The following arguments are supported:
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Disk should exist. Changing this forces a new Managed Disk to be created.
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
+
+~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
 
 * `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. Changing this forces a new resource to be created.
 
@@ -179,13 +181,11 @@ The `disk_encryption_key` block supports:
 
 * `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
 
-* `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
+* `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
 
 ---
 
 The `encryption_settings` block supports:
-
-* `enabled` - (Required) Is Encryption enabled on this Managed Disk? Changing this forces a new resource to be created.
 
 * `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
 
@@ -197,7 +197,7 @@ The `key_encryption_key` block supports:
 
 * `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
-* `source_vault_id` - (Required) The ID of the source Key Vault.
+* `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
 
 ## Attributes Reference
 
@@ -207,7 +207,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed Disk.
 * `update` - (Defaults to 30 minutes) Used when updating the Managed Disk.

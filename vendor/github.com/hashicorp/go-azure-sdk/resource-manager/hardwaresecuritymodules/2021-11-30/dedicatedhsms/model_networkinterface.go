@@ -5,5 +5,5 @@ package dedicatedhsms
 
 type NetworkInterface struct {
 	Id               *string `json:"id,omitempty"`
-	PrivateIpAddress *string `json:"privateIpAddress,omitempty"`
+	PrivateIPAddress *string `json:"privateIpAddress,omitempty"`
 }

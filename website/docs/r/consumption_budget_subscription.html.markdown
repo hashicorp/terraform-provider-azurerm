@@ -116,7 +116,7 @@ A `filter` block supports the following:
 
 * `tag` - (Optional) One or more `tag` blocks as defined below to filter the budget on.
 
-* `not` - (Optional) A `not` block as defined below to filter the budget on.
+* `not` - (Optional) A `not` block as defined below to filter the budget on. This is deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
 
 ---
 
@@ -184,7 +184,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Subscription Consumption Budget.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Subscription Consumption Budget.

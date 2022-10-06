@@ -64,5 +64,6 @@ func (c ResourceClient) responderForSpatialAnchorsAccountsUpdate(resp *http.Resp
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -88,50 +88,6 @@ func (c RulesClient) ListBySubscriptions(ctx context.Context, id Subscriptions2I
 	return
 }
 
-// ListBySubscriptionsComplete retrieves all of the results into a single object
-func (c RulesClient) ListBySubscriptionsComplete(ctx context.Context, id Subscriptions2Id, options ListBySubscriptionsOperationOptions) (ListBySubscriptionsCompleteResult, error) {
-	return c.ListBySubscriptionsCompleteMatchingPredicate(ctx, id, options, RuleOperationPredicate{})
-}
-
-// ListBySubscriptionsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c RulesClient) ListBySubscriptionsCompleteMatchingPredicate(ctx context.Context, id Subscriptions2Id, options ListBySubscriptionsOperationOptions, predicate RuleOperationPredicate) (resp ListBySubscriptionsCompleteResult, err error) {
-	items := make([]Rule, 0)
-
-	page, err := c.ListBySubscriptions(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListBySubscriptionsCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListBySubscriptions prepares the ListBySubscriptions request.
 func (c RulesClient) preparerForListBySubscriptions(ctx context.Context, id Subscriptions2Id, options ListBySubscriptionsOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -217,4 +173,48 @@ func (c RulesClient) responderForListBySubscriptions(resp *http.Response) (resul
 		}
 	}
 	return
+}
+
+// ListBySubscriptionsComplete retrieves all of the results into a single object
+func (c RulesClient) ListBySubscriptionsComplete(ctx context.Context, id Subscriptions2Id, options ListBySubscriptionsOperationOptions) (ListBySubscriptionsCompleteResult, error) {
+	return c.ListBySubscriptionsCompleteMatchingPredicate(ctx, id, options, RuleOperationPredicate{})
+}
+
+// ListBySubscriptionsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c RulesClient) ListBySubscriptionsCompleteMatchingPredicate(ctx context.Context, id Subscriptions2Id, options ListBySubscriptionsOperationOptions, predicate RuleOperationPredicate) (resp ListBySubscriptionsCompleteResult, err error) {
+	items := make([]Rule, 0)
+
+	page, err := c.ListBySubscriptions(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListBySubscriptionsCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

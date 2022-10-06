@@ -388,6 +388,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -404,6 +405,16 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 		return fmt.Errorf("issuing AzureRM delete request for Application Insights %q: %+v", id.Name, err)
+	}
+
+	// if disable_generated_rule=true, the generated rule is not automatically deleted.
+	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+		ruleName := fmt.Sprintf("Failure Anomalies - %s", id.Name)
+		ruleId := monitorParse.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroup, ruleName)
+		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId.ResourceGroup, ruleId.Name)
+		if deleteErr != nil && deleteResp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("deleting %s: %+v", ruleId, deleteErr)
+		}
 	}
 
 	return err

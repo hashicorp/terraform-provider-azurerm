@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -289,6 +289,18 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"default_to_oauth_authentication": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"network_rules": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -400,6 +412,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+
+						"change_feed_retention_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 146000),
 						},
 
 						"default_service_version": {
@@ -647,6 +665,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 												"AES-256-GCM",
 											}, false),
 										},
+									},
+									"multichannel_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
 									},
 								},
 							},
@@ -962,7 +985,12 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
+	defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
+	publicNetworkAccess := storage.PublicNetworkAccessDisabled
+	if d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = storage.PublicNetworkAccessEnabled
+	}
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -977,12 +1005,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			EnableHTTPSTrafficOnly:      &enableHTTPSTrafficOnly,
-			NetworkRuleSet:              expandStorageAccountNetworkRules(d, tenantId),
-			IsHnsEnabled:                &isHnsEnabled,
-			EnableNfsV3:                 &nfsV3Enabled,
-			AllowSharedKeyAccess:        &allowSharedKeyAccess,
-			AllowCrossTenantReplication: &crossTenantReplication,
+			PublicNetworkAccess:          publicNetworkAccess,
+			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
+			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
+			IsHnsEnabled:                 &isHnsEnabled,
+			EnableNfsV3:                  &nfsV3Enabled,
+			AllowSharedKeyAccess:         &allowSharedKeyAccess,
+			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
+			AllowCrossTenantReplication:  &crossTenantReplication,
 		},
 	}
 
@@ -1172,7 +1202,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}))
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -1214,7 +1244,21 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(val.([]interface{}))); err != nil {
+			shareProperties := expandShareProperties(val.([]interface{}))
+			// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+			if accountTier != string(storage.SkuTierPremium) {
+
+				// Error if the user has tried to enable multichannel on a standard tier storage account
+				if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
+				}
+
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
@@ -1309,6 +1353,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			AllowSharedKeyAccess: &allowSharedKeyAccess,
 		},
+	}
+
+	if d.HasChange("default_to_oauth_authentication") {
+		defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
+		opts.AccountPropertiesUpdateParameters.DefaultToOAuthAuthentication = &defaultToOAuthAuthentication
 	}
 
 	if d.HasChange("cross_tenant_replication_enabled") {
@@ -1478,6 +1527,22 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := storage.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = storage.PublicNetworkAccessEnabled
+		}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				PublicNetworkAccess: publicNetworkAccess,
+			},
+		}
+
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account public_network_access_enabled %q: %+v", id.Name, err)
+		}
+	}
+
 	if d.HasChange("network_rules") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -1570,7 +1635,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
+				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -1612,7 +1677,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+			shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
+			// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+			if accountTier != string(storage.SkuTierPremium) {
+
+				// Error if the user has tried to enable multichannel on a standard tier storage account
+				if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
+				}
+
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
@@ -1718,6 +1797,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
 
+		publicNetworkAccessEnabled := true
+		if props.PublicNetworkAccess == storage.PublicNetworkAccessDisabled {
+			publicNetworkAccessEnabled = false
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
 		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
 			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
 		}
@@ -1811,6 +1896,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			allowSharedKeyAccess = *props.AllowSharedKeyAccess
 		}
 		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
+
+		defaultToOAuthAuthentication := false
+		if props.DefaultToOAuthAuthentication != nil {
+			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
+		}
+		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
 		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
@@ -2322,7 +2413,7 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	v := input[0].(map[string]interface{})
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw, true)
+	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -2332,6 +2423,10 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
 	}
 
+	if v := v["change_feed_retention_in_days"].(int); v != 0 {
+		props.ChangeFeed.RetentionInDays = utils.Int32((int32)(v))
+	}
+
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
 	}
@@ -2339,15 +2434,11 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	return &props
 }
 
-func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}, isupdate bool) *storage.DeleteRetentionPolicy {
+func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
 	result := storage.DeleteRetentionPolicy{
 		Enabled: utils.Bool(false),
 	}
-	if (len(input) == 0 || input[0] == nil) && !isupdate {
-		return nil
-	}
-
-	if (len(input) == 0 || input[0] == nil) && isupdate {
+	if len(input) == 0 || input[0] == nil {
 		return &result
 	}
 
@@ -2409,7 +2500,7 @@ func expandShareProperties(input []interface{}) storage.FileServiceProperties {
 
 	v := input[0].(map[string]interface{})
 
-	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}), false)
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}))
 
 	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
 
@@ -2437,6 +2528,9 @@ func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
 		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
 		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
 		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Multichannel: &storage.Multichannel{
+			Enabled: utils.Bool(v["multichannel_enabled"].(bool)),
+		},
 	}
 }
 
@@ -2790,13 +2884,18 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
-	versioning, changeFeed := false, false
+	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
 	if input.BlobServicePropertiesProperties.IsVersioningEnabled != nil {
 		versioning = *input.BlobServicePropertiesProperties.IsVersioningEnabled
 	}
 
-	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil && v.Enabled != nil {
-		changeFeed = *v.Enabled
+	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil {
+		if v.Enabled != nil {
+			changeFeedEnabled = *v.Enabled
+		}
+		if v.RetentionInDays != nil {
+			changeFeedRetentionInDays = int(*v.RetentionInDays)
+		}
 	}
 
 	var defaultServiceVersion string
@@ -2814,7 +2913,8 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
 			"versioning_enabled":                versioning,
-			"change_feed_enabled":               changeFeed,
+			"change_feed_enabled":               changeFeedEnabled,
+			"change_feed_retention_in_days":     changeFeedRetentionInDays,
 			"default_service_version":           defaultServiceVersion,
 			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
@@ -3008,10 +3108,6 @@ func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
 		flattenedSMB = flattenedSharePropertiesSMB(protocol.Smb)
 	}
 
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedSMB) == 0 {
-		return []interface{}{}
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"cors_rule":        flattenedCorsRules,
@@ -3045,7 +3141,12 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.ChannelEncryption, ";")
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 {
+	multichannelEnabled := false
+	if input.Multichannel != nil && input.Multichannel.Enabled != nil {
+		multichannelEnabled = *input.Multichannel.Enabled
+	}
+
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && input.Multichannel == nil {
 		return []interface{}{}
 	}
 
@@ -3055,6 +3156,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 			"authentication_types":            authenticationMethods,
 			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"channel_encryption_type":         channelEncryption,
+			"multichannel_enabled":            multichannelEnabled,
 		},
 	}
 }

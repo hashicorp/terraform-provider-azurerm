@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -203,6 +203,50 @@ func TestAccAzureRMServiceBusNamespace_customerManagedKey(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMServiceBusNamespace_publicNetworkAccessUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.publicNetworkAccessUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+			),
+		},
+		{
+			Config: r.minimumTLSUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
+			),
+		},
 	})
 }
 
@@ -557,4 +601,46 @@ resource "azurerm_servicebus_namespace" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (ServiceBusNamespaceResource) publicNetworkAccessUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                          = "acctestservicebusnamespace-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "Basic"
+  public_network_access_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ServiceBusNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  minimum_tls_version = "1.1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

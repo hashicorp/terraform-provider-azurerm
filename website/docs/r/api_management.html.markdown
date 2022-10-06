@@ -53,6 +53,10 @@ The following arguments are supported:
 
 * `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
+~> **NOTE:** Premium SKU's are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
+
+~> **NOTE:** Consumption SKU capacity should be 0 (e.g. `Consumption_0`) as this tier includes automatic scaling.
+
 ---
 
 * `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
@@ -116,6 +120,8 @@ A `additional_location` block supports the following:
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
 
+* `gateway_disabled` - (Optional) Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
+
 ---
 
 A `certificate` block supports the following:
@@ -158,7 +164,7 @@ A `management`, `portal`, `developer_portal` and `scm` block supports the follow
 
 * `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
 
--> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
+-> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
 * `certificate` - (Optional) The Base64 Encoded Certificate.
 
@@ -413,10 +419,14 @@ The `hostname_configuration` block exports the following:
 
 * `subject` - The subject of the certificate.
 
+* `certificate_source` - The source of the certificate.
+
+* `certificate_status` - The status of the certificate.
+
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the API Management Service.
 * `update` - (Defaults to 3 hours) Used when updating the API Management Service.

@@ -727,6 +727,66 @@ func TestAccLogicAppStandard_dotnetVersion6(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_subnet1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_subnet1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_subnet2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test2").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LogicAppStandardID(state.ID)
 	if err != nil {
@@ -1654,5 +1714,250 @@ resource "azurerm_app_service_plan" "test" {
     size = "WS1"
   }
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (LogicAppStandardResource) vNetIntegration_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "elastic"
+  reserved            = true
+
+  sku {
+    tier = "WorkflowStandard"
+    size = "WS1"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    app_scale_limit = 1
+  }
+}
+
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (LogicAppStandardResource) vNetIntegration_subnet1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "elastic"
+  reserved            = true
+
+  sku {
+    tier = "WorkflowStandard"
+    size = "WS1"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  virtual_network_subnet_id  = azurerm_subnet.test1.id
+
+  site_config {
+    app_scale_limit = 1
+  }
+}
+
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (LogicAppStandardResource) vNetIntegration_subnet2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "elastic"
+  reserved            = true
+
+  sku {
+    tier = "WorkflowStandard"
+    size = "WS1"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  virtual_network_subnet_id  = azurerm_subnet.test2.id
+
+  site_config {
+    app_scale_limit = 1
+  }
+}
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

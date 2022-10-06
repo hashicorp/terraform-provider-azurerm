@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -114,6 +115,13 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				},
 			},
 
+			"maintenance_configuration_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "SQL_Default",
+				ValidateFunc: validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
+			},
+
 			"per_database_settings": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -206,15 +214,17 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	sku := expandMsSqlElasticPoolSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
+	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
 	elasticPool := sql.ElasticPool{
 		Name:     &id.Name,
 		Location: &location,
 		Sku:      sku,
 		Tags:     tags.Expand(t),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
-			LicenseType:         sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
-			PerDatabaseSettings: expandMsSqlElasticPoolPerDatabaseSettings(d),
-			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
+			LicenseType:                sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
+			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
+			ZoneRedundant:              utils.Bool(d.Get("zone_redundant").(bool)),
+			MaintenanceConfigurationID: utils.String(maintenanceConfigId.ID()),
 		},
 	}
 
@@ -288,6 +298,12 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("setting `per_database_settings`: %+v", err)
 		}
+
+		maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*properties.MaintenanceConfigurationID)
+		if err != nil {
+			return err
+		}
+		d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -60,50 +60,6 @@ func (c ResourceGuardsClient) GetResourcesInSubscription(ctx context.Context, id
 	return
 }
 
-// GetResourcesInSubscriptionComplete retrieves all of the results into a single object
-func (c ResourceGuardsClient) GetResourcesInSubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (GetResourcesInSubscriptionCompleteResult, error) {
-	return c.GetResourcesInSubscriptionCompleteMatchingPredicate(ctx, id, ResourceGuardResourceOperationPredicate{})
-}
-
-// GetResourcesInSubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ResourceGuardsClient) GetResourcesInSubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ResourceGuardResourceOperationPredicate) (resp GetResourcesInSubscriptionCompleteResult, err error) {
-	items := make([]ResourceGuardResource, 0)
-
-	page, err := c.GetResourcesInSubscription(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := GetResourcesInSubscriptionCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForGetResourcesInSubscription prepares the GetResourcesInSubscription request.
 func (c ResourceGuardsClient) preparerForGetResourcesInSubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c ResourceGuardsClient) responderForGetResourcesInSubscription(resp *http.
 		}
 	}
 	return
+}
+
+// GetResourcesInSubscriptionComplete retrieves all of the results into a single object
+func (c ResourceGuardsClient) GetResourcesInSubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (GetResourcesInSubscriptionCompleteResult, error) {
+	return c.GetResourcesInSubscriptionCompleteMatchingPredicate(ctx, id, ResourceGuardResourceOperationPredicate{})
+}
+
+// GetResourcesInSubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ResourceGuardsClient) GetResourcesInSubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ResourceGuardResourceOperationPredicate) (resp GetResourcesInSubscriptionCompleteResult, err error) {
+	items := make([]ResourceGuardResource, 0)
+
+	page, err := c.GetResourcesInSubscription(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := GetResourcesInSubscriptionCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }
