@@ -24,7 +24,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			// NOTE: These timeouts are extreamly long due to the manual
+			// NOTE: These timeouts are extremely long due to the manual
 			// step of approving the private link if defined.
 			Create: pluginsdk.DefaultTimeout(12 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

@@ -120,7 +120,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 	}
 
 	// validate the custom domains...
-	if err := validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
+	if err := validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
 		return err
 	}
 
@@ -204,7 +204,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 			}
 
 			// validate the custom domains...
-			if err := validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
+			if err := validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
 				return err
 			}
 
@@ -245,7 +245,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 
 	// validate the custom domains...
-	if err := validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
+	if err := validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
 		return err
 	}
 

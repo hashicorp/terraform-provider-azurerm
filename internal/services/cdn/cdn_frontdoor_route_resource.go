@@ -226,7 +226,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	var ruleSetIds *[]cdn.ResourceReference
 
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
-	orginGroupIdRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
+	originGroupIdRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
 	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
@@ -261,13 +261,13 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		if err := validateRoutesCustomDomanProfile(customDomains, id.RouteName, id.ProfileName); err != nil {
+		if err := validateRoutesCustomDomainProfile(customDomains, id.RouteName, id.ProfileName); err != nil {
 			return err
 		}
 	}
 
-	if orginGroupIdRaw != "" {
-		id, err := parse.FrontDoorOriginGroupIDInsensitively(orginGroupIdRaw)
+	if originGroupIdRaw != "" {
+		id, err := parse.FrontDoorOriginGroupIDInsensitively(originGroupIdRaw)
 		if err != nil {
 			return err
 		}
@@ -424,7 +424,12 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		customDomains = append(customDomains, id.ID())
 	}
 
-	props := azuresdkhacks.RouteUpdatePropertiesParameters{}
+	// NOTE: You need to always pass these two on update else you will
+	// disable your cache and disassociate your custom domains...
+	props := azuresdkhacks.RouteUpdatePropertiesParameters{
+		CustomDomains:      existing.RouteProperties.CustomDomains,
+		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
+	}
 
 	if d.HasChange("cache") {
 		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
@@ -495,7 +500,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		if err := validateRoutesCustomDomanProfile(customDomains, id.RouteName, id.ProfileName); err != nil {
+		if err := validateRoutesCustomDomainProfile(customDomains, id.RouteName, id.ProfileName); err != nil {
 			return err
 		}
 	}
@@ -668,9 +673,9 @@ func flattenCdnFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigur
 		queryParameters = flattenCsvToStringSlice(input.QueryParameters)
 	}
 
-	cachingBehaviour := ""
+	cachingBehavior := ""
 	if input.QueryStringCachingBehavior != "" {
-		cachingBehaviour = string(input.QueryStringCachingBehavior)
+		cachingBehavior = string(input.QueryStringCachingBehavior)
 	}
 
 	compressionEnabled := false
@@ -686,7 +691,7 @@ func flattenCdnFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigur
 		map[string]interface{}{
 			"compression_enabled":           compressionEnabled,
 			"content_types_to_compress":     contentTypesToCompress,
-			"query_string_caching_behavior": cachingBehaviour,
+			"query_string_caching_behavior": cachingBehavior,
 			"query_strings":                 queryParameters,
 		},
 	}

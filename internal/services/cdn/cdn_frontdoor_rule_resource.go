@@ -273,7 +273,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// NOTE: CSV implemented as a list, code alread written for the expaned and flatten to CSV
+									// NOTE: CSV implemented as a list, code already written for the expanded and flatten to CSV
 									// not valid when IncludeAll or ExcludeAll behavior is defined
 									"query_string_parameters": {
 										Type:     pluginsdk.TypeList,
@@ -845,7 +845,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 	}
 
 	if len(results) > 5 {
-		return nil, fmt.Errorf("the 'actions' match block may only contain upto 5 match actions, got %d", len(results))
+		return nil, fmt.Errorf("the 'actions' match block may only contain up to 5 match actions, got %d", len(results))
 	}
 
 	if err := validate.CdnFrontDoorActionsBlock(results); err != nil {
@@ -903,7 +903,7 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeli
 	}
 
 	if len(results) > 10 {
-		return nil, fmt.Errorf("the 'conditions' match block may only contain upto 10 match conditions, got %d", len(results))
+		return nil, fmt.Errorf("the 'conditions' match block may only contain up to 10 match conditions, got %d", len(results))
 	}
 
 	return results, nil

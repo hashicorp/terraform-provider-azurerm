@@ -329,11 +329,11 @@ func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeI
 		updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
 	}
 
-	updatePrarams := azuresdkhacks.RouteUpdateParameters{
+	updateParams := azuresdkhacks.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &updateProps,
 	}
 
-	future, err := workaroundsClient.Update(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updatePrarams)
+	future, err := workaroundsClient.Update(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
 	if err != nil {
 		return fmt.Errorf("%s: updating the association with %s: %+v", *customDomainID, *routeId, err)
 	}
@@ -345,7 +345,8 @@ func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeI
 	return nil
 }
 
-func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interface{}, routeCustomDomains []interface{}, routeName string, routeProfile string) error {
+func validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains []interface{}, routeCustomDomains []interface{}, routeName string, routeProfile string) error {
+	// NOTE: Only used in the deprecated custom domain link to default domain resource
 	if !features.FourPointOhBeta() {
 		// Make all of the custom domains belong to the same profile as the route...
 		wrongProfile := make([]string, 0)
@@ -406,7 +407,7 @@ func validateCustomDomanLinkToDefaultDomainState(resourceCustomDomains []interfa
 	return nil
 }
 
-func validateRoutesCustomDomanProfile(customDomains []interface{}, routeName string, routeProfile string) error {
+func validateRoutesCustomDomainProfile(customDomains []interface{}, routeName string, routeProfile string) error {
 	// Make all of the custom domains belong to the same profile as the route...
 	wrongProfile := make([]string, 0)
 
@@ -428,7 +429,7 @@ func validateRoutesCustomDomanProfile(customDomains []interface{}, routeName str
 	return nil
 }
 
-// Validates that the CDN FrontDoor Custom Domain can be associated with the CDN FrontDoor Route or not
+// Validates that the CDN FrontDoor Custom Domain can be associated with the CDN FrontDoor Route
 func validateCustomDomainRoutes(routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
 	if len(*routes) == 0 {
 		return nil
@@ -440,19 +441,20 @@ func validateCustomDomainRoutes(routes *[]parse.FrontDoorRouteId, customDomainID
 	}
 
 	for i, route := range *routes {
-		// validate route and custom domain profiles match...
+		// the route and custom domain profiles must match...
 		if customDomainID.ProfileName != route.ProfileName {
 			return fmt.Errorf("the CDN FrontDoor Custom Domain(Name: %q, Profile: %q) and the CDN FrontDoor Route(Name: %q, Profile: %q) must belong to the same CDN FrontDoor Profile", customDomainID.CustomDomainName, customDomainID.ProfileName, route.RouteName, route.ProfileName)
 		}
 
-		// validate all routes are using the same endpoint...
+		// validate all routes are using the same endpoint because a custom domain can not
+		// be associated with routes that target two different endpoints...
 		for t, nextRoute := range *routes {
 			if i == t {
 				continue
 			}
 
 			if route.AfdEndpointName != nextRoute.AfdEndpointName {
-				return fmt.Errorf("the CDN FrontDoor Route(Name: %q) and CDN FrontDoor Route(Name: %q) do not reference the same CDN FrontDoor Endpoint(Name: %q), all CDN FrontDoor Routes must reference the same CDN FrontDoor Endpoint %q to associate this CDN FrontDoor Custom Domain with more than one CDN FrontDoor Route", route.RouteName, nextRoute.RouteName, route.AfdEndpointName, route.AfdEndpointName)
+				return fmt.Errorf("the CDN FrontDoor Route(Name: %q) and CDN FrontDoor Route(Name: %q) do not reference the same CDN FrontDoor Endpoint(Name: %q). All CDN FrontDoor Routes must reference the same CDN FrontDoor Endpoint %q to associate the CDN FrontDoor Custom Domain(Name: %q) with more than one CDN FrontDoor Route", route.RouteName, nextRoute.RouteName, route.AfdEndpointName, route.AfdEndpointName, customDomainID.CustomDomainName)
 			}
 		}
 	}
@@ -470,14 +472,14 @@ func friendlyCustomDomainID(customDomain string) (*parse.FrontDoorCustomDomainId
 }
 
 // Checks to make sure the list of CDN FrontDoor Custom Domains does not contain duplicate entries
-func sliceHasDuplicates(input []interface{}, resouceTxt string) error {
+func sliceHasDuplicates(input []interface{}, resourceTxt string) error {
 	k := make(map[string]bool)
 
 	for _, v := range input {
 		if _, d := k[strings.ToLower(v.(string))]; !d {
 			k[strings.ToLower(v.(string))] = true
 		} else {
-			return fmt.Errorf("duplicate %[1]s detected, please remove all duplicate entries for the %[1]s(ID: %q) from your configuration block", resouceTxt, v.(string))
+			return fmt.Errorf("duplicate %[1]s detected, please remove all duplicate entries for the %[1]s(ID: %q) from your configuration block", resourceTxt, v.(string))
 		}
 	}
 
