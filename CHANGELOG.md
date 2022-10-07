@@ -1,3 +1,9 @@
+## 3.27.0 (Unreleased)
+
+BUG FIXES: 
+
+* `azurerm_logic_app_workflow` - can now be updated when associated with `integration_service_environment_id` [GH-18660]
+
 ## 3.26.0 (October 06, 2022)
 
 BREAKING CHANGES:
