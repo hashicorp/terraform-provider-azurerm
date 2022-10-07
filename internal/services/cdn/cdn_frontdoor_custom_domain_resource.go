@@ -223,7 +223,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorCustomDomainID(d.Id())
+	id, err := parse.FrontDoorCustomDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -243,7 +243,11 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		tlsSettings := d.Get("tls").([]interface{})
 		v := tlsSettings[0].(map[string]interface{})
 
-		secret := v["cdn_frontdoor_secret_id"].(string)
+		secretRaw := v["cdn_frontdoor_secret_id"].(string)
+		secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
+		if err != nil {
+			return err
+		}
 
 		// NOTE: Cert type has to always be passed in the update else you will get a
 		// "AfdDomain.TlsSettings.CertificateType' is required but it was not set" error
@@ -251,17 +255,17 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 		// NOTE: Secret always needs to be passed if it is defined else you will
 		// receive a 500 Internal Server Error
-		if secret != "" {
-			tls.Secret = expandResourceReference(secret)
+		if secretRaw != "" {
+			tls.Secret = expandResourceReference(secret.ID())
 		}
 
 		if d.HasChange("tls.0.minimum_tls_version") {
 			tls.MinimumTLSVersion = cdn.AfdMinimumTLSVersion(v["minimum_tls_version"].(string))
 		}
 
-		if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
+		if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secretRaw == "" {
 			return fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
-		} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
+		} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secretRaw != "" {
 			return fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
 		}
 
@@ -314,19 +318,24 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	v := input[0].(map[string]interface{})
 
 	certType := v["certificate_type"].(string)
-	secret := v["cdn_frontdoor_secret_id"].(string)
+	secretRaw := v["cdn_frontdoor_secret_id"].(string)
 	minTlsVersion := v["minimum_tls_version"].(string)
+
+	secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
+	if err != nil {
+		return nil, err
+	}
 
 	tls := cdn.AFDDomainHTTPSParameters{}
 
-	if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secret == "" {
+	if tls.CertificateType == cdn.AfdCertificateTypeCustomerCertificate && secretRaw == "" {
 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field must be set if the 'certificate_type' is 'CustomerCertificate'")
-	} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secret != "" {
+	} else if tls.CertificateType == cdn.AfdCertificateTypeManagedCertificate && secretRaw != "" {
 		return nil, fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
 	}
 
-	if secret != "" {
-		tls.Secret = expandResourceReference(secret)
+	if secretRaw != "" {
+		tls.Secret = expandResourceReference(secret.ID())
 	}
 
 	// NOTE: Minimum TLS Version is required in both pre-validated and not pre-validated

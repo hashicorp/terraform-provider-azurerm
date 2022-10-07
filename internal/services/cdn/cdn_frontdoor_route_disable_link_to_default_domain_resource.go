@@ -112,7 +112,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 	}
 
 	resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+	routeCustomDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
 
 	// make sure its valid to disable the LinkToDefaultDomain on this route...
 	if len(routeCustomDomains) == 0 {
@@ -127,7 +127,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 	// If it is already disabled do not update the route...
 	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
 		updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-			CustomDomains: expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
+			CustomDomains: expandCustomDomainActivatedResourceArray(customDomains),
 		}
 
 		// Since this unlink default domain resource always set the value to false
@@ -182,7 +182,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 	}
 
 	// Make sure all of the custom domains still exist...
-	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+	routeCustomDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
 	resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	for _, v := range resourceCustomDomains {
 		customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
@@ -242,7 +242,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 	}
 
 	resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+	routeCustomDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
 
 	// validate the custom domains...
 	if err := validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains, routeCustomDomains, routeId.RouteName, routeId.ProfileName); err != nil {
@@ -312,7 +312,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 	}
 
 	// NOTE: Only update LinkToDefaultDomain to enabled if there are not any custom domains associated with the route
-	routeCustomDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+	routeCustomDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
 
 	if len(routeCustomDomains) == 0 {
 		// only update the route if it is currently in the disabled state...

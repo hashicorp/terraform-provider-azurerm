@@ -107,7 +107,6 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-
 	customDomain := d.Get("cdn_frontdoor_custom_domain_id").(string)
 	configRouteIds := d.Get("cdn_frontdoor_route_ids").([]interface{})
 
@@ -172,6 +171,19 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 
 		// validate the new routes...
 		if len(*newRouteIds) != 0 {
+			for _, newRoute := range *newRouteIds {
+				// Make sure the route exists and get the routes custom domain association list...
+				routeAssociations, _, err := getRouteProperties(d, meta, &newRoute, "cdn_frontdoor_custom_domain_association")
+				if err != nil {
+					return err
+				}
+
+				// Make sure the custom domain is in the routes association list
+				if len(routeAssociations) == 0 || !sliceContainsString(routeAssociations, customDomainId.ID()) {
+					return fmt.Errorf(notAssociatedErr, newRoute.RouteName, customDomainId.CustomDomainName)
+				}
+			}
+
 			if err := validateCustomDomainRoutes(newRouteIds, customDomainId); err != nil {
 				return err
 			}

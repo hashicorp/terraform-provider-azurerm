@@ -201,6 +201,27 @@ func expandStringSliceToCsvFormat(input []interface{}) *string {
 	return &csv
 }
 
+func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.ActivatedResourceReference {
+	// NOTE: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty
+	// list will not work. I had to modify the SDK to allow for nil which in the API means disassociate the custom domains.
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]cdn.ActivatedResourceReference, 0)
+
+	// Normalize these values, if these are imported from portal the will all be lowercased...
+	for _, customDomain := range input {
+		if id, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain.(string)); err == nil {
+			results = append(results, cdn.ActivatedResourceReference{
+				ID: utils.String(id.ID()),
+			})
+		}
+	}
+
+	return &results
+}
+
 // Takes a CSV formatted string and transforms it into a Slice of strings.
 func flattenCsvToStringSlice(input *string) []interface{} {
 	results := make([]interface{}, 0)
@@ -212,6 +233,22 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 
 	for _, s := range v {
 		results = append(results, s)
+	}
+
+	return results
+}
+
+func flattenCustomDomainActivatedResourceArray(inputs *[]cdn.ActivatedResourceReference) []interface{} {
+	results := make([]interface{}, 0)
+	if inputs == nil {
+		return results
+	}
+
+	// Normalize these values in the configuration file we know they are valid because they were set on the
+	// resource... if these are modified in the portal the will all be lowercased...
+	for _, customDomain := range *inputs {
+		id, _ := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
+		results = append(results, id.ID())
 	}
 
 	return results
@@ -275,7 +312,7 @@ func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 		return nil, nil, fmt.Errorf("%s: %s properties are 'nil': %+v", resourceName, *id, err)
 	}
 
-	customDomains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
+	customDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
 
 	return customDomains, props, nil
 }
@@ -314,7 +351,7 @@ func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeI
 	defer routeCancel()
 
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains: expandCdnFrontdoorRouteActivatedResourceArray(customDomains),
+		CustomDomains: expandCustomDomainActivatedResourceArray(customDomains),
 	}
 
 	// NOTE: You must pull the Cache Configuration from the existing route else you will get a diff
@@ -547,4 +584,19 @@ func normalizeRouteIds(input []interface{}) (*[]parse.FrontDoorRouteId, []interf
 	}
 
 	return &out, config, nil
+}
+
+func normalizeCustomDomainIds(input []interface{}) ([]interface{}, error) {
+	out := make([]interface{}, 0)
+
+	for _, customDomain := range input {
+		id, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain.(string))
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, id.ID())
+	}
+
+	return out, nil
 }

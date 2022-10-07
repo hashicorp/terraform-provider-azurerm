@@ -179,12 +179,14 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	originGroupId, err := parse.FrontDoorOriginGroupIDInsensitively(d.Get("cdn_frontdoor_origin_group_id").(string))
+	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
+	originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(originGroupRaw)
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
+	id := parse.NewFrontDoorOriginID(originGroup.SubscriptionId, originGroup.ResourceGroup, originGroup.ProfileName, originGroup.OriginGroupName, d.Get("name").(string))
+
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -439,8 +441,7 @@ func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 
 func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
-		// TODO: Should this return an empty object?
-		// WS: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
+		// NOTE: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
 		// Property 'AfdOrigin.SharedPrivateLinkResource.PrivateLink' is required but it was not set; Property 'AfdOrigin.SharedPrivateLinkResource.RequestMessage' is required but it was not set
 		return nil, nil
 	}

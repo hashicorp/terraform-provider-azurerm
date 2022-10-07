@@ -533,7 +533,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorFirewallPolicyID(d.Id())
+	id, err := parse.FrontDoorFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -612,7 +612,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorFirewallPolicyID(d.Id())
+	id, err := parse.FrontDoorFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
