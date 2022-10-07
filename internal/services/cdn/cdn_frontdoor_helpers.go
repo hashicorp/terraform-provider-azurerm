@@ -105,17 +105,24 @@ func flattenFrontDoorTags(tagMap map[string]*string) *map[string]string {
 
 func flattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 	result := make([]interface{}, 0)
+	if len(*input) == 0 || input == nil {
+		return result
+	}
 
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, string(item))
 		}
 	}
+
 	return result
 }
 
 func flattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) []interface{} {
 	result := make([]interface{}, 0)
+	if len(*input) == 0 || input == nil {
+		return result
+	}
 
 	if input != nil {
 		for _, item := range *input {
@@ -202,13 +209,13 @@ func expandStringSliceToCsvFormat(input []interface{}) *string {
 }
 
 func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.ActivatedResourceReference {
+	results := make([]cdn.ActivatedResourceReference, 0)
+
 	// NOTE: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty
 	// list will not work. I had to modify the SDK to allow for nil which in the API means disassociate the custom domains.
-	if len(input) == 0 {
+	if len(input) == 0 || input == nil {
 		return nil
 	}
-
-	results := make([]cdn.ActivatedResourceReference, 0)
 
 	// Normalize these values, if these are imported from portal the will all be lowercased...
 	for _, customDomain := range input {
@@ -225,7 +232,7 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.Activa
 // Takes a CSV formatted string and transforms it into a Slice of strings.
 func flattenCsvToStringSlice(input *string) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil {
+	if len(*input) == 0 || input == nil {
 		return results
 	}
 
@@ -238,15 +245,15 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 	return results
 }
 
-func flattenCustomDomainActivatedResourceArray(inputs *[]cdn.ActivatedResourceReference) []interface{} {
+func flattenCustomDomainActivatedResourceArray(input *[]cdn.ActivatedResourceReference) []interface{} {
 	results := make([]interface{}, 0)
-	if inputs == nil {
+	if len(*input) == 0 || input == nil {
 		return results
 	}
 
 	// Normalize these values in the configuration file we know they are valid because they were set on the
 	// resource... if these are modified in the portal the will all be lowercased...
-	for _, customDomain := range *inputs {
+	for _, customDomain := range *input {
 		id, _ := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
 		results = append(results, id.ID())
 	}
@@ -256,6 +263,10 @@ func flattenCustomDomainActivatedResourceArray(inputs *[]cdn.ActivatedResourceRe
 
 // determines if the slice contains the value case-insensitively
 func sliceContainsString(input []interface{}, value string) bool {
+	if len(input) == 0 {
+		return false
+	}
+
 	for _, key := range input {
 		v := key.(string)
 		if strings.EqualFold(v, value) {
@@ -268,6 +279,10 @@ func sliceContainsString(input []interface{}, value string) bool {
 
 // determines if the slice contains the value case-insensitively
 func routeSliceContains(input *[]parse.FrontDoorRouteId, value string) bool {
+	if len(*input) == 0 || input == nil {
+		return false
+	}
+
 	for _, key := range *input {
 		v := key.ID()
 		if strings.EqualFold(v, value) {
@@ -318,24 +333,26 @@ func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 }
 
 func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta interface{}, routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
-	for _, route := range *routes {
-		// lock the route resource for update...
-		locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
-		defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
+	if len(*routes) != 0 && routes != nil {
+		for _, route := range *routes {
+			// lock the route resource for update...
+			locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
+			defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
 
-		// Check to see if the route still exists and grab its properties...
-		// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
-		// ignore the error because that could just mean that the route has already been deleted...
-		customDomains, props, err := getRouteProperties(d, meta, &route, cdnFrontDoorCustomDomainResourceName)
-		if err == nil {
-			// Check to make sure the custom domain is still associated with the route
-			isAssociated := sliceContainsString(customDomains, customDomainID.ID())
+			// Check to see if the route still exists and grab its properties...
+			// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
+			// ignore the error because that could just mean that the route has already been deleted...
+			customDomains, props, err := getRouteProperties(d, meta, &route, cdnFrontDoorCustomDomainResourceName)
+			if err == nil {
+				// Check to make sure the custom domain is still associated with the route
+				isAssociated := sliceContainsString(customDomains, customDomainID.ID())
 
-			if isAssociated {
-				// it is, now removed the association...
-				newDomains := sliceRemoveString(customDomains, customDomainID.ID())
-				if err := updateRouteAssociations(d, meta, &route, newDomains, props, customDomainID); err != nil {
-					return err
+				if isAssociated {
+					// it is, now removed the association...
+					newDomains := sliceRemoveString(customDomains, customDomainID.ID())
+					if err := updateRouteAssociations(d, meta, &route, newDomains, props, customDomainID); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -445,22 +462,24 @@ func validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains []interf
 }
 
 func validateRoutesCustomDomainProfile(customDomains []interface{}, routeName string, routeProfile string) error {
-	// Make all of the custom domains belong to the same profile as the route...
 	wrongProfile := make([]string, 0)
 
-	for _, v := range customDomains {
-		customDomain, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
-		if err != nil {
-			return err
+	if len(customDomains) != 0 {
+		// Verify all of the custom domains belong to the same profile as the route...
+		for _, v := range customDomains {
+			customDomain, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+			if err != nil {
+				return err
+			}
+
+			if customDomain.ProfileName != routeProfile {
+				wrongProfile = append(wrongProfile, fmt.Sprintf("%q", customDomain.ID()))
+			}
 		}
 
-		if customDomain.ProfileName != routeProfile {
-			wrongProfile = append(wrongProfile, fmt.Sprintf("%q", customDomain.ID()))
+		if len(wrongProfile) > 0 {
+			return fmt.Errorf("the following CDN FrontDoor Custom Domain(s) do not belong to the expected CDN FrontDoor Profile(Name: %q). Please remove the following CDN FrontDoor Custom Domain(s) from your CDN FrontDoor Route configuration block: %s", routeProfile, strings.Join(wrongProfile, ", "))
 		}
-	}
-
-	if len(wrongProfile) > 0 {
-		return fmt.Errorf("the following CDN FrontDoor Custom Domain(s) do not belong to the expected CDN FrontDoor Profile(Name: %q). Please remove the following CDN FrontDoor Custom Domain(s) from your CDN FrontDoor Route configuration block: %s", routeProfile, strings.Join(wrongProfile, ", "))
 	}
 
 	return nil
@@ -468,7 +487,7 @@ func validateRoutesCustomDomainProfile(customDomains []interface{}, routeName st
 
 // Validates that the CDN FrontDoor Custom Domain can be associated with the CDN FrontDoor Route
 func validateCustomDomainRoutes(routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
-	if len(*routes) == 0 {
+	if len(*routes) == 0 || routes == nil {
 		return nil
 	}
 
@@ -501,16 +520,23 @@ func validateCustomDomainRoutes(routes *[]parse.FrontDoorRouteId, customDomainID
 
 // Returns a verbose CDN FrontDoor Custom Domain parse error message
 func friendlyCustomDomainID(customDomain string) (*parse.FrontDoorCustomDomainId, error) {
-	if customDomainId, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain); err != nil {
-		return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain(ID: %q): %+v", customDomain, err)
-	} else {
-		return customDomainId, nil
+	if customDomain != "" {
+		if customDomainId, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain); err != nil {
+			return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain(ID: %q): %+v", customDomain, err)
+		} else {
+			return customDomainId, nil
+		}
 	}
+
+	return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain: no value was passed")
 }
 
 // Checks to make sure the list of CDN FrontDoor Custom Domains does not contain duplicate entries
 func sliceHasDuplicates(input []interface{}, resourceTxt string) error {
 	k := make(map[string]bool)
+	if len(input) == 0 || input == nil {
+		return nil
+	}
 
 	for _, v := range input {
 		if _, d := k[strings.ToLower(v.(string))]; !d {
@@ -525,6 +551,9 @@ func sliceHasDuplicates(input []interface{}, resourceTxt string) error {
 
 func routeSliceHasDuplicates(input *[]parse.FrontDoorRouteId, resourceName string) error {
 	k := make(map[string]bool)
+	if len(*input) == 0 || input == nil {
+		return nil
+	}
 
 	for _, route := range *input {
 		if _, d := k[strings.ToLower(route.ID())]; !d {
@@ -541,6 +570,13 @@ func routeSliceHasDuplicates(input *[]parse.FrontDoorRouteId, resourceName strin
 func routeDelta(oldRoutes *[]parse.FrontDoorRouteId, newRoutes *[]parse.FrontDoorRouteId) (*[]parse.FrontDoorRouteId, *[]parse.FrontDoorRouteId) {
 	remove := make([]parse.FrontDoorRouteId, 0)
 	shared := make([]parse.FrontDoorRouteId, 0)
+	if len(*newRoutes) == 0 || newRoutes == nil {
+		return oldRoutes, &shared
+	}
+
+	if len(*oldRoutes) == 0 || oldRoutes == nil {
+		return &remove, &shared
+	}
 
 	// just find what old routes are not in the new route list...
 	for _, oldRoute := range *oldRoutes {
@@ -556,6 +592,9 @@ func routeDelta(oldRoutes *[]parse.FrontDoorRouteId, newRoutes *[]parse.FrontDoo
 
 func normalizeRuleSetIds(input []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, 0)
+	if len(input) == 0 || input == nil {
+		return out, nil
+	}
 
 	for _, ruleSet := range input {
 		id, err := parse.FrontDoorRuleSetIDInsensitively(ruleSet.(string))
@@ -572,6 +611,9 @@ func normalizeRuleSetIds(input []interface{}) ([]interface{}, error) {
 func normalizeRouteIds(input []interface{}) (*[]parse.FrontDoorRouteId, []interface{}, error) {
 	out := make([]parse.FrontDoorRouteId, 0)
 	config := make([]interface{}, 0)
+	if len(input) == 0 || input == nil {
+		return &out, config, nil
+	}
 
 	for _, route := range input {
 		id, err := parse.FrontDoorRouteIDInsensitively(route.(string))
@@ -588,6 +630,9 @@ func normalizeRouteIds(input []interface{}) (*[]parse.FrontDoorRouteId, []interf
 
 func normalizeCustomDomainIds(input []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, 0)
+	if len(input) == 0 || input == nil {
+		return out, nil
+	}
 
 	for _, customDomain := range input {
 		id, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain.(string))

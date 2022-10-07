@@ -242,12 +242,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		tls := &cdn.AFDDomainHTTPSParameters{}
 		tlsSettings := d.Get("tls").([]interface{})
 		v := tlsSettings[0].(map[string]interface{})
-
 		secretRaw := v["cdn_frontdoor_secret_id"].(string)
-		secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
-		if err != nil {
-			return err
-		}
 
 		// NOTE: Cert type has to always be passed in the update else you will get a
 		// "AfdDomain.TlsSettings.CertificateType' is required but it was not set" error
@@ -256,6 +251,11 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		// NOTE: Secret always needs to be passed if it is defined else you will
 		// receive a 500 Internal Server Error
 		if secretRaw != "" {
+			secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
+			if err != nil {
+				return err
+			}
+
 			tls.Secret = expandResourceReference(secret.ID())
 		}
 
@@ -308,10 +308,10 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.AFDDomainHTTPSParameters, error) {
+	// NOTE: With the Frontdoor service, they do not treat an empty object like an empty object
+	// if it is not nil they assume it is fully defined and then end up throwing errors when they
+	// attempt to get a value from one of the fields.
 	if len(input) == 0 || input[0] == nil {
-		// NOTE: With the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they
-		// attempt to get a value from one of the fields.
 		return nil, nil
 	}
 
@@ -320,11 +320,6 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	certType := v["certificate_type"].(string)
 	secretRaw := v["cdn_frontdoor_secret_id"].(string)
 	minTlsVersion := v["minimum_tls_version"].(string)
-
-	secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
-	if err != nil {
-		return nil, err
-	}
 
 	tls := cdn.AFDDomainHTTPSParameters{}
 
@@ -335,6 +330,11 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	}
 
 	if secretRaw != "" {
+		secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
+		if err != nil {
+			return nil, err
+		}
+
 		tls.Secret = expandResourceReference(secret.ID())
 	}
 
