@@ -89,7 +89,7 @@ func TestAccCdnFrontDoorCustomDomainAssociation_complete(t *testing.T) {
 }
 
 func (r CdnFrontDoorCustomDomainAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorCustomDomainID(state.ID)
+	id, err := parse.FrontDoorCustomDomainAssociationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +102,7 @@ func (r CdnFrontDoorCustomDomainAssociationResource) Exists(ctx context.Context,
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
@@ -116,24 +117,13 @@ func (r CdnFrontDoorCustomDomainAssociationResource) preCheck(t *testing.T) {
 func (r CdnFrontDoorCustomDomainAssociationResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
-  name                     = "acctestcustomdomain-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  dns_zone_id              = azurerm_dns_zone.test.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.test.name])
-
-  tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
-  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.test.id]
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(8))
+`, template)
 }
 
 func (r CdnFrontDoorCustomDomainAssociationResource) requiresImport(data acceptance.TestData) string {
@@ -142,15 +132,8 @@ func (r CdnFrontDoorCustomDomainAssociationResource) requiresImport(data accepta
 %s
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "import" {
-  name                     = azurerm_cdn_frontdoor_custom_domain_association.test.name
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_custom_domain_association.test.cdn_frontdoor_profile_id
-  dns_zone_id              = azurerm_cdn_frontdoor_custom_domain_association.test.dns_zone_id
-  host_name                = azurerm_cdn_frontdoor_custom_domain_association.test.host_name
-
-  tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
-  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.test.id]
 }
 `, config)
 }
@@ -158,39 +141,18 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "import" {
 func (r CdnFrontDoorCustomDomainAssociationResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
-resource "azurerm_dns_zone" "update" {
-  name                = "acctestzonealt%[2]d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
-  name                     = "acctestcustomdomain-%[2]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  dns_zone_id = azurerm_dns_zone.update.id
-  host_name   = join(".", ["%s", azurerm_dns_zone.test.name])
-
-  tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
-  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.test.id, azurerm_cdn_frontdoor_route.two.id]
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(8))
+`, template)
 }
 
 func (r CdnFrontDoorCustomDomainAssociationResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
@@ -208,13 +170,12 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
 `, template, data.RandomInteger, data.RandomStringOfLength(8))
 }
 
-// TODO: Add test case that uses pre_validated_custom_domain_resource_id
-// TODO: Add test case that uses CMK, this cannot be a test cert or a self
-// signed cert it must be an official cert from the approved list of cert
-// providers by the service.
-
 func (r CdnFrontDoorCustomDomainAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+  provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%[2]s"
@@ -230,5 +191,101 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "acctest-origin-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  session_affinity_enabled = true
+
+  health_probe {
+    interval_in_seconds = 240
+    path                = "/healthProbe"
+    protocol            = "Https"
+    request_type        = "GET"
+  }
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
+
+  restore_traffic_time_to_healed_or_new_endpoint_in_minutes = 10
+}
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-origin-%[1]d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+  priority                       = 1
+  weight                         = 1
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "acctest-endpoint-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  enabled                  = true
+}
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "acctest1-route-%[1]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  enabled                       = true
+
+  https_redirect_enabled = true
+  forwarding_protocol    = "HttpsOnly"
+  patterns_to_match      = ["/%[3]s"]
+  supported_protocols    = ["Http", "Https"]
+
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.test.id]
+  link_to_default_domain          = false
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_route" "two" {
+  name                          = "acctest2-route-%[1]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  enabled                       = true
+
+  https_redirect_enabled = true
+  forwarding_protocol    = "HttpsOnly"
+  patterns_to_match      = ["/sub-%[3]s"]
+  supported_protocols    = ["Http", "Https"]
+
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.test.id]
+  link_to_default_domain          = true
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-custom-domain-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+
+  tls {
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(9))
 }

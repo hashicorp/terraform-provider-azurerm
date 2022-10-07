@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -495,6 +496,11 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	updateParams := azuresdkhacks.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &updateProps,
 	}
+
+	// we need to lock the route for update because the custom domain
+	// association may also be trying to update the route as well...
+	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
 
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, updateParams)
 	if err != nil {

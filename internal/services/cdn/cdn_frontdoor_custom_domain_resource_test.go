@@ -89,7 +89,7 @@ func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 }
 
 func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontdoorCustomDomainID(state.ID)
+	id, err := parse.FrontDoorCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}

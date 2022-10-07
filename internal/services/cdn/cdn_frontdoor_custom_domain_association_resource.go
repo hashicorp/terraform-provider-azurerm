@@ -120,23 +120,28 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	for _, route := range *routeIds {
-		// Make sure the route exists and get the routes custom domain association list...
-		routeAssociations, _, err := getRouteProperties(d, meta, &route, "cdn_frontdoor_custom_domain_association")
-		if err != nil {
-			return err
-		}
+	// Only do the validation if you are not deleting the resource...
+	if d.HasChange("cdn_frontdoor_route_ids") {
+		if _, newRoute := d.GetChange("cdn_frontdoor_route_ids"); len(newRoute.([]interface{})) != 0 {
+			for _, route := range *routeIds {
+				// Make sure the route exists and get the routes custom domain association list...
+				routeAssociations, _, err := getRouteProperties(d, meta, &route, "cdn_frontdoor_custom_domain_association")
+				if err != nil {
+					return err
+				}
 
-		// Make sure the custom domain is in the routes association list
-		if len(routeAssociations) == 0 || !sliceContainsString(routeAssociations, customDomainId.ID()) {
-			return fmt.Errorf(notAssociatedErr, route.RouteName, customDomainId.CustomDomainName)
-		}
-	}
+				// Make sure the custom domain is in the routes association list
+				if len(routeAssociations) == 0 || !sliceContainsString(routeAssociations, customDomainId.ID()) {
+					return fmt.Errorf(notAssociatedErr, route.RouteName, customDomainId.CustomDomainName)
+				}
+			}
 
-	// validate the routes...
-	if len(*routeIds) != 0 {
-		if err := validateCustomDomainRoutes(routeIds, customDomainId); err != nil {
-			return err
+			// validate the routes...
+			if len(*routeIds) != 0 {
+				if err := validateCustomDomainRoutes(routeIds, customDomainId); err != nil {
+					return err
+				}
+			}
 		}
 	}
 

@@ -33,7 +33,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontdoorCustomDomainID(id)
+			_, err := parse.FrontDoorCustomDomainID(id)
 			return err
 		}),
 
