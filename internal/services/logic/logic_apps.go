@@ -167,8 +167,11 @@ func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}
 	properties := logic.Workflow{
 		Location: read.Location,
 		WorkflowProperties: &logic.WorkflowProperties{
-			Definition: definition,
-			Parameters: read.WorkflowProperties.Parameters,
+			Definition:                    definition,
+			Parameters:                    read.WorkflowProperties.Parameters,
+			AccessControl:                 read.WorkflowProperties.AccessControl,
+			IntegrationAccount:            read.WorkflowProperties.IntegrationAccount,
+			IntegrationServiceEnvironment: read.IntegrationServiceEnvironment,
 		},
 		Tags: read.Tags,
 	}
