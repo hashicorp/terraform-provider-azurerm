@@ -10,6 +10,8 @@ description: |-
 
 Manages a CDN FrontDoor Route.
 
+-> **RECOMMENDATION:** If your CDN FrontDoor deployment contains multiple CDN FrontDoor Route resources it is advised that you should daisy chain a `depends_on` meta-argument to each of the CDN FrontDoor Route resources to avoid the various service code race conditions that arise while moving CDN FrontDoor Custom Domains across multiple CDN FrontDoor Routes. Please see the `Daisy Chain Depends_On Example` below for more details.
+
 ## Example Usage
 
 ```hcl
@@ -109,6 +111,19 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "contoso" {
 resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.fabrikam.id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
+}
+```
+
+## Daisy Chain Depends_On Example
+
+```hcl
+resource "azurerm_cdn_frontdoor_route" "first" {
+  ...
+}
+
+resource "azurerm_cdn_frontdoor_route" "second" {
+  depends_on = [azurerm_cdn_frontdoor_route.first]
+  ...
 }
 ```
 
