@@ -13,7 +13,105 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StorageTableResource struct{}
+type StorageTableResource struct {
+	useResourceManager bool
+}
+
+func TestAccStorageTable_resourceManagerBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageTable_resourceManagerAcl(t *testing.T) {
+	// TODO: The API is problematic: https://github.com/Azure/azure-rest-api-specs/issues/17007#issuecomment-1272222690
+	t.Skip()
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aclUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageTable_dataPlaneThenResourceManagerAcl(t *testing.T) {
+	// TODO: The API is problematic: https://github.com/Azure/azure-rest-api-specs/issues/17007#issuecomment-1272222690
+	t.Skip()
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: func() string {
+				r.useResourceManager = true
+				return r.aclUpdated(data)
+			}(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageTable_resourceManagerThenDataPlaneAcl(t *testing.T) {
+	// TODO: The API is problematic: https://github.com/Azure/azure-rest-api-specs/issues/17007#issuecomment-1272222690
+	t.Skip()
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: func() string {
+				r.useResourceManager = false
+				return r.aclUpdated(data)
+			}(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func TestAccStorageTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
@@ -91,6 +189,9 @@ func (r StorageTableResource) Exists(ctx context.Context, client *clients.Client
 	if account == nil {
 		return nil, fmt.Errorf("unable to determine Resource Group for Storage Storage Table %q (Account %q)", id.Name, id.AccountName)
 	}
+
+	client.Storage.UseResourceManager(r.useResourceManager)
+
 	tablesClient, err := client.Storage.TablesClient(ctx, *account)
 	if err != nil {
 		return nil, fmt.Errorf("building Table Client: %+v", err)
@@ -132,7 +233,11 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 func (r StorageTableResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -156,7 +261,7 @@ resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
   storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
@@ -174,7 +279,11 @@ resource "azurerm_storage_table" "import" {
 func (r StorageTableResource) acl(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -202,18 +311,22 @@ resource "azurerm_storage_table" "test" {
 
     access_policy {
       permissions = "raud"
-      start       = "2020-11-26T08:49:37.0000000Z"
-      expiry      = "2020-11-27T08:49:37.0000000Z"
+      start       = "2020-11-26T08:49:37Z"
+      expiry      = "2020-11-27T08:49:37Z"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r StorageTableResource) aclUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -242,8 +355,8 @@ resource "azurerm_storage_table" "test" {
 
     access_policy {
       permissions = "raud"
-      start       = "2020-11-26T08:49:37.0000000Z"
-      expiry      = "2020-11-27T08:49:37.0000000Z"
+      start       = "2020-11-26T08:49:37Z"
+      expiry      = "2020-11-27T08:49:37Z"
     }
   }
   acl {
@@ -251,10 +364,10 @@ resource "azurerm_storage_table" "test" {
 
     access_policy {
       permissions = "raud"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
+      start       = "2019-07-02T09:38:21Z"
+      expiry      = "2019-07-02T10:38:21Z"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
