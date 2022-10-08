@@ -10,7 +10,7 @@ description: |-
 
 Manages a CDN FrontDoor Route.
 
--> **RECOMMENDATION:** If your CDN FrontDoor deployment contains multiple CDN FrontDoor Route resources it is advised that you should daisy chain a `depends_on` meta-argument to each of the CDN FrontDoor Route resources to avoid the various service code race conditions that arise while moving CDN FrontDoor Custom Domains across multiple CDN FrontDoor Routes. Please see the `Daisy Chain Depends_On Example` below for more details.
+-> **RECOMMENDATION:** If your CDN FrontDoor deployment contains multiple CDN FrontDoor Route resources it is advised that you should daisy chain a `depends_on` meta-argument to each of the CDN FrontDoor Route resources to avoid the various service code race conditions that arise while moving CDN FrontDoor Custom Domains across multiple CDN FrontDoor Routes. Keep in mind that the `depends_on` daisy chain will not guard against all potential race conditions depending on how you moving your CDN FrontDoor Custom Domains across your CDN FrontDoor Route resources, but it will alleviate a vast majority of the issues that may occur. Please see the `Daisy Chain Depends_On Example` below for more details.
 
 ## Example Usage
 
@@ -118,17 +118,34 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
 
 ```hcl
 resource "azurerm_cdn_frontdoor_route" "first" {
-  ...
+  name                          = "example-route-one"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
+  enabled                       = true
 }
 
 resource "azurerm_cdn_frontdoor_route" "second" {
   depends_on = [azurerm_cdn_frontdoor_route.first]
-  ...
+
+  name                          = "example-route-two"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
+  enabled                       = true
 }
 
 resource "azurerm_cdn_frontdoor_route" "third" {
   depends_on = [azurerm_cdn_frontdoor_route.first, azurerm_cdn_frontdoor_route.second]
-  ...
+
+  name                          = "example-route-three"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
+  enabled                       = true
 }
 ```
 
