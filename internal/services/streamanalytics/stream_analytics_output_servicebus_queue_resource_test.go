@@ -496,6 +496,7 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, identity)
 }
