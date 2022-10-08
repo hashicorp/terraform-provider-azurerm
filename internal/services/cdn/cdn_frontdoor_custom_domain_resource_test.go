@@ -102,6 +102,7 @@ func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *c
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 

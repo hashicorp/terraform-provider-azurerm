@@ -107,7 +107,7 @@ func (r CdnFrontDoorCustomDomainAssociationResource) Exists(ctx context.Context,
 }
 
 func (r CdnFrontDoorCustomDomainAssociationResource) preCheck(t *testing.T) {
-	// NOTE: To test custom domain you need to have an actual real hosted domain,
+	// NOTE: To test custom domain association you need to have an actual real hosted domain,
 	// for manual testing I have purchased my own domain to verify functionality.
 	if v := os.Getenv("ARM_TEST_CDN_FRONT_DOOR_CUSTOM_DOMAIN_HOST"); v == "" {
 		t.Skipf("skipping tests `ARM_TEST_CDN_FRONT_DOOR_CUSTOM_DOMAIN_HOST` not defined, live web hosting is required for DNS naming server redirect.")
@@ -172,7 +172,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
 
 func (r CdnFrontDoorCustomDomainAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  provider "azurerm" {
+provider "azurerm" {
   features {}
 }
 
