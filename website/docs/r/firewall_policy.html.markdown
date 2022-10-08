@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `private_ip_ranges` - (Optional) A list of private IP ranges to which traffic will not be SNAT.
 
-* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium`. Changing this forces a new Firewall Policy to be created.
+* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Changing this forces a new Firewall Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
 
