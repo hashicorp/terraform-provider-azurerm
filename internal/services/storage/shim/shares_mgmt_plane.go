@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 
@@ -145,12 +145,12 @@ func (w ResourceManagerStorageShareWrapper) mapToACLs(input *[]storage.SignedIde
 		var policy shares.AccessPolicy
 		if identifier.AccessPolicy != nil {
 			var expiry string
-			if identifier.AccessPolicy.Expiry != nil {
-				expiry = identifier.AccessPolicy.Expiry.String()
+			if identifier.AccessPolicy.ExpiryTime != nil {
+				expiry = identifier.AccessPolicy.ExpiryTime.String()
 			}
 			var start string
-			if identifier.AccessPolicy.Start != nil {
-				start = identifier.AccessPolicy.Start.String()
+			if identifier.AccessPolicy.StartTime != nil {
+				start = identifier.AccessPolicy.StartTime.String()
 			}
 			var permission string
 			if identifier.AccessPolicy.Permission != nil {
@@ -189,8 +189,8 @@ func (w ResourceManagerStorageShareWrapper) mapFromACLs(input []shares.SignedIde
 		output = append(output, storage.SignedIdentifier{
 			ID: &identifier.Id,
 			AccessPolicy: &storage.AccessPolicy{
-				Start:      &date.Time{Time: start},
-				Expiry:     &date.Time{Time: expiry},
+				StartTime:  &date.Time{Time: start},
+				ExpiryTime: &date.Time{Time: expiry},
 				Permission: &policy.Permission,
 			},
 		})

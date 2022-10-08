@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 )
 
 type ResourceManagerStorageQueueWrapper struct {

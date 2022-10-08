@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 )
 
@@ -21,7 +21,8 @@ func NewManagementPlaneStorageTableWrapper(client *storage.TableClient) StorageT
 }
 
 func (w ResourceManagerStorageTableWrapper) Create(ctx context.Context, resourceGroup string, accountName string, tableName string) error {
-	_, err := w.client.Create(ctx, resourceGroup, accountName, tableName)
+	// TODO: Consider the correct parameter to use once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/17007
+	_, err := w.client.Create(ctx, resourceGroup, accountName, tableName, nil)
 	return err
 }
 
