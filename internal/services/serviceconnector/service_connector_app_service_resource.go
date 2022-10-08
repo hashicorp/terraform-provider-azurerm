@@ -28,7 +28,7 @@ type AppServiceConnectorResourceModel struct {
 	ClientType            string          `tfschema:"client_type"`
 	AuthInfo              []AuthInfoModel `tfschema:"authentication"`
 	VnetSolution          string          `tfschema:"vnet_solution"`
-	SecretStoreKeyVaultId string          `tfschema:"key_vault_id"`
+	SecretStoreKeyVaultId string          `tfschema:"secret_store_key_vault_id"`
 }
 
 func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
@@ -81,7 +81,7 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 			}, false),
 		},
 
-		"key_vault_id": {
+		"secret_store_key_vault_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyvaultValidate.VaultID,

@@ -241,15 +241,8 @@ resource "azurerm_spring_cloud_connection" "test" {
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
-<<<<<<< HEAD
-=======
   vnet_solution      = "privateLink"
-<<<<<<< HEAD
-  key_vault_id = azurerm_key_vault.test.id
->>>>>>> e93de10bf4 (azurerm_app_service_connection, azurerm_spring_cloud_connection: add support for key_vault_id)
-=======
-  key_vault_id       = azurerm_key_vault.test.id
->>>>>>> d326e7c6d0 (Fix golint)
+  secret_store_key_vault_id = azurerm_key_vault.test.id
   authentication {
     type = "systemAssignedIdentity"
   }
