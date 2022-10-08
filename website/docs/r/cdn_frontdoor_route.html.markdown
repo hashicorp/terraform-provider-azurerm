@@ -125,6 +125,11 @@ resource "azurerm_cdn_frontdoor_route" "second" {
   depends_on = [azurerm_cdn_frontdoor_route.first]
   ...
 }
+
+resource "azurerm_cdn_frontdoor_route" "third" {
+  depends_on = [azurerm_cdn_frontdoor_route.first, azurerm_cdn_frontdoor_route.second]
+  ...
+}
 ```
 
 ## Arguments Reference
