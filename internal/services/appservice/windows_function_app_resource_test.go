@@ -805,7 +805,7 @@ func TestAccWindowsFunctionApp_appStackDotNet6(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "6"),
+			Config: r.appStackDotNet(data, SkuBasicPlan, "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -953,7 +953,7 @@ func TestAccWindowsFunctionApp_appStackPowerShellCore(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7"),
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -2699,7 +2699,7 @@ resource "azurerm_windows_function_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
   }
 }

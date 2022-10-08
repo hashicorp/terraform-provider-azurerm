@@ -199,33 +199,3 @@ func EncodeFunctionAppWindowsFxVersion(input []ApplicationStackWindowsFunctionAp
 
 	return utils.String(fmt.Sprintf("%s|%s", appType, appString))
 }
-
-func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsFunctionApp, error) {
-	if input == "" {
-		// This is a valid string for "Custom" stack which we picked up earlier, so we can skip here
-		return nil, nil
-	}
-
-	parts := strings.Split(input, "|")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("unrecognised WindowsFxVersion format received, got %s", input)
-	}
-
-	result := make([]ApplicationStackWindowsFunctionApp, 0)
-
-	switch strings.ToLower(parts[0]) {
-	case "dotnet":
-		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1]}
-		result = append(result, appStack)
-
-	case "dotnet-isolated":
-		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1], DotNetIsolated: true}
-		result = append(result, appStack)
-
-	case "node":
-		appStack := ApplicationStackWindowsFunctionApp{NodeVersion: parts[1]}
-		result = append(result, appStack)
-	}
-
-	return result, nil
-}

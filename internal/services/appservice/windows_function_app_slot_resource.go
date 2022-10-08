@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -430,7 +431,9 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionAppSlot.SiteConfig[0].ApplicationStack)
+			if !features.FourPointOhBeta() {
+				siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionAppSlot.SiteConfig[0].ApplicationStack)
+			}
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionAppSlot.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -593,7 +596,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 			}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig)
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig, appSettingsResp)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
@@ -772,8 +775,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				existing.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-				existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
+			if !features.FourPointOhBeta() {
+				if metadata.ResourceData.HasChange("site_config.0.application_stack") {
+					existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
+				}
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)

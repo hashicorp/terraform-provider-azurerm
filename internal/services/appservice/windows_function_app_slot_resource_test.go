@@ -593,11 +593,11 @@ func TestAccWindowsFunctionAppSlot_appStackDotNet6(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuStandardPlan, "6"),
+			Config: r.appStackDotNet(data, SkuStandardPlan, "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
-				check.That(data.ResourceName).Key("site_config.0.application_stack.0.dotnet_version").HasValue("6"),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.dotnet_version").HasValue("v6.0"),
 			),
 		},
 		data.ImportStep(),
@@ -610,7 +610,7 @@ func TestAccWindowsFunctionAppSlot_appStackDotNet6Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuStandardPlan, "6"),
+			Config: r.appStackDotNetIsolated(data, SkuStandardPlan, "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -2114,7 +2114,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
   }
 }

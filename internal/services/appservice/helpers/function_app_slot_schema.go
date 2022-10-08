@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -651,7 +652,10 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	if existing != nil {
 		expanded = existing
 		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
-		expanded.LinuxFxVersion = utils.String("")
+		expanded.WindowsFxVersion = utils.String("")
+		expanded.PowerShellVersion = utils.String("")
+		expanded.JavaVersion = utils.String("")
+		expanded.NodeVersion = utils.String("")
 	}
 
 	appSettings := make([]web.NameValuePair, 0)
@@ -734,14 +738,18 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 						Value: utils.String("dotnet-isolated"),
 					})
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion))
+					if !features.FourPointOhBeta() {
+						expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion))
+					}
 
 				} else {
 					appSettings = append(appSettings, web.NameValuePair{
 						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 						Value: utils.String("dotnet"),
 					})
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
+					if !features.FourPointOhBeta() {
+						expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
+					}
 				}
 			}
 
@@ -754,7 +762,9 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
 					Value: utils.String(windowsAppStack.NodeVersion),
 				})
-				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion))
+				if !features.FourPointOhBeta() {
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion))
+				}
 			}
 
 			if windowsAppStack.JavaVersion != "" {
@@ -762,7 +772,9 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("java"),
 				})
-				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion))
+				if !features.FourPointOhBeta() {
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion))
+				}
 			}
 
 			if windowsAppStack.PowerShellCoreVersion != "" {
@@ -770,7 +782,13 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("powershell"),
 				})
-				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion))
+				if windowsAppStack.PowerShellCoreVersion == "7" {
+					windowsAppStack.PowerShellCoreVersion = "~7"
+				}
+				if !features.FourPointOhBeta() {
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion))
+				}
+				expanded.PowerShellVersion = utils.String(windowsAppStack.PowerShellCoreVersion)
 			}
 
 			if windowsAppStack.CustomHandler {
@@ -869,7 +887,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, input web.StringDictionary) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -933,28 +951,56 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 			result.Cors = []CorsSetting{cors}
 		}
 	}
-
 	var winFunctionAppSlotStack []ApplicationStackWindowsFunctionApp
-	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
-		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
-		if err != nil {
-			return nil, fmt.Errorf("flattening site config: %s", err)
-		}
-		if len(decoded) > 0 {
-			winFunctionAppSlotStack = decoded
+	runtimeStack := ""
+	nodeVer := ""
+	if input.Properties != nil {
+		for k, v := range input.Properties {
+			switch k {
+			case "WEBSITE_NODE_DEFAULT_VERSION":
+				nodeVer = utils.NormalizeNilableString(v)
+			case "FUNCTIONS_WORKER_RUNTIME":
+				runtimeStack = utils.NormalizeNilableString(v)
+			}
 		}
 	}
 
-	if functionAppSlotSiteConfig.JavaVersion != nil && *functionAppSlotSiteConfig.JavaVersion != "" {
-		appStack := ApplicationStackWindowsFunctionApp{
-			JavaVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.JavaVersion),
+	switch runtimeStack {
+	case "java":
+		if functionAppSlotSiteConfig.JavaVersion != nil && *functionAppSlotSiteConfig.JavaVersion != "" {
+			appStack := ApplicationStackWindowsFunctionApp{
+				JavaVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.JavaVersion),
+			}
+			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
 		}
-		winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
-	}
-	if functionAppSlotSiteConfig.PowerShellVersion != nil && *functionAppSlotSiteConfig.PowerShellVersion != "" {
-		appStack := ApplicationStackWindowsFunctionApp{
-			PowerShellCoreVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.PowerShellVersion),
+	case "dotnet":
+		if functionAppSlotSiteConfig.NetFrameworkVersion != nil && *functionAppSlotSiteConfig.NetFrameworkVersion != "" {
+			appStack := ApplicationStackWindowsFunctionApp{
+				DotNetVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.NetFrameworkVersion),
+			}
+			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
 		}
+	case "dotnet-isolated":
+		appStack := ApplicationStackWindowsFunctionApp{DotNetIsolated: true}
+		if functionAppSlotSiteConfig.NetFrameworkVersion != nil && *functionAppSlotSiteConfig.NetFrameworkVersion != "" {
+			appStack.DotNetVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.NetFrameworkVersion)
+			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
+		}
+	case "node":
+		if nodeVer != "" {
+			appStack := ApplicationStackWindowsFunctionApp{NodeVersion: nodeVer}
+			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
+		}
+	case "powershell":
+		if functionAppSlotSiteConfig.PowerShellVersion != nil && *functionAppSlotSiteConfig.PowerShellVersion != "" {
+			appStack := ApplicationStackWindowsFunctionApp{PowerShellCoreVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.PowerShellVersion)}
+			if *functionAppSlotSiteConfig.PowerShellVersion == "~7" {
+				appStack.PowerShellCoreVersion = "7"
+			}
+			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
+		}
+	case "custom":
+		appStack := ApplicationStackWindowsFunctionApp{CustomHandler: true}
 		winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
 	}
 
