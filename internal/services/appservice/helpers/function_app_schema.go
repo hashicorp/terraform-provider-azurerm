@@ -1288,7 +1288,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						}
 						return validation.StringInSlice([]string{
 							"core3.1",
-							"v6.0",
+							"6",
 						}, false)
 					}(),
 					ExactlyOneOf: []string{
@@ -2039,7 +2039,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	return result, nil
 }
 
-func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, input web.StringDictionary) (*SiteConfigWindowsFunctionApp, error) {
+func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, input web.StringDictionary, dotnetcore string) (*SiteConfigWindowsFunctionApp, error) {
 	if functionAppSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -2127,15 +2127,35 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, 
 		}
 	case "dotnet":
 		if functionAppSiteConfig.NetFrameworkVersion != nil && *functionAppSiteConfig.NetFrameworkVersion != "" {
+			dotnetVersion := *functionAppSiteConfig.NetFrameworkVersion
+			if dotnetVersion == "v4.0" {
+				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
+					dotnetVersion = "3.1"
+				} else {
+					dotnetVersion = "core3.1"
+				}
+			} else if dotnetVersion == "v6.0" {
+				dotnetVersion = "6"
+			}
 			appStack := ApplicationStackWindowsFunctionApp{
-				DotNetVersion: utils.NormalizeNilableString(functionAppSiteConfig.NetFrameworkVersion),
+				DotNetVersion: dotnetVersion,
 			}
 			winFunctionAppStack = append(winFunctionAppStack, appStack)
 		}
 	case "dotnet-isolated":
 		appStack := ApplicationStackWindowsFunctionApp{DotNetIsolated: true}
 		if functionAppSiteConfig.NetFrameworkVersion != nil && *functionAppSiteConfig.NetFrameworkVersion != "" {
-			appStack.DotNetVersion = utils.NormalizeNilableString(functionAppSiteConfig.NetFrameworkVersion)
+			dotnetVersion := *functionAppSiteConfig.NetFrameworkVersion
+			if dotnetVersion == "v4.0" {
+				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
+					dotnetVersion = "3.1"
+				} else {
+					dotnetVersion = "core3.1"
+				}
+			} else if dotnetVersion == "v6.0" {
+				dotnetVersion = "6"
+			}
+			appStack.DotNetVersion = dotnetVersion
 			winFunctionAppStack = append(winFunctionAppStack, appStack)
 		}
 	case "node":

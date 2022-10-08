@@ -887,7 +887,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, input web.StringDictionary) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, input web.StringDictionary, dotnetcore string) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -975,16 +975,35 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 		}
 	case "dotnet":
 		if functionAppSlotSiteConfig.NetFrameworkVersion != nil && *functionAppSlotSiteConfig.NetFrameworkVersion != "" {
+			dotnetVersion := *functionAppSlotSiteConfig.NetFrameworkVersion
+			if dotnetVersion == "v4.0" {
+				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
+					dotnetVersion = "3.1"
+				} else {
+					dotnetVersion = "core3.1"
+				}
+			} else if dotnetVersion == "v6.0" {
+				dotnetVersion = "6"
+			}
 			appStack := ApplicationStackWindowsFunctionApp{
-				DotNetVersion: utils.NormalizeNilableString(functionAppSlotSiteConfig.NetFrameworkVersion),
+				DotNetVersion: dotnetVersion,
 			}
 			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
 		}
 	case "dotnet-isolated":
 		appStack := ApplicationStackWindowsFunctionApp{DotNetIsolated: true}
 		if functionAppSlotSiteConfig.NetFrameworkVersion != nil && *functionAppSlotSiteConfig.NetFrameworkVersion != "" {
-			appStack.DotNetVersion = utils.NormalizeNilableString(functionAppSlotSiteConfig.NetFrameworkVersion)
-			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
+			dotnetVersion := *functionAppSlotSiteConfig.NetFrameworkVersion
+			if dotnetVersion == "v4.0" {
+				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
+					dotnetVersion = "3.1"
+				} else {
+					dotnetVersion = "core3.1"
+				}
+			} else if dotnetVersion == "v6.0" {
+				dotnetVersion = "6"
+			}
+			appStack.DotNetVersion = dotnetVersion
 		}
 	case "node":
 		if nodeVer != "" {
