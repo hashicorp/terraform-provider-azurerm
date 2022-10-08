@@ -43,9 +43,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Sentinel.
 
+* `nrt_template` - A `nrt_template` block as defined below. This only applies to Sentinel NRT Alert Rule Template.
+
 * `security_incident_template` - A `security_incident_template` block as defined below. This only applies to Sentinel MS Security Incident Alert Rule Template.
 
 * `scheduled_template` - A `scheduled_template` block as defined below. This only applies to Sentinel Scheduled Alert Rule Template.
+
+---
+
+A `nrt_template` block exports the following:
+
+* `description` - The description of this Sentinel NRT Alert Rule Template.
+
+* `query` - The query of this Sentinel NRT Alert Rule Template.
+
+* `severity` - The alert severity of this Sentinel NRT Alert Rule Template.
+
+* `tactics` - A list of categories of attacks by which to classify the rule.
 
 ---
 
@@ -77,6 +91,6 @@ A `scheduled_template` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel.

@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -41,20 +41,22 @@ func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
 }
 
 func (t LogAnalyticsClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsClusterID(state.ID)
+	id, err := clusters.ParseClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.ClusterClient.Get(ctx, id.ResourceGroup, id.ClusterName)
+	resp, err := clients.LogAnalytics.ClusterClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	enabled := false
-	if props := resp.ClusterProperties; props != nil {
-		if kv := props.KeyVaultProperties; kv != nil {
-			enabled = kv.KeyVaultURI != nil && kv.KeyVersion != nil && kv.KeyName != nil
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if kv := props.KeyVaultProperties; kv != nil {
+				enabled = kv.KeyVaultUri != nil && kv.KeyVersion != nil && kv.KeyName != nil
+			}
 		}
 	}
 

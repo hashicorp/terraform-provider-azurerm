@@ -58,12 +58,24 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 
 			"primary_peer_address_prefix": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
+				RequiredWith: []string{
+					"secondary_peer_address_prefix",
+				},
 			},
 
 			"secondary_peer_address_prefix": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
+				RequiredWith: []string{
+					"primary_peer_address_prefix",
+				},
+			},
+
+			"ipv4_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"vlan_id": {
@@ -119,7 +131,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"microsoft_peering": {
 							Type:     pluginsdk.TypeList,
-							Required: true,
+							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -159,6 +171,12 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 							Required: true,
 						},
 
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"route_filter_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -187,6 +205,11 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"gateway_manager_etag": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -228,20 +251,38 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 
 	parameters := network.ExpressRouteCircuitPeering{
 		ExpressRouteCircuitPeeringPropertiesFormat: &network.ExpressRouteCircuitPeeringPropertiesFormat{
-			PeeringType:                network.ExpressRoutePeeringType(id.PeeringName),
-			SharedKey:                  utils.String(sharedKey),
-			PrimaryPeerAddressPrefix:   utils.String(primaryPeerAddressPrefix),
-			SecondaryPeerAddressPrefix: utils.String(secondaryPeerAddressPrefix),
-			AzureASN:                   utils.Int32(int32(azureASN)),
-			PeerASN:                    utils.Int64(int64(peerASN)),
-			VlanID:                     utils.Int32(int32(vlanId)),
+			PeeringType:        network.ExpressRoutePeeringType(id.PeeringName),
+			SharedKey:          utils.String(sharedKey),
+			AzureASN:           utils.Int32(int32(azureASN)),
+			PeerASN:            utils.Int64(int64(peerASN)),
+			VlanID:             utils.Int32(int32(vlanId)),
+			GatewayManagerEtag: utils.String(d.Get("gateway_manager_etag").(string)),
 		},
+	}
+
+	ipv4Enabled := d.Get("ipv4_enabled").(bool)
+	if ipv4Enabled {
+		parameters.ExpressRouteCircuitPeeringPropertiesFormat.State = network.ExpressRoutePeeringStateEnabled
+	} else {
+		parameters.ExpressRouteCircuitPeeringPropertiesFormat.State = network.ExpressRoutePeeringStateDisabled
+	}
+
+	if !strings.EqualFold(primaryPeerAddressPrefix, "") {
+		parameters.PrimaryPeerAddressPrefix = utils.String(primaryPeerAddressPrefix)
+	}
+
+	if !strings.EqualFold(secondaryPeerAddressPrefix, "") {
+		parameters.SecondaryPeerAddressPrefix = utils.String(secondaryPeerAddressPrefix)
 	}
 
 	if strings.EqualFold(id.PeeringName, string(network.ExpressRoutePeeringTypeMicrosoftPeering)) {
 		peerings := d.Get("microsoft_peering_config").([]interface{})
-		if len(peerings) == 0 {
-			return fmt.Errorf("`microsoft_peering_config` must be specified when `peering_type` is set to `MicrosoftPeering`")
+		if len(peerings) == 0 && primaryPeerAddressPrefix != "" {
+			return fmt.Errorf("`microsoft_peering_config` must be specified when config for Ipv4 and `peering_type` is set to `MicrosoftPeering`")
+		}
+
+		if len(peerings) != 0 && (primaryPeerAddressPrefix == "" || secondaryPeerAddressPrefix == "") {
+			return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
 		}
 
 		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
@@ -252,23 +293,20 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 				ID: utils.String(route_filter_id),
 			}
 		}
-
-		ipv6Peering := d.Get("ipv6").([]interface{})
-		ipv6PeeringConfig, err := expandExpressRouteCircuitIpv6PeeringConfig(ipv6Peering)
-		if err != nil {
-			return err
-		}
-		parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = ipv6PeeringConfig
-	} else {
-		if route_filter_id != "" {
-			return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
-		}
-
-		ipv6Peering := d.Get("ipv6").([]interface{})
-		if len(ipv6Peering) != 0 {
-			return fmt.Errorf("`ipv6` may only be specified when `peering_type` is set to `MicrosoftPeering`")
-		}
+	} else if route_filter_id != "" {
+		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
+
+	ipv6Peering := d.Get("ipv6").([]interface{})
+	if len(ipv6Peering) != 0 && id.PeeringName == string(network.ExpressRoutePeeringTypeAzurePublicPeering) {
+		return fmt.Errorf("`ipv6` may only be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`")
+	}
+
+	ipv6PeeringConfig, err := expandExpressRouteCircuitIpv6PeeringConfig(ipv6Peering)
+	if err != nil {
+		return err
+	}
+	parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = ipv6PeeringConfig
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, parameters)
 	if err != nil {
@@ -315,6 +353,8 @@ func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
 		d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
 		d.Set("vlan_id", props.VlanID)
+		d.Set("gateway_manager_etag", props.GatewayManagerEtag)
+		d.Set("ipv4_enabled", props.State == network.ExpressRoutePeeringStateEnabled)
 
 		routeFilterId := ""
 		if props.RouteFilter != nil && props.RouteFilter.ID != nil {
@@ -388,10 +428,24 @@ func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*network.I
 
 	v := input[0].(map[string]interface{})
 	peeringConfig := network.Ipv6ExpressRouteCircuitPeeringConfig{
-		PrimaryPeerAddressPrefix:   utils.String(v["primary_peer_address_prefix"].(string)),
-		SecondaryPeerAddressPrefix: utils.String(v["secondary_peer_address_prefix"].(string)),
-		MicrosoftPeeringConfig:     expandExpressRouteCircuitPeeringMicrosoftConfig(v["microsoft_peering"].([]interface{})),
+		MicrosoftPeeringConfig: expandExpressRouteCircuitPeeringMicrosoftConfig(v["microsoft_peering"].([]interface{})),
+		State:                  network.ExpressRouteCircuitPeeringStateEnabled,
 	}
+
+	primaryPeerAddressPrefix := v["primary_peer_address_prefix"].(string)
+	secondaryPeerAddressPrefix := v["secondary_peer_address_prefix"].(string)
+	if !strings.EqualFold(primaryPeerAddressPrefix, "") {
+		peeringConfig.PrimaryPeerAddressPrefix = utils.String(primaryPeerAddressPrefix)
+	}
+	if !strings.EqualFold(secondaryPeerAddressPrefix, "") {
+		peeringConfig.SecondaryPeerAddressPrefix = utils.String(secondaryPeerAddressPrefix)
+	}
+
+	ipv6Enabled := v["enabled"].(bool)
+	if !ipv6Enabled {
+		peeringConfig.State = network.ExpressRouteCircuitPeeringStateDisabled
+	}
+
 	routeFilterId := v["route_filter_id"].(string)
 	if routeFilterId != "" {
 		if _, err := parse.RouteFilterID(routeFilterId); err != nil {
@@ -448,6 +502,7 @@ func flattenExpressRouteCircuitIpv6PeeringConfig(input *network.Ipv6ExpressRoute
 			"primary_peer_address_prefix":   primaryPeerAddressPrefix,
 			"secondary_peer_address_prefix": secondaryPeerAddressPrefix,
 			"route_filter_id":               routeFilterId,
+			"enabled":                       input.State == network.ExpressRouteCircuitPeeringStateEnabled,
 		},
 	}
 }

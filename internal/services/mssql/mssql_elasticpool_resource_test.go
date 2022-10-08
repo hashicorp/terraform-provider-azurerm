@@ -49,11 +49,17 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
+	maintenance_configuration_name := "SQL_Default"
+	if data.Locations.Primary == "westeurope" {
+		maintenance_configuration_name = "SQL_WestEurope_DB_2"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardDTU(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_configuration_name").HasValue(maintenance_configuration_name),
 			),
 		},
 		data.ImportStep("max_size_gb"),
@@ -341,6 +347,8 @@ resource "azurerm_mssql_elasticpool" "test" {
   server_name         = azurerm_mssql_server.test.name
   max_size_gb         = %.7[6]f
   zone_redundant      = %[9]t
+
+  maintenance_configuration_name = "%[4]s" != "Basic" && azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
 
   sku {
     name     = "%[3]s"

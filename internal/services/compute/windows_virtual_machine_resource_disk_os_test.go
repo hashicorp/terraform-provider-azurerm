@@ -156,6 +156,21 @@ func TestAccWindowsVirtualMachine_diskOSEphemeralDefault(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_diskOSEphemeralSpot(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSEphemeralSpot(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -222,7 +237,7 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypeStandardSSDZRS(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSStorageAccountType(data, "StandardSSD_ZRS"),
+			Config: r.diskOSStorageAccountTypeWithRestrictedLocation(data, "StandardSSD_ZRS", "westeurope"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -237,7 +252,7 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypePremiumZRS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSStorageAccountType(data, "Premium_ZRS"),
+			Config: r.diskOSStorageAccountTypeWithRestrictedLocation(data, "Premium_ZRS", "westeurope"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -709,6 +724,43 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
+func (r WindowsVirtualMachineResource) diskOSEphemeralSpot(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  # Message="OS disk of Ephemeral VM with size greater than 32 GB is not allowed for VM size Standard_F2s_v2"
+  size            = "Standard_DS3_v2"
+  admin_username  = "adminuser"
+  admin_password  = "P@$$w0rd1234!"
+  priority        = "Spot"
+  eviction_policy = "Delete"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Standard_LRS"
+
+    diff_disk_settings {
+      option = "Local"
+    }
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data))
+}
+
 func (r WindowsVirtualMachineResource) diskOSEphemeralResourceDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -773,6 +825,12 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data), accountType)
+}
+
+func (r WindowsVirtualMachineResource) diskOSStorageAccountTypeWithRestrictedLocation(data acceptance.TestData, accountType string, location string) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+	return r.diskOSStorageAccountType(data, accountType)
 }
 
 func (r WindowsVirtualMachineResource) diskOSWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {

@@ -85,6 +85,10 @@ The following arguments are supported:
 
 * `external_seed_node_ip_addresses` - (Optional) A list of IP Addresses of the seed nodes in unmanaged the Cassandra Data Center which will be added to the seed node lists of all managed nodes.
 
+* `hours_between_backups` - (Optional) The number of hours to wait between taking a backup of the Cassandra Cluster. Defaults to `24`.
+
+~> **Note:** To disable this feature, set this property to `0`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster?
@@ -107,7 +111,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cassandra Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Cluster.

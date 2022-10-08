@@ -36,7 +36,7 @@ resource "azurerm_storage_table" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the storage table. Must be unique within the storage account the table is located.
+* `name` - (Required) The name of the storage table. Only Alphanumeric characters allowed, starting with a letter. Must be unique within the storage account the table is located.
 
 * `storage_account_name` - (Required) Specifies the storage account in which to create the storage table.
  Changing this forces a new resource to be created.
@@ -70,7 +70,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Table.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Table.

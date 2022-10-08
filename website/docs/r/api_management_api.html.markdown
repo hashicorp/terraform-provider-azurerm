@@ -58,11 +58,13 @@ The following arguments are supported:
 
 ---
 
+* `api_type` - (Optional) Type of API. Possible values are `graphql`, `http`, `soap`, and `websocket`. Defaults to `http`.
+
 * `display_name` - (Optional) The display name of the API.
 
 * `path` - (Optional) The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of its resource paths within the API Management Service.
 
-* `protocols` - (Optional) A list of protocols the operations in this API can be invoked. Possible values are `http` and `https`.
+* `protocols` - (Optional) A list of protocols the operations in this API can be invoked. Possible values are `http`, `https`, `ws`, and `wss`.
 
 -> **NOTE:** `display_name`, `path` and `protocols` are required when `source_api_id` is not set.
 
@@ -77,6 +79,8 @@ The following arguments are supported:
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
 * `soap_pass_through` - (Optional) Should this API expose a SOAP frontend, rather than a HTTP frontend? Defaults to `false`.
+
+-> **NOTE:** This property has been deprecated in favour of the `api_type` property and will be removed in version 4.0 of the provider.
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
@@ -152,7 +156,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API.

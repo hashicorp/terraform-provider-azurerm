@@ -36,7 +36,7 @@ var (
 	apimFrontendProtocolSsl3                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
 	apimFrontendProtocolTls10                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
 	apimFrontendProtocolTls11                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_3DES_EDE_CBC_SHA"
 	apimHttp2Protocol                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
 	apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
 	apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
@@ -169,6 +169,12 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"gateway_disabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
 					"location": commonschema.LocationWithoutForceNew(),
 
 					"virtual_network_configuration": {
@@ -1287,6 +1293,14 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			}
 		}
 
+		if config.CertificateSource != "" {
+			output["certificate_source"] = config.CertificateSource
+		}
+
+		if config.CertificateStatus != "" {
+			output["certificate_status"] = config.CertificateStatus
+		}
+
 		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
@@ -1381,8 +1395,9 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		}
 
 		additionalLocation := apimanagement.AdditionalLocation{
-			Location: utils.String(location),
-			Sku:      sku,
+			Location:       utils.String(location),
+			Sku:            sku,
+			DisableGateway: utils.Bool(config["gateway_disabled"].(bool)),
 		}
 
 		childVnetConfig := config["virtual_network_configuration"].([]interface{})
@@ -1452,6 +1467,11 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
+		var gatewayDisabled bool
+		if prop.DisableGateway != nil {
+			gatewayDisabled = *prop.DisableGateway
+		}
+
 		results = append(results, map[string]interface{}{
 			"capacity":                      capacity,
 			"gateway_regional_url":          gatewayRegionalUrl,
@@ -1461,6 +1481,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			"public_ip_addresses":           publicIPAddresses,
 			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
 			"zones":                         zones.Flatten(prop.Zones),
+			"gateway_disabled":              gatewayDisabled,
 		})
 	}
 

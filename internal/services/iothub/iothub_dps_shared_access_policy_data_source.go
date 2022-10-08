@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceIotHubDPSSharedAccessPolicy() *pluginsdk.Resource {
@@ -65,51 +66,57 @@ func dataSourceIotHubDPSSharedAccessPolicy() *pluginsdk.Resource {
 
 func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
-	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDpsSharedAccessPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_dps_name").(string), d.Get("name").(string))
+	id := commonids.NewProvisioningServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_dps_name").(string))
 
-	iothubDps, err := client.Get(ctx, id.ProvisioningServiceName, id.ResourceGroup)
+	iothubDps, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothubDps.Response) {
-			return fmt.Errorf("Error: IotHub DPS %q (Resource Group %q) was not found", id.ProvisioningServiceName, id.ResourceGroup)
+		if response.WasNotFound(iothubDps.HttpResponse) {
+			return fmt.Errorf("Error: IotHub DPS %q was not found", id)
 		}
 
-		return fmt.Errorf("retrieving IotHub DPS %q (Resource Group %q): %+v", id.ProvisioningServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving IotHub DPS %q: %+v", id, err)
 	}
 
-	accessPolicy, err := client.ListKeysForKeyName(ctx, id.ProvisioningServiceName, id.KeyName, id.ResourceGroup)
+	keyId := iotdpsresource.NewKeyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_dps_name").(string), d.Get("name").(string))
+	accessPolicy, err := client.ListKeysForKeyName(ctx, keyId)
 	if err != nil {
-		if utils.ResponseWasNotFound(accessPolicy.Response) {
+		if response.WasNotFound(accessPolicy.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("loading %s: %+v", id, err)
 	}
 
-	d.Set("name", id.KeyName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", keyId.KeyName)
+	d.Set("resource_group_name", keyId.ResourceGroupName)
 
 	d.SetId(id.ID())
 
-	d.Set("primary_key", accessPolicy.PrimaryKey)
-	d.Set("secondary_key", accessPolicy.SecondaryKey)
+	if model := accessPolicy.Model; model != nil {
+		d.Set("primary_key", model.PrimaryKey)
+		d.Set("secondary_key", model.SecondaryKey)
 
-	primaryConnectionString := ""
-	secondaryConnectionString := ""
-	if iothubDps.Properties != nil && iothubDps.Properties.ServiceOperationsHostName != nil {
-		hostname := iothubDps.Properties.ServiceOperationsHostName
-		if primary := accessPolicy.PrimaryKey; primary != nil {
-			primaryConnectionString = getSAPConnectionString(*hostname, id.KeyName, *primary)
-		}
-		if secondary := accessPolicy.SecondaryKey; secondary != nil {
-			secondaryConnectionString = getSAPConnectionString(*hostname, id.KeyName, *secondary)
+		if dpsModel := iothubDps.Model; model != nil {
+			properties := dpsModel.Properties
+			primaryConnectionString := ""
+			secondaryConnectionString := ""
+			if properties.ServiceOperationsHostName != nil {
+				hostname := properties.ServiceOperationsHostName
+				if primary := model.PrimaryKey; primary != nil {
+					primaryConnectionString = getSAPConnectionString(*hostname, keyId.KeyName, *primary)
+				}
+				if secondary := model.SecondaryKey; secondary != nil {
+					secondaryConnectionString = getSAPConnectionString(*hostname, keyId.KeyName, *secondary)
+				}
+			}
+			d.Set("primary_connection_string", primaryConnectionString)
+			d.Set("secondary_connection_string", secondaryConnectionString)
 		}
 	}
-	d.Set("primary_connection_string", primaryConnectionString)
-	d.Set("secondary_connection_string", secondaryConnectionString)
 
 	return nil
 }

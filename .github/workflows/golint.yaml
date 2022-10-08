@@ -1,5 +1,7 @@
 ---
 name: GoLang Linting
+permissions:
+  contents: read
 on:
   pull_request:
     types: ['opened', 'synchronize']
@@ -17,10 +19,10 @@ jobs:
   golint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.18.1'
+          go-version: '1.18.5'
       - uses: golangci/golangci-lint-action@v2
         with:
           version: 'v1.45.0'

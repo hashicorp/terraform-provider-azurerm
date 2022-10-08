@@ -44,7 +44,7 @@ resource "azurerm_analysis_services_server" "server" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Analysis Services Server. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Analysis Services Server. Only lowercase Alphanumeric characters allowed, starting with a letter. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure location where the Analysis Services Server exists. Changing this forces a new resource to be created.
 
@@ -83,7 +83,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Analysis Services Server.
 * `update` - (Defaults to 30 minutes) Used when updating the Analysis Services Server.

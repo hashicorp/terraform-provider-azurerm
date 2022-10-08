@@ -5,15 +5,15 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMariaDbServer() *pluginsdk.Resource {
@@ -91,7 +91,7 @@ func dataSourceMariaDbServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -102,10 +102,10 @@ func dataSourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -113,18 +113,45 @@ func dataSourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
+		}
+
+		if props := model.Properties; props != nil {
+			adminLogin := ""
+			if v := props.AdministratorLogin; v != nil {
+				adminLogin = *v
+			}
+
+			fqdn := ""
+			if v := props.FullyQualifiedDomainName; v != nil {
+				fqdn = *v
+			}
+
+			sslEnforcement := ""
+			if v := props.SslEnforcement; v != nil {
+				sslEnforcement = string(*v)
+			}
+
+			version := ""
+			if v := props.Version; v != nil {
+				version = string(*v)
+			}
+
+			d.Set("administrator_login", adminLogin)
+			d.Set("fqdn", fqdn)
+			d.Set("ssl_enforcement", sslEnforcement)
+			d.Set("version", version)
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	if props := resp.ServerProperties; props != nil {
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("fqdn", props.FullyQualifiedDomainName)
-		d.Set("ssl_enforcement", string(props.SslEnforcement))
-		d.Set("version", string(props.Version))
-	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

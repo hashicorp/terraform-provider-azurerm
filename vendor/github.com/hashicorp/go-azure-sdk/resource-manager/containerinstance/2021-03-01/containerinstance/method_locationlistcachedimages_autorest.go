@@ -59,50 +59,6 @@ func (c ContainerInstanceClient) LocationListCachedImages(ctx context.Context, i
 	return
 }
 
-// LocationListCachedImagesComplete retrieves all of the results into a single object
-func (c ContainerInstanceClient) LocationListCachedImagesComplete(ctx context.Context, id LocationId) (LocationListCachedImagesCompleteResult, error) {
-	return c.LocationListCachedImagesCompleteMatchingPredicate(ctx, id, CachedImagesOperationPredicate{})
-}
-
-// LocationListCachedImagesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ContainerInstanceClient) LocationListCachedImagesCompleteMatchingPredicate(ctx context.Context, id LocationId, predicate CachedImagesOperationPredicate) (resp LocationListCachedImagesCompleteResult, err error) {
-	items := make([]CachedImages, 0)
-
-	page, err := c.LocationListCachedImages(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := LocationListCachedImagesCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForLocationListCachedImages prepares the LocationListCachedImages request.
 func (c ContainerInstanceClient) preparerForLocationListCachedImages(ctx context.Context, id LocationId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -183,4 +139,48 @@ func (c ContainerInstanceClient) responderForLocationListCachedImages(resp *http
 		}
 	}
 	return
+}
+
+// LocationListCachedImagesComplete retrieves all of the results into a single object
+func (c ContainerInstanceClient) LocationListCachedImagesComplete(ctx context.Context, id LocationId) (LocationListCachedImagesCompleteResult, error) {
+	return c.LocationListCachedImagesCompleteMatchingPredicate(ctx, id, CachedImagesOperationPredicate{})
+}
+
+// LocationListCachedImagesCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c ContainerInstanceClient) LocationListCachedImagesCompleteMatchingPredicate(ctx context.Context, id LocationId, predicate CachedImagesOperationPredicate) (resp LocationListCachedImagesCompleteResult, err error) {
+	items := make([]CachedImages, 0)
+
+	page, err := c.LocationListCachedImages(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := LocationListCachedImagesCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

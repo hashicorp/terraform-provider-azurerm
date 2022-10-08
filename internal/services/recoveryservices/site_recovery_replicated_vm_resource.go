@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -186,6 +187,63 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							ValidateFunc:     azure.ValidateResourceID,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+
+						"target_disk_encryption": {
+							Type:       pluginsdk.TypeList,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Optional:   true,
+							MaxItems:   1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"disk_encryption_key": {
+										Type:       pluginsdk.TypeList,
+										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Required:   true,
+										MaxItems:   1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"secret_url": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: keyVaultValidate.NestedItemId,
+												},
+
+												"vault_id": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: keyVaultValidate.VaultID,
+												},
+											},
+										},
+									},
+									"key_encryption_key": {
+										Type:       pluginsdk.TypeList,
+										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Optional:   true,
+										MaxItems:   1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"key_url": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: keyVaultValidate.NestedItemId,
+												},
+
+												"vault_id": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: keyVaultValidate.VaultID,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -291,6 +349,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:       &targetDiskType,
 			RecoveryDiskEncryptionSetID:         &targetEncryptionDiskSetID,
+			DiskEncryptionInfo:                  expandTargetDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
 
@@ -388,6 +447,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			DiskID:                         &diskId,
 			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:  &targetDiskType,
+			DiskEncryptionInfo:             expandTargetDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
 
@@ -514,6 +574,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					recoveryEncryptionSetId = *disk.RecoveryDiskEncryptionSetID
 				}
 				diskOutput["target_disk_encryption_set_id"] = recoveryEncryptionSetId
+
+				diskOutput["target_disk_encryption"] = flattenTargetDiskEncryption(disk)
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
@@ -651,5 +713,77 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 			return nil, "", fmt.Errorf("Missing ReplicationHealth in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
 		}
 		return resp, *resp.Properties.ReplicationHealth, nil
+	}
+}
+
+func expandTargetDiskEncryption(diskEncryptionInfoList []interface{}) *siterecovery.DiskEncryptionInfo {
+	if len(diskEncryptionInfoList) == 0 {
+		return &siterecovery.DiskEncryptionInfo{}
+	}
+	diskEncryptionInfoMap := diskEncryptionInfoList[0].(map[string]interface{})
+
+	dek := diskEncryptionInfoMap["disk_encryption_key"].([]interface{})[0].(map[string]interface{})
+	diskEncryptionInfo := &siterecovery.DiskEncryptionInfo{
+		DiskEncryptionKeyInfo: &siterecovery.DiskEncryptionKeyInfo{
+			SecretIdentifier:      utils.String(dek["secret_url"].(string)),
+			KeyVaultResourceArmID: utils.String(dek["vault_id"].(string)),
+		},
+	}
+
+	if keyEncryptionKey := diskEncryptionInfoMap["key_encryption_key"].([]interface{}); len(keyEncryptionKey) > 0 {
+		kek := keyEncryptionKey[0].(map[string]interface{})
+		diskEncryptionInfo.KeyEncryptionKeyInfo = &siterecovery.KeyEncryptionKeyInfo{
+			KeyIdentifier:         utils.String(kek["key_url"].(string)),
+			KeyVaultResourceArmID: utils.String(kek["vault_id"].(string)),
+		}
+	}
+
+	return diskEncryptionInfo
+}
+
+func flattenTargetDiskEncryption(disk siterecovery.A2AProtectedManagedDiskDetails) []interface{} {
+	secretUrl := ""
+	dekVaultId := ""
+	keyUrl := ""
+	kekVaultId := ""
+
+	if disk.SecretIdentifier != nil {
+		secretUrl = *disk.SecretIdentifier
+	}
+	if disk.DekKeyVaultArmID != nil {
+		dekVaultId = *disk.DekKeyVaultArmID
+	}
+	if disk.KeyIdentifier != nil {
+		keyUrl = *disk.KeyIdentifier
+	}
+	if disk.KekKeyVaultArmID != nil {
+		kekVaultId = *disk.KekKeyVaultArmID
+	}
+
+	if secretUrl == "" && dekVaultId == "" && keyUrl == "" && kekVaultId == "" {
+		return []interface{}{}
+	}
+
+	diskEncryptionKeys := make([]interface{}, 0)
+	if secretUrl != "" || dekVaultId != "" {
+		diskEncryptionKeys = append(diskEncryptionKeys, map[string]interface{}{
+			"secret_url": secretUrl,
+			"vault_id":   dekVaultId,
+		})
+	}
+
+	keyEncryptionKeys := make([]interface{}, 0)
+	if keyUrl != "" || kekVaultId != "" {
+		keyEncryptionKeys = append(keyEncryptionKeys, map[string]interface{}{
+			"key_url":  keyUrl,
+			"vault_id": kekVaultId,
+		})
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"disk_encryption_key": diskEncryptionKeys,
+			"key_encryption_key":  keyEncryptionKeys,
+		},
 	}
 }

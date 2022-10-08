@@ -64,5 +64,6 @@ func (c NotificationHubsClient) responderForPatch(resp *http.Response) (result P
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

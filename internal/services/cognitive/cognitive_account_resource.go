@@ -20,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -89,6 +91,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					"LUIS",
 					"LUIS.Authoring",
 					"MetricsAdvisor",
+					"OpenAI",
 					"Personalizer",
 					"QnAMaker",
 					"Recommendations",
@@ -115,6 +118,27 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
 			},
 
 			"fqdns": {
@@ -236,6 +260,12 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				ValidateFunc: search.ValidateSearchServiceID,
 			},
 
+			"custom_question_answering_search_service_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -345,6 +375,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -428,6 +459,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -542,6 +574,15 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				localAuthEnabled = !*props.DisableLocalAuth
 			}
 			d.Set("local_auth_enabled", localAuthEnabled)
+
+			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(id, props.Encryption)
+			if err != nil {
+				return err
+			}
+
+			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+			}
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
@@ -636,10 +677,10 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
 
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
-	ipRules := make([]cognitiveservicesaccounts.IpRule, 0)
+	ipRules := make([]cognitiveservicesaccounts.IPRule, 0)
 
 	for _, v := range ipRulesRaw.List() {
-		rule := cognitiveservicesaccounts.IpRule{
+		rule := cognitiveservicesaccounts.IPRule{
 			Value: v.(string),
 		}
 		ipRules = append(ipRules, rule)
@@ -660,7 +701,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
 		DefaultAction:       &defaultAction,
-		IpRules:             &ipRules,
+		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 	return &ruleSet, subnetIds
@@ -696,6 +737,13 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			props.QnaAzureSearchEndpointId = utils.String(v.(string))
 		} else {
 			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
+		}
+	}
+	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
+		if kind == "TextAnalytics" {
+			props.QnaAzureSearchEndpointKey = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
@@ -735,8 +783,8 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}
 
 	ipRules := make([]interface{}, 0)
-	if input.IpRules != nil {
-		for _, v := range *input.IpRules {
+	if input.IPRules != nil {
+		for _, v := range *input.IPRules {
 			ipRules = append(ipRules, v.Value)
 		}
 	}
@@ -782,4 +830,55 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 		results = append(results, value)
 	}
 	return results
+}
+
+func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveservicesaccounts.Encryption {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
+
+	var identity string
+	if value := v["identity_client_id"]; value != nil && value != "" {
+		identity = value.(string)
+	}
+
+	return &cognitiveservicesaccounts.Encryption{
+		KeySource: &keySource,
+		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
+			KeyName:          utils.String(keyId.Name),
+			KeyVersion:       utils.String(keyId.Version),
+			KeyVaultUri:      utils.String(keyId.KeyVaultBaseUrl),
+			IdentityClientId: utils.String(identity),
+		},
+	}
+}
+
+func flattenCognitiveAccountCustomerManagedKey(cognitiveAccountId *cognitiveservicesaccounts.AccountId, input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	var keyId string
+	var identityClientId string
+	if props := input.KeyVaultProperties; props != nil {
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, "keys", *props.KeyName, *props.KeyVersion)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+		}
+		keyId = keyVaultKeyId.ID()
+		if props.IdentityClientId != nil {
+			identityClientId = *props.IdentityClientId
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id":   keyId,
+			"identity_client_id": identityClientId,
+		},
+	}, nil
 }

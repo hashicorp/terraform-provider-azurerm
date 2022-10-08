@@ -1,4 +1,4 @@
-# AzureRM Provider Contributor Docs
+# AzureRM Provider Contributor Guides
 
 **First,** thank you for your interest in contributing to the Azure Provider! And if you're unsure or anything, please do reach out for help. You can open a draft pull request (PR) or an issue with what you know or join the [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LWNiY2ZhNThhNDgzNmY0MTM0N2MwZjE4ZGU0MjcxYjUyMzRmN2E5NjZhZmQ0ZTA1OTExMGNjYzA4ZDkwZDYxNDE)) and we'll do our best to guide you in the right direction.
 

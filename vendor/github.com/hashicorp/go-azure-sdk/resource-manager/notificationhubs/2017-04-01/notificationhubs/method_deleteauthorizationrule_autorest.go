@@ -61,5 +61,6 @@ func (c NotificationHubsClient) responderForDeleteAuthorizationRule(resp *http.R
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }
