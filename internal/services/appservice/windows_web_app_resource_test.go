@@ -1084,7 +1084,7 @@ func TestAccWindowsWebApp_vNetIntegration(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep("virtual_network_subnet_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -1099,7 +1099,7 @@ func TestAccWindowsWebApp_vNetIntegrationUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("virtual_network_subnet_id"),
+		data.ImportStep(),
 		{
 			Config: r.vNetIntegrationWebApp_subnet1(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1109,7 +1109,7 @@ func TestAccWindowsWebApp_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep("virtual_network_subnet_id"),
+		data.ImportStep(),
 		{
 			Config: r.vNetIntegrationWebApp_subnet2(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1119,14 +1119,14 @@ func TestAccWindowsWebApp_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep("virtual_network_subnet_id"),
+		data.ImportStep(),
 		{
 			Config: r.vNetIntegrationWebApp_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("virtual_network_subnet_id"),
+		data.ImportStep(),
 	})
 }
 

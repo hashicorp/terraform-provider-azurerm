@@ -134,6 +134,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
 
@@ -508,9 +509,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
-				if metadata.ResourceData.Get("virtual_network_subnet_id").(string) != "" {
-					state.VirtualNetworkSubnetID = subnetId
-				}
+				state.VirtualNetworkSubnetID = subnetId
 			}
 
 			var healthCheckCount *int
