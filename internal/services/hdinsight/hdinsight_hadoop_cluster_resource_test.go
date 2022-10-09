@@ -869,11 +869,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
-	  script_actions {
-		name = "scriptactiontest"
-		uri = "https://hdiconfigactions.blob.core.windows.net/linuxgiraphconfigactionv01/giraph-installer-v01.sh"
-		parameters = "headnode"
-	  }
+      script_actions {
+        name       = "scriptactiontest"
+        uri        = "https://hdiconfigactions.blob.core.windows.net/linuxgiraphconfigactionv01/giraph-installer-v01.sh"
+        parameters = "headnode"
+      }
     }
 
     worker_node {
