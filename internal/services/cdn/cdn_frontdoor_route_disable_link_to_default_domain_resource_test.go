@@ -84,7 +84,7 @@ provider "azurerm" {
   features {}
 }
 
-  resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%[2]s"
 }
