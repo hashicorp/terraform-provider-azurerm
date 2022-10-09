@@ -1002,14 +1002,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  reliability_level    = "Silver"
-  upgrade_mode         = "Manual"
-  cluster_code_version = "8.2.1486.9590"
-  vm_image             = "Windows"
-  management_endpoint  = "http://example:80"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Silver"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "http://example:80"
 
   node_type {
     name                 = "backend"
