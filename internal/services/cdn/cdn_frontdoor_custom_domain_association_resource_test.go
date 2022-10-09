@@ -61,7 +61,7 @@ func TestAccCdnFrontDoorCustomDomainAssociation_destroyAssociation(t *testing.T)
 		{
 			Config:             r.destroy(data),
 			Check:              acceptance.ComposeTestCheckFunc(),
-			ExpectNonEmptyPlan: true, //since deleting this resource actually removes the linked custom domain from the route resource(s)
+			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
 		},
 	})
 }
@@ -80,7 +80,7 @@ func TestAccCdnFrontDoorCustomDomainAssociation_DestroyAssociations(t *testing.T
 		{
 			Config:             r.destroy(data),
 			Check:              acceptance.ComposeTestCheckFunc(),
-			ExpectNonEmptyPlan: true, //since deleting this resource actually removes the linked custom domain from the route resource(s)
+			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
 		},
 	})
 }
