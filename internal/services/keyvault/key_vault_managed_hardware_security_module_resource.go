@@ -1,7 +1,13 @@
 package keyvault
 
 import (
+	"context"
+	"crypto/sha1"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"time"
 
@@ -11,14 +17,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	kv74 "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
@@ -26,6 +36,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreate,
 		Read:   resourceArmKeyVaultManagedHardwareSecurityModuleRead,
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
+		Update: resourceArmKeyVaultManagedHardwareSecurityModuleUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := managedhsms.ParseManagedHSMID(id)
@@ -35,6 +46,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
@@ -130,6 +142,38 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				},
 			},
 
+			"activate_config": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"security_domain_certificate": {
+							Type:     pluginsdk.TypeSet,
+							MinItems: 3,
+							MaxItems: 10,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.NestedItemId,
+							},
+						},
+
+						"security_domain_quorum": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(2, 10),
+						},
+					},
+				},
+			},
+
+			"security_domain_enc_data": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			// https://github.com/Azure/azure-rest-api-specs/issues/13365
 			"tags": commonschema.TagsForceNew(),
 		},
@@ -137,13 +181,14 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
+	kvClient := meta.(*clients.Client).KeyVault
+	hsmClient := kvClient.ManagedHsmClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := managedhsms.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
+	existing, err := hsmClient.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -178,16 +223,82 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		hsm.Properties.TenantId = pointer.To(tenantId)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
+	if err := hsmClient.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
+		//=======
+		//	// do NOT retry if failed, for it takes too long to create and will not success. let it fail
+		//	// but `hsmClient` is a shared variable such change may cause data-race, but it should be fine for a hsmClient tool
+		//	retry := hsmClient.Client.RetryAttempts
+		//	hsmClient.Client.RetryAttempts = 1
+		//	future, err := hsmClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
+		//	if err != nil {
+		//>>>>>>> b215a3b91d (activate mhsm in create/update with certificate)
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	//hsmClient.Client.RetryAttempts = retry
+	//
+	//if err = future.WaitForCompletionRef(ctx, hsmClient.Client); err != nil {
+	//	return fmt.Errorf("waiting on creation for %s: %+v", id, err)
+	//}
+
+	// security domain download to activate this module
+	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && (certs)[0] != nil {
+		// get hsm uri
+		resp, err := hsmClient.Get(ctx, id)
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
+			return fmt.Errorf("get nil HSMUri for %s: %+v", id, err)
+		} else {
+			encData, err := securityDomainDownload(ctx,
+				kvClient,
+				*resp.Model.Properties.HsmUri,
+				certs[0].(map[string]interface{}),
+			)
+			if err == nil {
+				d.Set("security_domain_enc_data", encData)
+			} else {
+				log.Printf("security domain download: %v", err)
+			}
+		}
 	}
 
 	d.SetId(id.ID())
 	return resourceArmKeyVaultManagedHardwareSecurityModuleRead(d, meta)
 }
 
+// update to re-activate the security module
+func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	kvClient := meta.(*clients.Client).KeyVault
+	hsmClient := kvClient.ManagedHsmClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := managedhsms.ParseManagedHSMID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := hsmClient.Get(ctx, *id)
+	if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	// if it has activate_config but with no enc data in stat, try to activate it
+	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && certs[0] != nil && d.Get("security_domain_enc_data").(string) == "" {
+		// get hsm uri
+		encData, err := securityDomainDownload(ctx,
+			kvClient,
+			*resp.Model.Properties.HsmUri,
+			certs[0].(map[string]interface{}),
+		)
+		if err != nil {
+			return fmt.Errorf("security domain download: %v", err)
+		}
+		d.Set("security_domain_enc_data", encData)
+	}
+	return nil
+}
+
 func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
+	hsmClient := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -196,7 +307,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := hsmClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[ERROR] %s was not found - removing from state", *id)
@@ -250,7 +361,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
+	hsmClient := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -260,7 +371,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	}
 
 	// We need to grab the keyvault hsm to see if purge protection is enabled prior to deletion
-	resp, err := client.Get(ctx, *id)
+	resp, err := hsmClient.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -274,7 +385,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		}
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	if err := hsmClient.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -286,7 +397,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	}
 
 	purgedId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
-	if err := client.PurgeDeletedThenPoll(ctx, purgedId); err != nil {
+	if err := hsmClient.PurgeDeletedThenPoll(ctx, purgedId); err != nil {
 		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 
@@ -325,4 +436,107 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 			"default_action": defaultAction,
 		},
 	}
+}
+
+func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseURL string, config map[string]interface{}) (encDataStr string, err error) {
+	sdClient := cli.MHSMSDClient
+	keyClient := cli.ManagementClient
+
+	var param kv74.CertificateInfoObject
+	var qourum = config["security_domain_quorum"].(int)
+	certIDs := config["security_domain_certificate"].(*pluginsdk.Set).List()
+
+	param.Required = utils.Int32(int32(qourum))
+	var certs []kv74.SecurityDomainJSONWebKey
+	for _, certID := range certIDs {
+		certIDStr, ok := certID.(string)
+		if !ok {
+			continue
+		}
+		keyID, _ := parse.ParseNestedItemID(certIDStr)
+		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
+		if err != nil {
+			return "", fmt.Errorf("retreiving key %s: %v", certID, err)
+		}
+		if certRes.Cer == nil {
+			return "", fmt.Errorf("got nil key for %s", certID)
+		}
+		cert := kv74.SecurityDomainJSONWebKey{
+			Kty:    pointer.FromString("RSA"),
+			KeyOps: &[]string{""},
+			Alg:    pointer.FromString("RSA-OAEP-256"),
+		}
+		if certRes.Policy != nil && certRes.Policy.KeyProperties != nil {
+			cert.Kty = pointer.FromString(string(certRes.Policy.KeyProperties.KeyType))
+		}
+		x5c := ""
+		if contents := certRes.Cer; contents != nil {
+			x5c = base64.StdEncoding.EncodeToString(*contents)
+		}
+		cert.X5c = &[]string{x5c}
+
+		sum1 := sha1.Sum([]byte(x5c))
+		x5tDst := make([]byte, base64.StdEncoding.EncodedLen(len(sum1)))
+		base64.URLEncoding.Encode(x5tDst, sum1[:])
+		cert.X5t = pointer.FromString(string(x5tDst))
+
+		sum256 := sha256.Sum256([]byte(x5c))
+		s256Dst := make([]byte, base64.StdEncoding.EncodedLen(len(sum256)))
+		base64.URLEncoding.Encode(s256Dst, sum256[:])
+		cert.X5tS256 = pointer.FromString(string(s256Dst))
+		certs = append(certs, cert)
+	}
+	param.Certificates = &certs
+
+	future, err := sdClient.Download(ctx, vaultBaseURL, param)
+	if err != nil {
+		return "", fmt.Errorf("downloading for %s: %v", vaultBaseURL, err)
+	}
+
+	originResponse := future.Response()
+	data, err := io.ReadAll(originResponse.Body)
+	if err != nil {
+		return "", err
+	}
+	var encData struct {
+		Value string `json:"value"`
+	}
+
+	err = json.Unmarshal(data, &encData)
+	if err != nil {
+		return "", fmt.Errorf("unmarshal EncData: %v", err)
+	}
+
+	err = waitHSMPendingStatus(ctx, vaultBaseURL, sdClient, false)
+	return encData.Value, err
+}
+
+// if isUpload is false, then check the download pending
+// the generated SDK of `future.WaitForCompletionRef` not work, see:
+// https://github.com/Azure/azure-rest-api-specs/issues/23035
+func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv74.HSMSecurityDomainClient, isUpload bool) (err error) {
+	maxRetry := 30
+	var maxAttempt = client.RetryAttempts
+
+	var res kv74.SecurityDomainOperationStatus
+	for try := 0; try < maxRetry; try++ {
+		if isUpload {
+			res, err = client.UploadPending(ctx, baseURL)
+		} else {
+			res, err = client.DownloadPending(ctx, baseURL)
+		}
+
+		if err != nil {
+			maxAttempt--
+			if maxAttempt <= 0 {
+				return err
+			}
+		}
+
+		if res.Status == kv74.OperationStatusSuccess {
+			return nil
+		}
+		time.Sleep(client.PollingDuration)
+	}
+	return fmt.Errorf("time out for polling operation status")
 }
