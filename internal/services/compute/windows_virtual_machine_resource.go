@@ -930,7 +930,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("source_image_id", storageImageId)
 
-		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
+		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference, storageImageId != "")); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
