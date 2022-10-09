@@ -751,6 +751,11 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 						expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
 					}
 				}
+				if windowsAppStack.DotNetVersion == "3.1" {
+					expanded.NetFrameworkVersion = utils.String("v4.0")
+				} else {
+					expanded.NetFrameworkVersion = utils.String(windowsAppStack.DotNetVersion)
+				}
 			}
 
 			if windowsAppStack.NodeVersion != "" {
@@ -775,6 +780,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 				if !features.FourPointOhBeta() {
 					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion))
 				}
+				expanded.JavaVersion = utils.String(windowsAppStack.JavaVersion)
 			}
 
 			if windowsAppStack.PowerShellCoreVersion != "" {
@@ -887,7 +893,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, input web.StringDictionary, dotnetcore string) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, input web.StringDictionary) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -977,11 +983,7 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 		if functionAppSlotSiteConfig.NetFrameworkVersion != nil && *functionAppSlotSiteConfig.NetFrameworkVersion != "" {
 			dotnetVersion := *functionAppSlotSiteConfig.NetFrameworkVersion
 			if dotnetVersion == "v4.0" {
-				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
-					dotnetVersion = "3.1"
-				} else {
-					dotnetVersion = "core3.1"
-				}
+				dotnetVersion = "3.1"
 			} else if dotnetVersion == "v6.0" {
 				dotnetVersion = "6"
 			}
@@ -995,15 +997,12 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 		if functionAppSlotSiteConfig.NetFrameworkVersion != nil && *functionAppSlotSiteConfig.NetFrameworkVersion != "" {
 			dotnetVersion := *functionAppSlotSiteConfig.NetFrameworkVersion
 			if dotnetVersion == "v4.0" {
-				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
-					dotnetVersion = "3.1"
-				} else {
-					dotnetVersion = "core3.1"
-				}
+				dotnetVersion = "3.1"
 			} else if dotnetVersion == "v6.0" {
 				dotnetVersion = "6"
 			}
 			appStack.DotNetVersion = dotnetVersion
+			winFunctionAppSlotStack = append(winFunctionAppSlotStack, appStack)
 		}
 	case "node":
 		if nodeVer != "" {

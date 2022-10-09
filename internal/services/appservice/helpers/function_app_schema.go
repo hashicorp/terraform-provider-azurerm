@@ -1279,18 +1279,10 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-						if !features.FourPointOh() {
-							return validation.StringInSlice([]string{
-								"3.1",
-								"core3.1",
-								"6"}, false)
-						}
-						return validation.StringInSlice([]string{
-							"core3.1",
-							"6",
-						}, false)
-					}(),
+					ValidateFunc: validation.StringInSlice([]string{
+						"3.1",
+						"6",
+					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
@@ -1819,8 +1811,8 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
 				}
 			}
-			if windowsAppStack.DotNetVersion == "3.1" || windowsAppStack.DotNetVersion == "core3.1" {
-				expanded.NetFrameworkVersion = nil
+			if windowsAppStack.DotNetVersion == "3.1" {
+				expanded.NetFrameworkVersion = utils.String("v4.0")
 			} else {
 				expanded.NetFrameworkVersion = utils.String(windowsAppStack.DotNetVersion)
 			}
@@ -2039,7 +2031,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	return result, nil
 }
 
-func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, input web.StringDictionary, dotnetcore string) (*SiteConfigWindowsFunctionApp, error) {
+func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, input web.StringDictionary) (*SiteConfigWindowsFunctionApp, error) {
 	if functionAppSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -2129,11 +2121,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, 
 		if functionAppSiteConfig.NetFrameworkVersion != nil && *functionAppSiteConfig.NetFrameworkVersion != "" {
 			dotnetVersion := *functionAppSiteConfig.NetFrameworkVersion
 			if dotnetVersion == "v4.0" {
-				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
-					dotnetVersion = "3.1"
-				} else {
-					dotnetVersion = "core3.1"
-				}
+				dotnetVersion = "3.1"
 			} else if dotnetVersion == "v6.0" {
 				dotnetVersion = "6"
 			}
@@ -2147,11 +2135,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, 
 		if functionAppSiteConfig.NetFrameworkVersion != nil && *functionAppSiteConfig.NetFrameworkVersion != "" {
 			dotnetVersion := *functionAppSiteConfig.NetFrameworkVersion
 			if dotnetVersion == "v4.0" {
-				if !features.FourPointOhBeta() && dotnetcore == "3.1" {
-					dotnetVersion = "3.1"
-				} else {
-					dotnetVersion = "core3.1"
-				}
+				dotnetVersion = "3.1"
 			} else if dotnetVersion == "v6.0" {
 				dotnetVersion = "6"
 			}
