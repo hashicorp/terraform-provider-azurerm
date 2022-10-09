@@ -10,27 +10,24 @@ import (
 )
 
 type FrontDoorCustomDomainAssociationId struct {
-	SubscriptionId   string
-	ResourceGroup    string
-	ProfileName      string
-	CustomDomainName string
-	AssociationName  string
+	SubscriptionId  string
+	ResourceGroup   string
+	ProfileName     string
+	AssociationName string
 }
 
-func NewFrontDoorCustomDomainAssociationID(subscriptionId, resourceGroup, profileName, customDomainName, associationName string) FrontDoorCustomDomainAssociationId {
+func NewFrontDoorCustomDomainAssociationID(subscriptionId, resourceGroup, profileName, associationName string) FrontDoorCustomDomainAssociationId {
 	return FrontDoorCustomDomainAssociationId{
-		SubscriptionId:   subscriptionId,
-		ResourceGroup:    resourceGroup,
-		ProfileName:      profileName,
-		CustomDomainName: customDomainName,
-		AssociationName:  associationName,
+		SubscriptionId:  subscriptionId,
+		ResourceGroup:   resourceGroup,
+		ProfileName:     profileName,
+		AssociationName: associationName,
 	}
 }
 
 func (id FrontDoorCustomDomainAssociationId) String() string {
 	segments := []string{
 		fmt.Sprintf("Association Name %q", id.AssociationName),
-		fmt.Sprintf("Custom Domain Name %q", id.CustomDomainName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -39,8 +36,8 @@ func (id FrontDoorCustomDomainAssociationId) String() string {
 }
 
 func (id FrontDoorCustomDomainAssociationId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/customDomains/%s/associations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.CustomDomainName, id.AssociationName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/associations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
 }
 
 // FrontDoorCustomDomainAssociationID parses a FrontDoorCustomDomainAssociation ID into an FrontDoorCustomDomainAssociationId struct
@@ -64,9 +61,6 @@ func FrontDoorCustomDomainAssociationID(input string) (*FrontDoorCustomDomainAss
 	}
 
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
-		return nil, err
-	}
-	if resourceId.CustomDomainName, err = id.PopSegment("customDomains"); err != nil {
 		return nil, err
 	}
 	if resourceId.AssociationName, err = id.PopSegment("associations"); err != nil {
@@ -114,18 +108,6 @@ func FrontDoorCustomDomainAssociationIDInsensitively(input string) (*FrontDoorCu
 		}
 	}
 	if resourceId.ProfileName, err = id.PopSegment(profilesKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'customDomains' segment
-	customDomainsKey := "customDomains"
-	for key := range id.Path {
-		if strings.EqualFold(key, customDomainsKey) {
-			customDomainsKey = key
-			break
-		}
-	}
-	if resourceId.CustomDomainName, err = id.PopSegment(customDomainsKey); err != nil {
 		return nil, err
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -16,16 +17,21 @@ import (
 type CdnFrontDoorRouteDisableLinkToDefaultDomainResource struct{}
 
 func TestAccCdnFrontDoorRouteDisableLinkToDefaultDomain_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route_disable_link_to_default_domain", "test")
-	r := CdnFrontDoorRouteDisableLinkToDefaultDomainResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
+	if !features.FourPointOhBeta() {
+		t.Skip("test case is no longer valid since the 'cdn_frontdoor_route_ids' and 'link_to_default_domain' fields have been moved back to the 'cdn_frontdoor_route' resource, remove this test case from the AzureRM provider v4.0")
+		data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route_disable_link_to_default_domain", "test")
+		r := CdnFrontDoorRouteDisableLinkToDefaultDomainResource{}
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+		})
+	} else {
+		t.Skip("the 'azurerm_cdn_frontdoor_route_disable_link_to_default_domain' resource is no longer supported in the AzureRM provider v4.0, please remove this test case")
+	}
 }
 
 func (r CdnFrontDoorRouteDisableLinkToDefaultDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -49,10 +55,6 @@ func (r CdnFrontDoorRouteDisableLinkToDefaultDomainResource) Exists(ctx context.
 func (r CdnFrontDoorRouteDisableLinkToDefaultDomainResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_route_disable_link_to_default_domain" "test" {
@@ -78,7 +80,11 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
 func (r CdnFrontDoorRouteDisableLinkToDefaultDomainResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
+provider "azurerm" {
+  features {}
+}
+
+  resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%[2]s"
 }

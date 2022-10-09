@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = FrontDoorCustomDomainAssociationId{}
 
 func TestFrontDoorCustomDomainAssociationIDFormatter(t *testing.T) {
-	actual := NewFrontDoorCustomDomainAssociationID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "customDomain1", "assoc1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/associations/assoc1"
+	actual := NewFrontDoorCustomDomainAssociationID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "assoc1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,44 +68,31 @@ func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
 		},
 
 		{
-			// missing CustomDomainName
+			// missing AssociationName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
-			Error: true,
-		},
-
-		{
-			// missing AssociationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/",
-			Error: true,
-		},
-
-		{
 			// missing value for AssociationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/associations/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/associations/assoc1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1",
 			Expected: &FrontDoorCustomDomainAssociationId{
-				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resGroup1",
-				ProfileName:      "profile1",
-				CustomDomainName: "customDomain1",
-				AssociationName:  "assoc1",
+				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:   "resGroup1",
+				ProfileName:     "profile1",
+				AssociationName: "assoc1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOMDOMAIN1/ASSOCIATIONS/ASSOC1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/ASSOCIATIONS/ASSOC1",
 			Error: true,
 		},
 	}
@@ -133,9 +120,6 @@ func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
 		}
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
-		}
-		if actual.CustomDomainName != v.Expected.CustomDomainName {
-			t.Fatalf("Expected %q but got %q for CustomDomainName", v.Expected.CustomDomainName, actual.CustomDomainName)
 		}
 		if actual.AssociationName != v.Expected.AssociationName {
 			t.Fatalf("Expected %q but got %q for AssociationName", v.Expected.AssociationName, actual.AssociationName)
@@ -193,74 +177,58 @@ func TestFrontDoorCustomDomainAssociationIDInsensitively(t *testing.T) {
 		},
 
 		{
-			// missing CustomDomainName
+			// missing AssociationName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for CustomDomainName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
-			Error: true,
-		},
-
-		{
-			// missing AssociationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/",
-			Error: true,
-		},
-
-		{
 			// missing value for AssociationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/associations/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/associations/assoc1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1",
 			Expected: &FrontDoorCustomDomainAssociationId{
-				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resGroup1",
-				ProfileName:      "profile1",
-				CustomDomainName: "customDomain1",
-				AssociationName:  "assoc1",
+				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:   "resGroup1",
+				ProfileName:     "profile1",
+				AssociationName: "assoc1",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customdomains/customDomain1/associations/assoc1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1",
 			Expected: &FrontDoorCustomDomainAssociationId{
-				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resGroup1",
-				ProfileName:      "profile1",
-				CustomDomainName: "customDomain1",
-				AssociationName:  "assoc1",
+				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:   "resGroup1",
+				ProfileName:     "profile1",
+				AssociationName: "assoc1",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/CUSTOMDOMAINS/customDomain1/ASSOCIATIONS/assoc1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/ASSOCIATIONS/assoc1",
 			Expected: &FrontDoorCustomDomainAssociationId{
-				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resGroup1",
-				ProfileName:      "profile1",
-				CustomDomainName: "customDomain1",
-				AssociationName:  "assoc1",
+				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:   "resGroup1",
+				ProfileName:     "profile1",
+				AssociationName: "assoc1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/CuStOmDoMaInS/customDomain1/AsSoCiAtIoNs/assoc1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/AsSoCiAtIoNs/assoc1",
 			Expected: &FrontDoorCustomDomainAssociationId{
-				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:    "resGroup1",
-				ProfileName:      "profile1",
-				CustomDomainName: "customDomain1",
-				AssociationName:  "assoc1",
+				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:   "resGroup1",
+				ProfileName:     "profile1",
+				AssociationName: "assoc1",
 			},
 		},
 	}
@@ -288,9 +256,6 @@ func TestFrontDoorCustomDomainAssociationIDInsensitively(t *testing.T) {
 		}
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
-		}
-		if actual.CustomDomainName != v.Expected.CustomDomainName {
-			t.Fatalf("Expected %q but got %q for CustomDomainName", v.Expected.CustomDomainName, actual.CustomDomainName)
 		}
 		if actual.AssociationName != v.Expected.AssociationName {
 			t.Fatalf("Expected %q but got %q for AssociationName", v.Expected.AssociationName, actual.AssociationName)

@@ -399,6 +399,11 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving existing %s: 'properties' was nil", *id)
 	}
 
+	// we need to lock the route for update because the custom domain
+	// association may also be trying to update the route as well...
+	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
+
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
@@ -496,11 +501,6 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	updateParams := azuresdkhacks.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &updateProps,
 	}
-
-	// we need to lock the route for update because the custom domain
-	// association may also be trying to update the route as well...
-	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
 
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, updateParams)
 	if err != nil {
