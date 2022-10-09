@@ -33,6 +33,10 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 				"uri": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
+					ValidateFunc: validation.Any(
+						validation.IsURLWithScheme([]string{"http", "https"}),
+						validation.StringIsEmpty,
+					),
 				},
 
 				"version": {
