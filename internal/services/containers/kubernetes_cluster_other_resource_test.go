@@ -283,6 +283,28 @@ func TestAccKubernetesCluster_upgrade(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_scaleDownMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scaleDownMode(data, "Delete"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scaleDownMode(data, "Deallocate"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1197,11 +1219,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name              = "default"
-    node_count        = 1
-    vm_size           = "Standard_DS2_v2"
-    fips_enabled      = true
-    kubelet_disk_type = "OS"
+    name               = "default"
+    node_count         = 1
+    vm_size            = "Standard_DS2_v2"
+    fips_enabled       = true
+    kubelet_disk_type  = "OS"
+    message_of_the_day = "daily message"
+    workload_runtime   = "OCIContainer"
   }
 
   identity {
@@ -1888,6 +1912,37 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
+}
+
+func (KubernetesClusterResource) scaleDownMode(data acceptance.TestData, scaleDownMode string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name            = "default"
+    node_count      = 1
+    vm_size         = "Standard_DS2_v2"
+    scale_down_mode = "%s"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, scaleDownMode)
 }
 
 func (KubernetesClusterResource) privateClusterPublicFqdn(data acceptance.TestData, privateClusterPublicFqdnEnabled bool) string {

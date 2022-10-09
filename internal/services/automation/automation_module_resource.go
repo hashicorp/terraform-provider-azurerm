@@ -105,7 +105,11 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		// for existing global module do update instead of raising ImportAsExistsError
+		isGlobal := existing.ModuleProperties != nil &&
+			existing.ModuleProperties.IsGlobal != nil &&
+			*existing.ModuleProperties.IsGlobal == true
+		if !utils.ResponseWasNotFound(existing.Response) && !isGlobal {
 			return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
 		}
 	}

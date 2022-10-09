@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
@@ -139,25 +140,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"registry_server": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"user_assigned_identity_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"user_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"password": {
-										Type:      pluginsdk.TypeString,
-										Computed:  true,
-										Sensitive: true,
-									},
-								},
+								Schema: batchPoolDataContainerRegistry(),
 							},
 						},
 					},
@@ -484,6 +467,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"dynamic_vnet_assignment_scope": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"subnet_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -537,6 +524,13 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
+												"source_port_ranges": {
+													Type:     pluginsdk.TypeList,
+													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
 											},
 										},
 									},
@@ -579,6 +573,34 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 		"command_line": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"container": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"run_options": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"image_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"registry": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: batchPoolDataContainerRegistry(),
+						},
+					},
+					"working_directory": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
 		},
 
 		"task_retry_maximum": {
@@ -669,6 +691,28 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 	return s
 }
 
+func batchPoolDataContainerRegistry() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"registry_server": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"user_assigned_identity_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"user_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"password": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+	}
+}
+
 func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -700,7 +744,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
 				return fmt.Errorf("flattening `auto_scale`: %+v", err)
 			}
-			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
+			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
 		}
@@ -816,7 +860,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `certificate`: %v", err)
 		}
 
-		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
+		d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {

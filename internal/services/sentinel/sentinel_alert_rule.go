@@ -95,6 +95,16 @@ func flattenAlertRuleTactics(input *[]securityinsight.AttackTactic) []interface{
 	return output
 }
 
+func expandAlertRuleTechnicals(input []interface{}) *[]string {
+	result := make([]string, 0)
+
+	for _, e := range input {
+		result = append(result, e.(string))
+	}
+
+	return &result
+}
+
 func expandAlertRuleIncidentConfiguration(input []interface{}, createIncidentKey string, withGroupByPrefix bool) *securityinsight.IncidentConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil

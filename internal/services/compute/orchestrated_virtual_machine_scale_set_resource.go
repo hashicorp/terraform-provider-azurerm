@@ -248,6 +248,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"user_data_base64": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsBase64,
+			},
 		},
 	}
 }
@@ -375,6 +382,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			return err
 		}
 		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+	}
+
+	if userData, ok := d.GetOk("user_data_base64"); ok {
+		virtualMachineProfile.UserData = utils.String(userData.(string))
 	}
 
 	osType := compute.OperatingSystemTypesWindows
@@ -1062,6 +1073,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChange("user_data_base64") {
+		updateInstances = true
+		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data_base64").(string))
+	}
+
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
 	if updateInstances {
@@ -1266,6 +1282,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
 		}
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+		d.Set("user_data_base64", profile.UserData)
 	}
 	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 

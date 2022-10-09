@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"time"
@@ -153,6 +154,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"message_of_the_day": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"mode": {
@@ -452,6 +460,14 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
 	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
+	}
+
+	if v := d.Get("message_of_the_day").(string); v != "" {
+		if profile.OsType == containerservice.OSTypeWindows {
+			return fmt.Errorf("`message_of_the_day` cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script)")
+		}
+		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+		profile.MessageOfTheDay = &messageOfTheDayEncoded
 	}
 
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
@@ -771,6 +787,16 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			maxCount = int(*props.MaxCount)
 		}
 		d.Set("max_count", maxCount)
+
+		messageOfTheDay := ""
+		if props.MessageOfTheDay != nil {
+			messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
+			if err != nil {
+				return fmt.Errorf("setting `message_of_the_day`: %+v", err)
+			}
+			messageOfTheDay = string(messageOfTheDayDecoded)
+		}
+		d.Set("message_of_the_day", messageOfTheDay)
 
 		maxPods := 0
 		if props.MaxPods != nil {

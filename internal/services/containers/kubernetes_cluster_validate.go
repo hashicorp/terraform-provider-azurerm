@@ -26,6 +26,9 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *containerserv
 				dnsServiceIP := profile["dns_service_ip"].(string)
 				serviceCidr := profile["service_cidr"].(string)
 				podCidr := profile["pod_cidr"].(string)
+				podCidrs := profile["pod_cidrs"].([]interface{})
+				serviceCidrs := profile["service_cidrs"].([]interface{})
+				isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
 
 				// Azure network plugin is not compatible with pod_cidr
 				if podCidr != "" && networkPlugin == "azure" {
@@ -33,8 +36,16 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *containerserv
 				}
 
 				// if not All empty values or All set values.
-				if !(dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") && !(dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "") {
+				if !(dockerBridgeCidr == "" && dnsServiceIP == "" && !isServiceCidrSet) && !(dockerBridgeCidr != "" && dnsServiceIP != "" && isServiceCidrSet) {
 					return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set")
+				}
+
+				ipVersions := profile["ip_versions"].([]interface{})
+				if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
+					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
+				}
+				if len(podCidrs) == 2 && len(ipVersions) != 2 {
+					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
 				}
 			}
 		}
