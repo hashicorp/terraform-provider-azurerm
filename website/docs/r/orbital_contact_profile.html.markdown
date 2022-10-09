@@ -124,10 +124,6 @@ A `channels` block supports the following:
 
 * `demodulation_configuration` - (Optional) Copy of the modem configuration file such as Kratos QRadio or Kratos QuantumRx. Only valid for downlink directions. If provided, the modem connects to the customer endpoint and sends demodulated data instead of a VITA.49 stream.
 
-* `encoding_configuration` - (Optional) Configuration for encoding the channel.
-
-* `decoding_configuration` - (Optional) Configuration for decoding the channel.
-
 ---
 
 An `end_point` block supports the following:

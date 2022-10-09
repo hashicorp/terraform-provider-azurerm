@@ -19,12 +19,10 @@ type SpacecraftLinkModel struct {
 }
 
 type ContactProfileLinkModel struct {
-	Polarization        string                       `tfschema:"polarization"`
-	Direction           string                       `tfschema:"direction"`
-	Name                string                       `tfschema:"name"`
-	Channels            []ContactProfileChannelModel `tfschema:"channels"`
-	GainOverTemperature float64                      `tfschema:"gain_over_temperature"`
-	EirpDbw             float64                      `tfschema:"eirp_dbw"`
+	Polarization string                       `tfschema:"polarization"`
+	Direction    string                       `tfschema:"direction"`
+	Name         string                       `tfschema:"name"`
+	Channels     []ContactProfileChannelModel `tfschema:"channels"`
 }
 
 type ContactProfileChannelModel struct {
@@ -77,16 +75,6 @@ func ContactProfileLinkSchema() *pluginsdk.Schema {
 						string(contactprofile.PolarizationLinearVertical),
 						string(contactprofile.PolarizationLinearHorizontal),
 					}, false),
-				},
-
-				"gain_over_temperature": {
-					Type:     pluginsdk.TypeFloat,
-					Optional: true,
-				},
-
-				"eirp_dbw": {
-					Type:     pluginsdk.TypeFloat,
-					Optional: true,
 				},
 			},
 		},
@@ -270,11 +258,9 @@ func flattenContactProfileLinks(input []contactprofile.ContactProfileLink) ([]Co
 	var contactProfileLinkModel []ContactProfileLinkModel
 	for _, v := range input {
 		linkModel := ContactProfileLinkModel{
-			Polarization:        string(v.Polarization),
-			Direction:           string(v.Direction),
-			Name:                v.Name,
-			GainOverTemperature: *v.GainOverTemperature,
-			EirpDbw:             *v.EirpdBW,
+			Polarization: string(v.Polarization),
+			Direction:    string(v.Direction),
+			Name:         v.Name,
 		}
 		contactProfileChannel, err := flattenContactProfileChannel(v.Channels)
 		if err != nil {
@@ -323,11 +309,9 @@ func expandContactProfileLinks(input []ContactProfileLinkModel) ([]contactprofil
 	var contactProfileLink []contactprofile.ContactProfileLink
 	for _, v := range input {
 		link := contactprofile.ContactProfileLink{
-			Direction:           contactprofile.Direction(v.Direction),
-			EirpdBW:             &v.EirpDbw,
-			GainOverTemperature: &v.GainOverTemperature,
-			Name:                v.Name,
-			Polarization:        contactprofile.Polarization(v.Polarization),
+			Direction:    contactprofile.Direction(v.Direction),
+			Name:         v.Name,
+			Polarization: contactprofile.Polarization(v.Polarization),
 		}
 		channel, err := expandContactProfileChannel(v.Channels)
 		if err != nil {
