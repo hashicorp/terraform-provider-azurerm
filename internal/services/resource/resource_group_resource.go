@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sort"
@@ -76,6 +77,21 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
 		return fmt.Errorf("creating Resource Group %q: %+v", name, err)
+	}
+
+	// workaround for the consistency: https://github.com/hashicorp/terraform-provider-azurerm/issues/18268
+	log.Printf("[DEBUG] Waiting for resource group %s to be fully created..", name)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Exists"},
+		Refresh:                   resourceGroupCreatedRefresh(ctx, client, name),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for resource group %s to be created: %+v", name, err)
 	}
 
 	resp, err := client.Get(ctx, name)
@@ -208,4 +224,19 @@ More information on the 'features' block can be found in the documentation:
 https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
 `, name, strings.Join(formattedResourceUris, "\n"))
 	return fmt.Errorf(strings.ReplaceAll(message, "'", "`"))
+}
+
+func resourceGroupCreatedRefresh(ctx context.Context, client *resources.GroupsClient, resourceGroupName string) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been created: %+v", resourceGroupName, err)
+		}
+
+		return res, "Exists", nil
+	}
 }
