@@ -673,7 +673,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("disk_size_gb") {
 		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			if !meta.(*clients.Client).Features.ManagedDisk.NoDowntimeResize || shutDownOnResize(disk, old.(int), new.(int)) {
+			if !meta.(*clients.Client).Features.ManagedDisk.NoDowntimeResize || shutDownOnResize(disk.Model, old.(int), new.(int)) {
 				shouldShutDown = true
 			}
 			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(new.(int)))
@@ -1004,9 +1004,9 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 // shutDownOnResize implements live resize restrictions according to https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks#expand-without-downtime
-func shutDownOnResize(disk compute.Disk, oldSizeGB, newSizeGB int) bool {
+func shutDownOnResize(disk *disks.Disk, oldSizeGB, newSizeGB int) bool {
 	// OS disks can't be expanded without downtime.
-	if disk.OsType != "" {
+	if *disk.Properties.OsType != "" {
 		return true
 	}
 	// Disks smaller than 4 TiB can't be expanded to 4 TiB or larger without downtime.
@@ -1014,13 +1014,13 @@ func shutDownOnResize(disk compute.Disk, oldSizeGB, newSizeGB int) bool {
 		return true
 	}
 	// Only  Premium SSD v1 and Standard SSD disks support live resize
-	for _, diskType := range []compute.DiskStorageAccountTypes{
-		compute.DiskStorageAccountTypesPremiumLRS,
-		compute.DiskStorageAccountTypesPremiumZRS,
-		compute.DiskStorageAccountTypesStandardSSDLRS,
-		compute.DiskStorageAccountTypesStandardSSDZRS,
+	for _, diskType := range []disks.DiskStorageAccountTypes{
+		disks.DiskStorageAccountTypesPremiumLRS,
+		disks.DiskStorageAccountTypesPremiumZRS,
+		disks.DiskStorageAccountTypesStandardSSDLRS,
+		disks.DiskStorageAccountTypesStandardSSDZRS,
 	} {
-		if disk.Sku.Name == diskType {
+		if *disk.Sku.Name == diskType {
 			return false
 		}
 	}
