@@ -32,21 +32,6 @@ func TestAccCdnFrontDoorCustomDomainAssociation_basic(t *testing.T) {
 	})
 }
 
-// TODO: Implement the requires import functionality
-// func TestAccCdnFrontDoorCustomDomainAssociation_requiresImport(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "test")
-// 	r := CdnFrontDoorCustomDomainAssociationResource{}
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.RequiresImportErrorStep(r.requiresImport),
-// 	})
-// }
-
 func TestAccCdnFrontDoorCustomDomainAssociation_destroyAssociation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "test")
 	r := CdnFrontDoorCustomDomainAssociationResource{}

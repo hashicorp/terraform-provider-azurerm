@@ -64,11 +64,6 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 	} else if customDomain != nil {
 		id := parse.NewFrontDoorCustomDomainAssociationID(customDomain.SubscriptionId, customDomain.ResourceGroup, customDomain.ProfileName, customDomain.CustomDomainName)
 
-		// TODO: Get import error to work
-		// if !utils.ResponseWasNotFound(existing.Response) {
-		// 	return tf.ImportAsExistsError("azurerm_cdn_frontdoor_custom_domain_association", id.ID())
-		// }
-
 		d.SetId(id.ID())
 	}
 
