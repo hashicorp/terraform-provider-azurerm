@@ -242,7 +242,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	normalizedCustomDomains, err := normalizeCustomDomainIds(customDomainsRaw)
+	normalizedCustomDomains, err := customDomainsInsensitively(customDomainsRaw)
 	if err != nil {
 		return err
 	}
@@ -425,7 +425,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	normalizedCustomDomains, err := normalizeCustomDomainIds(customDomainsRaw)
+	normalizedCustomDomains, err := customDomainsInsensitively(customDomainsRaw)
 	if err != nil {
 		return err
 	}

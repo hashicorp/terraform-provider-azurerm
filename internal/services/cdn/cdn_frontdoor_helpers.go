@@ -486,17 +486,17 @@ func validateRoutesCustomDomainProfile(customDomains []interface{}, routeName st
 }
 
 // Validates that the CDN FrontDoor Custom Domain can be associated with the CDN FrontDoor Route
-func validateCustomDomainRoutes(routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
-	if len(*routes) == 0 || routes == nil {
+func validateCustomDomainRoutes(input *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
+	if len(*input) == 0 || input == nil {
 		return nil
 	}
 
 	// check for duplicates...
-	if err := routeSliceHasDuplicates(routes, "CDN FrontDoor Route"); err != nil {
+	if err := routeSliceHasDuplicates(input, "CDN FrontDoor Route"); err != nil {
 		return err
 	}
 
-	for i, route := range *routes {
+	for i, route := range *input {
 		// the route and custom domain profiles must match...
 		if customDomainID.ProfileName != route.ProfileName {
 			return fmt.Errorf("the CDN FrontDoor Custom Domain(Name: %q, Profile: %q) and the CDN FrontDoor Route(Name: %q, Profile: %q) must belong to the same CDN FrontDoor Profile", customDomainID.CustomDomainName, customDomainID.ProfileName, route.RouteName, route.ProfileName)
@@ -504,13 +504,13 @@ func validateCustomDomainRoutes(routes *[]parse.FrontDoorRouteId, customDomainID
 
 		// validate all routes are using the same endpoint because a custom domain can not
 		// be associated with routes that target two different endpoints...
-		for t, nextRoute := range *routes {
+		for t, v := range *input {
 			if i == t {
 				continue
 			}
 
-			if route.AfdEndpointName != nextRoute.AfdEndpointName {
-				return fmt.Errorf("the CDN FrontDoor Route(Name: %q) and CDN FrontDoor Route(Name: %q) do not reference the same CDN FrontDoor Endpoint(Name: %q). All CDN FrontDoor Routes must reference the same CDN FrontDoor Endpoint %q to associate the CDN FrontDoor Custom Domain(Name: %q) with more than one CDN FrontDoor Route", route.RouteName, nextRoute.RouteName, route.AfdEndpointName, route.AfdEndpointName, customDomainID.CustomDomainName)
+			if route.AfdEndpointName != v.AfdEndpointName {
+				return fmt.Errorf("the CDN FrontDoor Route(Name: %q) and CDN FrontDoor Route(Name: %q) do not reference the same CDN FrontDoor Endpoint(Name: %q). All CDN FrontDoor Routes must reference the same CDN FrontDoor Endpoint %q to associate the CDN FrontDoor Custom Domain(Name: %q) with more than one CDN FrontDoor Route", route.RouteName, v.RouteName, route.AfdEndpointName, route.AfdEndpointName, customDomainID.CustomDomainName)
 			}
 		}
 	}
@@ -608,15 +608,15 @@ func normalizeRuleSetIds(input []interface{}) ([]interface{}, error) {
 	return out, nil
 }
 
-func normalizeRouteIds(input []interface{}) (*[]parse.FrontDoorRouteId, []interface{}, error) {
+func routesInsensitively(input []interface{}) (*[]parse.FrontDoorRouteId, []interface{}, error) {
 	out := make([]parse.FrontDoorRouteId, 0)
 	config := make([]interface{}, 0)
 	if len(input) == 0 || input == nil {
 		return &out, config, nil
 	}
 
-	for _, route := range input {
-		id, err := parse.FrontDoorRouteIDInsensitively(route.(string))
+	for _, v := range input {
+		id, err := parse.FrontDoorRouteIDInsensitively(v.(string))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -628,14 +628,14 @@ func normalizeRouteIds(input []interface{}) (*[]parse.FrontDoorRouteId, []interf
 	return &out, config, nil
 }
 
-func normalizeCustomDomainIds(input []interface{}) ([]interface{}, error) {
+func customDomainsInsensitively(input []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, 0)
 	if len(input) == 0 || input == nil {
 		return out, nil
 	}
 
-	for _, customDomain := range input {
-		id, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain.(string))
+	for _, v := range input {
+		id, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
 		if err != nil {
 			return nil, err
 		}

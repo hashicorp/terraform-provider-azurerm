@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_cdn_frontdoor_custom_domain_association
 
-Manages the single apply/single destroy incompatibility between the CDN FrontDoor API and the Terraform dependency graph. You should use this association resource to avoid receiving the `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` error.
+Manages the single destroy incompatibility between the CDN FrontDoor API and the Terraform dependency graph generation. You should use this association resource to avoid receiving the `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` error when issuing the Terraform `destroy` command.
 
 ## Example Usage
 
@@ -53,5 +53,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Frontdoor Routes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_frontdoor_custom_domain_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/domain1/associations/assoc1
+terraform import azurerm_cdn_frontdoor_custom_domain_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1
 ```

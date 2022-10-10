@@ -32,7 +32,9 @@ func TestAccCdnFrontDoorCustomDomainAssociation_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorCustomDomainAssociation_destroyAssociation(t *testing.T) {
+// NOTE: the 'requiresImport' test is not possible on this resource
+
+func TestAccCdnFrontDoorCustomDomainAssociation_removeAssociation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "test")
 	r := CdnFrontDoorCustomDomainAssociationResource{}
 
@@ -44,14 +46,14 @@ func TestAccCdnFrontDoorCustomDomainAssociation_destroyAssociation(t *testing.T)
 			),
 		},
 		{
-			Config:             r.destroy(data),
+			Config:             r.remove(data),
 			Check:              acceptance.ComposeTestCheckFunc(),
 			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
 		},
 	})
 }
 
-func TestAccCdnFrontDoorCustomDomainAssociation_DestroyAssociations(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomainAssociation_removeAssociations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "test")
 	r := CdnFrontDoorCustomDomainAssociationResource{}
 
@@ -63,7 +65,7 @@ func TestAccCdnFrontDoorCustomDomainAssociation_DestroyAssociations(t *testing.T
 			),
 		},
 		{
-			Config:             r.destroy(data),
+			Config:             r.remove(data),
 			Check:              acceptance.ComposeTestCheckFunc(),
 			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
 		},
@@ -100,18 +102,6 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
 `, template)
 }
 
-// func (r CdnFrontDoorCustomDomainAssociationResource) requiresImport(data acceptance.TestData) string {
-// 	config := r.basic(data)
-// 	return fmt.Sprintf(`
-// %s
-
-// resource "azurerm_cdn_frontdoor_custom_domain_association" "import" {
-//   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain_association.test.cdn_frontdoor_custom_domain_id
-//   cdn_frontdoor_route_ids        = azurerm_cdn_frontdoor_custom_domain_association.test.cdn_frontdoor_route_ids
-// }
-// `, config)
-// }
-
 func (r CdnFrontDoorCustomDomainAssociationResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -147,7 +137,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
 `, template, data.RandomInteger, data.RandomStringOfLength(10))
 }
 
-func (r CdnFrontDoorCustomDomainAssociationResource) destroy(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainAssociationResource) remove(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
