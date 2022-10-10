@@ -231,7 +231,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	var keyX509 []byte
-	var pemKeyHeader string = "PRIVATE KEY"
+	var pemKeyHeader string
 	if privateKey != nil {
 		switch v := privateKey.(type) {
 		case *ecdsa.PrivateKey:
@@ -239,6 +239,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 			if err != nil {
 				return fmt.Errorf("marshalling private key type %+v (%q): %+v", v, id.Name, err)
 			}
+			pemKeyHeader = "EC PRIVATE KEY"
 		case *rsa.PrivateKey:
 			keyX509 = x509.MarshalPKCS1PrivateKey(privateKey.(*rsa.PrivateKey))
 			pemKeyHeader = "RSA PRIVATE KEY"

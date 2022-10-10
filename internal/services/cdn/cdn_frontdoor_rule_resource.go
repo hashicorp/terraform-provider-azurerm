@@ -105,18 +105,25 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
+									// NOTE: it is valid for the destination path to be an empty string,
+									// Leave blank to preserve the incoming path.
 									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Default:      "",
 										ValidateFunc: validate.CdnFrontDoorUrlRedirectActionDestinationPath,
 									},
 
+									// NOTE: it is valid for the destination hostname to be an empty string.
+									// Leave blank to preserve the incoming host.
 									"destination_hostname": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: validation.StringLenBetween(0, 2048),
 									},
 
+									// NOTE: it is valid for the query string to be an empty string.
+									// Leave blank to preserve the incoming query string.
 									"query_string": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -124,10 +131,13 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										ValidateFunc: validate.CdnFrontDoorUrlRedirectActionQueryString,
 									},
 
+									// NOTE: it is valid for the destination fragment to be an empty string.
+									// Leave blank to preserve the incoming fragment.
 									"destination_fragment": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Default:      "",
+										ValidateFunc: validation.StringLenBetween(0, 1024),
 									},
 								},
 							},
@@ -1147,7 +1157,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 	// it actually has a condition defined within it, else return an empty
 	// slice
 	output := []interface{}{conditions}
-	if !cdnFrontDoorRuleHasDeliveryRuleConditions(conditions) {
+	if !ruleHasDeliveryRuleConditions(conditions) {
 		output = results
 	}
 

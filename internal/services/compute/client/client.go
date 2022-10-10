@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -17,7 +18,7 @@ type Client struct {
 	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
 	DedicatedHostsClient             *dedicatedhosts.DedicatedHostsClient
 	DedicatedHostGroupsClient        *dedicatedhostgroups.DedicatedHostGroupsClient
-	DisksClient                      *compute.DisksClient
+	DisksClient                      *disks.DisksClient
 	DiskAccessClient                 *compute.DiskAccessesClient
 	DiskEncryptionSetsClient         *compute.DiskEncryptionSetsClient
 	GalleriesClient                  *compute.GalleriesClient
@@ -57,7 +58,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	dedicatedHostGroupsClient := dedicatedhostgroups.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	disksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	disksClient := disks.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
 
 	diskAccessClient := compute.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

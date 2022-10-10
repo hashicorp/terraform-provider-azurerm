@@ -95,7 +95,7 @@ A `firewall` block supports the following:
 
 ---
 
-A `association` block supports the following:
+An `association` block supports the following:
 
 * `domain` - (Required) One or more `domain` blocks as defined below. Changing this forces a new Frontdoor Security Policy to be created.
 

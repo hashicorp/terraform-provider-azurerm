@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -199,7 +198,7 @@ func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceW
 	for _, e := range eventTypes {
 		// The casing isn't preserved by the API for event types, so we need to normalise it here until
 		// https://github.com/Azure/azure-rest-api-specs/issues/18163 is fixed
-		output = append(output, strings.ToLower(e.EventType))
+		output = append(output, e.EventType)
 	}
 	return output
 }

@@ -158,7 +158,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
-* `extension_operations_enabled` - (Optional) Should extension operations be allowed on the Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new Linux Virtual Machine Scale Set to be created.
+* `extension_operations_enabled` - (Optional) Should extension operations be allowed on the Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `true`. Changing this forces a new Linux Virtual Machine Scale Set to be created.
 
 -> **NOTE:** `extension_operations_enabled` may only be set to `false` if there are no extensions defined in the `extension` field.
 

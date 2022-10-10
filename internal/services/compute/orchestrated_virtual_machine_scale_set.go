@@ -435,12 +435,14 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 				"sku_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validate.OrchestratedVirtualMachineScaleSetPublicIPSku,
 				},
 
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					Default:  string(compute.IPVersionIPv4),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.IPVersionIPv4),

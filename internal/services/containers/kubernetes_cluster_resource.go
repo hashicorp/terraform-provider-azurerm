@@ -482,12 +482,34 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 
+						"pod_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
 						"service_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
+						},
+
+						"service_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 
 						"load_balancer_sku": {
@@ -535,6 +557,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc: validation.IntBetween(4, 120),
 									},
 									"managed_outbound_ip_count": {
+										Type:          pluginsdk.TypeInt,
+										Optional:      true,
+										Computed:      true,
+										ValidateFunc:  validation.IntBetween(1, 100),
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+									},
+									"managed_outbound_ipv6_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
 										Computed:      true,
@@ -606,6 +635,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+
 						"ip_versions": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -1462,6 +1492,18 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				loadBalancerProfile.OutboundIPPrefixes = nil
 			}
 
+			if key := "network_profile.0.load_balancer_profile.0.managed_outbound_ipv6_count"; d.HasChange(key) {
+				managedOutboundIPV6Count := d.Get(key).(int)
+				if loadBalancerProfile.ManagedOutboundIPs == nil {
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
+				}
+				loadBalancerProfile.ManagedOutboundIPs.CountIPv6 = utils.Int32(int32(managedOutboundIPV6Count))
+
+				// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+				loadBalancerProfile.OutboundIPs = nil
+				loadBalancerProfile.OutboundIPPrefixes = nil
+			}
+
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
 				outboundIPAddress := d.Get(key)
 				if v := outboundIPAddress.(*pluginsdk.Set).List(); len(v) == 0 {
@@ -2243,6 +2285,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		networkProfile.PodCidr = utils.String(podCidr)
 	}
 
+	if v, ok := config["pod_cidrs"]; ok {
+		networkProfile.PodCidrs = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
 	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
 		dockerBridgeCidr := v.(string)
 		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
@@ -2251,6 +2297,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
 		serviceCidr := v.(string)
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
+	}
+
+	if v, ok := config["service_cidrs"]; ok {
+		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	return &networkProfile, nil
@@ -2276,6 +2326,15 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int32(ipCount.(int)); c > 0 {
 			profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+		}
+	}
+
+	if ipv6Count := config["managed_outbound_ipv6_count"]; ipv6Count != nil {
+		if c := int32(ipv6Count.(int)); c > 0 {
+			if profile.ManagedOutboundIPs == nil {
+				profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
+			}
+			profile.ManagedOutboundIPs.CountIPv6 = &c
 		}
 	}
 
@@ -2410,6 +2469,10 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			if count := ips.Count; count != nil {
 				lb["managed_outbound_ip_count"] = count
 			}
+
+			if countIPv6 := ips.CountIPv6; countIPv6 != nil {
+				lb["managed_outbound_ipv6_count"] = countIPv6
+			}
 		}
 
 		if oip := lbp.OutboundIPs; oip != nil {
@@ -2473,7 +2536,9 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
 			"pod_cidr":              podCidr,
+			"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
 			"service_cidr":          serviceCidr,
+			"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
 			"outbound_type":         string(profile.OutboundType),
 		},
 	}

@@ -152,6 +152,8 @@ The `log_analytics_workspace` block supports the following:
 
 * `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
+-> **Note:** This will be defaulted to `false` in the next major version of the Azure Provider (4.0).
+
 ---
 
 The `managed_disk` block supports the following:
@@ -162,9 +164,7 @@ The `managed_disk` block supports the following:
 
 The `resource_group` block supports the following:
 
-* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `false`.
-
--> **Note:** This will be defaulted to `true` in the next major version of the Azure Provider (3.0).
+* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
 
 ---
 

@@ -78,7 +78,7 @@ resource "azurerm_storage_account" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the storage account. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
+* `name` - (Required) Specifies the name of the storage account. Only lowercase Alphanumeric characters allowed. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
 
@@ -388,6 +388,8 @@ A `smb` block supports the following:
 * `kerberos_ticket_encryption_type` - (Optional) A set of Kerberos ticket encryption. Possible values are `RC4-HMAC`, and `AES-256`.
 
 * `channel_encryption_type` - (Optional) A set of SMB channel encryption. Possible values are `AES-128-CCM`, `AES-128-GCM`, and `AES-256-GCM`.
+
+* `multichannel_enabled` - (Optional) Indicates whether multichannel is enabled. Defaults to `false`. This is only supported on Premium storage accounts.
 
 ---
 
