@@ -2,6 +2,8 @@
 
 BUG FIXES: 
 
+* `azurerm_kubernetes_cluster` - `orchestrator_version` is set properly for clusters created with an older API version [GH-18130]
+* `azurerm_kubernetes_cluster_node_pool` - `orchestrator_version` is set properly for node pools created with an older API version [GH-18130]
 * `azurerm_logic_app_workflow` - can now be updated when associated with `integration_service_environment_id` [GH-18660]
 
 ## 3.26.0 (October 06, 2022)
