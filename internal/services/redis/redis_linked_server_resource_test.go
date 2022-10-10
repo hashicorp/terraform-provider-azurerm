@@ -61,7 +61,11 @@ func (t RedisLinkedServerResource) Exists(ctx context.Context, clients *clients.
 func (RedisLinkedServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "pri" {

@@ -99,7 +99,11 @@ func (t RedisFirewallRuleResource) Exists(ctx context.Context, clients *clients.
 func (RedisFirewallRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -164,7 +168,11 @@ resource "azurerm_redis_firewall_rule" "import" {
 func (RedisFirewallRuleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {

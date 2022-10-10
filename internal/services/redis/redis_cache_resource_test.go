@@ -534,7 +534,11 @@ func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client,
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -581,7 +585,11 @@ resource "azurerm_redis_cache" "import" {
 func (RedisCacheResource) standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -610,7 +618,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -640,7 +652,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) premiumSharded(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -671,7 +687,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) premiumShardedScaled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -702,7 +722,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) backupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -729,7 +753,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) backupEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -771,7 +799,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) aofBackupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -798,7 +830,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) aofBackupEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -839,7 +875,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) patchSchedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -874,7 +914,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -899,7 +943,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) subscribeAllEvents(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -938,7 +986,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) internalSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -978,7 +1030,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) internalSubnetStaticIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1019,7 +1075,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) internalSubnet_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1060,7 +1120,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) withoutAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1101,7 +1165,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) replicasPerMaster(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1125,7 +1193,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) replicasPerPrimary(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1149,7 +1221,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) redisVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1173,7 +1249,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) redisVersion6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1197,7 +1277,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) tenantSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1223,7 +1307,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) redisConfiguration(data acceptance.TestData, maxMemoryPolicy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1257,7 +1345,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1291,7 +1383,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1331,7 +1427,11 @@ resource "azurerm_redis_cache" "test" {
 func (RedisCacheResource) SkuDowngrade(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
