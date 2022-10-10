@@ -736,6 +736,11 @@ func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *pluginsdk.Schem
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
