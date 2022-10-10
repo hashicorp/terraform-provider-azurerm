@@ -216,8 +216,9 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022``",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -688,8 +689,9 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
 				},
 
 				"runtime_scale_monitoring_enabled": {
