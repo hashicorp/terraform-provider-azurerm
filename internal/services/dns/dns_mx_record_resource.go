@@ -181,7 +181,7 @@ func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := recordsets.ParseRecordTypeID(d.Id())
+	id, err := recordsets.ParseRecordTypeIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

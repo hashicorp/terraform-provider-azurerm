@@ -264,7 +264,7 @@ func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := zones.ParseDnsZoneID(d.Id())
+	id, err := zones.ParseDnsZoneIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
