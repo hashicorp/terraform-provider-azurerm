@@ -13,7 +13,7 @@ var _ pluginsdk.StateUpgrade = ARecordV0ToV1{}
 
 type ARecordV0ToV1 struct{}
 
-func (A ARecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
+func (ARecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -65,7 +65,7 @@ func (A ARecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (A ARecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (ARecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
 		parsedId, err := recordsets.ParseRecordTypeIDInsensitively(oldId)

@@ -14,7 +14,7 @@ var _ pluginsdk.StateUpgrade = TXTRecordV0ToV1{}
 
 type TXTRecordV0ToV1 struct{}
 
-func (A TXTRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
+func (TXTRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -68,7 +68,7 @@ func (A TXTRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (A TXTRecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (TXTRecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
 		parsedId, err := recordsets.ParseRecordTypeIDInsensitively(oldId)

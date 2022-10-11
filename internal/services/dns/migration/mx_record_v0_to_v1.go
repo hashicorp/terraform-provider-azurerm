@@ -15,7 +15,7 @@ var _ pluginsdk.StateUpgrade = MXRecordV0ToV1{}
 
 type MXRecordV0ToV1 struct{}
 
-func (A MXRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
+func (MXRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -76,7 +76,7 @@ func (A MXRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (A MXRecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (MXRecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
 		parsedId, err := recordsets.ParseRecordTypeIDInsensitively(oldId)
