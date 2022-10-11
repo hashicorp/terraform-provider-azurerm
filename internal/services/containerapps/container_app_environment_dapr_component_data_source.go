@@ -132,7 +132,7 @@ func (r ContainerAppEnvironmentDaprComponentDataSource) Read() sdk.ResourceFunc 
 			if props := model.Properties; props != nil {
 				daprComponent.Version = pointer.From(props.Version)
 				daprComponent.Type = pointer.From(props.ComponentType)
-				daprComponent.Scopes = scopesPtr(props.Scopes)
+				daprComponent.Scopes = pointer.From(props.Scopes)
 				daprComponent.InitTimeout = pointer.From(props.InitTimeout)
 				daprComponent.IgnoreErrors = pointer.From(props.IgnoreErrors)
 				daprComponent.Metadata = flattenDaprComponentPropertiesMetadata(props.Metadata)

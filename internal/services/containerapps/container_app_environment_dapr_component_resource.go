@@ -195,7 +195,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Read() sdk.ResourceFunc {
 			if props := model.Properties; props != nil {
 				state.Version = pointer.From(props.Version)
 				state.Type = pointer.From(props.ComponentType)
-				state.Scopes = scopesPtr(props.Scopes)
+				state.Scopes = pointer.From(props.Scopes)
 				state.InitTimeout = pointer.From(props.InitTimeout)
 				state.IgnoreErrors = pointer.From(props.IgnoreErrors)
 				state.Metadata = flattenDaprComponentPropertiesMetadata(props.Metadata)
@@ -343,12 +343,4 @@ func expandDaprComponentPropertiesScopes(input []string) *[]string {
 	}
 
 	return &input
-}
-
-func scopesPtr(input *[]string) []string {
-	if input == nil {
-		return nil
-	}
-
-	return *input
 }
