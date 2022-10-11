@@ -9,7 +9,7 @@ type ContainerAppProperties struct {
 	LatestRevisionFqdn         *string                        `json:"latestRevisionFqdn,omitempty"`
 	LatestRevisionName         *string                        `json:"latestRevisionName,omitempty"`
 	ManagedEnvironmentId       *string                        `json:"managedEnvironmentId,omitempty"`
-	OutboundIPAddresses        *[]string                      `json:"outboundIPAddresses,omitempty"`
+	OutboundIPAddresses        *[]string                      `json:"outboundIpAddresses,omitempty"`
 	ProvisioningState          *ContainerAppProvisioningState `json:"provisioningState,omitempty"`
 	Template                   *Template                      `json:"template,omitempty"`
 }

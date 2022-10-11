@@ -8,6 +8,7 @@ type CustomHostnameAnalysisResult struct {
 	AlternateCNameRecords               *[]string                                                        `json:"alternateCNameRecords,omitempty"`
 	AlternateTxtRecords                 *[]string                                                        `json:"alternateTxtRecords,omitempty"`
 	CNameRecords                        *[]string                                                        `json:"cNameRecords,omitempty"`
+	ConflictWithEnvironmentCustomDomain *bool                                                            `json:"conflictWithEnvironmentCustomDomain,omitempty"`
 	ConflictingContainerAppResourceId   *string                                                          `json:"conflictingContainerAppResourceId,omitempty"`
 	CustomDomainVerificationFailureInfo *CustomHostnameAnalysisResultCustomDomainVerificationFailureInfo `json:"customDomainVerificationFailureInfo,omitempty"`
 	CustomDomainVerificationTest        *DnsVerificationTestResult                                       `json:"customDomainVerificationTest,omitempty"`

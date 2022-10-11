@@ -37,20 +37,20 @@ type AppProtocol string
 
 const (
 	AppProtocolGrpc AppProtocol = "grpc"
-	AppProtocolHttp AppProtocol = "http"
+	AppProtocolHTTP AppProtocol = "http"
 )
 
 func PossibleValuesForAppProtocol() []string {
 	return []string{
 		string(AppProtocolGrpc),
-		string(AppProtocolHttp),
+		string(AppProtocolHTTP),
 	}
 }
 
 func parseAppProtocol(input string) (*AppProtocol, error) {
 	vals := map[string]AppProtocol{
 		"grpc": AppProtocolGrpc,
-		"http": AppProtocolHttp,
+		"http": AppProtocolHTTP,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -93,6 +93,7 @@ type ContainerAppProvisioningState string
 
 const (
 	ContainerAppProvisioningStateCanceled   ContainerAppProvisioningState = "Canceled"
+	ContainerAppProvisioningStateDeleting   ContainerAppProvisioningState = "Deleting"
 	ContainerAppProvisioningStateFailed     ContainerAppProvisioningState = "Failed"
 	ContainerAppProvisioningStateInProgress ContainerAppProvisioningState = "InProgress"
 	ContainerAppProvisioningStateSucceeded  ContainerAppProvisioningState = "Succeeded"
@@ -101,6 +102,7 @@ const (
 func PossibleValuesForContainerAppProvisioningState() []string {
 	return []string{
 		string(ContainerAppProvisioningStateCanceled),
+		string(ContainerAppProvisioningStateDeleting),
 		string(ContainerAppProvisioningStateFailed),
 		string(ContainerAppProvisioningStateInProgress),
 		string(ContainerAppProvisioningStateSucceeded),
@@ -110,6 +112,7 @@ func PossibleValuesForContainerAppProvisioningState() []string {
 func parseContainerAppProvisioningState(input string) (*ContainerAppProvisioningState, error) {
 	vals := map[string]ContainerAppProvisioningState{
 		"canceled":   ContainerAppProvisioningStateCanceled,
+		"deleting":   ContainerAppProvisioningStateDeleting,
 		"failed":     ContainerAppProvisioningStateFailed,
 		"inprogress": ContainerAppProvisioningStateInProgress,
 		"succeeded":  ContainerAppProvisioningStateSucceeded,
@@ -158,23 +161,23 @@ type IngressTransportMethod string
 
 const (
 	IngressTransportMethodAuto    IngressTransportMethod = "auto"
-	IngressTransportMethodHttp    IngressTransportMethod = "http"
-	IngressTransportMethodHttpTwo IngressTransportMethod = "http2"
+	IngressTransportMethodHTTP    IngressTransportMethod = "http"
+	IngressTransportMethodHTTPTwo IngressTransportMethod = "http2"
 )
 
 func PossibleValuesForIngressTransportMethod() []string {
 	return []string{
 		string(IngressTransportMethodAuto),
-		string(IngressTransportMethodHttp),
-		string(IngressTransportMethodHttpTwo),
+		string(IngressTransportMethodHTTP),
+		string(IngressTransportMethodHTTPTwo),
 	}
 }
 
 func parseIngressTransportMethod(input string) (*IngressTransportMethod, error) {
 	vals := map[string]IngressTransportMethod{
 		"auto":  IngressTransportMethodAuto,
-		"http":  IngressTransportMethodHttp,
-		"http2": IngressTransportMethodHttpTwo,
+		"http":  IngressTransportMethodHTTP,
+		"http2": IngressTransportMethodHTTPTwo,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

@@ -6,6 +6,6 @@ package containerapps
 type ScaleRule struct {
 	AzureQueue *QueueScaleRule  `json:"azureQueue,omitempty"`
 	Custom     *CustomScaleRule `json:"custom,omitempty"`
-	Http       *HttpScaleRule   `json:"http,omitempty"`
+	HTTP       *HTTPScaleRule   `json:"http,omitempty"`
 	Name       *string          `json:"name,omitempty"`
 }

@@ -361,9 +361,9 @@ func ContainerDaprSchema() *pluginsdk.Schema {
 				"app_protocol": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(containerapps.AppProtocolHttp),
+					Default:  string(containerapps.AppProtocolHTTP),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.AppProtocolHttp),
+						string(containerapps.AppProtocolHTTP),
 						string(containerapps.AppProtocolGrpc),
 					}, false),
 					Description: "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
@@ -1088,22 +1088,22 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
 		scheme := containerapps.Scheme(p)
-		result.HttpGet = &containerapps.ContainerAppProbeHttpGet{
+		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   utils.String(input.Host),
 			Path:   utils.String(input.Path),
 			Port:   int64(input.Port),
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
-			headers := make([]containerapps.ContainerAppProbeHttpGetHttpHeadersInlined, 0)
+			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
 
 			for _, h := range input.Headers {
-				headers = append(headers, containerapps.ContainerAppProbeHttpGetHttpHeadersInlined{
+				headers = append(headers, containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined{
 					Name:  h.Name,
 					Value: h.Value,
 				})
 			}
-			result.HttpGet.HttpHeaders = &headers
+			result.HTTPGet.HTTPHeaders = &headers
 		}
 
 	default:
@@ -1125,7 +1125,7 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 		SuccessThreshold: int(utils.NormaliseNilableInt64(input.SuccessThreshold)),
 	}
 
-	if httpGet := input.HttpGet; httpGet != nil {
+	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
 			probe.Transport = string(*httpGet.Scheme)
 		}
@@ -1133,9 +1133,9 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 		probe.Port = int(httpGet.Port)
 		probe.Path = utils.NormalizeNilableString(httpGet.Path)
 
-		if httpGet.HttpHeaders != nil {
+		if httpGet.HTTPHeaders != nil {
 			headers := make([]HttpHeader, 0)
-			for _, h := range *httpGet.HttpHeaders {
+			for _, h := range *httpGet.HTTPHeaders {
 				headers = append(headers, HttpHeader{
 					Name:  h.Name,
 					Value: h.Value,
@@ -1284,22 +1284,22 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
 		scheme := containerapps.Scheme(p)
-		result.HttpGet = &containerapps.ContainerAppProbeHttpGet{
+		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   utils.String(input.Host),
 			Path:   utils.String(input.Path),
 			Port:   int64(input.Port),
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
-			headers := make([]containerapps.ContainerAppProbeHttpGetHttpHeadersInlined, 0)
+			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
 
 			for _, h := range input.Headers {
-				headers = append(headers, containerapps.ContainerAppProbeHttpGetHttpHeadersInlined{
+				headers = append(headers, containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined{
 					Name:  h.Name,
 					Value: h.Value,
 				})
 			}
-			result.HttpGet.HttpHeaders = &headers
+			result.HTTPGet.HTTPHeaders = &headers
 		}
 
 	default:
@@ -1321,7 +1321,7 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 		FailureThreshold:       int(utils.NormaliseNilableInt64(input.FailureThreshold)),
 		TerminationGracePeriod: int(utils.NormaliseNilableInt64(input.TerminationGracePeriodSeconds)),
 	}
-	if httpGet := input.HttpGet; httpGet != nil {
+	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
 			probe.Transport = string(*httpGet.Scheme)
 		}
@@ -1329,9 +1329,9 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 		probe.Port = int(httpGet.Port)
 		probe.Path = utils.NormalizeNilableString(httpGet.Path)
 
-		if httpGet.HttpHeaders != nil {
+		if httpGet.HTTPHeaders != nil {
 			headers := make([]HttpHeader, 0)
-			for _, h := range *httpGet.HttpHeaders {
+			for _, h := range *httpGet.HTTPHeaders {
 				headers = append(headers, HttpHeader{
 					Name:  h.Name,
 					Value: h.Value,
@@ -1470,22 +1470,22 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
 		scheme := containerapps.Scheme(p)
-		result.HttpGet = &containerapps.ContainerAppProbeHttpGet{
+		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   utils.String(input.Host),
 			Path:   utils.String(input.Path),
 			Port:   int64(input.Port),
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
-			headers := make([]containerapps.ContainerAppProbeHttpGetHttpHeadersInlined, 0)
+			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
 
 			for _, h := range input.Headers {
-				headers = append(headers, containerapps.ContainerAppProbeHttpGetHttpHeadersInlined{
+				headers = append(headers, containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined{
 					Name:  h.Name,
 					Value: h.Value,
 				})
 			}
-			result.HttpGet.HttpHeaders = &headers
+			result.HTTPGet.HTTPHeaders = &headers
 		}
 
 	default:
@@ -1507,7 +1507,7 @@ func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []Co
 		TerminationGracePeriod: int(utils.NormaliseNilableInt64(input.TerminationGracePeriodSeconds)),
 	}
 
-	if httpGet := input.HttpGet; httpGet != nil {
+	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
 			probe.Transport = string(*httpGet.Scheme)
 		}
@@ -1515,9 +1515,9 @@ func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []Co
 		probe.Port = int(httpGet.Port)
 		probe.Path = utils.NormalizeNilableString(httpGet.Path)
 
-		if httpGet.HttpHeaders != nil {
+		if httpGet.HTTPHeaders != nil {
 			headers := make([]HttpHeader, 0)
-			for _, h := range *httpGet.HttpHeaders {
+			for _, h := range *httpGet.HTTPHeaders {
 				headers = append(headers, HttpHeader{
 					Name:  h.Name,
 					Value: h.Value,

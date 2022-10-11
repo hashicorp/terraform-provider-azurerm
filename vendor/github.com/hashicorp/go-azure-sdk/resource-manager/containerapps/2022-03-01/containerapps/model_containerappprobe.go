@@ -5,7 +5,7 @@ package containerapps
 
 type ContainerAppProbe struct {
 	FailureThreshold              *int64                      `json:"failureThreshold,omitempty"`
-	HttpGet                       *ContainerAppProbeHttpGet   `json:"httpGet,omitempty"`
+	HTTPGet                       *ContainerAppProbeHTTPGet   `json:"httpGet,omitempty"`
 	InitialDelaySeconds           *int64                      `json:"initialDelaySeconds,omitempty"`
 	PeriodSeconds                 *int64                      `json:"periodSeconds,omitempty"`
 	SuccessThreshold              *int64                      `json:"successThreshold,omitempty"`
