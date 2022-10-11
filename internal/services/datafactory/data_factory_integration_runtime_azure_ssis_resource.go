@@ -885,8 +885,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *da
 
 	var pricingTier, elasticPoolName string
 	if strings.HasPrefix(string(ssisProperties.CatalogPricingTier), "ELASTIC_POOL") {
-		re, _ := regexp.Compile(`(?:name=\")([^&%\\\/?]{0,127}[^\s.&%\\\/?])(?:\")`)
-		if result := re.FindStringSubmatch(string(ssisProperties.CatalogPricingTier)); len(result) > 1 {
+		if result := regexp.MustCompile(`(?:name=\")([^&%\\\/?]{0,127}[^\s.&%\\\/?])(?:\")`).FindStringSubmatch(string(ssisProperties.CatalogPricingTier)); len(result) > 1 {
 			elasticPoolName = result[1]
 		}
 	} else {
