@@ -57,16 +57,37 @@ func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	log.Printf("[INFO] preparing arguments for CDN FrontDoor Route <-> CDN FrontDoor Custom Domain Association creation")
 
-	cdId, err := customDomainNullable(d.Get("cdn_frontdoor_custom_domain_id").(string))
+	cdId, err := parse.FrontDoorCustomDomainIDInsensitively(d.Get("cdn_frontdoor_custom_domain_id").(string))
 	if err != nil {
 		return err
 	}
 
 	id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
 
+	existing, err := client.Get(ctx, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+	if err != nil {
+		if utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("creating %s: %s was not found", id, cdId)
+		}
+
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// make sure the routes exist and are valid for this custom domain...
+	routes, err := flattenRoutes(d, meta, cdId)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
+	d.Set("cdn_frontdoor_custom_domain_id", cdId.ID())
+	d.Set("cdn_frontdoor_route_ids", routes)
 
 	return resourceCdnFrontDoorCustomDomainAssociationRead(d, meta)
 }
@@ -76,40 +97,53 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := customDomainNullable(d.Get("cdn_frontdoor_custom_domain_id").(string))
+	id, err := parse.FrontDoorCustomDomainAssociationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	// id will be nil if you are deleting the resource
-	if id != nil {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
-		if err != nil {
-			if utils.ResponseWasNotFound(existing.Response) {
-				d.SetId("")
-				return fmt.Errorf("CDN FrontDoor Custom Domain(Resource Group: %q Name: %q) was not found", id.ResourceGroup, id.CustomDomainName)
-			}
-
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
 		}
 
-		// make sure the routes exist and are valid for this custom domain...
-		routes, err := flattenRoutes(d, meta, id)
-		if err != nil {
-			return err
-		}
-
-		d.Set("cdn_frontdoor_custom_domain_id", id.ID())
-		d.Set("cdn_frontdoor_route_ids", routes)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	// if this value has not changed there is nothing to do so just return
-	if !d.HasChange("cdn_frontdoor_route_ids") {
-		return nil
+	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	if d.HasChange("cdn_frontdoor_route_ids") {
+		cdId, err := parse.FrontDoorCustomDomainIDInsensitively(d.Get("cdn_frontdoor_custom_domain_id").(string))
+		if err != nil {
+			return err
+		}
+
+		id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+
+		existing, err := client.Get(ctx, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+		if err != nil {
+			if utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("updating %s: %s was not found", id, cdId)
+			}
+
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+
+		// make sure the routes exist and are valid for this custom domain...
+		routes, err := flattenRoutes(d, meta, cdId)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+
+		d.Set("cdn_frontdoor_route_ids", routes)
 	}
 
 	return resourceCdnFrontDoorCustomDomainAssociationRead(d, meta)
@@ -119,7 +153,16 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	// since you are deleting the resource you cannot grab the value from the config
 	// because it will be empty, you have to get it from the states old value...
 	oCdId, _ := d.GetChange("cdn_frontdoor_custom_domain_id")
-	id, _ := customDomainNullable(oCdId.(string))
+
+	cdId, err := parse.FrontDoorCustomDomainIDInsensitively(oCdId.(string))
+	if err != nil {
+		return err
+	}
+
+	id, err := parse.FrontDoorCustomDomainAssociationID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	oRids, _ := d.GetChange("cdn_frontdoor_route_ids")
 	oR := oRids.([]interface{})
@@ -130,27 +173,14 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	}
 
 	if len(*v) != 0 {
-		if err := removeCustomDomainAssociationFromRoutes(d, meta, v, id); err != nil {
-			return err
+		if err := removeCustomDomainAssociationFromRoutes(d, meta, v, cdId); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
 	d.SetId("")
 
 	return nil
-}
-
-func customDomainNullable(input string) (*parse.FrontDoorCustomDomainId, error) {
-	if len(input) == 0 || input == "" {
-		return nil, nil
-	}
-
-	v, err := parse.FrontDoorCustomDomainIDInsensitively(input)
-	if err != nil {
-		return nil, err
-	}
-
-	return v, nil
 }
 
 func flattenRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorCustomDomainId) ([]interface{}, error) {

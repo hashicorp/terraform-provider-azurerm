@@ -111,42 +111,6 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
 }
 ```
-
-## Daisy Chain Depends_On Example
-
-```hcl
-resource "azurerm_cdn_frontdoor_route" "first" {
-  name                          = "example-route-one"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
-  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
-  enabled                       = true
-}
-
-resource "azurerm_cdn_frontdoor_route" "second" {
-  depends_on = [azurerm_cdn_frontdoor_route.first]
-
-  name                          = "example-route-two"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
-  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
-  enabled                       = true
-}
-
-resource "azurerm_cdn_frontdoor_route" "third" {
-  depends_on = [azurerm_cdn_frontdoor_route.first, azurerm_cdn_frontdoor_route.second]
-
-  name                          = "example-route-three"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
-  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
-  enabled                       = true
-}
-```
-
 ## Arguments Reference
 
 The following arguments are supported:
