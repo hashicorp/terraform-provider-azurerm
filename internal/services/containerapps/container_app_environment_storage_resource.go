@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppEnvironmentStorageResource struct{}
@@ -130,13 +130,13 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 			accessMode := managedenvironmentsstorages.AccessMode(storage.AccessMode)
 
 			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{
-				Name: utils.String(id.StorageName),
+				Name: pointer.To(id.StorageName),
 				Properties: &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
-						AccountKey:  utils.String(storage.AccessKey),
-						AccountName: utils.String(storage.AccountName),
-						ShareName:   utils.String(storage.ShareName),
+						AccountKey:  pointer.To(storage.AccessKey),
+						AccountName: pointer.To(storage.AccountName),
+						ShareName:   pointer.To(storage.ShareName),
 					},
 				},
 			}
@@ -179,11 +179,11 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if azureFile := props.AzureFile; azureFile != nil {
-						state.AccountName = utils.NormalizeNilableString(azureFile.AccountName)
+						state.AccountName = pointer.From(azureFile.AccountName)
 						if azureFile.AccessMode != nil {
 							state.AccessMode = string(*azureFile.AccessMode)
 						}
-						state.ShareName = utils.NormalizeNilableString(azureFile.ShareName)
+						state.ShareName = pointer.From(azureFile.ShareName)
 					}
 				}
 			}
@@ -244,7 +244,7 @@ func (r ContainerAppEnvironmentStorageResource) Update() sdk.ResourceFunc {
 			}
 
 			// This *must* be sent, and is currently the only updatable property on the resource.
-			existing.Model.Properties.AzureFile.AccountKey = utils.String(metadata.ResourceData.Get("access_key").(string))
+			existing.Model.Properties.AzureFile.AccountKey = pointer.To(metadata.ResourceData.Get("access_key").(string))
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)

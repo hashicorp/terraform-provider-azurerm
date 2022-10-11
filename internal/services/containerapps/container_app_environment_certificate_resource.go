@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppEnvironmentCertificateResource struct{}
@@ -150,10 +150,10 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 
 			model := certificates.Certificate{
 				Location: env.Model.Location,
-				Name:     utils.String(id.CertificateName),
+				Name:     pointer.To(id.CertificateName),
 				Properties: &certificates.CertificateProperties{
-					Password: utils.String(cert.CertificatePassword),
-					Value:    utils.String(cert.CertificateBlob),
+					Password: pointer.To(cert.CertificatePassword),
+					Value:    pointer.To(cert.CertificateBlob),
 				},
 				Tags: tags.Expand(cert.Tags),
 			}
@@ -207,10 +207,10 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-					state.Issuer = utils.NormalizeNilableString(props.Issuer)
-					state.IssueDate = utils.NormalizeNilableString(props.IssueDate)
-					state.ExpirationDate = utils.NormalizeNilableString(props.ExpirationDate)
-					state.Thumbprint = utils.NormalizeNilableString(props.Thumbprint)
+					state.Issuer = pointer.From(props.Issuer)
+					state.IssueDate = pointer.From(props.IssueDate)
+					state.ExpirationDate = pointer.From(props.ExpirationDate)
+					state.Thumbprint = pointer.From(props.Thumbprint)
 				}
 			}
 

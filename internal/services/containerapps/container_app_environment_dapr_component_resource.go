@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppEnvironmentDaprComponentResource struct{}
@@ -144,13 +144,13 @@ func (r ContainerAppEnvironmentDaprComponentResource) Create() sdk.ResourceFunc 
 
 			daprComponentRequest := daprcomponents.DaprComponent{
 				Properties: &daprcomponents.DaprComponentProperties{
-					ComponentType: utils.String(daprComponent.Type),
-					IgnoreErrors:  utils.Bool(daprComponent.IgnoreErrors),
-					InitTimeout:   utils.String(daprComponent.InitTimeout),
+					ComponentType: pointer.To(daprComponent.Type),
+					IgnoreErrors:  pointer.To(daprComponent.IgnoreErrors),
+					InitTimeout:   pointer.To(daprComponent.InitTimeout),
 					Metadata:      expandDaprComponentPropertiesMetadata(daprComponent.Metadata),
 					Secrets:       helpers.ExpandDaprSecrets(daprComponent.Secrets),
 					Scopes:        expandDaprComponentPropertiesScopes(daprComponent.Scopes),
-					Version:       utils.String(daprComponent.Version),
+					Version:       pointer.To(daprComponent.Version),
 				},
 			}
 
@@ -193,11 +193,11 @@ func (r ContainerAppEnvironmentDaprComponentResource) Read() sdk.ResourceFunc {
 			state.Name = id.ComponentName
 			state.ManagedEnvironmentId = daprcomponents.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName).ID()
 			if props := model.Properties; props != nil {
-				state.Version = utils.NormalizeNilableString(props.Version)
-				state.Type = utils.NormalizeNilableString(props.ComponentType)
+				state.Version = pointer.From(props.Version)
+				state.Type = pointer.From(props.ComponentType)
 				state.Scopes = scopesPtr(props.Scopes)
-				state.InitTimeout = utils.NormalizeNilableString(props.InitTimeout)
-				state.IgnoreErrors = utils.NormaliseNilableBool(props.IgnoreErrors)
+				state.InitTimeout = pointer.From(props.InitTimeout)
+				state.IgnoreErrors = pointer.From(props.IgnoreErrors)
 				state.Metadata = flattenDaprComponentPropertiesMetadata(props.Metadata)
 			}
 
@@ -265,15 +265,15 @@ func (r ContainerAppEnvironmentDaprComponentResource) Update() sdk.ResourceFunc 
 			existing.Model.Properties.Secrets = helpers.UnpackContainerDaprSecretsCollection(secretsResp.Model)
 
 			if metadata.ResourceData.HasChange("version") {
-				existing.Model.Properties.Version = utils.String(state.Version)
+				existing.Model.Properties.Version = pointer.To(state.Version)
 			}
 
 			if metadata.ResourceData.HasChange("init_timeout") {
-				existing.Model.Properties.InitTimeout = utils.String(state.InitTimeout)
+				existing.Model.Properties.InitTimeout = pointer.To(state.InitTimeout)
 			}
 
 			if metadata.ResourceData.HasChange("ignore_errors") {
-				existing.Model.Properties.IgnoreErrors = utils.Bool(state.IgnoreErrors)
+				existing.Model.Properties.IgnoreErrors = pointer.To(state.IgnoreErrors)
 			}
 
 			if metadata.ResourceData.HasChange("secret") {
@@ -306,13 +306,13 @@ func expandDaprComponentPropertiesMetadata(input []helpers.DaprMetadata) *[]dapr
 
 	for _, v := range input {
 		d := daprcomponents.DaprMetadata{
-			Name: utils.String(v.Name),
+			Name: pointer.To(v.Name),
 		}
 		if v.Value != "" {
-			d.Value = utils.String(v.Value)
+			d.Value = pointer.To(v.Value)
 		}
 		if v.SecretRef != "" {
-			d.SecretRef = utils.String(v.SecretRef)
+			d.SecretRef = pointer.To(v.SecretRef)
 		}
 		result = append(result, d)
 	}
@@ -328,9 +328,9 @@ func flattenDaprComponentPropertiesMetadata(input *[]daprcomponents.DaprMetadata
 	result := make([]helpers.DaprMetadata, 0)
 	for _, v := range *input {
 		result = append(result, helpers.DaprMetadata{
-			Name:      utils.NormalizeNilableString(v.Name),
-			SecretRef: utils.NormalizeNilableString(v.SecretRef),
-			Value:     utils.NormalizeNilableString(v.Value),
+			Name:      pointer.From(v.Name),
+			SecretRef: pointer.From(v.SecretRef),
+			Value:     pointer.From(v.Value),
 		})
 	}
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppResource struct{}
@@ -179,7 +179,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 
 			containerApp := containerapps.ContainerApp{
-				Name:     utils.String(app.Name),
+				Name:     pointer.To(app.Name),
 				Location: env.Model.Location,
 				Properties: &containerapps.ContainerAppProperties{
 					Configuration: &containerapps.Configuration{
@@ -188,7 +188,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 						Secrets:    helpers.ExpandContainerSecrets(app.Secrets),
 						Registries: helpers.ExpandContainerAppRegistries(app.Registries),
 					},
-					ManagedEnvironmentId: utils.String(app.ManagedEnvironmentId),
+					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
 				},
 				// Identity: &app.Identity,
@@ -239,7 +239,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 				// state.Identity = []identity.LegacySystemAndUserAssignedMap{*model.Identity}
 
 				if props := model.Properties; props != nil {
-					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(utils.NormalizeNilableString(props.ManagedEnvironmentId))
+					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(pointer.From(props.ManagedEnvironmentId))
 					if err != nil {
 						return err
 					}
@@ -253,9 +253,9 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 						state.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
 					}
-					state.LatestRevisionName = utils.NormalizeNilableString(props.LatestRevisionName)
-					state.LatestRevisionFqdn = utils.NormalizeNilableString(props.LatestRevisionFqdn)
-					state.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationId)
+					state.LatestRevisionName = pointer.From(props.LatestRevisionName)
+					state.LatestRevisionFqdn = pointer.From(props.LatestRevisionFqdn)
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.OutboundIpAddresses = *props.OutboundIPAddresses
 				}
 				// state.Identity = *model.Identity

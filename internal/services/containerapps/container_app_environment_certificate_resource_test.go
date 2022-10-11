@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppEnvironmentCertificateResource struct{}
@@ -60,15 +60,15 @@ func (r ContainerAppEnvironmentCertificateResource) Exists(ctx context.Context, 
 	resp, err := client.ContainerApps.CertificatesClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ContainerAppEnvironmentCertificateResource) basic(data acceptance.TestData) string {

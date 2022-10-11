@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type Registry struct {
@@ -59,9 +59,9 @@ func ExpandContainerAppRegistries(input []Registry) *[]containerapps.RegistryCre
 	registries := make([]containerapps.RegistryCredentials, 0)
 	for _, v := range input {
 		registries = append(registries, containerapps.RegistryCredentials{
-			Server:            utils.String(v.Server),
-			Username:          utils.String(v.UserName),
-			PasswordSecretRef: utils.String(v.PasswordSecretRef),
+			Server:            pointer.To(v.Server),
+			Username:          pointer.To(v.UserName),
+			PasswordSecretRef: pointer.To(v.PasswordSecretRef),
 		})
 	}
 
@@ -76,9 +76,9 @@ func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) [
 	result := make([]Registry, 0)
 	for _, v := range *input {
 		result = append(result, Registry{
-			PasswordSecretRef: utils.NormalizeNilableString(v.PasswordSecretRef),
-			Server:            utils.NormalizeNilableString(v.Server),
-			UserName:          utils.NormalizeNilableString(v.Username),
+			PasswordSecretRef: pointer.From(v.PasswordSecretRef),
+			Server:            pointer.From(v.Server),
+			UserName:          pointer.From(v.Username),
 		})
 	}
 
@@ -159,11 +159,11 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 
 	ingress := input[0]
 	result := &containerapps.Ingress{
-		AllowInsecure: utils.Bool(ingress.AllowInsecure),
+		AllowInsecure: pointer.To(ingress.AllowInsecure),
 		CustomDomains: expandContainerAppIngressCustomDomain(ingress.CustomDomains),
-		External:      utils.Bool(ingress.IsExternal),
-		Fqdn:          utils.String(ingress.FQDN),
-		TargetPort:    utils.Int64(int64(ingress.TargetPort)),
+		External:      pointer.To(ingress.IsExternal),
+		Fqdn:          pointer.To(ingress.FQDN),
+		TargetPort:    pointer.To(int64(ingress.TargetPort)),
 		Traffic:       expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
@@ -179,11 +179,11 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	ingress := *input
 	result := Ingress{
-		AllowInsecure:  utils.NormaliseNilableBool(ingress.AllowInsecure),
+		AllowInsecure:  pointer.From(ingress.AllowInsecure),
 		CustomDomains:  flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
-		IsExternal:     utils.NormaliseNilableBool(ingress.External),
-		FQDN:           utils.NormalizeNilableString(ingress.Fqdn),
-		TargetPort:     int(utils.NormaliseNilableInt64(ingress.TargetPort)),
+		IsExternal:     pointer.From(ingress.External),
+		FQDN:           pointer.From(ingress.Fqdn),
+		TargetPort:     int(pointer.From(ingress.TargetPort)),
 		TrafficWeights: flattenContainerAppIngressTraffic(ingress.Traffic, appName),
 	}
 
@@ -295,17 +295,17 @@ func expandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]
 
 	for _, v := range input {
 		traffic := containerapps.TrafficWeight{
-			LatestRevision: utils.Bool(v.LatestRevision),
-			Weight:         utils.Int64(int64(v.Weight)),
+			LatestRevision: pointer.To(v.LatestRevision),
+			Weight:         pointer.To(int64(v.Weight)),
 		}
 
 		if !v.LatestRevision {
-			traffic.RevisionName = utils.String(fmt.Sprintf("%s--%s", appName, v.RevisionSuffix))
-			// traffic.RevisionName = utils.String(v.RevisionName)
+			traffic.RevisionName = pointer.To(fmt.Sprintf("%s--%s", appName, v.RevisionSuffix))
+			// traffic.RevisionName = pointer.To(v.RevisionName)
 		}
 
 		if v.Label != "" {
-			traffic.Label = utils.String(v.Label)
+			traffic.Label = pointer.To(v.Label)
 		}
 
 		result = append(result, traffic)
@@ -323,10 +323,10 @@ func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, app
 	for _, v := range *input {
 		prefix := fmt.Sprintf("%s--", appName)
 		result = append(result, TrafficWeight{
-			Label:          utils.NormalizeNilableString(v.Label),
-			LatestRevision: utils.NormaliseNilableBool(v.LatestRevision),
-			RevisionSuffix: strings.TrimPrefix(utils.NormalizeNilableString(v.RevisionName), prefix),
-			Weight:         int(utils.NormaliseNilableInt64(v.Weight)),
+			Label:          pointer.From(v.Label),
+			LatestRevision: pointer.From(v.LatestRevision),
+			RevisionSuffix: strings.TrimPrefix(pointer.From(v.RevisionName), prefix),
+			Weight:         int(pointer.From(v.Weight)),
 		})
 	}
 
@@ -381,17 +381,17 @@ func ExpandContainerAppDapr(input []Dapr) *containerapps.Dapr {
 	dapr := input[0]
 	if dapr.AppId == "" {
 		return &containerapps.Dapr{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		}
 	}
 
 	appProtocol := containerapps.AppProtocol(dapr.AppProtocol)
 
 	return &containerapps.Dapr{
-		AppId:       utils.String(dapr.AppId),
-		AppPort:     utils.Int64(int64(dapr.AppPort)),
+		AppId:       pointer.To(dapr.AppId),
+		AppPort:     pointer.To(int64(dapr.AppPort)),
 		AppProtocol: &appProtocol,
-		Enabled:     utils.Bool(true),
+		Enabled:     pointer.To(true),
 	}
 }
 
@@ -401,8 +401,8 @@ func FlattenContainerAppDapr(input *containerapps.Dapr) []Dapr {
 	}
 
 	result := Dapr{
-		AppId:   utils.NormalizeNilableString(input.AppId),
-		AppPort: int(utils.NormaliseNilableInt64(input.AppPort)),
+		AppId:   pointer.From(input.AppId),
+		AppPort: int(pointer.From(input.AppPort)),
 	}
 	if appProtocol := input.AppProtocol; appProtocol != nil {
 		result.AppProtocol = string(*appProtocol)
@@ -536,19 +536,19 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
-		template.Scale.MaxReplicas = utils.Int64(int64(config.MaxReplicas))
+		template.Scale.MaxReplicas = pointer.To(int64(config.MaxReplicas))
 	}
 
 	if config.MinReplicas != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
-		template.Scale.MinReplicas = utils.Int64(int64(config.MinReplicas))
+		template.Scale.MinReplicas = pointer.To(int64(config.MinReplicas))
 	}
 
 	if config.Suffix != "" {
 		if metadata.ResourceData.HasChange("template.0.revision_suffix") {
-			template.RevisionSuffix = utils.String(config.Suffix)
+			template.RevisionSuffix = pointer.To(config.Suffix)
 		}
 	}
 
@@ -558,13 +558,13 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTemplate {
 	result := ContainerTemplate{
 		Containers: flattenContainerAppContainers(input.Containers),
-		Suffix:     utils.NormalizeNilableString(input.RevisionSuffix),
+		Suffix:     pointer.From(input.RevisionSuffix),
 		Volumes:    flattenContainerAppVolumes(input.Volumes),
 	}
 
 	if scale := input.Scale; scale != nil {
-		result.MaxReplicas = int(utils.NormaliseNilableInt64(scale.MaxReplicas))
-		result.MinReplicas = int(utils.NormaliseNilableInt64(scale.MinReplicas))
+		result.MaxReplicas = int(pointer.From(scale.MaxReplicas))
+		result.MinReplicas = int(pointer.From(scale.MinReplicas))
 	}
 
 	return []ContainerTemplate{result}
@@ -678,13 +678,13 @@ func expandContainerAppContainers(input []Container) *[]containerapps.Container 
 	for _, v := range input {
 		container := containerapps.Container{
 			Env:    expandContainerEnvVar(v),
-			Image:  utils.String(v.Image),
-			Name:   utils.String(v.Name),
+			Image:  pointer.To(v.Image),
+			Name:   pointer.To(v.Name),
 			Probes: expandContainerProbes(v),
 			Resources: &containerapps.ContainerResources{
-				Cpu:              utils.Float(v.CPU),
-				EphemeralStorage: utils.String(v.EphemeralStorage),
-				Memory:           utils.String(v.Memory),
+				Cpu:              pointer.To(v.CPU),
+				EphemeralStorage: pointer.To(v.EphemeralStorage),
+				Memory:           pointer.To(v.Memory),
 			},
 			VolumeMounts: expandContainerVolumeMounts(v.VolumeMounts),
 		}
@@ -708,8 +708,8 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 	result := make([]Container, 0)
 	for _, v := range *input {
 		container := Container{
-			Name:         utils.NormalizeNilableString(v.Name),
-			Image:        utils.NormalizeNilableString(v.Image),
+			Name:         pointer.From(v.Name),
+			Image:        pointer.From(v.Image),
 			Env:          flattenContainerEnvVar(v.Env),
 			VolumeMounts: flattenContainerVolumeMounts(v.VolumeMounts),
 		}
@@ -735,9 +735,9 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 		}
 
 		if resources := v.Resources; resources != nil {
-			container.CPU = utils.NormaliseNilableFloat64(resources.Cpu)
-			container.Memory = utils.NormalizeNilableString(resources.Memory)
-			container.EphemeralStorage = utils.NormalizeNilableString(resources.EphemeralStorage)
+			container.CPU = pointer.From(resources.Cpu)
+			container.Memory = pointer.From(resources.Memory)
+			container.EphemeralStorage = pointer.From(resources.EphemeralStorage)
 		}
 
 		result = append(result, container)
@@ -796,8 +796,8 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 
 	for _, v := range input {
 		volume := containerapps.Volume{
-			Name:        utils.String(v.Name),
-			StorageName: utils.String(v.StorageName),
+			Name:        pointer.To(v.Name),
+			StorageName: pointer.To(v.StorageName),
 		}
 		if v.StorageType != "" {
 			storageType := containerapps.StorageType(v.StorageType)
@@ -817,8 +817,8 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 	result := make([]ContainerVolume, 0)
 	for _, v := range *input {
 		containerVolume := ContainerVolume{
-			Name:        utils.NormalizeNilableString(v.Name),
-			StorageName: utils.NormalizeNilableString(v.StorageName),
+			Name:        pointer.From(v.Name),
+			StorageName: pointer.From(v.StorageName),
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
@@ -867,8 +867,8 @@ func expandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.
 	volumeMounts := make([]containerapps.VolumeMount, 0)
 	for _, v := range input {
 		volumeMounts = append(volumeMounts, containerapps.VolumeMount{
-			MountPath:  utils.String(v.Path),
-			VolumeName: utils.String(v.Name),
+			MountPath:  pointer.To(v.Path),
+			VolumeName: pointer.To(v.Name),
 		})
 	}
 
@@ -883,8 +883,8 @@ func flattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []Containe
 	result := make([]ContainerVolumeMount, 0)
 	for _, v := range *input {
 		result = append(result, ContainerVolumeMount{
-			Name: utils.NormalizeNilableString(v.VolumeName),
-			Path: utils.NormalizeNilableString(v.MountPath),
+			Name: pointer.From(v.VolumeName),
+			Path: pointer.From(v.MountPath),
 		})
 	}
 
@@ -935,12 +935,12 @@ func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
 
 	for _, v := range input.Env {
 		env := containerapps.EnvironmentVar{
-			Name: utils.String(v.Name),
+			Name: pointer.To(v.Name),
 		}
 		if v.SecretReference != "" {
-			env.SecretRef = utils.String(v.SecretReference)
+			env.SecretRef = pointer.To(v.SecretReference)
 		} else {
-			env.Value = utils.String(v.Value)
+			env.Value = pointer.To(v.Value)
 		}
 
 		envs = append(envs, env)
@@ -958,9 +958,9 @@ func flattenContainerEnvVar(input *[]containerapps.EnvironmentVar) []ContainerEn
 
 	for _, v := range *input {
 		result = append(result, ContainerEnvVar{
-			Name:            utils.NormalizeNilableString(v.Name),
-			SecretReference: utils.NormalizeNilableString(v.SecretRef),
-			Value:           utils.NormalizeNilableString(v.Value),
+			Name:            pointer.From(v.Name),
+			SecretReference: pointer.From(v.SecretRef),
+			Value:           pointer.From(v.Value),
 		})
 	}
 
@@ -1079,18 +1079,18 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 	probeType := containerapps.TypeReadiness
 	result := containerapps.ContainerAppProbe{
 		Type:             &probeType,
-		PeriodSeconds:    utils.Int64(int64(input.Interval)),
-		TimeoutSeconds:   utils.Int64(int64(input.Timeout)),
-		FailureThreshold: utils.Int64(int64(input.FailureThreshold)),
-		SuccessThreshold: utils.Int64(int64(input.SuccessThreshold)),
+		PeriodSeconds:    pointer.To(int64(input.Interval)),
+		TimeoutSeconds:   pointer.To(int64(input.Timeout)),
+		FailureThreshold: pointer.To(int64(input.FailureThreshold)),
+		SuccessThreshold: pointer.To(int64(input.SuccessThreshold)),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
 		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
-			Host:   utils.String(input.Host),
-			Path:   utils.String(input.Path),
+			Host:   pointer.To(input.Host),
+			Path:   pointer.To(input.Path),
 			Port:   int64(input.Port),
 			Scheme: &scheme,
 		}
@@ -1108,7 +1108,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
-			Host: utils.String(input.Host),
+			Host: pointer.To(input.Host),
 			Port: int64(input.Port),
 		}
 	}
@@ -1119,19 +1119,19 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
-		Interval:         int(utils.NormaliseNilableInt64(input.PeriodSeconds)),
-		Timeout:          int(utils.NormaliseNilableInt64(input.TimeoutSeconds)),
-		FailureThreshold: int(utils.NormaliseNilableInt64(input.FailureThreshold)),
-		SuccessThreshold: int(utils.NormaliseNilableInt64(input.SuccessThreshold)),
+		Interval:         int(pointer.From(input.PeriodSeconds)),
+		Timeout:          int(pointer.From(input.TimeoutSeconds)),
+		FailureThreshold: int(pointer.From(input.FailureThreshold)),
+		SuccessThreshold: int(pointer.From(input.SuccessThreshold)),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
 			probe.Transport = string(*httpGet.Scheme)
 		}
-		probe.Host = utils.NormalizeNilableString(httpGet.Host)
+		probe.Host = pointer.From(httpGet.Host)
 		probe.Port = int(httpGet.Port)
-		probe.Path = utils.NormalizeNilableString(httpGet.Path)
+		probe.Path = pointer.From(httpGet.Path)
 
 		if httpGet.HTTPHeaders != nil {
 			headers := make([]HttpHeader, 0)
@@ -1147,7 +1147,7 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
 		probe.Transport = "tcp"
-		probe.Host = utils.NormalizeNilableString(tcpSocket.Host)
+		probe.Host = pointer.From(tcpSocket.Host)
 		probe.Port = int(tcpSocket.Port)
 	}
 
@@ -1275,18 +1275,18 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 	probeType := containerapps.TypeLiveness
 	result := containerapps.ContainerAppProbe{
 		Type:                &probeType,
-		InitialDelaySeconds: utils.Int64(int64(input.InitialDelay)),
-		PeriodSeconds:       utils.Int64(int64(input.Interval)),
-		TimeoutSeconds:      utils.Int64(int64(input.Timeout)),
-		FailureThreshold:    utils.Int64(int64(input.FailureThreshold)),
+		InitialDelaySeconds: pointer.To(int64(input.InitialDelay)),
+		PeriodSeconds:       pointer.To(int64(input.Interval)),
+		TimeoutSeconds:      pointer.To(int64(input.Timeout)),
+		FailureThreshold:    pointer.To(int64(input.FailureThreshold)),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
 		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
-			Host:   utils.String(input.Host),
-			Path:   utils.String(input.Path),
+			Host:   pointer.To(input.Host),
+			Path:   pointer.To(input.Path),
 			Port:   int64(input.Port),
 			Scheme: &scheme,
 		}
@@ -1304,7 +1304,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
-			Host: utils.String(input.Host),
+			Host: pointer.To(input.Host),
 			Port: int64(input.Port),
 		}
 	}
@@ -1315,19 +1315,19 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
-		InitialDelay:           int(utils.NormaliseNilableInt64(input.InitialDelaySeconds)),
-		Interval:               int(utils.NormaliseNilableInt64(input.PeriodSeconds)),
-		Timeout:                int(utils.NormaliseNilableInt64(input.TimeoutSeconds)),
-		FailureThreshold:       int(utils.NormaliseNilableInt64(input.FailureThreshold)),
-		TerminationGracePeriod: int(utils.NormaliseNilableInt64(input.TerminationGracePeriodSeconds)),
+		InitialDelay:           int(pointer.From(input.InitialDelaySeconds)),
+		Interval:               int(pointer.From(input.PeriodSeconds)),
+		Timeout:                int(pointer.From(input.TimeoutSeconds)),
+		FailureThreshold:       int(pointer.From(input.FailureThreshold)),
+		TerminationGracePeriod: int(pointer.From(input.TerminationGracePeriodSeconds)),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
 			probe.Transport = string(*httpGet.Scheme)
 		}
-		probe.Host = utils.NormalizeNilableString(httpGet.Host)
+		probe.Host = pointer.From(httpGet.Host)
 		probe.Port = int(httpGet.Port)
-		probe.Path = utils.NormalizeNilableString(httpGet.Path)
+		probe.Path = pointer.From(httpGet.Path)
 
 		if httpGet.HTTPHeaders != nil {
 			headers := make([]HttpHeader, 0)
@@ -1343,7 +1343,7 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
 		probe.Transport = "tcp"
-		probe.Host = utils.NormalizeNilableString(tcpSocket.Host)
+		probe.Host = pointer.From(tcpSocket.Host)
 		probe.Port = int(tcpSocket.Port)
 	}
 
@@ -1462,17 +1462,17 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 	probeType := containerapps.TypeStartup
 	result := containerapps.ContainerAppProbe{
 		Type:             &probeType,
-		PeriodSeconds:    utils.Int64(int64(input.Interval)),
-		TimeoutSeconds:   utils.Int64(int64(input.Timeout)),
-		FailureThreshold: utils.Int64(int64(input.FailureThreshold)),
+		PeriodSeconds:    pointer.To(int64(input.Interval)),
+		TimeoutSeconds:   pointer.To(int64(input.Timeout)),
+		FailureThreshold: pointer.To(int64(input.FailureThreshold)),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
 		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
-			Host:   utils.String(input.Host),
-			Path:   utils.String(input.Path),
+			Host:   pointer.To(input.Host),
+			Path:   pointer.To(input.Path),
 			Port:   int64(input.Port),
 			Scheme: &scheme,
 		}
@@ -1490,7 +1490,7 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
-			Host: utils.String(input.Host),
+			Host: pointer.To(input.Host),
 			Port: int64(input.Port),
 		}
 	}
@@ -1501,19 +1501,19 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
-		Interval:               int(utils.NormaliseNilableInt64(input.PeriodSeconds)),
-		Timeout:                int(utils.NormaliseNilableInt64(input.TimeoutSeconds)),
-		FailureThreshold:       int(utils.NormaliseNilableInt64(input.FailureThreshold)),
-		TerminationGracePeriod: int(utils.NormaliseNilableInt64(input.TerminationGracePeriodSeconds)),
+		Interval:               int(pointer.From(input.PeriodSeconds)),
+		Timeout:                int(pointer.From(input.TimeoutSeconds)),
+		FailureThreshold:       int(pointer.From(input.FailureThreshold)),
+		TerminationGracePeriod: int(pointer.From(input.TerminationGracePeriodSeconds)),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
 			probe.Transport = string(*httpGet.Scheme)
 		}
-		probe.Host = utils.NormalizeNilableString(httpGet.Host)
+		probe.Host = pointer.From(httpGet.Host)
 		probe.Port = int(httpGet.Port)
-		probe.Path = utils.NormalizeNilableString(httpGet.Path)
+		probe.Path = pointer.From(httpGet.Path)
 
 		if httpGet.HTTPHeaders != nil {
 			headers := make([]HttpHeader, 0)
@@ -1529,7 +1529,7 @@ func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []Co
 
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
 		probe.Transport = "tcp"
-		probe.Host = utils.NormalizeNilableString(tcpSocket.Host)
+		probe.Host = pointer.From(tcpSocket.Host)
 		probe.Port = int(tcpSocket.Port)
 	}
 
@@ -1626,8 +1626,8 @@ func ExpandContainerSecrets(input []Secret) *[]containerapps.Secret {
 
 	for _, v := range input {
 		result = append(result, containerapps.Secret{
-			Name:  utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Name:  pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		})
 	}
 
@@ -1642,8 +1642,8 @@ func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapp
 		for _, secret := range secrets {
 			if v, ok := secret.(map[string]interface{}); ok {
 				result = append(result, containerapps.Secret{
-					Name:  utils.String(v["name"].(string)),
-					Value: utils.String(v["value"].(string)),
+					Name:  pointer.To(v["name"].(string)),
+					Value: pointer.To(v["value"].(string)),
 				})
 			}
 		}
@@ -1693,8 +1693,8 @@ func ExpandDaprSecrets(input []Secret) *[]daprcomponents.Secret {
 
 	for _, v := range input {
 		result = append(result, daprcomponents.Secret{
-			Name:  utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Name:  pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		})
 	}
 
@@ -1729,8 +1729,8 @@ func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
 		result = append(result, Secret{
-			Name:  utils.NormalizeNilableString(v.Name),
-			Value: utils.NormalizeNilableString(v.Value),
+			Name:  pointer.From(v.Name),
+			Value: pointer.From(v.Value),
 		})
 	}
 
@@ -1744,8 +1744,8 @@ func FlattenContainerAppDaprSecrets(input *daprcomponents.DaprSecretsCollection)
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
 		result = append(result, Secret{
-			Name:  utils.NormalizeNilableString(v.Name),
-			Value: utils.NormalizeNilableString(v.Value),
+			Name:  pointer.From(v.Name),
+			Value: pointer.From(v.Value),
 		})
 	}
 

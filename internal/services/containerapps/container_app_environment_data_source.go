@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppEnvironmentDataSource struct{}
@@ -195,20 +195,20 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					if vnet := props.VnetConfiguration; vnet != nil {
-						environment.ControlPlaneSubnetId = utils.NormalizeNilableString(vnet.InfrastructureSubnetId)
-						environment.AppsSubnetId = utils.NormalizeNilableString(vnet.RuntimeSubnetId)
-						environment.InternalLoadBalancerEnabled = utils.NormaliseNilableBool(vnet.Internal)
-						environment.DockerBridgeCidr = utils.NormalizeNilableString(vnet.DockerBridgeCidr)
-						environment.PlatformReservedCidr = utils.NormalizeNilableString(vnet.PlatformReservedCidr)
-						environment.PlatformReservedDnsIP = utils.NormalizeNilableString(vnet.PlatformReservedDnsIP)
+						environment.ControlPlaneSubnetId = pointer.From(vnet.InfrastructureSubnetId)
+						environment.AppsSubnetId = pointer.From(vnet.RuntimeSubnetId)
+						environment.InternalLoadBalancerEnabled = pointer.From(vnet.Internal)
+						environment.DockerBridgeCidr = pointer.From(vnet.DockerBridgeCidr)
+						environment.PlatformReservedCidr = pointer.From(vnet.PlatformReservedCidr)
+						environment.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
 					}
 
 					if appsLogs := props.AppLogsConfiguration; appsLogs != nil && appsLogs.LogAnalyticsConfiguration != nil {
-						environment.LogAnalyticsWorkspaceName = utils.NormalizeNilableString(appsLogs.LogAnalyticsConfiguration.CustomerId)
+						environment.LogAnalyticsWorkspaceName = pointer.From(appsLogs.LogAnalyticsConfiguration.CustomerId)
 					}
 
-					environment.StaticIP = utils.NormalizeNilableString(props.StaticIP)
-					environment.DefaultDomain = utils.NormalizeNilableString(props.DefaultDomain)
+					environment.StaticIP = pointer.From(props.StaticIP)
+					environment.DefaultDomain = pointer.From(props.DefaultDomain)
 				}
 
 				if sysData := model.SystemData; sysData != nil {

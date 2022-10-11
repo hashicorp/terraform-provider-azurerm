@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -15,7 +16,6 @@ import (
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppEnvironmentResource struct{}
@@ -223,10 +223,10 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 
 			managedEnvironment := managedenvironments.ManagedEnvironment{
 				Location: containerAppEnvironment.Location,
-				Name:     utils.String(containerAppEnvironment.Name),
+				Name:     pointer.To(containerAppEnvironment.Name),
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
 					AppLogsConfiguration: &managedenvironments.AppLogsConfiguration{
-						Destination: utils.String("log-analytics"),
+						Destination: pointer.To("log-analytics"),
 						LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
 							CustomerId: workspace.Model.Properties.CustomerId,
 							SharedKey:  keys.Model.PrimarySharedKey,
@@ -238,8 +238,8 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			if containerAppEnvironment.InfrastructureSubnetId != "" {
-				managedEnvironment.Properties.VnetConfiguration.InfrastructureSubnetId = utils.String(containerAppEnvironment.InfrastructureSubnetId)
-				managedEnvironment.Properties.VnetConfiguration.Internal = utils.Bool(containerAppEnvironment.InternalLoadBalancerEnabled)
+				managedEnvironment.Properties.VnetConfiguration.InfrastructureSubnetId = pointer.To(containerAppEnvironment.InfrastructureSubnetId)
+				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
@@ -280,15 +280,15 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					if vnet := props.VnetConfiguration; vnet != nil {
-						state.InfrastructureSubnetId = utils.NormalizeNilableString(vnet.InfrastructureSubnetId)
-						state.InternalLoadBalancerEnabled = utils.NormaliseNilableBool(vnet.Internal)
-						state.DockerBridgeCidr = utils.NormalizeNilableString(vnet.DockerBridgeCidr)
-						state.PlatformReservedCidr = utils.NormalizeNilableString(vnet.PlatformReservedCidr)
-						state.PlatformReservedDnsIP = utils.NormalizeNilableString(vnet.PlatformReservedDnsIP)
+						state.InfrastructureSubnetId = pointer.From(vnet.InfrastructureSubnetId)
+						state.InternalLoadBalancerEnabled = pointer.From(vnet.Internal)
+						state.DockerBridgeCidr = pointer.From(vnet.DockerBridgeCidr)
+						state.PlatformReservedCidr = pointer.From(vnet.PlatformReservedCidr)
+						state.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
 					}
 
-					state.StaticIP = utils.NormalizeNilableString(props.StaticIP)
-					state.DefaultDomain = utils.NormalizeNilableString(props.DefaultDomain)
+					state.StaticIP = pointer.From(props.StaticIP)
+					state.DefaultDomain = pointer.From(props.DefaultDomain)
 				}
 
 				if sysData := model.SystemData; sysData != nil {

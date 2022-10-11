@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppEnvironmentDaprComponentDataSource struct{}
@@ -130,11 +130,11 @@ func (r ContainerAppEnvironmentDaprComponentDataSource) Read() sdk.ResourceFunc 
 			daprComponent.Name = id.ComponentName
 			daprComponent.ManagedEnvironmentId = envId.ID()
 			if props := model.Properties; props != nil {
-				daprComponent.Version = utils.NormalizeNilableString(props.Version)
-				daprComponent.Type = utils.NormalizeNilableString(props.ComponentType)
+				daprComponent.Version = pointer.From(props.Version)
+				daprComponent.Type = pointer.From(props.ComponentType)
 				daprComponent.Scopes = scopesPtr(props.Scopes)
-				daprComponent.InitTimeout = utils.NormalizeNilableString(props.InitTimeout)
-				daprComponent.IgnoreErrors = utils.NormaliseNilableBool(props.IgnoreErrors)
+				daprComponent.InitTimeout = pointer.From(props.InitTimeout)
+				daprComponent.IgnoreErrors = pointer.From(props.IgnoreErrors)
 				daprComponent.Metadata = flattenDaprComponentPropertiesMetadata(props.Metadata)
 			}
 
