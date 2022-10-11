@@ -224,10 +224,15 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
   name                = "acctest-hsm-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "SafeNet Luna Network HSM A790"
+  sku_name            = "payShield10K_LMK1_CPS60"
 
   network_profile {
     network_interface_private_ip_addresses = ["10.2.1.8"]
+    subnet_id                              = azurerm_subnet.test2.id
+  }
+
+  management_network_profile {
+    network_interface_private_ip_addresses = ["10.2.1.9"]
     subnet_id                              = azurerm_subnet.test2.id
   }
 
