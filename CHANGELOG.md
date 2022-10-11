@@ -1,9 +1,14 @@
 ## 3.27.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_log_analytics_cluster` - ensuring that the `identity` block is always set [GH-18700]
+
 BUG FIXES: 
 
 * `azurerm_kubernetes_cluster` - `orchestrator_version` is set properly for clusters created with an older API version [GH-18130]
 * `azurerm_kubernetes_cluster_node_pool` - `orchestrator_version` is set properly for node pools created with an older API version [GH-18130]
+* `azurerm_log_analytics_cluster` - fixing an issue when checking for the presence of an existing Log Analytics Cluster [GH-18700]
 * `azurerm_logic_app_workflow` - can now be updated when associated with `integration_service_environment_id` [GH-18660]
 
 ## 3.26.0 (October 06, 2022)
