@@ -2,7 +2,6 @@ package kusto
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"log"
 	"strings"
 	"time"
@@ -625,7 +624,7 @@ func expandClusterIdentity(input []interface{}) (*identity.SystemAndUserAssigned
 	return &out, nil
 }
 
-func flattenClusterIdentity(input *kusto.Identity) (*[]interface{}, error) {
+func flattenClusterIdentity(input *clusters.Identity) (*[]interface{}, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
