@@ -2,7 +2,9 @@ package datafactory
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -10,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
+	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -229,6 +231,11 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 								"BC_Gen5_2", "BC_Gen5_4", "BC_Gen5_6", "BC_Gen5_8", "BC_Gen5_10", "BC_Gen5_12", "BC_Gen5_14", "BC_Gen5_16", "BC_Gen5_18", "BC_Gen5_20", "BC_Gen5_24", "BC_Gen5_32", "BC_Gen5_40", "BC_Gen5_80",
 								"HS_Gen5_2", "HS_Gen5_4", "HS_Gen5_6", "HS_Gen5_8", "HS_Gen5_10", "HS_Gen5_12", "HS_Gen5_14", "HS_Gen5_16", "HS_Gen5_18", "HS_Gen5_20", "HS_Gen5_24", "HS_Gen5_32", "HS_Gen5_40", "HS_Gen5_80",
 							}, false),
+						},
+						"elastic_pool_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: sqlValidate.ValidateMsSqlElasticPoolName,
 						},
 						"dual_standby_pair_name": {
 							Type:         pluginsdk.TypeString,
@@ -638,9 +645,16 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
 		catalogInfo := catalogInfos.([]interface{})[0].(map[string]interface{})
 
+		var pricingTier datafactory.IntegrationRuntimeSsisCatalogPricingTier
+		if elasticPoolName := catalogInfo["elastic_pool_name"]; elasticPoolName != nil && elasticPoolName.(string) != "" {
+			pricingTier = datafactory.IntegrationRuntimeSsisCatalogPricingTier(expandDataFactoryIntegrationRuntimeElasticPool(elasticPoolName.(string)))
+		} else {
+			pricingTier = datafactory.IntegrationRuntimeSsisCatalogPricingTier(catalogInfo["pricing_tier"].(string))
+		}
+
 		ssisProperties.CatalogInfo = &datafactory.IntegrationRuntimeSsisCatalogInfo{
 			CatalogServerEndpoint: utils.String(catalogInfo["server_endpoint"].(string)),
-			CatalogPricingTier:    datafactory.IntegrationRuntimeSsisCatalogPricingTier(catalogInfo["pricing_tier"].(string)),
+			CatalogPricingTier:    pricingTier,
 		}
 
 		if adminUserName := catalogInfo["administrator_login"]; adminUserName.(string) != "" {
@@ -869,6 +883,16 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *da
 		dualStandbyPairName = *ssisProperties.DualStandbyPairName
 	}
 
+	var pricingTier, elasticPoolName string
+	if strings.HasPrefix(string(ssisProperties.CatalogPricingTier), "ELASTIC_POOL") {
+		re, _ := regexp.Compile(`(?:name=\")([^&%\\\/?]{0,127}[^\s.&%\\\/?])(?:\")`)
+		if result := re.FindStringSubmatch(string(ssisProperties.CatalogPricingTier)); len(result) > 1 {
+			elasticPoolName = result[1]
+		}
+	} else {
+		pricingTier = string(ssisProperties.CatalogPricingTier)
+	}
+
 	// read back
 	if adminPassword, ok := d.GetOk("catalog_info.0.administrator_password"); ok {
 		administratorPassword = adminPassword.(string)
@@ -877,7 +901,8 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *da
 	return []interface{}{
 		map[string]interface{}{
 			"server_endpoint":        serverEndpoint,
-			"pricing_tier":           string(ssisProperties.CatalogPricingTier),
+			"pricing_tier":           pricingTier,
+			"elastic_pool_name":      elasticPoolName,
 			"administrator_login":    catalogAdminUserName,
 			"administrator_password": administratorPassword,
 			"dual_standby_pair_name": dualStandbyPairName,
@@ -1110,4 +1135,8 @@ func readBackSensitiveValue(input []interface{}, propertyName string, filters ma
 		}
 	}
 	return ""
+}
+
+func expandDataFactoryIntegrationRuntimeElasticPool(input string) string {
+	return fmt.Sprintf(`ELASTIC_POOL(name="%s")`, input)
 }
