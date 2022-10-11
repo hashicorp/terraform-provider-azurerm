@@ -10,8 +10,6 @@ description: |-
 
 Manages a CDN FrontDoor Route.
 
--> **RECOMMENDATION:** If your CDN FrontDoor deployment contains multiple CDN FrontDoor Route resources it is advised that you should daisy chain a `depends_on` meta-argument to each of the CDN FrontDoor Route resources to avoid the various service code race conditions that arise while moving CDN FrontDoor Custom Domains across multiple CDN FrontDoor Routes. Keep in mind that the `depends_on` daisy chain will not guard against all potential race conditions depending on how you moving your CDN FrontDoor Custom Domains across your CDN FrontDoor Route resources, but it will alleviate a vast majority of the issues that may occur. Please see the `Daisy Chain Depends_On Example` below for more details.
-
 ## Example Usage
 
 ```hcl

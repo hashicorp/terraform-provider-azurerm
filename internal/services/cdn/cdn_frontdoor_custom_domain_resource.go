@@ -8,7 +8,6 @@ import (
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -116,15 +115,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["associate_with_cdn_frontdoor_route_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Deprecated:   "'associate_with_cdn_frontdoor_route_id' is no longer used and and will be removed in version 4.0 of the AzureRM provider. Please use the 'cdn_frontdoor_custom_domains_ids' field in the 'cdn_frontdoor_route' resource to control the CDN FrontDoor Custom Domain association(s) with the CDN FrontDoor Route",
-			ValidateFunc: validate.FrontDoorRouteID,
-		}
 	}
 
 	return resource

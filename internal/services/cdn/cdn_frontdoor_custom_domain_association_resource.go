@@ -81,7 +81,7 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	// id will be nill if you are deleting the resource
+	// id will be nil if you are deleting the resource
 	if id != nil {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 		if err != nil {
