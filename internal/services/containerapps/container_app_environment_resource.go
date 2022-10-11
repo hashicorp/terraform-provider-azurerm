@@ -10,9 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -77,7 +76,7 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
 		},
 
@@ -178,7 +177,6 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
 			logAnalyticsClient := metadata.Client.LogAnalytics.WorkspacesClient
-			sharedKeyClient := metadata.Client.LogAnalytics.SharedKeysClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var containerAppEnvironment ContainerAppEnvironmentModel
@@ -200,26 +198,26 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			logAnalyticsId, err := loganalyticsParse.LogAnalyticsWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
+			logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
 			if err != nil {
 				return err
 			}
 
-			workspace, err := logAnalyticsClient.Get(ctx, logAnalyticsId.ResourceGroup, logAnalyticsId.WorkspaceName)
-			if err != nil || workspace.WorkspaceProperties == nil {
+			workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
+			if err != nil || workspace.Model == nil || workspace.Model.Properties == nil {
 				return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
 			}
 
-			if workspace.WorkspaceProperties.CustomerID == nil {
+			if workspace.Model.Properties.CustomerId == nil {
 				return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
 			}
 
-			keys, err := sharedKeyClient.GetSharedKeys(ctx, logAnalyticsId.ResourceGroup, logAnalyticsId.WorkspaceName)
-			if err != nil {
+			keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
+			if err != nil || keys.Model == nil {
 				return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
 			}
 
-			if keys.PrimarySharedKey == nil {
+			if keys.Model.PrimarySharedKey == nil {
 				return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
 			}
 
@@ -230,8 +228,8 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 					AppLogsConfiguration: &managedenvironments.AppLogsConfiguration{
 						Destination: utils.String("log-analytics"),
 						LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
-							CustomerId: workspace.WorkspaceProperties.CustomerID,
-							SharedKey:  keys.PrimarySharedKey,
+							CustomerId: workspace.Model.Properties.CustomerId,
+							SharedKey:  keys.Model.PrimarySharedKey,
 						},
 					},
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},

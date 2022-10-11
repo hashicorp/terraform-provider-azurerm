@@ -3,6 +3,7 @@ package containerapps_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -102,21 +103,59 @@ func TestAccContainerAppResource_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// TODO - Uncomment the following stages when https://github.com/Azure/azure-rest-api-specs/issues/19285 is resolved
+		// TODO - Uncomment the following stages when https://github.com/Azure/azure-rest-api-specs/issues/19285 / https://github.com/microsoft/azure-container-apps/issues/395 are resolved and secrets can be managed?
+		// {
+		// 	Config: r.complete(data, "rev3"),
+		// 	Check: acceptance.ComposeTestCheckFunc(
+		// 		check.That(data.ResourceName).ExistsInAzure(r),
+		// 	),
+		// },
+		// data.ImportStep(),
+		// {
+		// 	Config: r.completeUpdate2(data, "rev4"),
+		// 	Check: acceptance.ComposeTestCheckFunc(
+		// 		check.That(data.ResourceName).ExistsInAzure(r),
+		// 	),
+		// },
+		// data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_secretRemoveShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "rev3"),
+			Config: r.completeUpdate(data, "rev1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeUpdate2(data, "rev4"),
+			Config:      r.complete(data, "rev2"),
+			ExpectError: regexp.MustCompile("cannot remove secrets from Container Apps at this time"),
+		},
+	})
+}
+
+func TestAccContainerAppResource_secretRemoveWithAddShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeUpdate(data, "rev1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:      r.completeChangedSecret(data, "rev2"),
+			ExpectError: regexp.MustCompile("previously configured secret \"rick\" was removed. Removing secrets is not supported at this time"),
+		},
 	})
 }
 
@@ -304,6 +343,126 @@ resource "azurerm_container_app" "test" {
 `, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
 }
 
+func (r ContainerAppResource) completeChangedSecret(data acceptance.TestData, revisionSuffix string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Multiple"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.5
+      memory = "1Gi"
+      //args    = ["HOSTNAME"] // TODO - Add a container Image where args and command can be used
+      //command = ["node"]
+
+      readiness_probe {
+        transport         = "http"
+        port              = 5000
+        path              = "/uptime"
+        timeout           = 2
+        failure_threshold = 1
+        success_threshold = 1
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+      }
+
+      liveness_probe {
+        transport = "http"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay     = 5
+        interval          = 20
+        timeout           = 2
+        failure_threshold = 3
+      }
+
+      startup_probe {
+        transport         = "tcp"
+        port              = 5000
+        timeout           = 5
+        failure_threshold = 1
+      }
+
+      //volume_mounts {
+      // name = "testVol"
+      // path = "/tmp/testdata"
+      //}
+    }
+
+    //volume {
+    // name = "testVol"
+    // storage_type = "EmptyDir"
+    //}
+
+    min_replicas = 1
+    max_replicas = 4
+
+    revision_suffix = "%[3]s"
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    is_external                = true
+    target_port                = 5000
+    transport                  = "auto"
+
+    traffic_weight {
+      latest_revision = true
+      weight          = 20
+    }
+
+    traffic_weight {
+      revision_suffix = "rev1"
+      weight          = 80
+    }
+  }
+
+  registry {
+    server                    = azurerm_container_registry.test.login_server
+    username                  = azurerm_container_registry.test.admin_username
+    password_secret_reference = "registry-password"
+  }
+
+  secret {
+    name  = "registry-password"
+    value = azurerm_container_registry.test.admin_password
+  }
+
+  secret {
+    name  = "pickle"
+    value = "morty"
+  }
+
+  dapr {
+    app_id       = "acctest-cont-%[2]d"
+    app_port     = 5000
+    app_protocol = "http"
+  }
+
+  tags = {
+    foo     = "Bar"
+    accTest = "1"
+  }
+}
+`, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
+}
+
 func (r ContainerAppResource) completeUpdate(data acceptance.TestData, revisionSuffix string) string {
 	return fmt.Sprintf(`
 %s
@@ -441,13 +600,12 @@ resource "azurerm_container_app" "test" {
       cpu    = 1.0
       memory = "2Gi"
     }
-
-  secret {
-    name  = "doesntMatter"
-    value = "anything"
+    revision_suffix = "%[3]s"
   }
 
-    revision_suffix = "%[3]s"
+  secret {
+    name  = "doesnt-matter"
+    value = "anything"
   }
 }
 `, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
