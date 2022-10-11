@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -164,22 +165,22 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterId := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("kubernetes_cluster_name").(string))
+	clusterId := managedclusters.NewManagedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("kubernetes_cluster_name").(string))
 
 	// if the parent cluster doesn't exist then the node pool won't
-	cluster, err := clustersClient.Get(ctx, clusterId.ResourceGroup, clusterId.ManagedClusterName)
+	cluster, err := clustersClient.Get(ctx, clusterId)
 	if err != nil {
-		if utils.ResponseWasNotFound(cluster.Response) {
+		if response.WasNotFound(cluster.HttpResponse) {
 			return fmt.Errorf("%s was not found", clusterId)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", clusterId, err)
 	}
 
-	id := parse.NewNodePoolID(clusterId.SubscriptionId, clusterId.ResourceGroup, clusterId.ManagedClusterName, d.Get("name").(string))
-	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
+	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ResourceName, d.Get("name").(string))
+	resp, err := poolsClient.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -188,18 +189,19 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 
 	d.SetId(id.ID())
 	d.Set("name", id.AgentPoolName)
-	d.Set("kubernetes_cluster_name", id.ManagedClusterName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("kubernetes_cluster_name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
+	if model := resp.Model; model != nil && model.Properties != nil {
+		props := model.Properties
 		d.Set("zones", zones.Flatten(props.AvailabilityZones))
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 
 		evictionPolicy := ""
-		if props.ScaleSetEvictionPolicy != "" {
-			evictionPolicy = string(props.ScaleSetEvictionPolicy)
+		if props.ScaleSetEvictionPolicy != nil && *props.ScaleSetEvictionPolicy != "" {
+			evictionPolicy = string(*props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
 
@@ -221,9 +223,9 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("min_count", minCount)
 
-		mode := string(containerservice.AgentPoolModeUser)
-		if props.Mode != "" {
-			mode = string(props.Mode)
+		mode := string(agentpools.AgentPoolModeUser)
+		if props.Mode != nil && *props.Mode != "" {
+			mode = string(*props.Mode)
 		}
 		d.Set("mode", mode)
 
@@ -250,17 +252,20 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
 
-		osDiskType := containerservice.OSDiskTypeManaged
-		if props.OsDiskType != "" {
-			osDiskType = props.OsDiskType
+		osDiskType := agentpools.OSDiskTypeManaged
+		if props.OsDiskType != nil && *props.OsDiskType != "" {
+			osDiskType = *props.OsDiskType
 		}
 		d.Set("os_disk_type", string(osDiskType))
-		d.Set("os_type", string(props.OsType))
+
+		if props.OsDiskType != nil {
+			d.Set("os_type", string(*props.OsType))
+		}
 
 		// not returned from the API if not Spot
-		priority := string(containerservice.ScaleSetPriorityRegular)
-		if props.ScaleSetPriority != "" {
-			priority = string(props.ScaleSetPriority)
+		priority := string(agentpools.ScaleSetPriorityRegular)
+		if props.ScaleSetPriority != nil && *props.ScaleSetPriority != "" {
+			priority = string(*props.ScaleSetPriority)
 		}
 		d.Set("priority", priority)
 
@@ -276,13 +281,15 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("spot_max_price", spotMaxPrice)
 
-		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
+		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 		}
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
-		d.Set("vm_size", props.VMSize)
+		d.Set("vm_size", props.VmSize)
+
+		d.Set("tags", tags.Flatten(props.Tags))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
