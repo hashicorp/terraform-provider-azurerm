@@ -112,7 +112,7 @@ func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 
 	%s
 
-resource "azurerm_datadog_monitor_tag_rule" "test" {
+resource "azurerm_datadog_monitor_tag_rule" "testbasic" {
   datadog_monitor_id = azurerm_datadog_monitor.test.id
   log {
     subscription_log_enabled = true
@@ -130,11 +130,11 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
 
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s 
+	%s
 
-resource "azurerm_datadog_monitor_tag_rule" "test" {
-	datadog_monitor_id        = azurerm_datadog_monitor.test.id
-	log {
+resource "azurerm_datadog_monitor_tag_rule" "testupdate" {
+  datadog_monitor_id = azurerm_datadog_monitor.test.id
+  log {
     subscription_log_enabled = false
     resource_log_enabled     = true
     filter {
