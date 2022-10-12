@@ -103,6 +103,7 @@ An `identity` block exports the following:
 * `domain_name_label` - The domain name label for the DNS settings.
 * `ip_tag` - A list of `ip_tag` blocks as defined below.
 * `public_ip_prefix_id` - The ID of the public IP prefix.
+* `version` - The Internet Protocol Version of the public IP address.
 
 `ip_tag` exports the following:
 
