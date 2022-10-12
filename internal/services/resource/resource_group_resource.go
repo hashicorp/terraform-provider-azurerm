@@ -82,12 +82,11 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// workaround for the consistency: https://github.com/hashicorp/terraform-provider-azurerm/issues/18268
 	log.Printf("[DEBUG] Waiting for resource group %s to be fully created..", name)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"NotFound"},
-		Target:                    []string{"Exists"},
-		Refresh:                   resourceGroupCreatedRefresh(ctx, client, name),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 2,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		Pending:    []string{"NotFound"},
+		Target:     []string{"Exists"},
+		Refresh:    resourceGroupCreatedRefresh(ctx, client, name),
+		MinTimeout: 10 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
