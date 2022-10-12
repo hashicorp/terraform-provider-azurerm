@@ -1,5 +1,9 @@
 ## 3.27.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_nginx_deployment` [GH-18510]
+
 ENHANCEMENTS:
 
 * `azurerm_automation_runbook` - support for the `draft` block and `log_activity_trace` propertry [GH-17961]
