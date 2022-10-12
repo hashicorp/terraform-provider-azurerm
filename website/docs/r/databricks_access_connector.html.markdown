@@ -51,7 +51,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Databricks Workspace in the Azure management plane.
+* `id` - The ID of the Databricks Access Connector in the Azure management plane.
 
 
 ## Timeouts
