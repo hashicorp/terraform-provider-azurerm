@@ -2,12 +2,13 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AttachedDatabaseConfigurationsClient *kusto.AttachedDatabaseConfigurationsClient
-	ClustersClient                       *kusto.ClustersClient
+	ClustersClient                       *clusters.ClustersClient
 	ClusterManagedPrivateEndpointClient  *kusto.ManagedPrivateEndpointsClient
 	ClusterPrincipalAssignmentsClient    *kusto.ClusterPrincipalAssignmentsClient
 	DatabasesClient                      *kusto.DatabasesClient
@@ -17,7 +18,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	ClustersClient := kusto.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	ClustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
 
 	ClusterManagedPrivateEndpointClient := kusto.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
