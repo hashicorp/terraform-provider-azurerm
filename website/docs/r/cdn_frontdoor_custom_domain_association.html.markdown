@@ -25,7 +25,6 @@ The following arguments are supported:
 
 * `cdn_frontdoor_custom_domain_id` - (Required) The resource ID of the CDN FrontDoor Custom Domain that should be managed by the association resource. Changing this forces a new association resource to be created.
 
--> **NOTE:** When the resource is destroyed it will remove the CDN FrontDoor Custom Domain association with the CDN FrontDoor Route resource(s) referenced in the resources `cdn_frontdoor_route_ids` field.
 
 * `cdn_frontdoor_route_ids` - (Required) One or more IDs of the CDN FrontDoor Route to which the CDN FrontDoor Custom Domain is associated with.
 
