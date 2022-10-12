@@ -284,14 +284,13 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:             siteProps.ServerFarmID,
-					Enabled:                  utils.Bool(webAppSlot.Enabled),
-					HTTPSOnly:                utils.Bool(webAppSlot.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    utils.Bool(webAppSlot.ClientAffinityEnabled),
-					ClientCertEnabled:        utils.Bool(webAppSlot.ClientCertEnabled),
-					ClientCertMode:           web.ClientCertMode(webAppSlot.ClientCertMode),
-					ClientCertExclusionPaths: utils.String(webAppSlot.ClientCertExclusionPaths),
+					ServerFarmID:          siteProps.ServerFarmID,
+					Enabled:               utils.Bool(webAppSlot.Enabled),
+					HTTPSOnly:             utils.Bool(webAppSlot.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: utils.Bool(webAppSlot.ClientAffinityEnabled),
+					ClientCertEnabled:     utils.Bool(webAppSlot.ClientCertEnabled),
+					ClientCertMode:        web.ClientCertMode(webAppSlot.ClientCertMode),
 				},
 			}
 
@@ -301,6 +300,10 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
+			}
+
+			if webAppSlot.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(webAppSlot.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)

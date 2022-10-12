@@ -442,14 +442,13 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Kind:     utils.String("functionapp,linux"),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:             utils.String(servicePlanId.ID()),
-					Enabled:                  utils.Bool(functionAppSlot.Enabled),
-					HTTPSOnly:                utils.Bool(functionAppSlot.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientCertEnabled:        utils.Bool(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:           web.ClientCertMode(functionAppSlot.ClientCertMode),
-					ClientCertExclusionPaths: utils.String(functionAppSlot.ClientCertExclusionPaths),
-					DailyMemoryTimeQuota:     utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+					ServerFarmID:         utils.String(servicePlanId.ID()),
+					Enabled:              utils.Bool(functionAppSlot.Enabled),
+					HTTPSOnly:            utils.Bool(functionAppSlot.HttpsOnly),
+					SiteConfig:           siteConfig,
+					ClientCertEnabled:    utils.Bool(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
+					DailyMemoryTimeQuota: utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 				},
 			}
 
@@ -459,6 +458,10 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionAppSlot.VirtualNetworkSubnetID)
+			}
+
+			if functionAppSlot.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(functionAppSlot.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)

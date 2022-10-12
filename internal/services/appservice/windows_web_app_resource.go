@@ -315,14 +315,13 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:             utils.String(webApp.ServicePlanId),
-					Enabled:                  utils.Bool(webApp.Enabled),
-					HTTPSOnly:                utils.Bool(webApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:        utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:           web.ClientCertMode(webApp.ClientCertMode),
-					ClientCertExclusionPaths: utils.String(webApp.ClientCertExclusionPaths),
+					ServerFarmID:          utils.String(webApp.ServicePlanId),
+					Enabled:               utils.Bool(webApp.Enabled),
+					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
+					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
 			}
 
@@ -332,6 +331,10 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			if webApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
+			}
+
+			if webApp.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(webApp.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)

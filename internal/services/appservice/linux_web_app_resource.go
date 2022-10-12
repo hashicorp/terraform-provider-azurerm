@@ -317,14 +317,13 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:             utils.String(webApp.ServicePlanId),
-					Enabled:                  utils.Bool(webApp.Enabled),
-					HTTPSOnly:                utils.Bool(webApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:        utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:           web.ClientCertMode(webApp.ClientCertMode),
-					ClientCertExclusionPaths: utils.String(webApp.ClientCertExclusionPaths),
+					ServerFarmID:          utils.String(webApp.ServicePlanId),
+					Enabled:               utils.Bool(webApp.Enabled),
+					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
+					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
 			}
 
@@ -334,6 +333,10 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
+			}
+
+			if webApp.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(webApp.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)

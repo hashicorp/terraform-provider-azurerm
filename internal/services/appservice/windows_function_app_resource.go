@@ -446,14 +446,13 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     utils.String("functionapp"),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:             utils.String(functionApp.ServicePlanId),
-					Enabled:                  utils.Bool(functionApp.Enabled),
-					HTTPSOnly:                utils.Bool(functionApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientCertEnabled:        utils.Bool(functionApp.ClientCertEnabled),
-					ClientCertMode:           web.ClientCertMode(functionApp.ClientCertMode),
-					ClientCertExclusionPaths: utils.String(functionApp.ClientCertExclusionPaths),
-					DailyMemoryTimeQuota:     utils.Int32(int32(functionApp.DailyMemoryTimeQuota)),
+					ServerFarmID:         utils.String(functionApp.ServicePlanId),
+					Enabled:              utils.Bool(functionApp.Enabled),
+					HTTPSOnly:            utils.Bool(functionApp.HttpsOnly),
+					SiteConfig:           siteConfig,
+					ClientCertEnabled:    utils.Bool(functionApp.ClientCertEnabled),
+					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
+					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)),
 				},
 			}
 
@@ -463,6 +462,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if functionApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
+			}
+
+			if functionApp.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(functionApp.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)

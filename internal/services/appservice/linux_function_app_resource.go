@@ -465,6 +465,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
 			}
 
+			if functionApp.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(functionApp.ClientCertExclusionPaths)
+			}
+
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
@@ -601,6 +605,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				Location:                    location.NormalizeNilable(functionApp.Location),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
