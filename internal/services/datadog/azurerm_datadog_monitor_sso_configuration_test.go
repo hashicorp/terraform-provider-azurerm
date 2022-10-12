@@ -79,38 +79,56 @@ func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.C
 	return utils.Bool(true), nil
 }
 
+func (r SSODatadogMonitorResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-datadog-%d"
+  location = "%s"
+}
+
+resource "azurerm_datadog_monitor" "test" {
+	name                = "acctest-datadog-%d"
+	resource_group_name = azurerm_resource_group.test.name
+	location            = "WEST US 2"
+	datadog_organization {
+	  api_key         = "c756275ca011275c33e0124d0e9e6c5f"
+	  application_key = "2bb3068ebeecdc26cb8eae14e078f5f1629ae102"
+	}
+	user {
+	  name  = "Test Datadog"
+	  email = "abc@xyz.com"
+	}
+	sku_name = "Linked"
+	identity {
+	  type = "SystemAssigned"
+	}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100)
+}
+
 func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	%s
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
-  datadog_monitor_id        = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
+  datadog_monitor_id        = azurerm_datadog_monitor.test.id
   singlesignon_state        = "Enable"
   enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
-`)
+`, r.template(data))
 }
 
 func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+	%s
+
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
-  datadog_monitor_id        = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
+  datadog_monitor_id        = azurerm_datadog_monitor.test.id
   singlesignon_state        = "Disable"
   enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
-`)
+`, r.template(data))
 }

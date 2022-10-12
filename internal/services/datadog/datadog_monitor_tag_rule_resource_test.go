@@ -80,33 +80,39 @@ func (r TagRulesDatadogMonitorResource) template(data acceptance.TestData) strin
 provider "azurerm" {
   features {}
 }
-data "azurerm_resource_group" "test" {
-  name = "acctest-datadog"
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-datadog-%d"
+  location = "%s"
 }
-	`)
+
+resource "azurerm_datadog_monitor" "test" {
+	name                = "acctest-datadog-%d"
+	resource_group_name = azurerm_resource_group.test.name
+	location            = "WEST US 2"
+	datadog_organization {
+	  api_key         = "c756275ca011275c33e0124d0e9e6c5f"
+	  application_key = "2bb3068ebeecdc26cb8eae14e078f5f1629ae102"
+	}
+	user {
+	  name  = "Test Datadog"
+	  email = "abc@xyz.com"
+	}
+	sku_name = "Linked"
+	identity {
+	  type = "SystemAssigned"
+	}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100)
 }
 
 func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+	%s
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-resource "azurerm_datadog_monitor_tag_rule" "test" {
-  datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
-  log {
+	resource "azurerm_datadog_monitor_tag_rule" "test" {
+	datadog_monitor_id        = azurerm_datadog_monitor.test.id
+	log {
     subscription_log_enabled = true
   }
   metric {
@@ -117,14 +123,16 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
     }
   }
 }
-`)
+`, r.template(data))
 }
 
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+	%s 
+
 resource "azurerm_datadog_monitor_tag_rule" "test" {
-  datadog_monitor_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/resourceGroups/acctest-datadog/providers/Microsoft.Datadog/monitors/test-terraform-acctests"
-  log {
+	datadog_monitor_id        = azurerm_datadog_monitor.test.id
+	log {
     subscription_log_enabled = false
     resource_log_enabled     = true
     filter {
@@ -141,5 +149,5 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
     }
   }
 }
-`)
+`, r.template(data))
 }
