@@ -69,7 +69,7 @@ func resourceHPCCacheWaitForCreating(ctx context.Context, client *storagecache.C
 		Pending:    []string{string(storagecache.ProvisioningStateTypeCreating)},
 		Target:     []string{string(storagecache.ProvisioningStateTypeSucceeded)},
 		Refresh:    resourceHPCCacheRefresh(ctx, client, resourceGroup, name),
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	resp, err := state.WaitForStateContext(ctx)
