@@ -246,7 +246,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
-	//wait for HPC Cache provision state to be succeeded. or further operations with it may fail.
+	// wait for HPC Cache provision state to be succeeded. or further operations with it may fail.
 	cacheClient := meta.(*clients.Client).HPCCache.CachesClient
 	_, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, resourceGroup, name, d)
 	if err != nil {
