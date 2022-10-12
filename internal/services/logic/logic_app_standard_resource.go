@@ -390,7 +390,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `app_settings`: %+v", err)
 	}
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
-		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // the HasChange method returned true when `site_config` is set without `vnet_route_all_enabled`
+		if !d.HasChange("site_config.0.vnet_route_all_enabled") {
 			vnetRouteAllEnabled, _ := strconv.ParseBool(*vnetRouteAll)
 			siteConfig.VnetRouteAllEnabled = &vnetRouteAllEnabled
 		}
