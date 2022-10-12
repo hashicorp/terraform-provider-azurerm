@@ -138,11 +138,11 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 			updateProps.CacheConfiguration = props.CacheConfiguration
 		}
 
-		updatePrarams := azuresdkhacks.RouteUpdateParameters{
+		updateParams := azuresdkhacks.RouteUpdateParameters{
 			RouteUpdatePropertiesParameters: &updateProps,
 		}
 
-		future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updatePrarams)
+		future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
 		if err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
@@ -277,11 +277,11 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 				updateProps.CacheConfiguration = props.CacheConfiguration
 			}
 
-			updatePrarams := azuresdkhacks.RouteUpdateParameters{
+			updateParams := azuresdkhacks.RouteUpdateParameters{
 				RouteUpdatePropertiesParameters: &updateProps,
 			}
 
-			future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updatePrarams)
+			future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -351,11 +351,11 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 		if updateProps.LinkToDefaultDomain == cdn.LinkToDefaultDomainDisabled {
 			updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
 
-			updatePrarams := azuresdkhacks.RouteUpdateParameters{
+			updateParams := azuresdkhacks.RouteUpdateParameters{
 				RouteUpdatePropertiesParameters: &updateProps,
 			}
 
-			future, err := workaroundsClient.Update(ctx, route.ResourceGroup, route.ProfileName, route.AfdEndpointName, route.RouteName, updatePrarams)
+			future, err := workaroundsClient.Update(ctx, route.ResourceGroup, route.ProfileName, route.AfdEndpointName, route.RouteName, updateParams)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
