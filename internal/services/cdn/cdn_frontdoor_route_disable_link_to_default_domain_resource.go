@@ -108,7 +108,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 
 	props := existing.RouteProperties
 	if props == nil {
-		return fmt.Errorf("creating %s: %s properties are 'nil': %+v", id, *routeId, err)
+		return fmt.Errorf("creating %s: %s properties are 'nil'", id, *routeId)
 	}
 
 	resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
@@ -247,7 +247,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 
 		props := existing.RouteProperties
 		if props == nil {
-			return fmt.Errorf("updating %s: %s properties are 'nil': %+v", id, *routeId, err)
+			return fmt.Errorf("updating %s: %s properties are 'nil'", id, *routeId)
 		}
 
 		resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
@@ -330,7 +330,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 
 	props := resp.RouteProperties
 	if props == nil {
-		return fmt.Errorf("deleting %s: %s properties are 'nil': %+v", *id, *route, err)
+		return fmt.Errorf("deleting %s: %s properties are 'nil'", *id, *route)
 	}
 
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
