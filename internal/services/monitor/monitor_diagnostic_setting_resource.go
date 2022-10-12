@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"log"
+	"reflect"
 	"strings"
 	"time"
 
@@ -13,6 +13,7 @@ import (
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,7 +59,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: ResourceIDCaseDifference,
 			},
 
 			"eventhub_name": {
@@ -621,4 +622,21 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
+}
+
+func ResourceIDCaseDifference(_, old, new string, _ *schema.ResourceData) bool {
+	oldResourceId, err := azure.ParseAzureResourceID(old)
+	if err != nil {
+		return false
+	}
+
+	newResourceId, err := azure.ParseAzureResourceID(new)
+	if err != nil {
+		return false
+	}
+
+	if oldResourceId == nil || newResourceId == nil {
+		return false
+	}
+	return reflect.DeepEqual(oldResourceId, newResourceId)
 }

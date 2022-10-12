@@ -685,3 +685,51 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
+
+func TestResourceIDCaseDifference(t *testing.T) {
+	cases := []struct {
+		Name     string
+		StringA  string
+		StringB  string
+		Suppress bool
+	}{
+		{
+			Name:     "resource group case",
+			StringA:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
+			StringB:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
+			Suppress: true,
+		},
+		{
+			Name:     "resource group name",
+			StringA:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
+			StringB:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/Group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
+			Suppress: false,
+		},
+		{
+			Name:     "subscription id",
+			StringA:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1",
+			StringB:  "/subscriptions/00000000-0000-0000-0000-000000000001/resourcegroups/group1",
+			Suppress: false,
+		},
+		{
+			Name:     "resource name",
+			StringA:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
+			StringB:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster2",
+			Suppress: false,
+		},
+		{
+			Name:     "resource name case",
+			StringA:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
+			StringB:  "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cLuster1",
+			Suppress: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			if monitor.ResourceIDCaseDifference("test", tc.StringA, tc.StringB, nil) != tc.Suppress {
+				t.Fatalf("Expected CaseDifference to return %t for '%q' == '%q'", tc.Suppress, tc.StringA, tc.StringB)
+			}
+		})
+	}
+}
