@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"log"
 	"strings"
 	"time"
@@ -53,10 +54,11 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     azure.ValidateResourceID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"eventhub_name": {
