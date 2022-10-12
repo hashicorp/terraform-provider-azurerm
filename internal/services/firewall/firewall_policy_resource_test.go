@@ -1,4 +1,4 @@
-package firewall_test
+D20package firewall_test
 
 import (
 	"context"
@@ -214,7 +214,7 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   tags = {
-     Env = "Test"
+    Env = "Test"
   }
 }
 `, template, data.RandomInteger)
