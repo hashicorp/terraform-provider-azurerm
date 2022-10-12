@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_nginx_deployment` [GH-18510]
+* **New Resource:** `azurerm_orbital_contact_profile` [GH-18317]
 
 ENHANCEMENTS:
 
