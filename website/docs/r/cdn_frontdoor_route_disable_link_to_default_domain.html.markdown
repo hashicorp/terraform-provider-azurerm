@@ -10,7 +10,7 @@ description: |-
 
 Manages the Link To Default Domain property of a CDN FrontDoor Route.
 
-!>**IMPORTANT:** This resource has been deprecated and should not be used. The `azurerm_cdn_frontdoor_route_disable_link_to_default_domain` resource will be removed from the 4.0 AzureRM provider. Please use the `link_to_default_domain` field in the `azurerm_cdn_frontdoor_route` resource to control this value.
+!>**IMPORTANT:** This resource has been deprecated and should not be used for new deployments. The `azurerm_cdn_frontdoor_route_disable_link_to_default_domain` resource will be removed from the 4.0 AzureRM provider. Please use the `link_to_default_domain` field in the `azurerm_cdn_frontdoor_route` resource to control this value.
 
 ## Example Usage
 
