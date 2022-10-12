@@ -28,7 +28,7 @@ func AccessConnectorName(i interface{}, k string) (warnings []string, errors []e
 
 	// 3) The value must have a length of at most 30
 	if len(v) > 30 {
-		errors = append(errors, fmt.Errorf("%q must be no more than 64 characters: %q", k, v))
+		errors = append(errors, fmt.Errorf("%q must be no more than 30 characters: %q", k, v))
 	}
 
 	// 4) Only alphanumeric characters, underscores, and hyphens are allowed.

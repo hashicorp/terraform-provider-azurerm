@@ -23,7 +23,7 @@ func TestAccessConnectorName(t *testing.T) {
 		},
 		{
 			Name:  "Minimum character length",
-			Input: "---",
+			Input: "-",
 		},
 		{
 			Name:  "Maximum character length",
@@ -37,26 +37,14 @@ func TestAccessConnectorName(t *testing.T) {
 			ExpectedErrors: []string{errAllowList},
 		},
 		{
-			Name:           "Below minimum character length",
-			Input:          "--",
-			ExpectedErrors: []string{errMinLen},
-		},
-		{
 			Name:           "Above maximum character length",
-			Input:          "01234567890123456789012345678901234567890123456789012345678901234", // 31 chars
+			Input:          "01234567890123456789012345678901", // 31 chars
 			ExpectedErrors: []string{errMaxLen},
 		},
 		{
 			Name:           "Specifically test for emptiness",
 			Input:          "",
 			ExpectedErrors: []string{errEmpty},
-		},
-
-		// Complex negative cases
-		{
-			Name:           "Too short and non-allowed char",
-			Input:          "*^",
-			ExpectedErrors: []string{errMinLen, errAllowList},
 		},
 		{
 			Name:           "Too long and non-allowed char",
