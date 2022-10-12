@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A `display_name` name. Custom display name for the IoT Central application. Default is resource name. 
 
+~> **NOTE:** Due to a bug in the provider, the default value of `display_name` of a newly created IoT Central App will be the Resource Group Name, it will be fixed and use resource name in 4.0. For an existing IoT Central App, this could be fixed by specifying the `display_name` explicitly.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the IoT Central Application. Defaults to `true`.

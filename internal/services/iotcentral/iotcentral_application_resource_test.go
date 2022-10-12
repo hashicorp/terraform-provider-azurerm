@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,11 +20,17 @@ func TestAccIoTCentralApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 	r := IoTCentralApplicationResource{}
 
+	defaultDisplayName := fmt.Sprintf("acctest-iotcentralapp-%d", data.RandomInteger)
+	if !features.FourPointOhBeta() {
+		defaultDisplayName = fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue(defaultDisplayName),
 				check.That(data.ResourceName).Key("sku").HasValue("ST1"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
