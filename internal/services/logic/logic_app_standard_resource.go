@@ -390,7 +390,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `app_settings`: %+v", err)
 	}
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
-		if !d.HasChange("site_config.0.vnet_route_all_enabled") {
+		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // the HasChange method returned true when `site_config` is set without `vnet_route_all_enabled`
 			vnetRouteAllEnabled, _ := strconv.ParseBool(*vnetRouteAll)
 			siteConfig.VnetRouteAllEnabled = &vnetRouteAllEnabled
 		}
@@ -444,19 +444,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
 	}
 
-	settings := web.StringDictionary{
-		Properties: appSettings,
-	}
-
-	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
-		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
-	}
-
-	if d.HasChange("site_config") {
-		siteConfig, err := expandLogicAppStandardSiteConfig(d)
-		if err != nil {
-			return fmt.Errorf("expanding `site_config`: %+v", err)
-		}
+	if d.HasChange("site_config") { //update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -464,6 +452,14 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
 			return fmt.Errorf("updating Configuration for %s: %+v", *id, err)
 		}
+	}
+
+	settings := web.StringDictionary{
+		Properties: appSettings,
+	}
+
+	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
+		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
 	}
 
 	if d.HasChange("connection_string") {
@@ -1225,7 +1221,8 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	if v, ok := config["pre_warmed_instance_count"]; ok {
+	//get from `d` rather than the config map, or it will be covered by the zero-value "0" instead of nil.
+	if v, ok := d.GetOk("site_config.0.pre_warmed_instance_count"); ok {
 		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
@@ -1233,11 +1230,11 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
-	if v, ok := config["elastic_instance_minimum"]; ok {
+	if v, ok := d.GetOk("site_config.0.elastic_instance_minimum"); ok {
 		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := config["app_scale_limit"]; ok {
+	if v, ok := d.GetOk("site_config.0.app_scale_limit"); ok {
 		siteConfig.FunctionAppScaleLimit = utils.Int32(int32(v.(int)))
 	}
 
