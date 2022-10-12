@@ -178,5 +178,9 @@ func resourceServiceBusNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceDat
 		return fmt.Errorf("waiting for replication to complete for %s: %+v", *id, err)
 	}
 
+	if err := waitForNamespaceStatusToBeReady(ctx, meta, namespaceId, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for serviceBus namespace %s state to be ready error: %+v", *id, err)
+	}
+
 	return nil
 }
