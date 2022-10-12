@@ -444,7 +444,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
 	}
 
-	if d.HasChange("site_config") { //update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
+	if d.HasChange("site_config") { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -1221,7 +1221,7 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	//get from `d` rather than the config map, or it will be covered by the zero-value "0" instead of nil.
+	// get value from `d` rather than the `config` map, or it will be covered by the zero-value "0" instead of nil.
 	if v, ok := d.GetOk("site_config.0.pre_warmed_instance_count"); ok {
 		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
 	}
