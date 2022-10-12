@@ -100,6 +100,32 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"contact": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"email": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.EmailAddress,
+						},
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"url": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+					},
+				},
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -158,6 +184,27 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				},
 			},
 
+			"license": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"url": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+					},
+				},
+			},
+
 			"service_url": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -189,6 +236,12 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"terms_of_service_url": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 
 			"source_api_id": {
@@ -413,6 +466,12 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 	authenticationSettings.Openid = openIDAuthorizationSettings
 
+	contactInfoRaw := d.Get("contact").([]interface{})
+	contactInfo := expandApiManagementApiContact(contactInfoRaw)
+
+	licenseInfoRaw := d.Get("license").([]interface{})
+	licenseInfo := expandApiManagementApiLicense(licenseInfoRaw)
+
 	params := apimanagement.APICreateOrUpdateParameter{
 		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
 			APIType:                       apiType,
@@ -427,6 +486,8 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			AuthenticationSettings:        authenticationSettings,
 			APIRevisionDescription:        utils.String(d.Get("revision_description").(string)),
 			APIVersionDescription:         utils.String(d.Get("version_description").(string)),
+			Contact:                       contactInfo,
+			License:                       licenseInfo,
 		},
 	}
 
@@ -440,6 +501,10 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	if versionSetId != "" {
 		params.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
+	}
+
+	if v, ok := d.GetOk("terms_of_service_url"); ok {
+		params.APICreateOrUpdateProperties.TermsOfServiceURL = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, apiId, params, "")
@@ -508,6 +573,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("version_set_id", props.APIVersionSetID)
 		d.Set("revision_description", props.APIRevisionDescription)
 		d.Set("version_description", props.APIVersionDescription)
+		d.Set("terms_of_service_url", props.TermsOfServiceURL)
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 			return fmt.Errorf("setting `protocols`: %s", err)
@@ -523,6 +589,14 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if err := d.Set("openid_authentication", flattenApiManagementOpenIDAuthentication(props.AuthenticationSettings.Openid)); err != nil {
 			return fmt.Errorf("setting `openid_authentication`: %+v", err)
+		}
+
+		if err := d.Set("contact", flattenApiManagementApiContact(props.Contact)); err != nil {
+			return fmt.Errorf("setting `contact`: %+v", err)
+		}
+
+		if err := d.Set("license", flattenApiManagementApiLicense(props.License)); err != nil {
+			return fmt.Errorf("setting `license`: %+v", err)
 		}
 	}
 
@@ -691,6 +765,71 @@ func flattenApiManagementOpenIDAuthentication(input *apimanagement.OpenIDAuthent
 		}
 	}
 	result["bearer_token_sending_methods"] = pluginsdk.NewSet(pluginsdk.HashString, bearerTokenSendingMethods)
+
+	return []interface{}{result}
+}
+
+func expandApiManagementApiContact(input []interface{}) *apimanagement.APIContactInformation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &apimanagement.APIContactInformation{
+		Email: utils.String(v["email"].(string)),
+		Name:  utils.String(v["name"].(string)),
+		URL:   utils.String(v["url"].(string)),
+	}
+}
+
+func flattenApiManagementApiContact(contact *apimanagement.APIContactInformation) []interface{} {
+	if contact == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	if contact.Email != nil {
+		result["email"] = *contact.Email
+	}
+
+	if contact.Name != nil {
+		result["name"] = *contact.Name
+	}
+
+	if contact.URL != nil {
+		result["url"] = *contact.URL
+	}
+
+	return []interface{}{result}
+}
+
+func expandApiManagementApiLicense(input []interface{}) *apimanagement.APILicenseInformation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &apimanagement.APILicenseInformation{
+		Name: utils.String(v["name"].(string)),
+		URL:  utils.String(v["url"].(string)),
+	}
+}
+
+func flattenApiManagementApiLicense(license *apimanagement.APILicenseInformation) []interface{} {
+	if license == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	if license.Name != nil {
+		result["name"] = *license.Name
+	}
+
+	if license.URL != nil {
+		result["url"] = *license.URL
+	}
 
 	return []interface{}{result}
 }
