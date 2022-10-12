@@ -15,7 +15,7 @@ import (
 
 type ServiceBusNamespaceDisasterRecoveryConfigResource struct{}
 
-func TestAccAzureRMServiceBusNamespacePairing_basics(t *testing.T) {
+func TestAccAzureRMServiceBusNamespacePairing_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_disaster_recovery_config", "pairing_test")
 	r := ServiceBusNamespaceDisasterRecoveryConfigResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
