@@ -135,7 +135,7 @@ The following arguments are supported:
 
 ~> **NOTE:** To to disable caching, do not provide the `cache` block in the configuration file.
 
-* `cdn_frontdoor_custom_domain_ids` - (Optional) The resource IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route.
+* `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route.
 
 * `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from (e.g. `contoso.cloudapp.net/originpath`).
 
