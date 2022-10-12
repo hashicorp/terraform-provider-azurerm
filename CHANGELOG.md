@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
 * `azurerm_kubernetes_cluster` - `orchestrator_version` is set properly for clusters created with an older API version [GH-18130]
 * `azurerm_kubernetes_cluster_node_pool` - `orchestrator_version` is set properly for node pools created with an older API version [GH-18130]
 * `azurerm_log_analytics_cluster` - fixing an issue when checking for the presence of an existing Log Analytics Cluster [GH-18700]
