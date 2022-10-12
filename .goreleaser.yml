@@ -60,15 +60,27 @@ release:
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
   ids:
     - none
+#signs:
+#  - args: ["sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}"]
+#    artifacts: checksum
+#    cmd: signore
+#    signature: ${artifact}.sig
+#  - args: ["sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}"]
+#    artifacts: checksum
+#    cmd: signore
+#    id: key-id
+#    signature: ${artifact}.72D7468F.sig
 signs:
-  - args: ["sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}"]
-    artifacts: checksum
-    cmd: signore
-    signature: ${artifact}.sig
-  - args: ["sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}"]
-    artifacts: checksum
-    cmd: signore
-    id: key-id
-    signature: ${artifact}.72D7468F.sig
+  - artifacts: checksum
+    args:
+      # if you are using this in a GitHub action or some other automated pipeline, you 
+      # need to pass the batch flag to indicate its not interactive.
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
 snapshot:
   name_template: "{{ .Tag }}-next"
