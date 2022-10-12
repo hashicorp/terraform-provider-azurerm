@@ -369,6 +369,10 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	if err := waitForNamespaceStatusToBeReady(ctx, meta, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for serviceBus namespace %s state to be ready error: %+v", *id, err)
+	}
+
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
