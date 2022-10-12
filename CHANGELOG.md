@@ -2,12 +2,13 @@
 
 ENHANCEMENTS:
 
+* `azurerm_automation_runbook` - support for the `draft` block and `log_activity_trace` propertry [GH-17961]
+* `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
+* `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
 * `azurerm_log_analytics_cluster` - ensuring that the `identity` block is always set [GH-18700]
 
 BUG FIXES: 
 
-* `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
-* `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
 * `azurerm_kubernetes_cluster` - `orchestrator_version` is set properly for clusters created with an older API version [GH-18130]
 * `azurerm_kubernetes_cluster_node_pool` - `orchestrator_version` is set properly for node pools created with an older API version [GH-18130]
 * `azurerm_log_analytics_cluster` - fixing an issue when checking for the presence of an existing Log Analytics Cluster [GH-18700]
