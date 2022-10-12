@@ -6,7 +6,8 @@ FEATURES:
 * **New Resource:** `azurerm_orbital_contact_profile` [GH-18317]
 
 ENHANCEMENTS:
-
+* dependencies: updating to version `v0.44.` of `github.com/hashicorp/go-azure-helpers` [GH-18716]
+* dependencies: updating to version `v0.50.0` of `github.com/manicminer/hamilton` [GH-18716]
 * `azurerm_automation_runbook` - support for the `draft` block and `log_activity_trace` propertry [GH-17961]
 * `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
 * `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
