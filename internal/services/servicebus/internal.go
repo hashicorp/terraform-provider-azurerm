@@ -178,10 +178,11 @@ func waitForNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id n
 			string(namespaces.EndPointProvisioningStateCreating),
 			string(namespaces.EndPointProvisioningStateDeleting),
 		},
-		Target:       []string{string(namespaces.EndPointProvisioningStateSucceeded)},
-		Refresh:      serviceBusNamespaceProvisioningStateRefreshFunc(ctx, namespaceClient, id),
-		Timeout:      timeout,
-		PollInterval: 10 * time.Second,
+		Target:                    []string{string(namespaces.EndPointProvisioningStateSucceeded)},
+		Refresh:                   serviceBusNamespaceProvisioningStateRefreshFunc(ctx, namespaceClient, id),
+		Timeout:                   timeout,
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 5,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {

@@ -369,6 +369,7 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	// need to wait the status to be ready before performing the deleting.
 	if err := waitForNamespaceStatusToBeReady(ctx, meta, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
 		return fmt.Errorf("waiting for serviceBus namespace %s state to be ready error: %+v", *id, err)
 	}
