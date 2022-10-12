@@ -90,21 +90,21 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_datadog_monitor" "test" {
-	name                = "acctest-datadog-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = "WEST US 2"
-	datadog_organization {
-	  api_key         = "c756275ca011275c33e0124d0e9e6c5f"
-	  application_key = "2bb3068ebeecdc26cb8eae14e078f5f1629ae102"
-	}
-	user {
-	  name  = "Test Datadog"
-	  email = "abc@xyz.com"
-	}
-	sku_name = "Linked"
-	identity {
-	  type = "SystemAssigned"
-	}
+  name                = "acctest-datadog-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "WEST US 2"
+  datadog_organization {
+    api_key         = "c756275ca011275c33e0124d0e9e6c5f"
+    application_key = "2bb3068ebeecdc26cb8eae14e078f5f1629ae102"
+  }
+  user {
+    name  = "Test Datadog"
+    email = "abc@xyz.com"
+  }
+  sku_name = "Linked"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100)
 }
