@@ -3,6 +3,7 @@ package datadog_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -94,8 +95,8 @@ resource "azurerm_datadog_monitor" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "WEST US 2"
   datadog_organization {
-    api_key         = "c756275ca011275c33e0124d0e9e6c5f"
-    application_key = "2bb3068ebeecdc26cb8eae14e078f5f1629ae102"
+    api_key         = %q
+    application_key = %q
   }
   user {
     name  = "Test Datadog"
@@ -106,7 +107,7 @@ resource "azurerm_datadog_monitor" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
 }
 
 func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
