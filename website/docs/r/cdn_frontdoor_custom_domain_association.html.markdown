@@ -27,7 +27,7 @@ The following arguments are supported:
 
 -> **NOTE:** When the resource is destroyed it will remove the CDN FrontDoor Custom Domain association with the CDN FrontDoor Route resource(s) referenced in the resources `cdn_frontdoor_route_ids` field.
 
-* `cdn_frontdoor_route_ids` - (Required) One or more resource IDs of the CDN FrontDoor Route to which the CDN FrontDoor Custom Domain is associated with.
+* `cdn_frontdoor_route_ids` - (Required) One or more IDs of the CDN FrontDoor Route to which the CDN FrontDoor Custom Domain is associated with.
 
 -> **NOTE:** This should include all of the CDN FrontDoor Route resources that the CDN FrontDoor Custom Domain is associated with. If the list of CDN FrontDoor Routes is not complete you will receive the service side error mentioned above when you attempt to `destroy`/`delete` your CDN FrontDoor Custom Domain.
 
