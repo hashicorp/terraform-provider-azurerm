@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_nginx_deployment` [GH-18510]
 * **New Resource:** `azurerm_orbital_contact_profile` [GH-18317]
+* **New Resource:** `azurerm_sentinel_data_connector_office_atp` [GH-18708]
 
 ENHANCEMENTS:
 * dependencies: updating to version `v0.44.` of `github.com/hashicorp/go-azure-helpers` [GH-18716]
