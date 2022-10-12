@@ -2,8 +2,8 @@ package serviceconnector
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -277,42 +277,16 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 	if value, ok := input.(servicelinker.AzureResource); ok {
 		if value.Id != nil {
 			targetServiceId = *value.Id
-			if parsedId, err := validateStorageBlob(targetServiceId); err == nil {
-				targetServiceId = parsedId.ID()
+			if parsedId, err := parse.StorageAccountDefaultBlobID(targetServiceId); err == nil {
+				storageAccountId := parse.StorageAccountId{
+					SubscriptionId: parsedId.SubscriptionId,
+					ResourceGroup:  parsedId.ResourceGroup,
+					Name:           parsedId.StorageAccountName,
+				}
+				targetServiceId = storageAccountId.ID()
 			}
 		}
 	}
 
 	return targetServiceId
-}
-
-func validateStorageBlob(input string) (*StorageBlobId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
-	}
-
-	resourceId := StorageBlobId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscription' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.Name, err = id.PopSegment("storageAccounts"); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
-}
-
-func (id StorageBlobId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
