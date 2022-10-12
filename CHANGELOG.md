@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
 * `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
 * `azurerm_log_analytics_cluster` - ensuring that the `identity` block is always set [GH-18700]
+* `azurerm_stream_analytics_output_servicebus_queue` - support for the `authentication_mode` property [GH-18491]
 
 BUG FIXES: 
 
