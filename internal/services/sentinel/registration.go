@@ -48,6 +48,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_sentinel_data_connector_microsoft_cloud_app_security":                  resourceSentinelDataConnectorMicrosoftCloudAppSecurity(),
 		"azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection": resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtection(),
 		"azurerm_sentinel_data_connector_office_365":                                    resourceSentinelDataConnectorOffice365(),
+		"azurerm_sentinel_data_connector_office_atp":                                    resourceSentinelDataConnectorOfficeATP(),
 		"azurerm_sentinel_data_connector_threat_intelligence":                           resourceSentinelDataConnectorThreatIntelligence(),
 		"azurerm_sentinel_automation_rule":                                              resourceSentinelAutomationRule(),
 	}
