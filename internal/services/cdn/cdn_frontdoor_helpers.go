@@ -412,7 +412,7 @@ func validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains []interf
 		wrongProfile := make([]string, 0)
 
 		for _, v := range resourceCustomDomains {
-			customDomain, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+			customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
 			if err != nil {
 				return err
 			}
