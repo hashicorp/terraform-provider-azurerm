@@ -473,7 +473,7 @@ func validateRoutesCustomDomainProfile(customDomains []interface{}, routeName st
 	if len(customDomains) != 0 {
 		// Verify all of the custom domains belong to the same profile as the route...
 		for _, v := range customDomains {
-			customDomain, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+			customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
 			if err != nil {
 				return err
 			}
