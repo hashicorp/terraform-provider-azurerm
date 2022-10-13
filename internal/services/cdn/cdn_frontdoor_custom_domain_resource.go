@@ -253,7 +253,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		// NOTE: Secret always needs to be passed if it is defined else you will
 		// receive a 500 Internal Server Error
 		if secretRaw != "" {
-			secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
+			secret, err := parse.FrontDoorSecretID(secretRaw)
 			if err != nil {
 				return err
 			}
