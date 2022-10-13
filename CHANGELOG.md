@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for `elastic_pool_namr` property [GH-18696]
 * `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
 * `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
+* `azurerm_firewall_policy_rule_collection_group`- add `Mssql` as an option for `type` validation [GH-18746]
 * `azurerm_log_analytics_cluster` - ensuring that the `identity` block is always set [GH-18700]
 * `azurerm_linux_web_app` - support for python `3.10` [GH-18744]
 * `azurerm_linux_web_app_slot` - support for python `3.10` [GH-18744]
