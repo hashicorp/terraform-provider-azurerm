@@ -188,7 +188,7 @@ func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginGroupIDInsensitively(d.Id())
+	id, err := parse.FrontDoorOriginGroupID(d.Id())
 	if err != nil {
 		return err
 	}
