@@ -309,8 +309,8 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
-  server_id        = azurerm_mssql_server.test.id
-  storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
+  server_id             = azurerm_mssql_server.test.id
+  blob_storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
 
   depends_on = [
     azurerm_role_assignment.test,
