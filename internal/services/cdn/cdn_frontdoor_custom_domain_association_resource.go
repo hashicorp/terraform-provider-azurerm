@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -81,7 +80,7 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 	}
 
 	// make sure the routes exist and are valid for this custom domain...
-	routes, err := flattenRoutes(d, meta, cdId)
+	routes, err := validateRoutes(d, meta, cdId)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -139,7 +138,7 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 		}
 
 		// make sure the routes exist and are valid for this custom domain...
-		routes, err := flattenRoutes(d, meta, cdId)
+		routes, err := validateRoutes(d, meta, cdId)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -168,7 +167,7 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	oRids, _ := d.GetChange("cdn_frontdoor_route_ids")
 	oR := oRids.([]interface{})
 
-	v, _, err := routesInsensitively(oR)
+	v, _, err := expandRoutes(oR)
 	if err != nil {
 		return err
 	}
@@ -184,7 +183,7 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	return nil
 }
 
-func flattenRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorCustomDomainId) ([]interface{}, error) {
+func validateRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorCustomDomainId) ([]interface{}, error) {
 	out := make([]interface{}, 0)
 	o, n := d.GetChange("cdn_frontdoor_route_ids")
 	oRoutes := o.([]interface{})
@@ -194,12 +193,12 @@ func flattenRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontD
 		return out, nil
 	}
 
-	oIds, _, err := routesInsensitively(oRoutes)
+	oIds, _, err := expandRoutes(oRoutes)
 	if err != nil {
 		return out, err
 	}
 
-	nIds, result, err := routesInsensitively(nRoutes)
+	nIds, result, err := expandRoutes(nRoutes)
 	if err != nil {
 		return out, err
 	}
@@ -215,7 +214,7 @@ func flattenRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontD
 
 			// Make sure the custom domain is in the routes association list
 			if len(associations) == 0 || !sliceContainsString(associations, id.ID()) {
-				return out, tf.ImportAsExistsError("cdn_frontdoor_custom_domain_association", id.ID())
+				return out, fmt.Errorf("the CDN FrontDoor Route(Name: %q) is currently not associated with the CDN FrontDoor Custom Domain(Name: %q). Please remove the CDN FrontDoor Route from your 'cdn_frontdoor_custom_domain_association' configuration block", v.RouteName, id.CustomDomainName)
 			}
 		}
 

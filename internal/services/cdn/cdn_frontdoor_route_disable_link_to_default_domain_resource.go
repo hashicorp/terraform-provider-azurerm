@@ -112,7 +112,10 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 	}
 
 	resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-	routeCustomDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+	routeCustomDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+	if err != nil {
+		return err
+	}
 
 	// make sure its valid to disable the LinkToDefaultDomain on this route...
 	if len(routeCustomDomains) == 0 {
@@ -164,7 +167,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 	defer routeCancel()
 
 	customDomainClient := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
-	customDomainCtx, customDomainCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	customDomainCtx, customDomainCancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer customDomainCancel()
 
 	id, err := parse.FrontDoorRouteDisableLinkToDefaultDomainID(d.Id())
@@ -251,7 +254,10 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 		}
 
 		resourceCustomDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-		routeCustomDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+		routeCustomDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+		if err != nil {
+			return err
+		}
 
 		// make sure its valid to disable the LinkToDefaultDomain on this route...
 		if len(routeCustomDomains) == 0 {
@@ -343,7 +349,10 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 		updateProps.CacheConfiguration = props.CacheConfiguration
 	}
 
-	customDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+	customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+	if err != nil {
+		return err
+	}
 
 	// NOTE: Only update LinkToDefaultDomain to enabled if there are not any custom domains associated with the route
 	if len(customDomains) == 0 {

@@ -70,7 +70,7 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			},
 
 			"cdn_frontdoor_custom_domain_ids": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 
 				Elem: &pluginsdk.Schema{
@@ -173,7 +173,7 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			},
 
 			"cdn_frontdoor_rule_set_ids": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 
 				Elem: &pluginsdk.Schema{
@@ -227,9 +227,9 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
+	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
 	originsRaw := d.Get("cdn_frontdoor_origin_ids").([]interface{})
-	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
 
@@ -242,7 +242,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	normalizedCustomDomains, err := customDomainsInsensitively(customDomainsRaw)
+	normalizedCustomDomains, err := expandCustomDomains(customDomainsRaw)
 	if err != nil {
 		return err
 	}
@@ -268,7 +268,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		originGroup = expandResourceReference(id.ID())
 	}
 
-	normalizedRuleSets, err := normalizeRuleSetIds(ruleSetIdsRaw)
+	normalizedRuleSets, err := expandRuleSetIds(ruleSetIdsRaw)
 	if err != nil {
 		return err
 	}
@@ -351,7 +351,12 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
-		d.Set("cdn_frontdoor_custom_domain_ids", flattenCustomDomainActivatedResourceArray(props.CustomDomains))
+		customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+		if err != nil {
+			return err
+		}
+
+		d.Set("cdn_frontdoor_custom_domain_ids", customDomains)
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect_enabled", flattenHttpsRedirectToBool(props.HTTPSRedirect))
@@ -406,9 +411,9 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
-	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
+	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
 	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
 
 	// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
@@ -425,19 +430,19 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	normalizedCustomDomains, err := customDomainsInsensitively(customDomainsRaw)
+	customDomains, err := expandCustomDomains(customDomainsRaw)
 	if err != nil {
 		return err
 	}
 
-	if !linkToDefaultDomain && len(normalizedCustomDomains) == 0 {
+	if !linkToDefaultDomain && len(customDomains) == 0 {
 		return fmt.Errorf("it is invalid to disable the 'LinkToDefaultDomain' for the CDN Front Door Route(Name: %s) since the route does not have any CDN Front Door Custom Domains associated with it", id.RouteName)
-	} else if len(normalizedCustomDomains) != 0 {
-		if err := sliceHasDuplicates(normalizedCustomDomains, "CDN FrontDoor Custom Domain"); err != nil {
+	} else if len(customDomains) != 0 {
+		if err := sliceHasDuplicates(customDomains, "CDN FrontDoor Custom Domain"); err != nil {
 			return err
 		}
 
-		if err := validateRoutesCustomDomainProfile(normalizedCustomDomains, id.RouteName, id.ProfileName); err != nil {
+		if err := validateRoutesCustomDomainProfile(customDomains, id.RouteName, id.ProfileName); err != nil {
 			return err
 		}
 	}
@@ -470,7 +475,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
-		updateProps.CustomDomains = expandCustomDomainActivatedResourceArray(normalizedCustomDomains)
+		updateProps.CustomDomains = expandCustomDomainActivatedResourceArray(customDomains)
 	}
 
 	if d.HasChange("cdn_frontdoor_origin_group_id") {
@@ -486,12 +491,12 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("cdn_frontdoor_rule_set_ids") {
-		normalizedRuleSets, err := normalizeRuleSetIds(ruleSetIdsRaw)
+		ruleSets, err := expandRuleSetIds(ruleSetIdsRaw)
 		if err != nil {
 			return err
 		}
 
-		updateProps.RuleSets = expandRuleSetReferenceArray(normalizedRuleSets)
+		updateProps.RuleSets = expandRuleSetReferenceArray(ruleSets)
 	}
 
 	if d.HasChange("supported_protocols") {

@@ -16,36 +16,36 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func expandEnabledBool(isEnabled bool) cdn.EnabledState {
-	if isEnabled {
+func expandEnabledBool(input bool) cdn.EnabledState {
+	if input {
 		return cdn.EnabledStateEnabled
 	}
 
 	return cdn.EnabledStateDisabled
 }
 
-func expandEnabledBoolToRouteHttpsRedirect(isEnabled bool) cdn.HTTPSRedirect {
-	if isEnabled {
+func expandEnabledBoolToRouteHttpsRedirect(input bool) cdn.HTTPSRedirect {
+	if input {
 		return cdn.HTTPSRedirectEnabled
 	}
 
 	return cdn.HTTPSRedirectDisabled
 }
 
-func expandEnabledBoolToLinkToDefaultDomain(isEnabled bool) cdn.LinkToDefaultDomain {
-	if isEnabled {
+func expandEnabledBoolToLinkToDefaultDomain(input bool) cdn.LinkToDefaultDomain {
+	if input {
 		return cdn.LinkToDefaultDomainEnabled
 	}
 
 	return cdn.LinkToDefaultDomainDisabled
 }
 
-func flattenLinkToDefaultDomainToBool(linkToDefaultDomain cdn.LinkToDefaultDomain) bool {
-	if len(linkToDefaultDomain) == 0 {
+func flattenLinkToDefaultDomainToBool(input cdn.LinkToDefaultDomain) bool {
+	if len(input) == 0 {
 		return false
 	}
 
-	return linkToDefaultDomain == cdn.LinkToDefaultDomainEnabled
+	return input == cdn.LinkToDefaultDomainEnabled
 }
 
 func expandResourceReference(input string) *cdn.ResourceReference {
@@ -120,7 +120,7 @@ func flattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 
 func flattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) []interface{} {
 	result := make([]interface{}, 0)
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(*input) == 0 {
 		return result
 	}
 
@@ -213,11 +213,10 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.Activa
 
 	// NOTE: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty
 	// list will not work. I had to modify the SDK to allow for nil which in the API means disassociate the custom domains.
-	if len(input) == 0 || input == nil {
+	if len(input) == 0 {
 		return nil
 	}
 
-	// Normalize these values, if these are imported from portal the will all be lowercased...
 	for _, customDomain := range input {
 		if id, err := parse.FrontDoorCustomDomainID(customDomain.(string)); err == nil {
 			results = append(results, cdn.ActivatedResourceReference{
@@ -232,7 +231,7 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.Activa
 // Takes a CSV formatted string and transforms it into a Slice of strings.
 func flattenCsvToStringSlice(input *string) []interface{} {
 	results := make([]interface{}, 0)
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(*input) == 0 {
 		return results
 	}
 
@@ -245,10 +244,10 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 	return results
 }
 
-func flattenCustomDomainActivatedResourceArray(input *[]cdn.ActivatedResourceReference) []interface{} {
+func flattenCustomDomainActivatedResourceArray(input *[]cdn.ActivatedResourceReference) ([]interface{}, error) {
 	results := make([]interface{}, 0)
-	if len(*input) == 0 || input == nil {
-		return results
+	if input == nil || len(*input) == 0 {
+		return results, nil
 	}
 
 	// Normalize these values in the configuration file we know they are valid because they were set on the
@@ -257,14 +256,14 @@ func flattenCustomDomainActivatedResourceArray(input *[]cdn.ActivatedResourceRef
 		if customDomain.ID == nil {
 			continue
 		}
-		id, err := parse.FrontDoorCustomDomainID(*customDomain.ID)
+		id, err := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
 		if err != nil {
-			// we should raise this
+			return nil, err
 		}
 		results = append(results, id.ID())
 	}
 
-	return results
+	return results, nil
 }
 
 // determines if the slice contains the value case-insensitively
@@ -333,7 +332,10 @@ func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 		return nil, nil, fmt.Errorf("%s: %s properties are 'nil': %+v", resourceName, *id, err)
 	}
 
-	customDomains := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+	customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return customDomains, props, nil
 }
@@ -596,7 +598,7 @@ func routeDelta(oldRoutes *[]parse.FrontDoorRouteId, newRoutes *[]parse.FrontDoo
 	return &remove, &shared
 }
 
-func normalizeRuleSetIds(input []interface{}) ([]interface{}, error) {
+func expandRuleSetIds(input []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, 0)
 	if len(input) == 0 || input == nil {
 		return out, nil
@@ -614,7 +616,7 @@ func normalizeRuleSetIds(input []interface{}) ([]interface{}, error) {
 	return out, nil
 }
 
-func routesInsensitively(input []interface{}) (*[]parse.FrontDoorRouteId, []interface{}, error) {
+func expandRoutes(input []interface{}) (*[]parse.FrontDoorRouteId, []interface{}, error) {
 	out := make([]parse.FrontDoorRouteId, 0)
 	config := make([]interface{}, 0)
 	if len(input) == 0 || input == nil {
@@ -634,7 +636,7 @@ func routesInsensitively(input []interface{}) (*[]parse.FrontDoorRouteId, []inte
 	return &out, config, nil
 }
 
-func customDomainsInsensitively(input []interface{}) ([]interface{}, error) {
+func expandCustomDomains(input []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, 0)
 	if len(input) == 0 || input == nil {
 		return out, nil

@@ -25,10 +25,9 @@ The following arguments are supported:
 
 * `cdn_frontdoor_custom_domain_id` - (Required) The resource ID of the CDN FrontDoor Custom Domain that should be managed by the association resource. Changing this forces a new association resource to be created.
 
-
 * `cdn_frontdoor_route_ids` - (Required) One or more IDs of the CDN FrontDoor Route to which the CDN FrontDoor Custom Domain is associated with.
 
--> **NOTE:** This should include all of the CDN FrontDoor Route resources that the CDN FrontDoor Custom Domain is associated with. If the list of CDN FrontDoor Routes is not complete you will receive the service side error mentioned above when you attempt to `destroy`/`delete` your CDN FrontDoor Custom Domain.
+-> **NOTE:** This should include all of the CDN FrontDoor Route resources that the CDN FrontDoor Custom Domain is associated with. If the list of CDN FrontDoor Routes is not complete you will receive the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` when you attempt to `destroy`/`delete` your CDN FrontDoor Custom Domain.
 
 ## Attributes Reference
 
