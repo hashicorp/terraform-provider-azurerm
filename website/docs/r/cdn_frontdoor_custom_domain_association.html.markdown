@@ -4,7 +4,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain_association"
 description: |-
   Manages the association between a CDN FrontDoor Custom Domain and one or more CDN FrontDoor Routes.
- ---
+---
 
  # azurerm_cdn_frontdoor_custom_domain_association
 
