@@ -120,12 +120,6 @@ func TestAccApiManagement_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.expiry").Exists(),
 				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.subject").Exists(),
 				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.expiry").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.subject").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.expiry").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.subject").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.thumbprint").Exists(),
 			),
 		},
 		{
@@ -143,10 +137,10 @@ func TestAccApiManagement_complete(t *testing.T) {
 				"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 				"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
 				"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
-				"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
-				"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
 				"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
 				"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+				"hostname_configuration.0.proxy.2.certificate",                     // not returned from API, sensitive
+				"hostname_configuration.0.proxy.2.certificate_password",            // not returned from API, sensitive
 			},
 		},
 	})
@@ -168,10 +162,10 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate_password",            // not returned from API, sensitive
 		),
 		{
 			Config: r.completeUpdateAdditionalLocations(data),
@@ -184,10 +178,10 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate_password",            // not returned from API, sensitive
 		),
 	})
 }
@@ -1154,10 +1148,12 @@ resource "azurerm_api_management" "test" {
   sku_name = "Premium_2"
 
   additional_location {
+    zones    = []
     location = azurerm_resource_group.test2.location
   }
 
   additional_location {
+    zones    = []
     location = azurerm_resource_group.test3.location
   }
 
@@ -1208,6 +1204,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                    = "api.terraform.io"
       certificate                  = filebase64("testdata/api_management_api_test.pfx")
       certificate_password         = "terraform"
@@ -1242,7 +1243,7 @@ resource "azurerm_api_management" "test" {
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger)
 }
 
 func (ApiManagementResource) completeUpdateAdditionalLocations(data acceptance.TestData) string {
@@ -1325,6 +1326,11 @@ resource "azurerm_api_management" "test" {
   }
 
   hostname_configuration {
+	proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
     proxy {
       host_name                    = "api.terraform.io"
       certificate                  = filebase64("testdata/api_management_api_test.pfx")
@@ -1360,7 +1366,7 @@ resource "azurerm_api_management" "test" {
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger)
 }
 
 func (ApiManagementResource) virtualNetworkTemplate(data acceptance.TestData) string {
