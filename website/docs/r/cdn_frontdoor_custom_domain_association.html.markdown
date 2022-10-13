@@ -6,7 +6,7 @@ description: |-
   Manages the association between a CDN FrontDoor Custom Domain and one or more CDN FrontDoor Routes.
 ---
 
- # azurerm_cdn_frontdoor_custom_domain_association
+# azurerm_cdn_frontdoor_custom_domain_association
 
 Manages the association between a CDN FrontDoor Custom Domain and one or more CDN FrontDoor Routes.
 
