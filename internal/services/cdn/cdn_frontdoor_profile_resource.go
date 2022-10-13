@@ -122,7 +122,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileIDInsensitively(d.Id())
+	id, err := parse.FrontDoorProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileIDInsensitively(d.Id())
+	id, err := parse.FrontDoorProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,7 +187,7 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileIDInsensitively(d.Id())
+	id, err := parse.FrontDoorProfileID(d.Id())
 	if err != nil {
 		return err
 	}

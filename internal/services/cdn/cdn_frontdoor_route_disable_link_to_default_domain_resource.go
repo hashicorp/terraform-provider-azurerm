@@ -71,7 +71,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 
 	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 
-	routeId, err := parse.FrontDoorRouteIDInsensitively(d.Get("cdn_frontdoor_route_id").(string))
+	routeId, err := parse.FrontDoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
 	if err != nil {
 		return fmt.Errorf("creating Front Door Route Disable Link To Default Domain: %+v", err)
 	}
@@ -88,7 +88,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 	defer locks.UnlockByName(routeId.RouteName, cdnFrontDoorRouteResourceName)
 
 	for _, v := range customDomains {
-		customDomainId, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+		customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
 		if err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
@@ -189,7 +189,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 
 	customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	for _, v := range customDomains {
-		cdId, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+		cdId, err := parse.FrontDoorCustomDomainID(v.(string))
 		if err != nil {
 			return fmt.Errorf("%s: unable to parse CDN Front Door Custom Domain ID: %+v", id, err)
 		}
@@ -212,7 +212,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
 		customDomains := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 
-		routeId, err := parse.FrontDoorRouteIDInsensitively(d.Get("cdn_frontdoor_route_id").(string))
+		routeId, err := parse.FrontDoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
 		if err != nil {
 			return fmt.Errorf("updating Front Door Route Disable Link To Default Domain: %+v", err)
 		}
@@ -226,7 +226,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 		defer locks.UnlockByName(routeId.RouteName, cdnFrontDoorRouteResourceName)
 
 		for _, v := range customDomains {
-			customDomainId, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+			customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -310,7 +310,7 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 
 	oldRoute, _ := d.GetChange("cdn_frontdoor_route_id")
 
-	route, err := parse.FrontDoorRouteIDInsensitively(oldRoute.(string))
+	route, err := parse.FrontDoorRouteID(oldRoute.(string))
 	if err != nil {
 		return err
 	}

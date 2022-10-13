@@ -257,7 +257,7 @@ func flattenCustomDomainActivatedResourceArray(input *[]cdn.ActivatedResourceRef
 		if customDomain.ID == nil {
 			continue
 		}
-		id, err := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
+		id, err := parse.FrontDoorCustomDomainID(*customDomain.ID)
 		if err != nil {
 			// we should raise this
 		}
@@ -431,7 +431,7 @@ func validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains []interf
 
 		for _, v := range routeCustomDomains {
 			// If this was updated by the portal, it lowercases to resource ID...
-			customDomain, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+			customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
 			if err != nil {
 				return fmt.Errorf("unable to parse %q: %+v", v.(string), err)
 			}
@@ -527,7 +527,7 @@ func validateCustomDomainRoutes(input *[]parse.FrontDoorRouteId, customDomainID 
 // Returns a verbose CDN FrontDoor Custom Domain parse error message
 func friendlyCustomDomainID(customDomain string) (*parse.FrontDoorCustomDomainId, error) {
 	if customDomain != "" {
-		if customDomainId, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain); err != nil {
+		if customDomainId, err := parse.FrontDoorCustomDomainID(customDomain); err != nil {
 			return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain(ID: %q): %+v", customDomain, err)
 		} else {
 			return customDomainId, nil
@@ -603,7 +603,7 @@ func normalizeRuleSetIds(input []interface{}) ([]interface{}, error) {
 	}
 
 	for _, ruleSet := range input {
-		id, err := parse.FrontDoorRuleSetIDInsensitively(ruleSet.(string))
+		id, err := parse.FrontDoorRuleSetID(ruleSet.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -622,7 +622,7 @@ func routesInsensitively(input []interface{}) (*[]parse.FrontDoorRouteId, []inte
 	}
 
 	for _, v := range input {
-		id, err := parse.FrontDoorRouteIDInsensitively(v.(string))
+		id, err := parse.FrontDoorRouteID(v.(string))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -641,7 +641,7 @@ func customDomainsInsensitively(input []interface{}) ([]interface{}, error) {
 	}
 
 	for _, v := range input {
-		id, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+		id, err := parse.FrontDoorCustomDomainID(v.(string))
 		if err != nil {
 			return nil, err
 		}

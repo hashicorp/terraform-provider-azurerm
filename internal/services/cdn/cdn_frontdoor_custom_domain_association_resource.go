@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -63,7 +64,7 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 
 	log.Printf("[INFO] preparing arguments for CDN FrontDoor Route <-> CDN FrontDoor Custom Domain Association creation")
 
-	cdId, err := parse.FrontDoorCustomDomainIDInsensitively(d.Get("cdn_frontdoor_custom_domain_id").(string))
+	cdId, err := parse.FrontDoorCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
 	if err != nil {
 		return err
 	}
@@ -214,7 +215,7 @@ func flattenRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontD
 
 			// Make sure the custom domain is in the routes association list
 			if len(associations) == 0 || !sliceContainsString(associations, id.ID()) {
-				return out, fmt.Errorf("the CDN FrontDoor Route(Name: %q) is currently not associated with the CDN FrontDoor Custom Domain(Name: %q). Please remove the CDN FrontDoor Route from your 'cdn_frontdoor_custom_domain_association' configuration block", v.RouteName, id.CustomDomainName)
+				return out, tf.ImportAsExistsError("cdn_frontdoor_custom_domain_association", id.ID())
 			}
 		}
 

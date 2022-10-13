@@ -180,7 +180,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(originGroupRaw)
+	originGroup, err := parse.FrontDoorOriginGroupID(originGroupRaw)
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginIDInsensitively(d.Id())
+	id, err := parse.FrontDoorOriginID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -311,7 +311,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginIDInsensitively(d.Id())
+	id, err := parse.FrontDoorOriginID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -405,7 +405,7 @@ func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginIDInsensitively(d.Id())
+	id, err := parse.FrontDoorOriginID(d.Id())
 	if err != nil {
 		return err
 	}

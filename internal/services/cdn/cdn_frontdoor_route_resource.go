@@ -204,7 +204,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	defer cancel()
 
 	endpointRaw := d.Get("cdn_frontdoor_endpoint_id").(string)
-	endpoint, err := parse.FrontDoorEndpointIDInsensitively(endpointRaw)
+	endpoint, err := parse.FrontDoorEndpointID(endpointRaw)
 	if err != nil {
 		return err
 	}
@@ -260,7 +260,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if originGroupRaw != "" {
-		id, err := parse.FrontDoorOriginGroupIDInsensitively(originGroupRaw)
+		id, err := parse.FrontDoorOriginGroupID(originGroupRaw)
 		if err != nil {
 			return err
 		}
@@ -306,7 +306,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	for _, origin := range originsRaw {
-		id, err := parse.FrontDoorOriginIDInsensitively(origin.(string))
+		id, err := parse.FrontDoorOriginID(origin.(string))
 		if err != nil {
 			return err
 		}
@@ -326,7 +326,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorRouteIDInsensitively(d.Id())
+	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -385,7 +385,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorRouteIDInsensitively(d.Id())
+	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -420,7 +420,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(originGroupRaw)
+	originGroup, err := parse.FrontDoorOriginGroupID(originGroupRaw)
 	if err != nil {
 		return err
 	}
@@ -525,7 +525,7 @@ func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorRouteIDInsensitively(d.Id())
+	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -608,7 +608,7 @@ func flattenRuleSetResourceArray(input *[]cdn.ResourceReference) []interface{} {
 	// Normalize these values in the configuration file we know they are valid because they were set on the
 	// resource... if these are modified in the portal the will all be lowercased...
 	for _, ruleSet := range *input {
-		id, _ := parse.FrontDoorRuleSetIDInsensitively(*ruleSet.ID)
+		id, _ := parse.FrontDoorRuleSetID(*ruleSet.ID)
 		results = append(results, id.ID())
 	}
 
