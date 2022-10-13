@@ -42,7 +42,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "example" {
   server_id                  = azurerm_mssql_server.example.id
-  storage_endpoint           = azurerm_storage_account.example.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.example.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
