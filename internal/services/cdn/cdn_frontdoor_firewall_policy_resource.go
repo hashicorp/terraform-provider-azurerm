@@ -609,7 +609,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorFirewallPolicyIDInsensitively(d.Id())
+	id, err := parse.FrontDoorFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
