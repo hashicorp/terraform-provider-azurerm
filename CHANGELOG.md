@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource:** `azurerm_sentinel_data_connector_office_atp` [GH-18708]
 
 ENHANCEMENTS:
+
 * dependencies: updating to version `v0.44.` of `github.com/hashicorp/go-azure-helpers` [GH-18716]
 * dependencies: updating to version `v0.50.0` of `github.com/manicminer/hamilton` [GH-18716]
 * `azurerm_automation_runbook` - support for the `draft` block and `log_activity_trace` propertry [GH-17961]
@@ -14,6 +15,8 @@ ENHANCEMENTS:
 * `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
 * `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
 * `azurerm_log_analytics_cluster` - ensuring that the `identity` block is always set [GH-18700]
+* `azurerm_linux_web_app` - support for python `3.10` [GH-18744]
+* `azurerm_linux_web_app_slot` - support for python `3.10` [GH-18744]
 * `azurerm_stream_analytics_output_servicebus_queue` - support for the `authentication_mode` property [GH-18491]
 
 BUG FIXES: 
