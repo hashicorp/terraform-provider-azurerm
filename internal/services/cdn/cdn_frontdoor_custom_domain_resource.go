@@ -332,7 +332,7 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	}
 
 	if secretRaw != "" {
-		secret, err := parse.FrontDoorSecretIDInsensitively(secretRaw)
+		secret, err := parse.FrontDoorSecretID(secretRaw)
 		if err != nil {
 			return nil, err
 		}
