@@ -225,7 +225,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorCustomDomainIDInsensitively(d.Id())
+	id, err := parse.FrontDoorCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
