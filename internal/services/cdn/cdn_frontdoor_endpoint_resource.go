@@ -73,7 +73,7 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	defer cancel()
 
 	profileRaw := d.Get("cdn_frontdoor_profile_id").(string)
-	profileId, err := parse.FrontDoorProfileIDInsensitively(profileRaw)
+	profileId, err := parse.FrontDoorProfileID(profileRaw)
 	if err != nil {
 		return err
 	}
