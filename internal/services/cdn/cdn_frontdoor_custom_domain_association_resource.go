@@ -121,7 +121,7 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 	defer cancel()
 
 	if d.HasChange("cdn_frontdoor_route_ids") {
-		cdId, err := parse.FrontDoorCustomDomainIDInsensitively(d.Get("cdn_frontdoor_custom_domain_id").(string))
+		cdId, err := parse.FrontDoorCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
 		if err != nil {
 			return err
 		}
