@@ -25,6 +25,7 @@ ENHANCEMENTS:
 * `azurerm_log_analytics_cluster` - ensuring that the `identity` block is always set [GH-18700]
 * `azurerm_linux_web_app` - support for python `3.10` [GH-18744]
 * `azurerm_linux_web_app_slot` - support for python `3.10` [GH-18744]
+* `azurerm_mssql_database` - support for the `import` block [GH-18588]
 * `azurerm_stream_analytics_output_servicebus_queue` - support for the `authentication_mode` property [GH-18491]
 
 BUG FIXES: 
