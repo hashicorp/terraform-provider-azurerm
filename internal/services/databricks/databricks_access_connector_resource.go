@@ -1,150 +1,200 @@
 package databricks
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceDatabricksAccessConnector() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceDatabricksAccessConnectorCreateUpdate,
-		Read:   resourceDatabricksAccessConnectorRead,
-		Update: resourceDatabricksAccessConnectorCreateUpdate,
-		Delete: resourceDatabricksAccessConnectorDelete,
+type DatabricksAccessConnectorResource struct {
+}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(5 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(5 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(5 * time.Minute),
+var _ sdk.ResourceWithUpdate = DatabricksAccessConnectorResource{}
+
+type DatabricksAccessConnectorResourceModel struct {
+	Name          string                   `tfschema:"name"`
+	ResourceGroup string                   `tfschema:"resource_group_name"`
+	Location      string                   `tfschema:"location"`
+	Tags          map[string]string        `tfschema:"tags"`
+	Identity      *identity.SystemAssigned `tfschema:"identity"`
+}
+
+func (r DatabricksAccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AccessConnectorName,
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := accessconnector.ParseAccessConnectorID(id)
-			return err
-		}),
+		"location": commonschema.Location(),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AccessConnectorName,
-			},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location":            commonschema.Location(),
-			"resource_group_name": commonschema.ResourceGroupName(),
-			"identity":            commonschema.SystemAssignedIdentityRequired(),
-			"tags":                commonschema.Tags(),
-		},
+		"identity": commonschema.SystemAssignedIdentityRequired(),
+
+		"tags": commonschema.Tags(),
 	}
 }
 
-func resourceDatabricksAccessConnectorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.AccessConnectorClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DatabricksAccessConnectorResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
 
-	id := accessconnector.NewAccessConnectorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+func (r DatabricksAccessConnectorResource) ModelObject() interface{} {
+	return &DatabricksAccessConnectorResourceModel{}
+}
+
+func (r DatabricksAccessConnectorResource) ResourceType() string {
+	return "azurerm_databricks_access_connector"
+}
+
+func (r DatabricksAccessConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return accessconnector.ValidateAccessConnectorID
+}
+
+func (r DatabricksAccessConnectorResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+
+			var model DatabricksAccessConnectorResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+			client := metadata.Client.DataBricks.AccessConnectorClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			id := accessconnector.NewAccessConnectorID(subscriptionId, model.ResourceGroup, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_databricks_access_connector", id.ID())
-		}
-	}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+			accessConnector := accessconnector.AccessConnector{
+				Name:     &model.Name,
+				Location: model.Location,
+				Tags:     &model.Tags,
+				Identity: model.Identity,
+			}
 
-	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
+			_, err = client.CreateOrUpdate(ctx, id, accessConnector)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 
-	accessConnector := accessconnector.AccessConnector{
-		Location: location,
-		Identity: identity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if err := client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-
-	return resourceDatabricksAccessConnectorRead(d, meta)
-}
-
-func resourceDatabricksAccessConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.AccessConnectorClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := accessconnector.ParseAccessConnectorID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state", *id)
-			d.SetId("")
+			metadata.SetID(id)
 			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		},
+		Timeout: 5 * time.Minute,
 	}
-
-	d.Set("name", id.ConnectorName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
-
-		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
-
-		return tags.FlattenAndSet(d, model.Tags)
-	}
-
-	return nil
 }
 
-func resourceDatabricksAccessConnectorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.AccessConnectorClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DatabricksAccessConnectorResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataBricks.AccessConnectorClient
+			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
 
-	id, err := accessconnector.ParseAccessConnectorID(d.Id())
-	if err != nil {
-		return err
+			var state DatabricksAccessConnectorResourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Access Connector %s: %v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Model.Tags = &state.Tags
+			}
+
+			_, err = client.CreateOrUpdate(ctx, *id, *existing.Model)
+			if err != nil {
+				return fmt.Errorf("updating Access Connector %s: %+v", id, err)
+			}
+
+			return nil
+		},
+
+		Timeout: 5 * time.Minute,
 	}
+}
 
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+func (r DatabricksAccessConnectorResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf("while parsing resource ID: %+v", err)
+			}
+
+			client := metadata.Client.DataBricks.AccessConnectorClient
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("while checking for Access Connectors's %q existence: %+v", id.ConnectorName, err)
+			}
+
+			state := DatabricksAccessConnectorResourceModel{
+				Name:          id.ConnectorName,
+				Location:      location.NormalizeNilable(utils.String(resp.Model.Location)),
+				ResourceGroup: id.ResourceGroupName,
+			}
+
+			if model := resp.Model; model != nil {
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
+				if model.Identity != nil {
+					state.Identity = model.Identity
+				}
+			}
+			return metadata.Encode(&state)
+		},
+		Timeout: 5 * time.Minute,
 	}
+}
 
-	return nil
+func (r DatabricksAccessConnectorResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
+
+			if err != nil {
+				return fmt.Errorf("while parsing resource ID: %+v", err)
+			}
+
+			client := metadata.Client.DataBricks.AccessConnectorClient
+
+			_, err = client.Delete(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("while removing Access Connector %q: %+v", id.ConnectorName, err)
+			}
+
+			return nil
+		},
+		Timeout: 30 * time.Minute,
+	}
 }
