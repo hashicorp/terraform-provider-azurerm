@@ -154,7 +154,7 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	// because it will be empty, you have to get it from the states old value...
 	oCdId, _ := d.GetChange("cdn_frontdoor_custom_domain_id")
 
-	cdId, err := parse.FrontDoorCustomDomainIDInsensitively(oCdId.(string))
+	cdId, err := parse.FrontDoorCustomDomainID(oCdId.(string))
 	if err != nil {
 		return err
 	}
