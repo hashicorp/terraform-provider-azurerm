@@ -181,7 +181,7 @@ func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorEndpointIDInsensitively(d.Id())
+	id, err := parse.FrontDoorEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
