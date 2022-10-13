@@ -2229,6 +2229,54 @@ func StorageAccountSchema() *pluginsdk.Schema {
 	}
 }
 
+func AzureStorageAccountSchemaWindows() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AzureStorageTypeAzureFiles), // Note: Windows Apps only support AzureFiles for AzureStorageAccount type.
+					}, false),
+				},
+
+				"account_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"share_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"access_key": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"mount_path": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
 func StorageAccountSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,

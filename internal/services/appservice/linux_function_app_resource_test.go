@@ -541,7 +541,22 @@ func TestAccLinuxFunctionApp_withStorageAccountBlock(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withStorageAccount(data, SkuStandardPlan),
+			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_withStorageAccountBlocks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withStorageAccountMultiple(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -563,14 +578,21 @@ func TestAccLinuxFunctionApp_withStorageAccountBlockUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withStorageAccount(data, SkuStandardPlan),
+			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withStorageAccountUpdate(data, SkuStandardPlan),
+			Config: r.withStorageAccountMultiple(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3658,7 +3680,7 @@ resource "azurerm_linux_function_app" "test" {
 `, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) withStorageAccount(data acceptance.TestData, planSKU string) string {
+func (r LinuxFunctionAppResource) withStorageAccountSingle(data acceptance.TestData, planSKU string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3688,7 +3710,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.templateWithStorageAccountExtras(data, planSKU), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) withStorageAccountUpdate(data acceptance.TestData, planSKU string) string {
+func (r LinuxFunctionAppResource) withStorageAccountMultiple(data acceptance.TestData, planSKU string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3697,25 +3719,32 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctestWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
+  name                       = "acctestWA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
 
   storage_account {
-    name         = "updatedfiles"
-    type         = "AzureBlob"
+    name         = "files"
+    type         = "AzureFiles"
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/blob"
+    mount_path   = "/files"
   }
 
+  storage_account {
+    name         = "blobs"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test2.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/blob"
+  }
 }
 `, r.templateWithStorageAccountExtras(data, planSKU), data.RandomInteger)
 }
@@ -3738,6 +3767,18 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_storage_share" "test" {
   name                 = "test"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "test2"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_share" "test2" {
+  name                 = "test2"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 1
 }

@@ -252,7 +252,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"sticky_settings": helpers.StickySettingsSchema(),
 
-		"storage_account": helpers.StorageAccountSchema(),
+		"storage_account": helpers.AzureStorageAccountSchemaWindows(),
 
 		"tags": tags.Schema(),
 
@@ -582,7 +582,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Storage Account information for WIndows %s: %+v", id, err)
+				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
