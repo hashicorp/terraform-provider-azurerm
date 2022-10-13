@@ -3,7 +3,6 @@ package containers
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -1032,6 +1032,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"workload_identity_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 
@@ -1163,7 +1169,24 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
-	microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+	securityProfile := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+
+	workloadIdentity := false
+	if v, ok := d.GetOk("workload_identity_enabled"); ok {
+		workloadIdentity = v.(bool)
+
+		if workloadIdentity == true && enableOidcIssuer == false {
+			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
+		}
+
+		if securityProfile == nil {
+			securityProfile = &containerservice.ManagedClusterSecurityProfile{}
+		}
+
+		securityProfile.WorkloadIdentity = &containerservice.ManagedClusterSecurityProfileWorkloadIdentity{
+			Enabled: &workloadIdentity,
+		}
+	}
 
 	parameters := containerservice.ManagedCluster{
 		Name:             utils.String(id.ManagedClusterName),
@@ -1190,7 +1213,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
 			OidcIssuerProfile:      oidcIssuerProfile,
-			SecurityProfile:        microsoftDefender,
+			SecurityProfile:        securityProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1650,11 +1673,25 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.SecurityProfile = microsoftDefender
 	}
 
+	if d.HasChanges("workload_identity_enabled") {
+		updateCluster = true
+		workloadIdentity := d.Get("workload_identity_enabled").(bool)
+		if existing.ManagedClusterProperties.SecurityProfile == nil {
+			existing.ManagedClusterProperties.SecurityProfile = &containerservice.ManagedClusterSecurityProfile{}
+		}
+		existing.ManagedClusterProperties.SecurityProfile.WorkloadIdentity = &containerservice.ManagedClusterSecurityProfileWorkloadIdentity{
+			Enabled: &workloadIdentity,
+		}
+	}
+
 	if updateCluster {
-		// If Defender was explicitly disabled in a prior update then we should strip security profile from the request
+		// If Defender was explicitly disabled in a prior update then we should strip SecurityProfile.AzureDefender from the request
 		// body to prevent errors in cases where Defender is disabled for the entire subscription
 		if !d.HasChanges("microsoft_defender") && len(d.Get("microsoft_defender").([]interface{})) == 0 {
-			existing.ManagedClusterProperties.SecurityProfile = nil
+			if existing.ManagedClusterProperties.SecurityProfile == nil {
+				existing.ManagedClusterProperties.SecurityProfile = &containerservice.ManagedClusterSecurityProfile{}
+			}
+			existing.ManagedClusterProperties.SecurityProfile.AzureDefender = nil
 		}
 
 		log.Printf("[DEBUG] Updating %s..", *id)
@@ -1918,6 +1955,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 		}
+
+		workloadIdentity := false
+		if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
+			workloadIdentity = *props.SecurityProfile.WorkloadIdentity.Enabled
+		}
+		d.Set("workload_identity_enabled", workloadIdentity)
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
