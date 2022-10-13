@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_disaster_recovery_config"
 description: |-
-Manages a Disaster Recovery Config for a Service Bus Namespace.
+  Manages a Disaster Recovery Config for a Service Bus Namespace.
 ---
 
 # azurerm_servicebus_namespace_disaster_recovery_config
@@ -82,8 +82,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to
-specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace Disaster Recovery Config.
 * `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace Disaster Recovery Config.
