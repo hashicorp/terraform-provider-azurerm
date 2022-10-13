@@ -526,19 +526,6 @@ func validateCustomDomainRoutes(input *[]parse.FrontDoorRouteId, customDomainID 
 	return nil
 }
 
-// Returns a verbose CDN FrontDoor Custom Domain parse error message
-func friendlyCustomDomainID(customDomain string) (*parse.FrontDoorCustomDomainId, error) {
-	if customDomain != "" {
-		if customDomainId, err := parse.FrontDoorCustomDomainID(customDomain); err != nil {
-			return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain(ID: %q): %+v", customDomain, err)
-		} else {
-			return customDomainId, nil
-		}
-	}
-
-	return nil, fmt.Errorf("unable to parse CDN FrontDoor Custom Domain: no value was passed")
-}
-
 // Checks to make sure the list of CDN FrontDoor Custom Domains does not contain duplicate entries
 func sliceHasDuplicates(input []interface{}, resourceTxt string) error {
 	k := make(map[string]bool)

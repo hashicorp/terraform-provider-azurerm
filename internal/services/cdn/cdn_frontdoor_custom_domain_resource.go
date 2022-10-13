@@ -182,7 +182,7 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := friendlyCustomDomainID(d.Id())
+	id, err := parse.FrontDoorCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
