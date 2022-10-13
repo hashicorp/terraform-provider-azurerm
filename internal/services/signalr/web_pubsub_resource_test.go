@@ -245,7 +245,7 @@ func (r WebPubsubResource) Exists(ctx context.Context, client *clients.Client, s
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r WebPubsubResource) basic(data acceptance.TestData) string {
