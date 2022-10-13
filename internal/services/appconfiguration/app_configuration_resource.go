@@ -299,7 +299,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	parameters.Identity = identity
-	// TODO: retry checkNameAvailability before Create, see https://github.com/Azure/AppConfiguration/issues/677
+	// TODO: retry checkNameAvailability before creation when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
 	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
@@ -562,6 +562,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
 
+		// TODO: retry checkNameAvailability after deletion when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
 		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigStoreName)
 	}
 
