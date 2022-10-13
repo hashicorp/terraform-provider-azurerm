@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/attacheddatabaseconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -31,17 +31,17 @@ func TestAccKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
 }
 
 func (KustoAttachedDatabaseConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AttachedDatabaseConfigurationID(state.ID)
+	id, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.AttachedDatabaseConfigurationsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := clients.Kusto.AttachedDatabaseConfigurationsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.AttachedDatabaseConfigurationProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (KustoAttachedDatabaseConfigurationResource) basic(data acceptance.TestData) string {
