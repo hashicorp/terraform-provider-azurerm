@@ -105,7 +105,7 @@ func flattenFrontDoorTags(tagMap map[string]*string) *map[string]string {
 
 func flattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 	result := make([]interface{}, 0)
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(*input) == 0 {
 		return result
 	}
 
