@@ -25,7 +25,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 		Delete: resourceKustoAttachedDatabaseConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationID(id)
+			_, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationIDInsensitively(id)
 			return err
 		}),
 
@@ -184,7 +184,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationID(d.Id())
+	id, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
