@@ -4,13 +4,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/attacheddatabaseconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AttachedDatabaseConfigurationsClient *attacheddatabaseconfigurations.AttachedDatabaseConfigurationsClient
 	ClustersClient                       *clusters.ClustersClient
-	ClusterManagedPrivateEndpointClient  *kusto.ManagedPrivateEndpointsClient
+	ClusterManagedPrivateEndpointClient  *managedprivateendpoints.ManagedPrivateEndpointsClient
 	ClusterPrincipalAssignmentsClient    *kusto.ClusterPrincipalAssignmentsClient
 	DatabasesClient                      *kusto.DatabasesClient
 	DataConnectionsClient                *kusto.DataConnectionsClient
@@ -22,7 +23,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	ClustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
 
-	ClusterManagedPrivateEndpointClient := kusto.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	ClusterManagedPrivateEndpointClient := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ClusterManagedPrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
 
 	ClusterPrincipalAssignmentsClient := kusto.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
