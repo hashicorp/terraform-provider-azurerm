@@ -449,7 +449,7 @@ func validateCustomDomainLinkToDefaultDomainState(resourceCustomDomains []interf
 		notAssociated := make([]string, 0)
 
 		for _, v := range resourceCustomDomains {
-			customDomain, err := parse.FrontDoorCustomDomainIDInsensitively(v.(string))
+			customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
 			if err != nil {
 				return fmt.Errorf("unable to parse %q: %+v", v.(string), err)
 			}
