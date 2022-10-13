@@ -3,6 +3,7 @@ package servicebus
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"log"
 	"net/http"
 	"strconv"
@@ -57,6 +58,12 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			},
+
+			"auth_rule_id_of_the_alias": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"primary_connection_string_alias": {
@@ -198,7 +205,15 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 		}
 	}
 
-	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.Alias)
+	// the auth rule cannot be retrieved by dr config name, the shared access policy should either be specified by user or using the default one which is `RootManageSharedAccessKey`
+	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)
+	if input := d.Get("auth_rule_id_of_the_alias").(string); input != "" {
+		ruleId, err := disasterrecoveryconfigs.ParseAuthorizationRuleID(input)
+		if err != nil {
+			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
+		}
+		authRuleId = *ruleId
+	}
 
 	keys, err := client.ListKeys(ctx, authRuleId)
 
