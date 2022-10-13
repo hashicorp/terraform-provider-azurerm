@@ -226,7 +226,7 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginGroupIDInsensitively(d.Id())
+	id, err := parse.FrontDoorOriginGroupID(d.Id())
 	if err != nil {
 		return err
 	}
