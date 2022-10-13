@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain_association"
 description: |-
-  Manages the single apply/single destroy incompatibility between the CDN FrontDoor API and the Terraform dependency graph.
----
+  Manages the association between a CDN FrontDoor Custom Domain and one or more CDN FrontDoor Routes.
+ ---
 
-# azurerm_cdn_frontdoor_custom_domain_association
+ # azurerm_cdn_frontdoor_custom_domain_association
 
-Manages the single destroy incompatibility between the CDN FrontDoor API and the Terraform dependency graph generation. You should use this association resource to avoid receiving the `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` error when issuing the Terraform `destroy` command.
+Manages the association between a CDN FrontDoor Custom Domain and one or more CDN FrontDoor Routes.
 
 ## Example Usage
 
