@@ -219,7 +219,7 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.Activa
 
 	// Normalize these values, if these are imported from portal the will all be lowercased...
 	for _, customDomain := range input {
-		if id, err := parse.FrontDoorCustomDomainIDInsensitively(customDomain.(string)); err == nil {
+		if id, err := parse.FrontDoorCustomDomainID(customDomain.(string)); err == nil {
 			results = append(results, cdn.ActivatedResourceReference{
 				ID: utils.String(id.ID()),
 			})
