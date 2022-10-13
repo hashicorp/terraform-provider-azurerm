@@ -23,7 +23,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "example" {
 
 The following arguments are supported:
 
-* `cdn_frontdoor_custom_domain_id` - (Required) The resource ID of the CDN FrontDoor Custom Domain that should be managed by the association resource. Changing this forces a new association resource to be created.
+* `cdn_frontdoor_custom_domain_id` - (Required) The ID of the CDN FrontDoor Custom Domain that should be managed by the association resource. Changing this forces a new association resource to be created.
 
 
 * `cdn_frontdoor_route_ids` - (Required) One or more IDs of the CDN FrontDoor Route to which the CDN FrontDoor Custom Domain is associated with.
