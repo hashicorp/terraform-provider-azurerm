@@ -493,7 +493,7 @@ func validateRoutesCustomDomainProfile(customDomains []interface{}, routeName st
 
 // Validates that the CDN FrontDoor Custom Domain can be associated with the CDN FrontDoor Route
 func validateCustomDomainRoutes(input *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(*input) == 0 {
 		return nil
 	}
 
