@@ -21,12 +21,6 @@ type AuthInfoModel struct {
 	Certificate    string `tfschema:"certificate"`
 }
 
-type StorageBlobId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	Name           string
-}
-
 func authInfoSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
