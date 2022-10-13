@@ -161,7 +161,6 @@ resource "azurerm_spring_cloud_connection" "test" {
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
-  vnet_solution      = "privateLink"
   authentication {
     type = "systemAssignedIdentity"
   }

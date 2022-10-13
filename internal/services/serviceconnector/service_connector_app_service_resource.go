@@ -146,7 +146,7 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 				Properties: serviceConnectorProperties,
 			}
 
-			if _, err = client.LinkerCreateOrUpdate(ctx, id, props); err != nil {
+			if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
