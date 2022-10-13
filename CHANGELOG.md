@@ -29,6 +29,9 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster_node_pool` - `orchestrator_version` is set properly for node pools created with an older API version [GH-18130]
 * `azurerm_log_analytics_cluster` - fixing an issue when checking for the presence of an existing Log Analytics Cluster [GH-18700]
 * `azurerm_logic_app_workflow` - can now be updated when associated with `integration_service_environment_id` [GH-18660]
+* `azurerm_spring_cloud_connection` - correctly parse storage blob resource id [GH-18699]
+* `azurerm_app_service_connection` - correctly parse storage blob resource id [GH-18699]
+
 
 ## 3.26.0 (October 06, 2022)
 
