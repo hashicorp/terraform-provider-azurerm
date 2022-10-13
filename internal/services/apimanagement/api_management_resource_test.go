@@ -1326,7 +1326,7 @@ resource "azurerm_api_management" "test" {
   }
 
   hostname_configuration {
-	proxy {
+    proxy {
       host_name                    = "acctestAM-%d.azure-api.net"
       negotiate_client_certificate = true
     }
@@ -1886,6 +1886,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                    = "api.pluginsdk.io"
       key_vault_id                 = azurerm_key_vault_certificate.test.versionless_secret_id
       default_ssl_binding          = true
@@ -1893,7 +1898,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
+`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultIdUpdateCD(data acceptance.TestData) string {
@@ -1915,6 +1920,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                    = "api.pluginsdk.io"
       key_vault_id                 = azurerm_key_vault_certificate.test.secret_id
       default_ssl_binding          = true
@@ -1922,7 +1932,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
+`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (ApiManagementResource) identityUserAssignedHostnameConfigurationsKeyVaultId(data acceptance.TestData) string {
@@ -2037,6 +2047,11 @@ resource "azurerm_api_management" "test" {
   sku_name = "Developer_1"
 
   hostname_configuration {
+    proxy {
+      host_name                    = "acctestAM-%[1]d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
     proxy {
       host_name                       = "api.terraform.io"
       key_vault_id                    = azurerm_key_vault_certificate.test.secret_id
