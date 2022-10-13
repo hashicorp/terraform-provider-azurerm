@@ -254,7 +254,13 @@ func flattenCustomDomainActivatedResourceArray(input *[]cdn.ActivatedResourceRef
 	// Normalize these values in the configuration file we know they are valid because they were set on the
 	// resource... if these are modified in the portal the will all be lowercased...
 	for _, customDomain := range *input {
-		id, _ := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
+		if customDomain.ID == nil {
+			continue
+		}
+		id, err := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
+		if err != nil {
+			// we should raise this
+		}
 		results = append(results, id.ID())
 	}
 
