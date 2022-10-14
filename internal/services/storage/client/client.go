@@ -25,20 +25,21 @@ import (
 )
 
 type Client struct {
-	AccountsClient              *storage.AccountsClient
-	FileSystemsClient           *filesystems.Client
-	ADLSGen2PathsClient         *paths.Client
-	ManagementPoliciesClient    *storage.ManagementPoliciesClient
-	BlobServicesClient          *storage.BlobServicesClient
-	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
-	CloudEndpointsClient        *storagesync.CloudEndpointsClient
-	EncryptionScopesClient      *storage.EncryptionScopesClient
-	Environment                 azure.Environment
-	FileServicesClient          *storage.FileServicesClient
-	ObjectReplicationClient     *objectreplicationpolicies.ObjectReplicationPoliciesClient
-	SyncServiceClient           *storagesync.ServicesClient
-	SyncGroupsClient            *storagesync.SyncGroupsClient
-	SubscriptionId              string
+	AccountsClient                  *storage.AccountsClient
+	FileSystemsClient               *filesystems.Client
+	ADLSGen2PathsClient             *paths.Client
+	ManagementPoliciesClient        *storage.ManagementPoliciesClient
+	BlobServicesClient              *storage.BlobServicesClient
+	BlobInventoryPoliciesClient     *storage.BlobInventoryPoliciesClient
+	CloudEndpointsClient            *storagesync.CloudEndpointsClient
+	EncryptionScopesClient          *storage.EncryptionScopesClient
+	Environment                     azure.Environment
+	FileServicesClient              *storage.FileServicesClient
+	ObjectReplicationClient         *objectreplicationpolicies.ObjectReplicationPoliciesClient
+	PrivateEndpointConnectionClient *storage.PrivateEndpointConnectionsClient
+	SyncServiceClient               *storagesync.ServicesClient
+	SyncGroupsClient                *storagesync.SyncGroupsClient
+	SubscriptionId                  string
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
@@ -75,6 +76,9 @@ func NewClient(options *common.ClientOptions) *Client {
 	objectReplicationPolicyClient := objectreplicationpolicies.NewObjectReplicationPoliciesClientWithBaseURI(options.ResourceManagerEndpoint)
 	options.ConfigureClient(&objectReplicationPolicyClient.Client, options.ResourceManagerAuthorizer)
 
+	privateEndpointConnectionClient := storage.NewPrivateEndpointConnectionsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&privateEndpointConnectionClient.Client, options.ResourceManagerAuthorizer)
+
 	syncServiceClient := storagesync.NewServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncServiceClient.Client, options.ResourceManagerAuthorizer)
 
@@ -84,20 +88,21 @@ func NewClient(options *common.ClientOptions) *Client {
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
-		AccountsClient:              &accountsClient,
-		FileSystemsClient:           &fileSystemsClient,
-		ADLSGen2PathsClient:         &adlsGen2PathsClient,
-		ManagementPoliciesClient:    &managementPoliciesClient,
-		BlobServicesClient:          &blobServicesClient,
-		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
-		CloudEndpointsClient:        &cloudEndpointsClient,
-		EncryptionScopesClient:      &encryptionScopesClient,
-		Environment:                 options.Environment,
-		FileServicesClient:          &fileServicesClient,
-		ObjectReplicationClient:     &objectReplicationPolicyClient,
-		SubscriptionId:              options.SubscriptionId,
-		SyncServiceClient:           &syncServiceClient,
-		SyncGroupsClient:            &syncGroupsClient,
+		AccountsClient:                  &accountsClient,
+		FileSystemsClient:               &fileSystemsClient,
+		ADLSGen2PathsClient:             &adlsGen2PathsClient,
+		ManagementPoliciesClient:        &managementPoliciesClient,
+		BlobServicesClient:              &blobServicesClient,
+		BlobInventoryPoliciesClient:     &blobInventoryPoliciesClient,
+		CloudEndpointsClient:            &cloudEndpointsClient,
+		EncryptionScopesClient:          &encryptionScopesClient,
+		Environment:                     options.Environment,
+		FileServicesClient:              &fileServicesClient,
+		ObjectReplicationClient:         &objectReplicationPolicyClient,
+		PrivateEndpointConnectionClient: &privateEndpointConnectionClient,
+		SubscriptionId:                  options.SubscriptionId,
+		SyncServiceClient:               &syncServiceClient,
+		SyncGroupsClient:                &syncGroupsClient,
 
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
 	}

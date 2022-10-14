@@ -15,6 +15,7 @@ type Client struct {
 	GremlinClient                    *documentdb.GremlinResourcesClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
 	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
+	PrivateEndpointConnectionClient  *documentdb.PrivateEndpointConnectionsClient
 	RestorableDatabaseAccountsClient *documentdb.RestorableDatabaseAccountsClient
 	SqlDedicatedGatewayClient        *sqldedicatedgateway.SqlDedicatedGatewayClient
 	SqlClient                        *documentdb.SQLResourcesClient
@@ -44,6 +45,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	notebookWorkspaceClient := documentdb.NewNotebookWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&notebookWorkspaceClient.Client, o.ResourceManagerAuthorizer)
 
+	privateEndpointConnectionClient := documentdb.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&privateEndpointConnectionClient.Client, o.ResourceManagerAuthorizer)
+
 	restorableDatabaseAccountsClient := documentdb.NewRestorableDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDatabaseAccountsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -67,6 +71,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
+		PrivateEndpointConnectionClient:  &privateEndpointConnectionClient,
 		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,
 		SqlDedicatedGatewayClient:        &sqlDedicatedGatewayClient,
 		SqlClient:                        &sqlClient,

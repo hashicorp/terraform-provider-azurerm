@@ -89,6 +89,10 @@ The following arguments are supported:
 
 -> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
 
+* `is_manual_connection` - (Optional) When `false`, Terraform will automatically approve the private endpoint associated with the target resource. Changing this forces a new resource to be created. Defaults to `true`.
+
+-> **NOTE:**  Not all providers support automated approval of managed private endpoints. Additionally, target resources must be configured to support the creation of private endpoints. For example: `Microsoft.Cognitive` resources must define a custom subdomain name, `Microsoft.DBforMariaDB`, `Microsoft.DBforMySQL`, and `Microsoft.DBforPostgreSQL` resources must use a `GeneralPurpose` or `MemoryOptimized` tier SKU.
+
 ## Attributes Reference
 
 The following attributes are exported:

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2018-06-01/privateendpointconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
 	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
@@ -26,6 +27,7 @@ type Client struct {
 	FlexibleServersConfigurationsClient *flexibleserverconfigurations.ConfigurationsClient
 	FlexibleServerFirewallRuleClient    *flexibleserverfirewallrules.FirewallRulesClient
 	FlexibleServerDatabaseClient        *flexibleserverdatabases.DatabasesClient
+	PrivateEndpointConnectionClient     *privateendpointconnections.PrivateEndpointConnectionsClient
 	ServersClient                       *servers.ServersClient
 	ServerRestartClient                 *serverrestart.ServerRestartClient
 	ServerKeysClient                    *serverkeys.ServerKeysClient
@@ -44,6 +46,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	firewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	privateEndpointConnectionClient := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&privateEndpointConnectionClient.Client, o.ResourceManagerAuthorizer)
 
 	serversClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
@@ -87,6 +92,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerRestartClient:                 &restartServerClient,
 		FlexibleServerFirewallRuleClient:    &flexibleServerFirewallRuleClient,
 		FlexibleServerDatabaseClient:        &flexibleServerDatabaseClient,
+		PrivateEndpointConnectionClient:     &privateEndpointConnectionClient,
 		ServersClient:                       &serversClient,
 		ServerKeysClient:                    &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:   &serverSecurityAlertPoliciesClient,
