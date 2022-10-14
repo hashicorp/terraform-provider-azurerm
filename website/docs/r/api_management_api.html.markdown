@@ -68,9 +68,13 @@ The following arguments are supported:
 
 -> **NOTE:** `display_name`, `path` and `protocols` are required when `source_api_id` is not set.
 
+* `contact` - (Optional) A `contact` block as documented below.
+
 * `description` - (Optional) A description of the API Management API, which may include HTML formatting tags.
 
 * `import` - (Optional) A `import` block as documented below.
+
+* `license` - (Optional) A `license` block as documented below.
 
 * `oauth2_authorization` - (Optional) An `oauth2_authorization` block as documented below.
 
@@ -86,6 +90,8 @@ The following arguments are supported:
 
 * `subscription_required` - (Optional) Should this API require a subscription key?
 
+* `terms_of_service_url` - (Optional) Absolute URL of the Terms of Service for the API.
+
 * `version` - (Optional) The Version number of this API, if this API is versioned.
 
 * `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
@@ -100,6 +106,16 @@ The following arguments are supported:
 
 ---
 
+A `contact` block supports the following:
+
+* `email` - (Optional) The email address of the contact person/organization.
+
+* `name` - (Optional) The name of the contact person/organization.
+
+* `url` - (Optional) Absolute URL of the contact information.
+
+---
+
 A `import` block supports the following:
 
 * `content_format` - (Required) The format of the content from which the API Definition should be imported. Possible values are: `openapi`, `openapi+json`, `openapi+json-link`, `openapi-link`, `swagger-json`, `swagger-link-json`, `wadl-link-json`, `wadl-xml`, `wsdl` and `wsdl-link`.
@@ -107,6 +123,14 @@ A `import` block supports the following:
 * `content_value` - (Required) The Content from which the API Definition should be imported. When a `content_format` of `*-link-*` is specified this must be a URL, otherwise this must be defined inline.
 
 * `wsdl_selector` - (Optional) A `wsdl_selector` block as defined below, which allows you to limit the import of a WSDL to only a subset of the document. This can only be specified when `content_format` is `wsdl` or `wsdl-link`.
+
+---
+
+A `license` block supports the following:
+
+* `name` - (Optional) The name of the license .
+
+* `url` - (Optional) Absolute URL of the license.
 
 ---
 

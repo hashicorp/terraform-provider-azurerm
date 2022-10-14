@@ -273,7 +273,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// NOTE: CSV implemented as a list, code alread written for the expaned and flatten to CSV
+									// NOTE: CSV implemented as a list, code already written for the expanded and flatten to CSV
 									// not valid when IncludeAll or ExcludeAll behavior is defined
 									"query_string_parameters": {
 										Type:     pluginsdk.TypeList,
@@ -618,12 +618,12 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	ruleSetId, err := parse.FrontDoorRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
+	ruleSet, err := parse.FrontDoorRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroup, ruleSetId.ProfileName, ruleSetId.RuleSetName, d.Get("name").(string))
+	id := parse.NewFrontDoorRuleID(ruleSet.SubscriptionId, ruleSet.ResourceGroup, ruleSet.ProfileName, ruleSet.RuleSetName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
 	if err != nil {
@@ -654,7 +654,7 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 			Actions:                 &actions,
 			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
-			RuleSetName:             &ruleSetId.RuleSetName,
+			RuleSetName:             &ruleSet.RuleSetName,
 			Order:                   utils.Int32(int32(order)),
 		},
 	}
@@ -683,7 +683,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	ruleSetId := parse.NewFrontDoorRuleSetID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.RuleSetName)
+	ruleSet := parse.NewFrontDoorRuleSetID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.RuleSetName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
 	if err != nil {
@@ -695,7 +695,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.RuleName)
-	d.Set("cdn_frontdoor_rule_set_id", ruleSetId.ID())
+	d.Set("cdn_frontdoor_rule_set_id", ruleSet.ID())
 
 	if props := resp.RuleProperties; props != nil {
 		d.Set("behavior_on_match", props.MatchProcessingBehavior)
@@ -703,7 +703,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// BUG: RuleSetName is not being returned by the API
 		// Tracking issue opened: https://github.com/Azure/azure-rest-api-specs/issues/20560
-		d.Set("cdn_frontdoor_rule_set_name", ruleSetId.RuleSetName)
+		d.Set("cdn_frontdoor_rule_set_name", ruleSet.RuleSetName)
 
 		actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)
 		if err != nil {
@@ -845,7 +845,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 	}
 
 	if len(results) > 5 {
-		return nil, fmt.Errorf("the 'actions' match block may only contain upto 5 match actions, got %d", len(results))
+		return nil, fmt.Errorf("the 'actions' match block may only contain up to 5 match actions, got %d", len(results))
 	}
 
 	if err := validate.CdnFrontDoorActionsBlock(results); err != nil {
@@ -903,7 +903,7 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeli
 	}
 
 	if len(results) > 10 {
-		return nil, fmt.Errorf("the 'conditions' match block may only contain upto 10 match conditions, got %d", len(results))
+		return nil, fmt.Errorf("the 'conditions' match block may only contain up to 10 match conditions, got %d", len(results))
 	}
 
 	return results, nil

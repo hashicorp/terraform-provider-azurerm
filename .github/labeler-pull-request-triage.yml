@@ -207,6 +207,9 @@ service/mysql:
 service/netapp:
   - internal/services/netapp/**/*
 
+service/nginx:
+  - internal/services/nginx/**/*
+
 service/notifications:
   - internal/services/notificationhub/**/*
 

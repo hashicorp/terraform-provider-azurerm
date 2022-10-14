@@ -40,7 +40,7 @@ func resourceIotHubDPSCertificate() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IoTHubName,
+				ValidateFunc: validate.IoTHubDpsCertificateName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

@@ -80,7 +80,7 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
@@ -149,21 +149,13 @@ func resourceLogAnalyticsClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
-		if err := identity.FlattenSystemAssigned(model.Identity); err != nil {
+		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 		if props := model.Properties; props != nil {
-			clusterId := ""
-			if props.ClusterId != nil {
-				parsedId, err := clusters.ParseClusterID(*props.ClusterId)
-				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *props.ClusterId, err)
-				}
-				clusterId = parsedId.ID()
-			}
-			d.Set("cluster_id", clusterId)
-		}
+			d.Set("cluster_id", props.ClusterId)
 
+		}
 		capacity := 0
 		if sku := model.Sku; sku != nil {
 			if sku.Capacity != nil {

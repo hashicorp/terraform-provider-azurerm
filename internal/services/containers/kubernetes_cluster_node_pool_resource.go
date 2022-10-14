@@ -832,7 +832,13 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
-		d.Set("orchestrator_version", props.OrchestratorVersion)
+		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
+		if props.OrchestratorVersion != nil {
+			d.Set("orchestrator_version", props.OrchestratorVersion)
+		} else {
+			d.Set("orchestrator_version", props.CurrentOrchestratorVersion)
+		}
+
 		osDiskSizeGB := 0
 		if props.OsDiskSizeGB != nil {
 			osDiskSizeGB = int(*props.OsDiskSizeGB)

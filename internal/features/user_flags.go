@@ -2,6 +2,7 @@ package features
 
 type UserFeatures struct {
 	ApiManagement          ApiManagementFeatures
+	AppConfiguration       AppConfigurationFeatures
 	ApplicationInsights    ApplicationInsightFeatures
 	CognitiveAccount       CognitiveAccountFeatures
 	VirtualMachine         VirtualMachineFeatures
@@ -64,4 +65,9 @@ type ApplicationInsightFeatures struct {
 
 type ManagedDiskFeatures struct {
 	NoDowntimeResize bool
+}
+
+type AppConfigurationFeatures struct {
+	PurgeSoftDeleteOnDestroy bool
+	RecoverSoftDeleted       bool
 }

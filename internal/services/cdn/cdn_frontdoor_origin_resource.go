@@ -177,12 +177,14 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	originGroupId, err := parse.FrontDoorOriginGroupID(d.Get("cdn_frontdoor_origin_group_id").(string))
+	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
+	originGroup, err := parse.FrontDoorOriginGroupID(originGroupRaw)
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
+	id := parse.NewFrontDoorOriginID(originGroup.SubscriptionId, originGroup.ResourceGroup, originGroup.ProfileName, originGroup.OriginGroupName, d.Get("name").(string))
+
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -317,26 +319,33 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("certificate_name_check_enabled") {
 		params.EnforceCertificateNameCheck = utils.Bool(d.Get("certificate_name_check_enabled").(bool))
 	}
+
 	if !features.FourPointOhBeta() {
 		if d.HasChange("health_probes_enabled") {
 			params.EnabledState = expandEnabledBool(d.Get("health_probes_enabled").(bool))
 		}
 	}
+
 	if d.HasChange("enabled") {
 		params.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
 	}
+
 	if d.HasChange("host_name") {
 		params.HostName = utils.String(d.Get("host_name").(string))
 	}
+
 	if d.HasChange("http_port") {
 		params.HTTPPort = utils.Int32(int32(d.Get("http_port").(int)))
 	}
+
 	if d.HasChange("https_port") {
 		params.HTTPSPort = utils.Int32(int32(d.Get("https_port").(int)))
 	}
+
 	if d.HasChange("origin_host_header") {
 		params.OriginHostHeader = utils.String(d.Get("origin_host_header").(string))
 	}
+
 	if d.HasChange("private_link") {
 		// I need to get the profile SKU so I know if it is valid or not to define a private link as
 		// private links are only allowed in the premium sku...
@@ -349,9 +358,11 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 
 			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 		}
+
 		if profile.Sku == nil {
 			return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
 		}
+
 		skuName := profile.Sku.Name
 
 		enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
@@ -359,11 +370,14 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
+
 		params.SharedPrivateLinkResource = privateLinkSettings
 	}
+
 	if d.HasChange("priority") {
 		params.Priority = utils.Int32(int32(d.Get("priority").(int)))
 	}
+
 	if d.HasChange("weight") {
 		params.Weight = utils.Int32(int32(d.Get("weight").(int)))
 	}
@@ -371,10 +385,12 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	payload := cdn.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &params,
 	}
+
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
@@ -423,8 +439,7 @@ func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 
 func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
-		// TODO: Should this return an empty object?
-		// WS: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
+		// NOTE: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
 		// Property 'AfdOrigin.SharedPrivateLinkResource.PrivateLink' is required but it was not set; Property 'AfdOrigin.SharedPrivateLinkResource.RequestMessage' is required but it was not set
 		return nil, nil
 	}
