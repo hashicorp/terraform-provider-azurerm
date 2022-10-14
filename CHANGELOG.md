@@ -1,3 +1,9 @@
+## 3.28.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
+
 ## 3.27.0 (October 13, 2022)
 
 BREAKING CHANGES:
