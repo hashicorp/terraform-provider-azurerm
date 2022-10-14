@@ -8,12 +8,58 @@ description: |-
 
 # azurerm_site_recovery_recover_plan
 
-Manages a Azure Site Recovery Plan within a Recovery Services vault.A recovery plan gathers machines into recovery groups for the purpose of failover.
+Manages a Azure Site Recovery Plan within a Recovery Services vault. A recovery plan gathers machines into recovery groups for the purpose of failover.
 
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "source" {
+  name     = "example-source-rg"
+  location = "west us"
+}
 
+
+resource "azurerm_resource_group" "target" {
+  name     = "example-target-rg"
+  location = "east us"
+}
+
+resource "azurerm_recovery_services_vault" "example" {
+  name                = "example-kv"
+  location            = azurerm_resource_group.target.location
+  resource_group_name = azurerm_resource_group.target.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_site_recovery_fabric" "source" {
+  resource_group_name = azurerm_resource_group.example.name
+  recovery_vault_name = azurerm_recovery_services_vault.example.name
+  name                = "example-fabric-source"
+  location            = azurerm_resource_group.source.location
+}
+
+resource "azurerm_site_recovery_fabric" "target" {
+  resource_group_name = azurerm_resource_group.target.name
+  recovery_vault_name = azurerm_recovery_services_vault.example.name
+  name                = "example-fabric-target"
+  location            = azurerm_resource_group.target.location
+  depends_on          = [azurerm_site_recovery_fabric.source]
+}
+
+resource "azurerm_site_recovery_recover_plan" "example" {
+  name                       = "example-recover-plan"
+  resource_group_name        = azurerm_resource_group.target.name
+  recovery_vault_name        = azurerm_recovery_services_vault.target.name
+  source_recovery_fabric_id  = azurerm_site_recovery_fabric.source.id
+  target_recovery_fabric_id  = azurerm_site_recovery_fabric.target.id
+  failover_deployment_model  = "ResourceManager"
+
+  recovery_groups {
+        group_type = "Boot"
+        replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+    }
+  
+}
 ```
 
 ## Argument Reference
@@ -48,7 +94,7 @@ A `recovery_groups` block supports the following:
 
 ---
 
-A `action` block supports the following:
+An `action` block supports the following:
 
 * `name` - (Required) Name of the Action.
 
@@ -85,15 +131,15 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Fabric.
-* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Fabric.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Fabric.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery Fabric.
+* `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Recover Plan.
+* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Recover Plan.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Recover Plan.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery Recover Plan.
 
 ## Import
 
 Site Recovery Fabric can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_site_recovery_fabric.myfabric /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name
+terraform import azurerm_site_recovery_fabric.myfabric-id=/subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/groupName/providers/Microsoft.RecoveryServices/vaults/vaultName/replicationRecoveryPlans/planName
 ```
