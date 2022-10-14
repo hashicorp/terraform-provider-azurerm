@@ -103,5 +103,7 @@ func TestProvider_counts(t *testing.T) {
 	// @tombuildsstuff: this is less a unit test and more a useful placeholder tbh
 	provider := TestAzureProvider()
 	log.Printf("Data Sources: %d", len(provider.DataSourcesMap))
-	log.Printf("Resources: %d", len(provider.ResourcesMap))
+	log.Printf("Resources:    %d", len(provider.ResourcesMap))
+	log.Printf("-----------------")
+	log.Printf("Total:        %d", len(provider.ResourcesMap)+len(provider.DataSourcesMap))
 }
