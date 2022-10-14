@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1132,15 +1131,10 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*schema.Schema{
 							"registry_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-									if !features.FourPointOh() {
-										return validation.StringIsNotEmpty
-									}
-									return validation.IsURLWithHTTPorHTTPS
-								}(),
-								Description: "The URL of the docker registry.",
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The URL of the docker registry.",
 							},
 
 							"registry_username": {
