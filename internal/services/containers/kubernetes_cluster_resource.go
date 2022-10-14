@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -375,6 +376,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
+			"web_app_routing": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"dns_zone_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: dnsValidate.ValidateDnsZoneID,
+						},
+					},
+				},
+			},
 
 			"kube_admin_config": {
 				Type:      pluginsdk.TypeList,
@@ -1278,6 +1294,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.ManagedClusterProperties.DiskEncryptionSetID = utils.String(v.(string))
 	}
 
+	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
+		parameters.ManagedClusterProperties.IngressProfile = ingressProfile
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -1684,6 +1704,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("web_app_routing") {
+		updateCluster = true
+		existing.ManagedClusterProperties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
+	}
+
 	if updateCluster {
 		// If Defender was explicitly disabled in a prior update then we should strip SecurityProfile.AzureDefender from the request
 		// body to prevent errors in cases where Defender is disabled for the entire subscription
@@ -1954,6 +1979,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
+		}
+
+		ingressProfile := flattenKubernetesClusterIngressProfile(props.IngressProfile)
+		if err := d.Set("web_app_routing", ingressProfile); err != nil {
+			return fmt.Errorf("setting `web_app_routing`: %+v", err)
 		}
 
 		workloadIdentity := false
@@ -3193,4 +3223,41 @@ func flattenEdgeZone(input *containerservice.ExtendedLocation) string {
 		return ""
 	}
 	return edgezones.NormalizeNilable(input.Name)
+}
+
+func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *containerservice.ManagedClusterIngressProfile {
+	if (len(input) == 0 || input[0] == nil) && d.HasChange("web_app_routing") {
+		return &containerservice.ManagedClusterIngressProfile{
+			WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
+				Enabled: utils.Bool(false),
+			},
+		}
+	} else if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	return &containerservice.ManagedClusterIngressProfile{
+		WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
+			Enabled:           utils.Bool(true),
+			DNSZoneResourceID: utils.String(config["dns_zone_id"].(string)),
+		},
+	}
+}
+
+func flattenKubernetesClusterIngressProfile(input *containerservice.ManagedClusterIngressProfile) []interface{} {
+	if input == nil || input.WebAppRouting == nil || (input.WebAppRouting.Enabled != nil && !*input.WebAppRouting.Enabled) {
+		return []interface{}{}
+	}
+
+	dnsZoneId := ""
+	if v := input.WebAppRouting.DNSZoneResourceID; v != nil {
+		dnsZoneId = *v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"dns_zone_id": dnsZoneId,
+		},
+	}
 }
