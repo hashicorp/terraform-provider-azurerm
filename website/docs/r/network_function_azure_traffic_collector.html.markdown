@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Network Function Azure Traffic Collector should exist. Changing this forces a new Network Function Azure Traffic Collector to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Network Function Azure Traffic Collector should exist.
+* `location` - (Required) Specifies the Azure Region where the Network Function Azure Traffic Collector should exist. Changing this forces a new Network Function Azure Traffic Collector to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Function Azure Traffic Collector.
 

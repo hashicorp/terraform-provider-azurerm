@@ -54,7 +54,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Arguments() map[string]*pl
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": commonschema.LocationWithoutForceNew(),
+		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -152,10 +152,6 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Update() sdk.ResourceFunc 
 			properties := resp.Model
 			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("location") {
-				properties.Location = location.Normalize(model.Location)
 			}
 
 			properties.SystemData = nil
