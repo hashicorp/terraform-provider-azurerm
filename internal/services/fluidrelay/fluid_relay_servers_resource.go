@@ -24,6 +24,8 @@ type ServerModel struct {
 	Location         string                                     `tfschema:"location"`
 	StorageSKU       string                                     `tfschema:"storage_sku"`
 	FrsTenantId      string                                     `tfschema:"frs_tenant_id"`
+	PrimaryKey       string                                     `tfschema:"primary_key"`
+	SecondaryKey     string                                     `tfschema:"secondary_key"`
 	OrdererEndpoints []string                                   `tfschema:"orderer_endpoints"`
 	StorageEndpoints []string                                   `tfschema:"storage_endpoints"`
 	ServiceEndpoints []string                                   `tfschema:"service_endpoints"`
@@ -111,6 +113,16 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"primary_key": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"secondary_key": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -256,6 +268,17 @@ func (s Server) Read() sdk.ResourceFunc {
 			if val, ok := meta.ResourceData.GetOk("storage_sku"); ok {
 				output.StorageSKU = val.(string)
 			}
+
+			keyRes, err := client.ListKeys(ctx, *id)
+			if err != nil {
+				// do not return if only list keys error
+				meta.Logger.Warnf("retrieving relay server keys err: %v", err)
+			}
+			if keys := keyRes.Model; model != nil {
+				output.PrimaryKey = utils.NormalizeNilableString(keys.Key1)
+				output.SecondaryKey = utils.NormalizeNilableString(keys.Key2)
+			}
+
 			return meta.Encode(output)
 		},
 	}
