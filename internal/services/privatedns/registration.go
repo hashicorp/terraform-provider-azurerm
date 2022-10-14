@@ -25,15 +25,16 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_private_dns_zone":         dataSourcePrivateDnsZone(),
-		"azurerm_private_dns_a_record":     dataSourcePrivateDnsARecord(),
-		"azurerm_private_dns_aaaa_record":  dataSourcePrivateDnsAaaaRecord(),
-		"azurerm_private_dns_cname_record": dataSourcePrivateDnsCNameRecord(),
-		"azurerm_private_dns_mx_record":    dataSourcePrivateDnsMxRecord(),
-		"azurerm_private_dns_ptr_record":   dataSourcePrivateDnsPtrRecord(),
-		"azurerm_private_dns_soa_record":   dataSourcePrivateDnsSoaRecord(),
-		"azurerm_private_dns_srv_record":   dataSourcePrivateDnsSrvRecord(),
-		"azurerm_private_dns_txt_record":   dataSourcePrivateDnsTxtRecord(),
+		"azurerm_private_dns_zone":                      dataSourcePrivateDnsZone(),
+		"azurerm_private_dns_a_record":                  dataSourcePrivateDnsARecord(),
+		"azurerm_private_dns_aaaa_record":               dataSourcePrivateDnsAaaaRecord(),
+		"azurerm_private_dns_cname_record":              dataSourcePrivateDnsCNameRecord(),
+		"azurerm_private_dns_mx_record":                 dataSourcePrivateDnsMxRecord(),
+		"azurerm_private_dns_ptr_record":                dataSourcePrivateDnsPtrRecord(),
+		"azurerm_private_dns_soa_record":                dataSourcePrivateDnsSoaRecord(),
+		"azurerm_private_dns_srv_record":                dataSourcePrivateDnsSrvRecord(),
+		"azurerm_private_dns_txt_record":                dataSourcePrivateDnsTxtRecord(),
+		"azurerm_private_dns_zone_virtual_network_link": dataSourcePrivateDnsZoneVirtualNetworkLink(),
 	}
 }
 

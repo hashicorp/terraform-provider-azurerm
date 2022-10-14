@@ -159,7 +159,7 @@ func dataSourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := snapshotpolicy.NewSnapshotPoliciesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := snapshotpolicy.NewSnapshotPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 	resp, err := client.SnapshotPoliciesGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

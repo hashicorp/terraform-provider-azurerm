@@ -16,8 +16,6 @@ import (
 type CdnFrontDoorSecurityPolicyResource struct{}
 
 func TestAccCdnFrontDoorSecurityPolicy_basic(t *testing.T) {
-	t.Skip("@WodansSon: Skipping test until Cdn FrontDoor Custom Domain resource is implemented")
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -27,8 +25,6 @@ func TestAccCdnFrontDoorSecurityPolicy_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: we can remove these import-ignores by fixing the resource
-		// WS: Fixed, custom domain needs the profile id during create because it needs the name
 		data.ImportStep("azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
@@ -48,8 +44,6 @@ func TestAccCdnFrontDoorSecurityPolicy_basicEndpoint(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorSecurityPolicy_requiresImport(t *testing.T) {
-	t.Skip("@WodansSon: Skipping test until Cdn FrontDoor Custom Domain resource is implemented")
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -78,8 +72,6 @@ func TestAccCdnFrontDoorSecurityPolicy_requiresImportEndpoint(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorSecurityPolicy_complete(t *testing.T) {
-	t.Skip("@WodansSon: Skipping test until Cdn FrontDoor Custom Domain resource is implemented")
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -89,8 +81,6 @@ func TestAccCdnFrontDoorSecurityPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: we can remove these import-ignores by fixing the resource
-		// WS: Fixed, custom domain needs the profile id during create because it needs the name
 		data.ImportStep("azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
@@ -105,8 +95,6 @@ func TestAccCdnFrontDoorSecurityPolicy_completeEndpoint(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: we can remove these import-ignores by fixing the resource
-		// WS: Fixed, custom domain needs the profile id during create because it needs the name
 		data.ImportStep(),
 	})
 }

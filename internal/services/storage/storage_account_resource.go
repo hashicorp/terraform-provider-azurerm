@@ -289,6 +289,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"default_to_oauth_authentication": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -660,6 +666,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 											}, false),
 										},
 									},
+									"multichannel_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
 								},
 							},
 						},
@@ -976,6 +987,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
 	defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
+	publicNetworkAccess := storage.PublicNetworkAccessDisabled
+	if d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = storage.PublicNetworkAccessEnabled
+	}
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -990,6 +1005,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
+			PublicNetworkAccess:          publicNetworkAccess,
 			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
 			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
 			IsHnsEnabled:                 &isHnsEnabled,
@@ -1228,7 +1244,21 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(val.([]interface{}))); err != nil {
+			shareProperties := expandShareProperties(val.([]interface{}))
+			// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+			if accountTier != string(storage.SkuTierPremium) {
+
+				// Error if the user has tried to enable multichannel on a standard tier storage account
+				if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
+				}
+
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
@@ -1497,6 +1527,22 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := storage.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = storage.PublicNetworkAccessEnabled
+		}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				PublicNetworkAccess: publicNetworkAccess,
+			},
+		}
+
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account public_network_access_enabled %q: %+v", id.Name, err)
+		}
+	}
+
 	if d.HasChange("network_rules") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -1631,7 +1677,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+			shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
+			// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+			if accountTier != string(storage.SkuTierPremium) {
+
+				// Error if the user has tried to enable multichannel on a standard tier storage account
+				if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
+				}
+
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
@@ -1736,6 +1796,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
+
+		publicNetworkAccessEnabled := true
+		if props.PublicNetworkAccess == storage.PublicNetworkAccessDisabled {
+			publicNetworkAccessEnabled = false
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
 			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
@@ -2462,6 +2528,9 @@ func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
 		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
 		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
 		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Multichannel: &storage.Multichannel{
+			Enabled: utils.Bool(v["multichannel_enabled"].(bool)),
+		},
 	}
 }
 
@@ -3072,7 +3141,12 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.ChannelEncryption, ";")
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 {
+	multichannelEnabled := false
+	if input.Multichannel != nil && input.Multichannel.Enabled != nil {
+		multichannelEnabled = *input.Multichannel.Enabled
+	}
+
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && input.Multichannel == nil {
 		return []interface{}{}
 	}
 
@@ -3082,6 +3156,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 			"authentication_types":            authenticationMethods,
 			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"channel_encryption_type":         channelEncryption,
+			"multichannel_enabled":            multichannelEnabled,
 		},
 	}
 }

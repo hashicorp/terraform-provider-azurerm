@@ -37,7 +37,23 @@ output "automation_account_id" {
 
 * `secondary_key` - The Secondary Access Key for the Automation Account.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `endpoint` - The Endpoint for this Automation Account.
+
+* `hybrid_service_url` - The URL of automation hybrid service which is used for hybrid worker on-boarding With this Automation Account.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Automation Account.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Automation Account.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Automation Account.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Automation Account.
 
 ## Timeouts
 

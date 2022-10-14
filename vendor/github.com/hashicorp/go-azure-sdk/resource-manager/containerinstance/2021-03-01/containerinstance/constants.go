@@ -238,21 +238,21 @@ func parseOperatingSystemTypes(input string) (*OperatingSystemTypes, error) {
 type Scheme string
 
 const (
-	SchemeHttp  Scheme = "http"
-	SchemeHttps Scheme = "https"
+	SchemeHTTP  Scheme = "http"
+	SchemeHTTPS Scheme = "https"
 )
 
 func PossibleValuesForScheme() []string {
 	return []string{
-		string(SchemeHttp),
-		string(SchemeHttps),
+		string(SchemeHTTP),
+		string(SchemeHTTPS),
 	}
 }
 
 func parseScheme(input string) (*Scheme, error) {
 	vals := map[string]Scheme{
-		"http":  SchemeHttp,
-		"https": SchemeHttps,
+		"http":  SchemeHTTP,
+		"https": SchemeHTTPS,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

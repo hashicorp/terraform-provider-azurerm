@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
@@ -34,12 +35,56 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_identifier": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"identity_client_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"purge_protection_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
+			"soft_delete_retention_days": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -177,6 +222,21 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
+			d.Set("public_network_access", props.PublicNetworkAccess)
+			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !(*props.DisableLocalAuth)
+			}
+
+			d.Set("local_auth_enabled", localAuthEnabled)
+			purgeProtectionEnabled := false
+			if props.EnablePurgeProtection != nil {
+				purgeProtectionEnabled = *props.EnablePurgeProtection
+			}
+			d.Set("purge_protection_enabled", purgeProtectionEnabled)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
@@ -184,6 +244,14 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("primary_write_key", accessKeys.primaryWriteKey)
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
+
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}

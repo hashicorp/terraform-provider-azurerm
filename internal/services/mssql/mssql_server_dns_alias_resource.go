@@ -107,6 +107,9 @@ func (m ServerDNSAliasResource) Read() sdk.ResourceFunc {
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
 			alias, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
 			if err != nil {
+				if utils.ResponseWasNotFound(alias.Response) {
+					return metadata.MarkAsGone(id)
+				}
 				return err
 			}
 			state := ServerDNSAliasModel{

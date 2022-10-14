@@ -18,8 +18,21 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_application_insights" "example" {
+  name                = "example-ai"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  application_type    = "web"
+}
+
+resource "azurerm_monitor_action_group" "example" {
+  name                = "example-mag"
+  resource_group_name = azurerm_resource_group.example.name
+  short_name          = "test mag"
+}
+
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
-  name                = "example-isqr"
+  name                = "example-msqrv2"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
@@ -54,7 +67,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
   description                      = "example sqr"
   display_name                     = "example-sqr"
   enabled                          = true
-  override_query_time_range        = "PT1H"
+  query_time_range_override        = "PT1H"
   skip_query_validation            = true
   action {
     action_groups = [azurerm_monitor_action_group.example.id]
@@ -107,7 +120,7 @@ The following arguments are supported:
 
 -> **NOTE** `auto_mitigation_enabled` and `mute_actions_after_alert_duration` are mutually exclusive and cannot both be set.
 
-* `override_query_time_range` - (Optional) If specified then overrides the query time range, default is `window_duration`*`number_of_evaluation_periods`.
+* `query_time_range_override` - (Optional) If specified then overrides the query time range, default is `window_duration`*`number_of_evaluation_periods`.
 
 * `skip_query_validation` - (Optional) Specifies the flag which indicates whether the provided query should be validated or not. The default is false.
 
@@ -187,5 +200,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Monitor Scheduled Query Rule Alert can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_insights_scheduled_query_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Insights/scheduledQueryRules/rule1
+terraform import azurerm_monitor_scheduled_query_rules_alert_v2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Insights/scheduledQueryRules/rule1
 ```

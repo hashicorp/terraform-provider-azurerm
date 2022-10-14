@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of Redis to use. Possible values are `Basic`, `Standard` and `Premium`.
 
+~> **Note** Downgrading the SKU will force a new resource to be created.
+
 ---
 
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
@@ -95,9 +97,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Redis Cluster. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Redis Cluster.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 

@@ -124,6 +124,8 @@ func (r DisksPoolIscsiTargetLunResource) Exists(ctx context.Context, clients *cl
 }
 
 func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
+	defer cancel()
 	id, err := iscsitargets.ParseIscsiTargetLunID(state.ID)
 	if err != nil {
 		return nil, err
@@ -165,7 +167,11 @@ func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *c
 
 	m := disks.DiskPoolIscsiTargetLunModel{}
 
-	err = m.RetryError(30*time.Minute, "waiting for delete DisksPool iscsi target", id.ID(), func() error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return nil, fmt.Errorf("could not retrieve context deadline")
+	}
+	err = m.RetryError(time.Until(deadline), "waiting for delete DisksPool iscsi target", id.ID(), func() error {
 		return client.UpdateThenPoll(ctx, iscsiTargetId, patch)
 	})
 	if err != nil {
@@ -302,10 +308,6 @@ resource "azurerm_disk_pool" "test" {
   subnet_id           = azurerm_subnet.test.id
   tags = {
     "env" = "qa"
-  }
-  timeouts {
-    create = "60m"
-    delete = "60m"
   }
 }
 

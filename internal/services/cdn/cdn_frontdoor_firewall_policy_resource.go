@@ -448,20 +448,17 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	log.Printf("[INFO] preparing args for Cdn Frontdoor %q Firewall Policy(Resource Group: %q)", name, resourceGroup)
 	id := parse.NewFrontDoorFirewallPolicyID(subscriptionId, resourceGroup, name)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_firewall_policy", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_firewall_policy", id.ID())
 	}
 
 	enabled := frontdoor.PolicyEnabledStateDisabled
@@ -479,7 +476,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 
 	if sku != string(frontdoor.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
-		return fmt.Errorf("the `managed_rule` field is only supported with the %q sku, got %q", frontdoor.SkuNamePremiumAzureFrontDoor, sku)
+		return fmt.Errorf("the 'managed_rule' field is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -544,11 +541,11 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if existing.Sku == nil {
-		return fmt.Errorf("retrieving %s: `sku` was nil", *id)
+		return fmt.Errorf("retrieving %s: 'sku' was nil", *id)
 	}
 
 	if existing.WebApplicationFirewallPolicyProperties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+		return fmt.Errorf("retrieving %s: 'properties' was nil", *id)
 	}
 
 	props := *existing.WebApplicationFirewallPolicyProperties
@@ -583,7 +580,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	if d.HasChange("managed_rule") {
 		managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 		if existing.Sku.Name != frontdoor.SkuNamePremiumAzureFrontDoor && managedRules != nil {
-			return fmt.Errorf("the `managed_rule` field is only supported when using the sku %q, got %q", frontdoor.SkuNamePremiumAzureFrontDoor, existing.Sku.Name)
+			return fmt.Errorf("the 'managed_rule' field is only supported when using the sku 'Premium_AzureFrontDoor', got %q", existing.Sku.Name)
 		}
 		if managedRules != nil {
 			props.ManagedRules = managedRules
@@ -646,15 +643,15 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 		}
 
 		if err := d.Set("custom_rule", flattenCdnFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
-			return fmt.Errorf("flattening `custom_rule`: %+v", err)
+			return fmt.Errorf("flattening 'custom_rule': %+v", err)
 		}
 
 		if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
-			return fmt.Errorf("flattening `frontend_endpoint_ids`: %+v", err)
+			return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
 		}
 
 		if err := d.Set("managed_rule", flattenCdnFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
-			return fmt.Errorf("flattening `managed_rule`: %+v", err)
+			return fmt.Errorf("flattening 'managed_rule': %+v", err)
 		}
 	}
 

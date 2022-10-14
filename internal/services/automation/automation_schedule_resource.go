@@ -177,7 +177,12 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
 			if frequency == "onetime" && interval.(int) > 0 {
-				return fmt.Errorf("`interval` cannot be set when frequency is `OneTime`")
+				// because `interval` is optional and computed, so interval value can exist even it removed from configuration
+				// have to check it in raw config
+				intervalVal := diff.GetRawConfig().GetAttr("interval")
+				if !intervalVal.IsNull() {
+					return fmt.Errorf("`interval` cannot be set when frequency is `OneTime`")
+				}
 			}
 
 			_, hasWeekDays := diff.GetOk("week_days")

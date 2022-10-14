@@ -12,7 +12,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -24,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -49,6 +50,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old == "msi" || old == ""
+			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) != 0 && len(new.([]interface{})) == 0
+			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.dns_server", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
+			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.root_domain", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
 			}),
 		),
 
@@ -77,30 +87,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"dns_prefix": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
-				ValidateFunc: containerValidate.KubernetesDNSPrefix,
-			},
-
-			"dns_prefix_private_cluster": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
-			},
-
-			"kubernetes_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"default_node_pool": SchemaDefaultNodePool(),
-
 			"api_server_authorized_ip_ranges": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -108,6 +94,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.CIDR,
 				},
+			},
+
+			"automatic_channel_upgrade": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.UpgradeChannelPatch),
+					string(containerservice.UpgradeChannelRapid),
+					string(containerservice.UpgradeChannelStable),
+					string(containerservice.UpgradeChannelNodeImage),
+				}, false),
 			},
 
 			"auto_scaler_profile": {
@@ -222,6 +219,93 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"azure_active_directory_role_based_access_control": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"client_app_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"server_app_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"server_app_secret": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							// OrEmpty since this can be sourced from the client config if it's not specified
+							ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"managed": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+
+						"azure_rbac_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"admin_group_object_ids": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsUUID,
+							},
+							AtLeastOneOf: []string{
+								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
+								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
+								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+							},
+						},
+					},
+				},
+			},
+
+			"default_node_pool": SchemaDefaultNodePool(),
+
 			"disk_encryption_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -229,13 +313,160 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.DiskEncryptionSetID,
 			},
 
+			"dns_prefix": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
+				ValidateFunc: containerValidate.KubernetesDNSPrefix,
+			},
+
+			"dns_prefix_private_cluster": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
+			},
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_pod_security_policy": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
+			"fqdn": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"http_proxy_config": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"http_proxy": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"https_proxy": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"no_proxy": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"trusted_ca": {
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
+			"kube_admin_config": {
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"host": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"username": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"password": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_certificate": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_key": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"cluster_ca_certificate": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
+			"kube_admin_config_raw": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"kube_config": {
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"host": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"username": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"password": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_certificate": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_key": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"cluster_ca_certificate": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
+			"kube_config_raw": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
@@ -282,6 +513,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"kubernetes_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"linux_profile": {
@@ -396,7 +634,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"log_analytics_workspace_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+							ValidateFunc: workspaces.ValidateWorkspaceID,
 						},
 					},
 				},
@@ -470,12 +708,34 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 
+						"pod_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
 						"service_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
+						},
+
+						"service_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 
 						"load_balancer_sku": {
@@ -523,6 +783,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc: validation.IntBetween(4, 120),
 									},
 									"managed_outbound_ip_count": {
+										Type:          pluginsdk.TypeInt,
+										Optional:      true,
+										Computed:      true,
+										ValidateFunc:  validation.IntBetween(1, 100),
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+									},
+									"managed_outbound_ipv6_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
 										Computed:      true,
@@ -594,6 +861,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+
 						"ip_versions": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -650,12 +918,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"run_command_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -684,89 +946,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"azure_active_directory_role_based_access_control": {
-				Type:     pluginsdk.TypeList,
+			"run_command_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"client_app_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsUUID,
-							AtLeastOneOf: []string{
-								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
-								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-							},
-						},
-
-						"server_app_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsUUID,
-							AtLeastOneOf: []string{
-								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
-								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-							},
-						},
-
-						"server_app_secret": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{
-								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
-								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-							},
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							// OrEmpty since this can be sourced from the client config if it's not specified
-							ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
-							AtLeastOneOf: []string{
-								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
-								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-							},
-						},
-
-						"managed": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							AtLeastOneOf: []string{
-								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
-								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-							},
-						},
-
-						"azure_rbac_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"admin_group_object_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.IsUUID,
-							},
-							AtLeastOneOf: []string{
-								"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
-								"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-							},
-						},
-					},
-				},
+				Default:  true,
 			},
 
 			"service_principal": {
@@ -829,149 +1012,31 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(containerservice.LicenseTypeWindowsServer),
 							}, false),
 						},
-					},
-				},
-			},
-
-			"automatic_channel_upgrade": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.UpgradeChannelPatch),
-					string(containerservice.UpgradeChannelRapid),
-					string(containerservice.UpgradeChannelStable),
-					string(containerservice.UpgradeChannelNodeImage),
-				}, false),
-			},
-
-			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"kube_admin_config": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"host": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"username": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"cluster_ca_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			"kube_admin_config_raw": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"kube_config": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"host": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"username": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"cluster_ca_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			"kube_config_raw": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"http_proxy_config": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"http_proxy": {
-							Type:     pluginsdk.TypeString,
+						"gmsa": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							ForceNew: true,
-						},
-						"https_proxy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-						"no_proxy": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"dns_server": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+									"root_domain": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+								},
 							},
 						},
-						"trusted_ca": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
 					},
 				},
+			},
+
+			"workload_identity_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 		},
 	}
@@ -1104,11 +1169,29 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
-	microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+	securityProfile := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+
+	workloadIdentity := false
+	if v, ok := d.GetOk("workload_identity_enabled"); ok {
+		workloadIdentity = v.(bool)
+
+		if workloadIdentity == true && enableOidcIssuer == false {
+			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
+		}
+
+		if securityProfile == nil {
+			securityProfile = &containerservice.ManagedClusterSecurityProfile{}
+		}
+
+		securityProfile.WorkloadIdentity = &containerservice.ManagedClusterSecurityProfileWorkloadIdentity{
+			Enabled: &workloadIdentity,
+		}
+	}
 
 	parameters := containerservice.ManagedCluster{
-		Name:     utils.String(id.ManagedClusterName),
-		Location: utils.String(location),
+		Name:             utils.String(id.ManagedClusterName),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
 		Sku: &containerservice.ManagedClusterSKU{
 			Name: containerservice.ManagedClusterSKUNameBasic, // the only possible value at this point
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
@@ -1130,7 +1213,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
 			OidcIssuerProfile:      oidcIssuerProfile,
-			SecurityProfile:        microsoftDefender,
+			SecurityProfile:        securityProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1432,6 +1515,18 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				loadBalancerProfile.OutboundIPPrefixes = nil
 			}
 
+			if key := "network_profile.0.load_balancer_profile.0.managed_outbound_ipv6_count"; d.HasChange(key) {
+				managedOutboundIPV6Count := d.Get(key).(int)
+				if loadBalancerProfile.ManagedOutboundIPs == nil {
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
+				}
+				loadBalancerProfile.ManagedOutboundIPs.CountIPv6 = utils.Int32(int32(managedOutboundIPV6Count))
+
+				// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+				loadBalancerProfile.OutboundIPs = nil
+				loadBalancerProfile.OutboundIPPrefixes = nil
+			}
+
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
 				outboundIPAddress := d.Get(key)
 				if v := outboundIPAddress.(*pluginsdk.Set).List(); len(v) == 0 {
@@ -1578,11 +1673,25 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.SecurityProfile = microsoftDefender
 	}
 
+	if d.HasChanges("workload_identity_enabled") {
+		updateCluster = true
+		workloadIdentity := d.Get("workload_identity_enabled").(bool)
+		if existing.ManagedClusterProperties.SecurityProfile == nil {
+			existing.ManagedClusterProperties.SecurityProfile = &containerservice.ManagedClusterSecurityProfile{}
+		}
+		existing.ManagedClusterProperties.SecurityProfile.WorkloadIdentity = &containerservice.ManagedClusterSecurityProfileWorkloadIdentity{
+			Enabled: &workloadIdentity,
+		}
+	}
+
 	if updateCluster {
-		// If Defender was explicitly disabled in a prior update then we should strip security profile from the request
+		// If Defender was explicitly disabled in a prior update then we should strip SecurityProfile.AzureDefender from the request
 		// body to prevent errors in cases where Defender is disabled for the entire subscription
 		if !d.HasChanges("microsoft_defender") && len(d.Get("microsoft_defender").([]interface{})) == 0 {
-			existing.ManagedClusterProperties.SecurityProfile = nil
+			if existing.ManagedClusterProperties.SecurityProfile == nil {
+				existing.ManagedClusterProperties.SecurityProfile = &containerservice.ManagedClusterSecurityProfile{}
+			}
+			existing.ManagedClusterProperties.SecurityProfile.AzureDefender = nil
 		}
 
 		log.Printf("[DEBUG] Updating %s..", *id)
@@ -1705,6 +1814,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("name", id.ManagedClusterName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -1846,6 +1956,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 		}
 
+		workloadIdentity := false
+		if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
+			workloadIdentity = *props.SecurityProfile.WorkloadIdentity.Enabled
+		}
+		d.Set("workload_identity_enabled", workloadIdentity)
+
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterAdmin")
@@ -1925,7 +2041,7 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 			rawConfig := string(*kubeConfigRaw)
 			var flattenedKubeConfig []interface{}
 
-			if strings.Contains(rawConfig, "apiserver-id:") {
+			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
 				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
 				if err != nil {
 					return utils.String(rawConfig), []interface{}{}
@@ -2075,11 +2191,28 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservic
 		license = containerservice.LicenseType(v)
 	}
 
+	gmsaProfile := expandGmsaProfile(config["gmsa"].([]interface{}))
+
 	return &containerservice.ManagedClusterWindowsProfile{
 		AdminUsername: utils.String(config["admin_username"].(string)),
 		AdminPassword: utils.String(config["admin_password"].(string)),
 		LicenseType:   license,
+		GmsaProfile:   gmsaProfile,
 	}
+}
+
+func expandGmsaProfile(input []interface{}) *containerservice.WindowsGmsaProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	return &containerservice.WindowsGmsaProfile{
+		Enabled:        utils.Bool(true),
+		DNSServer:      utils.String(config["dns_server"].(string)),
+		RootDomainName: utils.String(config["root_domain"].(string)),
+	}
+
 }
 
 func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
@@ -2103,11 +2236,37 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 		license = string(profile.LicenseType)
 	}
 
+	gmsaProfile := flattenGmsaProfile(profile.GmsaProfile)
+
 	return []interface{}{
 		map[string]interface{}{
 			"admin_password": adminPassword,
 			"admin_username": adminUsername,
 			"license":        license,
+			"gmsa":           gmsaProfile,
+		},
+	}
+}
+
+func flattenGmsaProfile(profile *containerservice.WindowsGmsaProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	dnsServer := ""
+	if dns := profile.DNSServer; dns != nil {
+		dnsServer = *dns
+	}
+
+	rootDomainName := ""
+	if domain := profile.RootDomainName; domain != nil {
+		rootDomainName = *domain
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"dns_server":  dnsServer,
+			"root_domain": rootDomainName,
 		},
 	}
 }
@@ -2169,6 +2328,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		networkProfile.PodCidr = utils.String(podCidr)
 	}
 
+	if v, ok := config["pod_cidrs"]; ok {
+		networkProfile.PodCidrs = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
 	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
 		dockerBridgeCidr := v.(string)
 		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
@@ -2177,6 +2340,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
 		serviceCidr := v.(string)
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
+	}
+
+	if v, ok := config["service_cidrs"]; ok {
+		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	return &networkProfile, nil
@@ -2202,6 +2369,15 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int32(ipCount.(int)); c > 0 {
 			profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+		}
+	}
+
+	if ipv6Count := config["managed_outbound_ipv6_count"]; ipv6Count != nil {
+		if c := int32(ipv6Count.(int)); c > 0 {
+			if profile.ManagedOutboundIPs == nil {
+				profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
+			}
+			profile.ManagedOutboundIPs.CountIPv6 = &c
 		}
 	}
 
@@ -2336,6 +2512,10 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			if count := ips.Count; count != nil {
 				lb["managed_outbound_ip_count"] = count
 			}
+
+			if countIPv6 := ips.CountIPv6; countIPv6 != nil {
+				lb["managed_outbound_ipv6_count"] = countIPv6
+			}
 		}
 
 		if oip := lbp.OutboundIPs; oip != nil {
@@ -2399,7 +2579,9 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
 			"pod_cidr":              podCidr,
+			"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
 			"service_cidr":          serviceCidr,
+			"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
 			"outbound_type":         string(profile.OutboundType),
 		},
 	}
@@ -2991,4 +3173,24 @@ func flattenKubernetesClusterMicrosoftDefender(input *containerservice.ManagedCl
 			"log_analytics_workspace_id": logAnalyticsWorkspace,
 		},
 	}
+}
+
+func expandEdgeZone(input string) *containerservice.ExtendedLocation {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &containerservice.ExtendedLocation{
+		Name: utils.String(normalized),
+		Type: containerservice.ExtendedLocationTypesEdgeZone,
+	}
+}
+
+func flattenEdgeZone(input *containerservice.ExtendedLocation) string {
+	// As the `extendedLocation.type` returned by API is always lower case, so it has to use `Normalize` function while comparing them
+	if input == nil || edgezones.Normalize(string(input.Type)) != edgezones.Normalize(string(containerservice.ExtendedLocationTypesEdgeZone)) || input.Name == nil {
+		return ""
+	}
+	return edgezones.NormalizeNilable(input.Name)
 }

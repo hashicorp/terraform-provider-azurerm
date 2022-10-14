@@ -59,7 +59,7 @@ func (c ServerSecurityAlertPoliciesClient) preparerForCreateOrUpdate(ctx context
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/securityAlertPolicies/Default", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/securityAlertPolicies/default", id.ID())),
 		autorest.WithJSON(input),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

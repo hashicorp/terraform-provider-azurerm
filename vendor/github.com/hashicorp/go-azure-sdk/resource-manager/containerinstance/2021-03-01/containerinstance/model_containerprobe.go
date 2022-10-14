@@ -6,7 +6,7 @@ package containerinstance
 type ContainerProbe struct {
 	Exec                *ContainerExec    `json:"exec,omitempty"`
 	FailureThreshold    *int64            `json:"failureThreshold,omitempty"`
-	HttpGet             *ContainerHttpGet `json:"httpGet,omitempty"`
+	HTTPGet             *ContainerHTTPGet `json:"httpGet,omitempty"`
 	InitialDelaySeconds *int64            `json:"initialDelaySeconds,omitempty"`
 	PeriodSeconds       *int64            `json:"periodSeconds,omitempty"`
 	SuccessThreshold    *int64            `json:"successThreshold,omitempty"`
