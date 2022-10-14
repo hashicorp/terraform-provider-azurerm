@@ -159,7 +159,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("while checking for Access Connectors's %q existence: %+v", id.ConnectorName, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			state := AccessConnectorResourceModel{
