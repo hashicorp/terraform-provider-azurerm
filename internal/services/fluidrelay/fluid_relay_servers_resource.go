@@ -116,13 +116,15 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"primary_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 	}
 }
@@ -272,7 +274,7 @@ func (s Server) Read() sdk.ResourceFunc {
 			keyRes, err := client.ListKeys(ctx, *id)
 			if err != nil {
 				// do not return if only list keys error
-				meta.Logger.Warnf("retrieving relay server keys err: %v", err)
+				meta.Logger.Warnf("retrieving keys for %s: %v", *id, err)
 			}
 			if keys := keyRes.Model; model != nil {
 				output.PrimaryKey = utils.NormalizeNilableString(keys.Key1)
