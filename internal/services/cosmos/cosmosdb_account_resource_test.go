@@ -21,23 +21,23 @@ import (
 type CosmosDBAccountResource struct{}
 
 func TestAccCosmosDBAccount_basic_global_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness)
+	testAccCosmosDBAccount_basicDocumentDbWith(t, documentdb.DefaultConsistencyLevelBoundedStaleness)
 }
 
 func TestAccCosmosDBAccount_basic_global_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelConsistentPrefix)
+	testAccCosmosDBAccount_basicDocumentDbWith(t, documentdb.DefaultConsistencyLevelConsistentPrefix)
 }
 
 func TestAccCosmosDBAccount_basic_global_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual)
+	testAccCosmosDBAccount_basicDocumentDbWith(t, documentdb.DefaultConsistencyLevelEventual)
 }
 
 func TestAccCosmosDBAccount_basic_global_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelSession)
+	testAccCosmosDBAccount_basicDocumentDbWith(t, documentdb.DefaultConsistencyLevelSession)
 }
 
 func TestAccCosmosDBAccount_basic_global_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelStrong)
+	testAccCosmosDBAccount_basicDocumentDbWith(t, documentdb.DefaultConsistencyLevelStrong)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_boundedStaleness(t *testing.T) {
@@ -183,6 +183,21 @@ func testAccCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAcco
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, kind, consistency),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, consistency, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccCosmosDBAccount_basicDocumentDbWith(t *testing.T, consistency documentdb.DefaultConsistencyLevel) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, consistency),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, consistency, 1),
 				checkAccCosmosDBAccount_sql(data),
