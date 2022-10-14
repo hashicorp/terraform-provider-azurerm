@@ -16,20 +16,20 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatabricksAccessConnectorResource struct {
+type AccessConnectorResource struct {
 }
 
-var _ sdk.ResourceWithUpdate = DatabricksAccessConnectorResource{}
+var _ sdk.ResourceWithUpdate = AccessConnectorResource{}
 
-type DatabricksAccessConnectorResourceModel struct {
-	Name          string                   `tfschema:"name"`
-	ResourceGroup string                   `tfschema:"resource_group_name"`
-	Location      string                   `tfschema:"location"`
-	Tags          map[string]string        `tfschema:"tags"`
-	Identity      *identity.SystemAssigned `tfschema:"identity"`
+type AccessConnectorResourceModel struct {
+	Name          string                         `tfschema:"name"`
+	ResourceGroup string                         `tfschema:"resource_group_name"`
+	Location      string                         `tfschema:"location"`
+	Tags          map[string]string              `tfschema:"tags"`
+	Identity      []identity.ModelSystemAssigned `tfschema:"identity"`
 }
 
-func (r DatabricksAccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
+func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -48,27 +48,27 @@ func (r DatabricksAccessConnectorResource) Arguments() map[string]*pluginsdk.Sch
 	}
 }
 
-func (r DatabricksAccessConnectorResource) Attributes() map[string]*pluginsdk.Schema {
+func (r AccessConnectorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r DatabricksAccessConnectorResource) ModelObject() interface{} {
-	return &DatabricksAccessConnectorResourceModel{}
+func (r AccessConnectorResource) ModelObject() interface{} {
+	return &AccessConnectorResourceModel{}
 }
 
-func (r DatabricksAccessConnectorResource) ResourceType() string {
+func (r AccessConnectorResource) ResourceType() string {
 	return "azurerm_databricks_access_connector"
 }
 
-func (r DatabricksAccessConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AccessConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return accessconnector.ValidateAccessConnectorID
 }
 
-func (r DatabricksAccessConnectorResource) Create() sdk.ResourceFunc {
+func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
-			var model DatabricksAccessConnectorResourceModel
+			var model AccessConnectorResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
@@ -85,11 +85,16 @@ func (r DatabricksAccessConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			accessConnector := accessconnector.AccessConnector{
 				Name:     &model.Name,
 				Location: model.Location,
 				Tags:     &model.Tags,
-				Identity: model.Identity,
+				Identity: expandedIdentity,
 			}
 
 			_, err = client.CreateOrUpdate(ctx, id, accessConnector)
@@ -104,7 +109,7 @@ func (r DatabricksAccessConnectorResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r DatabricksAccessConnectorResource) Update() sdk.ResourceFunc {
+func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataBricks.AccessConnectorClient
@@ -113,7 +118,7 @@ func (r DatabricksAccessConnectorResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state DatabricksAccessConnectorResourceModel
+			var state AccessConnectorResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -139,7 +144,7 @@ func (r DatabricksAccessConnectorResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r DatabricksAccessConnectorResource) Read() sdk.ResourceFunc {
+func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
@@ -157,7 +162,7 @@ func (r DatabricksAccessConnectorResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while checking for Access Connectors's %q existence: %+v", id.ConnectorName, err)
 			}
 
-			state := DatabricksAccessConnectorResourceModel{
+			state := AccessConnectorResourceModel{
 				Name:          id.ConnectorName,
 				Location:      location.NormalizeNilable(utils.String(resp.Model.Location)),
 				ResourceGroup: id.ResourceGroupName,
@@ -168,7 +173,7 @@ func (r DatabricksAccessConnectorResource) Read() sdk.ResourceFunc {
 					state.Tags = *model.Tags
 				}
 				if model.Identity != nil {
-					state.Identity = model.Identity
+					state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
 				}
 			}
 			return metadata.Encode(&state)
@@ -177,7 +182,7 @@ func (r DatabricksAccessConnectorResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r DatabricksAccessConnectorResource) Delete() sdk.ResourceFunc {
+func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
