@@ -251,6 +251,34 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"immutability_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"period_since_creation_in_days": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+						"state": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.AccountImmutabilityPolicyStateDisabled),
+								string(storage.AccountImmutabilityPolicyStateLocked),
+								string(storage.AccountImmutabilityPolicyStateUnlocked),
+							}, false),
+						},
+						"allow_protected_append_writes": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1048,6 +1076,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
 
+	if v, ok := d.GetOk("immutability_policy"); ok {
+		immutabilityPolicy, err := expandStorageAccountImmutabilityPolicy(v.([]interface{}))
+		if err != nil {
+			parameters.ImmutableStorageWithVersioning = immutabilityPolicy
+		}
+	}
+
 	// BlobStorage does not support ZRS
 	if accountKind == string(storage.KindBlobStorage) {
 		if string(parameters.Sku.Name) == string(storage.SkuNameStandardZRS) {
@@ -1814,7 +1849,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.AllowBlobPublicAccess != nil {
 			allowBlobPublicAccess = *props.AllowBlobPublicAccess
 		}
-		//lintignore:R001
+		// lintignore:R001
 		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
 		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
@@ -1837,6 +1872,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
+			}
+		}
+
+		if immutabilityPolicy, err := flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning); err != nil {
+			if err := d.Set("immutability_policy", immutabilityPolicy); err != nil {
+				return fmt.Errorf("setting `immutability_policy`: %+v", err)
 			}
 		}
 
@@ -2212,6 +2253,40 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	}
 
 	return encryption, nil
+}
+
+func expandStorageAccountImmutabilityPolicy(input []interface{}) (*storage.ImmutableStorageAccount, error) {
+	if len(input) == 0 {
+		return &storage.ImmutableStorageAccount{}, nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	immutableStorageAccount := storage.ImmutableStorageAccount{
+		Enabled: utils.Bool(true),
+		ImmutabilityPolicy: &storage.AccountImmutabilityPolicyProperties{
+			AllowProtectedAppendWrites:            utils.Bool(v["allow_protected_append_writes"].(bool)),
+			State:                                 storage.AccountImmutabilityPolicyState(v["state"].(string)),
+			ImmutabilityPeriodSinceCreationInDays: utils.Int32(int32(v["period_since_creation_in_days"].(int))),
+		},
+	}
+
+	return &immutableStorageAccount, nil
+}
+
+func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAccount) ([]interface{}, error) {
+	if policy == nil || policy.ImmutabilityPolicy == nil {
+		return make([]interface{}, 0), nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"period_since_creation_in_days": policy.ImmutabilityPolicy.ImmutabilityPeriodSinceCreationInDays,
+			"state":                         policy.ImmutabilityPolicy.State,
+			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
+		},
+	}, nil
+
 }
 
 func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
