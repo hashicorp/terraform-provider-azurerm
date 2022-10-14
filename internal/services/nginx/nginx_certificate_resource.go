@@ -101,14 +101,13 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
-			req := nginxcertificate.NginxCertificate{}
-			req.Name = pointer.FromString(model.Name)
-
-			var prop nginxcertificate.NginxCertificateProperties
-			prop.KeyVirtualPath = pointer.FromString(model.KeyVirtualPath)
-			prop.KeyVaultSecretId = pointer.FromString(model.KeyVaultSecretId)
-			prop.CertificateVirtualPath = pointer.FromString(model.CertificateVirtualPath)
-			req.Properties = &prop
+			req := nginxcertificate.NginxCertificate{
+				Properties: &nginxcertificate.NginxCertificateProperties{
+					CertificateVirtualPath: pointer.FromString(model.CertificateVirtualPath),
+					KeyVaultSecretId:       pointer.FromString(model.KeyVaultSecretId),
+					KeyVirtualPath:         pointer.FromString(model.KeyVirtualPath),
+				},
+			}
 
 			future, err := client.CertificatesCreate(ctx, id, req)
 			if err != nil {

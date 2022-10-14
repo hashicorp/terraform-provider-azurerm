@@ -42,6 +42,20 @@ func TestAccCertificate_basic(t *testing.T) {
 	})
 }
 
+func TestAccCertificate_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.CertificateResource{}.ResourceType(), "test")
+	r := CertificateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func (a CertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -56,6 +70,20 @@ resource "azurerm_nginx_certificate" "test" {
   key_vault_secret_id      = azurerm_key_vault_secret.test.id
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a CertificateResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_nginx_certificate" "import" {
+  name                     = azurerm_nginx_certificate.test.name
+  nginx_deployment_id      = azurerm_nginx_certificate.test.nginx_deployment_id
+  key_virtual_path         = azurerm_nginx_certificate.test.key_virtual_path
+  certificate_virtual_path = azurerm_nginx_certificate.test.certificate_virtual_path
+  key_vault_secret_id      = azurerm_nginx_certificate.test.key_vault_secret_id
+}
+`, a.basic(data))
 }
 
 func (a CertificateResource) template(data acceptance.TestData) string {
