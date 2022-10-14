@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationfabrics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -136,8 +137,9 @@ func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.Set("name", model.Name)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model.Location != nil {
-		d.Set("location", model.Location)
+	if model.Properties.CustomDetails != nil {
+		loc := *model.Properties.CustomDetails.(replicationfabrics.AzureFabricSpecificDetails).Location
+		d.Set("location", location.Normalize(loc))
 	}
 	d.Set("recovery_vault_name", id.ResourceName)
 	return nil

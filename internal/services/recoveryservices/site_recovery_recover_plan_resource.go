@@ -92,7 +92,7 @@ func resourceSiteRecoveryRecoverPlan() *pluginsdk.Resource {
 							}, false),
 						},
 						"replicated_protected_items": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -222,7 +222,7 @@ func resourceSiteRecoveryRecoverPlanCreate(d *pluginsdk.ResourceData, meta inter
 		var protectedItems []replicationrecoveryplans.RecoveryPlanProtectedItem
 		for _, protectedItem := range groupInput["replicated_protected_items"].(*pluginsdk.Set).List() {
 			protectedItems = append(protectedItems, replicationrecoveryplans.RecoveryPlanProtectedItem{
-				Id: utils.String(protectedItem.(string)),
+				VirtualMachineId: utils.String(protectedItem.(string)),
 			})
 		}
 
@@ -317,20 +317,25 @@ func resourceSiteRecoveryRecoverPlanRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("target_recovery_fabric_id", prop.RecoveryFabricId)
 		d.Set("failover_deployment_model", prop.FailoverDeploymentModel)
 
-		protectedItemsOutput := make([]interface{}, 0)
+		recoveryGroupOutputs := make([]interface{}, 0)
 
 		if group := prop.Groups; group != nil {
 			for _, groupItem := range *group {
-				if groupItem.GroupType == replicationrecoveryplans.RecoveryPlanGroupTypeBoot {
-					for _, protectedItem := range *groupItem.ReplicationProtectedItems {
-						protectedItemOutput := make(map[string]interface{})
-						protectedItemOutput["id"] = protectedItem.Id
-						protectedItemsOutput = append(protectedItemsOutput, protectedItemOutput)
-					}
+				recoveryGroupOutput := make(map[string]interface{})
+				recoveryGroupOutput["group_type"] = groupItem.GroupType
+				if groupItem.ReplicationProtectedItems != nil {
+					recoveryGroupOutput["replicated_protected_items"] = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
 				}
+				if groupItem.StartGroupActions != nil {
+					recoveryGroupOutput["pre_actions"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
+				}
+				if groupItem.EndGroupActions != nil {
+					recoveryGroupOutput["post_actions"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
+				}
+				recoveryGroupOutputs = append(recoveryGroupOutputs, recoveryGroupOutput)
 			}
 		}
-		d.Set("replicated_protected_items", protectedItemsOutput)
+		d.Set("recovery_groups", recoveryGroupOutputs)
 	}
 	return nil
 }
@@ -365,7 +370,7 @@ func resourceSiteRecoveryRecoverPlanUpdate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(*model.Id)
 
-	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
+	return resourceSiteRecoveryRecoverPlanRead(d, meta)
 }
 
 func resourceSiteRecoveryRecoverPlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -404,4 +409,45 @@ func expandActionDetail(input map[string]interface{}) (output replicationrecover
 		}
 	}
 	return
+}
+
+func flattenRecoveryPlanProtectedItems(input *[]replicationrecoveryplans.RecoveryPlanProtectedItem) []interface{} {
+	protectedItemOutputs := make([]interface{}, 0)
+	for _, protectedItem := range *input {
+		protectedItemOutputs = append(protectedItemOutputs, protectedItem.VirtualMachineId)
+	}
+	return protectedItemOutputs
+}
+
+func flattenRecoveryPlanActions(input *[]replicationrecoveryplans.RecoveryPlanAction) []interface{} {
+	actionOutputs := make([]interface{}, 0)
+	for _, action := range *input {
+		actionOutput := make(map[string]interface{}, 0)
+		actionOutput["name"] = action.ActionName
+		switch detail := action.CustomDetails.(type) {
+		case replicationrecoveryplans.RecoveryPlanAutomationRunbookActionDetails:
+			actionOutput["action_detail_type"] = "AutomationRunbookActionDetails"
+			actionOutput["runbook_id"] = detail.RunbookId
+			actionOutput["fabric_location"] = detail.FabricLocation
+		case replicationrecoveryplans.RecoveryPlanManualActionDetails:
+			actionOutput["action_detail_type"] = "ManualActionDetails"
+			actionOutput["manual_action_instruction"] = detail.Description
+		case replicationrecoveryplans.RecoveryPlanScriptActionDetails:
+			actionOutput["action_detail_type"] = "ScriptActionDetails"
+			actionOutput["script_path"] = detail.Path
+			actionOutput["fabric_location"] = detail.FabricLocation
+		}
+		directions := make([]interface{}, 0)
+		for _, direction := range action.FailoverDirections {
+			directions = append(directions, string(direction))
+		}
+		actionOutput["fail_over_directions"] = directions
+		failOverTypes := make([]interface{}, 0)
+		for _, failOverType := range action.FailoverTypes {
+			failOverTypes = append(failOverTypes, string(failOverType))
+		}
+		actionOutput["fail_over_types"] = failOverTypes
+		actionOutputs = append(actionOutputs, actionOutput)
+	}
+	return actionOutputs
 }

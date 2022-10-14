@@ -90,21 +90,6 @@ func TestAccSiteRecoveryReplicatedVm_withVMSS(t *testing.T) {
 	})
 }
 
-func TestAccSiteRecoveryReplicatedVm_withDiskEncryptionInfo(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
-	r := SiteRecoveryReplicatedVmResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withDiskEncryptionInfo(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccSiteRecoveryReplicatedVm_withSubnetName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
@@ -534,7 +519,7 @@ resource "azurerm_network_interface" "test" {
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.test.id
+    subnet_id                     = azurerm_subnet.test2.id
     private_ip_address_allocation = "Dynamic"
   }
 }
@@ -1303,14 +1288,6 @@ func (r SiteRecoveryReplicatedVmResource) withBootDiagStorageAccount(data accept
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestrpl%[2]d"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test2.name
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
 resource "azurerm_site_recovery_replicated_vm" "test" {
   name                                      = "repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
@@ -1401,6 +1378,12 @@ func (r SiteRecoveryReplicatedVmResource) withVMSS(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[2]d"
   location            = azurerm_resource_group.test.location
@@ -1427,7 +1410,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       primary   = true
-      subnet_id = azurerm_subnet.test.id
+      subnet_id = azurerm_subnet.test2.id
     }
   }
 
@@ -1497,57 +1480,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   multi_vm_group_name                       = "accmultivmgroup"
-
-  target_resource_group_id                = azurerm_resource_group.test2.id
-  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
-  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-
-  managed_disk {
-    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
-    staging_storage_account_id = azurerm_storage_account.test.id
-    target_resource_group_id   = azurerm_resource_group.test2.id
-    target_disk_type           = "Premium_LRS"
-    target_replica_disk_type   = "Premium_LRS"
-  }
-
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = "snet-%[2]d_2"
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
-
-  depends_on = [
-    azurerm_site_recovery_protection_container_mapping.test,
-    azurerm_site_recovery_network_mapping.test,
-  ]
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SiteRecoveryReplicatedVmResource) withDiskEncryptionInfo(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_disk_encryption_set" "test3" {
-  name                = "acctestdes-%[2]d3"
-  resource_group_name = azurerm_resource_group.test2.name
-  location            = azurerm_resource_group.test2.location
-  key_vault_key_id    = azurerm_key_vault_key.test2.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
-  resource_group_name                       = azurerm_resource_group.test2.name
-  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
-  source_vm_id                              = azurerm_virtual_machine.test.id
-  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
-  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-  disk_encryption_info                      = azurerm_disk_encryption_set.test3.id
 
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
