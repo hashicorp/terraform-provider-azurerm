@@ -271,6 +271,11 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				},
 			},
 
+			"resource_guid": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -642,6 +647,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		d.Set("custom_network_interface_name", customNicName)
 
+		d.Set("resource_guid", props.ResourceGUID)
 	}
 
 	privateDnsZoneConfigs := make([]interface{}, 0)
