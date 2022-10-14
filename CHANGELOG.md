@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
 
+ENHANCEMENTS:
+
+* `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
+
 ## 3.27.0 (October 13, 2022)
 
 BREAKING CHANGES:
