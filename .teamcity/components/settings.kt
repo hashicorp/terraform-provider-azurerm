@@ -96,6 +96,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // netapp has a max of 10 accounts per subscription so lets limit it to 3 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
+        // Network Function is only available in certain locations
+        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
+
         "policy" to testConfiguration(useAltSubscription = true),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
