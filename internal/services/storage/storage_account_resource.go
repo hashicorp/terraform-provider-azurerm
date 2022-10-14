@@ -1077,10 +1077,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("immutability_policy"); ok {
-		immutabilityPolicy, err := expandStorageAccountImmutabilityPolicy(v.([]interface{}))
-		if err != nil {
-			parameters.ImmutableStorageWithVersioning = immutabilityPolicy
-		}
+		parameters.ImmutableStorageWithVersioning = expandStorageAccountImmutabilityPolicy(v.([]interface{}))
 	}
 
 	// BlobStorage does not support ZRS
@@ -1875,8 +1872,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if immutabilityPolicy, err := flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning); err != nil {
-			if err := d.Set("immutability_policy", immutabilityPolicy); err != nil {
+		if immutabilityPolicy := props.ImmutableStorageWithVersioning; immutabilityPolicy != nil && immutabilityPolicy.ImmutabilityPolicy != nil {
+			if err := d.Set("immutability_policy", flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
 				return fmt.Errorf("setting `immutability_policy`: %+v", err)
 			}
 		}
@@ -2255,9 +2252,9 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	return encryption, nil
 }
 
-func expandStorageAccountImmutabilityPolicy(input []interface{}) (*storage.ImmutableStorageAccount, error) {
+func expandStorageAccountImmutabilityPolicy(input []interface{}) *storage.ImmutableStorageAccount {
 	if len(input) == 0 {
-		return &storage.ImmutableStorageAccount{}, nil
+		return &storage.ImmutableStorageAccount{}
 	}
 
 	v := input[0].(map[string]interface{})
@@ -2271,12 +2268,12 @@ func expandStorageAccountImmutabilityPolicy(input []interface{}) (*storage.Immut
 		},
 	}
 
-	return &immutableStorageAccount, nil
+	return &immutableStorageAccount
 }
 
-func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAccount) ([]interface{}, error) {
+func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAccount) []interface{} {
 	if policy == nil || policy.ImmutabilityPolicy == nil {
-		return make([]interface{}, 0), nil
+		return make([]interface{}, 0)
 	}
 
 	return []interface{}{
@@ -2285,7 +2282,7 @@ func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAcc
 			"state":                         policy.ImmutabilityPolicy.State,
 			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
 		},
-	}, nil
+	}
 
 }
 
