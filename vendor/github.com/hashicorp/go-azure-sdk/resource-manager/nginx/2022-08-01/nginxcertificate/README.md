@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `NginxCertificateClient.CertificatesCreate`
+### Example Usage: `NginxCertificateClient.CertificatesCreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := nginxcertificate.NginxCertificate{
 }
 
 
-if err := client.CertificatesCreateThenPoll(ctx, id, payload); err != nil {
+if err := client.CertificatesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
