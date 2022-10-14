@@ -46,9 +46,9 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
 }
 
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
-  name                      = "servicebus-alias-name"
-  primary_namespace_id      = azurerm_servicebus_namespace.primary.id
-  partner_namespace_id      = azurerm_servicebus_namespace.secondary.id
+  name                        = "servicebus-alias-name"
+  primary_namespace_id        = azurerm_servicebus_namespace.primary.id
+  partner_namespace_id        = azurerm_servicebus_namespace.secondary.id
   alias_authorization_rule_id = azurerm_servicebus_namespace_authorization_rule.example.id
 }
 
