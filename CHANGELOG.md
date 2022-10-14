@@ -2,7 +2,7 @@
 
 BREAKING CHANGES:
 
-* `azurerm_cdn_frontdoor_custom_domain` - removed the `associate_with_cdn_frontdoor_route_id` field to allow for multiple custom domains to be associated with a route. [GH-18600]
+* `azurerm_cdn_frontdoor_custom_domain` - removed the `associate_with_cdn_frontdoor_route_id` field to allow for a custom domains to be associated with multiple routes. [GH-18600]
 
 FEATURES:
 
