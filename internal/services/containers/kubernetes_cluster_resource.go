@@ -912,6 +912,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
+				Default:  false,
 			},
 
 			"private_cluster_public_fqdn_enabled": {
@@ -1855,19 +1856,23 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("automatic_channel_upgrade", upgradeChannel)
 
+		enablePrivateCluster := false
+		enablePrivateClusterPublicFQDN := false
+		runCommandEnabled := true
 		if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
 			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
 				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 			}
-
-			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
-			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
-			runCommandEnabled := true
+			if accessProfile.EnablePrivateCluster != nil {
+				enablePrivateCluster = *accessProfile.EnablePrivateCluster
+			}
+			if accessProfile.EnablePrivateClusterPublicFQDN != nil {
+				enablePrivateClusterPublicFQDN = *accessProfile.EnablePrivateClusterPublicFQDN
+			}
 			if accessProfile.DisableRunCommand != nil {
 				runCommandEnabled = !*accessProfile.DisableRunCommand
 			}
-			d.Set("run_command_enabled", runCommandEnabled)
 			switch {
 			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
 				d.Set("private_dns_zone_id", "System")
@@ -1877,6 +1882,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 			}
 		}
+
+		d.Set("private_cluster_enabled", enablePrivateCluster)
+		d.Set("private_cluster_public_fqdn_enabled", enablePrivateClusterPublicFQDN)
+		d.Set("run_command_enabled", runCommandEnabled)
+
 		if props.AddonProfiles != nil {
 			addOns := flattenKubernetesAddOns(*props.AddonProfiles)
 			d.Set("aci_connector_linux", addOns["aci_connector_linux"])
