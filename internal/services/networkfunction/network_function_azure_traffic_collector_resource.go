@@ -2,26 +2,17 @@ package networkfunction
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkFunctionAzureTrafficCollectorModel struct {
@@ -31,19 +22,10 @@ type NetworkFunctionAzureTrafficCollectorModel struct {
 	Tags              map[string]string        `tfschema:"tags"`
 	VirtualHub        []ResourceReferenceModel `tfschema:"virtual_hub"`
 	CollectorPolicies []ResourceReferenceModel `tfschema:"collector_policies"`
-	SystemData        []SystemDataModel        `tfschema:"system_data"`
 }
 
 type ResourceReferenceModel struct {
 	Id string `tfschema:"id"`
-}
-
-type SystemDataModel struct {
-	CreatedAt          string                               `tfschema:"created_at"`
-	CreatedBy          string                               `tfschema:"created_by"`
-	CreatedByType      azuretrafficcollectors.CreatedByType `tfschema:"created_by_type"`
-	LastModifiedBy     string                               `tfschema:"last_modified_by"`
-	LastModifiedByType azuretrafficcollectors.CreatedByType `tfschema:"last_modified_by_type"`
 }
 
 type NetworkFunctionAzureTrafficCollectorResource struct{}
@@ -65,32 +47,20 @@ func (r NetworkFunctionAzureTrafficCollectorResource) IDValidationFunc() plugins
 func (r NetworkFunctionAzureTrafficCollectorResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$"),
+				"The name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin with a letter or number and end with a letter, number or underscore.",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": commonschema.LocationWithoutForceNew(),
+		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
-
-		"virtual_hub": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
 	}
 }
 
@@ -99,7 +69,6 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Attributes() map[string]*p
 		"collector_policies": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -110,33 +79,12 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Attributes() map[string]*p
 			},
 		},
 
-		"system_data": {
+		"virtual_hub": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"created_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by_type": {
+					"id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -172,13 +120,6 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Create() sdk.ResourceFunc 
 				Properties: &azuretrafficcollectors.AzureTrafficCollectorPropertiesFormat{},
 				Tags:       &model.Tags,
 			}
-
-			virtualHubValue, err := expandResourceReferenceModel(model.VirtualHub)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.VirtualHub = virtualHubValue
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -216,18 +157,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("location") {
-				properties.Location = location.Normalize(model.Location)
-			}
-
-			if metadata.ResourceData.HasChange("virtual_hub") {
-				virtualHubValue, err := expandResourceReferenceModel(model.VirtualHub)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.VirtualHub = virtualHubValue
-			}
+			properties.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
@@ -274,7 +204,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := model.Properties; properties != nil {
-				collectorPoliciesValue, err := flattenResourceReferenceModel(properties.CollectorPolicies)
+				collectorPoliciesValue, err := flattenResourceReferenceModelArray(properties.CollectorPolicies)
 				if err != nil {
 					return err
 				}
@@ -288,12 +218,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Read() sdk.ResourceFunc {
 
 				state.VirtualHub = virtualHubValue
 			}
-			systemDataValue, err := flattenSystemDataModel(model.SystemData)
-			if err != nil {
-				return err
-			}
 
-			state.SystemData = systemDataValue
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -323,18 +248,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Delete() sdk.ResourceFunc 
 	}
 }
 
-func expandResourceReferenceModel(inputList []ResourceReferenceModel) (*azuretrafficcollectors.ResourceReference, error) {
-	if len(inputList) == 0 {
-		return nil, nil
-	}
-
-	input := &inputList[0]
-	output := azuretrafficcollectors.ResourceReference{}
-
-	return &output, nil
-}
-
-func flattenResourceReferenceModel(inputList *[]azuretrafficcollectors.ResourceReference) ([]ResourceReferenceModel, error) {
+func flattenResourceReferenceModelArray(inputList *[]azuretrafficcollectors.ResourceReference) ([]ResourceReferenceModel, error) {
 	var outputList []ResourceReferenceModel
 	if inputList == nil {
 		return outputList, nil
@@ -351,37 +265,6 @@ func flattenResourceReferenceModel(inputList *[]azuretrafficcollectors.ResourceR
 	}
 
 	return outputList, nil
-}
-
-func flattenSystemDataModel(input *azuretrafficcollectors.SystemData) ([]SystemDataModel, error) {
-	var outputList []SystemDataModel
-	if input == nil {
-		return outputList, nil
-	}
-
-	output := SystemDataModel{}
-
-	if input.CreatedAt != nil {
-		output.CreatedAt = *input.CreatedAt
-	}
-
-	if input.CreatedBy != nil {
-		output.CreatedBy = *input.CreatedBy
-	}
-
-	if input.CreatedByType != nil {
-		output.CreatedByType = *input.CreatedByType
-	}
-
-	if input.LastModifiedBy != nil {
-		output.LastModifiedBy = *input.LastModifiedBy
-	}
-
-	if input.LastModifiedByType != nil {
-		output.LastModifiedByType = *input.LastModifiedByType
-	}
-
-	return append(outputList, output), nil
 }
 
 func flattenResourceReferenceModel(input *azuretrafficcollectors.ResourceReference) ([]ResourceReferenceModel, error) {

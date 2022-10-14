@@ -145,9 +145,6 @@ resource "azurerm_network_function_azure_traffic_collector" "test" {
   name                = "acctest-nfatc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  virtual_hub {
-
-  }
   tags = {
     key = "value"
   }
@@ -164,11 +161,8 @@ resource "azurerm_network_function_azure_traffic_collector" "test" {
   name                = "acctest-nfatc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  virtual_hub {
-
-  }
   tags = {
-    key = "value"
+    key = "value2"
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
