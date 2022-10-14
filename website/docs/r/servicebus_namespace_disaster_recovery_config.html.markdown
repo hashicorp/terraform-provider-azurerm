@@ -49,7 +49,7 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
   name                      = "servicebus-alias-name"
   primary_namespace_id      = azurerm_servicebus_namespace.primary.id
   partner_namespace_id      = azurerm_servicebus_namespace.secondary.id
-  auth_rule_id_of_the_alias = azurerm_servicebus_namespace_authorization_rule.example.id
+  alias_authorization_rule_id = azurerm_servicebus_namespace_authorization_rule.example.id
 }
 
 ```
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `partner_namespace_id` - (Required) The ID of the Service Bus Namespace to replicate to.
 
-* `auth_rule_id_of_the_alias` - (Optional) The Shared access policies used to access the connection string for the alias. Defaults to `RootManageSharedAccessKey`.
+* `alias_authorization_rule_id` - (Optional) The Shared access policies used to access the connection string for the alias. Defaults to `RootManageSharedAccessKey`.
 
 ## Attributes Reference
 

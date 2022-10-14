@@ -60,7 +60,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
-			"auth_rule_id_of_the_alias": {
+			"alias_authorization_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -207,7 +207,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 
 	// the auth rule cannot be retrieved by dr config name, the shared access policy should either be specified by user or using the default one which is `RootManageSharedAccessKey`
 	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)
-	if input := d.Get("auth_rule_id_of_the_alias").(string); input != "" {
+	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
 		ruleId, err := disasterrecoveryconfigs.ParseAuthorizationRuleID(input)
 		if err != nil {
 			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
