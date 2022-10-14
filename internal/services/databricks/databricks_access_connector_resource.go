@@ -195,7 +195,7 @@ func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 
 			_, err = client.Delete(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("while removing Access Connector %q: %+v", id.ConnectorName, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
