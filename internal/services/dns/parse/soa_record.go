@@ -60,7 +60,7 @@ func SoaRecordID(input string) (*SoaRecordId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
+	if resourceId.DnszoneName, err = id.PopSegment("dnsZones"); err != nil {
 		return nil, err
 	}
 	if resourceId.SOAName, err = id.PopSegment("SOA"); err != nil {
