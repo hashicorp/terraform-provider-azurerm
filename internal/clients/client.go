@@ -83,6 +83,7 @@ import (
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
+	networkfunction "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction/client"
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
@@ -200,6 +201,7 @@ type Client struct {
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
 	Network               *network.Client
+	NetworkFunction       *networkfunction.Client
 	Nginx                 *nginx2.Client
 	NotificationHubs      *notificationhub.Client
 	Orbital               *orbital.Client
@@ -321,6 +323,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
+	client.NetworkFunction = networkfunction.NewClient(o)
 	client.Nginx = nginx.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Orbital = orbital.NewClient(o)
