@@ -6,10 +6,12 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurestackhci`: updating to API Version `2022-09-01` [GH-18759]
 * `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
 
 BUG FIXES:
-`azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
+
+* `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
 
 ## 3.27.0 (October 13, 2022)
 
