@@ -358,6 +358,12 @@ func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 
 func TestAccContainerGroup_linuxComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+
+	// Override locations for this test to location that has GPU SKU support:
+	// https://learn.microsoft.com/en-us/azure/container-instances/container-instances-gpu
+	data.Locations.Primary = "northeurope"
+	data.Locations.Secondary = "westeurope"
+
 	r := ContainerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
