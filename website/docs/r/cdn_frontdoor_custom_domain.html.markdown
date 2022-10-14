@@ -21,13 +21,14 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_dns_zone" "example" {
-  name                = "afdx-terraform.azfdtest.xyz "
+  name                = "sub-domain.domain.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "example" {
@@ -35,8 +36,6 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = "contoso.com"
-
-  associate_with_cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -84,10 +83,6 @@ The following arguments are supported:
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
 * `host_name` - (Required) The host name of the domain. Changing this forces a new CDN FrontDoor Custom Domain to be created.
-
-* `associate_with_cdn_frontdoor_route_id` (Optional) - The resource ID of the CDN FrontDoor Route this Custom Domain should be associated with.
-
-->**NOTE:** Once a CDN Front Door Custom Domain has been associated with a CDN Front Door Route changing this value will force a new CDN Front Door Custom Domain to be created.
 
 * `dns_zone_id` - (Optional) The ID of the DNS Zone which should be used for this FrontDoor Custom Domain.
 

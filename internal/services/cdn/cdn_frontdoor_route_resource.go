@@ -69,6 +69,22 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				},
 			},
 
+			"cdn_frontdoor_custom_domain_ids": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.FrontDoorCustomDomainID,
+				},
+			},
+
+			"link_to_default_domain": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			// NOTE: Per the service team this cannot just be omitted it must explicitly be set to nil to disable caching
 			"cache": {
 				Type:     pluginsdk.TypeList,
@@ -157,7 +173,7 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			},
 
 			"cdn_frontdoor_rule_set_ids": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 
 				Elem: &pluginsdk.Schema{
@@ -187,12 +203,13 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	endpointId, err := parse.FrontDoorEndpointID(d.Get("cdn_frontdoor_endpoint_id").(string))
+	endpointRaw := d.Get("cdn_frontdoor_endpoint_id").(string)
+	endpoint, err := parse.FrontDoorEndpointID(endpointRaw)
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorRouteID(endpointId.SubscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.AfdEndpointName, d.Get("name").(string))
+	id := parse.NewFrontDoorRouteID(endpoint.SubscriptionId, endpoint.ResourceGroup, endpoint.ProfileName, endpoint.AfdEndpointName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
@@ -205,33 +222,69 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
 	}
 
-	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
-	httpsRedirect := d.Get("https_redirect_enabled").(bool)
+	var origins []interface{}
+	var originGroup *cdn.ResourceReference
 
+	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
+	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	originsRaw := d.Get("cdn_frontdoor_origin_ids").([]interface{})
+	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
+	httpsRedirect := d.Get("https_redirect_enabled").(bool)
+	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
+
+	// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
+	// This configuration does not cause an error when provisioned, however the http requests that
+	// are supposed to be redirected to https remain http requests
 	if httpsRedirect {
-		// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
-		// This configuration does not cause an error when provisioned, however the http requests that
-		// are supposed to be redirected to https remain http requests
-		err := validate.SupportsBothHttpAndHttps(protocolsRaw, "https_redirect_enabled")
-		if err != nil {
+		if err := validate.SupportsBothHttpAndHttps(protocolsRaw, "https_redirect_enabled"); err != nil {
 			return err
 		}
 	}
 
+	normalizedCustomDomains, err := expandCustomDomains(customDomainsRaw)
+	if err != nil {
+		return err
+	}
+
+	if !linkToDefaultDomain && len(normalizedCustomDomains) == 0 {
+		return fmt.Errorf("it is invalid to disable the 'LinkToDefaultDomain' for the CDN Front Door Route(Name: %s) since the route does not have any CDN Front Door Custom Domains associated with it", id.RouteName)
+	} else if len(normalizedCustomDomains) != 0 {
+		if err := sliceHasDuplicates(normalizedCustomDomains, "CDN FrontDoor Custom Domain"); err != nil {
+			return err
+		}
+
+		if err := validateRoutesCustomDomainProfile(normalizedCustomDomains, id.RouteName, id.ProfileName); err != nil {
+			return err
+		}
+	}
+
+	if originGroupRaw != "" {
+		id, err := parse.FrontDoorOriginGroupID(originGroupRaw)
+		if err != nil {
+			return err
+		}
+
+		originGroup = expandResourceReference(id.ID())
+	}
+
+	normalizedRuleSets, err := expandRuleSetIds(ruleSetIdsRaw)
+	if err != nil {
+		return err
+	}
+
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
-			CacheConfiguration: expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
-			EnabledState:       expandEnabledBool(d.Get("enabled").(bool)),
-			ForwardingProtocol: cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
-			HTTPSRedirect:      expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
-			// NOTE: Hack due to the API's design, must create the route with the link to default
-			// domain as true else you will receive an error from the service this value is now
-			// controlled by the cdn_frontdoor_route_unlink_default_domain resource... :/
-			LinkToDefaultDomain: cdn.LinkToDefaultDomainEnabled,
-			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
+			CustomDomains:       expandCustomDomainActivatedResourceArray(normalizedCustomDomains),
+			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
+			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
+			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
+			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
+			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain),
+			OriginGroup:         originGroup,
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
-			SupportedProtocols:  expandCdnFrontdoorRouteEndpointProtocolsArray(protocolsRaw),
+			RuleSets:            expandRuleSetReferenceArray(normalizedRuleSets),
+			SupportedProtocols:  expandEndpointProtocolsArray(protocolsRaw),
 		},
 	}
 
@@ -252,8 +305,17 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
-	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+	for _, origin := range originsRaw {
+		id, err := parse.FrontDoorOriginID(origin.(string))
+		if err != nil {
+			return err
+		}
+
+		origins = append(origins, id.ID())
+	}
+
+	if len(origins) != 0 {
+		d.Set("cdn_frontdoor_origin_ids", origins)
 	}
 
 	return resourceCdnFrontDoorRouteRead(d, meta)
@@ -289,11 +351,18 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
+		customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+		if err != nil {
+			return err
+		}
+
+		d.Set("cdn_frontdoor_custom_domain_ids", customDomains)
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect_enabled", flattenHttpsRedirectToBool(props.HTTPSRedirect))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
+		d.Set("link_to_default_domain", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 
 		if err := d.Set("cache", flattenCdnFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 			return fmt.Errorf("setting `cache`: %+v", err)
@@ -303,7 +372,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `cdn_frontdoor_origin_group_id`: %+v", err)
 		}
 
-		if err := d.Set("cdn_frontdoor_rule_set_ids", flattenCdnFrontdoorRouteResourceArray(props.RuleSets)); err != nil {
+		if err := d.Set("cdn_frontdoor_rule_set_ids", flattenRuleSetResourceArray(props.RuleSets)); err != nil {
 			return fmt.Errorf("setting `cdn_frontdoor_rule_set_ids`: %+v", err)
 		}
 
@@ -326,84 +395,123 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	// NOTE: I now need to lock this resource when updating because the
-	// cdn_frontdoor_route_unlink_default_domain resources may also be
-	// trying to update it as well...
-	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
-
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
 		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 	}
+
 	if existing.RouteProperties == nil {
 		return fmt.Errorf("retrieving existing %s: 'properties' was nil", *id)
 	}
 
-	var checkProtocols bool
+	// we need to lock the route for update because the custom domain
+	// association may also be trying to update the route as well...
+	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
+
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
+	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
+	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
 
-	props := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains: existing.RouteProperties.CustomDomains,
-	}
-
-	if d.HasChange("cache") {
-		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
-	}
-
-	if d.HasChange("enabled") {
-		props.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
-	}
-
-	if d.HasChange("forwarding_protocol") {
-		props.ForwardingProtocol = cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string))
-	}
-
-	if d.HasChange("https_redirect_enabled") {
-		checkProtocols = true
-		props.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
-	}
-
-	if d.HasChange("cdn_frontdoor_origin_group_id") {
-		props.OriginGroup = expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string))
-	}
-
-	if d.HasChange("cdn_frontdoor_origin_path") {
-		props.OriginPath = utils.String(d.Get("cdn_frontdoor_origin_path").(string))
-	}
-
-	if d.HasChange("patterns_to_match") {
-		props.PatternsToMatch = utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
-	}
-
-	if d.HasChange("cdn_frontdoor_rule_set_ids") {
-		props.RuleSets = expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{}))
-	}
-
-	if d.HasChange("supported_protocols") {
-		checkProtocols = true
-		props.SupportedProtocols = expandCdnFrontdoorRouteEndpointProtocolsArray(protocolsRaw)
-	}
-
-	updatePrarams := azuresdkhacks.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &props,
-	}
-
-	if checkProtocols && httpsRedirect {
-		// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
-		// This configuration does not cause an error when provisioned, however the http requests that
-		// are supposed to be redirected to https remain http requests
-		err := validate.SupportsBothHttpAndHttps(protocolsRaw, "https_redirect_enabled")
-		if err != nil {
+	// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
+	// This configuration does not cause an error when provisioned, however the http requests that
+	// are supposed to be redirected to https remain http requests
+	if httpsRedirect {
+		if err := validate.SupportsBothHttpAndHttps(protocolsRaw, "https_redirect_enabled"); err != nil {
 			return err
 		}
 	}
 
-	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, updatePrarams)
+	originGroup, err := parse.FrontDoorOriginGroupID(originGroupRaw)
+	if err != nil {
+		return err
+	}
+
+	customDomains, err := expandCustomDomains(customDomainsRaw)
+	if err != nil {
+		return err
+	}
+
+	if !linkToDefaultDomain && len(customDomains) == 0 {
+		return fmt.Errorf("it is invalid to disable the 'LinkToDefaultDomain' for the CDN Front Door Route(Name: %s) since the route does not have any CDN Front Door Custom Domains associated with it", id.RouteName)
+	} else if len(customDomains) != 0 {
+		if err := sliceHasDuplicates(customDomains, "CDN FrontDoor Custom Domain"); err != nil {
+			return err
+		}
+
+		if err := validateRoutesCustomDomainProfile(customDomains, id.RouteName, id.ProfileName); err != nil {
+			return err
+		}
+	}
+
+	// NOTE: You need to always pass these two on update else you will
+	// disable your cache and disassociate your custom domains...
+	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
+		CustomDomains:      existing.RouteProperties.CustomDomains,
+		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
+	}
+
+	if d.HasChange("cache") {
+		updateProps.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
+	}
+
+	if d.HasChange("enabled") {
+		updateProps.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("forwarding_protocol") {
+		updateProps.ForwardingProtocol = cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string))
+	}
+
+	if d.HasChange("https_redirect_enabled") {
+		updateProps.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
+	}
+
+	if d.HasChange("link_to_default_domain") {
+		updateProps.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain").(bool))
+	}
+
+	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
+		updateProps.CustomDomains = expandCustomDomainActivatedResourceArray(customDomains)
+	}
+
+	if d.HasChange("cdn_frontdoor_origin_group_id") {
+		updateProps.OriginGroup = expandResourceReference(originGroup.ID())
+	}
+
+	if d.HasChange("cdn_frontdoor_origin_path") {
+		updateProps.OriginPath = utils.String(d.Get("cdn_frontdoor_origin_path").(string))
+	}
+
+	if d.HasChange("patterns_to_match") {
+		updateProps.PatternsToMatch = utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
+	}
+
+	if d.HasChange("cdn_frontdoor_rule_set_ids") {
+		ruleSets, err := expandRuleSetIds(ruleSetIdsRaw)
+		if err != nil {
+			return err
+		}
+
+		updateProps.RuleSets = expandRuleSetReferenceArray(ruleSets)
+	}
+
+	if d.HasChange("supported_protocols") {
+		updateProps.SupportedProtocols = expandEndpointProtocolsArray(protocolsRaw)
+	}
+
+	updateParams := azuresdkhacks.RouteUpdateParameters{
+		RouteUpdatePropertiesParameters: &updateProps,
+	}
+
+	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, updateParams)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
@@ -427,11 +535,6 @@ func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	// I now need to lock this resource when updating because the association resources may also be trying
-	// to update it as well...
-	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
-
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -444,7 +547,7 @@ func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandCdnFrontdoorRouteEndpointProtocolsArray(input []interface{}) *[]cdn.AFDEndpointProtocols {
+func expandEndpointProtocolsArray(input []interface{}) *[]cdn.AFDEndpointProtocols {
 	results := make([]cdn.AFDEndpointProtocols, 0)
 
 	for _, item := range input {
@@ -454,12 +557,13 @@ func expandCdnFrontdoorRouteEndpointProtocolsArray(input []interface{}) *[]cdn.A
 	return &results
 }
 
-func expandCdnFrontdoorRouteResourceReferenceArray(input []interface{}) *[]cdn.ResourceReference {
+func expandRuleSetReferenceArray(input []interface{}) *[]cdn.ResourceReference {
 	results := make([]cdn.ResourceReference, 0)
+
+	// NOTE: The Frontdoor service, do not treat an empty object like an empty object
+	// if it is not nil they assume it is fully defined and then end up throwing errors
+	// when they attempt to get a value from one of the fields.
 	if len(input) == 0 || input[0] == nil {
-		// NOTE: The Frontdoor service, do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors
-		// when they attempt to get a value from one of the fields.
 		return nil
 	}
 
@@ -473,10 +577,10 @@ func expandCdnFrontdoorRouteResourceReferenceArray(input []interface{}) *[]cdn.R
 }
 
 func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCacheConfiguration {
+	// NOTE: If this is not an explicit nil you will receive an "Unsupported QueryStringCachingBehavior type:
+	// Property 'RouteV2.CacheConfiguration.QueryStringCachingBehavior' is required but it was not set" error.
+	// The Frontdoor service treats empty slices as if they are fully defined unlike other services.
 	if len(input) == 0 || input[0] == nil {
-		// NOTE: If this is not an explicit nil you will receive an "Unsupported QueryStringCachingBehavior type:
-		// Property 'RouteV2.CacheConfiguration.QueryStringCachingBehavior' is required but it was not set" error.
-		// The Frontdoor service treats empty slices as if they are fully defined unlike other services.
 		return nil
 	}
 
@@ -500,47 +604,17 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRout
 	return cacheConfiguration
 }
 
-func expandCdnFrontdoorRouteActivatedResourceArray(input []interface{}) *[]cdn.ActivatedResourceReference {
-	results := make([]cdn.ActivatedResourceReference, 0)
-	if len(input) == 0 {
-		// NOTE: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty
-		// list will not work. I had to modify the SDK to allow for nil which in the API means disassociate the custom domains.
-		return nil
-	}
-
-	for _, customDomain := range input {
-		id := customDomain.(string)
-		results = append(results, cdn.ActivatedResourceReference{
-			ID: utils.String(id),
-		})
-	}
-
-	return &results
-}
-
-func flattenCdnFrontdoorRouteActivatedResourceArray(inputs *[]cdn.ActivatedResourceReference) []interface{} {
-	results := make([]interface{}, 0)
-	if inputs == nil {
-		return results
-	}
-
-	for _, customDomain := range *inputs {
-		results = append(results, *customDomain.ID)
-	}
-
-	return results
-}
-
-func flattenCdnFrontdoorRouteResourceArray(input *[]cdn.ResourceReference) []interface{} {
+func flattenRuleSetResourceArray(input *[]cdn.ResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, item := range *input {
-		if item.ID != nil {
-			results = append(results, *item.ID)
-		}
+	// Normalize these values in the configuration file we know they are valid because they were set on the
+	// resource... if these are modified in the portal the will all be lowercased...
+	for _, ruleSet := range *input {
+		id, _ := parse.FrontDoorRuleSetID(*ruleSet.ID)
+		results = append(results, id.ID())
 	}
 
 	return results
@@ -570,9 +644,9 @@ func flattenCdnFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigur
 		queryParameters = flattenCsvToStringSlice(input.QueryParameters)
 	}
 
-	cachingBehaviour := ""
+	cachingBehavior := ""
 	if input.QueryStringCachingBehavior != "" {
-		cachingBehaviour = string(input.QueryStringCachingBehavior)
+		cachingBehavior = string(input.QueryStringCachingBehavior)
 	}
 
 	compressionEnabled := false
@@ -588,7 +662,7 @@ func flattenCdnFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigur
 		map[string]interface{}{
 			"compression_enabled":           compressionEnabled,
 			"content_types_to_compress":     contentTypesToCompress,
-			"query_string_caching_behavior": cachingBehaviour,
+			"query_string_caching_behavior": cachingBehavior,
 			"query_strings":                 queryParameters,
 		},
 	}

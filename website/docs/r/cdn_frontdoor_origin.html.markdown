@@ -36,8 +36,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = false
 
   host_name          = "contoso.com"
@@ -91,8 +91,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                       = true
 
-  enabled                        = true
   certificate_name_check_enabled = true
   host_name                      = azurerm_storage_account.example.primary_blob_host
   origin_host_header             = azurerm_storage_account.example.primary_blob_host
@@ -206,7 +206,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the origin be enabled? Possible values are `true` or `false`. Defaults to `true`.
 
--> **NOTE:** In version 4.0 of the provider this value will default to `true`, however due to the deprecation of the `health_probes_enabled` property in version 3.x of the AzureRM Provider this value will need to be explicitly set until the 4.0 provider is released.
+-> **NOTE:** Due to the deprecation of the `health_probes_enabled` property in version 3.x of the AzureRM Provider this value will need to be explicitly set until the 4.0 provider is released where it will default to `true`.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 

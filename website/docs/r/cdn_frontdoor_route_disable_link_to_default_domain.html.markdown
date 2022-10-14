@@ -10,6 +10,8 @@ description: |-
 
 Manages the Link To Default Domain property of a CDN FrontDoor Route.
 
+!>**IMPORTANT:** This resource has been deprecated and should not be used for new deployments. The `azurerm_cdn_frontdoor_route_disable_link_to_default_domain` resource will be removed from the 4.0 AzureRM provider. Please use the `link_to_default_domain` field in the `azurerm_cdn_frontdoor_route` resource to control this value.
+
 ## Example Usage
 
 ```hcl
@@ -23,15 +25,15 @@ resource "azurerm_cdn_frontdoor_route_disable_link_to_default_domain" "example" 
 
 The following arguments are supported:
 
-* `cdn_frontdoor_route_id` - (Required) The resource ID of the CDN FrontDoor Route where the Link To Default Domain property should be `disabled`. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_route_id` - (Required) The resource ID of the CDN FrontDoor Route where the Link To Default Domain property should be `disabled`. Changing this forces a new FrontDoor Route Disable Link To Default Domain to be created.
 
-* `cdn_frontdoor_custom_domain_ids` - (Required) The resource IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_custom_domain_ids` - (Required) The resource IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route. Changing this forces a new FrontDoor Route Disable Link To Default Domain to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Route.
+* `id` - The ID of the FrontDoor Route Disable Link To Default Domain.
 
 ---
 
@@ -39,13 +41,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Route.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Route.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Route.
+* `create` - (Defaults to 30 minutes) Used when creating the FrontDoor Route Disable Link To Default Domain.
+* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor Route Disable Link To Default Domain.
+* `delete` - (Defaults to 30 minutes) Used when deleting the FrontDoor Route Disable Link To Default Domain.
 
 ## Import
 
-Frontdoor Routes can be imported using the `resource id`, e.g.
+FrontDoor Route Disable Link To Default Domain can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_route_disable_link_to_default_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1/disableLinkToDefaultDomain/disableLinkToDefaultDomain1

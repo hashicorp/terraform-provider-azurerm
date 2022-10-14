@@ -55,6 +55,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Premium SKU's are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
 
+~> **NOTE:** Consumption SKU capacity should be 0 (e.g. `Consumption_0`) as this tier includes automatic scaling.
+
 ---
 
 * `additional_location` - (Optional) One or more `additional_location` blocks as defined below.

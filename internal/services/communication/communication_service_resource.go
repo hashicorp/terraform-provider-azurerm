@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,6 +38,11 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := communicationservice.ParseCommunicationServiceID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ServiceV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -94,10 +100,7 @@ func resourceArmCommunicationServiceCreateUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := communicationservice.NewCommunicationServiceID(subscriptionId, resourceGroup, name)
+	id := communicationservice.NewCommunicationServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {

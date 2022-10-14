@@ -144,12 +144,12 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profile, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorOriginGroupID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
+	id := parse.NewFrontDoorOriginGroupID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {

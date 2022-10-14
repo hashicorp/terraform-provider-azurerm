@@ -965,10 +965,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("setting `data_disk`: %+v", err)
 			}
 
-			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference)); err != nil {
-				return fmt.Errorf("setting `source_image_reference`: %+v", err)
-			}
-
 			var storageImageId string
 			if storageProfile.ImageReference != nil && storageProfile.ImageReference.ID != nil {
 				storageImageId = *storageProfile.ImageReference.ID
@@ -980,6 +976,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				storageImageId = *storageProfile.ImageReference.SharedGalleryImageID
 			}
 			d.Set("source_image_id", storageImageId)
+
+			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference, storageImageId != "")); err != nil {
+				return fmt.Errorf("setting `source_image_reference`: %+v", err)
+			}
 		}
 
 		extensionOperationsEnabled := true

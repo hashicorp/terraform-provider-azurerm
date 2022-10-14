@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,11 +20,17 @@ func TestAccIoTCentralApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 	r := IoTCentralApplicationResource{}
 
+	defaultDisplayName := fmt.Sprintf("acctest-iotcentralapp-%d", data.RandomInteger)
+	if !features.FourPointOhBeta() {
+		defaultDisplayName = fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue(defaultDisplayName),
 				check.That(data.ResourceName).Key("sku").HasValue("ST1"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
@@ -41,8 +48,6 @@ func TestAccIoTCentralApplication_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("template").HasValue("iotc-pnp-preview@1.0.0"),
-				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
 		},
 		data.ImportStep(),
@@ -62,11 +67,31 @@ func TestAccIoTCentralApplication_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("ST1"),
-				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralApplication_displayName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	r := IoTCentralApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.displayName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.displayNameUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -137,6 +162,87 @@ func TestAccIoTCentralApplication_publicNetworkAccessEnabled(t *testing.T) {
 	})
 }
 
+func TestAccIoTCentralApplication_sku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	r := IoTCentralApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.skuUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralApplication_subDomain(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	r := IoTCentralApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subDomain(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.subDomainUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralApplication_tags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	r := IoTCentralApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.tagsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralApplication_templateProperty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	r := IoTCentralApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.templateProperty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccIoTCentralApplication_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 	r := IoTCentralApplicationResource{}
@@ -182,7 +288,6 @@ resource "azurerm_iotcentral_application" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sub_domain          = "subdomain-%[1]d"
-  sku                 = "ST1"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -235,6 +340,205 @@ resource "azurerm_iotcentral_application" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (IoTCentralApplicationResource) displayName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+
+  display_name = "display-name"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) displayNameUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+
+  display_name = "display-name-2"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+
+  sku = "ST2"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) skuUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+
+  sku = "ST0"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) subDomain(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) subDomainUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain2-%[1]d"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) tags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) tagsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+
+  tags = {
+    ENV     = "Test2"
+    Purpose = "AccTests"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IoTCentralApplicationResource) templateProperty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "subdomain-%[1]d"
+
+  template = "iotc-distribution@1.0.0"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (IoTCentralApplicationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -250,35 +554,10 @@ resource "azurerm_iotcentral_application" "test" {
   name                = "acctest-iotcentralapp-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sub_domain          = "subdomain-%[1]d"
+  sub_domain          = "subdomain2-%[1]d"
   display_name        = "some-display-name"
-  sku                 = "ST1"
-  template            = "iotc-pnp-preview@1.0.0"
-  tags = {
-    ENV = "Test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
+  sku                 = "ST0"
 
-func (IoTCentralApplicationResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_iotcentral_application" "test" {
-  name                = "acctest-iotcentralapp-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sub_domain          = "subdomain-%[1]d"
-  display_name        = "some-display-name"
-  sku                 = "ST1"
   tags = {
     ENV = "Test"
   }

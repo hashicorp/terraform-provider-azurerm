@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = VPNConnectionId{}
 
 // VPNConnectionId is a struct representing the Resource ID for a V P N Connection
 type VPNConnectionId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	GatewayName    string
-	ConnectionName string
+	SubscriptionId    string
+	ResourceGroupName string
+	GatewayName       string
+	ConnectionName    string
 }
 
 // NewVPNConnectionID returns a new VPNConnectionId struct
-func NewVPNConnectionID(subscriptionId string, resourceGroup string, gatewayName string, connectionName string) VPNConnectionId {
+func NewVPNConnectionID(subscriptionId string, resourceGroupName string, gatewayName string, connectionName string) VPNConnectionId {
 	return VPNConnectionId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		GatewayName:    gatewayName,
-		ConnectionName: connectionName,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		GatewayName:       gatewayName,
+		ConnectionName:    connectionName,
 	}
 }
 
@@ -42,8 +42,8 @@ func ParseVPNConnectionID(input string) (*VPNConnectionId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.GatewayName, ok = parsed.Parsed["gatewayName"]; !ok {
@@ -73,8 +73,8 @@ func ParseVPNConnectionIDInsensitively(input string) (*VPNConnectionId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.GatewayName, ok = parsed.Parsed["gatewayName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateVPNConnectionID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted V P N Connection ID
 func (id VPNConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s/vpnConnections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GatewayName, id.ConnectionName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.GatewayName, id.ConnectionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this V P N Connection ID
@@ -115,7 +115,7 @@ func (id VPNConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.ResourceGroupSegment("resourceGroup", "example-resource-group"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("providers", "providers", "providers"),
 		resourceids.ResourceProviderSegment("resourceProvider", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("vpnGateways", "vpnGateways", "vpnGateways"),
@@ -129,9 +129,9 @@ func (id VPNConnectionId) Segments() []resourceids.Segment {
 func (id VPNConnectionId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Resource Group: %q", id.ResourceGroup),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Gateway Name: %q", id.GatewayName),
 		fmt.Sprintf("Connection Name: %q", id.ConnectionName),
 	}
-	return fmt.Sprintf("V P N Connection (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("VPN Connection (%s)", strings.Join(components, "\n"))
 }

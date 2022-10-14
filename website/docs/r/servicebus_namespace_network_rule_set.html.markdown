@@ -3,12 +3,12 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_network_rule_set"
 description: |-
-  Manages a ServiceBus Namespace Network Rule Set Set.
+  Manages a ServiceBus Namespace Network Rule Set.
 ---
 
 # azurerm_servicebus_namespace_network_rule_set
 
-Manages a ServiceBus Namespace Network Rule Set Set.
+Manages a ServiceBus Namespace Network Rule Set.
 
 ## Example Usage
 

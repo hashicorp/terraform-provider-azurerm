@@ -36,8 +36,8 @@ resource "frontdoor_origin_group" "example" {
 resource "azurerm_cdn_frontdoor_origin" "example" {
   name                                  = "example-origin"
   cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                               = true
 
-  health_probes_enabled          = true
   certificate_name_check_enabled = false
 
   host_name          = "contoso.com"
@@ -59,8 +59,6 @@ resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
-  associate_with_cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
-
   tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
@@ -72,8 +70,6 @@ resource "azurerm_cdn_frontdoor_custom_domain" "fabrikam" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["fabrikam", azurerm_dns_zone.example.name])
-
-  associate_with_cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -94,6 +90,9 @@ resource "azurerm_cdn_frontdoor_route" "example" {
   patterns_to_match      = ["/*"]
   supported_protocols    = ["Http", "Https"]
 
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
+  link_to_default_domain          = false
+
   cache {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
     query_strings                 = ["account", "settings"]
@@ -102,17 +101,21 @@ resource "azurerm_cdn_frontdoor_route" "example" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_route_disable_link_to_default_domain" "example" {
-  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.example.id
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
+resource "azurerm_cdn_frontdoor_custom_domain_association" "contoso" {
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.fabrikam.id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
 }
 ```
-
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Route. Valid values must begin with a letter or number, end with a letter or number and may only contain letters, numbers and hypens with a maximum length of 90 characters. Changing this forces a new Frontdoor Route to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Route. Valid values must begin with a letter or number, end with a letter or number and may only contain letters, numbers and hyphens with a maximum length of 90 characters. Changing this forces a new Frontdoor Route to be created.
 
 * `cdn_frontdoor_endpoint_id` - (Required) The resource ID of the CDN FrontDoor Endpoint where this CDN FrontDoor Route should exist. Changing this forces a new Frontdoor Route to be created.
 
@@ -132,6 +135,8 @@ The following arguments are supported:
 
 ~> **NOTE:** To to disable caching, do not provide the `cache` block in the configuration file.
 
+* `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route.
+
 * `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from (e.g. `contoso.cloudapp.net/originpath`).
 
 * `cdn_frontdoor_rule_set_ids` - (Optional) A list of the CDN FrontDoor Rule Set IDs which should be assigned to this CDN FrontDoor Route.
@@ -141,6 +146,8 @@ The following arguments are supported:
 * `https_redirect_enabled` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
 ~> **NOTE:** The `https_redirect_enabled` rule is the first rule that will be executed.
+
+* `link_to_default_domain` - (Optional) Should this CDN FrontDoor Route be linked to the default endpoint? Possible values include `true` or `false`. Defaults to `true`.
 
 ---
 
