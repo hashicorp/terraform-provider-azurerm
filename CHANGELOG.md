@@ -1,9 +1,14 @@
 ## 3.27.0 (Unreleased)
 
+BREAKING CHANGES:
+
+* `azurerm_cdn_frontdoor_custom_domain` - removed the `associate_with_cdn_frontdoor_route_id` field to allow for multiple custom domains to be associated with a route. [GH-#8600]
+
 FEATURES:
 
 * **New DataSource:** `data.azurerm_cosmosdb_sql_role_definition` [GH-18728]
 * **New DataSource:** `data.azurerm_cosmosdb_sql_database` [GH-18728]
+* **New Resource:** `azurerm_cdn_frontdoor_custom_domain_association` [GH-18600]
 * **New Resource:** `azurerm_nginx_deployment` [GH-18510]
 * **New Resource:** `azurerm_orbital_contact_profile` [GH-18317]
 * **New Resource:** `azurerm_sentinel_data_connector_office_atp` [GH-18708]
@@ -15,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_automation_runbook` - support for the `draft` block and `log_activity_trace` propertry [GH-17961]
 * `azurerm_app_configuration` - support for the `encrption`, `local_auth_enabled`, `public_network_access_enabled`, `purge_protection_enabled`, and `soft_delete_retention_days` properties [GH-17714]
 * `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
+* `azurerm_cdn_frontdoor_route` - exposed `cdn_frontdoor_custom_domain_ids` and `link_to_default_domain` [GH-18600]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for `elastic_pool_namr` property [GH-18696]
 * `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
 * `azurerm_hdinsight_hadoop_cluster`, - support for the `script_actions` block [GH-18670]
