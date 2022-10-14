@@ -134,7 +134,7 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 
 			_, err = client.CreateOrUpdate(ctx, *id, *existing.Model)
 			if err != nil {
-				return fmt.Errorf("updating Access Connector %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
