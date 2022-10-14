@@ -1,0 +1,566 @@
+package replicationprotecteditems
+
+import "strings"
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type AgentUpgradeBlockedReason string
+
+const (
+	AgentUpgradeBlockedReasonAgentNoHeartbeat              AgentUpgradeBlockedReason = "AgentNoHeartbeat"
+	AgentUpgradeBlockedReasonAlreadyOnLatestVersion        AgentUpgradeBlockedReason = "AlreadyOnLatestVersion"
+	AgentUpgradeBlockedReasonDistroIsNotReported           AgentUpgradeBlockedReason = "DistroIsNotReported"
+	AgentUpgradeBlockedReasonDistroNotSupportedForUpgrade  AgentUpgradeBlockedReason = "DistroNotSupportedForUpgrade"
+	AgentUpgradeBlockedReasonIncompatibleApplianceVersion  AgentUpgradeBlockedReason = "IncompatibleApplianceVersion"
+	AgentUpgradeBlockedReasonInvalidAgentVersion           AgentUpgradeBlockedReason = "InvalidAgentVersion"
+	AgentUpgradeBlockedReasonInvalidDriverVersion          AgentUpgradeBlockedReason = "InvalidDriverVersion"
+	AgentUpgradeBlockedReasonMissingUpgradePath            AgentUpgradeBlockedReason = "MissingUpgradePath"
+	AgentUpgradeBlockedReasonNotProtected                  AgentUpgradeBlockedReason = "NotProtected"
+	AgentUpgradeBlockedReasonProcessServerNoHeartbeat      AgentUpgradeBlockedReason = "ProcessServerNoHeartbeat"
+	AgentUpgradeBlockedReasonRcmProxyNoHeartbeat           AgentUpgradeBlockedReason = "RcmProxyNoHeartbeat"
+	AgentUpgradeBlockedReasonRebootRequired                AgentUpgradeBlockedReason = "RebootRequired"
+	AgentUpgradeBlockedReasonUnknown                       AgentUpgradeBlockedReason = "Unknown"
+	AgentUpgradeBlockedReasonUnsupportedProtectionScenario AgentUpgradeBlockedReason = "UnsupportedProtectionScenario"
+)
+
+func PossibleValuesForAgentUpgradeBlockedReason() []string {
+	return []string{
+		string(AgentUpgradeBlockedReasonAgentNoHeartbeat),
+		string(AgentUpgradeBlockedReasonAlreadyOnLatestVersion),
+		string(AgentUpgradeBlockedReasonDistroIsNotReported),
+		string(AgentUpgradeBlockedReasonDistroNotSupportedForUpgrade),
+		string(AgentUpgradeBlockedReasonIncompatibleApplianceVersion),
+		string(AgentUpgradeBlockedReasonInvalidAgentVersion),
+		string(AgentUpgradeBlockedReasonInvalidDriverVersion),
+		string(AgentUpgradeBlockedReasonMissingUpgradePath),
+		string(AgentUpgradeBlockedReasonNotProtected),
+		string(AgentUpgradeBlockedReasonProcessServerNoHeartbeat),
+		string(AgentUpgradeBlockedReasonRcmProxyNoHeartbeat),
+		string(AgentUpgradeBlockedReasonRebootRequired),
+		string(AgentUpgradeBlockedReasonUnknown),
+		string(AgentUpgradeBlockedReasonUnsupportedProtectionScenario),
+	}
+}
+
+func parseAgentUpgradeBlockedReason(input string) (*AgentUpgradeBlockedReason, error) {
+	vals := map[string]AgentUpgradeBlockedReason{
+		"agentnoheartbeat":              AgentUpgradeBlockedReasonAgentNoHeartbeat,
+		"alreadyonlatestversion":        AgentUpgradeBlockedReasonAlreadyOnLatestVersion,
+		"distroisnotreported":           AgentUpgradeBlockedReasonDistroIsNotReported,
+		"distronotsupportedforupgrade":  AgentUpgradeBlockedReasonDistroNotSupportedForUpgrade,
+		"incompatibleapplianceversion":  AgentUpgradeBlockedReasonIncompatibleApplianceVersion,
+		"invalidagentversion":           AgentUpgradeBlockedReasonInvalidAgentVersion,
+		"invaliddriverversion":          AgentUpgradeBlockedReasonInvalidDriverVersion,
+		"missingupgradepath":            AgentUpgradeBlockedReasonMissingUpgradePath,
+		"notprotected":                  AgentUpgradeBlockedReasonNotProtected,
+		"processservernoheartbeat":      AgentUpgradeBlockedReasonProcessServerNoHeartbeat,
+		"rcmproxynoheartbeat":           AgentUpgradeBlockedReasonRcmProxyNoHeartbeat,
+		"rebootrequired":                AgentUpgradeBlockedReasonRebootRequired,
+		"unknown":                       AgentUpgradeBlockedReasonUnknown,
+		"unsupportedprotectionscenario": AgentUpgradeBlockedReasonUnsupportedProtectionScenario,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AgentUpgradeBlockedReason(input)
+	return &out, nil
+}
+
+type AutoProtectionOfDataDisk string
+
+const (
+	AutoProtectionOfDataDiskDisabled AutoProtectionOfDataDisk = "Disabled"
+	AutoProtectionOfDataDiskEnabled  AutoProtectionOfDataDisk = "Enabled"
+)
+
+func PossibleValuesForAutoProtectionOfDataDisk() []string {
+	return []string{
+		string(AutoProtectionOfDataDiskDisabled),
+		string(AutoProtectionOfDataDiskEnabled),
+	}
+}
+
+func parseAutoProtectionOfDataDisk(input string) (*AutoProtectionOfDataDisk, error) {
+	vals := map[string]AutoProtectionOfDataDisk{
+		"disabled": AutoProtectionOfDataDiskDisabled,
+		"enabled":  AutoProtectionOfDataDiskEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AutoProtectionOfDataDisk(input)
+	return &out, nil
+}
+
+type DisableProtectionReason string
+
+const (
+	DisableProtectionReasonMigrationComplete DisableProtectionReason = "MigrationComplete"
+	DisableProtectionReasonNotSpecified      DisableProtectionReason = "NotSpecified"
+)
+
+func PossibleValuesForDisableProtectionReason() []string {
+	return []string{
+		string(DisableProtectionReasonMigrationComplete),
+		string(DisableProtectionReasonNotSpecified),
+	}
+}
+
+func parseDisableProtectionReason(input string) (*DisableProtectionReason, error) {
+	vals := map[string]DisableProtectionReason{
+		"migrationcomplete": DisableProtectionReasonMigrationComplete,
+		"notspecified":      DisableProtectionReasonNotSpecified,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DisableProtectionReason(input)
+	return &out, nil
+}
+
+type DiskAccountType string
+
+const (
+	DiskAccountTypePremiumLRS     DiskAccountType = "Premium_LRS"
+	DiskAccountTypeStandardLRS    DiskAccountType = "Standard_LRS"
+	DiskAccountTypeStandardSSDLRS DiskAccountType = "StandardSSD_LRS"
+)
+
+func PossibleValuesForDiskAccountType() []string {
+	return []string{
+		string(DiskAccountTypePremiumLRS),
+		string(DiskAccountTypeStandardLRS),
+		string(DiskAccountTypeStandardSSDLRS),
+	}
+}
+
+func parseDiskAccountType(input string) (*DiskAccountType, error) {
+	vals := map[string]DiskAccountType{
+		"premium_lrs":     DiskAccountTypePremiumLRS,
+		"standard_lrs":    DiskAccountTypeStandardLRS,
+		"standardssd_lrs": DiskAccountTypeStandardSSDLRS,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DiskAccountType(input)
+	return &out, nil
+}
+
+type DiskReplicationProgressHealth string
+
+const (
+	DiskReplicationProgressHealthInProgress   DiskReplicationProgressHealth = "InProgress"
+	DiskReplicationProgressHealthNoProgress   DiskReplicationProgressHealth = "NoProgress"
+	DiskReplicationProgressHealthNone         DiskReplicationProgressHealth = "None"
+	DiskReplicationProgressHealthQueued       DiskReplicationProgressHealth = "Queued"
+	DiskReplicationProgressHealthSlowProgress DiskReplicationProgressHealth = "SlowProgress"
+)
+
+func PossibleValuesForDiskReplicationProgressHealth() []string {
+	return []string{
+		string(DiskReplicationProgressHealthInProgress),
+		string(DiskReplicationProgressHealthNoProgress),
+		string(DiskReplicationProgressHealthNone),
+		string(DiskReplicationProgressHealthQueued),
+		string(DiskReplicationProgressHealthSlowProgress),
+	}
+}
+
+func parseDiskReplicationProgressHealth(input string) (*DiskReplicationProgressHealth, error) {
+	vals := map[string]DiskReplicationProgressHealth{
+		"inprogress":   DiskReplicationProgressHealthInProgress,
+		"noprogress":   DiskReplicationProgressHealthNoProgress,
+		"none":         DiskReplicationProgressHealthNone,
+		"queued":       DiskReplicationProgressHealthQueued,
+		"slowprogress": DiskReplicationProgressHealthSlowProgress,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DiskReplicationProgressHealth(input)
+	return &out, nil
+}
+
+type EthernetAddressType string
+
+const (
+	EthernetAddressTypeDynamic EthernetAddressType = "Dynamic"
+	EthernetAddressTypeStatic  EthernetAddressType = "Static"
+)
+
+func PossibleValuesForEthernetAddressType() []string {
+	return []string{
+		string(EthernetAddressTypeDynamic),
+		string(EthernetAddressTypeStatic),
+	}
+}
+
+func parseEthernetAddressType(input string) (*EthernetAddressType, error) {
+	vals := map[string]EthernetAddressType{
+		"dynamic": EthernetAddressTypeDynamic,
+		"static":  EthernetAddressTypeStatic,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EthernetAddressType(input)
+	return &out, nil
+}
+
+type HealthErrorCustomerResolvability string
+
+const (
+	HealthErrorCustomerResolvabilityAllowed    HealthErrorCustomerResolvability = "Allowed"
+	HealthErrorCustomerResolvabilityNotAllowed HealthErrorCustomerResolvability = "NotAllowed"
+)
+
+func PossibleValuesForHealthErrorCustomerResolvability() []string {
+	return []string{
+		string(HealthErrorCustomerResolvabilityAllowed),
+		string(HealthErrorCustomerResolvabilityNotAllowed),
+	}
+}
+
+func parseHealthErrorCustomerResolvability(input string) (*HealthErrorCustomerResolvability, error) {
+	vals := map[string]HealthErrorCustomerResolvability{
+		"allowed":    HealthErrorCustomerResolvabilityAllowed,
+		"notallowed": HealthErrorCustomerResolvabilityNotAllowed,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := HealthErrorCustomerResolvability(input)
+	return &out, nil
+}
+
+type InMageRcmFailbackRecoveryPointType string
+
+const (
+	InMageRcmFailbackRecoveryPointTypeApplicationConsistent InMageRcmFailbackRecoveryPointType = "ApplicationConsistent"
+	InMageRcmFailbackRecoveryPointTypeCrashConsistent       InMageRcmFailbackRecoveryPointType = "CrashConsistent"
+)
+
+func PossibleValuesForInMageRcmFailbackRecoveryPointType() []string {
+	return []string{
+		string(InMageRcmFailbackRecoveryPointTypeApplicationConsistent),
+		string(InMageRcmFailbackRecoveryPointTypeCrashConsistent),
+	}
+}
+
+func parseInMageRcmFailbackRecoveryPointType(input string) (*InMageRcmFailbackRecoveryPointType, error) {
+	vals := map[string]InMageRcmFailbackRecoveryPointType{
+		"applicationconsistent": InMageRcmFailbackRecoveryPointTypeApplicationConsistent,
+		"crashconsistent":       InMageRcmFailbackRecoveryPointTypeCrashConsistent,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := InMageRcmFailbackRecoveryPointType(input)
+	return &out, nil
+}
+
+type LicenseType string
+
+const (
+	LicenseTypeNoLicenseType LicenseType = "NoLicenseType"
+	LicenseTypeNotSpecified  LicenseType = "NotSpecified"
+	LicenseTypeWindowsServer LicenseType = "WindowsServer"
+)
+
+func PossibleValuesForLicenseType() []string {
+	return []string{
+		string(LicenseTypeNoLicenseType),
+		string(LicenseTypeNotSpecified),
+		string(LicenseTypeWindowsServer),
+	}
+}
+
+func parseLicenseType(input string) (*LicenseType, error) {
+	vals := map[string]LicenseType{
+		"nolicensetype": LicenseTypeNoLicenseType,
+		"notspecified":  LicenseTypeNotSpecified,
+		"windowsserver": LicenseTypeWindowsServer,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LicenseType(input)
+	return &out, nil
+}
+
+type MobilityAgentUpgradeState string
+
+const (
+	MobilityAgentUpgradeStateCommit    MobilityAgentUpgradeState = "Commit"
+	MobilityAgentUpgradeStateCompleted MobilityAgentUpgradeState = "Completed"
+	MobilityAgentUpgradeStateNone      MobilityAgentUpgradeState = "None"
+	MobilityAgentUpgradeStateStarted   MobilityAgentUpgradeState = "Started"
+)
+
+func PossibleValuesForMobilityAgentUpgradeState() []string {
+	return []string{
+		string(MobilityAgentUpgradeStateCommit),
+		string(MobilityAgentUpgradeStateCompleted),
+		string(MobilityAgentUpgradeStateNone),
+		string(MobilityAgentUpgradeStateStarted),
+	}
+}
+
+func parseMobilityAgentUpgradeState(input string) (*MobilityAgentUpgradeState, error) {
+	vals := map[string]MobilityAgentUpgradeState{
+		"commit":    MobilityAgentUpgradeStateCommit,
+		"completed": MobilityAgentUpgradeStateCompleted,
+		"none":      MobilityAgentUpgradeStateNone,
+		"started":   MobilityAgentUpgradeStateStarted,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := MobilityAgentUpgradeState(input)
+	return &out, nil
+}
+
+type MultiVmGroupCreateOption string
+
+const (
+	MultiVmGroupCreateOptionAutoCreated   MultiVmGroupCreateOption = "AutoCreated"
+	MultiVmGroupCreateOptionUserSpecified MultiVmGroupCreateOption = "UserSpecified"
+)
+
+func PossibleValuesForMultiVmGroupCreateOption() []string {
+	return []string{
+		string(MultiVmGroupCreateOptionAutoCreated),
+		string(MultiVmGroupCreateOptionUserSpecified),
+	}
+}
+
+func parseMultiVmGroupCreateOption(input string) (*MultiVmGroupCreateOption, error) {
+	vals := map[string]MultiVmGroupCreateOption{
+		"autocreated":   MultiVmGroupCreateOptionAutoCreated,
+		"userspecified": MultiVmGroupCreateOptionUserSpecified,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := MultiVmGroupCreateOption(input)
+	return &out, nil
+}
+
+type PlannedFailoverStatus string
+
+const (
+	PlannedFailoverStatusCancelled PlannedFailoverStatus = "Cancelled"
+	PlannedFailoverStatusFailed    PlannedFailoverStatus = "Failed"
+	PlannedFailoverStatusSucceeded PlannedFailoverStatus = "Succeeded"
+	PlannedFailoverStatusUnknown   PlannedFailoverStatus = "Unknown"
+)
+
+func PossibleValuesForPlannedFailoverStatus() []string {
+	return []string{
+		string(PlannedFailoverStatusCancelled),
+		string(PlannedFailoverStatusFailed),
+		string(PlannedFailoverStatusSucceeded),
+		string(PlannedFailoverStatusUnknown),
+	}
+}
+
+func parsePlannedFailoverStatus(input string) (*PlannedFailoverStatus, error) {
+	vals := map[string]PlannedFailoverStatus{
+		"cancelled": PlannedFailoverStatusCancelled,
+		"failed":    PlannedFailoverStatusFailed,
+		"succeeded": PlannedFailoverStatusSucceeded,
+		"unknown":   PlannedFailoverStatusUnknown,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PlannedFailoverStatus(input)
+	return &out, nil
+}
+
+type RecoveryPointType string
+
+const (
+	RecoveryPointTypeCustom     RecoveryPointType = "Custom"
+	RecoveryPointTypeLatestTag  RecoveryPointType = "LatestTag"
+	RecoveryPointTypeLatestTime RecoveryPointType = "LatestTime"
+)
+
+func PossibleValuesForRecoveryPointType() []string {
+	return []string{
+		string(RecoveryPointTypeCustom),
+		string(RecoveryPointTypeLatestTag),
+		string(RecoveryPointTypeLatestTime),
+	}
+}
+
+func parseRecoveryPointType(input string) (*RecoveryPointType, error) {
+	vals := map[string]RecoveryPointType{
+		"custom":     RecoveryPointTypeCustom,
+		"latesttag":  RecoveryPointTypeLatestTag,
+		"latesttime": RecoveryPointTypeLatestTime,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := RecoveryPointType(input)
+	return &out, nil
+}
+
+type ResyncState string
+
+const (
+	ResyncStateNone                         ResyncState = "None"
+	ResyncStatePreparedForResynchronization ResyncState = "PreparedForResynchronization"
+	ResyncStateStartedResynchronization     ResyncState = "StartedResynchronization"
+)
+
+func PossibleValuesForResyncState() []string {
+	return []string{
+		string(ResyncStateNone),
+		string(ResyncStatePreparedForResynchronization),
+		string(ResyncStateStartedResynchronization),
+	}
+}
+
+func parseResyncState(input string) (*ResyncState, error) {
+	vals := map[string]ResyncState{
+		"none":                         ResyncStateNone,
+		"preparedforresynchronization": ResyncStatePreparedForResynchronization,
+		"startedresynchronization":     ResyncStateStartedResynchronization,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ResyncState(input)
+	return &out, nil
+}
+
+type SqlServerLicenseType string
+
+const (
+	SqlServerLicenseTypeAHUB          SqlServerLicenseType = "AHUB"
+	SqlServerLicenseTypeNoLicenseType SqlServerLicenseType = "NoLicenseType"
+	SqlServerLicenseTypeNotSpecified  SqlServerLicenseType = "NotSpecified"
+	SqlServerLicenseTypePAYG          SqlServerLicenseType = "PAYG"
+)
+
+func PossibleValuesForSqlServerLicenseType() []string {
+	return []string{
+		string(SqlServerLicenseTypeAHUB),
+		string(SqlServerLicenseTypeNoLicenseType),
+		string(SqlServerLicenseTypeNotSpecified),
+		string(SqlServerLicenseTypePAYG),
+	}
+}
+
+func parseSqlServerLicenseType(input string) (*SqlServerLicenseType, error) {
+	vals := map[string]SqlServerLicenseType{
+		"ahub":          SqlServerLicenseTypeAHUB,
+		"nolicensetype": SqlServerLicenseTypeNoLicenseType,
+		"notspecified":  SqlServerLicenseTypeNotSpecified,
+		"payg":          SqlServerLicenseTypePAYG,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SqlServerLicenseType(input)
+	return &out, nil
+}
+
+type VmEncryptionType string
+
+const (
+	VmEncryptionTypeNotEncrypted     VmEncryptionType = "NotEncrypted"
+	VmEncryptionTypeOnePassEncrypted VmEncryptionType = "OnePassEncrypted"
+	VmEncryptionTypeTwoPassEncrypted VmEncryptionType = "TwoPassEncrypted"
+)
+
+func PossibleValuesForVmEncryptionType() []string {
+	return []string{
+		string(VmEncryptionTypeNotEncrypted),
+		string(VmEncryptionTypeOnePassEncrypted),
+		string(VmEncryptionTypeTwoPassEncrypted),
+	}
+}
+
+func parseVmEncryptionType(input string) (*VmEncryptionType, error) {
+	vals := map[string]VmEncryptionType{
+		"notencrypted":     VmEncryptionTypeNotEncrypted,
+		"onepassencrypted": VmEncryptionTypeOnePassEncrypted,
+		"twopassencrypted": VmEncryptionTypeTwoPassEncrypted,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VmEncryptionType(input)
+	return &out, nil
+}
+
+type VmReplicationProgressHealth string
+
+const (
+	VmReplicationProgressHealthInProgress   VmReplicationProgressHealth = "InProgress"
+	VmReplicationProgressHealthNoProgress   VmReplicationProgressHealth = "NoProgress"
+	VmReplicationProgressHealthNone         VmReplicationProgressHealth = "None"
+	VmReplicationProgressHealthSlowProgress VmReplicationProgressHealth = "SlowProgress"
+)
+
+func PossibleValuesForVmReplicationProgressHealth() []string {
+	return []string{
+		string(VmReplicationProgressHealthInProgress),
+		string(VmReplicationProgressHealthNoProgress),
+		string(VmReplicationProgressHealthNone),
+		string(VmReplicationProgressHealthSlowProgress),
+	}
+}
+
+func parseVmReplicationProgressHealth(input string) (*VmReplicationProgressHealth, error) {
+	vals := map[string]VmReplicationProgressHealth{
+		"inprogress":   VmReplicationProgressHealthInProgress,
+		"noprogress":   VmReplicationProgressHealthNoProgress,
+		"none":         VmReplicationProgressHealthNone,
+		"slowprogress": VmReplicationProgressHealthSlowProgress,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VmReplicationProgressHealth(input)
+	return &out, nil
+}

@@ -591,7 +591,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("making Read request on site recovery replicated vm %s: model is nil", id.String())
 	}
 
-	d.Set("name", id.ReplicationProtectedItemName)
+	d.Set("name", id.ProtectionContainerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.ResourceName)
 	d.Set("source_recovery_fabric_name", id.FabricName)
