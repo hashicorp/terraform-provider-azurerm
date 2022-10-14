@@ -288,19 +288,46 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
   }
 }
 
+resource "azurerm_cdn_frontdoor_route" "example" {
+  name                          = "${var.prefix}-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  enabled                       = true
+
+  https_redirect_enabled     = true
+  forwarding_protocol        = "HttpsOnly"
+  patterns_to_match          = ["/*"]
+  supported_protocols        = ["Http", "Https"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
+
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
+  link_to_default_domain          = false
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
 resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   name                     = "${var.prefix}-custom-domain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
-  associate_with_cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
-
   tls {
     certificate_type        = "CustomerCertificate"
     minimum_tls_version     = "TLS12"
     cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.example.id
   }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "contoso" {
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
 }
 
 resource "azurerm_dns_txt_record" "contoso" {
@@ -312,33 +339,6 @@ resource "azurerm_dns_txt_record" "contoso" {
   record {
     value = azurerm_cdn_frontdoor_custom_domain.contoso.validation_token
   }
-}
-
-resource "azurerm_cdn_frontdoor_route" "example" {
-  name                          = "${var.prefix}-route"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
-  enabled                       = true
-
-  https_redirect_enabled         = true
-  forwarding_protocol            = "HttpsOnly"
-
-  patterns_to_match          = ["/*"]
-  supported_protocols        = ["Http", "Https"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
-
-  cache {
-    compression_enabled           = true
-    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
-    query_strings                 = ["account", "settings", "foo", "bar"]
-    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
-  }
-}
-
-resource "azurerm_cdn_frontdoor_route_disable_link_to_default_domain" "example" {
-  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.example.id
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
 }
 
 resource "azurerm_dns_cname_record" "contoso" {
