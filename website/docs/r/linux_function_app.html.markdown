@@ -481,7 +481,7 @@ A `storage_account` block supports the following:
 
 * `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
 
-* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`.
 
 * `mount_path` - (Optional) The path at which to mount the storage share.
 
