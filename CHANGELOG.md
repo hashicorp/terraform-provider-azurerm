@@ -2,18 +2,31 @@
 
 FEATURES:
 
+* **New DataSource:** `data.azurerm_cosmosdb_sql_role_definition` [GH-18728]
+* **New DataSource:** `data.azurerm_cosmosdb_sql_database` [GH-18728]
 * **New Resource:** `azurerm_nginx_deployment` [GH-18510]
 * **New Resource:** `azurerm_orbital_contact_profile` [GH-18317]
 * **New Resource:** `azurerm_sentinel_data_connector_office_atp` [GH-18708]
 
 ENHANCEMENTS:
+
 * dependencies: updating to version `v0.44.` of `github.com/hashicorp/go-azure-helpers` [GH-18716]
 * dependencies: updating to version `v0.50.0` of `github.com/manicminer/hamilton` [GH-18716]
 * `azurerm_automation_runbook` - support for the `draft` block and `log_activity_trace` propertry [GH-17961]
-* `azurerm_data_factory_integration_runtime_azure_ssis` - support for `elastic_pool_namr` property [GH-18696]
+* `azurerm_app_configuration` - support for the `encrption`, `local_auth_enabled`, `public_network_access_enabled`, `purge_protection_enabled`, and `soft_delete_retention_days` properties [GH-17714]
 * `azurerm_api_management_api` - support for the `contact` and `license` blocks [GH-18472]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for `elastic_pool_namr` property [GH-18696]
 * `azurerm_dedicated_hardware_security_module` - support the `management_network_profile` block [GH-18702]
+* `azurerm_hdinsight_hadoop_cluster`, - support for the `script_actions` block [GH-18670]
+* `azurerm_hdinsight_hbase_cluster`,  - support for the `script_actions` block [GH-18670]
+* `azurerm_hdinsight_interactive_query_cluster`, - support for the `script_actions` block [GH-18670]
+* `azurerm_spark_cluster` - support for the `script_actions` block [GH-18670]
+* `azurerm_kubernetes_cluster` - support the `workload_identity_enabled` property [GH-18742]
+* `azurerm_firewall_policy_rule_collection_group`- add `Mssql` as an option for `type` validation [GH-18746]
 * `azurerm_log_analytics_cluster` - ensuring that the `identity` block is always set [GH-18700]
+* `azurerm_linux_web_app` - support for python `3.10` [GH-18744]
+* `azurerm_linux_web_app_slot` - support for python `3.10` [GH-18744]
+* `azurerm_mssql_database` - support for the `import` block [GH-18588]
 * `azurerm_stream_analytics_output_servicebus_queue` - support for the `authentication_mode` property [GH-18491]
 
 BUG FIXES: 
@@ -22,6 +35,9 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster_node_pool` - `orchestrator_version` is set properly for node pools created with an older API version [GH-18130]
 * `azurerm_log_analytics_cluster` - fixing an issue when checking for the presence of an existing Log Analytics Cluster [GH-18700]
 * `azurerm_logic_app_workflow` - can now be updated when associated with `integration_service_environment_id` [GH-18660]
+* `azurerm_spring_cloud_connection` - correctly parse storage blob resource id [GH-18699]
+* `azurerm_app_service_connection` - correctly parse storage blob resource id [GH-18699]
+
 
 ## 3.26.0 (October 06, 2022)
 

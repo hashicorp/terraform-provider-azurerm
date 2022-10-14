@@ -67,7 +67,9 @@ The following arguments are supported:
 
 * `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of `-1` means that automatic pause is disabled. This property is only settable for General Purpose Serverless databases.
 
-* `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Recovery`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. 
+* `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Recovery`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. Mutually exclusive with `import`.
+
+* `import` - (Optional) A Database Import block as documented below. Mutually exclusive with `create_mode`.
 
 * `creation_source_database_id` - (Optional) The ID of the source database from which to create the new database. This should only be used for databases with `create_mode` values that use another database as reference. Changing this forces a new resource to be created.
 
@@ -124,6 +126,18 @@ The following arguments are supported:
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+a `import` block supports the following:
+
+* `storage_uri` - (Required) Specifies the blob URI of the .bacpac file.
+* `storage_key` - (Required) Specifies the access key for the storage account.
+* `storage_key_type` - (Required) Specifies the type of access key for the storage account. Valid values are `StorageAccessKey` or `SharedAccessKey`.
+* `administrator_login` - (Required) Specifies the name of the SQL administrator.
+* `administrator_login_password` - (Required) Specifies the password of the SQL administrator.
+* `authentication_type` - (Required) Specifies the type of authentication used to access the server. Valid values are `SQL` or `ADPassword`.
+* `storage_account_id` - (Optional) The resource id for the storage account used to store BACPAC file. If set, private endpoint connection will be created for the storage account. Must match storage account used for storage_uri parameter.
+
 
 ---
 a `threat_detection_policy` block supports the following:

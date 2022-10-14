@@ -673,6 +673,21 @@ func TestAccLinuxWebApp_withPython39(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withPython310(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.python(data, "3.10"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_withRuby26(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1047,7 +1062,7 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings").DoesNotExist(),
-				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+				check.That(data.ResourceName).Key("sticky_settings.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -1090,7 +1105,7 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+				check.That(data.ResourceName).Key("sticky_settings.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),

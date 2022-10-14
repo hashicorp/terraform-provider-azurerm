@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -270,6 +271,14 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 	if value, ok := input.(servicelinker.AzureResource); ok {
 		if value.Id != nil {
 			targetServiceId = *value.Id
+			if parsedId, err := parse.StorageAccountDefaultBlobID(targetServiceId); err == nil {
+				storageAccountId := parse.StorageAccountId{
+					SubscriptionId: parsedId.SubscriptionId,
+					ResourceGroup:  parsedId.ResourceGroup,
+					Name:           parsedId.StorageAccountName,
+				}
+				targetServiceId = storageAccountId.ID()
+			}
 		}
 	}
 
