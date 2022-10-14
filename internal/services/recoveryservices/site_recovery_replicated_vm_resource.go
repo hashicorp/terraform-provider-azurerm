@@ -143,13 +143,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"disk_encryption_info": { //TODO: I'm not sure how to read the property
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     diskEncryptionResource(),
-			},
-
 			"managed_disk": {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -405,7 +398,6 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
 			PolicyId: &policyId,
 			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
-				DiskEncryptionInfo:                 expandDiskEncryption(d.Get("disk_encryption_info").([]interface{})),
 				FabricObjectId:                     sourceVmId,
 				RecoveryContainerId:                &targetProtectionContainerId,
 				RecoveryResourceGroupId:            &targetResourceGroupId,
@@ -535,7 +527,6 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			VmNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
-				DiskEncryptionInfo:                 expandDiskEncryption(d.Get("disk_encryption_info").([]interface{})),
 				ManagedDiskUpdateDetails:           &managedDisks,
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
 				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
