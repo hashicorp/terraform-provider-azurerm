@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-09-01/clusters` Documentation
 
-The `clusters` SDK allows for interaction with the Azure Resource Manager Service `azurestackhci` (API Version `2020-10-01`).
+The `clusters` SDK allows for interaction with the Azure Resource Manager Service `azurestackhci` (API Version `2022-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-09-01/clusters"
 ```
 
 
@@ -47,12 +47,8 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-read, err := client.Delete(ctx, id)
-if err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```
 
@@ -113,7 +109,7 @@ for _, item := range items {
 ctx := context.TODO()
 id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-payload := clusters.ClusterUpdate{
+payload := clusters.ClusterPatch{
 	// ...
 }
 

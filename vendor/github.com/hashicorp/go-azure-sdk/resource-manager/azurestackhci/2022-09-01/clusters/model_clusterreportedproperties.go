@@ -10,11 +10,13 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ClusterReportedProperties struct {
-	ClusterId      *string        `json:"clusterId,omitempty"`
-	ClusterName    *string        `json:"clusterName,omitempty"`
-	ClusterVersion *string        `json:"clusterVersion,omitempty"`
-	LastUpdated    *string        `json:"lastUpdated,omitempty"`
-	Nodes          *[]ClusterNode `json:"nodes,omitempty"`
+	ClusterId       *string          `json:"clusterId,omitempty"`
+	ClusterName     *string          `json:"clusterName,omitempty"`
+	ClusterVersion  *string          `json:"clusterVersion,omitempty"`
+	DiagnosticLevel *DiagnosticLevel `json:"diagnosticLevel,omitempty"`
+	ImdsAttestation *ImdsAttestation `json:"imdsAttestation,omitempty"`
+	LastUpdated     *string          `json:"lastUpdated,omitempty"`
+	Nodes           *[]ClusterNode   `json:"nodes,omitempty"`
 }
 
 func (o *ClusterReportedProperties) GetLastUpdatedAsTime() (*time.Time, error) {

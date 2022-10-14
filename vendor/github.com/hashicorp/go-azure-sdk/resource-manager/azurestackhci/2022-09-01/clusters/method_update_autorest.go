@@ -17,7 +17,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterUpdate) (result UpdateOperationResponse, err error) {
+func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterPatch) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "Update", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterU
 }
 
 // preparerForUpdate prepares the Update request.
-func (c ClustersClient) preparerForUpdate(ctx context.Context, id ClusterId, input ClusterUpdate) (*http.Request, error) {
+func (c ClustersClient) preparerForUpdate(ctx context.Context, id ClusterId, input ClusterPatch) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
