@@ -124,11 +124,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"network_profile_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: networkValidate.NetworkProfileID,
-				Deprecated:   "the 'network_profile_id' has been deprecated and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_id' field instead",
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_id' field instead",
 			},
 
 			"subnet_ids": {
