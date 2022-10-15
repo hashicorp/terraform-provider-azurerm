@@ -858,7 +858,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 			as := v.([]interface{})
 			a := as[0].(map[string]interface{})
 			lifetimeAction.Action = &keyvault.Action{
-				ActionType: keyvault.ActionType(a["action_type"].(string)),
+				ActionType: keyvault.CertificateActionType(a["action_type"].(string)),
 			}
 		}
 
