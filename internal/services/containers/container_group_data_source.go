@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -35,6 +36,8 @@ func dataSourceContainerGroup() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"ip_address": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -45,7 +48,7 @@ func dataSourceContainerGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"subnets": {
+			"subnet_ids": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -93,6 +96,14 @@ func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if address := props.IPAddress; address != nil {
 			d.Set("ip_address", address.IP)
 			d.Set("fqdn", address.Fqdn)
+		}
+
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
 		subnets, err := flattenContainerGroupSubnets(props.SubnetIds)
