@@ -5,12 +5,9 @@ AZURERM_LOCATION="${GIT_REPO_LOCATION}/terraform-provider-azurerm"
 SDK_LOCATION="${AZURERM_LOCATION}/internal/services/keyvault/sdk/v7.3/keyvault"
 
 mkdir -p "${SDK_LOCATION}"
-cp "${SDK_LOCATION}/../autorest.md" "${DATAPLANE_LOCATION}"/readme.go.md
+cp "${SDK_LOCATION}/../readme.go.md" "${DATAPLANE_LOCATION}"/readme.go.md
+cp "${SDK_LOCATION}/../readme.md" "${DATAPLANE_LOCATION}"/readme.md 
 cd "${DATAPLANE_LOCATION}/" || exit 1
-
-# Conflict between ActionType enum and ActionType type..
-# Mac specific sed? :(
-sed -i '' 's/"ActionType"/"ActionsType"/g' Microsoft.KeyVault/stable/7.3/keys.json
 
 # Install autorest before running this
 autorest --use=@microsoft.azure/autorest.go@2.1.183 --tag=package-7.3 --go --openapi-type=data-plane --use-onever --version=V2 --go-sdk-folder="${SDK_LOCATION}"

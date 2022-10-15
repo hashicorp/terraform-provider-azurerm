@@ -23,7 +23,7 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/"
 // Action the action that will be executed.
 type Action struct {
 	// ActionType - The type of the action. Possible values include: 'EmailContacts', 'AutoRenew'
-	ActionType ActionType `json:"action_type,omitempty"`
+	ActionType CertificateActionType `json:"action_type,omitempty"`
 }
 
 // AdministratorDetails details of the organization administrator of the certificate issuer.
@@ -2956,7 +2956,7 @@ type LifetimeActionsTrigger struct {
 // LifetimeActionsType the action that will be executed.
 type LifetimeActionsType struct {
 	// Type - The type of the action. Possible values include: 'Rotate', 'Notify'
-	Type ActionsType `json:"type,omitempty"`
+	Type LifetimeActionType `json:"type,omitempty"`
 }
 
 // OrganizationDetails details of the organization of the certificate issuer.
