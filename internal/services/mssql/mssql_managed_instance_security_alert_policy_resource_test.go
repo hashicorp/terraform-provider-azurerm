@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MsSqlManagedInstanceVulnerabilityAssessmentResource struct{}
+type MsSqlManagedInstanceSecurityAlertPolicyResource struct{}
 
-func TestAccAzureRMMssqlManagedInstanceVulnerabilityAssessment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_vulnerability_assessment", "test")
-	r := MsSqlManagedInstanceVulnerabilityAssessmentResource{}
+func TestAccMssqlManagedInstanceSecurityAlertPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_security_alert_policy", "test")
+	r := MsSqlManagedInstanceSecurityAlertPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +30,9 @@ func TestAccAzureRMMssqlManagedInstanceVulnerabilityAssessment_basic(t *testing.
 	})
 }
 
-func TestAccAzureRMMssqlManagedInstanceVulnerabilityAssessment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_vulnerability_assessment", "test")
-	r := MsSqlManagedInstanceVulnerabilityAssessmentResource{}
+func TestAccMssqlManagedInstanceSecurityAlertPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_security_alert_policy", "test")
+	r := MsSqlManagedInstanceSecurityAlertPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,25 +52,24 @@ func TestAccAzureRMMssqlManagedInstanceVulnerabilityAssessment_update(t *testing
 	})
 }
 
-func (MsSqlManagedInstanceVulnerabilityAssessmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedInstanceVulnerabilityAssessmentID(state.ID)
+func (MsSqlManagedInstanceSecurityAlertPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.ManagedInstancesSecurityAlertPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ManagedInstanceVulnerabilityAssessmentsClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
+	resp, err := client.MSSQL.ManagedInstanceServerSecurityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("%s does not exist", id.ID())
+			return nil, fmt.Errorf("SQL Managed Instance Security Alert Policy for server %q (Resource Group %q) does not exist", id.ManagedInstanceName, id.ResourceGroup)
 		}
-
-		return nil, fmt.Errorf("reading %s: %v", id.ID(), err)
+		return nil, fmt.Errorf("reading SQL Managed Instance Security Alert Policy for server %q (Resource Group %q): %v", id.ManagedInstanceName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r MsSqlManagedInstanceVulnerabilityAssessmentResource) basic(data acceptance.TestData) string {
+func (r MsSqlManagedInstanceSecurityAlertPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -94,20 +93,19 @@ resource "azurerm_mssql_managed_instance_security_alert_policy" "test" {
   state                      = "Enabled"
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  retention_days             = 30
-}
+  retention_days             = 20
+  email_account_admins = true
+  email_addresses = ["pearcec@example.com"]
 
-resource "azurerm_mssql_managed_instance_vulnerability_assessment" "test" {
-  managed_instance_id        = azurerm_mssql_managed_instance.test.id
-  storage_container_path     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/"
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  depends_on = [azurerm_mssql_managed_instance_security_alert_policy.test]
+  disabled_alerts = [
+    "Sql_Injection",
+    "Data_Exfiltration"
+  ]
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MsSqlManagedInstanceVulnerabilityAssessmentResource) update(data acceptance.TestData) string {
+func (r MsSqlManagedInstanceSecurityAlertPolicyResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -132,23 +130,6 @@ resource "azurerm_mssql_managed_instance_security_alert_policy" "test" {
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   retention_days             = 30
-}
-
-resource "azurerm_mssql_managed_instance_vulnerability_assessment" "test" {
-  managed_instance_id        = azurerm_mssql_managed_instance.test.id
-  storage_container_path     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/"
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  recurring_scans {
-    enabled                   = true
-    email_subscription_admins = true
-    emails = [
-      "email@example1.com",
-      "email@example2.com"
-    ]
-  }
-
-  depends_on = [azurerm_mssql_managed_instance_security_alert_policy.test]
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }

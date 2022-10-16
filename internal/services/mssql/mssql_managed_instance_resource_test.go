@@ -936,50 +936,50 @@ const managedInstanceStaticRoutes = `
   }
 
   route {
-    address_prefix = "AzureCloud.westcentralus"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westcentralus"
+    address_prefix = "AzureCloud.eastus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.eastus"
     next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix = "AzureCloud.westus2"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westus2"
+    address_prefix = "AzureCloud.westus3"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-AzureCloud.westus3"
     next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix = "Storage.westcentralus"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westcentralus"
+    address_prefix = "Storage.eastus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.eastus"
     next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix = "Storage.westus2"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westus2"
+    address_prefix = "Storage.westus3"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.westus3"
     next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix = "EventHub.westcentralus"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westcentralus"
+    address_prefix = "EventHub.eastus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.eastus"
     next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix = "EventHub.westus2"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westus2"
+    address_prefix = "EventHub.westus3"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westus3"
     next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix = "Sql.westcentralus"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westcentralus"
+    address_prefix = "Sql.eastus"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.eastus"
     next_hop_type  = "Internet"
   }
 
   route {
-    address_prefix = "Sql.westus2"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westus2"
+    address_prefix = "Sql.westus3"
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Sql.westus3"
     next_hop_type  = "Internet"
   }
 `
