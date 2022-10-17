@@ -284,9 +284,8 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				Properties: &nginxconfiguration.NginxConfigurationProperties{},
 			}
 
-			if meta.ResourceData.HasChange("root_file") {
-				upd.Properties.RootFile = pointer.FromString(model.RootFile)
-			}
+			// root file is required in update
+			upd.Properties.RootFile = pointer.FromString(model.RootFile)
 
 			if meta.ResourceData.HasChange("config_file") {
 				upd.Properties.Files = model.toSDKFiles()
@@ -306,6 +305,7 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
+
 			if err := result.Poller.PollUntilDone(); err != nil {
 				return fmt.Errorf("waiting update %s: %v", *id, err)
 			}

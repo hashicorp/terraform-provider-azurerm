@@ -88,7 +88,7 @@ resource "azurerm_nginx_configuration" "test" {
   root_file           = "/etc/nginx/nginx.conf"
 
   config_file {
-    content = local.config_content
+    content      = local.config_content
     virtual_path = "/etc/nginx/nginx.conf"
   }
 }
@@ -162,7 +162,7 @@ http {
     }
 }
 EOT
-)
+  )
 
   sub_config_content = base64encode(<<-EOT
 location /bbb {
@@ -173,7 +173,7 @@ location /bbb {
 	</body></html>';
 }
 EOT
-)
+  )
 }
 
 resource "azurerm_public_ip" "test" {
