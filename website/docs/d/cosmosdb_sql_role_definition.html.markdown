@@ -14,9 +14,9 @@ Use this data source to access information about an existing Cosmos DB SQL Role 
 
 ```hcl
 data "azurerm_cosmosdb_sql_role_definition" "example" {
-  name                = "tfex-cosmosdb-sql-role-definition"
   resource_group_name = "tfex-cosmosdb-sql-role-definition-rg"
   account_name        = "tfex-cosmosdb-sql-role-definition-account-name"
+  role_definition_id  = "00000000-0000-0000-0000-000000000002"
 }
 ```
 
@@ -24,13 +24,11 @@ data "azurerm_cosmosdb_sql_role_definition" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) An user-friendly name for the Cosmos DB SQL Role Definition.
-
 * `resource_group_name` - (Required) The name of the Resource Group in which the Cosmos DB SQL Role Definition is created.
 
 * `account_name` - (Required) The name of the Cosmos DB Account.
 
-* `role_definition_id` - (Optional) The GUID as the name of the Cosmos DB SQL Role Definition.
+* `role_definition_id` - (Required) The GUID as the name of the Cosmos DB SQL Role Definition.
 
 ## Attributes Reference
 
