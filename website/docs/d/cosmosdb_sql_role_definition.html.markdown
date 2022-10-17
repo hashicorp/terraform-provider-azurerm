@@ -16,7 +16,7 @@ Use this data source to access information about an existing Cosmos DB SQL Role 
 data "azurerm_cosmosdb_sql_role_definition" "example" {
   resource_group_name = "tfex-cosmosdb-sql-role-definition-rg"
   account_name        = "tfex-cosmosdb-sql-role-definition-account-name"
-  role_definition_id  = "00000000-0000-0000-0000-000000000002"
+  role_definition_id  = "00000000-0000-0000-0000-000000000000"
 }
 ```
 
@@ -35,6 +35,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Cosmos DB SQL Role Definition.
+
+* `name` - The role name of the Cosmos DB SQL Role Definition.
 
 * `assignable_scopes` - A list of fully qualified scopes at or below which Role Assignments may be created using this Cosmos DB SQL Role Definition.
 
