@@ -65,6 +65,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server.
 
+* `service_endpoints` - An array of service endpoints for this Fluid Relay Server.
+
 ---
 
 `identity` exports the following:

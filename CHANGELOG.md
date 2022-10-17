@@ -1,3 +1,19 @@
+## 3.28.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
+
+ENHANCEMENTS:
+
+* `azurestackhci`: updating to API Version `2022-09-01` [GH-18759]
+* `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
+* `azurerm_storage_account` - support for the `immutability_policy` block [GH-18774]
+
+BUG FIXES:
+
+* `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
+
 ## 3.27.0 (October 13, 2022)
 
 BREAKING CHANGES:

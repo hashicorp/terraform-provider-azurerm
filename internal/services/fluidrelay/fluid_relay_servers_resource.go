@@ -26,6 +26,7 @@ type ServerModel struct {
 	FrsTenantId      string                                     `tfschema:"frs_tenant_id"`
 	OrdererEndpoints []string                                   `tfschema:"orderer_endpoints"`
 	StorageEndpoints []string                                   `tfschema:"storage_endpoints"`
+	ServiceEndpoints []string                                   `tfschema:"service_endpoints"`
 	Tags             map[string]string                          `tfschema:"tags"`
 	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
@@ -87,6 +88,7 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"orderer_endpoints": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -94,7 +96,16 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"storage_endpoints": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"service_endpoints": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -235,6 +246,10 @@ func (s Server) Read() sdk.ResourceFunc {
 					}
 					if points.StorageEndpoints != nil {
 						output.StorageEndpoints = *points.StorageEndpoints
+					}
+
+					if points.ServiceEndpoints != nil {
+						output.ServiceEndpoints = *points.ServiceEndpoints
 					}
 				}
 			}
