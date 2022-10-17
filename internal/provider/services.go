@@ -133,6 +133,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
+		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
 		loadbalancer.Registration{},
