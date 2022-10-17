@@ -6,10 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -94,16 +95,16 @@ func TestAccSubscriptionResource_devTest(t *testing.T) {
 }
 
 func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionAliasID(state.ID)
+	id, err := subscriptions.ParseAliasID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Subscription.AliasClient.Get(ctx, id.Name)
+	resp, err := client.Subscription.AliasClient.AliasGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Subscription Alias %q: %+v", id.Name, err)
+		return nil, fmt.Errorf("retrieving Subscription Alias %q: %+v", id.AliasName, err)
 	}
 
 	return utils.Bool(true), nil

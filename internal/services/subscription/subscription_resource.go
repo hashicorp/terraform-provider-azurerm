@@ -9,7 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                         // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                     // nolint: staticcheck
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription" // nolint: staticcheck
+
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	subscriptionAliasPandora "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -131,31 +134,31 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("alias", aliasName)
 	}
 
-	id := parse.NewSubscriptionAliasId(aliasName)
+	id := subscriptionAliasPandora.NewAliasID(aliasName)
 
-	existing, err := aliasClient.Get(ctx, id.Name)
+	existing, err := aliasClient.AliasGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.Name, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.AliasName, err)
 		}
 	}
 
-	if props := existing.Properties; props != nil {
+	if model := existing.Model; model != nil && model.Properties != nil {
 		return tf.ImportAsExistsError("azurerm_subscription", id.ID())
 	}
 
 	locks.ByName(aliasName, SubscriptionResourceName)
 	defer locks.UnlockByName(aliasName, SubscriptionResourceName)
 
-	workload := subscriptionAlias.Production
+	workload := subscriptionAliasPandora.WorkloadProduction
 	workloadRaw := d.Get("workload").(string)
 	if workloadRaw != "" {
-		workload = subscriptionAlias.Workload(workloadRaw)
+		workload = subscriptionAliasPandora.Workload(workloadRaw)
 	}
 
-	req := subscriptionAlias.PutAliasRequest{
-		Properties: &subscriptionAlias.PutAliasRequestProperties{
-			Workload: workload,
+	req := subscriptionAliasPandora.PutAliasRequest{
+		Properties: &subscriptionAliasPandora.PutAliasRequestProperties{
+			Workload: &workload,
 		},
 	}
 
@@ -180,7 +183,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("an Alias for Subscription %q already exists with name %q - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", subscriptionId, *exists, "azurerm_subscription")
 		}
 
-		req.Properties.SubscriptionID = utils.String(subscriptionId)
+		req.Properties.SubscriptionId = utils.String(subscriptionId)
 		existingSub, err := client.Get(ctx, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
@@ -194,7 +197,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			deadline, _ := ctx.Deadline()
 			createDeadline := time.Until(deadline)
 			if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Active", createDeadline); err != nil {
-				return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, "Active", err)
+				return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.AliasName, "Active", err)
 			}
 		}
 	} else {
@@ -203,31 +206,31 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		req.Properties.BillingScope = utils.String(d.Get("billing_scope_id").(string))
 	}
 
-	future, err := aliasClient.Create(ctx, aliasName, req)
+	future, err := aliasClient.AliasCreate(ctx, id, req)
 	if err != nil {
 		return fmt.Errorf("creating new Subscription (Alias %q): %+v", aliasName, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, aliasClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subscription with Alias %q: %+v", id.Name, err)
+	if err := future.Poller.PollUntilDone(); err != nil {
+		return fmt.Errorf("waiting for creation of Subscription with Alias %q: %+v", id.AliasName, err)
 	}
 
-	alias, err := aliasClient.Get(ctx, id.Name)
-	if err != nil || alias.Properties == nil || alias.Properties.SubscriptionID == nil {
-		return fmt.Errorf("failed reading subscription details for Alias %q: %+v", id.Name, err)
+	alias, err := aliasClient.AliasGet(ctx, id)
+	if err != nil || alias.Model == nil || alias.Model.Properties == nil || alias.Model.Properties.SubscriptionId == nil {
+		return fmt.Errorf("failed reading subscription details for Alias %q: %+v", id.AliasName, err)
 	}
 
 	deadline, _ := ctx.Deadline()
 	createDeadline := time.Until(deadline)
 
-	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *alias.Properties.SubscriptionID, "Active", createDeadline); err != nil {
-		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", *alias.Properties.SubscriptionID, id.Name, "Active", err)
+	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *alias.Model.Properties.SubscriptionId, "Active", createDeadline); err != nil {
+		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", *alias.Model.Properties.SubscriptionId, id.AliasName, "Active", err)
 	}
 
 	if d.HasChange("tags") {
-		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*alias.Properties.SubscriptionID)
+		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*alias.Model.Properties.SubscriptionId)
 		t := tags.Expand(d.Get("tags").(map[string]interface{}))
-		scope := fmt.Sprintf("subscriptions/%s", *alias.Properties.SubscriptionID)
+		scope := fmt.Sprintf("subscriptions/%s", *alias.Model.Properties.SubscriptionId)
 		tagsResource := resources.TagsResource{
 			Properties: &resources.Tags{
 				Tags: t,
@@ -249,19 +252,19 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionAliasID(d.Id())
+	id, err := subscriptionAliasPandora.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, SubscriptionResourceName)
-	defer locks.UnlockByName(id.Name, SubscriptionResourceName)
-	resp, err := aliasClient.Get(ctx, id.Name)
-	if err != nil || resp.Properties == nil {
+	locks.ByName(id.AliasName, SubscriptionResourceName)
+	defer locks.UnlockByName(id.AliasName, SubscriptionResourceName)
+	resp, err := aliasClient.AliasGet(ctx, *id)
+	if err != nil || resp.Model == nil || resp.Model.Properties == nil {
 		return fmt.Errorf("could not read Subscription Alias for update: %+v", err)
 	}
 
-	subscriptionId := resp.Properties.SubscriptionID
+	subscriptionId := resp.Model.Properties.SubscriptionId
 	if subscriptionId == nil || *subscriptionId == "" {
 		return fmt.Errorf("could not read Subscription ID from Alias")
 	}
@@ -301,32 +304,32 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionAliasID(d.Id())
+	id, err := subscriptionAliasPandora.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
-	d.Set("alias", id.Name)
+	d.Set("alias", id.AliasName)
 
-	alias, err := aliasClient.Get(ctx, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(alias.Response) {
+	alias, err := aliasClient.AliasGet(ctx, *id)
+	if err != nil || alias.Model == nil {
+		if response.WasNotFound(alias.HttpResponse) {
 			log.Printf("[INFO] Error reading Subscription %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Subscription Alias %q: %+v", id.Name, err)
+		return fmt.Errorf("reading Subscription Alias %q: %+v", id.AliasName, err)
 	}
 
 	subscriptionId := ""
 	subscriptionName := ""
 	tenantId := ""
 	t := make(map[string]*string)
-	if props := alias.Properties; props != nil && props.SubscriptionID != nil {
-		subscriptionId = *props.SubscriptionID
+	if props := alias.Model.Properties; props != nil && props.SubscriptionId != nil {
+		subscriptionId = *props.SubscriptionId
 		resp, err := client.Get(ctx, subscriptionId)
 		if err != nil {
-			return fmt.Errorf("failed to read Subscription %q (Alias %q) for Tenant Information: %+v", subscriptionId, id.Name, err)
+			return fmt.Errorf("failed to read Subscription %q (Alias %q) for Tenant Information: %+v", subscriptionId, id.AliasName, err)
 		}
 		if resp.TenantID != nil {
 			tenantId = *resp.TenantID
@@ -364,21 +367,21 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionAliasID(d.Id())
+	id, err := subscriptionAliasPandora.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, SubscriptionResourceName)
-	defer locks.UnlockByName(id.Name, SubscriptionResourceName)
+	locks.ByName(id.AliasName, SubscriptionResourceName)
+	defer locks.UnlockByName(id.AliasName, SubscriptionResourceName)
 
 	// Get subscription details for later
-	alias, err := aliasClient.Get(ctx, id.Name)
-	if err != nil || alias.Properties == nil {
-		return fmt.Errorf("could not read Alias %q for Subscription: %+v", id.Name, err)
+	alias, err := aliasClient.AliasGet(ctx, *id)
+	if err != nil || alias.Model == nil || alias.Model.Properties == nil {
+		return fmt.Errorf("could not read Alias %q for Subscription: %+v", id.AliasName, err)
 	}
 	subscriptionId := ""
-	if subscriptionIdRaw := alias.Properties.SubscriptionID; subscriptionIdRaw != nil {
+	if subscriptionIdRaw := alias.Model.Properties.SubscriptionId; subscriptionIdRaw != nil {
 		subscriptionId = *subscriptionIdRaw
 	}
 	locks.ByID(subscriptionId)
@@ -404,10 +407,10 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	resp, err := aliasClient.Delete(ctx, id.Name)
+	resp, err := aliasClient.AliasDelete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("could not delete Alias %q for Subscription %q (ID: %q): %+v", id.Name, subscriptionName, subscriptionId, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("could not delete Alias %q for Subscription %q (ID: %q): %+v", id.AliasName, subscriptionName, subscriptionId, err)
 		}
 	}
 
@@ -420,7 +423,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	deleteDeadline := time.Until(deadline)
 
 	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Cancelled", deleteDeadline); err != nil {
-		return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.Name, err)
+		return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.AliasName, err)
 	}
 
 	return nil
@@ -471,20 +474,20 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 	return nil
 }
 
-func checkExistingAliases(ctx context.Context, client subscriptionAlias.AliasClient, subscriptionId string) (*string, int, error) {
-	aliasList, err := client.List(ctx)
+func checkExistingAliases(ctx context.Context, client subscriptionAliasPandora.SubscriptionsClient, subscriptionId string) (*string, int, error) {
+	aliasList, err := client.AliasList(ctx)
 	if err != nil {
-		return nil, len(*aliasList.Value), fmt.Errorf("could not List existing Subscription Aliases")
+		return nil, 0, fmt.Errorf("could not List existing Subscription Aliases")
 	}
 
-	if aliasList.Value == nil {
-		return nil, len(*aliasList.Value), fmt.Errorf("failed reading Subscription Alias list")
+	if aliasList.Model == nil || aliasList.Model.Value == nil {
+		return nil, 0, fmt.Errorf("failed reading Subscription Alias list")
 	}
 
-	for _, v := range *aliasList.Value {
-		if v.Properties != nil && v.Properties.SubscriptionID != nil && subscriptionId == *v.Properties.SubscriptionID {
-			return v.Name, len(*aliasList.Value), nil
+	for _, v := range *aliasList.Model.Value {
+		if v.Properties != nil && v.Properties.SubscriptionId != nil && subscriptionId == *v.Properties.SubscriptionId {
+			return v.Name, len(*aliasList.Model.Value), nil
 		}
 	}
-	return nil, len(*aliasList.Value), nil
+	return nil, len(*aliasList.Model.Value), nil
 }
