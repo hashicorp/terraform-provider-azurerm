@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
 * `azurerm_fluid_relay_server` - support for the `primary_key` and `secondary_key` properties [GH-18765]
 * `azurerm_storage_account` - support for the `immutability_policy` block [GH-18774]
+* `azurerm_storage_management_policy` - support for the `tier_to_archive_after_days_since_last_tier_change_greater_than` property [GH-18792]
 
 BUG FIXES:
 
