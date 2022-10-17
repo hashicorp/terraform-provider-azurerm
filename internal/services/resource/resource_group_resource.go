@@ -248,13 +248,13 @@ func getResourceTypeApiVersion(ctx context.Context, client *resources.ProvidersC
 
 	for _, resourceType := range *provider.ResourceTypes {
 		if resourceType.ResourceType != nil && *resourceType.ResourceType == targetResourceType {
-			if resourceType.DefaultAPIVersion != nil {
+			if resourceType.DefaultAPIVersion != nil && *resourceType.DefaultAPIVersion != "" {
 				return *resourceType.DefaultAPIVersion, nil
-			} else if len(*resourceType.APIVersions) > 0 {
+			} else if len(*resourceType.APIVersions) > 0 && (*resourceType.APIVersions)[0] != "" {
 				return (*resourceType.APIVersions)[0], nil
 			}
 
-			return "", fmt.Errorf("getting resource(%s/%s) api version, there is no avaiable api version. ", providerName, targetResourceType)
+			return "", fmt.Errorf("getting resource(%s/%s) api version, there is no available api version. ", providerName, targetResourceType)
 		}
 	}
 

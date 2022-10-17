@@ -17,7 +17,7 @@ type GenericResourceId struct {
 
 // GenericResourceID parses a Generic Resource ID into an GenericResourceId struct
 func GenericResourceID(input string) (*GenericResourceId, error) {
-	id, err := resourceids.ParseAzureResourceID(input) //azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func GenericResourceID(input string) (*GenericResourceId, error) {
 
 	resourceTypeBuilder := strings.Builder{}
 	addSlash := false
-	for k, _ := range id.Path {
+	for k := range id.Path {
 		if addSlash {
 			resourceTypeBuilder.WriteString("/")
 		}
