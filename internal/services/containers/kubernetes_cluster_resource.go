@@ -385,7 +385,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"dns_zone_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: dnsValidate.ValidateDnsZoneID,
 						},
 					},
@@ -3226,14 +3226,22 @@ func flattenEdgeZone(input *containerservice.ExtendedLocation) string {
 }
 
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *containerservice.ManagedClusterIngressProfile {
-	if (len(input) == 0 || input[0] == nil) && d.HasChange("web_app_routing") {
+	if len(input) == 0 && d.HasChange("web_app_routing") {
 		return &containerservice.ManagedClusterIngressProfile{
 			WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
 				Enabled: utils.Bool(false),
 			},
 		}
-	} else if len(input) == 0 || input[0] == nil {
+	} else if len(input) == 0 {
 		return nil
+	}
+
+	if input[0] == nil {
+		return &containerservice.ManagedClusterIngressProfile{
+			WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
+				Enabled: utils.Bool(true),
+			},
+		}
 	}
 
 	config := input[0].(map[string]interface{})
