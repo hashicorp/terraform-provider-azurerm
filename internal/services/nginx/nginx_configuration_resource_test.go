@@ -63,6 +63,20 @@ func TestAccConfiguration_update(t *testing.T) {
 	})
 }
 
+func TestAccConfiguration_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.ConfigurationResource{}.ResourceType(), "test")
+	r := ConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func (a ConfigurationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -74,11 +88,28 @@ resource "azurerm_nginx_configuration" "test" {
   root_file           = "/etc/nginx/nginx.conf"
 
   config_file {
-    content      = "aHR0cCB7DQogICAgc2VydmVyIHsNCiAgICAgICAgbGlzdGVuIDgwOw0KICAgICAgICBsb2NhdGlvbiAvIHsNCiAgICAgICAgICAgIGRlZmF1bHRfdHlwZSB0ZXh0L2h0bWw7DQogICAgICAgICAgICByZXR1cm4gMjAwICc8IWRvY3R5cGUgaHRtbD48aHRtbCBsYW5nPSJlbiI+PGhlYWQ+PC9oZWFkPjxib2R5Pg0KICAgICAgICAgICAgICAgIDxkaXY+dGhpcyBvbmUgd2lsbCBiZSB1cGRhdGVkPC9kaXY+DQogICAgICAgICAgICAgICAgPGRpdj5hdCAxMDozOCBhbTwvZGl2Pg0KICAgICAgICAgICAgPC9ib2R5PjwvaHRtbD4nOw0KICAgICAgICB9DQogICAgICAgIGluY2x1ZGUgc2l0ZS8qLmNvbmY7DQogICAgfQ0KfQ=="
+    content = local.config_content
     virtual_path = "/etc/nginx/nginx.conf"
   }
 }
 `, a.template(data))
+}
+
+func (a ConfigurationResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_configuration" "import" {
+  nginx_deployment_id = azurerm_nginx_configuration.test.nginx_deployment_id
+  root_file           = azurerm_nginx_configuration.test.root_file
+  config_file {
+    content      = base64encode("http{}")
+    virtual_path = "/"
+  }
+}
+`, a.basic(data))
 }
 
 func (a ConfigurationResource) update(data acceptance.TestData) string {
@@ -92,12 +123,12 @@ resource "azurerm_nginx_configuration" "test" {
   root_file           = "/etc/nginx/nginx.conf"
 
   config_file {
-    content      = "aHR0cCB7DQogICAgc2VydmVyIHsNCiAgICAgICAgbGlzdGVuIDgwOw0KICAgICAgICBsb2NhdGlvbiAvIHsNCiAgICAgICAgICAgIGRlZmF1bHRfdHlwZSB0ZXh0L2h0bWw7DQogICAgICAgICAgICByZXR1cm4gMjAwICc8IWRvY3R5cGUgaHRtbD48aHRtbCBsYW5nPSJlbiI+PGhlYWQ+PC9oZWFkPjxib2R5Pg0KICAgICAgICAgICAgICAgIDxkaXY+dGhpcyBvbmUgd2lsbCBiZSB1cGRhdGVkPC9kaXY+DQogICAgICAgICAgICAgICAgPGRpdj5hdCAxMDozOCBhbTwvZGl2Pg0KICAgICAgICAgICAgPC9ib2R5PjwvaHRtbD4nOw0KICAgICAgICB9DQogICAgICAgIGluY2x1ZGUgc2l0ZS8qLmNvbmY7DQogICAgfQ0KfQ=="
+    content      = local.config_content
     virtual_path = "/etc/nginx/nginx.conf"
   }
 
   config_file {
-    content      = "DQogICAgICAgIGxvY2F0aW9uIC9iYmIgew0KICAgICAgICAgICAgZGVmYXVsdF90eXBlIHRleHQvaHRtbDsNCiAgICAgICAgICAgIHJldHVybiAyMDAgJzwhZG9jdHlwZSBodG1sPjxodG1sIGxhbmc9ImVuIj48aGVhZD48L2hlYWQ+PGJvZHk+DQogICAgICAgICAgICAgICAgPGRpdj50aGlzIG9uZSB3aWxsIGJlIHVwZGF0ZWQ8L2Rpdj4NCiAgICAgICAgICAgICAgICA8ZGl2PmF0IDEwOjM4IGFtPC9kaXY+DQogICAgICAgICAgICA8L2JvZHk+PC9odG1sPic7DQogICAgICAgIH0NCg=="
+    content      = local.sub_config_content
     virtual_path = "/etc/nginx/site/b.conf"
   }
 }
@@ -113,6 +144,36 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-auto-%[1]d"
   location = "%[2]s"
+}
+
+locals {
+  config_content = base64encode(<<-EOT
+http {
+    server {
+        listen 80;
+        location / {
+            default_type text/html;
+            return 200 '<!doctype html><html lang="en"><head></head><body>
+                <div>this one will be updated</div>
+                <div>at 10:38 am</div>
+            </body></html>';
+        }
+        include site/*.conf;
+    }
+}
+EOT
+)
+
+  sub_config_content = base64encode(<<-EOT
+location /bbb {
+	default_type text/html;
+	return 200 '<!doctype html><html lang="en"><head></head><body>
+		<div>this one will be updated</div>
+		<div>at 10:38 am</div>
+	</body></html>';
+}
+EOT
+)
 }
 
 resource "azurerm_public_ip" "test" {

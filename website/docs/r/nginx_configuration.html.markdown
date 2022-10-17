@@ -3,12 +3,12 @@ subcategory: "Nginx"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nginx_configuration"
 description: |-
-  Manages a Nginx Configuration.
+  Manages the configuration for a Nginx Deployment.
 ---
 
 # azurerm_nginx_configuration
 
-Manages a Nginx Configuration.
+Manages the configuration for a Nginx Deployment.
 
 ## Example Usage
 
@@ -18,12 +18,36 @@ resource "azurerm_nginx_configuration" "test" {
   root_file           = "/etc/nginx/nginx.conf"
 
   config_file {
-    content      = "aHR0cCB7DQogICAgc2VydmVyIHsNCiAgICAgICAgbGlzdGVuIDgwOw0KICAgICAgICBsb2NhdGlvbiAvIHsNCiAgICAgICAgICAgIGRlZmF1bHRfdHlwZSB0ZXh0L2h0bWw7DQogICAgICAgICAgICByZXR1cm4gMjAwICc8IWRvY3R5cGUgaHRtbD48aHRtbCBsYW5nPSJlbiI+PGhlYWQ+PC9oZWFkPjxib2R5Pg0KICAgICAgICAgICAgICAgIDxkaXY+dGhpcyBvbmUgd2lsbCBiZSB1cGRhdGVkPC9kaXY+DQogICAgICAgICAgICAgICAgPGRpdj5hdCAxMDozOCBhbTwvZGl2Pg0KICAgICAgICAgICAgPC9ib2R5PjwvaHRtbD4nOw0KICAgICAgICB9DQogICAgICAgIGluY2x1ZGUgc2l0ZS8qLmNvbmY7DQogICAgfQ0KfQ=="
+    content = base64encode(<<-EOT
+http {
+    server {
+        listen 80;
+        location / {
+            default_type text/html;
+            return 200 '<!doctype html><html lang="en"><head></head><body>
+                <div>this one will be updated</div>
+                <div>at 10:38 am</div>
+            </body></html>';
+        }
+        include site/*.conf;
+    }
+}
+EOT
+    )
     virtual_path = "/etc/nginx/nginx.conf"
   }
 
   config_file {
-    content      = "DQogICAgICAgIGxvY2F0aW9uIC9iYmIgew0KICAgICAgICAgICAgZGVmYXVsdF90eXBlIHRleHQvaHRtbDsNCiAgICAgICAgICAgIHJldHVybiAyMDAgJzwhZG9jdHlwZSBodG1sPjxodG1sIGxhbmc9ImVuIj48aGVhZD48L2hlYWQ+PGJvZHk+DQogICAgICAgICAgICAgICAgPGRpdj50aGlzIG9uZSB3aWxsIGJlIHVwZGF0ZWQ8L2Rpdj4NCiAgICAgICAgICAgICAgICA8ZGl2PmF0IDEwOjM4IGFtPC9kaXY+DQogICAgICAgICAgICA8L2JvZHk+PC9odG1sPic7DQogICAgICAgIH0NCg=="
+    content = base64encode(<<-EOT
+location /bbb {
+	default_type text/html;
+	return 200 '<!doctype html><html lang="en"><head></head><body>
+		<div>this one will be updated</div>
+		<div>at 10:38 am</div>
+	</body></html>';
+}
+EOT
+    )
     virtual_path = "/etc/nginx/site/b.conf"
   }
 }
@@ -43,13 +67,21 @@ The following arguments are supported:
 
 * `package_data` - (Optional) Specify the package data for this configuration.
 
-* `protected_file` - (Optional) One or more `config_file` blocks as defined below.
+* `protected_file` - (Optional) One or more `config_file` (Protected File) blocks as defined below.
 
 ---
 
 A `config_file` block supports the following:
 
-* `content` - (Required) Specify the content of this config file. Content value should be encoded by base64
+* `content` - (Required) Specifies the base-64 encoded contents of this config file.
+
+* `virtual_path` - (Required) Specify the path of this config file.
+
+---
+
+A `config_file` (Protected File) block supports the following:
+
+* `content` - (Required) Specifies the base-64 encoded contents of this config file.
 
 * `virtual_path` - (Required) Specify the path of this config file.
 
@@ -57,9 +89,7 @@ A `config_file` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Nginx Configuration.
-
-* `name` - The name of this Nginx Configuration. The value of configuration name is a fixed value as `default`. 
+* `id` - The ID of this Nginx Configuration.
 
 ## Timeouts
 

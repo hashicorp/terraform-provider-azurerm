@@ -3,7 +3,6 @@ package nginx
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -22,13 +21,26 @@ type ConfigFile struct {
 	VirtualPath string `tfschema:"virtual_path"`
 }
 
+func (c ConfigFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
+	return nginxconfiguration.NginxConfigurationFile{
+		Content:     pointer.FromString(c.Content),
+		VirtualPath: pointer.FromString(c.VirtualPath),
+	}
+}
+
 type ProtectedFile struct {
 	Content     string `tfschema:"content"`
 	VirtualPath string `tfschema:"virtual_path"`
 }
 
+func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
+	return nginxconfiguration.NginxConfigurationFile{
+		Content:     pointer.FromString(c.Content),
+		VirtualPath: pointer.FromString(c.VirtualPath),
+	}
+}
+
 type ConfigurationModel struct {
-	Name              string          `tfschema:"name"` // always default
 	NginxDeploymentId string          `tfschema:"nginx_deployment_id"`
 	ConfigFile        []ConfigFile    `tfschema:"config_file"`
 	ProtectedFile     []ProtectedFile `tfschema:"protected_file"`
@@ -36,34 +48,36 @@ type ConfigurationModel struct {
 	RootFile          string          `tfschema:"root_file"`
 }
 
+func (c ConfigurationModel) toSDKFiles() *[]nginxconfiguration.NginxConfigurationFile {
+	var files []nginxconfiguration.NginxConfigurationFile
+	for _, file := range c.ConfigFile {
+		files = append(files, file.toSDKModel())
+	}
+	return &files
+}
+
+func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxConfigurationFile {
+	if len(c.ProtectedFile) == 0 {
+		return nil
+	}
+	var files []nginxconfiguration.NginxConfigurationFile
+	for _, file := range c.ProtectedFile {
+		files = append(files, file.toSDKModel())
+	}
+	return &files
+}
+
 // ToSDKModel used in both Create and Update
 func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfiguration {
 	req := nginxconfiguration.NginxConfiguration{
-		Name: pointer.FromString(c.Name),
+		Name: pointer.FromString(defaultConfigurationName),
 		Properties: &nginxconfiguration.NginxConfigurationProperties{
 			RootFile: pointer.FromString(c.RootFile),
 		},
 	}
 
-	var files []nginxconfiguration.NginxConfigurationFile
-	for _, file := range c.ConfigFile {
-		files = append(files, nginxconfiguration.NginxConfigurationFile{
-			Content:     pointer.FromString(file.Content),
-			VirtualPath: pointer.FromString(file.VirtualPath),
-		})
-	}
-	req.Properties.Files = &files
-
-	if len(c.ProtectedFile) > 0 {
-		var protectedFiles []nginxconfiguration.NginxConfigurationFile
-		for _, file := range c.ProtectedFile {
-			protectedFiles = append(protectedFiles, nginxconfiguration.NginxConfigurationFile{
-				Content:     pointer.FromString(file.Content),
-				VirtualPath: pointer.FromString(file.VirtualPath),
-			})
-		}
-		req.Properties.ProtectedFiles = &protectedFiles
-	}
+	req.Properties.Files = c.toSDKFiles()
+	req.Properties.ProtectedFiles = c.toSDKProtectedFiles()
 
 	if c.PackageData != "" {
 		req.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
@@ -84,11 +98,11 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
 		},
 
 		"config_file": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -108,7 +122,7 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protected_file": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -142,13 +156,7 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (m ConfigurationResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		// name of nginx configuration set to a fix value `default` by service team.
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (m ConfigurationResource) ModelObject() interface{} {
@@ -170,19 +178,16 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			model.Name = defaultConfigurationName
 			deployID, err := nginxdeployment.ParseNginxDeploymentID(model.NginxDeploymentId)
 			if err != nil {
 				return err
 			}
 
 			subscriptionID := meta.Client.Account.SubscriptionId
-			id := nginxconfiguration.NewConfigurationID(subscriptionID, deployID.ResourceGroupName, deployID.DeploymentName, model.Name)
-			// get/list, get will cause internal server error if default configuration not exists
-			// todo remove set retry to 1
-			client.Client.RetryAttempts = 1
+			id := nginxconfiguration.NewConfigurationID(subscriptionID, deployID.ResourceGroupName, deployID.DeploymentName, defaultConfigurationName)
+
 			existing, err := client.ConfigurationsGet(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) && !response.WasStatusCode(existing.HttpResponse, http.StatusInternalServerError) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				if err != nil {
 					return fmt.Errorf("retreiving %s: %v", id, err)
 				}
@@ -190,7 +195,6 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			req := model.ToSDKModel()
-
 			future, err := client.ConfigurationsCreateOrUpdate(ctx, id, req)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
@@ -226,7 +230,6 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
-			output.Name = pointer.ToString(result.Model.Name)
 			deployID := nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.DeploymentName)
 			output.NginxDeploymentId = deployID.ID()
 
@@ -276,7 +279,29 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			upd := model.ToSDKModel()
+			upd := nginxconfiguration.NginxConfiguration{
+				Name:       pointer.FromString(defaultConfigurationName),
+				Properties: &nginxconfiguration.NginxConfigurationProperties{},
+			}
+
+			if meta.ResourceData.HasChange("root_file") {
+				upd.Properties.RootFile = pointer.FromString(model.RootFile)
+			}
+
+			if meta.ResourceData.HasChange("config_file") {
+				upd.Properties.Files = model.toSDKFiles()
+			}
+
+			if meta.ResourceData.HasChange("protected_file") {
+				upd.Properties.Files = model.toSDKProtectedFiles()
+			}
+
+			if meta.ResourceData.HasChange("package_data") {
+				upd.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
+					Data: pointer.FromString(model.PackageData),
+				}
+			}
+
 			result, err := client.ConfigurationsCreateOrUpdate(ctx, *id, upd)
 			if err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
