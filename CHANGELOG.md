@@ -1,8 +1,23 @@
+## 3.28.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
+
+ENHANCEMENTS:
+
+* `azurestackhci`: updating to API Version `2022-09-01` [GH-18759]
+* `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
+
+BUG FIXES:
+
+* `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
+
 ## 3.27.0 (October 13, 2022)
 
 BREAKING CHANGES:
 
-* `azurerm_cdn_frontdoor_custom_domain` - removed the `associate_with_cdn_frontdoor_route_id` field to allow for a custom domains to be associated with multiple routes. ([#18600](https://github.com/hashicorp/terraform-provider-azurerm/issues/18600))
+* `azurerm_cdn_frontdoor_custom_domain` - removed the `associate_with_cdn_frontdoor_route_id` field to allow for a custom domain to be associated with multiple routes. ([#18600](https://github.com/hashicorp/terraform-provider-azurerm/issues/18600))
 
 FEATURES:
 

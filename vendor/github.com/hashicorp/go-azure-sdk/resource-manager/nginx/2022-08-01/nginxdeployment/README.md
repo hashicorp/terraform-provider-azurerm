@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `NginxDeploymentClient.DeploymentsCreate`
+### Example Usage: `NginxDeploymentClient.DeploymentsCreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := nginxdeployment.NginxDeployment{
 }
 
 
-if err := client.DeploymentsCreateThenPoll(ctx, id, payload); err != nil {
+if err := client.DeploymentsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

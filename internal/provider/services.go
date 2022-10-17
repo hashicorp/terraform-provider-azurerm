@@ -129,6 +129,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
+		databricks.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},

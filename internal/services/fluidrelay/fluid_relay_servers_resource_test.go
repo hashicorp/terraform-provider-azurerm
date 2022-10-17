@@ -49,6 +49,7 @@ func TestAccFluidRelay_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(f),
 				check.That(data.ResourceName).Key("frs_tenant_id").IsUUID(),
 				check.That(data.ResourceName).Key("orderer_endpoints.0").Exists(),
+				check.That(data.ResourceName).Key("service_endpoints.#").Exists(),
 			),
 		},
 		data.ImportStep(),
