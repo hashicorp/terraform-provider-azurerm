@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile_custom_domain"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain"
 description: |-
   Manages a CDN FrontDoor Custom Domain.
 ---
 
-# azurerm_cdn_frontdoor_profile_custom_domain
+# azurerm_cdn_frontdoor_custom_domain
 
 Manages a CDN FrontDoor Custom Domain.
 
