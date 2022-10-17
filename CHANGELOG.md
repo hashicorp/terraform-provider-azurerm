@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * `azurestackhci`: updating to API Version `2022-09-01` [GH-18759]
 * `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
+* `azurerm_fluid_relay_server` - support for the `primary_key` and `secondary_key` properties [GH-18765]
 * `azurerm_storage_account` - support for the `immutability_policy` block [GH-18774]
 
 BUG FIXES:
