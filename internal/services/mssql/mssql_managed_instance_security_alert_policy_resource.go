@@ -156,7 +156,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 	resourceGroupName := d.Get("resource_group_name").(string)
 	instanceName := d.Get("managed_instance_name").(string)
 
-	id,err := parse.ManagedInstancesSecurityAlertPolicyID(d.Id())
+	id, err := parse.ManagedInstancesSecurityAlertPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 	}
 
 	props := existing.SecurityAlertsPolicyProperties
-	if props == nil{
+	if props == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
@@ -180,7 +180,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 				disabledAlerts = append(disabledAlerts, v.(string))
 			}
 			props.DisabledAlerts = &disabledAlerts
-		}else {
+		} else {
 			props.DisabledAlerts = nil
 		}
 	}
@@ -192,7 +192,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		props.RetentionDays = utils.Int32(int32(d.Get("retention_days").(int)))
 	}
 
-
 	if d.HasChange("email_addresses") {
 		if v, ok := d.GetOk("email_addresses"); ok {
 			emailAddresses := make([]string, 0)
@@ -200,7 +199,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 				emailAddresses = append(emailAddresses, v.(string))
 			}
 			props.EmailAddresses = &emailAddresses
-		}else {
+		} else {
 			props.EmailAddresses = nil
 		}
 	}
@@ -209,9 +208,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		props.State = sql.SecurityAlertsPolicyState(d.Get("state").(string))
 	}
 
-	if d.HasChange("storage_account_access_key") {
-		props.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
-	}
+	props.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
 
 	if d.HasChange("storage_endpoint") {
 		props.StorageEndpoint = utils.String(d.Get("storage_endpoint").(string))
@@ -289,10 +286,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 		if props.RetentionDays != nil {
 			d.Set("retention_days", int(*props.RetentionDays))
 		}
-
-		//if props.StorageAccountAccessKey != nil {
-		//	d.Set("storage_account_access_key", props.StorageAccountAccessKey)
-		//}
 
 		if v, ok := d.GetOk("storage_account_access_key"); ok {
 			d.Set("storage_account_access_key", v)

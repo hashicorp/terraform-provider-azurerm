@@ -76,15 +76,9 @@ func (r MsSqlManagedInstanceSecurityAlertPolicyResource) basic(data acceptance.T
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
-  location                 = "%[3]s"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_mssql_managed_instance_security_alert_policy" "test" {
@@ -94,8 +88,8 @@ resource "azurerm_mssql_managed_instance_security_alert_policy" "test" {
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   retention_days             = 20
-  email_account_admins = true
-  email_addresses = ["pearcec@example.com"]
+  email_account_admins       = true
+  email_addresses            = ["pearcec@example.com"]
 
   disabled_alerts = [
     "Sql_Injection",
@@ -112,15 +106,9 @@ func (r MsSqlManagedInstanceSecurityAlertPolicyResource) update(data acceptance.
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
-  location                 = "%[3]s"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_mssql_managed_instance_security_alert_policy" "test" {
