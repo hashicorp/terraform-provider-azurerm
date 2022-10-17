@@ -926,6 +926,6 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": tags.SchemaEnforceLowerCaseKeys(),
+		"tags": tags.Schema(),
 	}
 }

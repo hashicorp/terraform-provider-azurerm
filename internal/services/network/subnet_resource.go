@@ -146,6 +146,8 @@ func resourceSubnet() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/networkinterfaces/*",
+												"Microsoft.Network/publicIPAddresses/join/action",
+												"Microsoft.Network/publicIPAddresses/read",
 												"Microsoft.Network/virtualNetworks/read",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",

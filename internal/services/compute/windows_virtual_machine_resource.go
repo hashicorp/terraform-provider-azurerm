@@ -209,6 +209,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
+			"gallery_application": VirtualMachineGalleryApplicationSchema(),
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
@@ -490,6 +492,9 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		Identity:         identity,
 		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
+			ApplicationProfile: &compute.ApplicationProfile{
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+			},
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
@@ -813,6 +818,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 	d.Set("extensions_time_budget", extensionsTimeBudget)
 
+	if props.ApplicationProfile != nil && props.ApplicationProfile.GalleryApplications != nil {
+		d.Set("gallery_application", flattenVirtualMachineGalleryApplication(props.ApplicationProfile.GalleryApplications))
+	}
+
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
 	if props.BillingProfile != nil && props.BillingProfile.MaxPrice != nil {
@@ -921,7 +930,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("source_image_id", storageImageId)
 
-		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
+		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference, storageImageId != "")); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
@@ -1178,6 +1187,13 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("extensions_time_budget") {
 		shouldUpdate = true
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
+	}
+
+	if d.HasChange("gallery_application") {
+		shouldUpdate = true
+		update.ApplicationProfile = &compute.ApplicationProfile{
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+		}
 	}
 
 	if d.HasChange("max_bid_price") {

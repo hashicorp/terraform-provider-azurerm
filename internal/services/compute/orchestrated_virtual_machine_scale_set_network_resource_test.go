@@ -1123,7 +1123,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
         name                    = "TestPublicIPConfiguration"
         domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
-        sku_name                = "Basic_Regional"
+        sku_name                = "Standard_Regional"
       }
     }
   }

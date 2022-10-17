@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -37,6 +38,11 @@ func resourceDnsNsRecord() *pluginsdk.Resource {
 				return fmt.Errorf("this resource only supports 'NS' records")
 			}
 			return nil
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NSRecordV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -170,7 +176,7 @@ func resourceDnsNsRecordRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := recordsets.ParseRecordTypeIDInsensitively(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}

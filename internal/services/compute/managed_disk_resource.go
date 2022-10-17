@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -268,6 +270,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		// Encryption Settings cannot be disabled once enabled
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.FourPointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
@@ -398,9 +410,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("encryption_settings"); ok {
-		encryptionSettings := v.([]interface{})
-		settings := encryptionSettings[0].(map[string]interface{})
-		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
+		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(v.([]interface{}))
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
@@ -668,6 +678,10 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		} else {
 			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
 		}
+	}
+
+	if d.HasChange("encryption_settings") {
+		diskUpdate.Properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
 	}
 
 	if d.HasChange("disk_encryption_set_id") {

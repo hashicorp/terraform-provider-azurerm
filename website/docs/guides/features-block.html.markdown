@@ -32,6 +32,11 @@ provider "azurerm" {
       recover_soft_deleted         = true
     }
 
+    app_configuration {
+      purge_soft_delete_on_destroy = true
+      recover_soft_deleted         = true
+    }
+
     application_insights {
       disable_generated_rule = false
     }
@@ -78,6 +83,8 @@ The `features` block supports the following:
 
 * `api_management` - (Optional) An `api_management` block as defined below.
 
+* `app_configuration` - (Optional) An `app_configuration` block as defined below.
+
 * `application_insights` - (Optional) An `application_insights` block as defined below.
 
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
@@ -102,6 +109,14 @@ The `api_management` block supports the following:
 
 * `recover_soft_deleted` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
 
+---
+
+The `app_configuration` block supports the following:
+
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_app_configuration` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `recover_soft_deleted` - (Optional) Should the `azurerm_app_configuration` resources recover a Soft-Deleted App Configuration service? Defaults to `true`
+* 
 ---
 
 The `application_insights` block supports the following:
@@ -152,9 +167,7 @@ The `log_analytics_workspace` block supports the following:
 
 The `resource_group` block supports the following:
 
-* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `false`.
-
--> **Note:** This will be defaulted to `true` in the next major version of the Azure Provider (3.0).
+* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
 
 ---
 

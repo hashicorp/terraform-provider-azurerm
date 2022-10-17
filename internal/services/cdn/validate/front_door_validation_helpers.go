@@ -155,7 +155,7 @@ func CdnFrontDoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []
 
 	if v != "" {
 		if !strings.HasPrefix(v, "/") {
-			return nil, []error{fmt.Errorf("%q is invalid: %q must begin with a %q, got %q. If you are trying to preserve the incoming path leave the %q value empty", "url_redirect_action", k, "/", v, "destination_path")}
+			return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q must begin with a '/', got %q. If you are trying to preserve the incoming path leave the 'destination_path' value empty", k, v)}
 		}
 	}
 

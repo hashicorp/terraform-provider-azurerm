@@ -113,6 +113,8 @@ The following arguments are supported:
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
+~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
+
 * `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. Changing this forces a new resource to be created.
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`. This field cannot be specified if gallery_image_reference_id is specified.
@@ -179,13 +181,11 @@ The `disk_encryption_key` block supports:
 
 * `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
 
-* `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
+* `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
 
 ---
 
 The `encryption_settings` block supports:
-
-* `enabled` - (Required) Is Encryption enabled on this Managed Disk? Changing this forces a new resource to be created.
 
 * `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
 
@@ -197,7 +197,7 @@ The `key_encryption_key` block supports:
 
 * `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
-* `source_vault_id` - (Required) The ID of the source Key Vault.
+* `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
 
 ## Attributes Reference
 

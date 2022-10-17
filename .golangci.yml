@@ -4,6 +4,8 @@ run:
   modules-download-mode: vendor
   skip-dirs:
     - /sdk/ # Excluding sdk folders as these are externally generated
+  skip-files:
+    - ".*\\*_gen.go$"
 
 issues:
   max-per-linter: 0

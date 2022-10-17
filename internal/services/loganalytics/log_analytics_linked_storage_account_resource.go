@@ -3,7 +3,6 @@ package loganalytics
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -11,14 +10,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
 		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
 		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
@@ -32,8 +34,13 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := linkedstorageaccounts.ParseDataSourceTypeIDInsensitively(id) // TODO remove insensitive parsing in 4.0
+			_, err := linkedstorageaccounts.ParseDataSourceTypeID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LinkedStorageAccountV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -42,13 +49,12 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeCustomLogs)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAzureWatson)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeQuery)),
-					strings.ToLower(string(linkedstorageaccounts.DataSourceTypeAlerts)),
-					// Value removed from enum in 2020-08-01, but effectively still works
-					"ingestion",
-				}, false),
+					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
+					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
+					string(linkedstorageaccounts.DataSourceTypeQuery),
+					string(linkedstorageaccounts.DataSourceTypeAlerts),
+					string(linkedstorageaccounts.DataSourceTypeIngestion),
+				}, !features.FourPointOhBeta()),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -71,6 +77,12 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOh() {
+		resource.Schema["data_source_type"].DiffSuppressFunc = suppress.CaseDifference
+	}
+
+	return resource
 }
 
 func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -114,7 +126,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := linkedstorageaccounts.ParseDataSourceTypeIDInsensitively(d.Id()) // TODO remove insensitive parsing in 4.0
+	id, err := linkedstorageaccounts.ParseDataSourceTypeID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -131,6 +143,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("workspace_resource_id", linkedstorageaccounts.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
+	d.Set("data_source_type", string(id.DataSourceType))
 
 	if model := resp.Model; model != nil {
 		props := model.Properties
@@ -139,13 +152,6 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 			storageAccountIds = *props.StorageAccountIds
 		}
 		d.Set("storage_account_ids", storageAccountIds)
-
-		dataSourceType := ""
-		if props.DataSourceType != nil {
-			dataSourceType = string(*props.DataSourceType)
-		}
-		d.Set("data_source_type", dataSourceType)
-
 	}
 
 	return nil
@@ -156,7 +162,7 @@ func resourceLogAnalyticsLinkedStorageAccountDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := linkedstorageaccounts.ParseDataSourceTypeIDInsensitively(d.Id()) // TODO remove insensitive parsing in 4.0
+	id, err := linkedstorageaccounts.ParseDataSourceTypeID(d.Id())
 	if err != nil {
 		return err
 	}

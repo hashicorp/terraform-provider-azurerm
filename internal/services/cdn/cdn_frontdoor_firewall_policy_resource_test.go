@@ -85,7 +85,7 @@ func TestAccCdnFrontDoorFirewallPolicy_complete(t *testing.T) {
 }
 
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorFirewallPolicyIDInsensitively(state.ID)
+	id, err := parse.FrontDoorFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

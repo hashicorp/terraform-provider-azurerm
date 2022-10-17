@@ -157,6 +157,18 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `script_actions` - (Optional)  The script action which will run on the cluster.
+
+---
+
+A `script_action` block supports the following:
+
+* `name` - (Required) The name of the script action.
+
+* `uri` - (Required) The URI to the script.
+
+* `parameters` - (Required) The parameters for the script provided.
+
 ---
 
 A `roles` block supports the following:
