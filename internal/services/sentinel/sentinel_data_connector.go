@@ -51,6 +51,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindAmazonWebServicesCloudTrail
 	case securityinsight.MDATPDataConnector:
 		kind = securityinsight.DataConnectorKindMicrosoftDefenderAdvancedThreatProtection
+	case securityinsight.AwsS3DataConnector:
+		kind = securityinsight.DataConnectorKindAmazonWebServicesS3
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Data Connector has mismatched kind, expected: %q, got %q", expectKind, kind)
