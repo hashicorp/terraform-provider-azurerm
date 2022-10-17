@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `cache` - (Optional) A `cache` block as defined below.
 
-~> **NOTE:** To to disable caching, do not provide the `cache` block in the configuration file.
+~> **NOTE:** To disable caching, do not provide the `cache` block in the configuration file.
 
 * `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route.
 
