@@ -3,7 +3,6 @@ package redhatopenshift_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2022-04-01/redhatopenshift"
@@ -16,11 +15,6 @@ import (
 )
 
 type OpenShiftClusterResource struct{}
-
-var (
-	clientId     = os.Getenv("ARM_CLIENT_ID")
-	clientSecret = os.Getenv("ARM_CLIENT_SECRET")
-)
 
 func (t OpenShiftClusterResource) Exists(
 	ctx context.Context,
