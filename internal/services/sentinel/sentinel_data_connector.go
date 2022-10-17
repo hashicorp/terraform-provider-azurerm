@@ -47,6 +47,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindOffice365
 	case securityinsight.OfficeATPDataConnector:
 		kind = securityinsight.DataConnectorKindOfficeATP
+	case securityinsight.OfficeIRMDataConnector:
+		kind = securityinsight.DataConnectorKindOfficeIRM
 	case securityinsight.AwsCloudTrailDataConnector:
 		kind = securityinsight.DataConnectorKindAmazonWebServicesCloudTrail
 	case securityinsight.MDATPDataConnector:
