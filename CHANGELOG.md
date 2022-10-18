@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_cdn_frontdoor_secret` [GH-18817]
 * **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
 
 ENHANCEMENTS:
