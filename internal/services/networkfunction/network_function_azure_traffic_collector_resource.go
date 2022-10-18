@@ -3,6 +3,7 @@ package networkfunction
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -46,10 +47,13 @@ func (r NetworkFunctionAzureTrafficCollectorResource) IDValidationFunc() plugins
 func (r NetworkFunctionAzureTrafficCollectorResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$"),
+				"The name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin with a letter or number and end with a letter, number or underscore.",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -78,7 +82,6 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Attributes() map[string]*p
 		"virtual_hub": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {

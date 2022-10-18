@@ -15,14 +15,14 @@ Manages a Network Function Azure Traffic Collector.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "West US"
 }
 
 resource "azurerm_network_function_azure_traffic_collector" "example" {
   name                = "example-nfatc"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
-  
+  location            = "West US"
+
   tags = {
     key = "value"
   }
@@ -33,7 +33,7 @@ resource "azurerm_network_function_azure_traffic_collector" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Network Function Azure Traffic Collector. Changing this forces a new Network Function Azure Traffic Collector to be created.
+* `name` - (Required) Specifies the name which should be used for this Network Function Azure Traffic Collector. It can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin with a letter or number and end with a letter, number or underscore. Changing this forces a new Network Function Azure Traffic Collector to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Network Function Azure Traffic Collector should exist. Changing this forces a new Network Function Azure Traffic Collector to be created.
 
