@@ -426,6 +426,7 @@ func TestAccWindowsFunctionApp_consumptionComplete(t *testing.T) {
 			Config: r.consumptionComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1773,7 +1774,7 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
+    use_32_bit_worker  = false
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
