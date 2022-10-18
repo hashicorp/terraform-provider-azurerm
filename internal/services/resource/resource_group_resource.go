@@ -139,7 +139,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		existResourceIds := make([]string, 0)
-		unknownResourceApiVersionIds := make([]string, 0)
+		unknownApiVersionResourceIds := make([]string, 0)
 		unknownApiVersionResourceIdMap := make(map[string]bool, 0) // use map as a set
 		providersClient := meta.(*clients.Client).Resource.ResourceProvidersClient
 
@@ -156,7 +156,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 						existResourceIds = append(existResourceIds, *val.ID)
 					}
 				} else {
-					unknownResourceApiVersionIds = append(unknownResourceApiVersionIds, *val.ID)
+					unknownApiVersionResourceIds = append(unknownApiVersionResourceIds, *val.ID)
 					unknownApiVersionResourceIdMap[*val.ID] = true
 				}
 			}
@@ -167,8 +167,8 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		if len(existResourceIds) > 0 {
-			return resourceGroupContainsItemsError(id.ResourceGroup, append(existResourceIds, unknownResourceApiVersionIds...))
-		} else if len(unknownResourceApiVersionIds) > 0 {
+			return resourceGroupContainsItemsError(id.ResourceGroup, append(existResourceIds, unknownApiVersionResourceIds...))
+		} else if len(unknownApiVersionResourceIds) > 0 {
 			err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
 				results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 				if err != nil {
