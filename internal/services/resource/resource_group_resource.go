@@ -131,7 +131,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
 		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
-		// Resource groups sometimes hold on to resource information after the resources have been deleted.
+		// List API returns cached resource metadata, which sometimes incorrectly returns resources that are already removed.
 		// Check if the resources has been deleted and only exist in cache of the resource group, or there actually exist undeleted resources.
 		results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 		if err != nil {
