@@ -252,7 +252,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"sticky_settings": helpers.StickySettingsSchema(),
 
-		"storage_account": helpers.AzureStorageAccountSchemaWindows(),
+		"storage_account": helpers.StorageAccountSchemaWindows(),
 
 		"tags": tags.Schema(),
 

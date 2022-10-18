@@ -233,7 +233,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
 
-		"storage_account": helpers.AzureStorageAccountSchemaWindows(),
+		"storage_account": helpers.StorageAccountSchemaWindows(),
 
 		"tags": tags.Schema(),
 
