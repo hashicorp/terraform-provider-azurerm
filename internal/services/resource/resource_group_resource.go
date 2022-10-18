@@ -140,13 +140,15 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 		existResourceIds := make([]string, 0)
 		unknownApiVersionResourceIds := make([]string, 0)
-		unknownApiVersionResourceIdMap := make(map[string]bool, 0) // use map as a set
 		providersClient := meta.(*clients.Client).Resource.ResourceProvidersClient
 
 		for results.NotDone() {
 			val := results.Value()
 			if val.ID != nil {
-				if resourceApiVersion, err := getResourceTypeApiVersion(ctx, providersClient, val); err == nil {
+				if resourceApiVersion, err := getResourceTypeApiVersion(ctx, providersClient, val); err != nil {
+					log.Printf("[DEBUG] Get Resource Type Api version failed: %+v, fallback to wait 10 minuties.", err)
+					unknownApiVersionResourceIds = append(unknownApiVersionResourceIds, *val.ID)
+				} else {
 					exist, err := resourceExistById(ctx, resourceClient, *val.ID, resourceApiVersion)
 					if err != nil {
 						return err
@@ -155,9 +157,6 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 					if exist {
 						existResourceIds = append(existResourceIds, *val.ID)
 					}
-				} else {
-					unknownApiVersionResourceIds = append(unknownApiVersionResourceIds, *val.ID)
-					unknownApiVersionResourceIdMap[*val.ID] = true
 				}
 			}
 
@@ -177,10 +176,8 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 				nestedResourceIds := make([]string, 0)
 				for results.NotDone() {
 					val := results.Value()
-					if val.ID != nil {
-						if _, unknown := unknownApiVersionResourceIdMap[*val.ID]; unknown {
-							nestedResourceIds = append(nestedResourceIds, *val.ID)
-						}
+					if val.ID != nil && utils.SliceContainsValue(unknownApiVersionResourceIds, *val.ID) {
+						nestedResourceIds = append(nestedResourceIds, *val.ID)
 					}
 
 					if err := results.NextWithContext(ctx); err != nil {
