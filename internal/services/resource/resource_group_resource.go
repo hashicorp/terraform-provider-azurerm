@@ -132,30 +132,31 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
 		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted.
-		// Check if the resources have been deleted and only exist in cache of the resource group, or there actually exist undeleted resources.
+		// Check if the resources has been deleted and only exist in cache of the resource group, or there actually exist undeleted resources.
 		results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 		if err != nil {
 			return fmt.Errorf("listing resources in %s: %v", *id, err)
 		}
 
-		existResourceIds := make([]string, 0)
-		unknownApiVersionResourceIds := make([]string, 0)
+		existResourceIds := make([]string, 0)             // GET resource returned http 200, resource does exist.
+		nonExistResourceIds := make([]string, 0)          // GET resource returned http 404, resource does not exist.
+		unknownApiVersionResourceIds := make([]string, 0) // resources unable to get API version or GET returned error except 200/404
 		providersClient := meta.(*clients.Client).Resource.ResourceProvidersClient
 
 		for results.NotDone() {
 			val := results.Value()
 			if val.ID != nil {
 				if resourceApiVersion, err := getResourceTypeApiVersion(ctx, providersClient, val); err != nil {
-					log.Printf("[DEBUG] Get Resource Type Api version failed: %+v, fallback to wait 10 minuties.", err)
+					log.Printf("[WARN] Get Resource Type Api version failed: %+v.", err)
+					unknownApiVersionResourceIds = append(unknownApiVersionResourceIds, *val.ID)
+				} else if exist, err := resourceExistById(ctx, resourceClient, *val.ID, resourceApiVersion); err != nil {
+					log.Printf("[WARN] Get Resource (%s) failed: %+v.", *val.ID, err)
 					unknownApiVersionResourceIds = append(unknownApiVersionResourceIds, *val.ID)
 				} else {
-					exist, err := resourceExistById(ctx, resourceClient, *val.ID, resourceApiVersion)
-					if err != nil {
-						return err
-					}
-
 					if exist {
 						existResourceIds = append(existResourceIds, *val.ID)
+					} else {
+						nonExistResourceIds = append(nonExistResourceIds, *val.ID)
 					}
 				}
 			}
@@ -167,7 +168,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if len(existResourceIds) > 0 {
 			return resourceGroupContainsItemsError(id.ResourceGroup, append(existResourceIds, unknownApiVersionResourceIds...))
-		} else if len(unknownApiVersionResourceIds) > 0 {
+		}
+
+		if len(unknownApiVersionResourceIds) > 0 {
 			err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
 				results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 				if err != nil {
@@ -176,7 +179,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 				nestedResourceIds := make([]string, 0)
 				for results.NotDone() {
 					val := results.Value()
-					if val.ID != nil && utils.SliceContainsValue(unknownApiVersionResourceIds, *val.ID) {
+					if val.ID != nil && !utils.SliceContainsValue(nonExistResourceIds, *val.ID) {
 						nestedResourceIds = append(nestedResourceIds, *val.ID)
 					}
 
