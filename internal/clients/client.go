@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
+	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
@@ -127,7 +128,7 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
-	AadB2c                *aadb2c.Client
+	AadB2c                *aadb2c_v2021_04_01_preview.Client
 	Advisor               *advisor.Client
 	AnalysisServices      *analysisservices_v2017_08_01.Client
 	ApiManagement         *apiManagement.Client
