@@ -138,18 +138,26 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("listing resources in %s: %v", *id, err)
 		}
 
-		nestedResourceIds := make([]string, 0)
+		existResourceIds := make([]string, 0)
+		unknownResourceApiVersionIds := make([]string, 0)
+		unknownApiVersionResourceIdMap := make(map[string]bool, 0) // use map as a set
 		providersClient := meta.(*clients.Client).Resource.ResourceProvidersClient
 
 		for results.NotDone() {
 			val := results.Value()
 			if val.ID != nil {
-				exist, err := resourceExistById(ctx, providersClient, resourceClient, *val.ID)
-				if err != nil {
-					return err
-				}
-				if exist {
-					nestedResourceIds = append(nestedResourceIds, *val.ID)
+				if resourceApiVersion, err := getResourceTypeApiVersion(ctx, providersClient, val); err == nil {
+					exist, err := resourceExistById(ctx, resourceClient, *val.ID, resourceApiVersion)
+					if err != nil {
+						return err
+					}
+
+					if exist {
+						existResourceIds = append(existResourceIds, *val.ID)
+					}
+				} else {
+					unknownResourceApiVersionIds = append(unknownResourceApiVersionIds, *val.ID)
+					unknownApiVersionResourceIdMap[*val.ID] = true
 				}
 			}
 
@@ -158,8 +166,38 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		if len(nestedResourceIds) > 0 {
-			return resourceGroupContainsItemsError(id.ResourceGroup, nestedResourceIds)
+		if len(existResourceIds) > 0 {
+			return resourceGroupContainsItemsError(id.ResourceGroup, append(existResourceIds, unknownResourceApiVersionIds...))
+		} else if len(unknownResourceApiVersionIds) > 0 {
+			err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
+				results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+				if err != nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
+				}
+				nestedResourceIds := make([]string, 0)
+				for results.NotDone() {
+					val := results.Value()
+					if val.ID != nil {
+						if _, unknown := unknownApiVersionResourceIdMap[*val.ID]; unknown {
+							nestedResourceIds = append(nestedResourceIds, *val.ID)
+						}
+					}
+
+					if err := results.NextWithContext(ctx); err != nil {
+						return pluginsdk.NonRetryableError(fmt.Errorf("retrieving next page of nested items for %s: %+v", id, err))
+					}
+				}
+
+				if len(nestedResourceIds) > 0 {
+					time.Sleep(30 * time.Second)
+					return pluginsdk.RetryableError(resourceGroupContainsItemsError(id.ResourceGroup, nestedResourceIds))
+				}
+				return nil
+			})
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -214,18 +252,8 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
 	return fmt.Errorf(strings.ReplaceAll(message, "'", "`"))
 }
 
-func resourceExistById(ctx context.Context, providersClient *resources.ProvidersClient, resourceClient *resources.Client, resourceId string) (exist bool, err error) {
-	id, err := parse.GenericResourceID(resourceId)
-	if err != nil {
-		return true, fmt.Errorf("parsing generic resource id %s: %v", resourceId, err)
-	}
-
-	resourceApiVersion, err := getResourceTypeApiVersion(ctx, providersClient, id.ResourceProvider, id.ResourceType)
-	if err != nil {
-		return true, err
-	}
-
-	resource, err := resourceClient.GetByID(ctx, resourceId, resourceApiVersion)
+func resourceExistById(ctx context.Context, resourceClient *resources.Client, resourceId string, apiVersion string) (exist bool, err error) {
+	resource, err := resourceClient.GetByID(ctx, resourceId, apiVersion)
 	if err != nil {
 		if utils.ResponseWasNotFound(resource.Response) {
 			return false, nil
@@ -236,7 +264,12 @@ func resourceExistById(ctx context.Context, providersClient *resources.Providers
 	return resource.ID != nil, nil
 }
 
-func getResourceTypeApiVersion(ctx context.Context, client *resources.ProvidersClient, providerName string, targetResourceType string) (apiVersion string, err error) {
+func getResourceTypeApiVersion(ctx context.Context, client *resources.ProvidersClient, resource resources.GenericResourceExpanded) (apiVersion string, err error) {
+	providerName, targetResourceType, err := splitProviderAndResourceTypes(*resource.Type)
+	if err != nil {
+		return "", err
+	}
+
 	provider, err := client.Get(ctx, providerName, fmt.Sprintf("resourceTypes/%s", targetResourceType))
 	if err != nil {
 		return "", err
@@ -259,4 +292,12 @@ func getResourceTypeApiVersion(ctx context.Context, client *resources.ProvidersC
 	}
 
 	return "", fmt.Errorf("getting resource(%s/%s) api version, there is no match resource type. ", providerName, targetResourceType)
+}
+
+func splitProviderAndResourceTypes(fullResourceType string) (provider string, resourceType string, err error) {
+	p, r, found := strings.Cut(fullResourceType, "/")
+	if !found {
+		return "", "", fmt.Errorf("spliting resourceType %s failed", provider)
+	}
+	return p, r, nil
 }
