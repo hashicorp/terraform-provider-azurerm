@@ -3032,8 +3032,8 @@ func expandKubernetesClusterMaintenanceConfigurationTimeSpans(input []interface{
 		start, _ := time.Parse(time.RFC3339, v["start"].(string))
 		end, _ := time.Parse(time.RFC3339, v["end"].(string))
 		results = append(results, maintenanceconfigurations.TimeSpan{
-			Start: utils.ToPtr(start.String()),
-			End:   utils.ToPtr(end.String()),
+			Start: utils.ToPtr(start.Format("2006-01-02T15:04:05Z07:00")),
+			End:   utils.ToPtr(end.Format("2006-01-02T15:04:05Z07:00")),
 		})
 	}
 	return &results
