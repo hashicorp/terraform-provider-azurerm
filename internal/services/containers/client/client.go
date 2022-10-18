@@ -6,15 +6,18 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	AgentPoolsClient                  *containerservice.AgentPoolsClient
+	AgentPoolsClient                  *agentpools.AgentPoolsClient
 	ContainerRegistryAgentPoolsClient *containerregistry.AgentPoolsClient
 	ContainerInstanceClient           *containerinstance.ContainerInstanceClient
 	KubernetesClustersClient          *containerservice.ManagedClustersClient
-	MaintenanceConfigurationsClient   *containerservice.MaintenanceConfigurationsClient
+	MaintenanceConfigurationsClient   *maintenanceconfigurations.MaintenanceConfigurationsClient
 	RegistriesClient                  *containerregistry.RegistriesClient
 	ReplicationsClient                *containerregistry.ReplicationsClient
 	ServicesClient                    *legacy.ContainerServicesClient
@@ -24,6 +27,7 @@ type Client struct {
 	TasksClient                       *containerregistry.TasksClient
 	RunsClient                        *containerregistry.RunsClient
 	ConnectedRegistriesClient         *containerregistry.ConnectedRegistriesClient
+	ManagedClustersClient             *managedclusters.ManagedClustersClient
 
 	Environment azure.Environment
 }
@@ -60,11 +64,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	kubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&kubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
 
-	agentPoolsClient := containerservice.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	agentPoolsClient := agentpools.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
-	maintenanceConfigurationsClient := containerservice.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	maintenanceConfigurationsClient := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&maintenanceConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+
+	managedClustersClient := managedclusters.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&managedClustersClient.Client, o.ResourceManagerAuthorizer)
 
 	servicesClient := legacy.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
@@ -88,5 +95,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		TasksClient:                       &tasksClient,
 		RunsClient:                        &runsClient,
 		ConnectedRegistriesClient:         &connectedRegistriesClient,
+		ManagedClustersClient:             &managedClustersClient,
 	}
 }

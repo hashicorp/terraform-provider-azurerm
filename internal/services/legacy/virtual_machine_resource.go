@@ -47,8 +47,9 @@ func userDataStateFunc(v interface{}) string {
 }
 
 // NOTE: the `azurerm_virtual_machine` resource has been superseded by the `azurerm_linux_virtual_machine` and
-// 		 `azurerm_windows_virtual_machine` resources - as such this resource is feature-frozen and new
-//		 functionality will be added to these new resources instead.
+//
+//	`azurerm_windows_virtual_machine` resources - as such this resource is feature-frozen and new
+//	functionality will be added to these new resources instead.
 func resourceVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineCreateUpdate,
