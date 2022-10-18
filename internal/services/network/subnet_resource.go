@@ -119,6 +119,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Kusto/clusters",
 											"Microsoft.Logic/integrationServiceEnvironments",
+											"Microsoft.LabServices/labplans",
 											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.Network/dnsResolvers",
