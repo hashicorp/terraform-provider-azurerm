@@ -919,6 +919,9 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
 
+		case "WEBSITE_VNET_ROUTE_ALL":
+			// Filter out - handled by site_config setting `vnet_route_all_enabled`
+
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)
 		}

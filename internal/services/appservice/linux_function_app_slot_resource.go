@@ -918,6 +918,9 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input web.Str
 				appSettings[k] = utils.NormalizeNilableString(v)
 			}
 
+		case "WEBSITE_VNET_ROUTE_ALL":
+			// Filter out - handled by site_config setting `vnet_route_all_enabled`
+
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)
 		}
