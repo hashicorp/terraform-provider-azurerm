@@ -20,8 +20,21 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
 * `azurerm_windows_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
 * `azurerm_linux_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
+* `azurerm_linux_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* Data Source: `azurerm_linux_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_linux_function_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_linux_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* Data Source: `azurerm_linux_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_linux_web_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_windows_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
+* `azurerm_windows_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* Data Source: `azurerm_windows_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_windows_function_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_windows_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* Data Source: `azurerm_windows_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_windows_web_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
+
 
 ## 3.27.0 (October 13, 2022)
 
