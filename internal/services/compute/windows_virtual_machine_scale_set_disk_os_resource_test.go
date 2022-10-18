@@ -173,13 +173,28 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnly(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnlySecureBootEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data),
+			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnlySecureBootDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -616,7 +631,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), enabled)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithGuestStateOnly(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
@@ -655,10 +670,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  vtpm_enabled        = true
-  secure_boot_enabled = true
+  vtpm_enabled        = %t
+  secure_boot_enabled = %t
 }
-`, r.template(data))
+`, r.template(data), vtpm, secureBoot)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
