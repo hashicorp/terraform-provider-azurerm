@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceProximityPlacementGroup() *pluginsdk.Resource {
@@ -34,7 +34,7 @@ func dataSourceProximityPlacementGroup() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -45,19 +45,25 @@ func dataSourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProximityPlacementGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := proximityplacementgroups.NewProximityPlacementGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id, proximityplacementgroups.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

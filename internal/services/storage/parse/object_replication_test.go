@@ -13,8 +13,8 @@ var _ resourceid.Formatter = ObjectReplicationId{}
 
 func TestObjectReplicationIDFormatter(t *testing.T) {
 	actual := NewObjectReplicationID(
-		objectreplicationpolicies.NewObjectReplicationPoliciesID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "objectReplicationPolicy1"),
-		objectreplicationpolicies.NewObjectReplicationPoliciesID("12345678-1234-9876-4563-123456789012", "resGroup2", "storageAccount2", "objectReplicationPolicy2"),
+		objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "objectReplicationPolicy1"),
+		objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "resGroup2", "storageAccount2", "objectReplicationPolicy2"),
 	).ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/objectReplicationPolicies/objectReplicationPolicy1;/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup2/providers/Microsoft.Storage/storageAccounts/storageAccount2/objectReplicationPolicies/objectReplicationPolicy2"
 	if actual != expected {
@@ -134,13 +134,13 @@ func TestObjectReplicationID(t *testing.T) {
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/objectReplicationPolicies/objectReplicationPolicy1;/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup2/providers/Microsoft.Storage/storageAccounts/storageAccount2/objectReplicationPolicies/objectReplicationPolicy2",
 			Expected: &ObjectReplicationId{
-				Src: objectreplicationpolicies.ObjectReplicationPoliciesId{
+				Src: objectreplicationpolicies.ObjectReplicationPolicyId{
 					SubscriptionId:            "12345678-1234-9876-4563-123456789012",
 					ResourceGroupName:         "resGroup1",
 					AccountName:               "storageAccount1",
 					ObjectReplicationPolicyId: "objectReplicationPolicy1",
 				},
-				Dst: objectreplicationpolicies.ObjectReplicationPoliciesId{
+				Dst: objectreplicationpolicies.ObjectReplicationPolicyId{
 					SubscriptionId:            "12345678-1234-9876-4563-123456789012",
 					ResourceGroupName:         "resGroup2",
 					AccountName:               "storageAccount2",

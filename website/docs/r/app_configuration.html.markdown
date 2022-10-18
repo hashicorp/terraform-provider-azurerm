@@ -36,13 +36,37 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`.
-
 * `identity` - (Optional) An `identity` block as defined below.
 
 ~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
 
+* `encrption` - (Optional) An `encryption` block as defined below.
+
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. 
+
+* `public_network_access` - (Optional) The Public Network Access setting of the App Configuration. Possible values are `Enabled` and `Disabled`.
+
+~> **NOTE:** If `public_network_access` is not specified, the App Configuration will be created as  `Automatic`. However, once a different value is defined, can not be set again as automatic.
+
+* `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. This field only works for `standard` sku. Defaults to `false`. 
+
+!> **Note:** Once Purge Protection has been enabled it's not possible to disable it. Deleting the App Configuration with Purge Protection enabled will schedule the App Configuration to be deleted (which will happen by Azure in the configured number of days).
+
+* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`.
+
+* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
+
+~> **Note:** If Purge Protection is enabled, this field can only be configured one time and cannot be updated.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_vault_key_identifier` - (Optional) Specifies the URI of the key vault key used to encrypt data.
+
+* `identity_client_id` - (Optional) Specifies the client id of the identity which will be used to access key vault.
 
 ---
 
@@ -123,7 +147,7 @@ A `secondary_write_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the App Configuration.

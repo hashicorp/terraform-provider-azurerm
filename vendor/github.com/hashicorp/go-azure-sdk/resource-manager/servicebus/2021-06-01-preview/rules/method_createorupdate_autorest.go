@@ -64,5 +64,6 @@ func (c RulesClient) responderForCreateOrUpdate(resp *http.Response) (result Cre
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

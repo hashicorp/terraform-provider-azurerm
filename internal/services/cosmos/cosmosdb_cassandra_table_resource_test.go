@@ -238,7 +238,7 @@ func (r CosmosDBCassandraTableResource) analyticalStorageTTL(data acceptance.Tes
 resource "azurerm_cosmosdb_cassandra_table" "test" {
   name                   = "acctest-CCASST-%[2]d"
   cassandra_keyspace_id  = azurerm_cosmosdb_cassandra_keyspace.test.id
-  analytical_storage_ttl = 0
+  analytical_storage_ttl = 1
 
   schema {
     column {

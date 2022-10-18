@@ -64,5 +64,6 @@ func (c ResourceGuardsClient) responderForPatch(resp *http.Response) (result Pat
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

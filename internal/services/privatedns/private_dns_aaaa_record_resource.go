@@ -188,11 +188,11 @@ func flattenAzureRmPrivateDnsAaaaRecords(records *[]recordsets.AaaaRecord) []str
 	}
 
 	for _, record := range *records {
-		if record.Ipv6Address == nil {
+		if record.IPv6Address == nil {
 			continue
 		}
 
-		results = append(results, *record.Ipv6Address)
+		results = append(results, *record.IPv6Address)
 	}
 
 	return results
@@ -205,7 +205,7 @@ func expandAzureRmPrivateDnsAaaaRecords(d *pluginsdk.ResourceData) *[]recordsets
 	for i, v := range recordStrings {
 		ipv6 := v.(string)
 		records[i] = recordsets.AaaaRecord{
-			Ipv6Address: &ipv6,
+			IPv6Address: &ipv6,
 		}
 	}
 

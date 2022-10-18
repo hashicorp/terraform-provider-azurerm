@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -281,6 +281,34 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"immutability_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"period_since_creation_in_days": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+						"state": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.AccountImmutabilityPolicyStateDisabled),
+								string(storage.AccountImmutabilityPolicyStateLocked),
+								string(storage.AccountImmutabilityPolicyStateUnlocked),
+							}, false),
+						},
+						"allow_protected_append_writes": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -317,6 +345,18 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"default_to_oauth_authentication": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"network_rules": {
@@ -684,6 +724,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 											}, false),
 										},
 									},
+									"multichannel_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
 								},
 							},
 						},
@@ -998,7 +1043,12 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
+	defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
+	publicNetworkAccess := storage.PublicNetworkAccessDisabled
+	if d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = storage.PublicNetworkAccessEnabled
+	}
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -1013,12 +1063,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			EnableHTTPSTrafficOnly:      &enableHTTPSTrafficOnly,
-			NetworkRuleSet:              expandStorageAccountNetworkRules(d, tenantId),
-			IsHnsEnabled:                &isHnsEnabled,
-			EnableNfsV3:                 &nfsV3Enabled,
-			AllowSharedKeyAccess:        &allowSharedKeyAccess,
-			AllowCrossTenantReplication: &crossTenantReplication,
+			PublicNetworkAccess:          publicNetworkAccess,
+			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
+			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
+			IsHnsEnabled:                 &isHnsEnabled,
+			EnableNfsV3:                  &nfsV3Enabled,
+			AllowSharedKeyAccess:         &allowSharedKeyAccess,
+			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
+			AllowCrossTenantReplication:  &crossTenantReplication,
 		},
 	}
 
@@ -1052,6 +1104,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if _, ok := d.GetOk("custom_domain"); ok {
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
+	}
+
+	if v, ok := d.GetOk("immutability_policy"); ok {
+		parameters.ImmutableStorageWithVersioning = expandStorageAccountImmutabilityPolicy(v.([]interface{}))
 	}
 
 	// BlobStorage does not support ZRS
@@ -1253,7 +1309,21 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(val.([]interface{}))); err != nil {
+		shareProperties := expandShareProperties(val.([]interface{}))
+		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+		if accountTier != string(storage.SkuTierPremium) {
+
+			// Error if the user has tried to enable multichannel on a standard tier storage account
+			if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+				if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+				}
+			}
+
+			shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+		}
+
+		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 			return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", id.Name, err)
 		}
 	}
@@ -1344,6 +1414,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			AllowSharedKeyAccess: &allowSharedKeyAccess,
 		},
+	}
+
+	if d.HasChange("default_to_oauth_authentication") {
+		defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
+		opts.AccountPropertiesUpdateParameters.DefaultToOAuthAuthentication = &defaultToOAuthAuthentication
 	}
 
 	if d.HasChange("cross_tenant_replication_enabled") {
@@ -1513,6 +1588,22 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := storage.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = storage.PublicNetworkAccessEnabled
+		}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				PublicNetworkAccess: publicNetworkAccess,
+			},
+		}
+
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account public_network_access_enabled %q: %+v", id.Name, err)
+		}
+	}
+
 	if d.HasChange("network_rules") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -1653,7 +1744,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+		shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
+		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+		if accountTier != string(storage.SkuTierPremium) {
+
+			// Error if the user has tried to enable multichannel on a standard tier storage account
+			if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+				if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+				}
+			}
+
+			shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+		}
+
+		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", id.Name, err)
 		}
 	}
@@ -1756,6 +1861,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
 
+		publicNetworkAccessEnabled := true
+		if props.PublicNetworkAccess == storage.PublicNetworkAccessDisabled {
+			publicNetworkAccessEnabled = false
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
 		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
 			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
 		}
@@ -1767,7 +1878,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.AllowBlobPublicAccess != nil {
 			allowBlobPublicAccess = *props.AllowBlobPublicAccess
 		}
-		//lintignore:R001
+		// lintignore:R001
 		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
 		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
@@ -1790,6 +1901,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
+			}
+		}
+
+		if immutabilityPolicy := props.ImmutableStorageWithVersioning; immutabilityPolicy != nil && immutabilityPolicy.ImmutabilityPolicy != nil {
+			if err := d.Set("immutability_policy", flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
+				return fmt.Errorf("setting `immutability_policy`: %+v", err)
 			}
 		}
 
@@ -1849,6 +1966,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			allowSharedKeyAccess = *props.AllowSharedKeyAccess
 		}
 		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
+
+		defaultToOAuthAuthentication := false
+		if props.DefaultToOAuthAuthentication != nil {
+			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
+		}
+		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
 		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
@@ -2147,6 +2270,40 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	}
 
 	return encryption, nil
+}
+
+func expandStorageAccountImmutabilityPolicy(input []interface{}) *storage.ImmutableStorageAccount {
+	if len(input) == 0 {
+		return &storage.ImmutableStorageAccount{}
+	}
+
+	v := input[0].(map[string]interface{})
+
+	immutableStorageAccount := storage.ImmutableStorageAccount{
+		Enabled: utils.Bool(true),
+		ImmutabilityPolicy: &storage.AccountImmutabilityPolicyProperties{
+			AllowProtectedAppendWrites:            utils.Bool(v["allow_protected_append_writes"].(bool)),
+			State:                                 storage.AccountImmutabilityPolicyState(v["state"].(string)),
+			ImmutabilityPeriodSinceCreationInDays: utils.Int32(int32(v["period_since_creation_in_days"].(int))),
+		},
+	}
+
+	return &immutableStorageAccount
+}
+
+func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAccount) []interface{} {
+	if policy == nil || policy.ImmutabilityPolicy == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"period_since_creation_in_days": policy.ImmutabilityPolicy.ImmutabilityPeriodSinceCreationInDays,
+			"state":                         policy.ImmutabilityPolicy.State,
+			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
+		},
+	}
+
 }
 
 func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
@@ -2463,6 +2620,9 @@ func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
 		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
 		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
 		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Multichannel: &storage.Multichannel{
+			Enabled: utils.Bool(v["multichannel_enabled"].(bool)),
+		},
 	}
 }
 
@@ -3073,7 +3233,12 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.ChannelEncryption, ";")
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 {
+	multichannelEnabled := false
+	if input.Multichannel != nil && input.Multichannel.Enabled != nil {
+		multichannelEnabled = *input.Multichannel.Enabled
+	}
+
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && input.Multichannel == nil {
 		return []interface{}{}
 	}
 
@@ -3083,6 +3248,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 			"authentication_types":            authenticationMethods,
 			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"channel_encryption_type":         channelEncryption,
+			"multichannel_enabled":            multichannelEnabled,
 		},
 	}
 }

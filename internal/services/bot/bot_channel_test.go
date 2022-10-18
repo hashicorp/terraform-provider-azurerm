@@ -17,10 +17,11 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"streamingEndpointEnabled": testAccBotChannelsRegistration_streamingEndpointEnabled,
 		},
 		"bot": {
-			"basic":          testAccBotServiceAzureBot_basic,
-			"completeUpdate": testAccBotServiceAzureBot_completeUpdate,
-			"msaAppType":     testAccBotServiceAzureBot_msaAppType,
-			"requiresImport": testAccBotServiceAzureBot_requiresImport,
+			"basic":                    testAccBotServiceAzureBot_basic,
+			"completeUpdate":           testAccBotServiceAzureBot_completeUpdate,
+			"msaAppType":               testAccBotServiceAzureBot_msaAppType,
+			"requiresImport":           testAccBotServiceAzureBot_requiresImport,
+			"streamingEndpointEnabled": testAccBotServiceAzureBot_streamingEndpointEnabled,
 		},
 		"connection": {
 			"basic":    testAccBotConnection_basic,

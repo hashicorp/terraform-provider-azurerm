@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault where the Key should be created. Changing this forces a new resource to be created.
 
-* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `EC-HSM`, `Oct` (Octet), `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
+* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `EC-HSM`, `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
 
 * `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA` or `RSA-HSM`. Changing this forces a new resource to be created.
 
@@ -105,11 +105,11 @@ The following attributes are exported:
 
 
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Key.
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Key.
+* `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Key.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Key.
 
 ## Import

@@ -102,6 +102,12 @@ acctests: fmtcheck
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
+prepare:
+	@echo "==> Preparing the repository (removing all '*_gen.go' files)..."
+	@find . -iname \*_gen.go -type f -delete
+	@echo "==> Preparing the repository (removing all '*_gen_test.go' files)..."
+	@find . -iname \*_gen_test.go -type f -delete
+
 website-lint:
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
@@ -132,6 +138,9 @@ teamcity-test:
 validate-examples: build
 	./scripts/validate-examples.sh
 
+resource-counts:
+	go test -v ./internal/provider -run=TestProvider_counts
+
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts

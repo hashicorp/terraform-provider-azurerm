@@ -39,8 +39,8 @@ resource "azurerm_mariadb_database" "example" {
   name                = "mariadb_database"
   resource_group_name = azurerm_resource_group.example.name
   server_name         = azurerm_mariadb_server.example.name
-  charset             = "utf8"
-  collation           = "utf8_general_ci"
+  charset             = "utf8mb4"
+  collation           = "utf8mb4_unicode_520_ci"
 }
 ```
 
@@ -67,7 +67,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the MariaDB Database.
 * `update` - (Defaults to 60 minutes) Used when updating the MariaDB Database.

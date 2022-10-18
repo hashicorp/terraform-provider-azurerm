@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
-* `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore`, specifies the point in time to restore from `creation_source_server_id`.
+* `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore`, specifies the point in time to restore from `creation_source_server_id`. It should be provided in [RFC3339](https://www.rfc-editor.org/rfc/rfc3339) format, e.g. `2013-11-08T22:00:40Z`.
 
 * `ssl_enforcement_enabled` - (Required) Specifies if SSL should be enforced on connections. Possible values are `true` and `false`.
 
@@ -90,7 +90,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the MariaDB Server.
 * `update` - (Defaults to 60 minutes) Used when updating the MariaDB Server.

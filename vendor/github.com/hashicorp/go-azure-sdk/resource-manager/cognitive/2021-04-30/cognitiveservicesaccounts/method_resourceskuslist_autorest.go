@@ -60,50 +60,6 @@ func (c CognitiveServicesAccountsClient) ResourceSkusList(ctx context.Context, i
 	return
 }
 
-// ResourceSkusListComplete retrieves all of the results into a single object
-func (c CognitiveServicesAccountsClient) ResourceSkusListComplete(ctx context.Context, id commonids.SubscriptionId) (ResourceSkusListCompleteResult, error) {
-	return c.ResourceSkusListCompleteMatchingPredicate(ctx, id, ResourceSkuOperationPredicate{})
-}
-
-// ResourceSkusListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c CognitiveServicesAccountsClient) ResourceSkusListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ResourceSkuOperationPredicate) (resp ResourceSkusListCompleteResult, err error) {
-	items := make([]ResourceSku, 0)
-
-	page, err := c.ResourceSkusList(ctx, id)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ResourceSkusListCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForResourceSkusList prepares the ResourceSkusList request.
 func (c CognitiveServicesAccountsClient) preparerForResourceSkusList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -184,4 +140,48 @@ func (c CognitiveServicesAccountsClient) responderForResourceSkusList(resp *http
 		}
 	}
 	return
+}
+
+// ResourceSkusListComplete retrieves all of the results into a single object
+func (c CognitiveServicesAccountsClient) ResourceSkusListComplete(ctx context.Context, id commonids.SubscriptionId) (ResourceSkusListCompleteResult, error) {
+	return c.ResourceSkusListCompleteMatchingPredicate(ctx, id, ResourceSkuOperationPredicate{})
+}
+
+// ResourceSkusListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c CognitiveServicesAccountsClient) ResourceSkusListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ResourceSkuOperationPredicate) (resp ResourceSkusListCompleteResult, err error) {
+	items := make([]ResourceSku, 0)
+
+	page, err := c.ResourceSkusList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ResourceSkusListCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

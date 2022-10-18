@@ -6,8 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/savedsearches"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 )
@@ -22,7 +21,7 @@ func (SavedSearchV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			ValidateFunc:     validate.LogAnalyticsWorkspaceID,
+			ValidateFunc:     savedsearches.ValidateWorkspaceID,
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
@@ -81,7 +80,7 @@ func (SavedSearchV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
 
-		id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/")))
+		id, err := savedsearches.ParseSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/")))
 		if err != nil {
 			return rawState, err
 		}

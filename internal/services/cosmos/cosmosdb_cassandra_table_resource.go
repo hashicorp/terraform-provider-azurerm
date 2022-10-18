@@ -60,11 +60,13 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			},
 
 			"analytical_storage_ttl": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      -2,
-				ValidateFunc: validation.IntAtLeast(-1),
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.IntBetween(-1, 2147483647),
+					validation.IntNotInSlice([]int{0}),
+				),
 			},
 
 			"schema": common.CassandraTableSchemaPropertySchema(),
@@ -123,8 +125,8 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
 
-	if analyticalTTL := d.Get("analytical_storage_ttl").(int); analyticalTTL != -2 {
-		table.CassandraTableCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalTTL))
+	if analyticalTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
+		table.CassandraTableCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -242,7 +244,7 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 				d.Set("default_ttl", defaultTTL)
 			}
 
-			analyticalTTL := -2
+			var analyticalTTL int
 			if res.AnalyticalStorageTTL != nil {
 				analyticalTTL = int(*res.AnalyticalStorageTTL)
 			}

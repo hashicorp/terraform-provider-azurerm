@@ -27,6 +27,7 @@ CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
 DNS
+Dashboard
 Data Explorer
 Data Factory
 Data Share
@@ -35,6 +36,7 @@ Database
 Database Migration
 Databox Edge
 Databricks
+Datadog
 Desktop Virtualization
 Dev Test
 Digital Twins
@@ -64,6 +66,8 @@ Mixed Reality
 Monitor
 NetApp
 Network
+Nginx
+Orbital
 Policy
 Portal
 PowerBI

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -76,17 +76,17 @@ func TestAccPostgresqlFlexibleServerDatabase_withoutCharsetAndCollation(t *testi
 }
 
 func (PostgresqlFlexibleServerDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlexibleServerDatabaseID(state.ID)
+	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.FlexibleServerDatabaseClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
+	resp, err := clients.Postgres.FlexibleServerDatabaseClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DatabaseProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r PostgresqlFlexibleServerDatabaseResource) requiresImport(data acceptance.TestData) string {

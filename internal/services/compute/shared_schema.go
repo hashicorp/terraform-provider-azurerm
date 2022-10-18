@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -400,6 +401,22 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 
 func expandSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
 	if imageId != "" {
+		// With Version            : "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName"
+		if _, errors := validation.Any(validate.CommunityGalleryImageID, validate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
+			return &compute.ImageReference{
+				CommunityGalleryImageID: utils.String(imageId),
+			}, nil
+		}
+
+		// With Version            : "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName"
+		if _, errors := validation.Any(validate.SharedGalleryImageID, validate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
+			return &compute.ImageReference{
+				SharedGalleryImageID: utils.String(imageId),
+			}, nil
+		}
+
 		return &compute.ImageReference{
 			ID: utils.String(imageId),
 		}, nil
@@ -418,9 +435,9 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 	}, nil
 }
 
-func flattenSourceImageReference(input *compute.ImageReference) []interface{} {
+func flattenSourceImageReference(input *compute.ImageReference, hasImageId bool) []interface{} {
 	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
-	if input == nil || input.ID != nil {
+	if input == nil || hasImageId {
 		return []interface{}{}
 	}
 

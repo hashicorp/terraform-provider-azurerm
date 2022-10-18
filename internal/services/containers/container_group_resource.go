@@ -63,11 +63,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"ip_address_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(containerinstance.ContainerGroupIpAddressTypePublic),
+				Default:  string(containerinstance.ContainerGroupIPAddressTypePublic),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.ContainerGroupIpAddressTypePublic),
-					string(containerinstance.ContainerGroupIpAddressTypePrivate),
+					string(containerinstance.ContainerGroupIPAddressTypePublic),
+					string(containerinstance.ContainerGroupIPAddressTypePrivate),
 					"None",
 				}, false),
 			},
@@ -678,13 +678,13 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if IPAddressType != "None" {
-		containerGroup.Properties.IpAddress = &containerinstance.IpAddress{
+		containerGroup.Properties.IPAddress = &containerinstance.IPAddress{
 			Ports: containerGroupPorts,
-			Type:  containerinstance.ContainerGroupIpAddressType(IPAddressType),
+			Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
 		}
 
 		if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
-			containerGroup.Properties.IpAddress.DnsNameLabel = &dnsNameLabel
+			containerGroup.Properties.IPAddress.DnsNameLabel = &dnsNameLabel
 		}
 	}
 
@@ -800,9 +800,9 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `image_registry_credential`: %+v", err)
 		}
 
-		if address := props.IpAddress; address != nil {
+		if address := props.IPAddress; address != nil {
 			d.Set("ip_address_type", address.Type)
-			d.Set("ip_address", address.Ip)
+			d.Set("ip_address", address.IP)
 			exposedPorts := make([]interface{}, len(address.Ports))
 			for i := range address.Ports {
 				exposedPorts[i] = (address.Ports)[i]
@@ -1372,7 +1372,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 			cv.Secret = &secret
 		default:
 			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
-				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, fmt.Errorf("exactly one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) must be specified")
 			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
 				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
 			}
@@ -1475,11 +1475,11 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				scheme := x["scheme"].(string)
 
 				httpGetScheme := containerinstance.Scheme(scheme)
-				probe.HttpGet = &containerinstance.ContainerHttpGet{
+				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.FromString(path),
 					Port:        int64(port),
 					Scheme:      &httpGetScheme,
-					HttpHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
+					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
 				}
 			}
 		}
@@ -1487,14 +1487,14 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containerinstance.HttpHeader {
+func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containerinstance.HTTPHeader {
 	if len(input) == 0 {
 		return nil
 	}
 
-	headers := []containerinstance.HttpHeader{}
+	headers := []containerinstance.HTTPHeader{}
 	for k, v := range input {
-		header := containerinstance.HttpHeader{
+		header := containerinstance.HTTPHeader{
 			Name:  pointer.FromString(k),
 			Value: pointer.FromString(v.(string)),
 		}
@@ -1503,7 +1503,7 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 	return &headers
 }
 
-func flattenContainerProbeHttpHeaders(input *[]containerinstance.HttpHeader) map[string]interface{} {
+func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map[string]interface{} {
 	if input == nil {
 		return nil
 	}
@@ -1815,14 +1815,14 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 	}
 
 	httpGets := make([]interface{}, 0)
-	if get := input.HttpGet; get != nil {
+	if get := input.HTTPGet; get != nil {
 		httpGet := make(map[string]interface{})
 		if v := get.Path; v != nil {
 			httpGet["path"] = *v
 		}
 		httpGet["port"] = get.Port
 		httpGet["scheme"] = get.Scheme
-		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HttpHeaders)
+		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HTTPHeaders)
 		httpGets = append(httpGets, httpGet)
 	}
 	output["http_get"] = httpGets
