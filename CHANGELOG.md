@@ -32,8 +32,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_eventhub_namespace` - ignore case for `network_rulesets.x.virtual_network_rule.x.subnet_id` [GH-18818]
 * `azurerum_cdn_frontdoor_route` - fix a panic on import [GH-18824]
+* `azurerm_eventhub_namespace` - ignore case for `network_rulesets.x.virtual_network_rule.x.subnet_id` [GH-18818]
+* `azurerm_firewall_policy_rule_collection_group` - limit the number of destination ports in a NAT rule to one [GH-18766]
 * `azurerm_linux_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
 * `azurerm_linux_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
 * `azurerm_linux_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
