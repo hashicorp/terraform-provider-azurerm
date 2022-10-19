@@ -3,12 +3,12 @@ subcategory: "Sentinel"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sentinel_data_connector_office_365_project"
 description: |-
-  Manages a Office 365 Project Data Connector.
+  Manages an Office 365 Project Data Connector.
 ---
 
 # azurerm_sentinel_data_connector_office_365_project
 
-Manages a Office 365 Project Data Connector.
+Manages an Office 365 Project Data Connector.
 
 ## Example Usage
 
