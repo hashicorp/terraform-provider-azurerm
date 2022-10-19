@@ -15,7 +15,7 @@ Manages an Azure App Configuration.
 
 -> **Note:** Version 3.27.0 and later of the Azure Provider include a Feature Toggle which will purge an API Management resource on destroy, rather than the default soft-delete. And the Provider will automatically recover a soft-deleted App Configuration during Creation if one is found. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for more information on Feature Toggles within Terraform.
 
--> **Note:** Read and purge soft-deleted App Configuration requires the `Microsoft.AppConfiguration/locations/deletedConfigurationStores/read` and `Microsoft.AppConfiguration/locations/deletedConfigurationStores/purge/action` permission on Subscription scope. recover a soft-deleted App Configuration requires the `Microsoft.AppConfiguration/configurationStores/write` permission on Subscription or Resource Group scope. [More information can be found in the Azure Documentation for App Configuration](https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-soft-delete#permissions-to-recover-a-deleted-store).
+-> **Note:** Read and purge soft-deleted App Configuration requires the `Microsoft.AppConfiguration/locations/deletedConfigurationStores/read` and `Microsoft.AppConfiguration/locations/deletedConfigurationStores/purge/action` permission on Subscription scope. recover a soft-deleted App Configuration requires the `Microsoft.AppConfiguration/configurationStores/write` permission on Subscription or Resource Group scope. [More information can be found in the Azure Documentation for App Configuration](https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-soft-delete#permissions-to-recover-a-deleted-store). And see more information about assigning [Azure custom roles](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles), or using [`azurerm_role_assignment`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) to assign a custom role.
 
 ## Example Usage
 
@@ -33,6 +33,7 @@ resource "azurerm_app_configuration" "appconf" {
 ```
 
 ## Example Usage (encryption)
+
 ```hcl
 provider "azurerm" {
   features {
