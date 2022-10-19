@@ -282,6 +282,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 											string(frontdoor.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
 											string(frontdoor.ManagedRuleExclusionMatchVariableRequestCookieNames),
 											string(frontdoor.ManagedRuleExclusionMatchVariableRequestHeaderNames),
+											string(frontdoor.ManagedRuleExclusionMatchVariableRequestBodyJSONArgNames),
 										}, false),
 									},
 									"operator": {
@@ -330,6 +331,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 														string(frontdoor.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
 														string(frontdoor.ManagedRuleExclusionMatchVariableRequestCookieNames),
 														string(frontdoor.ManagedRuleExclusionMatchVariableRequestHeaderNames),
+														string(frontdoor.ManagedRuleExclusionMatchVariableRequestBodyJSONArgNames),
 													}, false),
 												},
 												"operator": {
@@ -384,6 +386,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 																	string(frontdoor.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
 																	string(frontdoor.ManagedRuleExclusionMatchVariableRequestCookieNames),
 																	string(frontdoor.ManagedRuleExclusionMatchVariableRequestHeaderNames),
+																	string(frontdoor.ManagedRuleExclusionMatchVariableRequestBodyJSONArgNames),
 																}, false),
 															},
 															"operator": {
