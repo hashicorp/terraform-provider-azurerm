@@ -33,6 +33,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_automation_software_update_configuration` - parse subscription IDs correctly when set in `scope` [GH-18860]
 * `azurerum_cdn_frontdoor_route` - fix a panic on import [GH-18824]
 * `azurerm_eventhub_namespace` - ignore case for `network_rulesets.x.virtual_network_rule.x.subnet_id` [GH-18818]
 * `azurerm_firewall_policy_rule_collection_group` - limit the number of destination ports in a NAT rule to one [GH-18766]
