@@ -94,6 +94,8 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 			"policy_definition_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"resource_discovery_mode": {

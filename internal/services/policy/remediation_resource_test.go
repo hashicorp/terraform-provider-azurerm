@@ -114,15 +114,20 @@ func (r ResourcePolicyRemediationResource) complete(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
 resource "azurerm_resource_policy_remediation" "test" {
-  name                    = "acctestremediation-%[2]s"
-  resource_id             = azurerm_virtual_network.test.id
-  policy_assignment_id    = azurerm_resource_policy_assignment.test.id
-  location_filters        = ["westus"]
-  resource_discovery_mode = "ReEvaluateCompliance"
-  failure_percentage      = 0.5
-  parallel_deployments    = 3
-  resource_count          = 3
+  name                           = "acctestremediation-%[2]s"
+  resource_id                    = azurerm_virtual_network.test.id
+  policy_assignment_id           = azurerm_resource_policy_assignment.test.id
+  location_filters               = ["westus"]
+  resource_discovery_mode        = "ReEvaluateCompliance"
+  failure_percentage             = 0.5
+  parallel_deployments           = 3
+  resource_count                 = 3
+  policy_definition_reference_id = data.azurerm_policy_set_definition.test.policy_definition_reference[0].reference_id
 }
 `, r.template(data), data.RandomString)
 }
