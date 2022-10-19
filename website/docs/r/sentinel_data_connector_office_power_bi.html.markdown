@@ -3,12 +3,12 @@ subcategory: "Sentinel"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sentinel_data_connector_office_power_bi"
 description: |-
-  Manages a Office Power BI Data Connector.
+  Manages an Office Power BI Data Connector.
 ---
 
 # azurerm_sentinel_data_connector_office_power_bi
 
-Manages a Office Power BI Data Connector.
+Manages an Office Power BI Data Connector.
 
 ## Example Usage
 
