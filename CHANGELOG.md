@@ -4,7 +4,11 @@ FEATURES:
 
 * **New Data Source:** `azurerm_cdn_frontdoor_secret` [GH-18817]
 * **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
+* **New Resource:** `azurerm_sentinel_data_connector_dynamics_365` [GH-18859]
+* **New Resource:** `azurerm_sentinel_data_connector_iot` [GH-18862]
+* **New Resource:** `azurerm_sentinel_data_connector_office_365_project` [GH-18858]
 * **New Resource:** `azurerm_sentinel_data_connector_office_irm` [GH-18856]
+* **New Resource:** `azurerm_sentinel_data_connector_office_power_bi` [GH-18857]
 
 ENHANCEMENTS:
 
