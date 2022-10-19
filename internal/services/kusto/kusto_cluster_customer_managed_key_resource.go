@@ -2,10 +2,10 @@ package kusto
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
