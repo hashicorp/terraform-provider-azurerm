@@ -147,6 +147,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},
+		vmware.Registration{},
 		web.Registration{},
 	}
 	services = append(services, autoRegisteredTypedServices()...)
