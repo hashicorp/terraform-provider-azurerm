@@ -3,12 +3,12 @@ subcategory: "Sentinel"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sentinel_data_connector_iot"
 description: |-
-  Manages a Iot Data Connector.
+  Manages an Iot Data Connector.
 ---
 
 # azurerm_sentinel_data_connector_iot
 
-Manages a Iot Data Connector.
+Manages an Iot Data Connector.
 
 ## Example Usage
 
