@@ -161,6 +161,8 @@ func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) st
 
 %s
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_automation_software_update_configuration" "test" {
   automation_account_id = azurerm_automation_account.test.id
   name                  = "acctest-suc-%[2]d"
@@ -178,7 +180,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
   target {
     azure_query {
-      scope     = [azurerm_resource_group.test.id]
+      scope     = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}"]
       locations = [azurerm_resource_group.test.location]
       tags {
         tag    = "foo"
@@ -268,7 +270,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
 // software update need log analytic location map correct, if use a random location like `East US` will cause
 // error like `chosen Azure Automation does not have a Log Analytics workspace linked for operation to succeed`.
-//  so location hardcode as `West US`
+// so location hardcode as `West US`
 // see more https://learn.microsoft.com/en-us/azure/automation/how-to/region-mappings
 func (a SoftwareUpdateConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
