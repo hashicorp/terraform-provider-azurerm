@@ -192,7 +192,7 @@ A `rule` (NAT rule) block supports the following:
 
 * `destination_address` - (Optional) The destination IP address (including CIDR).
 
-* `destination_ports` - (Optional) Specifies a list of destination ports. Only one destination port is supported in DNAT rule.
+* `destination_ports` - (Optional) Specifies a list of destination ports. Only one destination port is supported in a NAT rule.
 
 * `translated_address` - (Optional) Specifies the translated address.
  
