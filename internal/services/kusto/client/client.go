@@ -3,7 +3,9 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/attacheddatabaseconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusterprincipalassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/dataconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -12,9 +14,9 @@ type Client struct {
 	AttachedDatabaseConfigurationsClient *attacheddatabaseconfigurations.AttachedDatabaseConfigurationsClient
 	ClustersClient                       *clusters.ClustersClient
 	ClusterManagedPrivateEndpointClient  *managedprivateendpoints.ManagedPrivateEndpointsClient
-	ClusterPrincipalAssignmentsClient    *kusto.ClusterPrincipalAssignmentsClient
+	ClusterPrincipalAssignmentsClient    *clusterprincipalassignments.ClusterPrincipalAssignmentsClient
 	DatabasesClient                      *kusto.DatabasesClient
-	DataConnectionsClient                *kusto.DataConnectionsClient
+	DataConnectionsClient                *dataconnections.DataConnectionsClient
 	DatabasePrincipalAssignmentsClient   *kusto.DatabasePrincipalAssignmentsClient
 	ScriptsClient                        *kusto.ScriptsClient
 }
@@ -26,7 +28,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	ClusterManagedPrivateEndpointClient := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ClusterManagedPrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
 
-	ClusterPrincipalAssignmentsClient := kusto.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	ClusterPrincipalAssignmentsClient := clusterprincipalassignments.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ClusterPrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	DatabasesClient := kusto.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -35,7 +37,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	DatabasePrincipalAssignmentsClient := kusto.NewDatabasePrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DatabasePrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	DataConnectionsClient := kusto.NewDataConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	DataConnectionsClient := dataconnections.NewDataConnectionsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
 	AttachedDatabaseConfigurationsClient := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
