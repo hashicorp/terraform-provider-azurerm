@@ -757,6 +757,14 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
+				"scm_ip_restriction": schemaLogicAppStandardIpRestriction(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				"scm_min_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -767,8 +775,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
 				},
-
-				"scm_ip_restriction": schemaLogicAppStandardIpRestriction(),
 
 				"scm_type": {
 					Type:     pluginsdk.TypeString,
@@ -790,12 +796,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						string(web.ScmTypeVSO),
 						string(web.ScmTypeVSTSRM),
 					}, false),
-				},
-
-				"scm_use_main_ip_restriction": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
 				},
 
 				"use_32_bit_worker_process": {
@@ -1050,13 +1050,14 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
-	result["scm_type"] = string(input.ScmType)
-	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
 
 	if input.ScmIPSecurityRestrictionsUseMain != nil {
 		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
 	}
+
+	result["scm_type"] = string(input.ScmType)
+	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
@@ -1262,14 +1263,6 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
 
-	if v, ok := config["scm_min_tls_version"]; ok {
-		siteConfig.ScmMinTLSVersion = web.SupportedTLSVersions(v.(string))
-	}
-
-	if v, ok := config["scm_use_main_ip_restriction"]; ok {
-		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
-	}
-
 	if v, ok := config["scm_ip_restriction"]; ok {
 		scmIPSecurityRestrictions := v.([]interface{})
 		scmRestrictions, err := expandLogicAppStandardIpRestriction(scmIPSecurityRestrictions)
@@ -1277,6 +1270,14 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 			return siteConfig, err
 		}
 		siteConfig.ScmIPSecurityRestrictions = &scmRestrictions
+	}
+
+	if v, ok := config["scm_use_main_ip_restriction"]; ok {
+		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["scm_min_tls_version"]; ok {
+		siteConfig.ScmMinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
 
 	if v, ok := config["scm_type"]; ok {

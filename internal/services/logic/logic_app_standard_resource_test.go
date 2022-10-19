@@ -589,7 +589,6 @@ func TestAccLogicAppStandard_scmUseMainIpRestriction(t *testing.T) {
 			Config: r.scmUseMainIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				//check.That(data.ResourceName).Key("site_config.0.scm_use_main_ip_restriction").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -605,7 +604,6 @@ func TestAccLogicAppStandard_scmOneIpRestriction(t *testing.T) {
 			Config: r.scmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				//check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
 		data.ImportStep(),
@@ -621,7 +619,6 @@ func TestAccLogicAppStandard_scmMinTlsVersion(t *testing.T) {
 			Config: r.scmMinTlsVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				//check.That(data.ResourceName).Key("site_config.0.scm_min_tls_version").HasValue("1.2"),
 			),
 		},
 		data.ImportStep(),

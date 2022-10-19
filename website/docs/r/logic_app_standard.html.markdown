@@ -195,9 +195,9 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site.
-
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
+
+* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site.
 
 * `scm_type` - The type of Source Control used by the Logic App in use by the Windows Function App. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
