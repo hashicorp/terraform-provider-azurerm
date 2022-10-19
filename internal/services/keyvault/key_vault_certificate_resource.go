@@ -65,7 +65,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			"certificate": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				AtLeastOneOf: []string{
 					"certificate_policy",
 					"certificate",
