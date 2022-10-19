@@ -32,6 +32,111 @@ resource "azurerm_app_configuration" "appconf" {
 }
 ```
 
+## Example Usage (encryption)
+```hcl
+provider "azurerm" {
+  features {
+    app_configuration {
+      purge_soft_delete_on_destroy = true
+      recover_soft_deleted         = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example-identity"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "example" {
+  name                       = "exampleKVt123"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+}
+
+resource "azurerm_key_vault_access_policy" "server" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.example.principal_id
+
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  secret_permissions = ["Get"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "exampleKVkey"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+  ]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.server,
+  ]
+}
+
+resource "azurerm_app_configuration" "example" {
+  name                       = "appConf2"
+  resource_group_name        = azurerm_resource_group.example.name
+  location                   = azurerm_resource_group.example.location
+  sku                        = "standard"
+  local_auth_enabled         = true
+  public_network_access      = "Enabled"
+  purge_protection_enabled   = false
+  soft_delete_retention_days = 1
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id,
+    ]
+  }
+
+  encryption {
+    key_vault_key_identifier = azurerm_key_vault_key.example.id
+    identity_client_id       = azurerm_user_assigned_identity.example.client_id
+  }
+
+  tags = {
+    environment = "development"
+  }
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.server,
+  ]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
