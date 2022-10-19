@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20221018.1075906` of `github.com/hashicorp/go-azure-sdk` [GH-18833]
 * `azurestackhci`: updating to API Version `2022-09-01` [GH-18759]
+* `azurerm_cdn_frontdoor_firewall_policy` - managed rules can now exclude matches on `RequestBodyJsonArgNames` [GH-18874]
 * `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
 * `azurerm_fluid_relay_server` - support for the `primary_key` and `secondary_key` properties [GH-18765]
 * `azurerm_linux_function_app` - fix `use_32_bit_worker` setting on Create [GH-18680]
