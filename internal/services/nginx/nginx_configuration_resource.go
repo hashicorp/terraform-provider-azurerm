@@ -129,6 +129,7 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 					"content": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						Sensitive:    true,
 						ValidateFunc: validation.StringIsBase64,
 					},
 

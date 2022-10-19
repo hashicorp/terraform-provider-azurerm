@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `package_data` - (Optional) Specify the package data for this configuration.
 
-* `protected_file` - (Optional) One or more `config_file` (Protected File) blocks as defined below.
+* `protected_file` - (Optional) One or more `config_file` (Protected File) blocks with sensitive information as defined below.
 
 ---
 
@@ -81,7 +81,7 @@ A `config_file` block supports the following:
 
 A `config_file` (Protected File) block supports the following:
 
-* `content` - (Required) Specifies the base-64 encoded contents of this config file.
+* `content` - (Required) Specifies the base-64 encoded contents of this config file (Sensitive).
 
 * `virtual_path` - (Required) Specify the path of this config file.
 
