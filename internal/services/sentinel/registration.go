@@ -64,5 +64,6 @@ func (r Registration) Resources() []sdk.Resource {
 		WatchlistItemResource{},
 		DataConnectorAwsS3Resource{},
 		DataConnectorOfficePowerBIResource{},
+		DataConnectorOfficeIRMResource{},
 	}
 }
