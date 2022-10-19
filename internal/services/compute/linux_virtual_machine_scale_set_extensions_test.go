@@ -1024,14 +1024,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                 = "acctest-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  reliability_level    = "Silver"
-  upgrade_mode         = "Manual"
-  cluster_code_version = "8.1.316.9590"
-  vm_image             = "Windows"
-  management_endpoint  = "http://example:80"
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Silver"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Linux"
+  management_endpoint = "http://example:80"
 
   node_type {
     name                 = "backend"

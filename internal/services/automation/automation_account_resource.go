@@ -105,21 +105,25 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
 			"dsc_primary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
+
 			"dsc_secondary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
+
 			"private_endpoint_connection": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -129,12 +133,18 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
 				},
+			},
+
+			"hybrid_service_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -312,6 +322,8 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("dsc_primary_access_key", keys.Primary)
 		d.Set("dsc_secondary_access_key", keys.Secondary)
 	}
+
+	d.Set("hybrid_service_url", prop.AutomationHybridServiceUrl)
 
 	identity, err := identity.FlattenSystemAndUserAssignedMap(resp.Model.Identity)
 	if err != nil {

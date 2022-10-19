@@ -119,6 +119,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Kusto/clusters",
 											"Microsoft.Logic/integrationServiceEnvironments",
+											"Microsoft.LabServices/labplans",
 											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.Network/dnsResolvers",
@@ -146,6 +147,8 @@ func resourceSubnet() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/networkinterfaces/*",
+												"Microsoft.Network/publicIPAddresses/join/action",
+												"Microsoft.Network/publicIPAddresses/read",
 												"Microsoft.Network/virtualNetworks/read",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",

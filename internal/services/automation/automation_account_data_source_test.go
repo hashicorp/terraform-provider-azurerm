@@ -36,11 +36,19 @@ resource "azurerm_automation_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 data "azurerm_automation_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = azurerm_automation_account.test.name
+}
+
+output "automation_account_system_managed_identity_principal_id" {
+  value = data.azurerm_automation_account.test.identity[0].principal_id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

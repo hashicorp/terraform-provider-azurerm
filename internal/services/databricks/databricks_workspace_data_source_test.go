@@ -21,6 +21,7 @@ func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
 			),
 		},
 	})

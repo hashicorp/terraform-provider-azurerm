@@ -24,8 +24,6 @@ data "azurerm_cdn_frontdoor_origin_group" "example" {
 
 The following arguments are supported:
 
-The following arguments are supported:
-
 * `name` - (Required) Specifies the name of the FrontDoor Origin Group.
 
 * `profile_name` - (Required) The name of the FrontDoor Profile within which CDN FrontDoor Origin Group exists.

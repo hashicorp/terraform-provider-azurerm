@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -43,6 +43,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindMicrosoftCloudAppSecurity
 	case securityinsight.TIDataConnector:
 		kind = securityinsight.DataConnectorKindThreatIntelligence
+	case securityinsight.OfficeIRMDataConnector:
+		kind = securityinsight.DataConnectorKindOfficeIRM
 	case securityinsight.OfficeDataConnector:
 		kind = securityinsight.DataConnectorKindOffice365
 	case securityinsight.OfficeATPDataConnector:
@@ -51,6 +53,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindAmazonWebServicesCloudTrail
 	case securityinsight.MDATPDataConnector:
 		kind = securityinsight.DataConnectorKindMicrosoftDefenderAdvancedThreatProtection
+	case securityinsight.AwsS3DataConnector:
+		kind = securityinsight.DataConnectorKindAmazonWebServicesS3
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Data Connector has mismatched kind, expected: %q, got %q", expectKind, kind)

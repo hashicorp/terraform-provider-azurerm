@@ -1002,14 +1002,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  reliability_level    = "Silver"
-  upgrade_mode         = "Manual"
-  cluster_code_version = "8.2.1486.9590"
-  vm_image             = "Windows"
-  management_endpoint  = "http://example:80"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Silver"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "http://example:80"
 
   node_type {
     name                 = "backend"
@@ -1129,8 +1128,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   extension {
     name                       = "AzurePolicyforWindows"
     publisher                  = "Microsoft.GuestConfiguration"
-    type                       = "ConfigurationforLinux"
-    type_handler_version       = "1.0"
+    type                       = "ConfigurationforWindows"
+    type_handler_version       = "1.29"
     auto_upgrade_minor_version = false
     automatic_upgrade_enabled  = true
   }

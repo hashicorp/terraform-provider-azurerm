@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	pandoraAPIMGlobalSchema "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -14,6 +15,7 @@ type Client struct {
 	ApiReleasesClient                  *apimanagement.APIReleaseClient
 	ApiSchemasClient                   *apimanagement.APISchemaClient
 	ApiVersionSetClient                *apimanagement.APIVersionSetClient
+	ApiTagDescriptionClient            *apimanagement.APITagDescriptionClient
 	AuthorizationServersClient         *apimanagement.AuthorizationServerClient
 	BackendClient                      *apimanagement.BackendClient
 	CacheClient                        *apimanagement.CacheClient
@@ -25,6 +27,7 @@ type Client struct {
 	GatewayCertificateAuthorityClient  *apimanagement.GatewayCertificateAuthorityClient
 	GatewayApisClient                  *apimanagement.GatewayAPIClient
 	GatewayHostNameConfigurationClient *apimanagement.GatewayHostnameConfigurationClient
+	GlobalSchemaClient                 *pandoraAPIMGlobalSchema.SchemaClient
 	GroupClient                        *apimanagement.GroupClient
 	GroupUsersClient                   *apimanagement.GroupUserClient
 	IdentityProviderClient             *apimanagement.IdentityProviderClient
@@ -72,6 +75,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiVersionSetClient.Client, o.ResourceManagerAuthorizer)
 
+	apiTagDescriptionClient := apimanagement.NewAPITagDescriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiTagDescriptionClient.Client, o.ResourceManagerAuthorizer)
+
 	authorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&authorizationServersClient.Client, o.ResourceManagerAuthorizer)
 
@@ -104,6 +110,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	gatewayHostNameConfigurationClient := apimanagement.NewGatewayHostnameConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayHostNameConfigurationClient.Client, o.ResourceManagerAuthorizer)
+
+	globalSchemaClient := pandoraAPIMGlobalSchema.NewSchemaClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&globalSchemaClient.Client, o.ResourceManagerAuthorizer)
 
 	groupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupClient.Client, o.ResourceManagerAuthorizer)
@@ -174,6 +183,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApiReleasesClient:                  &apiReleasesClient,
 		ApiSchemasClient:                   &apiSchemasClient,
 		ApiVersionSetClient:                &apiVersionSetClient,
+		ApiTagDescriptionClient:            &apiTagDescriptionClient,
 		AuthorizationServersClient:         &authorizationServersClient,
 		BackendClient:                      &backendClient,
 		CacheClient:                        &cacheClient,
@@ -185,6 +195,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		GatewayCertificateAuthorityClient:  &gatewayCertificateAuthorityClient,
 		GatewayApisClient:                  &gatewayApisClient,
 		GatewayHostNameConfigurationClient: &gatewayHostNameConfigurationClient,
+		GlobalSchemaClient:                 &globalSchemaClient,
 		GroupClient:                        &groupClient,
 		GroupUsersClient:                   &groupUsersClient,
 		IdentityProviderClient:             &identityProviderClient,

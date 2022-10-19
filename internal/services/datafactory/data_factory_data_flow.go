@@ -100,6 +100,29 @@ func SchemaForDataFlowSourceAndSink() *pluginsdk.Schema {
 					},
 				},
 
+				"rejected_linked_service": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"parameters": {
+								Type:     pluginsdk.TypeMap,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				},
+
 				"schema_linked_service": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -253,12 +276,13 @@ func expandDataFactoryDataFlowSink(input []interface{}) *[]datafactory.DataFlowS
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 		result = append(result, datafactory.DataFlowSink{
-			Description:         utils.String(raw["description"].(string)),
-			Name:                utils.String(raw["name"].(string)),
-			Dataset:             expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
-			LinkedService:       expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
-			SchemaLinkedService: expandDataFactoryLinkedServiceReference(raw["schema_linked_service"].([]interface{})),
-			Flowlet:             expandDataFactoryDataFlowReference(raw["flowlet"].([]interface{})),
+			Description:               utils.String(raw["description"].(string)),
+			Name:                      utils.String(raw["name"].(string)),
+			Dataset:                   expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
+			LinkedService:             expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
+			SchemaLinkedService:       expandDataFactoryLinkedServiceReference(raw["schema_linked_service"].([]interface{})),
+			RejectedDataLinkedService: expandDataFactoryLinkedServiceReference(raw["rejected_linked_service"].([]interface{})),
+			Flowlet:                   expandDataFactoryDataFlowReference(raw["flowlet"].([]interface{})),
 		})
 	}
 	return &result
@@ -366,12 +390,13 @@ func flattenDataFactoryDataFlowSink(input *[]datafactory.DataFlowSink) []interfa
 			description = *v.Description
 		}
 		result = append(result, map[string]interface{}{
-			"name":                  name,
-			"description":           description,
-			"dataset":               flattenDataFactoryDatasetReference(v.Dataset),
-			"linked_service":        flattenDataFactoryLinkedServiceReference(v.LinkedService),
-			"schema_linked_service": flattenDataFactoryLinkedServiceReference(v.SchemaLinkedService),
-			"flowlet":               flattenDataFactoryDataFlowReference(v.Flowlet),
+			"name":                    name,
+			"description":             description,
+			"dataset":                 flattenDataFactoryDatasetReference(v.Dataset),
+			"linked_service":          flattenDataFactoryLinkedServiceReference(v.LinkedService),
+			"rejected_linked_service": flattenDataFactoryLinkedServiceReference(v.RejectedDataLinkedService),
+			"schema_linked_service":   flattenDataFactoryLinkedServiceReference(v.SchemaLinkedService),
+			"flowlet":                 flattenDataFactoryDataFlowReference(v.Flowlet),
 		})
 	}
 	return result

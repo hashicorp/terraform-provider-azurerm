@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,6 +22,57 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
+	ins := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"uri": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.Any(
+						validation.IsURLWithScheme([]string{"http", "https"}),
+						validation.StringIsEmpty,
+					),
+				},
+
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"hash": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"algorithm": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"value": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	if !isDraft {
+		ins.AtLeastOneOf = []string{"content", "publish_content_link", "draft"}
+	}
+	return ins
+}
 
 func resourceAutomationRunbook() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -93,48 +145,91 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				AtLeastOneOf: []string{"content", "publish_content_link"},
+				AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"job_schedule": helper.JobScheduleSchema(),
 
-			"publish_content_link": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				MaxItems:     1,
-				AtLeastOneOf: []string{"content", "publish_content_link"},
+			"publish_content_link": contentLinkSchema(false),
+
+			"draft": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"uri": {
+					Schema: map[string]*schema.Schema{
+						"creation_time": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Computed: true,
 						},
 
-						"version": {
-							Type:     pluginsdk.TypeString,
+						"content_link": contentLinkSchema(true),
+
+						"edit_mode_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
-						"hash": {
+						"last_modified_time": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"output_types": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
 							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"algorithm": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"value": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+
+									"type": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"mandatory": {
+										Type:     pluginsdk.TypeBool,
+										Default:  false,
+										Optional: true,
+									},
+
+									"position": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+
+									"default_value": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
 						},
 					},
 				},
+			},
+
+			"log_activity_trace_level": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"tags": tags.Schema(),
@@ -175,10 +270,11 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	parameters := automation.RunbookCreateOrUpdateParameters{
 		RunbookCreateOrUpdateProperties: &automation.RunbookCreateOrUpdateProperties{
-			LogVerbose:  &logVerbose,
-			LogProgress: &logProgress,
-			RunbookType: runbookType,
-			Description: &description,
+			LogVerbose:       &logVerbose,
+			LogProgress:      &logProgress,
+			RunbookType:      runbookType,
+			Description:      &description,
+			LogActivityTrace: utils.Int32(int32(d.Get("log_activity_trace_level").(int))),
 		},
 
 		Location: &location,
@@ -190,6 +286,9 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		parameters.RunbookCreateOrUpdateProperties.PublishContentLink = contentLink
 	} else {
 		parameters.RunbookCreateOrUpdateProperties.Draft = &automation.RunbookDraft{}
+		if draft := expandDraft(d.Get("draft").([]interface{})); draft != nil {
+			parameters.RunbookCreateOrUpdateProperties.Draft = draft
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
@@ -291,6 +390,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("log_progress", props.LogProgress)
 		d.Set("runbook_type", props.RunbookType)
 		d.Set("description", props.Description)
+		d.Set("log_activity_trace_level", props.LogActivityTrace)
 	}
 
 	response, err := client.GetContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
@@ -395,4 +495,39 @@ func expandContentLink(inputs []interface{}) *automation.ContentLink {
 		URI:     &uri,
 		Version: &version,
 	}
+}
+
+func expandDraft(inputs []interface{}) *automation.RunbookDraft {
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
+
+	input := inputs[0].(map[string]interface{})
+	var res automation.RunbookDraft
+
+	res.DraftContentLink = expandContentLink(input["content_link"].([]interface{}))
+	res.InEdit = utils.Bool(input["edit_mode_enabled"].(bool))
+	res.Parameters = map[string]*automation.RunbookParameter{}
+
+	for _, iparam := range input["parameters"].([]interface{}) {
+		param := iparam.(map[string]interface{})
+		key := param["key"].(string)
+		res.Parameters[key] = &automation.RunbookParameter{
+			Type:         utils.String(param["type"].(string)),
+			IsMandatory:  utils.Bool(param["mandatory"].(bool)),
+			Position:     utils.Int32(int32(param["position"].(int))),
+			DefaultValue: utils.String(param["default_value"].(string)),
+		}
+	}
+
+	var types []string
+	for _, v := range input["output_types"].([]interface{}) {
+		types = append(types, v.(string))
+	}
+
+	if len(types) > 0 {
+		res.OutputTypes = &types
+	}
+
+	return &res
 }

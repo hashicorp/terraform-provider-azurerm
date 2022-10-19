@@ -169,6 +169,12 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"gateway_disabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
 					"location": commonschema.LocationWithoutForceNew(),
 
 					"virtual_network_configuration": {
@@ -1287,6 +1293,14 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			}
 		}
 
+		if config.CertificateSource != "" {
+			output["certificate_source"] = config.CertificateSource
+		}
+
+		if config.CertificateStatus != "" {
+			output["certificate_status"] = config.CertificateStatus
+		}
+
 		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
@@ -1381,8 +1395,9 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		}
 
 		additionalLocation := apimanagement.AdditionalLocation{
-			Location: utils.String(location),
-			Sku:      sku,
+			Location:       utils.String(location),
+			Sku:            sku,
+			DisableGateway: utils.Bool(config["gateway_disabled"].(bool)),
 		}
 
 		childVnetConfig := config["virtual_network_configuration"].([]interface{})
@@ -1452,6 +1467,11 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
+		var gatewayDisabled bool
+		if prop.DisableGateway != nil {
+			gatewayDisabled = *prop.DisableGateway
+		}
+
 		results = append(results, map[string]interface{}{
 			"capacity":                      capacity,
 			"gateway_regional_url":          gatewayRegionalUrl,
@@ -1461,6 +1481,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			"public_ip_addresses":           publicIPAddresses,
 			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
 			"zones":                         zones.Flatten(prop.Zones),
+			"gateway_disabled":              gatewayDisabled,
 		})
 	}
 

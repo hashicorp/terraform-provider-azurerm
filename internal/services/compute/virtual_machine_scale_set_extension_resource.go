@@ -86,6 +86,12 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"failure_suppression_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"force_update_tag": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -168,6 +174,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 			TypeHandlerVersion:       utils.String(d.Get("type_handler_version").(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
 			EnableAutomaticUpgrade:   utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
+			SuppressFailures:         utils.Bool(d.Get("failure_suppression_enabled").(bool)),
 			ProtectedSettings:        protectedSettings,
 			ProvisionAfterExtensions: provisionAfterExtensions,
 			Settings:                 settings,
@@ -205,6 +212,10 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 		// if this isn't specified it defaults to false
 		AutoUpgradeMinorVersion: utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
 		EnableAutomaticUpgrade:  utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
+	}
+
+	if d.HasChange("failure_suppression_enabled") {
+		props.SuppressFailures = utils.Bool(d.Get("failure_suppression_enabled").(bool))
 	}
 
 	if d.HasChange("force_update_tag") {
@@ -316,6 +327,12 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 		d.Set("publisher", props.Publisher)
 		d.Set("type", props.Type)
 		d.Set("type_handler_version", props.TypeHandlerVersion)
+
+		suppressFailure := false
+		if props.SuppressFailures != nil {
+			suppressFailure = *props.SuppressFailures
+		}
+		d.Set("failure_suppression_enabled", suppressFailure)
 
 		settings := ""
 		if props.Settings != nil {

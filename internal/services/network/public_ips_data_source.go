@@ -1,6 +1,7 @@
 package network
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
@@ -97,17 +98,20 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
 	}
 
+	prefix := d.Get("name_prefix").(string)
+	attachmentStatus, attachmentStatusOk := d.GetOk("attachment_status")
+	allocationType := d.Get("allocation_type").(string)
+
 	filteredIPAddresses := make([]network.PublicIPAddress, 0)
 	for _, element := range resp.Values() {
 		nicIsAttached := element.IPConfiguration != nil || element.NatGateway != nil
 
-		if prefix := d.Get("name_prefix").(string); prefix != "" {
+		if prefix != "" {
 			if !strings.HasPrefix(*element.Name, prefix) {
 				continue
 			}
 		}
 
-		attachmentStatus, attachmentStatusOk := d.GetOk("attachment_status")
 		if attachmentStatusOk && attachmentStatus.(string) == "Attached" && !nicIsAttached {
 			continue
 		}
@@ -115,7 +119,7 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			continue
 		}
 
-		if allocationType := d.Get("allocation_type").(string); allocationType != "" {
+		if allocationType != "" {
 			allocation := network.IPAllocationMethod(allocationType)
 			if element.PublicIPAllocationMethod != allocation {
 				continue
@@ -125,7 +129,8 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		filteredIPAddresses = append(filteredIPAddresses, element)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	id := fmt.Sprintf("networkPublicIPs/resourceGroup/%s/namePrefix=%s;attachmentStatus=%s;allocationType=%s", resourceGroup, prefix, attachmentStatus, allocationType)
+	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 
 	results := flattenDataSourcePublicIPs(filteredIPAddresses)
 	if err := d.Set("public_ips", results); err != nil {

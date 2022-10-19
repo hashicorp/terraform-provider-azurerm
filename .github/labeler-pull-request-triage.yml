@@ -33,7 +33,7 @@ service/attestation:
 
 service/authorization:
   - internal/services/authorization/**/*
-  - internal/services/msi/**/*
+  - internal/services/managedidentity/**/*
 
 service/automation:
   - internal/services/automation/**/*
@@ -160,7 +160,7 @@ service/load-balancers:
   - internal/services/loadbalancer/**/*
 
 service/load-test:
-  - internal/services/loadtest/**/*
+  - internal/services/loadtestservice/**/*
 
 service/log-analytics:
   - internal/services/loganalytics/**/*
@@ -206,6 +206,9 @@ service/mysql:
 
 service/netapp:
   - internal/services/netapp/**/*
+
+service/nginx:
+  - internal/services/nginx/**/*
 
 service/notifications:
   - internal/services/notificationhub/**/*

@@ -2,11 +2,10 @@ package CdnFrontDoorruleconditions
 
 import (
 	"fmt"
-	"net"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	cdnValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -172,154 +171,6 @@ func InitializeCdnFrontDoorConditionMappings() *CdnFrontDoorCondtionsMappings {
 	return &m
 }
 
-// TODO: Move CIDR detection to its own validation package and expose unit tests
-func checkForDuplicateCIDRs(input []interface{}) error {
-	if len(input) <= 1 {
-		return nil
-	}
-
-	tmp := make(map[string]bool)
-	for _, CIDR := range input {
-		if _, value := tmp[CIDR.(string)]; !value {
-			tmp[CIDR.(string)] = true
-		} else {
-			return fmt.Errorf("'match_values' CIDRs must be unique, there is a duplicate entry for CIDR %q in the 'match_values' field. Please remove the duplicate entry and re-apply", CIDR)
-		}
-	}
-
-	return nil
-}
-
-// TODO: Move CIDR detection to its own validation package and expose unit tests
-func checkForCIDROverlap(matchValues []interface{}) error {
-	// verify there are no duplicates in the CIDRs
-	err := checkForDuplicateCIDRs(matchValues)
-	if err != nil {
-		return err
-	}
-
-	// separate the CIDRs into IPv6 and IPv4 variants
-	IPv4CIDRs := make([]string, 0)
-	IPv6CIDRs := make([]string, 0)
-
-	for _, matchValue := range matchValues {
-		if matchValue != nil {
-			CIDR := matchValue.(string)
-
-			// if CIDR is colon-hexadecimal it's IPv6
-			if strings.Contains(CIDR, ":") {
-				IPv6CIDRs = append(IPv6CIDRs, CIDR)
-			} else {
-				IPv4CIDRs = append(IPv4CIDRs, CIDR)
-			}
-		}
-	}
-
-	// check to see if the CIDR address ranges overlap based on the type of CIDR
-	if len(IPv4CIDRs) > 1 {
-		for _, sourceCIDR := range IPv4CIDRs {
-			for _, checkCIDR := range IPv4CIDRs {
-				if sourceCIDR == checkCIDR {
-					continue
-				}
-
-				cidrOverlaps, err := validateCIDROverlap(sourceCIDR, checkCIDR)
-				if err != nil {
-					return err
-				}
-
-				if cidrOverlaps {
-					return fmt.Errorf("the IPv4 'match_values' CIDR %q address range overlaps with %q IPv4 CIDR address range", sourceCIDR, checkCIDR)
-				}
-			}
-		}
-	}
-
-	if len(IPv6CIDRs) > 1 {
-		for _, sourceCIDR := range IPv6CIDRs {
-			for _, checkCIDR := range IPv6CIDRs {
-				if sourceCIDR == checkCIDR {
-					continue
-				}
-
-				cidrOverlaps, err := validateCIDROverlap(sourceCIDR, checkCIDR)
-				if err != nil {
-					return fmt.Errorf("unable to validate IPv6 CIDR address ranges overlap: %+v", err)
-				}
-
-				if cidrOverlaps {
-					return fmt.Errorf("the 'match_values' IPv6 CIDR %q address range overlaps with %q IPv6 CIDR address range", sourceCIDR, checkCIDR)
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-// TODO: Move CIDR detection to its own validation package and expose unit tests
-// evaluates if the passed CIDR is a valid IPv4 or IPv6 CIDR or not.
-func isValidCIDR(cidr interface{}) bool {
-	var isValid bool
-
-	if _, _, err := net.ParseCIDR(cidr.(string)); err == nil {
-		isValid = true
-	}
-
-	return isValid
-}
-
-// TODO: Move CIDR detection to its own validation package and expose unit tests
-func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
-	_, sourceNetwork, err := net.ParseCIDR(sourceCIDR)
-	if err != nil {
-		return false, err
-	}
-
-	sourceOnes, sourceBits := sourceNetwork.Mask.Size()
-	if sourceOnes == 0 && sourceBits == 0 {
-		return false, fmt.Errorf("%q CIDR must be in its canonical form", sourceCIDR)
-	}
-
-	_, checkNetwork, err := net.ParseCIDR(checkCIDR)
-	if err != nil {
-		return false, err
-	}
-
-	checkOnes, checkBits := checkNetwork.Mask.Size()
-	if checkOnes == 0 && checkBits == 0 {
-		return false, fmt.Errorf("%q CIDR must be in its canonical form", checkCIDR)
-	}
-
-	ipStr := checkNetwork.IP.String()
-	checkIp := net.ParseIP(ipStr)
-	if checkIp == nil {
-		return false, fmt.Errorf("unable to parse %q, invalid IP address", ipStr)
-	}
-
-	ipStr = sourceNetwork.IP.String()
-	sourceIp := net.ParseIP(ipStr)
-	if sourceIp == nil {
-		return false, fmt.Errorf("unable to parse %q, invalid IP address", ipStr)
-	}
-
-	// swap the check values depending on which CIDR is more specific
-	// So much time and so little to do. Wait a minute.
-	// Strike that. Reverse it.
-	if sourceOnes > checkOnes {
-		sourceNetwork = checkNetwork
-		checkIp = sourceIp
-	}
-
-	// validate that the passed CIDRs don't overlap
-	if !sourceNetwork.Contains(checkIp) {
-		return false, nil
-	}
-
-	// CIDR overlap was detected
-	return true, nil
-}
-
 func expandNormalizeCdnFrontDoorTransforms(input []interface{}) []cdn.Transform {
 	transforms := make([]cdn.Transform, 0)
 	if len(input) == 0 {
@@ -412,19 +263,15 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]cdn.Basic
 		}
 
 		if condition.Parameters.Operator == cdn.RemoteAddressOperatorIPMatch {
+			// make sure all of the passed CIDRs are valid
 			for _, matchValue := range item["match_values"].([]interface{}) {
-				address := ""
-				if matchValue != nil {
-					address = matchValue.(string)
-				}
-
-				if !isValidCIDR(address) {
-					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the value must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, address)
+				if _, err := cdnValidate.FrontDoorRuleCidrIsValid(matchValue, "match_values"); err != nil {
+					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, matchValue.(string))
 				}
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			err := checkForCIDROverlap(item["match_values"].([]interface{}))
+			_, err := cdnValidate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
 			if err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}
@@ -809,12 +656,10 @@ func ExpandCdnFrontDoorCookiesCondition(input []interface{}) (*[]cdn.BasicDelive
 			},
 		}
 
-		if tt := item["transforms"].([]interface{}); len(tt) != 0 {
-			transforms := make([]cdn.Transform, 0)
-			for _, t := range tt {
-				transforms = append(transforms, cdn.Transform(t.(string)))
-			}
-			condition.Parameters.Transforms = &transforms
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontDoorTransforms(transformsRaw)
+			condition.Parameters.Transforms = &expanded
 		}
 
 		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), condition.Parameters.MatchValues, conditionMapping); err != nil {
@@ -872,19 +717,15 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]cdn.Basic
 		}
 
 		if condition.Parameters.Operator == cdn.SocketAddrOperatorIPMatch {
+			// make sure all of the passed CIDRs are valid
 			for _, matchValue := range item["match_values"].([]interface{}) {
-				address := ""
-				if matchValue != nil {
-					address = matchValue.(string)
-				}
-
-				if !isValidCIDR(address) {
-					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, address)
+				if _, err := cdnValidate.FrontDoorRuleCidrIsValid(matchValue, "match_values"); err != nil {
+					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, matchValue.(string))
 				}
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			err := checkForCIDROverlap(item["match_values"].([]interface{}))
+			_, err := cdnValidate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
 			if err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}

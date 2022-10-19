@@ -39,6 +39,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `endpoint` - The Endpoint used to access this App Configuration.
 
+* `encrption` - An `encryption` block as defined below.
+
+* `local_auth_enabled` - Whether local authentication methods is enabled.
+
 * `location` - The Azure Region where the App Configuration exists.
 
 * `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
@@ -46,12 +50,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
 * `public_network_access` - The Public Network Access setting of this App Configuration.
-  
+ 
+* `purge_protection_enabled` - Whether Purge Protection is enabled.
+
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
 * `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
 
 * `sku` - The name of the SKU used for this App Configuration.
+
+* `soft_delete_retention_days` - The number of days that items should be retained for once soft-deleted.
 
 * `tags` - A mapping of tags assigned to the App Configuration.
 

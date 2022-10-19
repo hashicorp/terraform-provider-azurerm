@@ -32,17 +32,21 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_virtual_machine_scale_set" "example" {
-  name                = "example"
+resource "azurerm_linux_virtual_machine_scale_set" "example" {
+  name                = "exampleset"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  upgrade_policy_mode = "Manual"
+  upgrade_mode        = "Manual"
+  sku                 = "Standard_F2"
+  instances           = 2
+  admin_username      = "myadmin"
 
-  storage_profile_os_disk {
-    create_option = "FromImage"
+  admin_ssh_key {
+    username   = "myadmin"
+    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -53,14 +57,20 @@ resource "azurerm_virtual_machine_scale_set" "example" {
     }
   }
 
-  os_profile {
-    computer_name_prefix = "testvm"
-    admin_username       = "myadmin"
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
   }
 
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  lifecycle {
+    ignore_changes = ["instances"]
   }
 }
 
@@ -68,7 +78,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
+  target_resource_id  = azurerm_linux_virtual_machine_scale_set.example.id
 
   profile {
     name = "defaultProfile"
@@ -82,7 +92,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -108,7 +118,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -158,17 +168,21 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_virtual_machine_scale_set" "example" {
-  name                = "example"
+resource "azurerm_linux_virtual_machine_scale_set" "example" {
+  name                = "exampleset"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  upgrade_policy_mode = "Manual"
+  upgrade_mode        = "Manual"
+  sku                 = "Standard_F2"
+  instances           = 2
+  admin_username      = "myadmin"
 
-  storage_profile_os_disk {
-    create_option = "FromImage"
+  admin_ssh_key {
+    username   = "myadmin"
+    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -179,14 +193,20 @@ resource "azurerm_virtual_machine_scale_set" "example" {
     }
   }
 
-  os_profile {
-    computer_name_prefix = "testvm"
-    admin_username       = "myadmin"
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
   }
 
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  lifecycle {
+    ignore_changes = ["instances"]
   }
 }
 
@@ -194,7 +214,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
+  target_resource_id  = azurerm_linux_virtual_machine_scale_set.example.id
 
   profile {
     name = "Weekends"
@@ -208,7 +228,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -228,7 +248,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -285,17 +305,21 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_virtual_machine_scale_set" "example" {
-  name                = "example"
+resource "azurerm_linux_virtual_machine_scale_set" "example" {
+  name                = "exampleset"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  upgrade_policy_mode = "Manual"
+  upgrade_mode        = "Manual"
+  sku                 = "Standard_F2"
+  instances           = 2
+  admin_username      = "myadmin"
 
-  storage_profile_os_disk {
-    create_option = "FromImage"
+  admin_ssh_key {
+    username   = "myadmin"
+    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -306,14 +330,20 @@ resource "azurerm_virtual_machine_scale_set" "example" {
     }
   }
 
-  os_profile {
-    computer_name_prefix = "testvm"
-    admin_username       = "myadmin"
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
   }
 
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  lifecycle {
+    ignore_changes = ["instances"]
   }
 }
 
@@ -322,7 +352,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
   enabled             = true
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
+  target_resource_id  = azurerm_linux_virtual_machine_scale_set.example.id
 
   profile {
     name = "forJuly"
@@ -336,7 +366,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -356,7 +386,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
