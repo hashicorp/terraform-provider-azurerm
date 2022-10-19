@@ -63,10 +63,17 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"runbook_type": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(runbook.PossibleValuesForRunbookTypeEnum(), false),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(runbook.RunbookTypeEnumGraph),
+					string(runbook.RunbookTypeEnumGraphPowerShell),
+					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
+					string(runbook.RunbookTypeEnumPowerShell),
+					string(runbook.RunbookTypeEnumPowerShellWorkflow),
+					string(runbook.RunbookTypeEnumScript),
+				}, false),
 			},
 
 			"log_progress": {
