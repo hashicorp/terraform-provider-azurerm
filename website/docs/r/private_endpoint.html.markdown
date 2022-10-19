@@ -140,6 +140,8 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
+* `custom_network_interface_name` - (Optional) The custom name of the network interface attached to the private endpoint. Changing this forces a new resource to be created.
+
 * `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
@@ -170,7 +172,7 @@ A `private_service_connection` supports the following:
 
 * `private_connection_resource_alias` - (Optional) The Service Alias of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
 
-* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
+* `subresource_names` - (Required) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
 
 -> Several possible values for this field are shown below, however this is not extensive:
 
@@ -185,7 +187,7 @@ A `private_service_connection` supports the following:
 | Storage Account               | table            | table_secondary            |
 | Storage Account               | web              | web_secondary              |
 | Web App / Function App        | sites            |                            |
-| Web App / Function App Slots  | sites-<slotName> |                            |
+| Web App / Function App Slots  | sites-&lt;slotName&gt; |                            |
 
 See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
 

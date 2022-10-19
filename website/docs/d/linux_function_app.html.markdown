@@ -51,6 +51,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_certificate_mode` -  The mode of the Function App's client certificates requirement for incoming requests.
 
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` -  A `connection_string` blocks as defined below.
 
 * `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?

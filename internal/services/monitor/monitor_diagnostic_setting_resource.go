@@ -336,7 +336,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 			workspaceId := ""
 			if props.WorkspaceId != nil && *props.WorkspaceId != "" {
-				parsedId, err := workspaces.ParseWorkspaceID(*props.WorkspaceId)
+				parsedId, err := workspaces.ParseWorkspaceIDInsensitively(*props.WorkspaceId)
 				if err != nil {
 					return err
 				}

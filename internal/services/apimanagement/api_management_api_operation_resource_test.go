@@ -344,6 +344,14 @@ resource "azurerm_api_management_api_operation" "test" {
 func (r ApiManagementApiOperationResource) headers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+resource "azurerm_api_management_api_schema" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  schema_id           = "acctestSchema%d"
+  content_type        = "application/json"
+  value               = file("testdata/api_management_api_schema_swagger.json")
+}
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
@@ -379,6 +387,16 @@ resource "azurerm_api_management_api_operation" "test" {
       name     = "X-Test-Operation"
       required = true
       type     = "string"
+
+      type_name = "User"
+      schema_id = azurerm_api_management_api_schema.test.schema_id
+      example {
+        description    = "This is a test description"
+        external_value = "https://example.com/foo/bar"
+        name           = "test"
+        summary        = "This is a test summary"
+        value          = "backend-Request-Test"
+      }
     }
 
     representation {
@@ -401,7 +419,7 @@ SAMPLE
     }
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApiManagementApiOperationResource) representation(data acceptance.TestData) string {

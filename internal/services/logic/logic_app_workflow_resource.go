@@ -438,6 +438,12 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
+		properties.WorkflowProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
+			ID: utils.String(iseID.(string)),
+		}
+	}
+
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties); err != nil {
 		return fmt.Errorf("updating Logic App Workflow %s: %+v", id, err)
 	}

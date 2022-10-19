@@ -284,11 +284,11 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
-		if !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
+			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
 		if virtualMachineProfile.SecurityProfile == nil {
@@ -299,8 +299,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
 			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
 		}
-		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(true)
-		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(true)
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 	} else {
 		if secureBootEnabled {
 			if virtualMachineProfile.SecurityProfile == nil {
@@ -639,7 +639,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if d.HasChange("network_interface") {
+	if d.HasChange("network_interface") || d.HasChange("health_probe_id") {
 		networkInterfacesRaw := d.Get("network_interface").([]interface{})
 		networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 		if err != nil {
@@ -932,10 +932,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				return fmt.Errorf("setting `data_disk`: %+v", err)
 			}
 
-			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference)); err != nil {
-				return fmt.Errorf("setting `source_image_reference`: %+v", err)
-			}
-
 			var storageImageId string
 			if storageProfile.ImageReference != nil && storageProfile.ImageReference.ID != nil {
 				storageImageId = *storageProfile.ImageReference.ID
@@ -947,6 +943,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				storageImageId = *storageProfile.ImageReference.SharedGalleryImageID
 			}
 			d.Set("source_image_id", storageImageId)
+
+			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference, storageImageId != "")); err != nil {
+				return fmt.Errorf("setting `source_image_reference`: %+v", err)
+			}
 		}
 
 		extensionOperationsEnabled := true

@@ -153,12 +153,13 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 ---
 
-It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_token` or `oidc_request_token` and `oidc_request_url` are in this example), like so:
+It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_token`, `oidc_token_file_path`, or `oidc_request_token` and `oidc_request_url` are in this example), like so:
 
 ~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
 variable "oidc_token" {}
+variable "oidc_token_file_path" {}
 variable "oidc_request_token" {}
 variable "oidc_request_url" {}
 
@@ -185,9 +186,13 @@ provider "azurerm" {
   oidc_request_token = var.oidc_request_token
   oidc_request_url   = var.oidc_request_url
 
-  # for other generic OIDC providers
+  # for other generic OIDC providers, providing token directly
   oidc_token = var.oidc_token
-  tenant_id  = "00000000-0000-0000-0000-000000000000"
+
+  # for other generic OIDC providers, reading token from a file
+  oidc_token_file_path = var.oidc_token_file_path
+
+  tenant_id = "00000000-0000-0000-0000-000000000000"
 }
 ```
 

@@ -280,6 +280,51 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"azure_files_authentication": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"directory_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"active_directory": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"domain_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"netbios_domain_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"forest_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"domain_guid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"domain_sid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"storage_sid": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -413,6 +458,10 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
 		}
 		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+
+		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
+		}
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {

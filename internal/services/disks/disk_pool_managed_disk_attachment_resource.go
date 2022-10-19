@@ -56,7 +56,7 @@ func (d DiskPoolManagedDiskAttachmentResource) ResourceType() string {
 
 func (d DiskPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			attachment := DiskPoolManagedDiskAttachmentModel{}
 			err := metadata.Decode(&attachment)
@@ -157,7 +157,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Read() sdk.ResourceFunc {
 
 func (d DiskPoolManagedDiskAttachmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diskToDetach := &DiskPoolManagedDiskAttachmentModel{}
 			err := metadata.Decode(diskToDetach)

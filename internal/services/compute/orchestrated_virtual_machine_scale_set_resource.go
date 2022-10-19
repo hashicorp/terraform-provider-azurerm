@@ -248,6 +248,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"user_data_base64": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsBase64,
+			},
 		},
 	}
 }
@@ -375,6 +382,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			return err
 		}
 		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+	}
+
+	if userData, ok := d.GetOk("user_data_base64"); ok {
+		virtualMachineProfile.UserData = utils.String(userData.(string))
 	}
 
 	osType := compute.OperatingSystemTypesWindows
@@ -1062,6 +1073,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChange("user_data_base64") {
+		updateInstances = true
+		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data_base64").(string))
+	}
+
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
 	if updateInstances {
@@ -1209,10 +1225,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `data_disk`: %+v", err)
 			}
 
-			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference)); err != nil {
-				return fmt.Errorf("setting `source_image_reference`: %+v", err)
-			}
-
 			var storageImageId string
 			if storageProfile.ImageReference != nil && storageProfile.ImageReference.ID != nil {
 				storageImageId = *storageProfile.ImageReference.ID
@@ -1224,6 +1236,10 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				storageImageId = *storageProfile.ImageReference.SharedGalleryImageID
 			}
 			d.Set("source_image_id", storageImageId)
+
+			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference, storageImageId != "")); err != nil {
+				return fmt.Errorf("setting `source_image_reference`: %+v", err)
+			}
 		}
 
 		if osProfile := profile.OsProfile; osProfile != nil {
@@ -1266,6 +1282,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
 		}
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+		d.Set("user_data_base64", profile.UserData)
 	}
 	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 

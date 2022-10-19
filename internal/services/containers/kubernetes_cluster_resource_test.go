@@ -17,10 +17,10 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.22.11"
-	currentKubernetesVersion      = "1.23.5"
-	olderKubernetesVersionAlias   = "1.22"
-	currentKubernetesVersionAlias = "1.23"
+	olderKubernetesVersion        = "1.23.12"
+	currentKubernetesVersion      = "1.24.3"
+	olderKubernetesVersionAlias   = "1.23"
+	currentKubernetesVersionAlias = "1.24"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {

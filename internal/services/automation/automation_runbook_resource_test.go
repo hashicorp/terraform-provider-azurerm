@@ -30,6 +30,21 @@ func TestAccAutomationRunbook_PSWorkflow(t *testing.T) {
 	})
 }
 
+func TestAccAutomationRunbook_WithDraft(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDraft(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("publish_content_link", "draft"),
+	})
+}
+
 func TestAccAutomationRunbook_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
@@ -481,4 +496,53 @@ CONTENT
   job_schedule = []
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (AutomationRunbookResource) withDraft(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  draft {
+    edit_mode_enabled = true
+    content_link {
+      uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    }
+    output_types = ["json"]
+    parameters {
+      key           = "name"
+      type          = "string"
+      position      = 1
+      mandatory     = false
+      default_value = "foo"
+    }
+  }
+
+  log_activity_trace_level = 9
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

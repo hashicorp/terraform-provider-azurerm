@@ -101,7 +101,7 @@ func TestAcclogAnalyticsLinkedStorageAccount_ingestion(t *testing.T) {
 }
 
 func (t LogAnalyticsLinkedStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := linkedstorageaccounts.ParseDataSourceTypeIDInsensitively(state.ID) // TODO remove insensitive parsing in 4.0
+	id, err := linkedstorageaccounts.ParseDataSourceTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (r LogAnalyticsLinkedStorageAccountResource) basic(data acceptance.TestData
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "customlogs"
+  data_source_type      = "CustomLogs"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id]
@@ -181,7 +181,7 @@ resource "azurerm_storage_account" "test2" {
 }
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "customlogs"
+  data_source_type      = "CustomLogs"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
@@ -194,7 +194,7 @@ func (r LogAnalyticsLinkedStorageAccountResource) ingestion(data acceptance.Test
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "ingestion"
+  data_source_type      = "Ingestion"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id]

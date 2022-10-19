@@ -14,7 +14,7 @@ Use this data source to access information about an existing Data Collection End
 ## Example Usage
 
 ```hcl
-data "azurerm_data_collection_endpoint" "example" {
+data "azurerm_monitor_data_collection_endpoint" "example" {
   name                = "example-mdce"
   resource_group_name = azurerm_resource_group.example.name
 }

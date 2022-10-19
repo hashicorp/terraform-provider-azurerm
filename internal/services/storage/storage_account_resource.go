@@ -251,6 +251,34 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"immutability_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"period_since_creation_in_days": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+						"state": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.AccountImmutabilityPolicyStateDisabled),
+								string(storage.AccountImmutabilityPolicyStateLocked),
+								string(storage.AccountImmutabilityPolicyStateUnlocked),
+							}, false),
+						},
+						"allow_protected_append_writes": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -666,6 +694,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 											}, false),
 										},
 									},
+									"multichannel_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
 								},
 							},
 						},
@@ -1043,6 +1076,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
 
+	if v, ok := d.GetOk("immutability_policy"); ok {
+		parameters.ImmutableStorageWithVersioning = expandStorageAccountImmutabilityPolicy(v.([]interface{}))
+	}
+
 	// BlobStorage does not support ZRS
 	if accountKind == string(storage.KindBlobStorage) {
 		if string(parameters.Sku.Name) == string(storage.SkuNameStandardZRS) {
@@ -1239,7 +1276,21 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(val.([]interface{}))); err != nil {
+			shareProperties := expandShareProperties(val.([]interface{}))
+			// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+			if accountTier != string(storage.SkuTierPremium) {
+
+				// Error if the user has tried to enable multichannel on a standard tier storage account
+				if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
+				}
+
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
@@ -1658,7 +1709,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+			shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
+			// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+			if accountTier != string(storage.SkuTierPremium) {
+
+				// Error if the user has tried to enable multichannel on a standard tier storage account
+				if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
+				}
+
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
@@ -1781,7 +1846,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.AllowBlobPublicAccess != nil {
 			allowBlobPublicAccess = *props.AllowBlobPublicAccess
 		}
-		//lintignore:R001
+		// lintignore:R001
 		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
 		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
@@ -1804,6 +1869,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
+			}
+		}
+
+		if immutabilityPolicy := props.ImmutableStorageWithVersioning; immutabilityPolicy != nil && immutabilityPolicy.ImmutabilityPolicy != nil {
+			if err := d.Set("immutability_policy", flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
+				return fmt.Errorf("setting `immutability_policy`: %+v", err)
 			}
 		}
 
@@ -2181,6 +2252,40 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	return encryption, nil
 }
 
+func expandStorageAccountImmutabilityPolicy(input []interface{}) *storage.ImmutableStorageAccount {
+	if len(input) == 0 {
+		return &storage.ImmutableStorageAccount{}
+	}
+
+	v := input[0].(map[string]interface{})
+
+	immutableStorageAccount := storage.ImmutableStorageAccount{
+		Enabled: utils.Bool(true),
+		ImmutabilityPolicy: &storage.AccountImmutabilityPolicyProperties{
+			AllowProtectedAppendWrites:            utils.Bool(v["allow_protected_append_writes"].(bool)),
+			State:                                 storage.AccountImmutabilityPolicyState(v["state"].(string)),
+			ImmutabilityPeriodSinceCreationInDays: utils.Int32(int32(v["period_since_creation_in_days"].(int))),
+		},
+	}
+
+	return &immutableStorageAccount
+}
+
+func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAccount) []interface{} {
+	if policy == nil || policy.ImmutabilityPolicy == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"period_since_creation_in_days": policy.ImmutabilityPolicy.ImmutabilityPeriodSinceCreationInDays,
+			"state":                         policy.ImmutabilityPolicy.State,
+			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
+		},
+	}
+
+}
+
 func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
 	if input == nil || input.KeySource == storage.KeySourceMicrosoftStorage {
 		return make([]interface{}, 0), nil
@@ -2495,6 +2600,9 @@ func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
 		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
 		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
 		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Multichannel: &storage.Multichannel{
+			Enabled: utils.Bool(v["multichannel_enabled"].(bool)),
+		},
 	}
 }
 
@@ -3105,7 +3213,12 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.ChannelEncryption, ";")
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 {
+	multichannelEnabled := false
+	if input.Multichannel != nil && input.Multichannel.Enabled != nil {
+		multichannelEnabled = *input.Multichannel.Enabled
+	}
+
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && input.Multichannel == nil {
 		return []interface{}{}
 	}
 
@@ -3115,6 +3228,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 			"authentication_types":            authenticationMethods,
 			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"channel_encryption_type":         channelEncryption,
+			"multichannel_enabled":            multichannelEnabled,
 		},
 	}
 }
