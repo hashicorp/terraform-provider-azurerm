@@ -3,12 +3,12 @@ subcategory: "Sentinel"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sentinel_data_connector_office_irm"
 description: |-
-  Manages a Office IRM Data Connector.
+  Manages an Office IRM Data Connector.
 ---
 
 # azurerm_sentinel_data_connector_office_irm
 
-Manages a Office IRM Data Connector.
+Manages an Office IRM Data Connector.
 
 ## Example Usage
 
