@@ -25,6 +25,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_linux_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_linux_web_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_storage_account` - support for the `immutability_policy` block [GH-18774]
+* `azurerm_storage_account` - customer managed keys can be enabled when `account_tier` is set to `Premium` [GH-18872]
 * `azurerm_storage_management_policy` - support for the `tier_to_archive_after_days_since_last_tier_change_greater_than` property [GH-18792]
 * `azurerm_subnet` - add support for `Microsoft.LabServices/labplans` [GH-18822]
 * `azurerm_windows_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
