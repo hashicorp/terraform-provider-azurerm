@@ -27,9 +27,17 @@ resource "azurerm_network_function_collector_policy" "example" {
   name                                        = "example-nfcp"
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "West Europe"
+  emission_policies {
+    emission_type = ""
+    emission_destinations {
+      destination_type = ""
+    }
+  }
   ingestion_policy {
+    ingestion_type = ""
     ingestion_sources {
       resource_id = ""
+      source_type = ""
     }
   }
   tags = {
@@ -42,11 +50,13 @@ resource "azurerm_network_function_collector_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Network Function Collector Policy. Changing this forces a new Network Function Collector Policy to be created.
+* `name` - (Required) Specifies the name which should be used for this Network Function Collector Policy. It can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin with a letter or number and end with a letter, number or underscore. Changing this forces a new Network Function Collector Policy to be created.
 
 * `network_function_azure_traffic_collector_id` - (Required) Specifies the ID of the Network Function Collector Policy. Changing this forces a new Network Function Collector Policy to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Network Function Collector Policy should exist. Changing this forces a new Network Function Collector Policy to be created.
+
+* `emission_policies` - (Optional) An `emission_policies` block as defined below.
 
 * `ingestion_policy` - (Optional) An `ingestion_policy` block as defined below.
 
@@ -54,9 +64,25 @@ The following arguments are supported:
 
 ---
 
+An `emission_policies` block supports the following:
+
+* `emission_destinations` - (Optional) An `emission_destinations` block as defined below.
+
+* `emission_type` - (Optional) Emission format type.
+
+---
+
+An `emission_destinations` block supports the following:
+
+* `destination_type` - (Optional) Emission destination type.
+
+---
+
 An `ingestion_policy` block supports the following:
 
 * `ingestion_sources` - (Optional) An `ingestion_sources` block as defined below.
+
+* `ingestion_type` - (Optional) Specifies the ingestion type.
 
 ---
 
@@ -64,59 +90,13 @@ An `ingestion_sources` block supports the following:
 
 * `resource_id` - (Optional) Resource ID.
 
+* `source_type` - (Optional) Ingestion source type.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Network Function Collector Policy.
-
-* `emission_policies` - An `emission_policies` block as defined below.
-
-* `ingestion_policy` - An `ingestion_policy` block as defined below.
-
-* `system_data` - A `system_data` block as defined below.
-
----
-
-An `emission_policies` block exports the following:
-
-* `emission_destinations` - An `emission_destinations` block as defined below.
-
-* `emission_type` - Emission format type.
-
----
-
-An `emission_destinations` block exports the following:
-
-* `destination_type` - Emission destination type.
-
----
-
-An `ingestion_policy` block exports the following:
-
-* `ingestion_sources` - An `ingestion_sources` block as defined below.
-
-* `ingestion_type` - The ingestion type.
-
----
-
-An `ingestion_sources` block exports the following:
-
-* `source_type` - Ingestion source type.
-
----
-
-A `system_data` block exports the following:
-
-* `created_at` - The timestamp of resource creation (UTC).
-
-* `created_by` - The identity that created the resource.
-
-* `created_by_type` - The type of identity that created the resource.
-
-* `last_modified_by` - The identity that last modified the resource.
-
-* `last_modified_by_type` - The type of identity that last modified the resource.
 
 ## Timeouts
 

@@ -104,14 +104,60 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
-  location = "%s"
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
 }
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_express_route_port" "test" {
+  name                = "acctest-erp-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  peering_location    = "Airtel-Chennai2-CLS"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%[1]d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  express_route_port_id = azurerm_express_route_port.test.id
+  bandwidth_in_gbps     = 1
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+}
+
+resource "azurerm_express_route_circuit_peering" "test" {
+  peering_type                  = "MicrosoftPeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "192.168.5.0/30"
+  secondary_peer_address_prefix = "192.168.6.0/30"
+  vlan_id                       = 300
+
+  microsoft_peering_config {
+    advertised_public_prefixes = ["123.2.0.0/24"]
+  }
+}
+
 resource "azurerm_network_function_azure_traffic_collector" "test" {
-  name                = "acctest-nfatc-%d"
+  name                = "acctest-nfatc-%[1]d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r NetworkFunctionCollectorPolicyResource) basic(data acceptance.TestData) string {
@@ -149,9 +195,17 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                                        = "acctest-nfcp-%d"
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
+  emission_policies {
+    emission_type = ""
+    emission_destinations {
+      destination_type = ""
+    }
+  }
   ingestion_policy {
+    ingestion_type = ""
     ingestion_sources {
       resource_id = ""
+      source_type = ""
     }
   }
   tags = {
@@ -170,9 +224,17 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                                        = "acctest-nfcp-%d"
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
+  emission_policies {
+    emission_type = ""
+    emission_destinations {
+      destination_type = ""
+    }
+  }
   ingestion_policy {
+    ingestion_type = ""
     ingestion_sources {
       resource_id = ""
+      source_type = ""
     }
   }
   tags = {

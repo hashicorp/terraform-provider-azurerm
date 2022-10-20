@@ -3,6 +3,7 @@ package networkfunction
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -18,21 +19,10 @@ import (
 type NetworkFunctionCollectorPolicyModel struct {
 	Name                                   string                                  `tfschema:"name"`
 	NetworkFunctionAzureTrafficCollectorId string                                  `tfschema:"network_function_azure_traffic_collector_id"`
+	EmissionPolicies                       []EmissionPoliciesPropertiesFormatModel `tfschema:"emission_policies"`
 	IngestionPolicy                        []IngestionPolicyPropertiesFormatModel  `tfschema:"ingestion_policy"`
 	Location                               string                                  `tfschema:"location"`
 	Tags                                   map[string]string                       `tfschema:"tags"`
-	EmissionPolicies                       []EmissionPoliciesPropertiesFormatModel `tfschema:"emission_policies"`
-	SystemData                             []SystemDataModel                       `tfschema:"system_data"`
-}
-
-type IngestionPolicyPropertiesFormatModel struct {
-	IngestionSources []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_sources"`
-	IngestionType    collectorpolicies.IngestionType         `tfschema:"ingestion_type"`
-}
-
-type IngestionSourcesPropertiesFormatModel struct {
-	ResourceId string                       `tfschema:"resource_id"`
-	SourceType collectorpolicies.SourceType `tfschema:"source_type"`
 }
 
 type EmissionPoliciesPropertiesFormatModel struct {
@@ -44,12 +34,14 @@ type EmissionPolicyDestinationModel struct {
 	DestinationType collectorpolicies.DestinationType `tfschema:"destination_type"`
 }
 
-type SystemDataModel struct {
-	CreatedAt          string                          `tfschema:"created_at"`
-	CreatedBy          string                          `tfschema:"created_by"`
-	CreatedByType      collectorpolicies.CreatedByType `tfschema:"created_by_type"`
-	LastModifiedBy     string                          `tfschema:"last_modified_by"`
-	LastModifiedByType collectorpolicies.CreatedByType `tfschema:"last_modified_by_type"`
+type IngestionPolicyPropertiesFormatModel struct {
+	IngestionSources []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_sources"`
+	IngestionType    collectorpolicies.IngestionType         `tfschema:"ingestion_type"`
+}
+
+type IngestionSourcesPropertiesFormatModel struct {
+	ResourceId string                       `tfschema:"resource_id"`
+	SourceType collectorpolicies.SourceType `tfschema:"source_type"`
 }
 
 type NetworkFunctionCollectorPolicyResource struct{}
@@ -71,10 +63,13 @@ func (r NetworkFunctionCollectorPolicyResource) IDValidationFunc() pluginsdk.Sch
 func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$"),
+				"The name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin with a letter or number and end with a letter, number or underscore.",
+			),
 		},
 
 		"network_function_azure_traffic_collector_id": {
@@ -82,6 +77,38 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: azuretrafficcollectors.ValidateAzureTrafficCollectorID,
+		},
+
+		"emission_policies": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"emission_destinations": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"destination_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(collectorpolicies.DestinationTypeAzureMonitor),
+									}, false),
+								},
+							},
+						},
+					},
+
+					"emission_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(collectorpolicies.EmissionTypeIPFIX),
+						}, false),
+					},
+				},
+			},
 		},
 
 		"ingestion_policy": {
@@ -130,67 +157,7 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 }
 
 func (r NetworkFunctionCollectorPolicyResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"emission_policies": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"emission_destinations": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"destination_type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-
-					"emission_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"system_data": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"created_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
@@ -223,6 +190,13 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 				Properties: &collectorpolicies.CollectorPolicyPropertiesFormat{},
 				Tags:       &model.Tags,
 			}
+
+			emissionPoliciesValue, err := expandEmissionPoliciesPropertiesFormatModelArray(model.EmissionPolicies)
+			if err != nil {
+				return err
+			}
+
+			properties.Properties.EmissionPolicies = emissionPoliciesValue
 
 			ingestionPolicyValue, err := expandIngestionPolicyPropertiesFormatModel(model.IngestionPolicy)
 			if err != nil {
@@ -271,6 +245,15 @@ func (r NetworkFunctionCollectorPolicyResource) Update() sdk.ResourceFunc {
 				properties.Location = location.Normalize(model.Location)
 			}
 
+			if metadata.ResourceData.HasChange("emission_policies") {
+				emissionPoliciesValue, err := expandEmissionPoliciesPropertiesFormatModelArray(model.EmissionPolicies)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.EmissionPolicies = emissionPoliciesValue
+			}
+
 			if metadata.ResourceData.HasChange("ingestion_policy") {
 				ingestionPolicyValue, err := expandIngestionPolicyPropertiesFormatModel(model.IngestionPolicy)
 				if err != nil {
@@ -279,6 +262,8 @@ func (r NetworkFunctionCollectorPolicyResource) Update() sdk.ResourceFunc {
 
 				properties.Properties.IngestionPolicy = ingestionPolicyValue
 			}
+
+			properties.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
@@ -339,12 +324,7 @@ func (r NetworkFunctionCollectorPolicyResource) Read() sdk.ResourceFunc {
 
 				state.IngestionPolicy = ingestionPolicyValue
 			}
-			systemDataValue, err := flattenSystemDataModel(model.SystemData)
-			if err != nil {
-				return err
-			}
 
-			state.SystemData = systemDataValue
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -374,13 +354,50 @@ func (r NetworkFunctionCollectorPolicyResource) Delete() sdk.ResourceFunc {
 	}
 }
 
+func expandEmissionPoliciesPropertiesFormatModelArray(inputList []EmissionPoliciesPropertiesFormatModel) (*[]collectorpolicies.EmissionPoliciesPropertiesFormat, error) {
+	var outputList []collectorpolicies.EmissionPoliciesPropertiesFormat
+	for _, v := range inputList {
+		input := v
+		output := collectorpolicies.EmissionPoliciesPropertiesFormat{
+			EmissionType: &input.EmissionType,
+		}
+
+		emissionDestinationsValue, err := expandEmissionPolicyDestinationModelArray(input.EmissionDestinations)
+		if err != nil {
+			return nil, err
+		}
+
+		output.EmissionDestinations = emissionDestinationsValue
+
+		outputList = append(outputList, output)
+	}
+
+	return &outputList, nil
+}
+
+func expandEmissionPolicyDestinationModelArray(inputList []EmissionPolicyDestinationModel) (*[]collectorpolicies.EmissionPolicyDestination, error) {
+	var outputList []collectorpolicies.EmissionPolicyDestination
+	for _, v := range inputList {
+		input := v
+		output := collectorpolicies.EmissionPolicyDestination{
+			DestinationType: &input.DestinationType,
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return &outputList, nil
+}
+
 func expandIngestionPolicyPropertiesFormatModel(inputList []IngestionPolicyPropertiesFormatModel) (*collectorpolicies.IngestionPolicyPropertiesFormat, error) {
 	if len(inputList) == 0 {
 		return nil, nil
 	}
 
 	input := &inputList[0]
-	output := collectorpolicies.IngestionPolicyPropertiesFormat{}
+	output := collectorpolicies.IngestionPolicyPropertiesFormat{
+		IngestionType: &input.IngestionType,
+	}
 
 	ingestionSourcesValue, err := expandIngestionSourcesPropertiesFormatModelArray(input.IngestionSources)
 	if err != nil {
@@ -396,7 +413,9 @@ func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourc
 	var outputList []collectorpolicies.IngestionSourcesPropertiesFormat
 	for _, v := range inputList {
 		input := v
-		output := collectorpolicies.IngestionSourcesPropertiesFormat{}
+		output := collectorpolicies.IngestionSourcesPropertiesFormat{
+			SourceType: &input.SourceType,
+		}
 
 		if input.ResourceId != "" {
 			output.ResourceId = &input.ResourceId
@@ -496,35 +515,4 @@ func flattenIngestionSourcesPropertiesFormatModelArray(inputList *[]collectorpol
 	}
 
 	return outputList, nil
-}
-
-func flattenSystemDataModel(input *collectorpolicies.SystemData) ([]SystemDataModel, error) {
-	var outputList []SystemDataModel
-	if input == nil {
-		return outputList, nil
-	}
-
-	output := SystemDataModel{}
-
-	if input.CreatedAt != nil {
-		output.CreatedAt = *input.CreatedAt
-	}
-
-	if input.CreatedBy != nil {
-		output.CreatedBy = *input.CreatedBy
-	}
-
-	if input.CreatedByType != nil {
-		output.CreatedByType = *input.CreatedByType
-	}
-
-	if input.LastModifiedBy != nil {
-		output.LastModifiedBy = *input.LastModifiedBy
-	}
-
-	if input.LastModifiedByType != nil {
-		output.LastModifiedByType = *input.LastModifiedByType
-	}
-
-	return append(outputList, output), nil
 }
