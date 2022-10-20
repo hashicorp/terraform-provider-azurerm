@@ -3,12 +3,12 @@ package kusto_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/databaseprincipalassignments"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,17 +46,17 @@ func TestAccKustoDatabasePrincipalAssignment_requiresImport(t *testing.T) {
 }
 
 func (KustoDatabasePrincipalAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatabasePrincipalAssignmentID(state.ID)
+	id, err := databaseprincipalassignments.ParseDatabasePrincipalAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.DatabasePrincipalAssignmentsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
+	resp, err := clients.Kusto.DatabasePrincipalAssignmentsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.DatabasePrincipalProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (KustoDatabasePrincipalAssignmentResource) basic(data acceptance.TestData) string {
