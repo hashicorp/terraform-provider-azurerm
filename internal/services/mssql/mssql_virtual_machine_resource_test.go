@@ -170,6 +170,21 @@ func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.assessmentSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlVirtualMachineResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := sqlvirtualmachines.ParseSqlVirtualMachineID(state.ID)
 	if err != nil {
@@ -658,57 +673,6 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlVirtualMachineResource) storageConfiguration(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "accmd-sqlvm-%[2]d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 10
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  lun                = "0"
-  caching            = "None"
-}
-
-resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  sql_license_type   = "PAYG"
-
-  assessment_settings {}
-
-  storage_configuration {
-    disk_type                     = "NEW"
-    storage_workload_type         = "OLTP"
-    system_db_on_datadisk_enabled = true
-
-    data_settings {
-      luns              = [0]
-      default_file_path = "F:\\SQLData"
-    }
-
-    log_settings {
-      luns              = [0]
-      default_file_path = "F:\\SQLLog"
-    }
-
-    temp_db_settings {
-      luns              = [0]
-      default_file_path = "F:\\SQLTemp"
-      log_file_size_mb  = 512
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r MsSqlVirtualMachineResource) storageConfigurationRevert(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -734,4 +698,19 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlVirtualMachineResource) assessmentSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  assessment_settings {
+    
+  }
+}
+`, r.template(data))
 }

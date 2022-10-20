@@ -187,6 +187,11 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 						"schedule": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -849,31 +854,37 @@ func flattenSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachines.AutoP
 	}
 }
 
-func expandSqlVirtualMachineAssessmentSettings(input []interface{}) *sqlvirtualmachine.AssessmentSettings {
+func expandSqlVirtualMachineAssessmentSettings(input []interface{}) *sqlvirtualmachines.AssessmentSettings {
 	if len(input) == 0 {
 		return nil
 	}
 	assessmentSetting := input[0].(map[string]interface{})
 
-	if len(assessmentSetting["schedule"]) == 0 {
-		schedule_data := &sqlvirtualmachine.Schedule{}
-	} else {
-		schedule_data := &sqlvirtualmachine.Schedule{
-			Enable:            utils.Bool(true),
-			WeeklyInterval:    utils.Int32(int32(autoPatchingSetting["weekly_interval"].(int))),
-			MonthlyOccurrence: utils.Int32(int32(autoPatchingSetting["monthly_occurrence"].(int))),
-			DayOfWeek:         sqlvirtualmachine.DayOfWeek(autoPatchingSetting["day_of_week"].(string)),
-			StartTime:         autoPatchingSetting["start_time"],
-		}
-	}
-	return &sqlvirtualmachine.AssessmentSettings{
+	return &sqlvirtualmachines.AssessmentSettings{
 		Enable:         utils.Bool(true),
 		RunImmediately: utils.Bool(assessmentSetting["run_immediately"].(bool)),
-		schedule:       schedule_data,
+		Schedule:       expandSqlVirtualMachineAssessmentSettingsSchedule(assessmentSetting["schedule"].([]interface{})),
 	}
 }
 
-func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualmachine.AssessmentSettings) []interface{} {
+func expandSqlVirtualMachineAssessmentSettingsSchedule(input []interface{}) *sqlvirtualmachines.Schedule {
+	if len(input) == 0 {
+		return &sqlvirtualmachines.Schedule{}
+	}
+
+	schedule := input[0].(map[string]interface{})
+
+	dayOfWeek := sqlvirtualmachines.AssessmentDayOfWeek(schedule["day_of_week"].(string))
+	return &sqlvirtualmachines.Schedule{
+		Enable:            utils.Bool(true),
+		WeeklyInterval:    utils.Int64(int64(schedule["weekly_interval"].(int))),
+		MonthlyOccurrence: utils.Int64(int64(schedule["monthly_occurrence"].(int))),
+		DayOfWeek:         &dayOfWeek,
+		StartTime:         utils.String(schedule["start_time"].(string)),
+	}
+}
+
+func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualmachines.AssessmentSettings) []interface{} {
 	if assessmentSettings == nil || assessmentSettings.Enable == nil || !*assessmentSettings.Enable {
 		return []interface{}{}
 	}
@@ -883,29 +894,41 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 		runImmediately = *assessmentSettings.RunImmediately
 	}
 
-	var schedule *sqlvirtualmachine.Schedule
-	if assessmentSettings.Schedule != nil {
-		var weeklyInterval int32
-		var monthlyOccurrence int32
-		if assessmentSettings.Schedule.WeeklyInterval != nil {
-			weeklyInterval = *assessmentSettings.Schedule.WeeklyInterval
+	var attr map[string]interface{}
+	if schedule := assessmentSettings.Schedule; schedule != nil {
+		var (
+			weeklyInterval    int64
+			monthlyOccurrence int64
+			dayOfWeek         string
+			startTime         string
+		)
+
+		if schedule.WeeklyInterval != nil {
+			weeklyInterval = *schedule.WeeklyInterval
 		}
-		if assessmentSettings.Schedule.MonthlyOccurrence != nil {
-			monthlyOccurrence = *assessmentSettings.Schedule.MonthlyOccurrence
+		if schedule.MonthlyOccurrence != nil {
+			monthlyOccurrence = *schedule.MonthlyOccurrence
+		}
+		if schedule.DayOfWeek != nil {
+			dayOfWeek = string(*schedule.DayOfWeek)
+		}
+		if schedule.StartTime != nil {
+			startTime = *schedule.StartTime
 		}
 
-		schedule = map[string]interface{}{
-			"weekly_interval": weeklyInterval,
-			"schedule":        schedule,
-			"day_of_week":     string(assessmentSettings.Schedule.DayOfWeek),
-			"start_time":      string(assessmentSettings.Schedule.StartTime),
+		attr = map[string]interface{}{
+			"weekly_interval":    weeklyInterval,
+			"monthly_occurrence": monthlyOccurrence,
+			"schedule":           schedule,
+			"day_of_week":        dayOfWeek,
+			"start_time":         startTime,
 		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"run_immediately": runImmediately,
-			"schedule":        schedule,
+			"schedule":        attr,
 		},
 	}
 }
@@ -980,13 +1003,13 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 	diskConfigurationType := sqlvirtualmachines.DiskConfigurationType(storageSettings["disk_type"].(string))
 	storageWorkloadType := sqlvirtualmachines.StorageWorkloadType(storageSettings["storage_workload_type"].(string))
 
-	return &sqlvirtualmachine.StorageConfigurationSettings{
+	return &sqlvirtualmachines.StorageConfigurationSettings{
 		DiskConfigurationType: &diskConfigurationType,
 		StorageWorkloadType:   &storageWorkloadType,
-		SQLDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
-		SQLLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
-		SQLTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
-		SQLSystemDbOnDataDisk: utils.Bool(storageSettings["sql_system_db_on_datadisk"].(bool)),
+		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
+		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
+		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
+		SqlSystemDbOnDataDisk: utils.Bool(storageSettings["system_db_on_datadisk_enabled"].(bool)),
 	}
 }
 
@@ -1001,12 +1024,12 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 	}
 
 	output := map[string]interface{}{
-		"storage_workload_type":     storageWorkloadType,
-		"disk_type":                 diskType,
-		"data_settings":             flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings),
-		"log_settings":              flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings),
-		"temp_db_settings":          flattenSqlVirtualMachineTempDbSettings(input.SQLTempDbSettings),
-		"sql_system_db_on_datadisk": input.SQLSystemDbOnDataDisk,
+		"storage_workload_type":         storageWorkloadType,
+		"disk_type":                     diskType,
+		"data_settings":                 flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
+		"log_settings":                  flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
+		"temp_db_settings":              flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
+		"system_db_on_datadisk_enabled": input.SqlSystemDbOnDataDisk,
 	}
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
@@ -1065,14 +1088,14 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachi
 	}
 	tempDbSettings := input[0].(map[string]interface{})
 
-	return &sqlvirtualmachine.SQLTempDbSettings{
+	return &sqlvirtualmachines.SQLTempDbSettings{
 		Luns:            expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{})),
 		DefaultFilePath: utils.String(tempDbSettings["default_file_path"].(string)),
-		DataFileCount:   utils.Int32(int32(tempDbSettings["data_file_count"].(int))),
-		DataFileSize:    utils.Int32(int32(tempDbSettings["data_file_size_mb"].(int))),
-		DataGrowth:      utils.Int32(int32(tempDbSettings["data_file_growth_in_mb"].(int))),
-		LogFileSize:     utils.Int32(int32(tempDbSettings["log_file_size_mb"].(int))),
-		LogGrowth:       utils.Int32(int32(tempDbSettings["log_file_growth_mb"].(int))),
+		DataFileCount:   utils.Int64(int64(tempDbSettings["data_file_count"].(int))),
+		DataFileSize:    utils.Int64(int64(tempDbSettings["data_file_size_mb"].(int))),
+		DataGrowth:      utils.Int64(int64(tempDbSettings["data_file_growth_in_mb"].(int))),
+		LogFileSize:     utils.Int64(int64(tempDbSettings["log_file_size_mb"].(int))),
+		LogGrowth:       utils.Int64(int64(tempDbSettings["log_file_growth_mb"].(int))),
 	}
 }
 
