@@ -419,6 +419,8 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		// try to delete the resource, or it will exist as failed status. we could simply ignore the result and error
+		_, _ = client.Delete(ctx, gatewayId.ResourceGroup, gatewayId.Name, name)
 		return fmt.Errorf("waiting for creation of Vpn Gateway Connection Resource %q (Resource Group %q / VPN Gateway %q): %+v", name, gatewayId.ResourceGroup, gatewayId.Name, err)
 	}
 
