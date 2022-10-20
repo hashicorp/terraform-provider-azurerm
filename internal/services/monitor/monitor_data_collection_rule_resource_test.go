@@ -324,7 +324,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
 
     extension {
-      streams            = ["Microsoft-WindowsEvent"]
+      streams            = ["Microsoft-WindowsEvent", "Microsoft-ServiceMap"]
       input_data_sources = ["test-datasource-wineventlog"]
       extension_name     = "test-extension-name"
       extension_json = jsonencode({
