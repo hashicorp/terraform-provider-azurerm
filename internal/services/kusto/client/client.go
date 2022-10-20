@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/attacheddatabaseconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusterprincipalassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
@@ -8,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/dataconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/managedprivateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/scripts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -20,7 +20,7 @@ type Client struct {
 	DatabasesClient                      *databases.DatabasesClient
 	DataConnectionsClient                *dataconnections.DataConnectionsClient
 	DatabasePrincipalAssignmentsClient   *databaseprincipalassignments.DatabasePrincipalAssignmentsClient
-	ScriptsClient                        *scripts.ScriptsClient
+	ScriptsClient                        *kusto.ScriptsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -45,7 +45,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	AttachedDatabaseConfigurationsClient := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&AttachedDatabaseConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	ScriptsClient := scripts.NewScriptsClientWithBaseURI(o.ResourceManagerEndpoint)
+	ScriptsClient := kusto.NewScriptsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ScriptsClient.Client, o.ResourceManagerAuthorizer)
 	return &Client{
 		AttachedDatabaseConfigurationsClient: &AttachedDatabaseConfigurationsClient,
