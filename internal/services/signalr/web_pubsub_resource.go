@@ -53,7 +53,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateWebpubsubName(),
+				ValidateFunc: validate.WebPubSubName(),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),

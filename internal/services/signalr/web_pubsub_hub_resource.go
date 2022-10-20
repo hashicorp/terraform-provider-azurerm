@@ -5,26 +5,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceWebPubsubHub() *pluginsdk.Resource {
+func resourceWebPubSubHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWebPubsubHubCreateUpdate,
+		Create: resourceWebPubSubHubCreateUpdate,
 		Read:   resourceWebPubSubHubRead,
-		Update: resourceWebPubsubHubCreateUpdate,
-		Delete: resourceWebPubsubHubDelete,
+		Update: resourceWebPubSubHubCreateUpdate,
+		Delete: resourceWebPubSubHubDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := webpubsub.ParseHubID(id)
@@ -48,15 +48,10 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateWebPubsbHubName(),
+				ValidateFunc: validate.WebPubSubHubName(),
 			},
 
-			"web_pubsub_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: webpubsub.ValidateWebPubSubID,
-			},
+			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
 
 			"event_handler": {
 				Type:     pluginsdk.TypeSet,
@@ -119,7 +114,7 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -198,7 +193,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
