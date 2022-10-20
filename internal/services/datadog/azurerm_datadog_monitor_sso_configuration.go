@@ -53,7 +53,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 				ValidateFunc: validate.DatadogEnterpriseApplicationID,
 			},
 
-			"singlesignon_state": {
+			"single_sign_on_enabled": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -89,7 +89,7 @@ func resourceDatadogSingleSignOnConfigurationsCreateorUpdate(d *pluginsdk.Resour
 	}
 
 	singleSignOnState := datadog.SingleSignOnStatesEnable
-	if d.Get("singlesignon_state").(string) == "Disable" {
+	if d.Get("single_sign_on_enabled").(string) == "Disable" {
 		singleSignOnState = datadog.SingleSignOnStatesDisable
 	}
 
@@ -130,7 +130,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	d.Set("name", id.SingleSignOnConfigurationName)
 
 	if props := resp.Properties; props != nil {
-		d.Set("singlesignon_state", props.SingleSignOnState)
+		d.Set("single_sign_on_enabled", props.SingleSignOnState)
 		d.Set("login_url", props.SingleSignOnURL)
 		d.Set("enterprise_application_id", props.EnterpriseAppID)
 	}

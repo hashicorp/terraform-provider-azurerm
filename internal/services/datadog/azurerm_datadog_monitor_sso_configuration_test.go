@@ -24,7 +24,7 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("singlesignon_state").HasValue("Enable"),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
@@ -39,7 +39,7 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("singlesignon_state").HasValue("Enable"),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
@@ -47,7 +47,7 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("singlesignon_state").HasValue("Disable"),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Disable"),
 			),
 		},
 		data.ImportStep(),
@@ -55,7 +55,7 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("singlesignon_state").HasValue("Enable"),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
@@ -116,7 +116,7 @@ func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  singlesignon_state        = "Enable"
+  single_sign_on_enabled        = "Enable"
   enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
 `, r.template(data))
@@ -128,7 +128,7 @@ func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  singlesignon_state        = "Disable"
+  single_sign_on_enabled        = "Disable"
   enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
 `, r.template(data))

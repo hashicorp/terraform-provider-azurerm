@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 }
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.example.id
-  singlesignon_state        = "Enable"
+  single_sign_on_enabled        = "Enable"
   enterprise_application_id = "XXXX"
 }
 ```
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `datadog_monitor_id` - (Required) The Datadog Monitor Id which should be used for this Datadog Monitor SSO Configuration. Changing this forces a new Datadog Monitor SSO Configuration to be created.
 
-* `singlesignon_state` - (Required) The state of SingleSignOn configuration.
+* `single_sign_on_enabled` - (Required) The state of SingleSignOn configuration.
 
 * `enterprise_application_id` - (Required) The application Id to perform SSO operation.
 
