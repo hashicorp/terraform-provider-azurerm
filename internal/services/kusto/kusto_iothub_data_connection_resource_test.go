@@ -3,12 +3,12 @@ package kusto_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/dataconnections"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -47,22 +47,22 @@ func TestAccKustoIotHubDataConnection_complete(t *testing.T) {
 }
 
 func (KustoIotHubDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataConnectionID(state.ID)
+	id, err := dataconnections.ParseDataConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.DataConnectionsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+	resp, err := clients.Kusto.DataConnectionsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	value, ok := resp.Value.AsIotHubDataConnection()
+	value, ok := (*resp.Model).(dataconnections.IotHubDataConnection)
 	if !ok {
 		return nil, fmt.Errorf("%s is not an IotHub Data Connection", id.String())
 	}
 
-	return utils.Bool(value.IotHubConnectionProperties != nil), nil
+	return utils.Bool(value.Properties != nil), nil
 }
 
 func (r KustoIotHubDataConnectionResource) basic(data acceptance.TestData) string {
