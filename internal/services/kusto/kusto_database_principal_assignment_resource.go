@@ -165,6 +165,7 @@ func resourceKustoDatabasePrincipalAssignmentRead(d *pluginsdk.ResourceData, met
 		if props != nil {
 			d.Set("principal_id", props.PrincipalId)
 			d.Set("principal_name", *props.PrincipalName)
+			d.Set("principal_type", string(props.PrincipalType))
 			d.Set("role", string(props.Role))
 			d.Set("tenant_id", *props.TenantId)
 			d.Set("tenant_name", *props.TenantName)
