@@ -217,7 +217,7 @@ A `customer_managed_key` block supports the following:
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
-~> **NOTE:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` and the identity type is `UserAssigned`.
+~> **NOTE:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
 
 ---
 

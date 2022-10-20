@@ -4,37 +4,59 @@ FEATURES:
 
 * **New Data Source:** `azurerm_cdn_frontdoor_secret` [GH-18817]
 * **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
+* **New Resource:** `azurerm_sentinel_data_connector_dynamics_365` [GH-18859]
+* **New Resource:** `azurerm_sentinel_data_connector_iot` [GH-18862]
+* **New Resource:** `azurerm_sentinel_data_connector_office_365_project` [GH-18858]
+* **New Resource:** `azurerm_sentinel_data_connector_office_irm` [GH-18856]
+* **New Resource:** `azurerm_sentinel_data_connector_office_power_bi` [GH-18857]
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20221018.1075906` of `github.com/hashicorp/go-azure-sdk` [GH-18833]
 * `azurestackhci`: updating to API Version `2022-09-01` [GH-18759]
+* `azurerm_cdn_frontdoor_firewall_policy` - managed rules can now exclude matches on `RequestBodyJsonArgNames` [GH-18874]
 * `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
 * `azurerm_fluid_relay_server` - support for the `primary_key` and `secondary_key` properties [GH-18765]
-* `azurerm_storage_account` - support for the `immutability_policy` block [GH-18774]
-* `azurerm_storage_management_policy` - support for the `tier_to_archive_after_days_since_last_tier_change_greater_than` property [GH-18792]
-
-BUG FIXES:
-
-* `azurerm_eventhub_namespace` - ignore case for `network_rulesets.x.virtual_network_rule.x.subnet_id` [GH-18818]
-* `azurerum_cdn_frontdoor_route` - fix a panic on import [GH-18824]
-* `azurerm_linux_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
-* `azurerm_windows_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
-* `azurerm_linux_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
+* `azurerm_linux_function_app` - fix `use_32_bit_worker` setting on Create [GH-18680]
 * `azurerm_linux_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_linux_function_app` - Add `VS2022` to `remote_debugging_version` valid values [GH-18684]
 * Data Source: `azurerm_linux_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_linux_function_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_linux_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * Data Source: `azurerm_linux_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_linux_web_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_storage_account` - support for the `immutability_policy` block [GH-18774]
+* `azurerm_storage_account` - customer managed keys can be enabled when `account_tier` is set to `Premium` [GH-18872]
+* `azurerm_storage_management_policy` - support for the `tier_to_archive_after_days_since_last_tier_change_greater_than` property [GH-18792]
+* `azurerm_subnet` - add support for `Microsoft.LabServices/labplans` [GH-18822]
 * `azurerm_windows_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
+* `azurerm_windows_function_app` - fix `use_32_bit_worker` setting on Create [GH-18680]
 * `azurerm_windows_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
+* `azurerm_windows_function_app` - Add `VS2022` to `remote_debugging_version` valid values [GH-18684]
 * Data Source: `azurerm_windows_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_windows_function_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_windows_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * Data Source: `azurerm_windows_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
 * `azurerm_windows_web_app_slot` - add support for `client_certificate_exclusion_paths ` [GH-16603]
-* `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
 
+BUG FIXES:
+
+* `azurerm_automation_software_update_configuration` - parse subscription IDs correctly when set in `scope` [GH-18860]
+* `azurerum_cdn_frontdoor_route` - fix a panic on import [GH-18824]
+* `azurerm_eventhub_namespace` - ignore case for `network_rulesets.x.virtual_network_rule.x.subnet_id` [GH-18818]
+* `azurerm_firewall_policy_rule_collection_group` - limit the number of destination ports in a NAT rule to one [GH-18766]
+* Data Source: `azurerm_linux_function_app` - fix missing error on data source not found [GH-18876]
+* `azurerm_linux_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
+* `azurerm_linux_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
+* `azurerm_linux_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
+* `azurerm_linux_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
+* `azurerm_network_security_group` - correct the casing of the `protocol` property [GH-18799]
+* `azurerm_network_security_rule` - correct the casing of the `protocol` property [GH-18799]
+* `azurerm_recovery_services_vault` - fix issue where `soft_delete_enabled` is reset to the default value when the `identity` block is updated [GH-18871]
+* `azurerm_windows_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
+* `azurerm_windows_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
+* `azurerm_windows_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
+* `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
 
 ## 3.27.0 (October 13, 2022)
 

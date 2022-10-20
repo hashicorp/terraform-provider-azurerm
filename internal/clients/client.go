@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
+	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -128,7 +129,7 @@ type Client struct {
 
 	AadB2c                *aadb2c.Client
 	Advisor               *advisor.Client
-	AnalysisServices      *analysisServices.Client
+	AnalysisServices      *analysisservices_v2017_08_01.Client
 	ApiManagement         *apiManagement.Client
 	AppConfiguration      *appConfiguration.Client
 	AppInsights           *applicationInsights.Client
