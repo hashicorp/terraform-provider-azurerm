@@ -50,6 +50,7 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
 * `azurerm_network_security_group` - correct the casing of the `protocol` property [GH-18799]
 * `azurerm_network_security_rule` - correct the casing of the `protocol` property [GH-18799]
+* `azurerm_recovery_services_vault` - fix issue where `soft_delete_enabled` is reset to the default value when the `identity` block is updated [GH-18871]
 * `azurerm_windows_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
 * `azurerm_windows_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
 * `azurerm_windows_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
