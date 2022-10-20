@@ -47,13 +47,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Network Function Azure Traffic Collector.
 
-* `collector_policies` - A `collector_policies` block as defined below.
+* `collector_policy` - A `collector_policy` block as defined below.
 
 * `virtual_hub` - A `virtual_hub` block as defined below.
 
 ---
 
-A `collector_policies` block exports the following:
+A `collector_policy` block exports the following:
 
 * `id` - Resource ID.
 

@@ -21,7 +21,7 @@ type NetworkFunctionAzureTrafficCollectorModel struct {
 	Location          string                   `tfschema:"location"`
 	Tags              map[string]string        `tfschema:"tags"`
 	VirtualHub        []ResourceReferenceModel `tfschema:"virtual_hub"`
-	CollectorPolicies []ResourceReferenceModel `tfschema:"collector_policies"`
+	CollectorPolicies []ResourceReferenceModel `tfschema:"collector_policy"`
 }
 
 type ResourceReferenceModel struct {
@@ -66,7 +66,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Arguments() map[string]*pl
 
 func (r NetworkFunctionAzureTrafficCollectorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"collector_policies": {
+		"collector_policy": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
