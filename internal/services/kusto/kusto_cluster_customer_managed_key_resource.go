@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,7 +28,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 		Delete: resourceKustoClusterCustomerManagedKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ClusterID(id)
+			_, err := clusters.ParseClusterIDInsensitively(id)
 			return err
 		}),
 
@@ -83,7 +82,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	defer cancel()
 
 	clusterIDRaw := d.Get("cluster_id").(string)
-	clusterID, err := clusters.ParseClusterID(clusterIDRaw)
+	clusterID, err := clusters.ParseClusterIDInsensitively(clusterIDRaw)
 	if err != nil {
 		return err
 	}
@@ -173,7 +172,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := clusters.ParseClusterID(d.Id())
+	clusterID, err := clusters.ParseClusterIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -241,7 +240,7 @@ func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := clusters.ParseClusterID(d.Id())
+	clusterID, err := clusters.ParseClusterIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
