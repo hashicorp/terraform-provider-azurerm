@@ -6,13 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func dataSourceApiManagementGatewayHostnameConfiguration() *pluginsdk.Resource {
+func dataSourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceApiManagementGatewayHostnameConfigurationRead,
 
@@ -25,17 +26,42 @@ func dataSourceApiManagementGatewayHostnameConfiguration() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
-			"api_management_gateway_id": {
+
+			"api_management_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.GatewayID,
+				ValidateFunc: validate.ApiManagementID,
 			},
-			"hostname": {
+
+			"gateway_name": schemaz.SchemaApiManagementChildDataSourceName(),
+
+			"certificate_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-			"certificate_id": {
+
+			"host_name": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"request_client_certificate_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"http2_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"tls10_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"tls11_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 		},
@@ -43,16 +69,16 @@ func dataSourceApiManagementGatewayHostnameConfiguration() *pluginsdk.Resource {
 }
 
 func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.GatewayHostnameConfigurationClient
+	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	gwID, err := parse.GatewayID(d.Get("api_management_gateway_id").(string))
+	apimId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `api_management_gateway_id`: %v", err)
+		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
 
-	id := parse.NewGatewayHostnameConfigurationID(gwID.SubscriptionId, gwID.ResourceGroup, gwID.ServiceName, gwID.Name, d.Get("name").(string))
+	id := parse.NewGatewayHostNameConfigurationID(apimId.SubscriptionId, apimId.ResourceGroup, apimId.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.HostnameConfigurationName)
 	if err != nil {
@@ -71,11 +97,16 @@ func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.Resour
 	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
-	d.Set("api_management_gateway_id", gwID.ID())
+	d.Set("api_management_id", apimId.ID())
+	d.Set("gateway_name", id.GatewayName)
 
 	if properties := resp.GatewayHostnameConfigurationContractProperties; properties != nil {
-		d.Set("hostname", properties.Hostname)
+		d.Set("host_name", properties.Hostname)
 		d.Set("certificate_id", properties.CertificateID)
+		d.Set("request_client_certificate_enabled", properties.NegotiateClientCertificate)
+		d.Set("tls10_enabled", properties.TLS10Enabled)
+		d.Set("tls11_enabled", properties.TLS11Enabled)
+		d.Set("http2_enabled", properties.HTTP2Enabled)
 	}
 
 	return nil

@@ -27,7 +27,6 @@ type Client struct {
 	GatewayCertificateAuthorityClient  *apimanagement.GatewayCertificateAuthorityClient
 	GatewayClient                      *apimanagement.GatewayClient
 	GatewayHostNameConfigurationClient *apimanagement.GatewayHostnameConfigurationClient
-	GatewayHostnameConfigurationClient *apimanagement.GatewayHostnameConfigurationClient
 	GlobalSchemaClient                 *pandoraAPIMGlobalSchema.SchemaClient
 	GroupClient                        *apimanagement.GroupClient
 	GroupUsersClient                   *apimanagement.GroupUserClient
@@ -196,7 +195,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		GatewayCertificateAuthorityClient:  &gatewayCertificateAuthorityClient,
 		GatewayClient:                      &gatewayClient,
 		GatewayHostNameConfigurationClient: &gatewayHostnameConfigurationClient,
-		GatewayHostnameConfigurationClient: &gatewayHostnameConfigurationClient,
 		GlobalSchemaClient:                 &globalSchemaClient,
 		GroupClient:                        &groupClient,
 		GroupUsersClient:                   &groupUsersClient,
