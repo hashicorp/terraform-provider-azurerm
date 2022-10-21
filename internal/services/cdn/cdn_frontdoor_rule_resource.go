@@ -246,14 +246,15 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 									"cdn_frontdoor_origin_group_id": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.FrontDoorOriginGroupID,
 									},
 
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.ForwardingProtocolMatchRequest),
+										// Moved setting default value to ExpandCdnFrontDoorRouteConfigurationOverrideAction func in cdn_frontdoor_rule_actions.go
+										// due to issue 18889 to avoid the perpetual diff if cdn_frontdoor_origin_group_id was not defined
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.ForwardingProtocolHTTPOnly),
 											string(cdn.ForwardingProtocolHTTPSOnly),
@@ -836,8 +837,14 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 				return nil, fmt.Errorf("the 'url_redirect_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
 			}
 
-			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
+			if actionName == m.RouteConfigurationOverride.ConfigName {
+				if len(*expanded) > 1 {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
+				} else {
+					// TODO: Add check here to see if the originGroupOverride.OriginGroup is nil and if the forwarding protocols have been set, if so error out
+					// if it has been set update the forwarding protocols to be the default value of match request...
+					// use the raw action pulled from the config...
+				}
 			}
 
 			results = append(results, *expanded...)

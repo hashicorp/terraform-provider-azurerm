@@ -197,9 +197,9 @@ An `url_redirect_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-* `cdn_frontdoor_origin_group_id` - (Required) The origin group resource ID that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
-
 * `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
+
+* `cdn_frontdoor_origin_group_id` - (Optional) The origin group resource ID that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
 
 * `forwarding_protocol` - (Optional)  The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 

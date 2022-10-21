@@ -213,11 +213,26 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		originGroupOverride := &cdn.OriginGroupOverride{
-			OriginGroup: &cdn.ResourceReference{
-				ID: utils.String(item["cdn_frontdoor_origin_group_id"].(string)),
-			},
-			ForwardingProtocol: cdn.ForwardingProtocol(item["forwarding_protocol"].(string)),
+		var originGroupOverride cdn.OriginGroupOverride
+		var forwardingProtocol = cdn.ForwardingProtocolMatchRequest
+		var protocolSet bool
+
+		// set the default value for forwarding protocol to avoid a breaking change...
+		if protocol := item["forwarding_protocol"].(string); protocol != "" {
+			protocolSet = true
+			forwardingProtocol = cdn.ForwardingProtocol(protocol)
+		}
+
+		// TODO: Add check to make sure Forwarding Protocol was not defined if the origin group ID was not passed also order must be 0?
+		if originGroupId := item["cdn_frontdoor_origin_group_id"].(string); originGroupId != "" {
+			originGroupOverride = cdn.OriginGroupOverride{
+				OriginGroup: &cdn.ResourceReference{
+					ID: utils.String(originGroupId),
+				},
+				ForwardingProtocol: cdn.ForwardingProtocol(forwardingProtocol),
+			}
+		} else if protocolSet {
+			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'forwarding_protocol' can not be defined if the 'cdn_frontdoor_origin_group_id' is not set, got %q", forwardingProtocol)
 		}
 
 		compressionEnabled := cdn.RuleIsCompressionEnabledEnabled
@@ -235,10 +250,14 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 
 		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
 			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
-				TypeName:            utils.String(m.RouteConfigurationOverride.TypeName),
-				OriginGroupOverride: originGroupOverride,
-				CacheConfiguration:  cacheConfiguration,
+				TypeName: utils.String(m.RouteConfigurationOverride.TypeName),
+				// OriginGroupOverride: originGroupOverride,
+				CacheConfiguration: cacheConfiguration,
 			},
+		}
+
+		if originGroupOverride.OriginGroup != nil {
+			routeConfigurationOverrideAction.Parameters.OriginGroupOverride = &originGroupOverride
 		}
 
 		queryStringCachingBehavior := cacheConfiguration.QueryStringCachingBehavior
