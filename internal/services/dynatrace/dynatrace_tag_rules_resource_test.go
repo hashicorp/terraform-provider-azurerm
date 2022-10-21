@@ -121,7 +121,7 @@ resource "azurerm_dynatrace_monitors" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   identity_type            = "SystemAssigned"
-  monitoring_status        = "Enabled"
+  monitoring_enabled       = true
   marketplace_subscription = "Active"
 
   user_info {
