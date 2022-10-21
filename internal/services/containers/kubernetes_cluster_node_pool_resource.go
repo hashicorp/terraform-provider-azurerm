@@ -243,8 +243,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ForceNew: true,
 				Computed: true, // defaults to Ubuntu if using Linux
 				ValidateFunc: validation.StringInSlice([]string{
-					string(agentpools.OSSKUUbuntu),
 					string(agentpools.OSSKUCBLMariner),
+					string(agentpools.OSSKUMariner),
+					string(agentpools.OSSKUUbuntu),
+					string(agentpools.OSSKUWindowsTwoZeroOneNine),
+					string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 				}, false),
 			},
 
