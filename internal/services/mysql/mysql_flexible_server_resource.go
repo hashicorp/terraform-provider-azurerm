@@ -123,7 +123,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": commonschema.ZoneSingleOptional(),
+						"standby_availability_zone": commonschema.ZoneSingleOptionalComputed(),
 					},
 				},
 			},
@@ -236,7 +236,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": commonschema.ZoneSingleOptional(),
+			"zone": commonschema.ZoneSingleOptionalComputed(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
@@ -362,6 +362,9 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
+	// Take some time for resource to be visible after creating. Hence, sleep for 30 seconds until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
+	time.Sleep(30 * time.Second)
+
 	// `maintenance_window` could only be updated with, could not be created with
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		mwParams := mysqlflexibleservers.ServerForUpdate{
@@ -460,6 +463,8 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	_, highAvailabilityConfigured := d.GetOk("high_availability")
+
 	// failover is only supported when `zone` and `standby_availability_zone` is exchanged
 	var requireFailover bool
 	switch {
@@ -483,7 +488,9 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("`standby_availability_zone` cannot be added while changing `zone`")
 			}
 		}
-	case d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
+		// In fact, d.HasChange("high_availability.0.standby_availability_zone") return false when "high_availability" is removed.
+		// that means to disable high_availability
+	case d.HasChange("zone") && highAvailabilityConfigured && !d.HasChange("high_availability.0.standby_availability_zone"):
 		return fmt.Errorf("`zone` cannot be changed independently")
 	default:
 		// No need failover when only `standby_availability_zone` is changed and both `zone` and `standby_availability_zone` aren't changed
