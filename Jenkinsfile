@@ -2,7 +2,7 @@
 /* groovylint-disable-next-line CompileStatic, NoDef, UnusedVariable, VariableName, VariableTypeRequired */
 @Library(['pipeline-toolbox', 'iac-pipeline-shared-lib']) _
 
-node {
+node('large') {
     try {
         stage('Setup') {
             artifactName = env.BITBUCKET_REPOSITORY
@@ -35,7 +35,7 @@ node {
                               #not running acceptance tests now
                               #make testacc
                               echo -e "credentials \\"$MUC_REGISTRY_HOST\\" {\n   token = \\"$MUC_ARTIFACTORY_TOKEN\\"\n}\n" > .terraformrc
-                              goreleaser release --snapshot --rm-dist --config .goreleaser-jenkins.yml --parallelism=2
+                              goreleaser release --snapshot --rm-dist --config .goreleaser-jenkins.yml
                         '''
                         }
                     }
@@ -61,8 +61,7 @@ node {
                         docker.image(baseTerraformAutoImage).inside {
                             /* groovylint-disable-next-line GStringExpressionWithinString */
                             sh '''
-                              echo -e "credentials \\"$MUC_REGISTRY_HOST\\" {\n   token = \\"$MUC_ARTIFACTORY_TOKEN\\"\n}\n" > .terraformrc
-                              goreleaser release --rm-dist --config .goreleaser-jenkins.yml --parallelism=2
+                              goreleaser release --rm-dist --config .goreleaser-jenkins.yml
                             '''
                         }
                     }
