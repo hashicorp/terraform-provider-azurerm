@@ -1,63 +1,63 @@
-## 3.28.0 (Unreleased)
+## 3.28.0 (October 20, 2022)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_cdn_frontdoor_secret` [GH-18817]
-* **New Resource:** `azurerm_databricks_access_connector` [GH-18709]
-* **New Resource:** `azurerm_sentinel_data_connector_dynamics_365` [GH-18859]
-* **New Resource:** `azurerm_sentinel_data_connector_iot` [GH-18862]
-* **New Resource:** `azurerm_sentinel_data_connector_office_365_project` [GH-18858]
-* **New Resource:** `azurerm_sentinel_data_connector_office_irm` [GH-18856]
-* **New Resource:** `azurerm_sentinel_data_connector_office_power_bi` [GH-18857]
+* **New Data Source:** `azurerm_cdn_frontdoor_secret` ([#18817](https://github.com/hashicorp/terraform-provider-azurerm/issues/18817))
+* **New Resource:** `azurerm_databricks_access_connector` ([#18709](https://github.com/hashicorp/terraform-provider-azurerm/issues/18709))
+* **New Resource:** `azurerm_sentinel_data_connector_dynamics_365` ([#18859](https://github.com/hashicorp/terraform-provider-azurerm/issues/18859))
+* **New Resource:** `azurerm_sentinel_data_connector_iot` ([#18862](https://github.com/hashicorp/terraform-provider-azurerm/issues/18862))
+* **New Resource:** `azurerm_sentinel_data_connector_office_365_project` ([#18858](https://github.com/hashicorp/terraform-provider-azurerm/issues/18858))
+* **New Resource:** `azurerm_sentinel_data_connector_office_irm` ([#18856](https://github.com/hashicorp/terraform-provider-azurerm/issues/18856))
+* **New Resource:** `azurerm_sentinel_data_connector_office_power_bi` ([#18857](https://github.com/hashicorp/terraform-provider-azurerm/issues/18857))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20221018.1075906` of `github.com/hashicorp/go-azure-sdk` [GH-18833]
-* `azurestackhci`: updating to API Version `2022-09-01` [GH-18759]
-* Data Source: `azurerm_linux_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
-* Data Source: `azurerm_linux_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
-* Data Source: `azurerm_windows_function_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
-* Data Source: `azurerm_windows_web_app` - add support for `client_certificate_exclusion_paths ` [GH-16603]
-* `azurerm_cdn_frontdoor_firewall_policy` - managed rules can now exclude matches on `RequestBodyJsonArgNames` [GH-18874]
-* `azurerm_cosmosdb_account` - support for the `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, and `secondary_readonly_sql_connection_string` attributes [GH-17810]
-* `azurerm_fluid_relay_server` - support for the `service_endpoint` property [GH-18763]
-* `azurerm_fluid_relay_server` - support for the `primary_key` and `secondary_key` properties [GH-18765]
-* `azurerm_linux_function_app` - correctly set `use_32_bit_worker` during Create [GH-18680]
-* `azurerm_linux_function_app` - add support for the `client_certificate_exclusion_paths` property [GH-16603]
-* `azurerm_linux_function_app` - add `VS2022` to `remote_debugging_version` valid values [GH-18684]
-* `azurerm_linux_function_app_slot` - add support for the `client_certificate_exclusion_paths` property [GH-16603]
-* `azurerm_linux_web_app` - add support for the `client_certificate_exclusion_paths` property[GH-16603]
-* `azurerm_linux_web_app_slot` - add support for the `client_certificate_exclusion_paths` property [GH-16603]
-* `azurerm_storage_account` - support for the `immutability_policy` block [GH-18774]
-* `azurerm_storage_account` - customer managed keys can be now enabled when `account_tier` is set to `Premium` [GH-18872]
-* `azurerm_storage_management_policy` - support for the `tier_to_archive_after_days_since_last_tier_change_greater_than` property [GH-18792]
-* `azurerm_subnet` - add support for `Microsoft.LabServices/labplans` [GH-18822]
-* `azurerm_windows_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
-* `azurerm_windows_function_app` - correctly  set `use_32_bit_worker` during Create [GH-18680]
-* `azurerm_windows_function_app` - add support for the `client_certificate_exclusion_paths` property [GH-16603]
-* `azurerm_windows_function_app` - add `VS2022` to `remote_debugging_version` valid values [GH-18684]
-* `azurerm_windows_function_app_slot` - add support for the `client_certificate_exclusion_paths` correctly [GH-16603]
-* `azurerm_windows_web_app` - add support for the `client_certificate_exclusion_paths` correctly [GH-16603]
-* `azurerm_windows_web_app_slot` - add support for the `client_certificate_exclusion_paths` correctly  [GH-16603]
+* dependencies: updating to `v0.20221018.1075906` of `github.com/hashicorp/go-azure-sdk` ([#18833](https://github.com/hashicorp/terraform-provider-azurerm/issues/18833))
+* `azurestackhci`: updating to API Version `2022-09-01` ([#18759](https://github.com/hashicorp/terraform-provider-azurerm/issues/18759))
+* Data Source: `azurerm_linux_function_app` - add support for `client_certificate_exclusion_paths ` ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* Data Source: `azurerm_linux_web_app` - add support for `client_certificate_exclusion_paths ` ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* Data Source: `azurerm_windows_function_app` - add support for `client_certificate_exclusion_paths ` ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* Data Source: `azurerm_windows_web_app` - add support for `client_certificate_exclusion_paths ` ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_cdn_frontdoor_firewall_policy` - managed rules can now exclude matches on `RequestBodyJsonArgNames` ([#18874](https://github.com/hashicorp/terraform-provider-azurerm/issues/18874))
+* `azurerm_cosmosdb_account` - support for the `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, and `secondary_readonly_sql_connection_string` attributes ([#17810](https://github.com/hashicorp/terraform-provider-azurerm/issues/17810))
+* `azurerm_fluid_relay_server` - support for the `service_endpoint` property ([#18763](https://github.com/hashicorp/terraform-provider-azurerm/issues/18763))
+* `azurerm_fluid_relay_server` - support for the `primary_key` and `secondary_key` properties ([#18765](https://github.com/hashicorp/terraform-provider-azurerm/issues/18765))
+* `azurerm_linux_function_app` - correctly set `use_32_bit_worker` during Create ([#18680](https://github.com/hashicorp/terraform-provider-azurerm/issues/18680))
+* `azurerm_linux_function_app` - add support for the `client_certificate_exclusion_paths` property ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_linux_function_app` - add `VS2022` to `remote_debugging_version` valid values ([#18684](https://github.com/hashicorp/terraform-provider-azurerm/issues/18684))
+* `azurerm_linux_function_app_slot` - add support for the `client_certificate_exclusion_paths` property ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_linux_web_app` - add support for the `client_certificate_exclusion_paths` property([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_linux_web_app_slot` - add support for the `client_certificate_exclusion_paths` property ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_storage_account` - support for the `immutability_policy` block ([#18774](https://github.com/hashicorp/terraform-provider-azurerm/issues/18774))
+* `azurerm_storage_account` - customer managed keys can be now enabled when `account_tier` is set to `Premium` ([#18872](https://github.com/hashicorp/terraform-provider-azurerm/issues/18872))
+* `azurerm_storage_management_policy` - support for the `tier_to_archive_after_days_since_last_tier_change_greater_than` property ([#18792](https://github.com/hashicorp/terraform-provider-azurerm/issues/18792))
+* `azurerm_subnet` - add support for `Microsoft.LabServices/labplans` ([#18822](https://github.com/hashicorp/terraform-provider-azurerm/issues/18822))
+* `azurerm_windows_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` ([#18749](https://github.com/hashicorp/terraform-provider-azurerm/issues/18749))
+* `azurerm_windows_function_app` - correctly  set `use_32_bit_worker` during Create ([#18680](https://github.com/hashicorp/terraform-provider-azurerm/issues/18680))
+* `azurerm_windows_function_app` - add support for the `client_certificate_exclusion_paths` property ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_windows_function_app` - add `VS2022` to `remote_debugging_version` valid values ([#18684](https://github.com/hashicorp/terraform-provider-azurerm/issues/18684))
+* `azurerm_windows_function_app_slot` - add support for the `client_certificate_exclusion_paths` correctly ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_windows_web_app` - add support for the `client_certificate_exclusion_paths` correctly ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
+* `azurerm_windows_web_app_slot` - add support for the `client_certificate_exclusion_paths` correctly  ([#16603](https://github.com/hashicorp/terraform-provider-azurerm/issues/16603))
 
 BUG FIXES:
 
-* `azurerm_automation_software_update_configuration` - parse subscription IDs correctly when set in `scope` [GH-18860]
-* `azurerum_cdn_frontdoor_route` - fix a panic on import [GH-18824]
-* `azurerm_eventhub_namespace` - ignore case for `network_rulesets.x.virtual_network_rule.x.subnet_id` [GH-18818]
-* `azurerm_firewall_policy_rule_collection_group` - limit the number of destination ports in a NAT rule to one [GH-18766]
-* Data Source: `azurerm_linux_function_app` - fix missing error on data source not found [GH-18876]
-* `azurerm_linux_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
-* `azurerm_linux_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
-* `azurerm_linux_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
-* `azurerm_linux_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` [GH-18749]
-* `azurerm_network_security_group` - correct the casing of the `protocol` property [GH-18799]
-* `azurerm_network_security_rule` - correct the casing of the `protocol` property [GH-18799]
-* `azurerm_recovery_services_vault` - fix issue where `soft_delete_enabled` is reset to the default value when the `identity` block is updated [GH-18871]
-* `azurerm_windows_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` [GH-18749]
-* `azurerm_windows_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
-* `azurerm_windows_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true [GH-18836]
-* `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read [GH-18251]
+* `azurerm_automation_software_update_configuration` - parse subscription IDs correctly when set in `scope` ([#18860](https://github.com/hashicorp/terraform-provider-azurerm/issues/18860))
+* `azurerum_cdn_frontdoor_route` - fix a panic on import ([#18824](https://github.com/hashicorp/terraform-provider-azurerm/issues/18824))
+* `azurerm_eventhub_namespace` - ignore case for `network_rulesets.x.virtual_network_rule.x.subnet_id` ([#18818](https://github.com/hashicorp/terraform-provider-azurerm/issues/18818))
+* `azurerm_firewall_policy_rule_collection_group` - limit the number of destination ports in a NAT rule to one ([#18766](https://github.com/hashicorp/terraform-provider-azurerm/issues/18766))
+* Data Source: `azurerm_linux_function_app` - fix missing error on data source not found ([#18876](https://github.com/hashicorp/terraform-provider-azurerm/issues/18876))
+* `azurerm_linux_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true ([#18836](https://github.com/hashicorp/terraform-provider-azurerm/issues/18836))
+* `azurerm_linux_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true ([#18836](https://github.com/hashicorp/terraform-provider-azurerm/issues/18836))
+* `azurerm_linux_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` ([#18749](https://github.com/hashicorp/terraform-provider-azurerm/issues/18749))
+* `azurerm_linux_virtual_machine_scale_set` - allow disabling secure boot when creating a virtual machine scale set with disk encryption type `VMGuestStateOnly` ([#18749](https://github.com/hashicorp/terraform-provider-azurerm/issues/18749))
+* `azurerm_network_security_group` - correct the casing of the `protocol` property ([#18799](https://github.com/hashicorp/terraform-provider-azurerm/issues/18799))
+* `azurerm_network_security_rule` - correct the casing of the `protocol` property ([#18799](https://github.com/hashicorp/terraform-provider-azurerm/issues/18799))
+* `azurerm_recovery_services_vault` - fix issue where `soft_delete_enabled` is reset to the default value when the `identity` block is updated ([#18871](https://github.com/hashicorp/terraform-provider-azurerm/issues/18871))
+* `azurerm_windows_virtual_machine` - allow disabling secure boot when creating a virtual machine with disk encryption type `VMGuestStateOnly` ([#18749](https://github.com/hashicorp/terraform-provider-azurerm/issues/18749))
+* `azurerm_windows_function_app` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true ([#18836](https://github.com/hashicorp/terraform-provider-azurerm/issues/18836))
+* `azurerm_windows_function_app_slot` - fix an issue where `app_settings` would show a diff when setting `vnet_route_all_enabled` to true ([#18836](https://github.com/hashicorp/terraform-provider-azurerm/issues/18836))
+* `azurerm_windows_web_app` - fix parsing of `docker_container_name` and `docker_container_registry` on read ([#18251](https://github.com/hashicorp/terraform-provider-azurerm/issues/18251))
 
 ## 3.27.0 (October 13, 2022)
 
