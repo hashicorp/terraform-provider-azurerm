@@ -47,6 +47,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
 ## Arguments Reference
 
+The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this CDN FrontDoor Origin Group. Changing this forces a new CDN FrontDoor Origin Group to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the CDN FrontDoor Profile within which this CDN FrontDoor Origin Group should exist. Changing this forces a new CDN FrontDoor Origin Group to be created.
@@ -75,7 +77,8 @@ A `health_probe` block supports the following:
 
 * `path` - (Optional) Specifies the path relative to the origin that is used to determine the health of the origin. Defaults to `/`.
 
--> **NOTE:** For more information about the `health_probe` settings please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/health-probes).
+-> **NOTE:** Health probes can only be disabled if there is a single enabled origin in a single enabled origin group. For more information about the `health_probe` settings please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/health-probes).
+
 ---
 
 A `load_balancing` block supports the following:

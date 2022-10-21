@@ -38,6 +38,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	BuiltinLogging            bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode            string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths  string                                 `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings         []helpers.ConnectionString             `tfschema:"connection_string"`
 	DailyMemoryTimeQuota      int                                    `tfschema:"daily_memory_time_quota"`
 	Enabled                   bool                                   `tfschema:"enabled"`
@@ -137,6 +138,12 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
@@ -258,6 +265,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.Location = location.NormalizeNilable(existing.Location)
 			functionApp.Enabled = utils.NormaliseNilableBool(existing.Enabled)
 			functionApp.ClientCertMode = string(existing.ClientCertMode)
+			functionApp.ClientCertExclusionPaths = utils.NormalizeNilableString(existing.ClientCertExclusionPaths)
 			functionApp.DailyMemoryTimeQuota = int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota))
 			functionApp.Tags = tags.ToTypedObject(existing.Tags)
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)

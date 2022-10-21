@@ -6,13 +6,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +41,7 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MaintenanceConfigurationIDInsensitively(id)
+			_, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(id)
 			return err
 		}),
 
@@ -59,25 +59,23 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 
 			"scope": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "All",
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"All", // All is still accepted by the API
-					string(maintenance.ScopeExtension),
-					string(maintenance.ScopeHost),
-					string(maintenance.ScopeInGuestPatch),
-					string(maintenance.ScopeOSImage),
-					string(maintenance.ScopeSQLDB),
-					string(maintenance.ScopeSQLManagedInstance),
+					string(maintenanceconfigurations.MaintenanceScopeExtension),
+					string(maintenanceconfigurations.MaintenanceScopeHost),
+					string(maintenanceconfigurations.MaintenanceScopeInGuestPatch),
+					string(maintenanceconfigurations.MaintenanceScopeOSImage),
+					string(maintenanceconfigurations.MaintenanceScopeSQLDB),
+					string(maintenanceconfigurations.MaintenanceScopeSQLManagedInstance),
 				}, false),
 			},
 
 			"visibility": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(maintenance.VisibilityCustom),
+				Default:  string(maintenanceconfigurations.VisibilityCustom),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(maintenance.VisibilityCustom),
+					string(maintenanceconfigurations.VisibilityCustom),
 					// Creating public configurations doesn't appear to be supported, API returns `Public Maintenance Configuration must set correct properties`
 					// string(maintenance.VisibilityPublic),
 				}, false),
@@ -139,40 +137,38 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
 		}
 	}
 
-	scope := d.Get("scope").(string)
-	visibility := d.Get("visibility").(string)
+	scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
+	visibility := maintenanceconfigurations.Visibility(d.Get("visibility").(string))
 	windowRaw := d.Get("window").([]interface{})
 	window := expandMaintenanceConfigurationWindow(windowRaw)
 
-	extensionProperties := utils.ExpandMapStringPtrString(d.Get("properties").(map[string]interface{}))
-
-	configuration := maintenance.Configuration{
-		Name:     utils.String(id.Name),
+	configuration := maintenanceconfigurations.MaintenanceConfiguration{
+		Name:     utils.String(id.ResourceName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		ConfigurationProperties: &maintenance.ConfigurationProperties{
-			MaintenanceScope:    maintenance.Scope(scope),
-			Visibility:          maintenance.Visibility(visibility),
+		Properties: &maintenanceconfigurations.MaintenanceConfigurationProperties{
+			MaintenanceScope:    &scope,
+			Visibility:          &visibility,
 			Namespace:           utils.String("Microsoft.Maintenance"),
-			Window:              window,
-			ExtensionProperties: extensionProperties,
+			MaintenanceWindow:   window,
+			ExtensionProperties: expandExtensionProperties(d.Get("properties").(map[string]interface{})),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, configuration); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, configuration); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -185,14 +181,14 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceConfigurationIDInsensitively(d.Id())
+	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] maintenance %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -200,20 +196,26 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if props := resp.ConfigurationProperties; props != nil {
-		d.Set("scope", props.MaintenanceScope)
-		d.Set("visibility", props.Visibility)
-		d.Set("properties", props.ExtensionProperties)
+	d.Set("name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-		window := flattenMaintenanceConfigurationWindow(props.Window)
-		if err := d.Set("window", window); err != nil {
-			return fmt.Errorf("setting `window`: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("scope", props.MaintenanceScope)
+			d.Set("visibility", props.Visibility)
+			d.Set("properties", props.ExtensionProperties)
+
+			window := flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)
+			if err := d.Set("window", window); err != nil {
+				return fmt.Errorf("setting `window`: %+v", err)
+			}
+		}
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
 		}
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -221,18 +223,18 @@ func resourceArmMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceConfigurationIDInsensitively(d.Id())
+	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }
 
-func expandMaintenanceConfigurationWindow(input []interface{}) *maintenance.Window {
+func expandMaintenanceConfigurationWindow(input []interface{}) *maintenanceconfigurations.MaintenanceWindow {
 	if len(input) == 0 {
 		return nil
 	}
@@ -243,7 +245,7 @@ func expandMaintenanceConfigurationWindow(input []interface{}) *maintenance.Wind
 	duration := v["duration"].(string)
 	timeZone := v["time_zone"].(string)
 	recurEvery := v["recur_every"].(string)
-	window := maintenance.Window{
+	window := maintenanceconfigurations.MaintenanceWindow{
 		StartDateTime:      utils.String(startDateTime),
 		ExpirationDateTime: utils.String(expirationDateTime),
 		Duration:           utils.String(duration),
@@ -253,7 +255,7 @@ func expandMaintenanceConfigurationWindow(input []interface{}) *maintenance.Wind
 	return &window
 }
 
-func flattenMaintenanceConfigurationWindow(input *maintenance.Window) []interface{} {
+func flattenMaintenanceConfigurationWindow(input *maintenanceconfigurations.MaintenanceWindow) []interface{} {
 	results := make([]interface{}, 0)
 
 	if v := input; v != nil {
@@ -283,4 +285,12 @@ func flattenMaintenanceConfigurationWindow(input *maintenance.Window) []interfac
 	}
 
 	return results
+}
+
+func expandExtensionProperties(input map[string]interface{}) *map[string]string {
+	output := make(map[string]string)
+	for k, v := range input {
+		output[k] = v.(string)
+	}
+	return &output
 }

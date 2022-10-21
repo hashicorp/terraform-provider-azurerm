@@ -1980,7 +1980,7 @@ BUG FIXES:
 * Data Source: `azurerm_netapp_volume` - fixing a crash when setting `data_protection_replication` ([#10795](https://github.com/hashicorp/terraform-provider-azurerm/issues/10795))
 * `azurerm_api_management` - changing the `sku_name` property no longer forces a new resouce to be created ([#10747](https://github.com/hashicorp/terraform-provider-azurerm/issues/10747))
 * `azurerm_api_management` - the field `tenant_access` can only be configured when not using a Consumption SKU ([#10766](https://github.com/hashicorp/terraform-provider-azurerm/issues/10766))
-* `azurerum_frontdoor` - removed the MaxItems validation from the Backend Pools ([#10828](https://github.com/hashicorp/terraform-provider-azurerm/issues/10828))
+* `azurerm_frontdoor` - removed the MaxItems validation from the Backend Pools ([#10828](https://github.com/hashicorp/terraform-provider-azurerm/issues/10828))
 * `azurerm_kubernetes_cluster_resource` - allow windows passwords as short as `8` charaters long ([#10816](https://github.com/hashicorp/terraform-provider-azurerm/issues/10816))
 * `azurerm_cosmosdb_mongo_collection` - ignore throughput if Cosmos DB provisioned in 'serverless' capacity mode ([#10389](https://github.com/hashicorp/terraform-provider-azurerm/issues/10389))
 * `azurerm_linux_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue ([#10722](https://github.com/hashicorp/terraform-provider-azurerm/issues/10722))

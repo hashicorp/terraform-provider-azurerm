@@ -46,6 +46,7 @@ type LinuxFunctionAppModel struct {
 	BuiltinLogging              bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                 `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                               `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths    string                               `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings           []helpers.ConnectionString           `tfschema:"connection_string"`
 	DailyMemoryTimeQuota        int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                     bool                                 `tfschema:"enabled"`
@@ -192,6 +193,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"daily_memory_time_quota": {
@@ -329,22 +336,12 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionApp.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic": // Consumption Plan modifications to request
-					sendContentSettings = false
-				case "elastic": // ElasticPremium Plan modifications to request?
-				case "basic": // App Service Plan modifications to request?
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
-			} else {
-				return fmt.Errorf("determining plan type for Linux %s: %v", id, err)
+			var planSKU *string
+			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+				planSKU = sku.Name
 			}
+			// Only send for ElasticPremium
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionApp.ForceDisableContentShare
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -421,12 +418,18 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)
 				}
-				suffix := uuid.New().String()[0:4]
-				if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
-					functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-				}
-				if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
-					functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if !functionApp.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
+					}
+					if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := functionApp.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						functionApp.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
 				}
 			}
 
@@ -460,6 +463,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if functionApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
+			}
+
+			if functionApp.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(functionApp.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -598,6 +605,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				Location:                    location.NormalizeNilable(functionApp.Location),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
@@ -713,7 +721,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// Only send for ElasticPremium
-			sendContentSettings := helpers.PlanIsElastic(planSKU)
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {
@@ -747,6 +755,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -1070,6 +1082,8 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 				appSettings[k] = utils.NormalizeNilableString(v)
 			}
 
+		case "WEBSITE_VNET_ROUTE_ALL":
+			// Filter out - handled by site_config setting `vnet_route_all_enabled`
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)
 		}

@@ -94,23 +94,17 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"application_insights_key": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_connection_string",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Instrumentation Key for connecting the Windows Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_key",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Connection String for linking the Windows Function App to Application Insights.",
 				},
@@ -207,8 +201,9 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -403,23 +398,17 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"application_insights_key": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_connection_string",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_key",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
@@ -530,8 +519,9 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
 				},
 
 				"runtime_scale_monitoring_enabled": {

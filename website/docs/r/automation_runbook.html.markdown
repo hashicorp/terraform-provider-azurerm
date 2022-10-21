@@ -104,9 +104,54 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`publish_content_link` supports the following:
+* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. 
+Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
+
+* `draft` - (Required) A `draft` block as defined below .
+
+---
+
+The `publish_content_link` supports the following:
 
 * `uri` - (Required) The URI of the runbook content.
+
+* `version` - (Optional) Specifies the version of the content
+
+* `hash` - (Optional) A `hash` block as defined blow.
+
+---
+
+The `hash` block supports:
+
+* `algorithm` - (Required) Specifies the hash algorithm used to hash the content.
+
+* `value` - (Required) Specifies the expected hash value of the content.
+
+---
+
+The `draft` block supports:
+
+* `edit_mode_enabled` - (Optional) Whether the draft in edit mode.
+
+* `content_link` (Optioinal) The Draft Content Link defined as `publish_content_link` above.
+
+* `output_types` (Optioinal) Specifies the output types of the runbook.
+
+* `parameter` (Optional) A list of `parameter` block as define below.
+
+--
+
+The `parameter` block supports:
+
+* `key` (Required) The name of the parameter.
+
+* `type` (Optional) Specifies the type of this parameter.
+
+* `mandatory` (Optional) Whether this parameter is mandatory.
+
+* `positioin` (Optional) Specifies the position of the parameter.
+
+* `default_value` (Optional) Specifies the default value of the parameter.
 
 ## Attributes Reference
 

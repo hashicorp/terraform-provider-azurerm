@@ -32,6 +32,7 @@ type LinuxWebAppSlotModel struct {
 	ClientAffinityEnabled         bool                                `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                                `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                              `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                              `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                       bool                                `tfschema:"enabled"`
 	HttpsOnly                     bool                                `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID   string                              `tfschema:"key_vault_reference_identity_id"`
@@ -115,7 +116,14 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(web.ClientCertModeOptional),
 				string(web.ClientCertModeRequired),
+				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -294,6 +302,10 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
 			}
 
+			if webAppSlot.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(webAppSlot.ClientCertExclusionPaths)
+			}
+
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
@@ -445,6 +457,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
 				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(props.ClientCertExclusionPaths),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 				Kind:                        utils.NormalizeNilableString(webApp.Kind),
@@ -566,6 +579,9 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {

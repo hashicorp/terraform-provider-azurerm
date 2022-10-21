@@ -1,9 +1,9 @@
 package containers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
@@ -154,6 +154,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"message_of_the_day": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"mode": {
@@ -455,6 +462,14 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NodeTaints = nodeTaints
 	}
 
+	if v := d.Get("message_of_the_day").(string); v != "" {
+		if profile.OsType == containerservice.OSTypeWindows {
+			return fmt.Errorf("`message_of_the_day` cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script)")
+		}
+		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+		profile.MessageOfTheDay = &messageOfTheDayEncoded
+	}
+
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
 		profile.OsDiskSizeGB = utils.Int32(int32(osDiskSizeGB))
 	}
@@ -616,16 +631,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("orchestrator_version") {
-		// Spot Node pool's can't be updated - Azure Docs: https://docs.microsoft.com/en-us/azure/aks/spot-node-pool
-		//   > You can't upgrade a spot node pool since spot node pools can't guarantee cordon and drain.
-		//   > You must replace your existing spot node pool with a new one to do operations such as upgrading
-		//   > the Kubernetes version. To replace a spot node pool, create a new spot node pool with a different
-		//   > version of Kubernetes, wait until its status is Ready, then remove the old node pool.
-		if strings.EqualFold(string(props.ScaleSetPriority), string(containerservice.ScaleSetPrioritySpot)) {
-			// ^ the Scale Set Priority isn't returned when Regular
-			return fmt.Errorf("the Orchestrator Version cannot be updated when using a Spot Node Pool")
-		}
-
 		existingNodePool, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 		if err != nil {
 			return fmt.Errorf("retrieving Node Pool %s: %+v", *id, err)
@@ -783,6 +788,16 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("max_count", maxCount)
 
+		messageOfTheDay := ""
+		if props.MessageOfTheDay != nil {
+			messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
+			if err != nil {
+				return fmt.Errorf("setting `message_of_the_day`: %+v", err)
+			}
+			messageOfTheDay = string(messageOfTheDayDecoded)
+		}
+		d.Set("message_of_the_day", messageOfTheDay)
+
 		maxPods := 0
 		if props.MaxPods != nil {
 			maxPods = int(*props.MaxPods)
@@ -817,7 +832,13 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
-		d.Set("orchestrator_version", props.OrchestratorVersion)
+		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
+		if props.OrchestratorVersion != nil {
+			d.Set("orchestrator_version", props.OrchestratorVersion)
+		} else {
+			d.Set("orchestrator_version", props.CurrentOrchestratorVersion)
+		}
+
 		osDiskSizeGB := 0
 		if props.OsDiskSizeGB != nil {
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
@@ -918,7 +939,7 @@ func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
 
 func expandUpgradeSettings(input []interface{}) *containerservice.AgentPoolUpgradeSettings {
 	setting := &containerservice.AgentPoolUpgradeSettings{}
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return setting
 	}
 

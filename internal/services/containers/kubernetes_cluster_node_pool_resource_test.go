@@ -1996,6 +1996,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 3
   fips_enabled          = true
   kubelet_disk_type     = "OS"
+  message_of_the_day    = "daily message"
 }
 `, r.templateConfig(data))
 }

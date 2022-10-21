@@ -69,7 +69,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "example" {
       protocols           = ["TCP", "UDP"]
       source_addresses    = ["10.0.0.1", "10.0.0.2"]
       destination_address = "192.168.1.1"
-      destination_ports   = ["80", "1000-2000"]
+      destination_ports   = ["80"]
       translated_address  = "192.168.0.1"
       translated_port     = "8080"
     }
@@ -192,7 +192,7 @@ A `rule` (NAT rule) block supports the following:
 
 * `destination_address` - (Optional) The destination IP address (including CIDR).
 
-* `destination_ports` - (Optional) Specifies a list of destination ports.
+* `destination_ports` - (Optional) Specifies a list of destination ports. Only one destination port is supported in a NAT rule.
 
 * `translated_address` - (Optional) Specifies the translated address.
  

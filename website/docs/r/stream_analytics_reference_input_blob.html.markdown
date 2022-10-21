@@ -77,6 +77,8 @@ The following arguments are supported:
 
 * `time_format` - (Required) The time format. Wherever `{time}` appears in `path_pattern`, the value of this property is used as the time format instead.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Analytics Reference Input. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 * `serialization` - (Required) A `serialization` block as defined below.
 
 ---

@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks"
@@ -59,25 +60,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
@@ -93,6 +95,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
@@ -111,35 +114,46 @@ import (
 //go:generate go run ../tools/generator-services/main.go -path=../../
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
-	return []sdk.TypedServiceRegistration{
+	services := []sdk.TypedServiceRegistration{
 		aadb2c.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
+		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		compute.Registration{},
 		consumption.Registration{},
 		containers.Registration{},
+		cosmos.Registration{},
 		costmanagement.Registration{},
+		dashboard.Registration{},
+		databricks.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
+		iotcentral.Registration{},
 		keyvault.Registration{},
 		loadbalancer.Registration{},
-		loadtest.Registration{},
 		loganalytics.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
+		nginx.Registration{},
 		policy.Registration{},
+		recoveryservices.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},
+		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
+		orbital.Registration{},
 		streamanalytics.Registration{},
+		search.Registration{},
 		web.Registration{},
 	}
+	services = append(services, autoRegisteredTypedServices()...)
+	return services
 }
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
@@ -169,6 +183,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			consumption.Registration{},
 			cosmos.Registration{},
 			customproviders.Registration{},
+			dashboard.Registration{},
 			databricks.Registration{},
 			datadog.Registration{},
 			datafactory.Registration{},
@@ -209,7 +224,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			media.Registration{},
 			mixedreality.Registration{},
 			monitor.Registration{},
-			msi.Registration{},
+			managedidentity.Registration{},
 			mssql.Registration{},
 			mysql.Registration{},
 			netapp.Registration{},

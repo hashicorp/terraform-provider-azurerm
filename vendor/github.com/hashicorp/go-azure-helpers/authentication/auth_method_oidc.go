@@ -3,6 +3,8 @@ package authentication
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-multierror"
 	authWrapper "github.com/manicminer/hamilton-autorest/auth"
@@ -14,6 +16,8 @@ type oidcAuth struct {
 	auxiliaryTenantIds  []string
 	clientId            string
 	environment         string
+	idToken             string
+	idTokenFilePath     string
 	idTokenRequestToken string
 	idTokenRequestUrl   string
 	tenantId            string
@@ -24,6 +28,8 @@ func (a oidcAuth) build(b Builder) (authMethod, error) {
 		auxiliaryTenantIds:  b.AuxiliaryTenantIDs,
 		clientId:            b.ClientID,
 		environment:         b.Environment,
+		idToken:             b.IDToken,
+		idTokenFilePath:     b.IDTokenFilePath,
 		idTokenRequestUrl:   b.IDTokenRequestURL,
 		idTokenRequestToken: b.IDTokenRequestToken,
 		tenantId:            b.TenantID,
@@ -32,7 +38,7 @@ func (a oidcAuth) build(b Builder) (authMethod, error) {
 }
 
 func (a oidcAuth) isApplicable(b Builder) bool {
-	return b.SupportsOIDCAuth && b.IDTokenRequestURL != "" && b.IDTokenRequestToken != "" && b.UseMicrosoftGraph
+	return b.SupportsOIDCAuth && b.UseMicrosoftGraph && (b.IDToken != "" || b.IDTokenFilePath != "" || (b.IDTokenRequestURL != "" && b.IDTokenRequestToken != ""))
 }
 
 func (a oidcAuth) name() string {
@@ -49,17 +55,54 @@ func (a oidcAuth) getMSALToken(ctx context.Context, api environments.Api, _ auto
 		return nil, fmt.Errorf("environment config error: %v", err)
 	}
 
-	conf := auth.GitHubOIDCConfig{
-		Environment:         environment,
-		TenantID:            a.tenantId,
-		AuxiliaryTenantIDs:  a.auxiliaryTenantIds,
-		ClientID:            a.clientId,
-		IDTokenRequestURL:   a.idTokenRequestUrl,
-		IDTokenRequestToken: a.idTokenRequestToken,
-		Scopes:              []string{api.DefaultScope()},
+	if a.idToken == "" && a.idTokenFilePath == "" {
+		conf := auth.GitHubOIDCConfig{
+			Environment:         environment,
+			TenantID:            a.tenantId,
+			AuxiliaryTenantIDs:  a.auxiliaryTenantIds,
+			ClientID:            a.clientId,
+			IDTokenRequestURL:   a.idTokenRequestUrl,
+			IDTokenRequestToken: a.idTokenRequestToken,
+			Scopes:              []string{api.DefaultScope()},
+		}
+		return &authWrapper.Authorizer{Authorizer: conf.TokenSource(ctx)}, nil
 	}
 
-	return &authWrapper.Authorizer{Authorizer: conf.TokenSource(ctx)}, nil
+	idToken := a.idToken
+
+	if a.idTokenFilePath != "" {
+		idToken, err = a.readTokenFile(a.idTokenFilePath)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading token file: %v", err)
+		}
+
+		if a.idToken != "" && a.idToken != idToken {
+			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
+		}
+	}
+
+	conf := auth.ClientCredentialsConfig{
+		Environment:        environment,
+		TenantID:           a.tenantId,
+		AuxiliaryTenantIDs: a.auxiliaryTenantIds,
+		ClientID:           a.clientId,
+		FederatedAssertion: idToken,
+		Scopes:             []string{api.DefaultScope()},
+		TokenVersion:       auth.TokenVersion2,
+	}
+
+	return &authWrapper.Authorizer{Authorizer: conf.TokenSource(ctx, auth.ClientCredentialsAssertionType)}, nil
+}
+
+func (a oidcAuth) readTokenFile(f string) (string, error) {
+	idTokenData, err := os.ReadFile(f)
+
+	if err != nil {
+		return "", fmt.Errorf("reading OIDC Token %q: %v", f, err)
+	}
+
+	return string(idTokenData), nil
 }
 
 func (a oidcAuth) populateConfig(c *Config) error {
@@ -82,12 +125,12 @@ func (a oidcAuth) validate() error {
 		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Client ID"))
 	}
 
-	if a.idTokenRequestUrl == "" {
-		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token Request URL"))
+	if a.idTokenRequestUrl == "" && a.idToken == "" && a.idTokenFilePath == "" {
+		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token or ID Token File Path or ID Token Request URL"))
 	}
 
-	if a.idTokenRequestToken == "" {
-		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token Request Token"))
+	if a.idTokenRequestToken == "" && a.idToken == "" && a.idTokenFilePath == "" {
+		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "ID Token or ID Token File Path or ID Token Request Token"))
 	}
 
 	return err.ErrorOrNil()

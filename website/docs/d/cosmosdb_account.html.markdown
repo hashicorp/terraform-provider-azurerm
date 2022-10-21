@@ -85,13 +85,21 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_key` - The Primary key for the CosmosDB Account.
+* `primary_key` - The primary key for the CosmosDB account.
 
-* `secondary_key` - The Secondary key for the CosmosDB Account.
+* `secondary_key` - The secondary key for the CosmosDB account.
 
-* `primary_readonly_key` - The Primary read-only Key for the CosmosDB Account.
+* `primary_readonly_key` - The primary read-only Key for the CosmosDB account.
 
-* `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
+* `secondary_readonly_key` - The secondary read-only key for the CosmosDB account.
+
+* `primary_sql_connection_string` - The primary SQL connection string for the CosmosDB account.
+
+* `secondary_sql_connection_string` - The secondary SQL connection string for the CosmosDB account.
+
+* `primary_readonly_sql_connection_string` - The primary read-only SQL connection string for the CosmosDB account.
+
+* `secondary_readonly_sql_connection_string` - The secondary read-only SQL connection string for the CosmosDB account.
 
 ## Timeouts
 

@@ -41,6 +41,7 @@ resource "azurerm_mssql_server" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -71,7 +72,7 @@ The following arguments are supported:
 
 * `outbound_network_restriction_enabled` - (Optional) Whether outbound network traffic is restricted for this server. Defaults to `false`.
 
-* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id. Required if `type` is `UserAssigned` and should be combined with `user_assigned_identity_ids`.
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id. Required if `type` is `UserAssigned` and should be combined with `identity_ids`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -79,9 +80,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Server. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Server.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`
 

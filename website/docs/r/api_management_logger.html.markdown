@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `eventhub` - (Optional) An `eventhub` block as documented below.
 
-* `resource_id` - (Optional) The target resource id which will be linked in the API-Management portal page.
+* `resource_id` - (Optional) The target resource id which will be linked in the API-Management portal page. Changing this forces a new resource to be created.
 
 ---
 

@@ -178,6 +178,10 @@ resource "azurerm_cognitive_account" "test" {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  lifecycle {
+    ignore_changes = ["customer_managed_key"]
+  }
 }
 
 resource "azurerm_key_vault" "test" {

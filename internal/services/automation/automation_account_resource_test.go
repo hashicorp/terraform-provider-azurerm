@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,6 +28,7 @@ func TestAccAutomationAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("dsc_server_endpoint").Exists(),
 				check.That(data.ResourceName).Key("dsc_primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("dsc_secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("hybrid_service_url").Exists(),
 			),
 		},
 		data.ImportStep(),

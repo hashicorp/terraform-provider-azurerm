@@ -28,9 +28,10 @@ func resourceDnsZone() *pluginsdk.Resource {
 		Update: resourceDnsZoneCreateUpdate,
 		Delete: resourceDnsZoneDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.DnsZoneV0ToV1{},
+			1: migration.DnsZoneV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
