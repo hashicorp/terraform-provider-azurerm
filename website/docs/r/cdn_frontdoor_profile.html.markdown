@@ -49,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of this CDN FrontDoor Profile.
 
-* `resource_guid` - The UUID of this CDN FrontDoor Profile.
+* `resource_guid` - The UUID of this CDN FrontDoor Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
 
 ## Timeouts
 
