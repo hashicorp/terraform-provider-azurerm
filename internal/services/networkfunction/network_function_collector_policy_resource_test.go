@@ -195,15 +195,15 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                                        = "acctest-nfcp-%d"
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
-  emission_policies {
+  emission_policy {
     emission_type = ""
-    emission_destinations {
+    emission_destination {
       destination_type = ""
     }
   }
   ingestion_policy {
     ingestion_type = ""
-    ingestion_sources {
+    ingestion_source {
       resource_id = ""
       source_type = ""
     }
@@ -224,15 +224,15 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                                        = "acctest-nfcp-%d"
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
-  emission_policies {
+  emission_policy {
     emission_type = ""
-    emission_destinations {
+    emission_destination {
       destination_type = ""
     }
   }
   ingestion_policy {
     ingestion_type = ""
-    ingestion_sources {
+    ingestion_source {
       resource_id = ""
       source_type = ""
     }

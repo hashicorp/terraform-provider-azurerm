@@ -19,14 +19,14 @@ import (
 type NetworkFunctionCollectorPolicyModel struct {
 	Name                                   string                                  `tfschema:"name"`
 	NetworkFunctionAzureTrafficCollectorId string                                  `tfschema:"network_function_azure_traffic_collector_id"`
-	EmissionPolicies                       []EmissionPoliciesPropertiesFormatModel `tfschema:"emission_policies"`
+	EmissionPolicies                       []EmissionPoliciesPropertiesFormatModel `tfschema:"emission_policy"`
 	IngestionPolicy                        []IngestionPolicyPropertiesFormatModel  `tfschema:"ingestion_policy"`
 	Location                               string                                  `tfschema:"location"`
 	Tags                                   map[string]string                       `tfschema:"tags"`
 }
 
 type EmissionPoliciesPropertiesFormatModel struct {
-	EmissionDestinations []EmissionPolicyDestinationModel `tfschema:"emission_destinations"`
+	EmissionDestinations []EmissionPolicyDestinationModel `tfschema:"emission_destination"`
 	EmissionType         collectorpolicies.EmissionType   `tfschema:"emission_type"`
 }
 
@@ -35,7 +35,7 @@ type EmissionPolicyDestinationModel struct {
 }
 
 type IngestionPolicyPropertiesFormatModel struct {
-	IngestionSources []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_sources"`
+	IngestionSources []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_source"`
 	IngestionType    collectorpolicies.IngestionType         `tfschema:"ingestion_type"`
 }
 
@@ -79,12 +79,12 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			ValidateFunc: azuretrafficcollectors.ValidateAzureTrafficCollectorID,
 		},
 
-		"emission_policies": {
+		"emission_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"emission_destinations": {
+					"emission_destination": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -117,7 +117,7 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"ingestion_sources": {
+					"ingestion_source": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -245,7 +245,7 @@ func (r NetworkFunctionCollectorPolicyResource) Update() sdk.ResourceFunc {
 				properties.Location = location.Normalize(model.Location)
 			}
 
-			if metadata.ResourceData.HasChange("emission_policies") {
+			if metadata.ResourceData.HasChange("emission_policy") {
 				emissionPoliciesValue, err := expandEmissionPoliciesPropertiesFormatModelArray(model.EmissionPolicies)
 				if err != nil {
 					return err

@@ -27,15 +27,15 @@ resource "azurerm_network_function_collector_policy" "example" {
   name                                        = "example-nfcp"
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "West Europe"
-  emission_policies {
+  emission_policy {
     emission_type = ""
-    emission_destinations {
+    emission_destination {
       destination_type = ""
     }
   }
   ingestion_policy {
     ingestion_type = ""
-    ingestion_sources {
+    ingestion_source {
       resource_id = ""
       source_type = ""
     }
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Network Function Collector Policy should exist. Changing this forces a new Network Function Collector Policy to be created.
 
-* `emission_policies` - (Optional) An `emission_policies` block as defined below.
+* `emission_policy` - (Optional) An `emission_policy` block as defined below.
 
 * `ingestion_policy` - (Optional) An `ingestion_policy` block as defined below.
 
@@ -64,15 +64,15 @@ The following arguments are supported:
 
 ---
 
-An `emission_policies` block supports the following:
+An `emission_policy` block supports the following:
 
-* `emission_destinations` - (Optional) An `emission_destinations` block as defined below.
+* `emission_destination` - (Optional) An `emission_destination` block as defined below.
 
 * `emission_type` - (Optional) Emission format type.
 
 ---
 
-An `emission_destinations` block supports the following:
+An `emission_destination` block supports the following:
 
 * `destination_type` - (Optional) Emission destination type.
 
@@ -80,13 +80,13 @@ An `emission_destinations` block supports the following:
 
 An `ingestion_policy` block supports the following:
 
-* `ingestion_sources` - (Optional) An `ingestion_sources` block as defined below.
+* `ingestion_source` - (Optional) An `ingestion_source` block as defined below.
 
 * `ingestion_type` - (Optional) Specifies the ingestion type.
 
 ---
 
-An `ingestion_sources` block supports the following:
+An `ingestion_source` block supports the following:
 
 * `resource_id` - (Optional) Resource ID.
 
