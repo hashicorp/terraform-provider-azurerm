@@ -108,6 +108,9 @@ service/dns:
   - internal/services/dns/**/*
   - internal/services/privatedns/**/*
 
+service/dns-resolver:
+  - internal/services/privatednsresolver/**/*
+
 service/domain-services:
   - internal/services/domainservices/**/*
 
@@ -224,9 +227,6 @@ service/postgresql:
 
 service/power-bi:
   - internal/services/powerbi/**/*
-
-service/private-dns-resolver:
-  - internal/services/privatednsresolver/**/*
 
 service/purview:
   - internal/services/purview/**/*
