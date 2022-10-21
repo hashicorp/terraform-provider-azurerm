@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -81,17 +83,18 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 
 		"emission_policy": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"emission_destination": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Required: true,
+						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"destination_type": {
 									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(collectorpolicies.DestinationTypeAzureMonitor),
 									}, false),
@@ -106,6 +109,7 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 						ValidateFunc: validation.StringInSlice([]string{
 							string(collectorpolicies.EmissionTypeIPFIX),
 						}, false),
+						Default: string(collectorpolicies.EmissionTypeIPFIX),
 					},
 				},
 			},
@@ -113,24 +117,25 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 
 		"ingestion_policy": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ingestion_source": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Required: true,
+						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"resource_id": {
 									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
 								},
 
 								"source_type": {
 									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(collectorpolicies.SourceTypeResource),
 									}, false),
@@ -145,6 +150,7 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 						ValidateFunc: validation.StringInSlice([]string{
 							string(collectorpolicies.IngestionTypeIPFIX),
 						}, false),
+						Default: string(collectorpolicies.IngestionTypeIPFIX),
 					},
 				},
 			},

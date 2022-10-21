@@ -56,9 +56,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Network Function Collector Policy should exist. Changing this forces a new Network Function Collector Policy to be created.
 
-* `emission_policy` - (Optional) An `emission_policy` block as defined below.
+* `emission_policy` - (Required) An `emission_policy` block as defined below.
 
-* `ingestion_policy` - (Optional) An `ingestion_policy` block as defined below.
+* `ingestion_policy` - (Required) An `ingestion_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Function Collector Policy.
 
@@ -66,31 +66,31 @@ The following arguments are supported:
 
 An `emission_policy` block supports the following:
 
-* `emission_destination` - (Optional) An `emission_destination` block as defined below.
+* `emission_destination` - (Required) An `emission_destination` block as defined below.
 
-* `emission_type` - (Optional) Emission format type.
+* `emission_type` - (Optional) Emission format type. The only possible value is `IPFIX`. Defaults to `IPFIX`.
 
 ---
 
 An `emission_destination` block supports the following:
 
-* `destination_type` - (Optional) Emission destination type.
+* `destination_type` - (Required) Emission destination type. The only possible value is `AzureMonitor`.
 
 ---
 
 An `ingestion_policy` block supports the following:
 
-* `ingestion_source` - (Optional) An `ingestion_source` block as defined below.
+* `ingestion_source` - (Required) An `ingestion_source` block as defined below.
 
-* `ingestion_type` - (Optional) Specifies the ingestion type.
+* `ingestion_type` - (Optional) Specifies the ingestion type. The only possible value is `IPFIX`. Defaults to `IPFIX`.
 
 ---
 
 An `ingestion_source` block supports the following:
 
-* `resource_id` - (Optional) Resource ID.
+* `resource_id` - (Required) Resource ID.
 
-* `source_type` - (Optional) Ingestion source type.
+* `source_type` - (Required) Ingestion source type. The only possible value is `Resource`.
 
 ## Attributes Reference
 

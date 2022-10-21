@@ -17,6 +17,17 @@ import (
 
 type NetworkFunctionCollectorPolicyResource struct{}
 
+func TestAccNetworkFunctionCollectorPolicy(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"Resource": {
+			//"basic": testAccNetworkFunctionCollectorPolicy_basic,
+			//"requiresImport": testAccNetworkFunctionCollectorPolicy_requiresImport,
+			//"complete":       testAccNetworkFunctionCollectorPolicy_complete,
+			//"update":         testAccNetworkFunctionCollectorPolicy_update,
+		},
+	})
+}
+
 func TestAccNetworkFunctionCollectorPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_function_collector_policy", "test")
 	r := NetworkFunctionCollectorPolicyResource{}
@@ -143,12 +154,12 @@ resource "azurerm_express_route_circuit_peering" "test" {
   express_route_circuit_name    = azurerm_express_route_circuit.test.name
   resource_group_name           = azurerm_resource_group.test.name
   peer_asn                      = 100
-  primary_peer_address_prefix   = "192.168.5.0/30"
-  secondary_peer_address_prefix = "192.168.6.0/30"
+  primary_peer_address_prefix   = "192.168.199.0/30"
+  secondary_peer_address_prefix = "192.168.200.0/30"
   vlan_id                       = 300
 
   microsoft_peering_config {
-    advertised_public_prefixes = ["123.2.0.0/24"]
+    advertised_public_prefixes = ["123.6.0.0/24"]
   }
 }
 
@@ -169,6 +180,17 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                                        = "acctest-nfcp-%d"
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
+  emission_policy {
+    emission_destination {
+      destination_type = "AzureMonitor"
+    }
+  }
+  ingestion_policy {
+    ingestion_source {
+      resource_id = azurerm_express_route_circuit.test.id
+      source_type = "Resource"
+    }
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -182,6 +204,17 @@ resource "azurerm_network_function_collector_policy" "import" {
   name                                        = azurerm_network_function_collector_policy.test.name
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
+  emission_policy {
+    emission_destination {
+      destination_type = "AzureMonitor"
+    }
+  }
+  ingestion_policy {
+    ingestion_source {
+      resource_id = azurerm_express_route_circuit.test.id
+      source_type = "Resource"
+    }
+  }
 }
 `, config, data.Locations.Primary)
 }
@@ -196,16 +229,14 @@ resource "azurerm_network_function_collector_policy" "test" {
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
   emission_policy {
-    emission_type = ""
     emission_destination {
-      destination_type = ""
+      destination_type = "AzureMonitor"
     }
   }
   ingestion_policy {
-    ingestion_type = ""
     ingestion_source {
-      resource_id = ""
-      source_type = ""
+      resource_id = azurerm_express_route_circuit.test.id
+      source_type = "Resource"
     }
   }
   tags = {
@@ -225,20 +256,18 @@ resource "azurerm_network_function_collector_policy" "test" {
   network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   location                                    = "%s"
   emission_policy {
-    emission_type = ""
     emission_destination {
-      destination_type = ""
+      destination_type = "AzureMonitor"
     }
   }
   ingestion_policy {
-    ingestion_type = ""
     ingestion_source {
-      resource_id = ""
-      source_type = ""
+      resource_id = azurerm_express_route_circuit.test.id
+      source_type = "Resource"
     }
   }
   tags = {
-    key = "value"
+    key = "value2"
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
