@@ -13,18 +13,18 @@ var (
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
-	return "service/dns-resolver"
+	return "service/private-dns-resolver"
 }
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "DNS Resolver"
+	return "Private DNS Resolver"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"DNS Resolver",
+		"Private DNS Resolver",
 	}
 }
 
