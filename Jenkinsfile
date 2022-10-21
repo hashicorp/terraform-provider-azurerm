@@ -9,8 +9,8 @@ node {
             checkoutGit()
             terraformAutoImageVersion = '1.0.2'
             baseTerraformAutoImage = "docker-production-iac/iac/tf-plugin-builder:${terraformAutoImageVersion}"
-            baseVersion = 'v1.0'
-            newVersion = newVersion(baseVersion) + '-amadeus'
+            baseVersion = '1.0'
+            newVersion = newVersion(baseVersion)
             registry = 'repository.adp.amadeus.net'
             baseImage = 'maven:3.6.3-jdk-11'
         // pageId for https://rndwww.nce.amadeus.net/confluence/display/IBSDC/IaC+Release+Notes
