@@ -6,7 +6,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies `containerinstance` - updating to use `2021-10-01` [GH-17785]
 * Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` [GH-18898]
+* `azurerm_container_group` - the `network_profile_id` property hasbeen deprecated in favour of `subnet_ids` as the newer versions of the API no longer support it [GH-17785]
+* `azurerm_container_group` - support for the `dns_name_label_reuse_policy` block [GH-17785]
 
 ## 3.28.0 (October 20, 2022)
 
