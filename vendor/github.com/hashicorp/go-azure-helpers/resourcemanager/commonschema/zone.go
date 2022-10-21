@@ -35,16 +35,6 @@ func ZoneSingleOptional() *schema.Schema {
 	}
 }
 
-// ZoneSingleOptionalComputed returns the schema used when a single Zone can be specified
-func ZoneSingleOptionalComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
-		Optional:     true,
-		Computed:     true,
-		ValidateFunc: validation.StringIsNotEmpty,
-	}
-}
-
 // ZoneSingleOptionalForceNew returns the schema used when a single Zone can be specified but cannot be changed
 func ZoneSingleOptionalForceNew() *schema.Schema {
 	return &schema.Schema{
@@ -60,5 +50,15 @@ func ZoneSingleComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
 		Computed: true,
+	}
+}
+
+// ZoneSingleOptionalComputed returns the schema used when a single Zone can be specified
+func ZoneSingleOptionalComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.StringIsNotEmpty,
 	}
 }
