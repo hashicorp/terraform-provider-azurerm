@@ -463,8 +463,6 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	_, highAvailabilityConfigured := d.GetOk("high_availability")
-
 	// failover is only supported when `zone` and `standby_availability_zone` is exchanged
 	var requireFailover bool
 	switch {
@@ -488,9 +486,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("`standby_availability_zone` cannot be added while changing `zone`")
 			}
 		}
-		// In fact, d.HasChange("high_availability.0.standby_availability_zone") return false when "high_availability" is removed.
-		// that means to disable high_availability
-	case d.HasChange("zone") && highAvailabilityConfigured && !d.HasChange("high_availability.0.standby_availability_zone"):
+	case d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
 		return fmt.Errorf("`zone` cannot be changed independently")
 	default:
 		// No need failover when only `standby_availability_zone` is changed and both `zone` and `standby_availability_zone` aren't changed
