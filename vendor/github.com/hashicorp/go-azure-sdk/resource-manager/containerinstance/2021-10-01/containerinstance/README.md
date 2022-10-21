@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance` Documentation
 
-The `containerinstance` SDK allows for interaction with the Azure Resource Manager Service `containerinstance` (API Version `2021-03-01`).
+The `containerinstance` SDK allows for interaction with the Azure Resource Manager Service `containerinstance` (API Version `2021-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
 ```
 
 
@@ -56,6 +56,22 @@ ctx := context.TODO()
 id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
 
 read, err := client.ContainerGroupsGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.ContainerGroupsGetOutboundNetworkDependenciesEndpoints`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+
+read, err := client.ContainerGroupsGetOutboundNetworkDependenciesEndpoints(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -259,5 +275,17 @@ if err != nil {
 }
 if model := read.Model; model != nil {
 	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.SubnetServiceAssociationLinkDelete`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
+
+if err := client.SubnetServiceAssociationLinkDeleteThenPoll(ctx, id); err != nil {
+	// handle the error
 }
 ```

@@ -30,27 +30,11 @@ resource "azurerm_subnet" "example" {
   }
 }
 
-resource "azurerm_network_profile" "example" {
-  name                = "${var.prefix}networkprofile"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  container_network_interface {
-    name = "hellocnic"
-
-    ip_configuration {
-      name      = "helloipconfig"
-      subnet_id = azurerm_subnet.example.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "example" {
   name                = "${var.prefix}continst"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.example.id
   os_type             = "Linux"
   restart_policy      = "Never"
 
@@ -72,6 +56,8 @@ resource "azurerm_container_group" "example" {
     cpu    = "0.5"
     memory = "1.5"
   }
+
+  subnet_ids = [azurerm_subnet.example.id]
 
   tags = {
     environment = "testing"
