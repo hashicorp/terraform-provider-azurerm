@@ -229,7 +229,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 				OriginGroup: &cdn.ResourceReference{
 					ID: utils.String(originGroupId),
 				},
-				ForwardingProtocol: cdn.ForwardingProtocol(forwardingProtocol),
+				ForwardingProtocol: forwardingProtocol,
 			}
 		} else if protocolSet {
 			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'forwarding_protocol' can not be defined if the 'cdn_frontdoor_origin_group_id' is not set, got %q", forwardingProtocol)
