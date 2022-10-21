@@ -1,0 +1,78 @@
+# Visit https://goreleaser.com for documentation on how to customize this
+# behavior.
+before:
+  hooks:
+    # this is just an example and not a requirement for provider building/publishing
+    - go mod tidy
+dist: dist2/
+builds:
+- env:
+    # goreleaser does not work with CGO, it could also complicate
+    # usage by users in CI/CD systems like Terraform Cloud where
+    # they are unable to install libraries.
+    - CGO_ENABLED=0
+  mod_timestamp: '{{ .CommitTimestamp }}'
+  flags:
+    - -trimpath
+  ldflags:
+    - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+  goos:
+    - freebsd
+    - windows
+    - linux
+    - darwin
+  goarch:
+    - amd64
+    - '386'
+    - arm
+    - arm64  
+  binary: '{{ .ProjectName }}_v{{ .Version }}_x4'
+archives:
+- format: zip
+  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+signs:
+  - artifacts: checksum
+    args:
+      # if you are using this in a GitHub action or some other automated pipeline, you 
+      # need to pass the batch flag to indicate its not interactive.
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}" 
+
+artifactories:
+  - name: production
+    target: https://repository.rnd.amadeus.net/artifactory/generic-production-iac/providers/azurerm/{{ .ProjectName }}/{{ .Version }}/
+    #target: http://<Your-Instance>:8081/artifactory/example-repo-local/{{ .ProjectName }}/{{ .Version }}/    
+    # Upload checksums (defaults to false)
+    checksum: true
+    # Upload signatures (defaults to false)
+    signature: true
+    
+publishers:
+  - name: Generate and Publish provider metadata
+    cmd: >-
+      tf-provider-registry-api-generator      
+      --bucket-name 'generic-production-iac'
+      --terraform-provider '{{ .ProjectName }}'      
+      --namespace 'amadeus'
+      --fingerprint '{{ .Env.GPG_FINGERPRINT }}'
+      --provider-version {{ .Tag }}
+    env:
+      - "PATH={{ .Env.PATH }}"      
+      - "MUC_ARTIFACTORY_TOKEN={{ .Env.MUC_ARTIFACTORY_TOKEN }}"      
+      - "RND_ARTIFACTORY_TOKEN={{ .Env.RND_ARTIFACTORY_TOKEN }}"
+    
+release: 
+  # to disable automatic push to github as we use artifactory
+  disable: true
+  # If you want to manually examine the release before its live, uncomment this line:
+  # draft: true  
+changelog:
+  skip: true
