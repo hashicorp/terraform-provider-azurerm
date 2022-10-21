@@ -1,6 +1,12 @@
 ## 3.29.0 (Unreleased)
 
+FEATURES:
+
 * **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` [GH-18903]
+
+ENHANCEMENTS:
+
+* Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` [GH-18898]
 
 ## 3.28.0 (October 20, 2022)
 
