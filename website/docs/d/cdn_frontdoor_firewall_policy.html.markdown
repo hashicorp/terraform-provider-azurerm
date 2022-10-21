@@ -14,8 +14,8 @@ Gets information about an existing CDN Front Door Firewall Policy.
 
 ```hcl
 data "azurerm_cdn_frontdoor_firewall_policy" "example" {
-  name                              = "examplecdnfdwafpolicy"
-  resource_group_name               = azurerm_resource_group.example.name
+  name                = "examplecdnfdwafpolicy"
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
