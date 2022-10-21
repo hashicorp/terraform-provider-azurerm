@@ -138,7 +138,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
+  peering_location    = "Silicon Valley"
   bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
   tags = {
@@ -157,7 +157,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Area51-ERDirect"
+  peering_location    = "Silicon Valley"
   bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
   link1 {
@@ -198,7 +198,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra"
+  peering_location    = "Silicon Valley"
   bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
   identity {
@@ -265,7 +265,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra2"
+  peering_location    = "Silicon Valley"
   bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
   identity {
