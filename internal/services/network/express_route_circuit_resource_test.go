@@ -557,7 +557,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-ERP-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
+  peering_location    = "Silicon Valley"
   bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
 }
@@ -592,7 +592,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-ERP-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
+  peering_location    = "Silicon Valley"
   bandwidth_in_gbps   = 1
   encapsulation       = "Dot1Q"
 }
