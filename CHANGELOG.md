@@ -1,3 +1,7 @@
+## 3.29.0 (Unreleased)
+
+* **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` [GH-18903]
+
 ## 3.28.0 (October 20, 2022)
 
 FEATURES:
