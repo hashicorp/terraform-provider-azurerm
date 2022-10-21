@@ -398,6 +398,13 @@ resource "azurerm_virtual_machine" "dest" {
     managed_disk_type = "Standard_LRS"
   }
 
+  delete_os_disk_on_termination = true
+
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
+
   os_profile {
     computer_name  = "hostname%d"
     admin_username = "testadmin"
