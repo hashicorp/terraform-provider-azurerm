@@ -249,9 +249,13 @@ The following arguments are supported:
 
 ---
 
- An `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The identity type of the SQL Managed Instance. The only possible value is `SystemAssigned`.
+ * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. Possible values are `SystemAssigned`, `UserAssigned`.
+
+ * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Managed Instance. Required when `type` is set to `UserAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and SQL Managed Instance has been created. 
 
 ## Attributes Reference
 
@@ -263,11 +267,13 @@ The following attributes are exported:
 
 ---
 
- The `identity` block exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+
+-> You can access the Principal ID via `azurerm_mssql_managed_instance.example.identity.0.principal_id` and the Tenant ID via `azurerm_mssql_managed_instance.example.identity.0.tenant_id`
 
 ## Timeouts
 
