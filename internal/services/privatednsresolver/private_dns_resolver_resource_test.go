@@ -1,4 +1,4 @@
-package dnsresolver_test
+package privatednsresolver_test
 
 import (
 	"context"
@@ -86,7 +86,7 @@ func (r PrivateDNSResolverDnsResolverResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	client := clients.DNSResolver.DnsResolversClient
+	client := clients.PrivateDnsResolver.DnsResolversClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

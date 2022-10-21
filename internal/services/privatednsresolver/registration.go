@@ -1,4 +1,4 @@
-package dnsresolver
+package privatednsresolver
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"

@@ -41,7 +41,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dnsresolver"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
@@ -86,6 +85,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
@@ -131,7 +131,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		costmanagement.Registration{},
 		dashboard.Registration{},
 		disks.Registration{},
-		dnsresolver.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
@@ -143,6 +142,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mssql.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
+		privatednsresolver.Registration{},
 		recoveryservices.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},

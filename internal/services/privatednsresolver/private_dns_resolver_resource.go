@@ -1,4 +1,4 @@
-package dnsresolver
+package privatednsresolver
 
 import (
 	"context"
@@ -76,7 +76,7 @@ func (r PrivateDNSResolverDnsResolverResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.DNSResolver.DnsResolversClient
+			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := dnsresolvers.NewDnsResolverID(subscriptionId, model.ResourceGroupName, model.Name)
 			existing, err := client.Get(ctx, id)
@@ -112,7 +112,7 @@ func (r PrivateDNSResolverDnsResolverResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DNSResolver.DnsResolversClient
+			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
 
 			id, err := dnsresolvers.ParseDnsResolverID(metadata.ResourceData.Id())
 			if err != nil {
@@ -153,7 +153,7 @@ func (r PrivateDNSResolverDnsResolverResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DNSResolver.DnsResolversClient
+			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
 
 			id, err := dnsresolvers.ParseDnsResolverID(metadata.ResourceData.Id())
 			if err != nil {
@@ -197,7 +197,7 @@ func (r PrivateDNSResolverDnsResolverResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DNSResolver.DnsResolversClient
+			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
 
 			id, err := dnsresolvers.ParseDnsResolverID(metadata.ResourceData.Id())
 			if err != nil {
