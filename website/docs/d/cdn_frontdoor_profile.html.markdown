@@ -33,7 +33,7 @@ The following attributes are exported:
 
 * `id` - The ID of this CDN FrontDoor Profile.
 
-* `resource_guid` - The UUID of this CDN FrontDoor Profile.
+* `resource_guid` - The UUID of this CDN FrontDoor Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
 
 * `sku_name` - Specifies the SKU for this CDN FrontDoor Profile.
 
