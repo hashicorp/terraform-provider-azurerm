@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` [GH-18903]
+* **New Resource:** `azurerm_private_dns_resolver` [GH-18473]
 
 ENHANCEMENTS:
 
