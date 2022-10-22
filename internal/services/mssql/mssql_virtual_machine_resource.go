@@ -342,11 +342,6 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						"data_settings":    helper.StorageSettingSchema(),
 						"log_settings":     helper.StorageSettingSchema(),
 						"temp_db_settings": helper.SQLTempDBStorageSettingSchema(),
-						"system_db_on_datadisk_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
 					},
 				},
 			},
@@ -1035,7 +1030,6 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
 		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
-		SqlSystemDbOnDataDisk: utils.Bool(storageSettings["system_db_on_datadisk_enabled"].(bool)),
 	}
 }
 
@@ -1050,12 +1044,11 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 	}
 
 	output := map[string]interface{}{
-		"storage_workload_type":         storageWorkloadType,
-		"disk_type":                     diskType,
-		"data_settings":                 flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
-		"log_settings":                  flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
-		"temp_db_settings":              flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
-		"system_db_on_datadisk_enabled": input.SqlSystemDbOnDataDisk,
+		"storage_workload_type": storageWorkloadType,
+		"disk_type":             diskType,
+		"data_settings":         flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
+		"log_settings":          flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
+		"temp_db_settings":      flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
 	}
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
