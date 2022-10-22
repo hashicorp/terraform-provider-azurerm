@@ -176,7 +176,21 @@ func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.assessmentSettings(data),
+			Config: r.assessmentSettingsWeekly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.assessmentSettingsMonthly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -700,7 +714,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlVirtualMachineResource) assessmentSettings(data acceptance.TestData) string {
+func (r MsSqlVirtualMachineResource) assessmentSettingsWeekly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -709,7 +723,30 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   assessment_settings {
-    
+    schedule {
+      day_of_week     = "Monday"
+      weekly_interval = 1
+      start_time      = "00:00"
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r MsSqlVirtualMachineResource) assessmentSettingsMonthly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  assessment_settings {
+    schedule {
+      day_of_week        = "Tuesday"
+      monthly_occurrence = 3
+      start_time         = "01:02"
+    }
   }
 }
 `, r.template(data))

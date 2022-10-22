@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -199,20 +200,29 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"weekly_interval": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"assessment_settings.0.schedule.0.monthly_occurrence"},
+										ValidateFunc: validation.IntBetween(1, 6),
 									},
 									"monthly_occurrence": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"assessment_settings.0.schedule.0.weekly_interval"},
+										ValidateFunc: validation.IntBetween(1, 5),
 									},
 									"day_of_week": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForAssessmentDayOfWeek(), false),
 									},
 									"start_time": {
 										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Required: true,
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"),
+											"duration must match the format HH:mm",
+										),
 									},
 								},
 							},
@@ -872,16 +882,25 @@ func expandSqlVirtualMachineAssessmentSettingsSchedule(input []interface{}) *sql
 		return &sqlvirtualmachines.Schedule{}
 	}
 
-	schedule := input[0].(map[string]interface{})
+	scheduleConfig := input[0].(map[string]interface{})
 
-	dayOfWeek := sqlvirtualmachines.AssessmentDayOfWeek(schedule["day_of_week"].(string))
-	return &sqlvirtualmachines.Schedule{
-		Enable:            utils.Bool(true),
-		WeeklyInterval:    utils.Int64(int64(schedule["weekly_interval"].(int))),
-		MonthlyOccurrence: utils.Int64(int64(schedule["monthly_occurrence"].(int))),
-		DayOfWeek:         &dayOfWeek,
-		StartTime:         utils.String(schedule["start_time"].(string)),
+	dayOfWeek := sqlvirtualmachines.AssessmentDayOfWeek(scheduleConfig["day_of_week"].(string))
+
+	schedule := &sqlvirtualmachines.Schedule{
+		Enable:    utils.Bool(true),
+		DayOfWeek: &dayOfWeek,
+		StartTime: utils.String(scheduleConfig["start_time"].(string)),
 	}
+
+	if weeklyInterval := scheduleConfig["weekly_interval"].(int); weeklyInterval != 0 {
+		schedule.WeeklyInterval = utils.Int64(int64(weeklyInterval))
+	}
+
+	if monthlyOccurrence := scheduleConfig["monthly_occurrence"].(int); monthlyOccurrence != 0 {
+		schedule.MonthlyOccurrence = utils.Int64(int64(monthlyOccurrence))
+	}
+
+	return schedule
 }
 
 func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualmachines.AssessmentSettings) []interface{} {
@@ -889,9 +908,16 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 		return []interface{}{}
 	}
 
-	var runImmediately bool
+	var (
+		runImmediately bool
+		enabled        bool
+	)
 	if assessmentSettings.RunImmediately != nil {
 		runImmediately = *assessmentSettings.RunImmediately
+	}
+
+	if assessmentSettings.Enable != nil {
+		enabled = *assessmentSettings.Enable
 	}
 
 	var attr map[string]interface{}
@@ -919,7 +945,6 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 		attr = map[string]interface{}{
 			"weekly_interval":    weeklyInterval,
 			"monthly_occurrence": monthlyOccurrence,
-			"schedule":           schedule,
 			"day_of_week":        dayOfWeek,
 			"start_time":         startTime,
 		}
@@ -928,7 +953,8 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 	return []interface{}{
 		map[string]interface{}{
 			"run_immediately": runImmediately,
-			"schedule":        attr,
+			"enabled":         enabled,
+			"schedule":        []interface{}{attr},
 		},
 	}
 }

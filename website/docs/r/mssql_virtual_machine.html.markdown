@@ -63,6 +63,8 @@ The following arguments are supported:
 
 * `storage_configuration` - (Optional) An `storage_configuration` block as defined below.
 
+* `assessment_settings` - (Optional) An `assessment_settings` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -129,7 +131,7 @@ The `storage_configuration` block supports the following:
 
 * `log_settings` - (Optional) An `storage_settings` as defined below.
 
-* `temp_db_settings` - (Optional) An `sqltempdb_storage_settings` as defined below.
+* `temp_db_settings` - (Optional) An `temp_db_settings` as defined below.
 
 ---
 
@@ -141,25 +143,50 @@ The `storage_settings` block supports the following:
 
 ---
 
-The `sqltempdb_storage_settings` block supports the following:
+The `temp_db_settings` block supports the following:
 
 * `default_file_path` - (Required) The SQL Server default path
 
 * `luns` - (Required) A list of Logical Unit Numbers for the disks. 
 
-* `data_file_count` - (Optional) SQL Server default file count - Default 8
+* `data_file_count` - (Optional) The SQL Server default file count. This value defaults to `8`
 
-* `data_file_size_mb` - (Optional) SQL Server default file size - Default 256
+* `data_file_size_mb` - (Optional) The SQL Server default file size - This value defaults to `256`
 
-* `data_file_growth_in_mb` - (Optional) SQL Server default file size - Default 512
+* `data_file_growth_in_mb` - (Optional) The SQL Server default file size - This value defaults to `512`
 
-* `log_file_size_mb` - (Optional) SQL Server default file size - Default 256
+* `log_file_size_mb` - (Optional) The SQL Server default file size - This value defaults to `256`
 
-* `log_file_growth_mb` - (Optional) SQL Server default file size - Default 512
+* `log_file_growth_mb` - (Optional) The SQL Server default file size - This value defaults to `512`
+
+---
+
+The `assessment_settings` block supports the following:
+
+* `enabled` - (Optional) Should Assessment Settings be enabled? Defaults to `true`.
+
+* `run_immediately` - (Optional) Should Assessment Settings be run immediately? Defaults to `false`.
+
+* `schedule` - (Optional) An `schedule` block as defined below.
+
+---
+
+The `schedule` block supports the following:
+
+* `weekly_interval` - (Optional) How many weeks between assessment runs. Valid values are between `1` and `6`.
+
+* `monthly_occurrence` - (Optional) How many months between assessment runs. Valid values are between `1` and `5`.
+
+~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
+
+* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`. 
+
+* `start_time` - (Optional) What time the assessment will be run. Must be in the format `HH:mm`.
 
 ## Attributes Reference
 
 The following attributes are exported:
+
 * `id` - The ID of the SQL Virtual Machine.
 
 ## Timeouts
