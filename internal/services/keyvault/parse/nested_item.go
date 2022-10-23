@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = NestedItemId{}
+var _ resourceids.Id = NestedItemId{}
 
 type NestedItemId struct {
 	KeyVaultBaseUrl string
@@ -35,25 +35,35 @@ func NewNestedItemID(keyVaultBaseUrl, nestedItemType, name, version string) (*Ne
 	}, nil
 }
 
-func (n NestedItemId) ID() string {
+func (id NestedItemId) ID() string {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	segments := []string{
-		strings.TrimSuffix(n.KeyVaultBaseUrl, "/"),
-		n.NestedItemType,
-		n.Name,
+		strings.TrimSuffix(id.KeyVaultBaseUrl, "/"),
+		id.NestedItemType,
+		id.Name,
 	}
-	if n.Version != "" {
-		segments = append(segments, n.Version)
+	if id.Version != "" {
+		segments = append(segments, id.Version)
 	}
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
 }
 
-func (n NestedItemId) VersionlessID() string {
+func (id NestedItemId) String() string {
+	components := []string{
+		fmt.Sprintf("Base Url %q", id.KeyVaultBaseUrl),
+		fmt.Sprintf("Nested Item Type %q", id.NestedItemType),
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Version %q", id.Version),
+	}
+	return fmt.Sprintf("Key Vault Nested Item %s", strings.Join(components, " / "))
+}
+
+func (id NestedItemId) VersionlessID() string {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird
 	segments := []string{
-		strings.TrimSuffix(n.KeyVaultBaseUrl, "/"),
-		n.NestedItemType,
-		n.Name,
+		strings.TrimSuffix(id.KeyVaultBaseUrl, "/"),
+		id.NestedItemType,
+		id.Name,
 	}
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
 }
