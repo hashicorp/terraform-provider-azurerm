@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -106,7 +107,7 @@ func ExpandCdnFrontDoorRequestHeaderAction(input []interface{}) (*[]cdn.BasicDel
 
 		if value == "" {
 			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
-				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' can not be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
+				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' cannot be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
 			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
@@ -140,7 +141,7 @@ func ExpandCdnFrontDoorResponseHeaderAction(input []interface{}) (*[]cdn.BasicDe
 
 		if headerValue := *responseHeaderAction.Parameters.Value; headerValue == "" {
 			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
-				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' can not be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
+				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' cannot be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
 			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
@@ -207,32 +208,33 @@ func ExpandCdnFrontDoorUrlRewriteAction(input []interface{}) (*[]cdn.BasicDelive
 
 func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
-
 	m := InitializeCdnFrontDoorActionMappings()
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
 		var originGroupOverride cdn.OriginGroupOverride
-		var forwardingProtocol = cdn.ForwardingProtocolMatchRequest
-		var protocolSet bool
+		originGroupIdRaw := item["cdn_frontdoor_origin_group_id"].(string)
+		protocol := item["forwarding_protocol"].(string)
 
 		// set the default value for forwarding protocol to avoid a breaking change...
-		if protocol := item["forwarding_protocol"].(string); protocol != "" {
-			protocolSet = true
-			forwardingProtocol = cdn.ForwardingProtocol(protocol)
+		if protocol == "" {
+			protocol = string(cdn.ForwardingProtocolMatchRequest)
 		}
 
-		// TODO: Add check to make sure Forwarding Protocol was not defined if the origin group ID was not passed also order must be 0?
-		if originGroupId := item["cdn_frontdoor_origin_group_id"].(string); originGroupId != "" {
+		forwardingProtocol := cdn.ForwardingProtocol(protocol)
+
+		// NOTE: It is valid to not define the originGroupOverride in the Route Configuration Override Action
+		// however, if you do not define the Origin Group ID you also cannot define the Forwarding Protocol either
+		if originGroupIdRaw != "" {
 			originGroupOverride = cdn.OriginGroupOverride{
 				OriginGroup: &cdn.ResourceReference{
-					ID: utils.String(originGroupId),
+					ID: utils.String(originGroupIdRaw),
 				},
 				ForwardingProtocol: forwardingProtocol,
 			}
-		} else if protocolSet {
-			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'forwarding_protocol' can not be defined if the 'cdn_frontdoor_origin_group_id' is not set, got %q", forwardingProtocol)
+		} else if originGroupIdRaw == "" && item["forwarding_protocol"].(string) != "" {
+			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol', got %q", forwardingProtocol)
 		}
 
 		compressionEnabled := cdn.RuleIsCompressionEnabledEnabled
@@ -250,8 +252,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 
 		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
 			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
-				TypeName: utils.String(m.RouteConfigurationOverride.TypeName),
-				// OriginGroupOverride: originGroupOverride,
+				TypeName:           utils.String(m.RouteConfigurationOverride.TypeName),
 				CacheConfiguration: cacheConfiguration,
 			},
 		}
@@ -263,7 +264,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 		queryStringCachingBehavior := cacheConfiguration.QueryStringCachingBehavior
 		if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
 			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' can not be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' cannot be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
 			}
 		} else {
 			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorUseQueryString || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreQueryString {
@@ -378,8 +379,11 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleR
 		if override := params.OriginGroupOverride; override != nil {
 			forwardingProtocol = string(override.ForwardingProtocol)
 
-			if group := override.OriginGroup; group != nil && group.ID != nil {
-				originGroupId = *group.ID
+			// NOTE: Need to normalize this ID here because if you modified this in portal the
+			// resourceGroup comes back as resourcegroup.
+			// ignore the error here since it was set on the resource in Azure and we know it is valid.
+			if originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.ID); err == nil {
+				originGroupId = originGroup.ID()
 			}
 		}
 	}

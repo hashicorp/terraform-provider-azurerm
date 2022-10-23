@@ -1,6 +1,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -106,7 +107,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the destination path to be an empty string,
-									// Leave blank to preserve the incoming path.
+									// Leave blank to preserve the incoming path. Issue #18249
 									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -115,7 +116,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the destination hostname to be an empty string.
-									// Leave blank to preserve the incoming host.
+									// Leave blank to preserve the incoming host. Issue #18249
 									"destination_hostname": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -123,7 +124,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the query string to be an empty string.
-									// Leave blank to preserve the incoming query string.
+									// Leave blank to preserve the incoming query string. Issue #18249
 									"query_string": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -132,7 +133,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the destination fragment to be an empty string.
-									// Leave blank to preserve the incoming fragment.
+									// Leave blank to preserve the incoming fragment. Issue #18249
 									"destination_fragment": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -250,11 +251,10 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										ValidateFunc: validate.FrontDoorOriginGroupID,
 									},
 
+									// Removed Default value for issue #18889, default value is applied in the ExpandCdnFrontDoorRouteConfigurationOverrideAction func
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										// Moved setting default value to ExpandCdnFrontDoorRouteConfigurationOverrideAction func in cdn_frontdoor_rule_actions.go
-										// due to issue 18889 to avoid the perpetual diff if cdn_frontdoor_origin_group_id was not defined
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.ForwardingProtocolHTTPOnly),
 											string(cdn.ForwardingProtocolHTTPSOnly),
@@ -611,6 +611,18 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// CustomizeDiff was implemented for issue #18889
+			if diff.HasChange("actions") {
+				_, err := expandFrontdoorDeliveryRuleActions(diff.Get("actions").([]interface{}))
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -837,14 +849,8 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 				return nil, fmt.Errorf("the 'url_redirect_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
 			}
 
-			if actionName == m.RouteConfigurationOverride.ConfigName {
-				if len(*expanded) > 1 {
-					return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-				} else {
-					// TODO: Add check here to see if the originGroupOverride.OriginGroup is nil and if the forwarding protocols have been set, if so error out
-					// if it has been set update the forwarding protocols to be the default value of match request...
-					// use the raw action pulled from the config...
-				}
+			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
 			}
 
 			results = append(results, *expanded...)

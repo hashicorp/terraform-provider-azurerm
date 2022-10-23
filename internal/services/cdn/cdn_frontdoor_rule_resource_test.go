@@ -30,17 +30,48 @@ func TestAccCdnFrontDoorRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_basicRegression18889(t *testing.T) {
+func TestAccCdnFrontDoorRule_urlRedirectAction(t *testing.T) {
+	// NOTE: Regression test case for issue #18249
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicRegression18889(data),
+			Config: r.urlRedirectAction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_originGroupIdOptional(t *testing.T) {
+	// NOTE: Regression test case for issue #18889
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptional(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
+	// NOTE: Regression test case for issue #18889
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptionalError(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol'"),
+		},
 	})
 }
 
@@ -212,7 +243,43 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) basicRegression18889(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) urlRedirectAction(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 1
+
+  conditions {
+    request_scheme_condition {
+      match_values     = ["HTTP"]
+      negate_condition = false
+      operator         = "Equal"
+    }
+  }
+
+  actions {
+    url_redirect_action {
+      redirect_type        = "PermanentRedirect"
+      redirect_protocol    = "Https"
+      destination_hostname = ""
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) originGroupIdOptional(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -228,6 +295,54 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
 
   order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) originGroupIdOptionalError(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
 
   actions {
     route_configuration_override_action {
