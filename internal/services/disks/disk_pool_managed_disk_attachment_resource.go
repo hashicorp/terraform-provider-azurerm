@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -77,7 +79,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 			}
 			locks.ByID(attachment.DiskPoolId)
 			defer locks.UnlockByID(attachment.DiskPoolId)
-			id := diskpools.NewDiskPoolManagedDiskAttachmentId(*poolId, *diskId)
+			id := parse.NewDiskPoolManagedDiskAttachmentId(*poolId, *diskId)
 
 			client := metadata.Client.Disks.DiskPoolsClient
 			poolResp, err := client.Get(ctx, *poolId)
@@ -122,7 +124,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := diskpools.DiskPoolManagedDiskAttachmentID(metadata.ResourceData.Id())
+			id, err := parse.DiskPoolManagedDiskAttachmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
