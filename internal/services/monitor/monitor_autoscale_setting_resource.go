@@ -366,7 +366,8 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 								},
