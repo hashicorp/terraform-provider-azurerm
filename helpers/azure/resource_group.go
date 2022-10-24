@@ -20,8 +20,3 @@ func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 		ValidateFunc:     resourcegroups.ValidateName,
 	}
 }
-
-// Deprecated: use `commonschema.ResourceGroupNameForDataSource()` instead
-func SchemaResourceGroupNameForDataSource() *pluginsdk.Schema {
-	return commonschema.ResourceGroupNameForDataSource()
-}
