@@ -237,11 +237,11 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_spring_cloud_connection" "test" {
-  name               = "acctestserviceconnector%[2]d"
-  spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
-  target_resource_id = azurerm_cosmosdb_sql_database.test.id
-  client_type        = "java"
-  vnet_solution      = "privateLink"
+  name                      = "acctestserviceconnector%[2]d"
+  spring_cloud_id           = azurerm_spring_cloud_java_deployment.test.id
+  target_resource_id        = azurerm_cosmosdb_sql_database.test.id
+  client_type               = "java"
+  vnet_solution             = "privateLink"
   secret_store_key_vault_id = azurerm_key_vault.test.id
   authentication {
     type = "systemAssignedIdentity"
