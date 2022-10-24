@@ -656,8 +656,8 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   storage_configuration {
-    disk_type                     = "NEW"
-    storage_workload_type         = "OLTP"
+    disk_type             = "NEW"
+    storage_workload_type = "OLTP"
 
     data_settings {
       luns              = [0]
