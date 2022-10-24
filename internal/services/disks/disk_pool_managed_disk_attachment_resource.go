@@ -19,10 +19,15 @@ import (
 type DiskPoolManagedDiskAttachmentResource struct{}
 
 var _ sdk.Resource = DiskPoolManagedDiskAttachmentResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DiskPoolManagedDiskAttachmentResource{}
 
 type DiskPoolManagedDiskAttachmentModel struct {
 	DiskPoolId string `tfschema:"disk_pool_id"`
 	DiskId     string `tfschema:"managed_disk_id"`
+}
+
+func (DiskPoolManagedDiskAttachmentResource) DeprecationMessage() string {
+	return "The `azurerm_disk_pool_managed_disk_attachment` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
 }
 
 func (d DiskPoolManagedDiskAttachmentResource) Arguments() map[string]*schema.Schema {

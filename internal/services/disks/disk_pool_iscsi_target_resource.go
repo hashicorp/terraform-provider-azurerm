@@ -21,6 +21,7 @@ import (
 type DisksPoolIscsiTargetResource struct{}
 
 var _ sdk.Resource = DisksPoolIscsiTargetResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DisksPoolIscsiTargetResource{}
 
 type DiskPoolIscsiTargetModel struct {
 	ACLMode     string   `tfschema:"acl_mode"`
@@ -29,6 +30,10 @@ type DiskPoolIscsiTargetModel struct {
 	Name        string   `tfschema:"name"`
 	Port        int      `tfschema:"port"`
 	TargetIqn   string   `tfschema:"target_iqn"`
+}
+
+func (DisksPoolIscsiTargetResource) DeprecationMessage() string {
+	return "The `azurerm_disk_pool_iscsi_target` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
 }
 
 func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
