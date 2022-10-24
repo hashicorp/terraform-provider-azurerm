@@ -71,7 +71,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.IsUUID,
+					ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"*"}, false)),
 				},
 				Set: pluginsdk.HashString,
 			},
