@@ -83,6 +83,7 @@ func TestAccContainerAppResource_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccContainerAppResource_completeWithVNet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -249,10 +250,10 @@ resource "azurerm_container_app" "import" {
 
   template {
     container {
-      name   = container_app_environment.test.template.0.container.0.name
-      image  = container_app_environment.test.template.0.container.0.image
-      cpu    = container_app_environment.test.template.0.container.0.cpu
-      memory = container_app_environment.test.template.0.container.0.memory
+      name   = azurerm_container_app.test.template.0.container.0.name
+      image  = azurerm_container_app.test.template.0.container.0.image
+      cpu    = azurerm_container_app.test.template.0.container.0.cpu
+      memory = azurerm_container_app.test.template.0.container.0.memory
     }
   }
 }
