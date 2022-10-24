@@ -104,6 +104,8 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
 
 ~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
@@ -477,6 +479,23 @@ A `scm_ip_restriction` block supports the following:
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.ENDEXPERIMENT
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
+
+---
+
+A `storage_account` block supports the following:
+
+* `access_key` - (Required) The Access key for the storage account.
+
+* `account_name` - (Required) The Name of the Storage Account.
+
+* `name` - (Required) The name which should be used for this Storage Account.
+
+* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
+
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`.
+
+* `mount_path` - (Optional) The path at which to mount the storage share.
+
 
 ## Attributes Reference
 
