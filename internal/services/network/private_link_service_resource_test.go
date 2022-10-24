@@ -779,7 +779,7 @@ resource "azurerm_private_link_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  visibility_subscription_ids    = ["*"]
+  visibility_subscription_ids = ["*"]
 
   nat_ip_configuration {
     name      = "primaryIpConfiguration-%d"
