@@ -152,7 +152,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.ParseIscsiTargetLunID(metadata.ResourceData.Id())
+			id, err := parse.IscsiTargetLunID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

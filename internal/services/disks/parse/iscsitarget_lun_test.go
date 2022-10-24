@@ -116,7 +116,7 @@ func TestParseIscsiTargetLunID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseIscsiTargetLunID(v.Input)
+		actual, err := IscsiTargetLunID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
