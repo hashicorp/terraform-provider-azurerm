@@ -235,5 +235,5 @@ resource "azurerm_express_route_gateway" "test" {
   virtual_hub_id      = azurerm_virtual_hub.test.id
   scale_units         = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
