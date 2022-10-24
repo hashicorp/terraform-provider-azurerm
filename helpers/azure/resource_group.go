@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 )
 
+// Deprecated: use `commonschema.ResourceGroupName` instead
 func SchemaResourceGroupName() *pluginsdk.Schema {
 	return commonschema.ResourceGroupName()
 }
