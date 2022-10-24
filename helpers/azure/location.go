@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+// Deprecated: use `commonschema.Location()` instead
 func SchemaLocation() *pluginsdk.Schema {
 	return commonschema.Location()
 }
