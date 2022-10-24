@@ -68,7 +68,16 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"zones": azure.SchemaZones(),
+			"zones": {
+				// @tombuildsstuff: since this is the legacy VMSS resource this is intentionally not using commonschema for consistency
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 
 			"identity": {
 				Type:     pluginsdk.TypeList,
@@ -819,7 +828,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	sku := expandVirtualMachineScaleSetSku(d)
 

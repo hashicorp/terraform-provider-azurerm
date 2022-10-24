@@ -79,8 +79,17 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// @tombuildsstuff: since this is the legacy VM this is intentionally not being updated albeit it's semantically wrong
-			"zones": azure.SchemaSingleZone(),
+			"zones": {
+				// @tombuildsstuff: since this is the legacy VM resource this is intentionally not using commonschema for consistency
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 
 			"plan": {
 				Type:     pluginsdk.TypeList,
@@ -649,7 +658,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	osDisk, err := expandAzureRmVirtualMachineOsDisk(d)
 	if err != nil {
