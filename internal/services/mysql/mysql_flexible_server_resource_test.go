@@ -699,7 +699,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
+  administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "MO_Standard_E2ds_v4"
   zone                   = "1"
@@ -718,6 +718,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D2ds_v4"
+  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -739,6 +740,12 @@ resource "azurerm_mysql_flexible_server" "test" {
 
   sku_name = "GP_Standard_D2ds_v4"
   zone     = "1"
+
+  lifecycle {
+    ignore_changes = [
+      high_availability.0.standby_availability_zone
+    ]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

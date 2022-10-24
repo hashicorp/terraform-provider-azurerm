@@ -362,6 +362,9 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
+	// Take some time for resource to be visible after creating. Hence, sleep for 30 seconds until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
+	time.Sleep(30 * time.Second)
+
 	// `maintenance_window` could only be updated with, could not be created with
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		mwParams := mysqlflexibleservers.ServerForUpdate{
