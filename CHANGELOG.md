@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_linux_function_app` - support for Java 17 [GH-18689]
 * `azurerm_linux_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_logic_app_action_http` - support for the `queries` property [GH-18934]
 * `azurerm_synapse_workspace` - `sql_administrator_login` and `sql_administrator_login_password` are now no longer required for the creation of this resource [GH-18850]
 * `azurerm_windows_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_windows_function_app` - support for Java 17 [GH-18689]
