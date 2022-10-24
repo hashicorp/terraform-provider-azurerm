@@ -109,13 +109,9 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			future, err := client.CertificatesCreate(ctx, id, req)
+			err = client.CertificatesCreateOrUpdateThenPoll(ctx, id, req)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
-			}
-
-			if err := future.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %v", id, err)
 			}
 
 			meta.SetID(id)
