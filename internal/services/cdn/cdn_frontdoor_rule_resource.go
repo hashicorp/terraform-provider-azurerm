@@ -1,7 +1,6 @@
 package cdn
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -611,18 +610,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			// CustomizeDiff was implemented for issue #18889
-			if diff.HasChange("actions") {
-				_, err := expandFrontdoorDeliveryRuleActions(diff.Get("actions").([]interface{}))
-				if err != nil {
-					return err
-				}
-			}
-
-			return nil
-		}),
 	}
 }
 
