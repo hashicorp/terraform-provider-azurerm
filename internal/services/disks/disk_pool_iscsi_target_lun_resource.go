@@ -23,12 +23,17 @@ import (
 )
 
 var _ sdk.Resource = DiskPoolIscsiTargetLunModel{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DiskPoolIscsiTargetLunModel{}
 
 type DiskPoolIscsiTargetLunModel struct {
 	IscsiTargetId           string `tfschema:"iscsi_target_id"`
 	ManagedDiskAttachmentId string `tfschema:"disk_pool_managed_disk_attachment_id"`
 	Name                    string `tfschema:"name"`
 	Lun                     int64  `tfschema:"lun"`
+}
+
+func (DiskPoolIscsiTargetLunModel) DeprecationMessage() string {
+	return "The `azurerm_disk_pool_iscsi_target_lun` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
 }
 
 func (d DiskPoolIscsiTargetLunModel) Arguments() map[string]*schema.Schema {

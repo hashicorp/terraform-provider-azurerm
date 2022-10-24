@@ -22,8 +22,13 @@ import (
 )
 
 var _ sdk.ResourceWithUpdate = DiskPoolResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DiskPoolResource{}
 
 type DiskPoolResource struct{}
+
+func (DiskPoolResource) DeprecationMessage() string {
+	return "The `azurerm_disk_pool` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
+}
 
 type DiskPoolResourceModel struct {
 	Name              string                 `tfschema:"name"`
