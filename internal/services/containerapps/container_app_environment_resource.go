@@ -350,7 +350,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil {
+			if err != nil || existing.Model == nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
