@@ -50,6 +50,7 @@ import (
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
+	dnsprivateresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/dnsprivateresolver/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	elastic "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
@@ -93,7 +94,6 @@ import (
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 	powerBI "github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/client"
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
-	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
@@ -168,6 +168,7 @@ type Client struct {
 	DigitalTwins          *digitaltwins.Client
 	Disks                 *disks.Client
 	Dns                   *dns_v2018_05_01.Client
+	DnsPrivateResolver    *dnsprivateresolver.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
 	EventGrid             *eventgrid.Client
@@ -211,7 +212,6 @@ type Client struct {
 	Postgres              *postgres.Client
 	PowerBI               *powerBI.Client
 	PrivateDns            *privatedns.Client
-	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
 	Redis                 *redis.Client
@@ -290,6 +290,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
 	client.Dns = dns.NewClient(o)
+	client.DnsPrivateResolver = dnsprivateresolver.NewClient(o)
 	client.DomainServices = domainservices.NewClient(o)
 	client.Elastic = elastic.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
@@ -333,7 +334,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
-	client.PrivateDnsResolver = dnsresolver.NewClient(o)
 	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)

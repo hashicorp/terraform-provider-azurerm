@@ -27,6 +27,7 @@ CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
 DNS
+DNS Private Resolver
 Dashboard
 Data Explorer
 Data Factory
@@ -72,7 +73,6 @@ Policy
 Portal
 PowerBI
 Private DNS
-Private DNS Resolver
 Purview
 Recovery Services
 Redis

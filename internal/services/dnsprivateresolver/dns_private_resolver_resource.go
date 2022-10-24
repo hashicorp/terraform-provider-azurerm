@@ -1,4 +1,4 @@
-package privatednsresolver
+package dnsprivateresolver
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type PrivateDNSResolverDnsResolverModel struct {
+type DNSPrivateResolverDnsResolverModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
@@ -23,23 +23,23 @@ type PrivateDNSResolverDnsResolverModel struct {
 	VirtualNetworkId  string            `tfschema:"virtual_network_id"`
 }
 
-type PrivateDNSResolverDnsResolverResource struct{}
+type DNSPrivateResolverDnsResolverResource struct{}
 
-var _ sdk.ResourceWithUpdate = PrivateDNSResolverDnsResolverResource{}
+var _ sdk.ResourceWithUpdate = DNSPrivateResolverDnsResolverResource{}
 
-func (r PrivateDNSResolverDnsResolverResource) ResourceType() string {
-	return "azurerm_private_dns_resolver"
+func (r DNSPrivateResolverDnsResolverResource) ResourceType() string {
+	return "azurerm_dns_private_resolver"
 }
 
-func (r PrivateDNSResolverDnsResolverResource) ModelObject() interface{} {
-	return &PrivateDNSResolverDnsResolverModel{}
+func (r DNSPrivateResolverDnsResolverResource) ModelObject() interface{} {
+	return &DNSPrivateResolverDnsResolverModel{}
 }
 
-func (r PrivateDNSResolverDnsResolverResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r DNSPrivateResolverDnsResolverResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dnsresolvers.ValidateDnsResolverID
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Arguments() map[string]*pluginsdk.Schema {
+func (r DNSPrivateResolverDnsResolverResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -63,20 +63,20 @@ func (r PrivateDNSResolverDnsResolverResource) Arguments() map[string]*pluginsdk
 	}
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Attributes() map[string]*pluginsdk.Schema {
+func (r DNSPrivateResolverDnsResolverResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Create() sdk.ResourceFunc {
+func (r DNSPrivateResolverDnsResolverResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model PrivateDNSResolverDnsResolverModel
+			var model DNSPrivateResolverDnsResolverModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
+			client := metadata.Client.DnsPrivateResolver.DnsResolversClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := dnsresolvers.NewDnsResolverID(subscriptionId, model.ResourceGroupName, model.Name)
 			existing, err := client.Get(ctx, id)
@@ -108,18 +108,18 @@ func (r PrivateDNSResolverDnsResolverResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Update() sdk.ResourceFunc {
+func (r DNSPrivateResolverDnsResolverResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
+			client := metadata.Client.DnsPrivateResolver.DnsResolversClient
 
 			id, err := dnsresolvers.ParseDnsResolverID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model PrivateDNSResolverDnsResolverModel
+			var model DNSPrivateResolverDnsResolverModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -149,11 +149,11 @@ func (r PrivateDNSResolverDnsResolverResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Read() sdk.ResourceFunc {
+func (r DNSPrivateResolverDnsResolverResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
+			client := metadata.Client.DnsPrivateResolver.DnsResolversClient
 
 			id, err := dnsresolvers.ParseDnsResolverID(metadata.ResourceData.Id())
 			if err != nil {
@@ -174,7 +174,7 @@ func (r PrivateDNSResolverDnsResolverResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := PrivateDNSResolverDnsResolverModel{
+			state := DNSPrivateResolverDnsResolverModel{
 				Name:              id.DnsResolverName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -193,11 +193,11 @@ func (r PrivateDNSResolverDnsResolverResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Delete() sdk.ResourceFunc {
+func (r DNSPrivateResolverDnsResolverResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
+			client := metadata.Client.DnsPrivateResolver.DnsResolversClient
 
 			id, err := dnsresolvers.ParseDnsResolverID(metadata.ResourceData.Id())
 			if err != nil {

@@ -63,6 +63,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Data Lake has a low quota
         "datalake" to testConfiguration(parallelism = 2),
 
+        // DNS Private Resolver is only available in certain locations
+        "dnsprivateresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
+
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
@@ -100,9 +103,6 @@ var serviceTestConfigurationOverrides = mapOf(
         "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         "policy" to testConfiguration(useAltSubscription = true),
-
-         // Private DNS Resolver is only available in certain locations
-         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),

@@ -1,4 +1,4 @@
-package privatednsresolver
+package dnsprivateresolver
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -13,18 +13,18 @@ var (
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
-	return "service/private-dns-resolver"
+	return "service/dns-private-resolver"
 }
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Private DNS Resolver"
+	return "DNS Private Resolver"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Private DNS Resolver",
+		"DNS Private Resolver",
 	}
 }
 
@@ -46,6 +46,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		PrivateDNSResolverDnsResolverResource{},
+		DNSPrivateResolverDnsResolverResource{},
 	}
 }

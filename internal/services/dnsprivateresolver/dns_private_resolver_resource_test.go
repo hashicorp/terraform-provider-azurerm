@@ -1,4 +1,4 @@
-package privatednsresolver_test
+package dnsprivateresolver_test
 
 import (
 	"context"
@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateDNSResolverDnsResolverResource struct{}
+type DNSPrivateResolverDnsResolverResource struct{}
 
-func TestAccPrivateDNSResolverDnsResolver_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+func TestAccDNSPrivateResolverDnsResolver_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_private_resolver", "test")
+	r := DNSPrivateResolverDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -31,9 +31,9 @@ func TestAccPrivateDNSResolverDnsResolver_basic(t *testing.T) {
 	})
 }
 
-func TestAccPrivateDNSResolverDnsResolver_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+func TestAccDNSPrivateResolverDnsResolver_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_private_resolver", "test")
+	r := DNSPrivateResolverDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,9 +45,9 @@ func TestAccPrivateDNSResolverDnsResolver_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPrivateDNSResolverDnsResolver_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+func TestAccDNSPrivateResolverDnsResolver_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_private_resolver", "test")
+	r := DNSPrivateResolverDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -59,9 +59,9 @@ func TestAccPrivateDNSResolverDnsResolver_complete(t *testing.T) {
 	})
 }
 
-func TestAccPrivateDNSResolverDnsResolver_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+func TestAccDNSPrivateResolverDnsResolver_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_private_resolver", "test")
+	r := DNSPrivateResolverDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -80,13 +80,13 @@ func TestAccPrivateDNSResolverDnsResolver_update(t *testing.T) {
 	})
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DNSPrivateResolverDnsResolverResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dnsresolvers.ParseDnsResolverID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.PrivateDnsResolver.DnsResolversClient
+	client := clients.DnsPrivateResolver.DnsResolversClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -97,7 +97,7 @@ func (r PrivateDNSResolverDnsResolverResource) Exists(ctx context.Context, clien
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r PrivateDNSResolverDnsResolverResource) template(data acceptance.TestData) string {
+func (r DNSPrivateResolverDnsResolverResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -117,12 +117,12 @@ resource "azurerm_virtual_network" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) basic(data acceptance.TestData) string {
+func (r DNSPrivateResolverDnsResolverResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_private_dns_resolver" "test" {
+resource "azurerm_dns_private_resolver" "test" {
   name                = "acctest-dr-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -131,26 +131,26 @@ resource "azurerm_private_dns_resolver" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) requiresImport(data acceptance.TestData) string {
+func (r DNSPrivateResolverDnsResolverResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_private_dns_resolver" "import" {
-  name                = azurerm_private_dns_resolver.test.name
-  resource_group_name = azurerm_private_dns_resolver.test.resource_group_name
-  location            = azurerm_private_dns_resolver.test.location
-  virtual_network_id  = azurerm_private_dns_resolver.test.virtual_network_id
+resource "azurerm_dns_private_resolver" "import" {
+  name                = azurerm_dns_private_resolver.test.name
+  resource_group_name = azurerm_dns_private_resolver.test.resource_group_name
+  location            = azurerm_dns_private_resolver.test.location
+  virtual_network_id  = azurerm_dns_private_resolver.test.virtual_network_id
 }
 `, config)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) complete(data acceptance.TestData) string {
+func (r DNSPrivateResolverDnsResolverResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_private_dns_resolver" "test" {
+resource "azurerm_dns_private_resolver" "test" {
   name                = "acctest-dr-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -162,12 +162,12 @@ resource "azurerm_private_dns_resolver" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) update(data acceptance.TestData) string {
+func (r DNSPrivateResolverDnsResolverResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_private_dns_resolver" "test" {
+resource "azurerm_dns_private_resolver" "test" {
   name                = "acctest-dr-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
