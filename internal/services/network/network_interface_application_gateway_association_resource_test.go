@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -173,6 +174,9 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 	}
 	config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools = &updatedPools
 
+	// renew timeout value of ctx or it can be timeout
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*30)
+	defer cancel()
 	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
 	if err != nil {
 		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for %s: %+v", nicID, err)
