@@ -5,12 +5,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
 // TODO: @tombuildsstuff: this wants refactoring and fixing into sub-ID parsers
-
-var _ resourceid.Formatter = RoleAssignmentId{}
 
 type RoleAssignmentId struct {
 	SubscriptionID      string
