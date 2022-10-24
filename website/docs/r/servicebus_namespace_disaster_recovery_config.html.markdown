@@ -10,7 +10,7 @@ description: |-
 
 Manages a Disaster Recovery Config for a Service Bus Namespace.
 
-~> **NOTE:** Disaster Recovery Config is a Premium SKU only capability. 
+~> **NOTE:** Disaster Recovery Config is a Premium SKU only capability.
 
 ## Example Usage
 
@@ -36,10 +36,20 @@ resource "azurerm_servicebus_namespace" "secondary" {
   capacity            = "1"
 }
 
+resource "azurerm_servicebus_namespace_authorization_rule" "example" {
+  name         = "examplerule"
+  namespace_id = azurerm_servicebus_namespace.example.id
+
+  listen = true
+  send   = true
+  manage = false
+}
+
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
-  name                 = "servicebus-alias-name"
-  primary_namespace_id = azurerm_servicebus_namespace.primary.id
-  partner_namespace_id = azurerm_servicebus_namespace.secondary.id
+  name                        = "servicebus-alias-name"
+  primary_namespace_id        = azurerm_servicebus_namespace.primary.id
+  partner_namespace_id        = azurerm_servicebus_namespace.secondary.id
+  alias_authorization_rule_id = azurerm_servicebus_namespace_authorization_rule.example.id
 }
 
 ```
@@ -54,6 +64,8 @@ The following arguments are supported:
 
 * `partner_namespace_id` - (Required) The ID of the Service Bus Namespace to replicate to.
 
+* `alias_authorization_rule_id` - (Optional) The Shared access policies used to access the connection string for the alias. Defaults to `RootManageSharedAccessKey`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -62,7 +74,7 @@ The following attributes are exported:
 
 * `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace.
 
-* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
