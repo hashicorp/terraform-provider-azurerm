@@ -189,13 +189,6 @@ func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -665,7 +658,6 @@ resource "azurerm_mssql_virtual_machine" "test" {
   storage_configuration {
     disk_type                     = "NEW"
     storage_workload_type         = "OLTP"
-    system_db_on_datadisk_enabled = true
 
     data_settings {
       luns              = [0]
