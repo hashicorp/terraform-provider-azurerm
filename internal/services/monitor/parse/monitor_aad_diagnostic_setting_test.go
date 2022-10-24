@@ -1,12 +1,6 @@
 package parse
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-)
-
-var _ resourceid.Formatter = MonitorAADDiagnosticSettingId{}
+import "testing"
 
 func TestMonitorAADDiagnosticSettingIDFormatter(t *testing.T) {
 	actual := NewMonitorAADDiagnosticSettingID("setting1").ID()

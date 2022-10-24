@@ -1,12 +1,6 @@
 package parse
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-)
-
-var _ resourceid.Formatter = MicrosoftCustomerAccountBillingScopeId{}
+import "testing"
 
 func TestMicrosoftCustomerAccountBillingScopeIDFormatter(t *testing.T) {
 	actual := NewMCABillingScopeID("e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31", "PE2Q-NOIT-BG7-TGB", "MTT4-OBS7-PJA-TGB").ID()

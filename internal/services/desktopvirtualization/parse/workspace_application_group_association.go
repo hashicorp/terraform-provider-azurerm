@@ -4,16 +4,24 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/workspace"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = WorkspaceApplicationGroupAssociationId{}
+var _ resourceids.Id = WorkspaceApplicationGroupAssociationId{}
 
 type WorkspaceApplicationGroupAssociationId struct {
 	Workspace        workspace.WorkspaceId
 	ApplicationGroup applicationgroup.ApplicationGroupId
+}
+
+func (id WorkspaceApplicationGroupAssociationId) String() string {
+	components := []string{
+		fmt.Sprintf("Workspace %s", id.Workspace.String()),
+		fmt.Sprintf("Application Group %s", id.ApplicationGroup.String()),
+	}
+	return fmt.Sprintf("Workspace Application Group Association %s", strings.Join(components, " / "))
 }
 
 func (id WorkspaceApplicationGroupAssociationId) ID() string {

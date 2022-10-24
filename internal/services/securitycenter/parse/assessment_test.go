@@ -2,11 +2,7 @@ package parse
 
 import (
 	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
-
-var _ resourceid.Formatter = AssessmentId{}
 
 func TestAssessmentIDFormatter(t *testing.T) {
 	actual := NewAssessmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1", "assessment1").ID()
