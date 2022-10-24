@@ -510,6 +510,7 @@ resource "azurerm_app_configuration" "test" {
   location                   = azurerm_resource_group.test.location
   sku                        = "standard"
   local_auth_enabled         = true
+  public_network_access      = "Enabled"
   purge_protection_enabled   = false
   soft_delete_retention_days = 1
 

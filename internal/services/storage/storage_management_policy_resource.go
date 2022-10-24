@@ -149,6 +149,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"delete_after_days_since_modification_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -177,6 +183,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"change_tier_to_cool_after_days_since_creation": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -199,6 +211,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"change_tier_to_archive_after_days_since_creation": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													Default:      -1,
@@ -407,9 +425,11 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			sinceModOK = sinceMod != -1
 			sinceAccess = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_last_access_time_greater_than", ruleIndex))
 			sinceAccessOK = sinceAccess != -1
+
 			if sinceModOK && sinceAccessOK {
 				return nil, fmt.Errorf("can't specify `tier_to_archive_after_days_since_modification_greater_than` and `tier_to_archive_after_days_since_last_access_time_greater_than` at the same time")
 			}
+
 			if sinceModOK || sinceAccessOK {
 				baseBlob.TierToArchive = &storage.DateAfterModification{}
 				if sinceModOK {
@@ -417,6 +437,9 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				}
 				if sinceAccessOK {
 					baseBlob.TierToArchive.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+				}
+				if v := d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); v != -1 {
+					baseBlob.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(v.(int)))
 				}
 			}
 
@@ -452,6 +475,9 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				snapshot.TierToArchive = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
 				}
+				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
+					snapshot.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
+				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
 				snapshot.TierToCool = &storage.DateAfterCreation{
@@ -471,6 +497,9 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); v != -1 {
 				version.TierToArchive = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				}
+				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
+					version.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
@@ -536,12 +565,13 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 				armActionBaseBlob := armAction.BaseBlob
 				if armActionBaseBlob != nil {
 					var (
-						tierToCoolSinceMod       = -1
-						tierToCoolSinceAccess    = -1
-						tierToArchiveSinceMod    = -1
-						tierToArchiveSinceAccess = -1
-						deleteSinceMod           = -1
-						deleteSinceAccess        = -1
+						tierToCoolSinceMod               = -1
+						tierToCoolSinceAccess            = -1
+						tierToArchiveSinceMod            = -1
+						tierToArchiveSinceAccess         = -1
+						tierToArchiveSinceLastTierChange = -1
+						deleteSinceMod                   = -1
+						deleteSinceAccess                = -1
 					)
 
 					if props := armActionBaseBlob.TierToCool; props != nil {
@@ -559,6 +589,9 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 						if props.DaysAfterLastAccessTimeGreaterThan != nil {
 							tierToArchiveSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
 						}
+						if props.DaysAfterLastTierChangeGreaterThan != nil {
+							tierToArchiveSinceLastTierChange = int(*props.DaysAfterLastTierChangeGreaterThan)
+						}
 					}
 					if props := armActionBaseBlob.Delete; props != nil {
 						if props.DaysAfterModificationGreaterThan != nil {
@@ -574,6 +607,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 							"tier_to_cool_after_days_since_last_access_time_greater_than":    tierToCoolSinceAccess,
 							"tier_to_archive_after_days_since_modification_greater_than":     tierToArchiveSinceMod,
 							"tier_to_archive_after_days_since_last_access_time_greater_than": tierToArchiveSinceAccess,
+							"tier_to_archive_after_days_since_last_tier_change_greater_than": tierToArchiveSinceLastTierChange,
 							"delete_after_days_since_modification_greater_than":              deleteSinceMod,
 							"delete_after_days_since_last_access_time_greater_than":          deleteSinceAccess,
 						},
@@ -582,38 +616,48 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 
 				armActionSnaphost := armAction.Snapshot
 				if armActionSnaphost != nil {
-					deleteAfterCreation, archiveAfterCreation, coolAfterCreation := -1, -1, -1
+					deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
 					if armActionSnaphost.Delete != nil && armActionSnaphost.Delete.DaysAfterCreationGreaterThan != nil {
 						deleteAfterCreation = int(*armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
 					}
 					if armActionSnaphost.TierToArchive != nil && armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan != nil {
 						archiveAfterCreation = int(*armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
+
+						if v := armActionSnaphost.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+							archiveAfterLastTierChange = int(*v)
+						}
 					}
 					if armActionSnaphost.TierToCool != nil && armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan != nil {
 						coolAfterCreation = int(*armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
 					}
 					action["snapshot"] = []interface{}{map[string]interface{}{
-						"delete_after_days_since_creation_greater_than":    deleteAfterCreation,
-						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
-						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
+						"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,
+						"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
+						"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+						"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
 					}}
 				}
 
 				if armActionVersion := armAction.Version; armActionVersion != nil {
-					deleteAfterCreation, archiveAfterCreation, coolAfterCreation := -1, -1, -1
+					deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
 					if armActionVersion.Delete != nil && armActionVersion.Delete.DaysAfterCreationGreaterThan != nil {
 						deleteAfterCreation = int(*armActionVersion.Delete.DaysAfterCreationGreaterThan)
 					}
 					if armActionVersion.TierToArchive != nil && armActionVersion.TierToArchive.DaysAfterCreationGreaterThan != nil {
 						archiveAfterCreation = int(*armActionVersion.TierToArchive.DaysAfterCreationGreaterThan)
+
+						if v := armActionVersion.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+							archiveAfterLastTierChange = int(*v)
+						}
 					}
 					if armActionVersion.TierToCool != nil && armActionVersion.TierToCool.DaysAfterCreationGreaterThan != nil {
 						coolAfterCreation = int(*armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
 					}
 					action["version"] = []interface{}{map[string]interface{}{
-						"delete_after_days_since_creation":                 deleteAfterCreation,
-						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
-						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
+						"delete_after_days_since_creation":                               deleteAfterCreation,
+						"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
+						"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+						"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
 					}}
 				}
 

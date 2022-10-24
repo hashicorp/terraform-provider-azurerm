@@ -1751,6 +1751,7 @@ resource "azurerm_windows_web_app" "test" {
   client_affinity_enabled    = true
   client_certificate_enabled = true
   //client_certificate_mode    = "Optional"
+  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {
     name  = "First"
@@ -1933,9 +1934,11 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 
-  client_affinity_enabled    = true
-  client_certificate_enabled = true
-  client_certificate_mode    = "Optional"
+  client_affinity_enabled            = true
+  client_certificate_enabled         = true
+  client_certificate_mode            = "Optional"
+  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
+
 
   connection_string {
     name  = "First"

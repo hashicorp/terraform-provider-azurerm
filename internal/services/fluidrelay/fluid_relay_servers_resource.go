@@ -24,8 +24,11 @@ type ServerModel struct {
 	Location         string                                     `tfschema:"location"`
 	StorageSKU       string                                     `tfschema:"storage_sku"`
 	FrsTenantId      string                                     `tfschema:"frs_tenant_id"`
+	PrimaryKey       string                                     `tfschema:"primary_key"`
+	SecondaryKey     string                                     `tfschema:"secondary_key"`
 	OrdererEndpoints []string                                   `tfschema:"orderer_endpoints"`
 	StorageEndpoints []string                                   `tfschema:"storage_endpoints"`
+	ServiceEndpoints []string                                   `tfschema:"service_endpoints"`
 	Tags             map[string]string                          `tfschema:"tags"`
 	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
@@ -87,6 +90,7 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"orderer_endpoints": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -94,12 +98,33 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"storage_endpoints": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"service_endpoints": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"primary_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 	}
 }
@@ -236,11 +261,26 @@ func (s Server) Read() sdk.ResourceFunc {
 					if points.StorageEndpoints != nil {
 						output.StorageEndpoints = *points.StorageEndpoints
 					}
+
+					if points.ServiceEndpoints != nil {
+						output.ServiceEndpoints = *points.ServiceEndpoints
+					}
 				}
 			}
 			if val, ok := meta.ResourceData.GetOk("storage_sku"); ok {
 				output.StorageSKU = val.(string)
 			}
+
+			keyRes, err := client.ListKeys(ctx, *id)
+			if err != nil {
+				// do not return if only list keys error
+				meta.Logger.Warnf("retrieving keys for %s: %v", *id, err)
+			}
+			if keys := keyRes.Model; model != nil {
+				output.PrimaryKey = utils.NormalizeNilableString(keys.Key1)
+				output.SecondaryKey = utils.NormalizeNilableString(keys.Key2)
+			}
+
 			return meta.Encode(output)
 		},
 	}

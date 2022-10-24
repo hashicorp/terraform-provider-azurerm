@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile_custom_domain"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain"
 description: |-
   Manages a CDN FrontDoor Custom Domain.
 ---
 
-# azurerm_cdn_frontdoor_profile_custom_domain
+# azurerm_cdn_frontdoor_custom_domain
 
 Manages a CDN FrontDoor Custom Domain.
 
@@ -35,7 +35,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   name                     = "example-customDomain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
-  host_name                = "contoso.com"
+  host_name                = "contoso.fabrikam.com"
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -44,6 +44,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 }
 ```
 ## Example DNS Auth TXT Record Usage
+
+The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the CDN FrontDoor Custom Domains `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.
 
 ```hcl
 resource "azurerm_dns_txt_record" "example" {
@@ -82,9 +84,9 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
-* `host_name` - (Required) The host name of the domain. Changing this forces a new CDN FrontDoor Custom Domain to be created.
+* `host_name` - (Required) The host name of the domain. The `host_name` field must be the FQDN of your domain(e.g. `contoso.fabrikam.com`). Changing this forces a new CDN FrontDoor Custom Domain to be created.
 
-* `dns_zone_id` - (Optional) The ID of the DNS Zone which should be used for this FrontDoor Custom Domain.
+* `dns_zone_id` - (Optional) The ID of the Azure DNS Zone which should be used for this CDN FrontDoor Custom Domain. If you are using Azure to host your [DNS domains](https://learn.microsoft.com/azure/dns/dns-overview), you must delegate the domain provider's domain name system (DNS) to an Azure DNS Zone. For more information, see [Delegate a domain to Azure DNS](https://learn.microsoft.com/azure/dns/dns-delegate-domain-azure-dns). Otherwise, if you're using your own domain provider to handle your DNS, you must validate the CDN FrontDoor Custom Domain by creating the DNS TXT records manually.
 
 <!-- * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated CDN FrontDoor Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
 
@@ -98,11 +100,11 @@ A `tls` block supports the following:
 
 * `certificate_type` - (Optional) Defines the source of the SSL certificate. Possible values include `CustomerCertificate` and `ManagedCertificate`. Defaults to `ManagedCertificate`.
 
-->**NOTE:** It may take upto 15 minutes for the Frontdoor Service to validate the state and Domain ownership of the Custom Domain.
+->**NOTE:** It may take up to 15 minutes for the Frontdoor Service to validate the state and Domain ownership of the Custom Domain.
 
 * `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values include `TLS10` and `TLS12`. Defaults to `TLS12`.
 
-* `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Frontdoor Secrect.
+* `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Frontdoor Secret.
 
 ---
 

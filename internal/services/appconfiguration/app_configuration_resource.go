@@ -51,9 +51,9 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validate.ConfigurationStoreName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"encryption": {
 				Type:     pluginsdk.TypeList,
@@ -250,7 +250,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 	if err != nil {
 		if !response.WasNotFound(deleted.HttpResponse) {
-			return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, name)
+			return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
 		}
 	}
 
