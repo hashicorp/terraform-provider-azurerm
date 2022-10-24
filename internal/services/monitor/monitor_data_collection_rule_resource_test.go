@@ -174,6 +174,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       facility_names = ["*"]
       log_levels     = ["*"]
       name           = "test-datasource-syslog"
+      streams        = ["Microsoft-CiscoAsa"]
     }
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
@@ -283,6 +284,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
         "Notice",
       ]
       name = "test-datasource-syslog"
+      streams = ["Microsoft-Syslog", "Microsoft-CiscoAsa"]
     }
 
     performance_counter {

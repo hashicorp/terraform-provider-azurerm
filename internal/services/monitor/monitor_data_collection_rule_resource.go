@@ -290,6 +290,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"streams": {
 									Type:     pluginsdk.TypeList,
 									Optional: !features.FourPointOhBeta(),
+									Computed: !features.FourPointOhBeta(),
 									Required: features.FourPointOhBeta(),
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
