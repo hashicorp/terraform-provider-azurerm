@@ -23,8 +23,12 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+*  provider: will no loner automatically register the `Microsoft.StoragePool` provider as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
 * `azurerm_key_vault_certificate` - new versions of key vault certs can now be imported [GH-18848]
-
+* `azurerm_disk_pool` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_disk_pool_iscsi_target` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_disk_pool_iscsi_target_lun` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_disk_pool_managed_disk_attachment` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
 
 ## 3.28.0 (October 20, 2022)
 
