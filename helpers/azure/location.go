@@ -1,15 +1,8 @@
 package azure
 
 import (
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-// Deprecated: use `commonschema.Location()` instead
-func SchemaLocation() *pluginsdk.Schema {
-	return commonschema.Location()
-}
 
 // NormalizeLocation is a function which normalises human-readable region/location
 // names (e.g. "West US") to the values used and returned by the Azure API (e.g. "westus").
