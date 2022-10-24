@@ -12,11 +12,13 @@ ENHANCEMENTS:
 * Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` [GH-18898]
 * `azurerm_container_group` - the `network_profile_id` property hasbeen deprecated in favour of `subnet_ids` as the newer versions of the API no longer support it [GH-17785]
 * `azurerm_container_group` - support for the `dns_name_label_reuse_policy` block [GH-17785]
-* `azurerm_linux_function_app` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
-* `azurerm_linux_function_app_slot` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_linux_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_linux_function_app` - support for Java 17 [GH-18689]
+* `azurerm_linux_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_synapse_workspace` - `sql_administrator_login` and `sql_administrator_login_password` are now no longer required for the creation of this resource [GH-18850]
-* `azurerm_windows_function_app` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
-* `azurerm_windows_function_app_slot` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_windows_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_windows_function_app` - support for Java 17 [GH-18689]
+* `azurerm_windows_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 
 BUG FIXES:
 
