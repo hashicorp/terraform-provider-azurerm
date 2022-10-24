@@ -714,7 +714,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
-  assessment_settings {
+  assessment {
     schedule {
       day_of_week     = "Monday"
       weekly_interval = 1
@@ -733,7 +733,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
-  assessment_settings {
+  assessment {
     schedule {
       day_of_week        = "Tuesday"
       monthly_occurrence = 3

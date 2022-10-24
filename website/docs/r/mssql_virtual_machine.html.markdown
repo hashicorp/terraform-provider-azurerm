@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `storage_configuration` - (Optional) An `storage_configuration` block as defined below.
 
-* `assessment_settings` - (Optional) An `assessment_settings` block as defined below.
+* `assessment` - (Optional) An `assessment` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -161,11 +161,11 @@ The `temp_db_settings` block supports the following:
 
 ---
 
-The `assessment_settings` block supports the following:
+The `assessment` block supports the following:
 
-* `enabled` - (Optional) Should Assessment Settings be enabled? Defaults to `true`.
+* `enabled` - (Optional) Should Assessment be enabled? Defaults to `true`.
 
-* `run_immediately` - (Optional) Should Assessment Settings be run immediately? Defaults to `false`.
+* `run_immediately` - (Optional) Should Assessment be run immediately? Defaults to `false`.
 
 * `schedule` - (Optional) An `schedule` block as defined below.
 

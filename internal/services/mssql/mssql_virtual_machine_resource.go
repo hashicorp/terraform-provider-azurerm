@@ -182,7 +182,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			"assessment_settings": {
+			"assessment": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -202,13 +202,13 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 									"weekly_interval": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
-										ExactlyOneOf: []string{"assessment_settings.0.schedule.0.monthly_occurrence"},
+										ExactlyOneOf: []string{"assessment.0.schedule.0.monthly_occurrence"},
 										ValidateFunc: validation.IntBetween(1, 6),
 									},
 									"monthly_occurrence": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
-										ExactlyOneOf: []string{"assessment_settings.0.schedule.0.weekly_interval"},
+										ExactlyOneOf: []string{"assessment.0.schedule.0.weekly_interval"},
 										ValidateFunc: validation.IntBetween(1, 5),
 									},
 									"day_of_week": {
@@ -416,7 +416,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
 			AutoBackupSettings:         expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{})),
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
-			AssessmentSettings:         expandSqlVirtualMachineAssessmentSettings(d.Get("assessment_settings").([]interface{})),
+			AssessmentSettings:         expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
@@ -525,8 +525,8 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `auto_patching`: %+v", err)
 			}
 
-			if err := d.Set("assessment_settings", flattenSqlVirtualMachineAssessmentSettings(props.AssessmentSettings)); err != nil {
-				return fmt.Errorf("setting `assessment_settings`: %+v", err)
+			if err := d.Set("assessment", flattenSqlVirtualMachineAssessmentSettings(props.AssessmentSettings)); err != nil {
+				return fmt.Errorf("setting `assessment`: %+v", err)
 			}
 
 			if err := d.Set("key_vault_credential", flattenSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
