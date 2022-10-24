@@ -30,19 +30,6 @@ func SchemaSingleZone() *pluginsdk.Schema {
 	}
 }
 
-func SchemaMultipleZones() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MinItems: 1,
-		Elem: &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-	}
-}
-
 func ExpandZones(v []interface{}) *[]string {
 	zones := make([]string, 0)
 	for _, zone := range v {
