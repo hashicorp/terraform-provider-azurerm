@@ -999,7 +999,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"sku": {
 			Type:     pluginsdk.TypeString,

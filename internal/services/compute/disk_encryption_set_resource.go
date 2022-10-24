@@ -52,7 +52,7 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				ValidateFunc: validate.DiskEncryptionSetName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

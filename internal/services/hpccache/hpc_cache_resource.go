@@ -839,7 +839,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"cache_size_in_gb": {
 			Type:     pluginsdk.TypeInt,

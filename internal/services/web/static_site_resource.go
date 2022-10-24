@@ -50,7 +50,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,

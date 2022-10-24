@@ -56,7 +56,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.NatGatewayName,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 

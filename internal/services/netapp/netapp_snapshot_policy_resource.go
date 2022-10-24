@@ -50,7 +50,7 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,

@@ -61,7 +61,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			// Required
 			"admin_username": {

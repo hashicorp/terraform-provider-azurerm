@@ -91,7 +91,7 @@ func resourceNotificationHub() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"apns_credential": {
 				Type:     pluginsdk.TypeList,

@@ -49,7 +49,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"stream_analytics_cluster_id": {
 				Type:         pluginsdk.TypeString,

@@ -63,7 +63,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"storage_data_lake_gen2_filesystem_id": {
 				Type:     pluginsdk.TypeString,

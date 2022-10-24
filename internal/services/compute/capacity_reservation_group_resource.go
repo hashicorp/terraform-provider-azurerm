@@ -51,7 +51,7 @@ func resourceCapacityReservationGroup() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 

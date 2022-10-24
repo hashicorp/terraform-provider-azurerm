@@ -49,7 +49,7 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 				ValidateFunc: validate.VideoAnalyzerName(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

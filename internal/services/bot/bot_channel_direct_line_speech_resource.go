@@ -43,7 +43,7 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"bot_name": {
 				Type:         pluginsdk.TypeString,

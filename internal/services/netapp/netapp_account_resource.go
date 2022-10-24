@@ -52,7 +52,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"active_directory": {
 				Type:     pluginsdk.TypeList,

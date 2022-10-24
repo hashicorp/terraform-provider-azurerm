@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -50,7 +51,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				ValidateFunc: validate.CacheID,
 			},
 
-			"linked_redis_cache_location": azure.SchemaLocation(),
+			"linked_redis_cache_location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

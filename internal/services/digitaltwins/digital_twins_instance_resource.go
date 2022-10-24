@@ -49,7 +49,7 @@ func resourceDigitalTwinsInstance() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"host_name": {
 				Type:     pluginsdk.TypeString,

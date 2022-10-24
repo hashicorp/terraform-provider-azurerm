@@ -55,7 +55,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

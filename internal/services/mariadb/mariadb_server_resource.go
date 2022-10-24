@@ -111,7 +111,7 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,

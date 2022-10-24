@@ -26,7 +26,7 @@ func (PostgresqlServerV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ServerName,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 

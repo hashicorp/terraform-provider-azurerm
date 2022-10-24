@@ -62,7 +62,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"network_interface": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
 

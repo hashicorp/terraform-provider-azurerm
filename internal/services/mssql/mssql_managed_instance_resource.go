@@ -75,7 +75,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ValidateMsSqlServerName,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 

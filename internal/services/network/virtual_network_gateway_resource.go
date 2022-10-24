@@ -55,7 +55,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"type": {
 			Type:     pluginsdk.TypeString,

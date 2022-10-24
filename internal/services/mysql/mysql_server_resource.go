@@ -124,7 +124,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,

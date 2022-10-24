@@ -54,7 +54,7 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"app_service_name": {
 				Type:         pluginsdk.TypeString,

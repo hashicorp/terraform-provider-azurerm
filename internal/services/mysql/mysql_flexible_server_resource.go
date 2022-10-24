@@ -58,7 +58,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"administrator_login": {
 				Type:         pluginsdk.TypeString,

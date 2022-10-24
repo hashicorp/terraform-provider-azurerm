@@ -48,7 +48,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"datadog_organization": {
 				Type:     pluginsdk.TypeList,

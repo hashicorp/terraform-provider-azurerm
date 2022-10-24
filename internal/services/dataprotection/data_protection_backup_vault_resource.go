@@ -53,7 +53,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"datastore_type": {
 				Type:     pluginsdk.TypeString,

@@ -56,7 +56,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"machine_learning_workspace_id": {
 				Type:     pluginsdk.TypeString,
