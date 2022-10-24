@@ -46,7 +46,7 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 				ValidateFunc: validate.ContainerRegistryWebhookName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"registry_name": {
 				Type:         pluginsdk.TypeString,

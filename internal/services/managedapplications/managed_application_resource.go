@@ -50,7 +50,7 @@ func resourceManagedApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 
@@ -64,7 +64,7 @@ func resourceManagedApplication() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"managed_resource_group_name": azure.SchemaResourceGroupName(),
+			"managed_resource_group_name": commonschema.ResourceGroupName(),
 
 			"application_definition_id": {
 				Type:         pluginsdk.TypeString,

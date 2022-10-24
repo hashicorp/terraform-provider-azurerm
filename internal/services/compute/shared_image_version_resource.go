@@ -67,7 +67,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"target_region": {
 				// This needs to be a `TypeList` due to the `StateFunc` on the nested property `name`

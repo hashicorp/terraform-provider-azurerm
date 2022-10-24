@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,7 +45,7 @@ func autoscaleSettingSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 

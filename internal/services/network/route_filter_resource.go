@@ -47,7 +47,7 @@ func resourceRouteFilter() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"rule": {
 				Type:       pluginsdk.TypeList,

@@ -47,7 +47,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				ValidateFunc: validate.ManagedHardwareSecurityModuleName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 

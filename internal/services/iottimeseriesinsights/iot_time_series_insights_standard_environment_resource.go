@@ -52,7 +52,7 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,

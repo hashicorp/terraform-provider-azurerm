@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -44,7 +43,7 @@ func (r ContactProfileResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 

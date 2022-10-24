@@ -42,7 +42,7 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:         pluginsdk.TypeString,

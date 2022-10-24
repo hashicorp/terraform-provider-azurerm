@@ -66,7 +66,7 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 

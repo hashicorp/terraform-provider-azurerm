@@ -77,7 +77,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			// @tombuildsstuff: since this is the legacy VM this is intentionally not being updated albeit it's semantically wrong
 			"zones": azure.SchemaSingleZone(),

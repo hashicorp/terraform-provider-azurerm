@@ -51,7 +51,7 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"storage_account": {
 				Type:     pluginsdk.TypeList,

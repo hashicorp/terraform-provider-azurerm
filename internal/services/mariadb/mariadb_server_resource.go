@@ -119,7 +119,7 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"restore_point_in_time": {
 				Type:         pluginsdk.TypeString,

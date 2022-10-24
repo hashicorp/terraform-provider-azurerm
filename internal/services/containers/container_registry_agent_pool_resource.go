@@ -48,7 +48,7 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(3, 20),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 

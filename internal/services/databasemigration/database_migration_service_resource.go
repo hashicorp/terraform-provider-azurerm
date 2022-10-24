@@ -50,7 +50,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"subnet_id": {
 				Type:         pluginsdk.TypeString,

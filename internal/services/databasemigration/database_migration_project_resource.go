@@ -54,7 +54,7 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 				ValidateFunc: validate.ServiceName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 

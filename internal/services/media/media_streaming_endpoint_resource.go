@@ -48,7 +48,7 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validate.StreamingEndpointName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"media_services_account_name": {
 				Type:         pluginsdk.TypeString,

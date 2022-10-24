@@ -54,7 +54,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(), // azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": commonschema.ResourceGroupName(), // azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": commonschema.Location(),
 
