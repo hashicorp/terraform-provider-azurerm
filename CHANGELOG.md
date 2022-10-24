@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_container_group` - support for the `dns_name_label_reuse_policy` block [GH-17785]
 * `azurerm_linux_function_app` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_linux_function_app_slot` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_synapse_workspace` - `sql_administrator_login` and `sql_administrator_login_password` are now no longer required for the creation of this resource [GH-18850]
 * `azurerm_windows_function_app` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_windows_function_app_slot` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 
