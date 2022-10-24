@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/iscsitargets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -86,11 +87,11 @@ func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			attachmentId, err := diskpools.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
+			attachmentId, err := parse.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
 			if err != nil {
 				return err
 			}
-			id := iscsitargets.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
+			id := parse.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
 
 			locks.ByID(iscsiTargetId.ID())
 			defer locks.UnlockByID(iscsiTargetId.ID())
@@ -146,7 +147,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := iscsitargets.ParseIscsiTargetLunID(metadata.ResourceData.Id())
+			id, err := parse.ParseIscsiTargetLunID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -174,7 +175,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("invalid managed disk id in iscsi target response %q : %q", iscsiTargetId.ID(), lun.ManagedDiskAzureResourceId)
 					}
-					attachmentId := diskpools.NewDiskPoolManagedDiskAttachmentId(diskPoolId, *diskId)
+					attachmentId := parse.NewDiskPoolManagedDiskAttachmentId(diskPoolId, *diskId)
 					if lun.Lun == nil {
 						return fmt.Errorf("malformed Iscsi Target response %q : %+v", iscsiTargetId.ID(), resp)
 					}
@@ -206,11 +207,11 @@ func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			attachmentId, err := diskpools.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
+			attachmentId, err := parse.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
 			if err != nil {
 				return err
 			}
-			id := iscsitargets.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
+			id := parse.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
 
 			locks.ByID(iscsiTargetId.ID())
 			defer locks.UnlockByID(iscsiTargetId.ID())

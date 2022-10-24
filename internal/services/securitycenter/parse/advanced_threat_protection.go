@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = AdvancedThreatProtectionId{}
+var _ resourceids.Id = AdvancedThreatProtectionId{}
 
 type AdvancedThreatProtectionId struct {
 	TargetResourceID string
@@ -25,6 +25,14 @@ func NewAdvancedThreatProtectionId(targetResourceId string) AdvancedThreatProtec
 func (id AdvancedThreatProtectionId) ID() string {
 	fmtString := "%s/providers/Microsoft.Security/advancedThreatProtectionSettings/%s"
 	return fmt.Sprintf(fmtString, id.TargetResourceID, id.SettingName)
+}
+
+func (id AdvancedThreatProtectionId) String() string {
+	components := []string{
+		fmt.Sprintf("Target Resource ID %q", id.TargetResourceID),
+		fmt.Sprintf("Setting Name %q", id.SettingName),
+	}
+	return fmt.Sprintf("Advanced Protection %s", strings.Join(components, " / "))
 }
 
 func AdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionId, error) {

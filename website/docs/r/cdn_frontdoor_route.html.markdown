@@ -28,7 +28,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "frontdoor_origin_group" "example" {
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                     = "example-originGroup"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
