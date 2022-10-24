@@ -18,6 +18,10 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_windows_function_app_slot` - Adds support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 
+BUG FIXES:
+
+* `azurerm_key_vault_certificate` - new versions of key vault certs can now be imported [GH-18848]
+
 
 ## 3.28.0 (October 20, 2022)
 
