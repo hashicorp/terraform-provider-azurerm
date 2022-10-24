@@ -1568,7 +1568,7 @@ type Secret struct {
 
 func SecretsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeList,
+		Type:         pluginsdk.TypeSet,
 		Optional:     true,
 		Sensitive:    true,
 		ValidateFunc: nil,

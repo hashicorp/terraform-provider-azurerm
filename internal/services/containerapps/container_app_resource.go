@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -391,8 +392,8 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.ResourceDiff != nil && metadata.ResourceDiff.HasChange("secret") {
 				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secret")
-				stateSecrets := stateSecretsRaw.([]interface{})
-				configSecrets := configSecretsRaw.([]interface{})
+				stateSecrets := stateSecretsRaw.(*schema.Set).List()
+				configSecrets := configSecretsRaw.(*schema.Set).List()
 				// Check there's not less
 				if len(configSecrets) < len(stateSecrets) {
 					return fmt.Errorf("cannot remove secrets from Container Apps at this time. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
@@ -406,9 +407,9 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 								found = true
 								break
 							}
-							if !found {
-								return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
-							}
+						}
+						if !found {
+							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
 						}
 					}
 				}
