@@ -91,9 +91,9 @@ func resourceIotHub() *pluginsdk.Resource {
 				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
 				Type:     pluginsdk.TypeList,
