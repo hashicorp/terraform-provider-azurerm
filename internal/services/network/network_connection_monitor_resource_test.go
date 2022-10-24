@@ -334,11 +334,6 @@ resource "azurerm_virtual_machine" "src" {
 
   delete_os_disk_on_termination = true
 
-  tags = {
-    "azsecpack"                                                                = "nonprod"
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
-  }
-
   os_profile {
     computer_name  = "hostname%d"
     admin_username = "testadmin"
@@ -399,11 +394,6 @@ resource "azurerm_virtual_machine" "dest" {
   }
 
   delete_os_disk_on_termination = true
-
-  tags = {
-    "azsecpack"                                                                = "nonprod"
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
-  }
 
   os_profile {
     computer_name  = "hostname%d"
