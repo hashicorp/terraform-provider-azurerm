@@ -15,7 +15,6 @@ Manages an Automation Source Control.
 ```hcl
 resource "azurerm_automation_source_control" "example" {
   name                  = "example"
-  resource_group_name   = "example"
   automation_account_id = azurerm_automation_account.test.id
   folder_path           = "runbook"
 

@@ -73,14 +73,14 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 
 			"sql_administrator_login": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SqlAdministratorLoginName,
 			},
 
 			"sql_administrator_login_password": {
 				Type:      pluginsdk.TypeString,
-				Required:  true,
+				Optional:  true,
 				Sensitive: true,
 			},
 

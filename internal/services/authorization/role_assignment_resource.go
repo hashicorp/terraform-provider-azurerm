@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: this wants splitting into virtual resources with Virtual IDs
+
 func resourceArmRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmRoleAssignmentCreate,

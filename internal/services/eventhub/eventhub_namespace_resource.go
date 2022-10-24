@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -582,7 +583,11 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving Network Rule Sets for %s: %+v", *id, err)
 	}
 
-	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
+	networkRuleSets, err := flattenEventHubNamespaceNetworkRuleset(ruleset)
+	if err != nil {
+		return fmt.Errorf("flattening `network_rule` for %s: %+v", id, err)
+	}
+	if err := d.Set("network_rulesets", networkRuleSets); err != nil {
 		return fmt.Errorf("setting `network_ruleset` for Evenhub Namespace %s: %v", id.NamespaceName, err)
 	}
 
@@ -748,9 +753,9 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 	return &ruleset
 }
 
-func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) []interface{} {
+func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) ([]interface{}, error) {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
-		return nil
+		return nil, nil
 	}
 
 	vnetBlocks := make([]interface{}, 0)
@@ -760,7 +765,14 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 			if s := vnetRule.Subnet; s != nil {
 				if v := s.Id; v != nil {
-					block["subnet_id"] = *v
+					// the API returns the subnet ID's resource group name in lowercase
+					// https://github.com/Azure/azure-sdk-for-go/issues/5855
+					// for some reason the DiffSuppressFunc for `subnet_id` isn't working as intended, so we'll also flatten the id insensitively
+					subnetId, err := parse.SubnetIDInsensitively(*v)
+					if err != nil {
+						return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
+					}
+					block["subnet_id"] = subnetId.ID()
 				}
 			}
 
@@ -803,7 +815,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 		"virtual_network_rule":           vnetBlocks,
 		"ip_rule":                        ipBlocks,
 		"trusted_service_access_enabled": ruleset.Model.Properties.TrustedServiceAccessEnabled,
-	}}
+	}}, nil
 }
 
 // The resource id of subnet_id that's being returned by API is always lower case &

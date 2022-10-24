@@ -132,7 +132,7 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model AadB2cDirectoryModel
@@ -210,7 +210,7 @@ func (r AadB2cDirectoryResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 
 			id, err := tenants.ParseB2CDirectoryID(metadata.ResourceData.Id())
 			if err != nil {
@@ -246,7 +246,7 @@ func (r AadB2cDirectoryResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 
 			id, err := tenants.ParseB2CDirectoryID(metadata.ResourceData.Id())
 			if err != nil {
@@ -310,7 +310,7 @@ func (r AadB2cDirectoryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 
 			id, err := tenants.ParseB2CDirectoryID(metadata.ResourceData.Id())
 			if err != nil {

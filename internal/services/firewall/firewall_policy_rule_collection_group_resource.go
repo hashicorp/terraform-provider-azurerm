@@ -386,6 +386,8 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"destination_ports": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
+										// only support 1 destination port in one DNAT rule
+										MaxItems: 1,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 64000),
