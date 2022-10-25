@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
+	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
@@ -92,6 +93,7 @@ import (
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 	powerBI "github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/client"
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
+	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
@@ -127,7 +129,7 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
-	AadB2c                *aadb2c.Client
+	AadB2c                *aadb2c_v2021_04_01_preview.Client
 	Advisor               *advisor.Client
 	AnalysisServices      *analysisservices_v2017_08_01.Client
 	ApiManagement         *apiManagement.Client
@@ -209,6 +211,7 @@ type Client struct {
 	Postgres              *postgres.Client
 	PowerBI               *powerBI.Client
 	PrivateDns            *privatedns.Client
+	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
 	Redis                 *redis.Client
@@ -330,6 +333,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
+	client.PrivateDnsResolver = dnsresolver.NewClient(o)
 	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)

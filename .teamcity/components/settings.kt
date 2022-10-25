@@ -101,6 +101,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         "policy" to testConfiguration(useAltSubscription = true),
 
+         // Private DNS Resolver is only available in certain locations
+         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
+
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -177,7 +177,7 @@ type ResourceMetaData struct {
 }
 
 // MarkAsGone marks this resource as removed in the Remote API, so this is no longer available
-func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceid.Formatter) error {
+func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceids.Id) error {
 	rmd.Logger.Infof("[DEBUG] %s was not found - removing from state", idFormatter)
 	rmd.ResourceData.SetId("")
 	return nil
@@ -185,7 +185,7 @@ func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceid.Formatter) error {
 
 // ResourceRequiresImport returns an error saying that this resource must be imported with instructions
 // on how to do this (namely, using `terraform import`
-func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormatter resourceid.Formatter) error {
+func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormatter resourceids.Id) error {
 	resourceId := idFormatter.ID()
 	return tf.ImportAsExistsError(resourceName, resourceId)
 }

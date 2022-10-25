@@ -52,9 +52,9 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: netAppValidate.VolumeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -240,7 +240,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"remote_volume_location": azure.SchemaLocation(),
+						"remote_volume_location": commonschema.Location(),
 
 						"remote_volume_resource_id": {
 							Type:         pluginsdk.TypeString,
