@@ -98,7 +98,6 @@ output "sas_url_query_string" {
 
 A `permissions` block contains:
 
-
 * `read` - Should Read permissions be enabled for this SAS?
 
 * `add` - Should Add permissions be enabled for this SAS?

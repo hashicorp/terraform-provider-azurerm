@@ -12,7 +12,6 @@ Use this data source to access information about an existing App Service Source 
 
 ~> **Note:** This value can only be queried for the user or service principal that is executing Terraform. It is not possible to retrieve for another user.
 
-
 ## Example Usage
 
 ```hcl
@@ -31,10 +30,9 @@ The following arguments are supported:
 
 * `type` - (Required) The Token type. Possible values include `Bitbucket`, `Dropbox`, `Github`, and `OneDrive`.
 
-
 ## Attributes Reference
 
-The following Attributes are exported: 
+The following Attributes are exported:
 
 * `id` - The ID of the App Service Source GitHub Token.
 
