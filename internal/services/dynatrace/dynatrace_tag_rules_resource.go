@@ -19,8 +19,8 @@ type TagRulesResource struct{}
 type TagRulesResourceModel struct {
 	Name        string       `tfschema:"name"`
 	Monitor     string       `tfschema:"monitor_id"`
-	LogRules    []LogRule    `tfschema:"log_rules"`
-	MetricRules []MetricRule `tfschema:"metric_rules"`
+	LogRules    []LogRule    `tfschema:"log_rule"`
+	MetricRules []MetricRule `tfschema:"metric_rule"`
 }
 
 type MetricRule struct {
@@ -29,9 +29,9 @@ type MetricRule struct {
 
 type LogRule struct {
 	FilteringTags        []FilteringTag `tfschema:"filtering_tag"`
-	SendAadLogs          string         `tfschema:"send_aad_logs_enabled"`
-	SendActivityLogs     string         `tfschema:"send_activity_logs_enabled"`
-	SendSubscriptionLogs string         `tfschema:"send_subscription_logs_enabled"`
+	SendAadLogs          bool           `tfschema:"send_aad_logs"`
+	SendActivityLogs     bool           `tfschema:"send_activity_logs"`
+	SendSubscriptionLogs bool           `tfschema:"send_subscription_logs"`
 }
 
 type FilteringTag struct {
@@ -56,9 +56,9 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: monitors.ValidateMonitorID,
 		},
 
-		"log_rules": SchemaLogRule(),
+		"log_rule": SchemaLogRule(),
 
-		"metric_rules": SchemaMetricRules(),
+		"metric_rule": SchemaMetricRules(),
 	}
 }
 

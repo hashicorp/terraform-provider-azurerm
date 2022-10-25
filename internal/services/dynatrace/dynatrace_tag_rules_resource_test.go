@@ -71,18 +71,17 @@ resource "azurerm_dynatrace_tag_rules" "test" {
   name       = "default"
   monitor_id = azurerm_dynatrace_monitors.test.id
 
-  log_rules {
+  log_rule {
     filtering_tag {
       name   = "Environment"
       value  = "Prod"
       action = "Include"
     }
-    send_aad_logs_enabled          = "Enabled"
-    send_activity_logs_enabled     = "Enabled"
-    send_subscription_logs_enabled = "Enabled"
+    send_aad_logs      = true
+    send_activity_logs = true
   }
 
-  metric_rules {
+  metric_rule {
     filtering_tag {
       name   = "Environment"
       value  = "Prod"
@@ -124,7 +123,7 @@ resource "azurerm_dynatrace_monitors" "test" {
   monitoring_enabled       = true
   marketplace_subscription = "Active"
 
-  user_info {
+  user {
     first_name   = "Alice"
     last_name    = "Bobab"
     email        = "alice@microsoft.com"
@@ -132,7 +131,7 @@ resource "azurerm_dynatrace_monitors" "test" {
     country      = "westus"
   }
 
-  plan_data {
+  plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
     plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"

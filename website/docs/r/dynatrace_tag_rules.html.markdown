@@ -27,15 +27,15 @@ resource "azurerm_dynatrace_monitors" "example" {
   monitoring_status               = "Enabled"
   marketplace_subscription_status = "Active"
 
-  user_info {
-    first_name    = "Alice"
-    last_name     = "Bobab"
-    email_address = "alice@microsoft.com"
-    phone_number  = "123456"
-    country       = "westus"
+  user {
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "alice@microsoft.com"
+    phone_number = "123456"
+    country      = "westus"
   }
 
-  plan_data {
+  plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
     plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
@@ -47,18 +47,18 @@ resource "azurerm_dynatrace_tag_rules" "example" {
   name       = "examplestreamanalyticscluster"
   monitor_id = azurerm_dynatrace_monitors.test.id
 
-  log_rules {
+  log_rule {
     filtering_tag {
       name   = "Environment"
       value  = "Prod"
       action = "Include"
     }
-    send_aad_logs          = "Enabled"
-    send_activity_logs     = "Enabled"
-    send_subscription_logs = "Enabled"
+    send_aad_logs          = true
+    send_activity_logs     = true
+    send_subscription_logs = true
   }
 
-  metric_rules {
+  metric_rule {
     filtering_tag {
       name   = "Environment"
       value  = "Prod"
@@ -76,9 +76,9 @@ The following arguments are supported:
 
 * `monitor_id` - (Required) Name of the Dynatrace monitor. Changing this forces a new resource to be created.
 
-* `log_rules` - (Optional) Set of rules for sending logs for the Monitor resource. Changing this forces a new resource to be created.
+* `log_rule` - (Optional) Set of rules for sending logs for the Monitor resource. Changing this forces a new resource to be created.
 
-* `metric_rules` - (Optional) Set of rules for sending metrics for the Monitor resource. Changing this forces a new resource to be created.
+* `metric_rule` - (Optional) Set of rules for sending metrics for the Monitor resource. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
