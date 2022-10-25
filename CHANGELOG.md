@@ -10,6 +10,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies `containerinstance` - updating to use `2021-10-01` [GH-17785]
+* Dependencies: update `go-azure-helpers` to `v0.45.0` [GH-18968]
 * containerservice: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18705]
 * disks: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18928]
 * Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` [GH-18898]
