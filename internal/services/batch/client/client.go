@@ -3,17 +3,17 @@ package client
 import (
 	"context"
 	"fmt"
-
 	batchDataplane "github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/application"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 )
 
 type Client struct {
-	AccountClient     *batch.AccountClient
-	ApplicationClient *batch.ApplicationClient
+	AccountClient     *batchaccount.BatchAccountClient
+	ApplicationClient *application.ApplicationClient
 	CertificateClient *batch.CertificateClient
 	PoolClient        *batch.PoolClient
 
@@ -21,10 +21,10 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	accountClient := batch.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	accountClient := batchaccount.NewBatchAccountClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 
-	applicationClient := batch.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	applicationClient := application.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&applicationClient.Client, o.ResourceManagerAuthorizer)
 
 	certificateClient := batch.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -42,22 +42,24 @@ func NewClient(o *common.ClientOptions) *Client {
 	}
 }
 
-func (r *Client) JobClient(ctx context.Context, accountId parse.AccountId) (*batchDataplane.JobClient, error) {
+func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAccountId) (*batchDataplane.JobClient, error) {
 	// Retrieve the batch account to find the batch account endpoint
 	accountClient := r.AccountClient
-	account, err := accountClient.Get(ctx, accountId.ResourceGroup, accountId.BatchAccountName)
+	account, err := accountClient.Get(ctx, accountId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", accountId, err)
 	}
-	if account.AccountProperties == nil {
-		return nil, fmt.Errorf(`unexpected nil of "AccountProperties" of %s`, accountId)
-	}
-	if account.AccountProperties.AccountEndpoint == nil {
-		return nil, fmt.Errorf(`unexpected nil of "AccountProperties.AccountEndpoint" of %s`, accountId)
+	if model := account.Model; model != nil {
+		if model.Properties == nil {
+			return nil, fmt.Errorf(`unexpected nil of "AccountProperties" of %s`, accountId)
+		}
+		if model.Properties.AccountEndpoint == nil {
+			return nil, fmt.Errorf(`unexpected nil of "AccountProperties.AccountEndpoint" of %s`, accountId)
+		}
 	}
 
 	// Copy the client since we'll manipulate its BatchURL
-	endpoint := "https://" + *account.AccountProperties.AccountEndpoint
+	endpoint := "https://" + *account.Model.Properties.AccountEndpoint
 	c := batchDataplane.NewJobClient(endpoint)
 	c.BaseClient.Client.Authorizer = r.BatchManagementAuthorizer
 	return &c, nil

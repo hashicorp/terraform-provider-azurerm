@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/application"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -68,17 +68,17 @@ func TestAccBatchApplication_complete(t *testing.T) {
 }
 
 func (t BatchApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationID(state.ID)
+	id, err := application.ParseApplicationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Batch.ApplicationClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := clients.Batch.ApplicationClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Batch Application %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s", *id)
 	}
 
-	return utils.Bool(resp.ApplicationProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BatchApplicationResource) template(data acceptance.TestData, displayName string) string {

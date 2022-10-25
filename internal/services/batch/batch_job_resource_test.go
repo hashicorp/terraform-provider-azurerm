@@ -3,6 +3,7 @@ package batch_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -96,7 +97,7 @@ func (r BatchJobResource) Exists(ctx context.Context, clients *clients.Client, s
 		return nil, err
 	}
 
-	client, err := clients.Batch.JobClient(ctx, parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName))
+	client, err := clients.Batch.JobClient(ctx, batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName))
 	if err != nil {
 		return nil, err
 	}

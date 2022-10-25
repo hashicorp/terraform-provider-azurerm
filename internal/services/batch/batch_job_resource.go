@@ -3,6 +3,7 @@ package batch
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"time"
 
 	batchDataplane "github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch"
@@ -100,7 +101,7 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			accountId := parse.NewAccountID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
@@ -149,7 +150,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
@@ -216,7 +217,7 @@ func (r BatchJobResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
@@ -238,7 +239,7 @@ func (r BatchJobResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
