@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
-* `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
+* `sticky_settings` - A `sticky_settings` block as defined below.
 
 * `storage_account_access_key` - The access key which is used to access the backend storage account for the Function App.
 
