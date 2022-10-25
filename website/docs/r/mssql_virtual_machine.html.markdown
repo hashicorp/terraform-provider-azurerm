@@ -89,13 +89,13 @@ The `auto_backup` block supports the following:
 
 The `manual_schedule` block supports the following:
 
-* `full_backup_frequency` - (Optional) Frequency of full backups. Valid values include `Daily` or `Weekly`. Required when `backup_schedule_automated` is false.
+* `full_backup_frequency` - (Required) Frequency of full backups. Valid values include `Daily` or `Weekly`.
 
-* `full_backup_start_hour` - (Optional) Start hour of a given day during which full backups can take place. Valid values are from `0` to `23`. Required when `backup_schedule_automated` is false.
+* `full_backup_start_hour` - (Required) Start hour of a given day during which full backups can take place. Valid values are from `0` to `23`.
 
-* `full_backup_window_in_hours` - (Optional) Duration of the time window of a given day during which full backups can take place, in hours. Valid values are between `1` and `23`. Required when `backup_schedule_automated` is false.
+* `full_backup_window_in_hours` - (Required) Duration of the time window of a given day during which full backups can take place, in hours. Valid values are between `1` and `23`.
 
-* `log_backup_frequency_in_minutes` - (Optional) Frequency of log backups, in minutes. Valid values are from `5` to `60`. Required when `backup_schedule_automated` is false.
+* `log_backup_frequency_in_minutes` - (Required) Frequency of log backups, in minutes. Valid values are from `5` to `60`.
 
 ---
 
