@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_cdn_frontdoor_endpoint
 
-Use this data source to access information about an existing Front Door (standard/premium) Endpoint.
+Use this data source to access information about an existing Front Door(standard/premium) Endpoint.
 
 ## Example Usage
 
