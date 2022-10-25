@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_origin_group"
 description: |-
-  Manages a Front Door(standard/premium) Origin Group.
+  Manages a Front Door (standard/premium) Origin Group.
 ---
 
 # azurerm_cdn_frontdoor_origin_group
 
-Manages a Front Door(standard/premium) Origin Group.
+Manages a Front Door (standard/premium) Origin Group.
 
 ## Example Usage
 

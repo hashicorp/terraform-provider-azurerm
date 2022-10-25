@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_secret"
 description: |-
-  Gets information about an existing Front Door(standard/premium) Secret.
+  Gets information about an existing Front Door (standard/premium) Secret.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_secret
 
-Use this data source to access information about an existing Front Door(standard/premium) Secret.
+Use this data source to access information about an existing Front Door (standard/premium) Secret.
 
 ## Example Usage
 

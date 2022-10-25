@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_origin_group"
 description: |-
-  Gets information about an existing Front Door(standard/premium) Origin Group.
+  Gets information about an existing Front Door (standard/premium) Origin Group.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_origin_group
 
-Use this data source to access information about an existing Front Door(standard/premium) Origin Group.
+Use this data source to access information about an existing Front Door (standard/premium) Origin Group.
 
 ## Example Usage
 

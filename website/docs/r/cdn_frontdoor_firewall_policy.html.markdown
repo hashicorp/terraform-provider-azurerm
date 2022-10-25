@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_firewall_policy"
 description: |-
-  Manages a Front Door(standard/premium) Firewall Policy instance.
+  Manages a Front Door (standard/premium) Firewall Policy instance.
 ---
 
 # azurerm_cdn_frontdoor_firewall_policy
 
-Manages a Front Door(standard/premium) Firewall Policy instance.
+Manages a Front Door (standard/premium) Firewall Policy instance.
 
 ## Example Usage
 

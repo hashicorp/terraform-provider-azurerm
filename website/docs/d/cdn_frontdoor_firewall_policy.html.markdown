@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_firewall_policy"
 description: |-
-  Gets information about an existing Front Door(standard/premium) Firewall Policy.
+  Gets information about an existing Front Door (standard/premium) Firewall Policy.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_firewall_policy
 
-Use this data source to access information about an existing Front Door(standard/premium) Firewall Policy.
+Use this data source to access information about an existing Front Door (standard/premium) Firewall Policy.
 
 ## Example Usage
 

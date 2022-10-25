@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_route_disable_link_to_default_domain"
 description: |-
-  Manages the Link To Default Domain property of a Front Door(standard/premium) Route.
+  Manages the Link To Default Domain property of a Front Door (standard/premium) Route.
 ---
 
 # azurerm_cdn_frontdoor_route_disable_link_to_default_domain
 
-Manages the Link To Default Domain property of a Front Door(standard/premium) Route.
+Manages the Link To Default Domain property of a Front Door (standard/premium) Route.
 
 !>**IMPORTANT:** This resource has been deprecated and should not be used for new deployments. The `azurerm_cdn_frontdoor_route_disable_link_to_default_domain` resource will be removed from the 4.0 AzureRM provider. Please use the `link_to_default_domain` field in the `azurerm_cdn_frontdoor_route` resource to control this value.
 

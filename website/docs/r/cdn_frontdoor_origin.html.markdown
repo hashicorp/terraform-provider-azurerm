@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_origin"
 description: |-
-  Manages a Front Door(standard/premium) Origin.
+  Manages a Front Door (standard/premium) Origin.
 ---
 
 # azurerm_cdn_frontdoor_origin
 
-Manages a Front Door(standard/premium) Origin.
+Manages a Front Door (standard/premium) Origin.
 
 !>**IMPORTANT:** If you are attempting to implement an Origin that uses its own Private Link Service with a Load Balancer the Profile resource in your configuration file **must** have a `depends_on` meta-argument which references the `azurerm_private_link_service`, see `Example Usage With Private Link Service` below.
 

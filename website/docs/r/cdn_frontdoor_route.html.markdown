@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_route"
 description: |-
-  Manages a Front Door(standard/premium) Route.
+  Manages a Front Door (standard/premium) Route.
 ---
 
 # azurerm_cdn_frontdoor_route
 
-Manages a Front Door(standard/premium) Route.
+Manages a Front Door (standard/premium) Route.
 
 ## Example Usage
 

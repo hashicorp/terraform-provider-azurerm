@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_endpoint"
 description: |-
-  Gets information about an existing Front Door(standard/premium) Endpoint.
+  Gets information about an existing Front Door (standard/premium) Endpoint.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_endpoint
 
-Use this data source to access information about an existing Front Door(standard/premium) Endpoint.
+Use this data source to access information about an existing Front Door (standard/premium) Endpoint.
 
 ## Example Usage
 

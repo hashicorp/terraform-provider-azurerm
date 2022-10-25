@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain"
 description: |-
-  Manages a Front Door(standard/premium) Custom Domain.
+  Manages a Front Door (standard/premium) Custom Domain.
 ---
 
 # azurerm_cdn_frontdoor_custom_domain
 
-Manages a Front Door(standard/premium) Custom Domain.
+Manages a Front Door (standard/premium) Custom Domain.
 
 !>**IMPORTANT:** If you are using Terraform to manage your DNS Auth and DNS CNAME records for your Custom Domain you will need to add configuration blocks for both the `azurerm_dns_txt_record`(see the `Example DNS Auth TXT Record Usage` below) and the `azurerm_dns_cname_record`(see the `Example CNAME Record Usage` below) to your configuration file.
 

@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile"
 description: |-
-  Gets information about an existing Front Door(standard/premium) Profile.
+  Gets information about an existing Front Door (standard/premium) Profile.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_profile
 
-Use this data source to access information about an existing Front Door(standard/premium) Profile.
+Use this data source to access information about an existing Front Door (standard/premium) Profile.
 
 ## Example Usage
 
