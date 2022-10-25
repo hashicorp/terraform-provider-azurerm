@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 }
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.example.id
-  single_sign_on_enabled        = "Enable"
+  single_sign_on_enabled    = "Enable"
   enterprise_application_id = "XXXX"
 }
 ```

@@ -58,7 +58,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 
         // Datadog is available only in WestUS2 region 
-        "datadog" to testConfiguration(locationOverride = LocationConfiguration("westus2", "centraluseuap", false)),
+        "datadog" to testConfiguration(locationOverride = LocationConfiguration("westus2", "westus2", "centraluseuap" false)),
 
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),

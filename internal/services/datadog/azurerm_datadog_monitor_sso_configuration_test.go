@@ -116,7 +116,7 @@ func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  single_sign_on_enabled        = "Enable"
+  single_sign_on_enabled    = "Enable"
   enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
 `, r.template(data))
@@ -128,7 +128,7 @@ func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  single_sign_on_enabled        = "Disable"
+  single_sign_on_enabled    = "Disable"
   enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
 }
 `, r.template(data))
