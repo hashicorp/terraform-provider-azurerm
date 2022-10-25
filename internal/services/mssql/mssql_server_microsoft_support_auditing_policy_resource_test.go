@@ -112,18 +112,18 @@ func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_storageAccBehindFireWall(t
 }
 
 func (MsSqlServerMicrosoftSupportAuditingPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerExtendedAuditingPolicyID(state.ID)
+	id, err := parse.ServerMicrosoftSupportAuditingPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ServerExtendedBlobAuditingPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	resp, err := client.MSSQL.ServerDevOpsAuditSettingsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.DevOpsAuditingSettingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("SQL Server Extended Auditing Policy for server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroup)
+			return nil, fmt.Errorf("SQL Server Microsoft Support Auditing Policy for server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroup)
 		}
 
-		return nil, fmt.Errorf("reading SQL Server Extended Auditing Policy for server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading SQL Server Microsoft Support Auditing Policy for server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -188,13 +188,11 @@ func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) complete(data accepta
 %[1]s
 
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
-  server_id                               = azurerm_mssql_server.test.id
-  blob_storage_endpoint                   = azurerm_storage_account.test.primary_blob_endpoint
-  storage_account_access_key              = azurerm_storage_account.test.primary_access_key
-  storage_account_access_key_is_secondary = false
-  retention_in_days                       = 6
-  log_monitoring_enabled                  = false
-  enabled                                 = true
+  server_id                  = azurerm_mssql_server.test.id
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  log_monitoring_enabled     = false
+  enabled                    = true
 }
 `, r.template(data))
 }
