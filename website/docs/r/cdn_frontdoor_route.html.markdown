@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route.
 
-* `cdn_frontdoor_origin_path` - (Optional) A directory path on the CDN FrontDoor Origin that can use to retrieve content from (e.g. `contoso.cloudapp.net/originpath`).
+* `cdn_frontdoor_origin_path` - (Optional) A directory path on the CDN FrontDoor Origin that can be used to retrieve content (e.g. `contoso.cloudapp.net/originpath`).
 
 * `cdn_frontdoor_rule_set_ids` - (Optional) A list of the CDN FrontDoor Rule Set IDs which should be assigned to this CDN FrontDoor Route.
 
