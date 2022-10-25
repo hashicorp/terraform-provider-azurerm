@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `logs` - (Optional) A `logs` block as defined below.
 
-* `sticky_settings` - A `sticky_settings` block as defined below.
+* `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 

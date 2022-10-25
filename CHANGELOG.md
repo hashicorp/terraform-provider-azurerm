@@ -10,6 +10,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies `containerinstance` - updating to use `2021-10-01` [GH-17785]
+* Dependencies: update `go-azure-helpers` to `v0.45.0` [GH-18968]
 * containerservice: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18705]
 * disks: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18928]
 * Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` [GH-18898]
@@ -24,6 +25,7 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app` - support for Java 17 [GH-18689]
 * `azurerm_linux_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_logic_app_action_http` - support for the `queries` property [GH-18934]
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - add `evaluation_frequency`, `window_duration`, `mute_actions_after_alert_duration`, and `query_time_range_override`validation [GH-18960]
 * `azurerm_mssql_virtual_machine` - =support for the `assessment` block [GH-18923]
 * `azurem_logic_app_standard` - support for the `scm_ip_restriction` block and the `scm_use_main_ip_restriction`, `scm_min_tls_version`, `scm_type` properties [GH-18853]
 * `azurerm_servicebus_namespace_disaster_recovery_config` - support the `alias_authorization_rule_id` property [GH-18729]
