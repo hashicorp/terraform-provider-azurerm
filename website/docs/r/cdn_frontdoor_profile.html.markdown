@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile"
 description: |-
-  Manages a Front Door(standard/premium) Profile, which contains a collection of endpoints and origin groups.
+  Manages a Front Door(standard/premium) Profile.
 ---
 
 # azurerm_cdn_frontdoor_profile
 
-Manages a Front Door(standard/premium) Profile, which contains a collection of endpoints and origin groups.
+Manages a Front Door(standard/premium) Profile which contains a collection of endpoints and origin groups.
 
 ## Example Usage
 
