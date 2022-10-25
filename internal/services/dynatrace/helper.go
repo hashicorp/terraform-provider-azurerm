@@ -133,31 +133,19 @@ func SchemaLogRule() *pluginsdk.Schema {
 			Schema: map[string]*schema.Schema{
 				"filtering_tag": SchemaFilteringTag(),
 
-				"send_aad_logs_enabled": {
-					Type:     pluginsdk.TypeString,
+				"send_aad_logs": {
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Enabled",
-						"Disabled",
-					}, false),
 				},
 
-				"send_activity_logs_enabled": {
-					Type:     pluginsdk.TypeString,
+				"send_activity_logs": {
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Enabled",
-						"Disabled",
-					}, false),
 				},
 
-				"send_subscription_logs_enabled": {
-					Type:     pluginsdk.TypeString,
+				"send_subscription_logs": {
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Enabled",
-						"Disabled",
-					}, false),
 				},
 			},
 		},
@@ -199,9 +187,19 @@ func ExpandLogRule(input []LogRule) *tagrules.LogRules {
 		return nil
 	}
 	v := input[0]
-	sendAadLogs := tagrules.SendAadLogsStatus(v.SendAadLogs)
-	sendActivityLogs := tagrules.SendActivityLogsStatus(v.SendActivityLogs)
-	sendSubscriptionLogs := tagrules.SendSubscriptionLogsStatus(v.SendSubscriptionLogs)
+	sendAadLogs := tagrules.SendAadLogsStatusDisabled
+	sendActivityLogs := tagrules.SendActivityLogsStatusDisabled
+	sendSubscriptionLogs := tagrules.SendSubscriptionLogsStatusDisabled
+
+	if v.SendAadLogs {
+		sendAadLogs = tagrules.SendAadLogsStatusEnabled
+	}
+	if v.SendActivityLogs {
+		sendActivityLogs = tagrules.SendActivityLogsStatusEnabled
+	}
+	if v.SendSubscriptionLogs {
+		sendSubscriptionLogs = tagrules.SendSubscriptionLogsStatusEnabled
+	}
 
 	return &tagrules.LogRules{
 		FilteringTags:        ExpandFilteringTag(v.FilteringTags),
@@ -349,24 +347,24 @@ func FlattenLogRules(input *tagrules.LogRules) []LogRule {
 	}
 
 	var filteringTags []FilteringTag
-	var sendAadLogs string
-	var sendActivityLogs string
-	var sendSubscriptionLogs string
+	sendAadLogs := false
+	sendActivityLogs := false
+	sendSubscriptionLogs := false
 
 	if input.FilteringTags != nil {
 		filteringTags = FlattenFilteringTags(input.FilteringTags)
 	}
 
-	if input.SendActivityLogs != nil {
-		sendActivityLogs = string(*input.SendActivityLogs)
+	if input.SendActivityLogs != nil && *input.SendActivityLogs == tagrules.SendActivityLogsStatusEnabled {
+		sendActivityLogs = true
 	}
 
-	if input.SendAadLogs != nil {
-		sendAadLogs = string(*input.SendAadLogs)
+	if input.SendAadLogs != nil && *input.SendAadLogs == tagrules.SendAadLogsStatusEnabled {
+		sendAadLogs = true
 	}
 
-	if input.SendSubscriptionLogs != nil {
-		sendSubscriptionLogs = string(*input.SendSubscriptionLogs)
+	if input.SendSubscriptionLogs != nil && *input.SendSubscriptionLogs == tagrules.SendSubscriptionLogsStatusEnabled {
+		sendSubscriptionLogs = true
 	}
 
 	return []LogRule{

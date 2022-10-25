@@ -28,7 +28,7 @@ func TestAccDynatraceMonitors_basic(t *testing.T) {
 			),
 		},
 
-		data.ImportStep("user_info"),
+		data.ImportStep("user"),
 	})
 }
 
@@ -49,7 +49,7 @@ func TestAccDynatraceMonitors_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_info"),
+		data.ImportStep("user"),
 	})
 }
 
@@ -97,7 +97,7 @@ resource "azurerm_dynatrace_monitors" "test" {
   monitoring_enabled       = true
   marketplace_subscription = "Active"
 
-  user_info {
+  user {
     first_name   = "Alice"
     last_name    = "Bobab"
     email        = "alice@microsoft.com"
@@ -105,7 +105,7 @@ resource "azurerm_dynatrace_monitors" "test" {
     country      = "westus"
   }
 
-  plan_data {
+  plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
     plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
@@ -128,7 +128,7 @@ resource "azurerm_dynatrace_monitors" "test" {
   monitoring_enabled       = true
   marketplace_subscription = "Active"
 
-  user_info {
+  user {
     first_name   = "Alice"
     last_name    = "Bobab"
     email        = "alice@microsoft.com"
@@ -136,7 +136,7 @@ resource "azurerm_dynatrace_monitors" "test" {
     country      = "westus"
   }
 
-  plan_data {
+  plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
     plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"

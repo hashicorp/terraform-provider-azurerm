@@ -27,15 +27,15 @@ resource "azurerm_dynatrace_monitors" "example" {
   monitoring_status               = "Enabled"
   marketplace_subscription_status = "Active"
 
-  user_info {
-    first_name    = "Alice"
-    last_name     = "Bobab"
-    email_address = "alice@microsoft.com"
-    phone_number  = "123456"
-    country       = "westus"
+  user {
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "alice@microsoft.com"
+    phone_number = "123456"
+    country      = "westus"
   }
 
-  plan_data {
+  plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
     plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
@@ -60,15 +60,15 @@ The following arguments are supported:
 
 * `marketplace_subscription_status` - (Optional) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active`, `Suspended`.
 
-* `plan_data` - (Optional) Billing plan information. A `plan_data` block as defined below.
+* `plan` - (Optional) Billing plan information. A `plan` block as defined below.
 
-* `user_info` - (Optional) User's information. A `user_info` block as defined below.
+* `user` - (Optional) User's information. A `user` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-A `plan_data` block supports the following:
+A `plan` block supports the following:
 
 * `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY`, `WEEKLY`.
 
@@ -80,11 +80,11 @@ A `plan_data` block supports the following:
 
 ---
 
-A `user_info` block supports the following:
+A `user` block supports the following:
 
 * `country` - (Optional) Country of the user.
 
-* `email_address` - (Optional) Email of the user used by Dynatrace for contacting them if needed.
+* `email` - (Optional) Email of the user used by Dynatrace for contacting them if needed.
 
 * `first_name` - (Optional) First name of the user.
 
