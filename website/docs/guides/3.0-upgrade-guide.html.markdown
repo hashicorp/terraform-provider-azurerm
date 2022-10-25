@@ -6,7 +6,9 @@ Azure Resource Manager: 3.0 Upgrade Guide
 
 ---
 
-# v3.0 of the AzureRM Provider
+# AzureRM Provider
+
+## AzureRM Provider Version v3.0
 
 The last major release for the AzureRM provider was in February 2020. Since then we've added support for nearly 400 Resources and 100 Data Sources, bringing the total supported features to 761 Resources and 238 Data Sources at the time of writing this guide.
 
