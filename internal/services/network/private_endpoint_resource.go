@@ -115,7 +115,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"private_service_connection": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MaxItems: 1,
+				MaxItems: 8,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
