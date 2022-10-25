@@ -361,6 +361,13 @@ func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
+	// When rolling upgrades are setup, vmscalesets can't be deleted unless the upgrade is cancelled.
+	// Since destroy function intention is to VMSS itself. Rolling upgrades are trivial here, hence we cancel before we trigger destroy call
+	err = meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
+	if err != nil {
+		return fmt.Errorf("error while cancelling rolling upgrade during destroy phase in Linux Virtual Machine Scale Set %q (Resource Group %q) : %+v", id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 	if err != nil {
 		return fmt.Errorf("deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)

@@ -1108,6 +1108,13 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	// When rolling upgrades are setup, vmscalesets can't be deleted unless the upgrade is cancelled.
+	// Since destroy function intention is to VMSS itself. Rolling upgrades are trivial here, hence we cancel before we trigger destroy call
+	err = meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("error while cancelling rolling upgrade during destroy phase in Linux Virtual Machine Scale Set %q (Resource Group %q) : %+v", id.Name, id.ResourceGroup, err)
+	}
+
 	// Sometimes VMSS's aren't fully deleted when the `Delete` call returns - as such we'll try to scale the cluster
 	// to 0 nodes first, then delete the cluster - which should ensure there's no Network Interfaces kicking around
 	// and work around this Azure API bug:
