@@ -93,7 +93,7 @@ An `identity` block supports the following:
 * `type` - (Required) The type of identity used for the Healthcare FHIR service. Possible values are `SystemAssigned`.
 
 ---
-A `cors` block supports the following:  
+A `cors` block supports the following:
 
 * `allowed_origins` - (Required) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.
@@ -106,7 +106,7 @@ An `authentication` supports the following:
 
 * `authority` - (Optional) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
-* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is https://<name>.fhir.azurehealthcareapis.com
+* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is `https://<name>.fhir.azurehealthcareapis.com`.
 
 ---
 
