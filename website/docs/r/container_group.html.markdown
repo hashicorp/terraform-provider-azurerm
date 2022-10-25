@@ -119,7 +119,8 @@ An `identity` block supports the following:
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-~> **NOTE:** Currently you can't use a managed identity in a container group deployed to a virtual network
+~> **NOTE:** Currently you can't use a managed identity in a container group deployed to a virtual network.
+
 ---
 
 An `init_container` block supports:
