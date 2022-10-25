@@ -248,6 +248,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				"PT1M",
 				"PT5M",
 				"PT10M",
 				"PT15M",
