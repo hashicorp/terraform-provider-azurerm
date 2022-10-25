@@ -374,10 +374,6 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 
 			model.Properties.Template = helpers.ExpandContainerAppTemplate(state.Template, metadata)
 
-			// Zero R/O - API rejects the request if eny of these are set
-			model.SystemData = nil
-			model.Properties.OutboundIPAddresses = nil
-
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

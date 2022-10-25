@@ -57,7 +57,7 @@ func TestAccContainerAppEnvironmentDaprComponent_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("secret"),
+		data.ImportStep(),
 	})
 }
 
@@ -72,14 +72,14 @@ func TestAccContainerAppEnvironmentDaprComponent_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("secret"),
+		data.ImportStep(),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("secret"),
+		data.ImportStep(),
 	})
 }
 
