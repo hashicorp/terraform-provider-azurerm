@@ -161,6 +161,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
+* `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
+
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
 
 -> **Note** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
@@ -707,6 +709,11 @@ A `gmsa` block supports the following:
 * `root_domain` - (Required) Specifies the root domain name for Windows gMSA. Set this to an empty string if you have configured the DNS server in the VNet which was used to create the managed cluster.
 
 -> **Note:** The properties `dns_server` and `root_domain` must both either be set or unset, i.e. empty.
+
+---
+A `workload_autoscaler_profile` block supports the following:
+
+* `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
 
 ---
 
