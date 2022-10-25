@@ -587,7 +587,7 @@ Rule Set server variables provide access to structured information about the req
 
 | Variable name | Description |
 |---------------|-------------|
-| `socket_ip`      | The IP address of the direct connection to CDN Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of `socket_ip` is the IP address of the proxy or load balancer. |
+| `socket_ip`      | The IP address of the direct connection to Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of `socket_ip` is the IP address of the proxy or load balancer. |
 | `client_ip`      | The IP address of the client that made the original request. If there was an `X-Forwarded-For` header in the request, then the client IP address is picked from the header. |
 | `client_port`    | The IP port of the client that made the request. |
 | `hostname`       | The host name in the request from the client. |
@@ -696,10 +696,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the CDN Front Door Rule.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN Front Door Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Front Door Rule.
+* `create` - (Defaults to 30 minutes) Used when creating the Front Door Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Rule.
 
 ## Import
 

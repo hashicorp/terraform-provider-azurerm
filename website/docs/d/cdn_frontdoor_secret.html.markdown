@@ -60,4 +60,4 @@ A `customer_certificate` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Secret.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Secret.

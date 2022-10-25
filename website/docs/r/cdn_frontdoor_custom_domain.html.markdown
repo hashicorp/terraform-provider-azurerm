@@ -122,10 +122,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 12 hours) Used when creating the CDN Front Door Custom Domain.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Custom Domain.
-* `update` - (Defaults to 24 hours) Used when updating the CDN Front Door Custom Domain.
-* `delete` - (Defaults to 12 hours) Used when deleting the CDN Front Door Custom Domain.
+* `create` - (Defaults to 12 hours) Used when creating the Front Door Custom Domain.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain.
+* `update` - (Defaults to 24 hours) Used when updating the Front Door Custom Domain.
+* `delete` - (Defaults to 12 hours) Used when deleting the Front Door Custom Domain.
 
 ## Import
 

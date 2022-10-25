@@ -234,7 +234,7 @@ A `private_link` block supports the following:
 
 !> **IMPORTANT:** To associate a Load Balancer with a Front Door Origin via Private Link you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the Front Door Service. 
 
-* `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for CDN Front Door Private Link Origin`.
+* `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for Front Door Private Link Origin`.
 
 * `target_type` - (Optional) Specifies the type of target for this Private Link Endpoint. Possible values are `blob`, `blob_secondary`, `web` and `sites`.
 
@@ -263,10 +263,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the CDN Front Door Origin.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Origin.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN Front Door Origin.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Front Door Origin.
+* `create` - (Defaults to 30 minutes) Used when creating the Front Door Origin.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Origin.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Origin.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Origin.
 
 ## Import
 
