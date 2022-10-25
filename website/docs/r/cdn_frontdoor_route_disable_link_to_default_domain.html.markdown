@@ -25,9 +25,9 @@ resource "azurerm_cdn_frontdoor_route_disable_link_to_default_domain" "example" 
 
 The following arguments are supported:
 
-* `cdn_frontdoor_route_id` - (Required) The resource ID of the Front Door Route where the Link To Default Domain property should be `disabled`. Changing this forces a new FrontDoor Route Disable Link To Default Domain to be created.
+* `cdn_frontdoor_route_id` - (Required) The resource ID of the Front Door Route where the Link To Default Domain property should be `disabled`. Changing this forces a new Front Door Route Disable Link To Default Domain to be created.
 
-* `cdn_frontdoor_custom_domain_ids` - (Required) The resource IDs of the Front Door Custom Domains which are associated with this Front Door Route. Changing this forces a new FrontDoor Route Disable Link To Default Domain to be created.
+* `cdn_frontdoor_custom_domain_ids` - (Required) The resource IDs of the Front Door Custom Domains which are associated with this Front Door Route. Changing this forces a new Front Door Route Disable Link To Default Domain to be created.
 
 ## Attributes Reference
 

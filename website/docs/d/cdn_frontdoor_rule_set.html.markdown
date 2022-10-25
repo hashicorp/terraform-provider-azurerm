@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_cdn_frontdoor_rule_set
 
-Gets information about an existing Front Door(standard/premium) Rule Set.
+Use this data source to access information about an existing Front Door(standard/premium) Rule Set.
 
 ## Example Usage
 
@@ -42,4 +42,4 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Rule Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Rule Set.

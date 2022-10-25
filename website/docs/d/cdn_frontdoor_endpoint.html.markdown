@@ -24,9 +24,9 @@ data "azurerm_cdn_frontdoor_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the FrontDoor Endpoint.
+* `name` - (Required) Specifies the name of the Front Door Endpoint.
 
-* `profile_name` - (Required) The name of the FrontDoor Profile within which Front Door Endpoint exists.
+* `profile_name` - (Required) The name of the Front Door Profile within which Front Door Endpoint exists.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Front Door Profile exists.
 
@@ -46,4 +46,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Endpoint.

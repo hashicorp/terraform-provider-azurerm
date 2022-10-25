@@ -255,10 +255,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN FrontDoor Firewall Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Firewall Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Firewall Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the CDN Front Door Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Front Door Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Firewall Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Front Door Firewall Policy.
 
 ## Import
 

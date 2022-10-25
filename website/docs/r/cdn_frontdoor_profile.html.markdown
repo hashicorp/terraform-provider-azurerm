@@ -55,10 +55,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Profile.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN FrontDoor Profile.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Profile.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Profile.
+* `create` - (Defaults to 30 minutes) Used when creating the CDN Front Door Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Front Door Profile.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Profile.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Front Door Profile.
 
 ## Import
 

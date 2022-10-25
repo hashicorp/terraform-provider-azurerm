@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_cdn_frontdoor_secret
 
-Gets information about an existing Front Door(standard/premium) Secret.
+Use this data source to access information about an existing Front Door(standard/premium) Secret.
 
 ## Example Usage
 
@@ -60,4 +60,4 @@ A `customer_certificate` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Secret.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Secret.

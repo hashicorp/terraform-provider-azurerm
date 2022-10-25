@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_cdn_frontdoor_firewall_policy
 
-Gets information about an existing Front Door(standard/premium) Firewall Policy.
+Use this data source to access information about an existing Front Door(standard/premium) Firewall Policy.
 
 ## Example Usage
 
@@ -47,4 +47,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Firewall Policy.

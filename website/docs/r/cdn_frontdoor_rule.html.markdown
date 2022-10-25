@@ -145,7 +145,7 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Front Door Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule to be created.
+* `name` - (Required) The name which should be used for this Front Door Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Front Door Rule to be created.
 
 * `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Front Door Rule Set for this Front Door Rule. Changing this forces a new Front Door Rule to be created.
 
@@ -696,10 +696,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Rule.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN FrontDoor Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Rule.
+* `create` - (Defaults to 30 minutes) Used when creating the CDN Front Door Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Front Door Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Front Door Rule.
 
 ## Import
 

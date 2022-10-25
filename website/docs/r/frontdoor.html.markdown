@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_frontdoor
 
-!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure CDN FrontDoor (Azure Front Door standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure CDN Front Door (Azure Front Door standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
 
 Manages an Azure Front Door (classic) instance.
 
@@ -19,7 +19,7 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
 
-!> **Be Aware:** Microsoft rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Be Aware:** Microsoft rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and Front Door resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 !> **BREAKING CHANGE:** The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been removed from the `azurerm_frontdoor` resource in the `v2.58.0` provider due to changes made by the service team. If you wish to enable the custom HTTPS configuration functionality within your `azurerm_frontdoor` resource moving forward you will need to define a separate `azurerm_frontdoor_custom_https_configuration` block in your configuration file.
 

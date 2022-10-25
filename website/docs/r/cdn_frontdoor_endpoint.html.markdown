@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Front Door Endpoint. Changing this forces a new Front Door Endpoint to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the CDN FrontDoor Profile within which this Front Door Endpoint should exist. Changing this forces a new Front Door Endpoint to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile within which this Front Door Endpoint should exist. Changing this forces a new Front Door Endpoint to be created.
 
 ---
 
@@ -60,10 +60,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Endpoint.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN FrontDoor Endpoint.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Endpoint.
+* `create` - (Defaults to 30 minutes) Used when creating the CDN Front Door Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Front Door Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Front Door Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Front Door Endpoint.
 
 ## Import
 
