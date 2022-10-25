@@ -161,7 +161,7 @@ resource "azurerm_synapse_workspace_aad_admin" "example" {
   object_id            = "00000000-0000-0000-0000-000000000000"
   tenant_id            = "00000000-0000-0000-0000-000000000000"
 
-  depends_on           = [azurerm_synapse_workspace_key.example]
+  depends_on = [azurerm_synapse_workspace_key.example]
 }
 ```
 

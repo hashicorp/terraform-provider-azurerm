@@ -198,7 +198,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   private_cluster_enabled = true
   private_dns_zone_id     = azurerm_private_dns_zone.example.id
 
-  ... rest of configuration omitted for brevity
+  # rest of configuration omitted for brevity
 
   depends_on = [
     azurerm_role_assignment.example,
