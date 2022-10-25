@@ -192,8 +192,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 						Computed: true, // defaults to Ubuntu if using Linux
 						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.OSSKUUbuntu),
-							string(managedclusters.OSSKUCBLMariner),
+							string(agentpools.OSSKUCBLMariner),
+							string(agentpools.OSSKUMariner),
+							string(agentpools.OSSKUUbuntu),
+							string(agentpools.OSSKUWindowsTwoZeroOneNine),
+							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 						}, false),
 					},
 
