@@ -84,14 +84,14 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKeda(t *testing.T) {
 			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("run_command_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
 			),
 		},
 		{
 			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("run_command_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("false"),
 			),
 		},
 	})
