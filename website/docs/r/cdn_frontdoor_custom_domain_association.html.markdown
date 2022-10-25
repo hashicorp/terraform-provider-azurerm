@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain_association"
 description: |-
-  Manages the association between a CDN FrontDoor Custom Domain and one or more CDN FrontDoor Routes.
+  Manages the association between a CDN FrontDoor (Azure Front Door standard/premium) Custom Domain and one or more CDN FrontDoor (Azure Front Door standard/premium) Routes.
 ---
 
 # azurerm_cdn_frontdoor_custom_domain_association
 
-Manages the association between a CDN FrontDoor Custom Domain and one or more CDN FrontDoor Routes.
+Manages the association between a CDN FrontDoor (Azure Front Door standard/premium) Custom Domain and one or more CDN FrontDoor (Azure Front Door standard/premium) Routes.
 
 ## Example Usage
 

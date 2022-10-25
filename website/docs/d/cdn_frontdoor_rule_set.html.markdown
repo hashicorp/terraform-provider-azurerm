@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_rule_set"
 description: |-
-  Gets information about an existing CDN FrontDoor Rule Set.
+  Gets information about an existing CDN FrontDoor (Azure Front Door standard/premium) Rule Set.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_rule_set
 
-Gets information about an existing CDN FrontDoor Rule Set.
+Gets information about an existing CDN FrontDoor (Azure Front Door standard/premium) Rule Set.
 
 ## Example Usage
 

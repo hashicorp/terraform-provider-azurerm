@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_endpoint"
 description: |-
-  Manages a FrontDoor Endpoint.
+  Manages a CDN FrontDoor (Azure Front Door standard/premium) Endpoint.
 ---
 
 # azurerm_cdn_frontdoor_endpoint
 
-Manages a FrontDoor Endpoint.
+Manages a CDN FrontDoor (Azure Front Door standard/premium) Endpoint.
 
 ## Example Usage
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this CDN FrontDoor Endpoint. Changing this forces a new CDN FrontDoor Endpoint to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the FrontDoor Profile within which this FrontDoor Endpoint should exist. Changing this forces a new CDN FrontDoor Endpoint to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the CDN FrontDoor Profile within which this CDN FrontDoor Endpoint should exist. Changing this forces a new CDN FrontDoor Endpoint to be created.
 
 ---
 

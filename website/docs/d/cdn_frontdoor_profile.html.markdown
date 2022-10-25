@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile"
 description: |-
-  Gets information about an existing CDN FrontDoor Profile.
+  Gets information about an existing CDN FrontDoor (Azure Front Door standard/premium) Profile.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_profile
 
-Use this data source to access information about an existing CDN FrontDoor Profile.
+Use this data source to access information about an existing CDN FrontDoor (Azure Front Door standard/premium) Profile.
 
 ## Example Usage
 
@@ -23,9 +23,9 @@ data "azurerm_cdn_frontdoor_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the FrontDoor Profile.
+* `name` - (Required) Specifies the name of the CDN FrontDoor Profile.
 
-* `resource_group_name` - (Required) The name of the Resource Group where this FrontDoor Profile exists.
+* `resource_group_name` - (Required) The name of the Resource Group where this CDN FrontDoor Profile exists.
 
 ## Attributes Reference
 

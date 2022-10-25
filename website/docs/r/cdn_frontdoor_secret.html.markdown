@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_secret"
 description: |-
-  Manages a Frontdoor Secret.
+  Manages a CDN FrontDoor (Azure Front Door standard/premium) Secret.
 ---
 
 # azurerm_cdn_frontdoor_secret
 
-Manages a Frontdoor Secret.
+Manages a CDN FrontDoor (Azure Front Door standard/premium) Secret.
 
 ## Required Key Vault Permissions
 
@@ -44,7 +44,7 @@ resource "azurerm_key_vault" "example" {
     ip_rules       = ["10.0.0.0/24"]
   }
 
-  # Frontdoor Enterprise Application Object ID(e.g. Microsoft.AzureFrontDoor-Cdn)
+  # CDN FrontDoor Enterprise Application Object ID(e.g. Microsoft.AzureFrontDoor-Cdn)
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azuread_service_principal.frontdoor.object_id
@@ -97,23 +97,23 @@ resource "azurerm_cdn_frontdoor_secret" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Secret. Possible values must start with a letter or a number, only contain letters, numbers and hyphens and have a length of between 2 and 260 characters. Changing this forces a new Frontdoor Secret to be created.
+* `name` - (Required) The name which should be used for this CDN FrontDoor Secret. Possible values must start with a letter or a number, only contain letters, numbers and hyphens and have a length of between 2 and 260 characters. Changing this forces a new CDN FrontDoor Secret to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The Resource ID of the Frontdoor Profile. Changing this forces a new Frontdoor Secret to be created.
+* `cdn_frontdoor_profile_id` - (Required) The Resource ID of the CDN FrontDoor Profile. Changing this forces a new CDN FrontDoor Secret to be created.
 
-* `secret` - (Required) A `secret` block as defined below. Changing this forces a new Frontdoor Secret to be created.
+* `secret` - (Required) A `secret` block as defined below. Changing this forces a new CDN FrontDoor Secret to be created.
 
 ---
 
 A `secret` block supports the following:
 
-* `customer_certificate` - (Required) A `customer_certificate` block as defined below. Changing this forces a new Frontdoor Secret to be created.
+* `customer_certificate` - (Required) A `customer_certificate` block as defined below. Changing this forces a new CDN FrontDoor Secret to be created.
 
 ---
 
 A `customer_certificate` block supports the following:
 
-* `key_vault_certificate_id` - (Required) The ID of the Key Vault certificate resource to use. Changing this forces a new Frontdoor Secret to be created.
+* `key_vault_certificate_id` - (Required) The ID of the Key Vault certificate resource to use. Changing this forces a new CDN FrontDoor Secret to be created.
 
 ->**NOTE:** If you would like to use the **latest version** of the Key Vault Certificate use the Key Vault Certificates `versionless_id` attribute as the `key_vault_certificate_id` fields value(e.g. `key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_id`).
 
@@ -125,17 +125,17 @@ A `customer_certificate` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Secret.
+* `id` - The ID of the CDN FrontDoor Secret.
 
-* `cdn_frontdoor_profile_name` - The name of the Frontdoor Profile containing this Frontdoor Secret.
+* `cdn_frontdoor_profile_name` - The name of the CDN FrontDoor Profile containing this CDN FrontDoor Secret.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Secret.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Secret.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Secret.
+* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Secret.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Secret.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Secret.
 
 ## Import
 
