@@ -35,7 +35,7 @@ The following attributes are exported:
 
 * `enabled` - The enabled state of the CDN FrontDoor Firewall Policy.
 
-* `frontend_endpoint_ids` - The CDN Frontend Endpoints associated with this CDN FrontDoor Firewall Policy.
+* `frontend_endpoint_ids` - The CDN FrontDoor Profiles frontend endpoints associated with this CDN FrontDoor Firewall Policy.
 
 * `mode` - The CDN FrontDoor Firewall Policy mode.
 

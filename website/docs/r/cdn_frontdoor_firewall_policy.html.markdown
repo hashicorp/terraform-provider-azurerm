@@ -143,7 +143,7 @@ The following arguments are supported:
 
 * `mode` - (Optional) The CDN FrontDoor Firewall Policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
 
--> **NOTE:** When run in `Detection` mode, the CDN FrontDoor Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched CDN FrontDoor rule to the Web Application Firewall logs.
+-> **NOTE:** When run in `Detection` mode, the CDN FrontDoor Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched CDN FrontDoor Rule to the Web Application Firewall logs.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 
@@ -249,7 +249,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region where this CDN FrontDoor Firewall Policy exists.
 
-* `frontend_endpoint_ids` - The Cdn Frontend Endpoints associated with this CDN FrontDoor Firewall Policy.
+* `frontend_endpoint_ids` - The CDN FrontDoor Profiles frontend endpoints associated with this CDN FrontDoor Firewall Policy.
 
 ## Timeouts
 

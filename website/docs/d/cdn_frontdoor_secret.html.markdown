@@ -26,7 +26,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the CDN FrontDoor Secret.
 
-* `profile_name` - (Required) The name of the CDN FrontDoor Profile within which CDN FrontDoor Secret exists.
+* `profile_name` - (Required) The name of the CDN FrontDoor Profile within which the CDN FrontDoor Secret exists.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the CDN FrontDoor Profile exists.
 
