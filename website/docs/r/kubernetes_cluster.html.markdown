@@ -167,7 +167,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note** This requires that the Preview Feature `Microsoft.ContainerService/EnableWorkloadIdentityPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag) for more information.
 
-```
+```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example"
   location = "West Europe"
@@ -235,7 +235,7 @@ A `aci_connector_linux` block supports the following:
 
 -> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 
-```
+```hcl
 resource "azurerm_subnet" "virtual" {
 
   #...
@@ -796,7 +796,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 -> **Note:** It's possible to use these credentials with [the Kubernetes Provider](/providers/hashicorp/kubernetes/latest/docs) like so:
 
-```
+```hcl
 provider "kubernetes" {
   host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
   username               = azurerm_kubernetes_cluster.main.kube_config.0.username

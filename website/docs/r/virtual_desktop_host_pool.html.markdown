@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Desktop Host Pool.
 
-* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.  
+* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
 
 * `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.
 
@@ -129,6 +129,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 Virtual Desktop Host Pools can be imported using the `resource id`, e.g.
 
-```
+```text
 terraform import azurerm_virtual_desktop_host_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/hostpools/myhostpool
 ```

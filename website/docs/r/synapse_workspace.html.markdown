@@ -59,7 +59,7 @@ resource "azurerm_synapse_workspace" "example" {
 
 ## Example Usage - creating a workspace with Customer Managed Key and Azure AD Admin
 
-```
+```hcl
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -122,12 +122,12 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  
+
   customer_managed_key {
     key_versionless_id = azurerm_key_vault_key.example.versionless_id
     key_name           = "enckey"
   }
-  
+
   identity {
     type = "SystemAssigned"
   }
