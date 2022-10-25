@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -362,8 +363,22 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	// Take some time for resource to be visible after creating. Hence, sleep for 30 seconds until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
-	time.Sleep(30 * time.Second)
+	// Add the state wait function until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			"Pending",
+		},
+		Target: []string{
+			"OK",
+		},
+		Refresh:    mySqlFlexibleServerCreationRefreshFunc(ctx, client, id),
+		MinTimeout: 10 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for creation of Mysql Flexible Server %s: %+v", id, err)
+	}
 
 	// `maintenance_window` could only be updated with, could not be created with
 	if v, ok := d.GetOk("maintenance_window"); ok {
@@ -385,6 +400,19 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	d.SetId(id.ID())
 
 	return resourceMysqlFlexibleServerRead(d, meta)
+}
+
+func mySqlFlexibleServerCreationRefreshFunc(ctx context.Context, client *mysqlflexibleservers.ServersClient, id parse.FlexibleServerId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "Pending", err
+			}
+			return resp, "Error", err
+		}
+		return "OK", "OK", nil
+	}
 }
 
 func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
