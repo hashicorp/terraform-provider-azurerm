@@ -26,8 +26,8 @@ type MonitorsResourceModel struct {
 	MonitoringStatus              bool              `tfschema:"monitoring_enabled"`
 	MarketplaceSubscriptionStatus string            `tfschema:"marketplace_subscription"`
 	IdentityType                  string            `tfschema:"identity_type"`
-	PlanData                      []PlanData        `tfschema:"plan_data"`
-	UserInfo                      []UserInfo        `tfschema:"user_info"`
+	PlanData                      []PlanData        `tfschema:"plan"`
+	UserInfo                      []UserInfo        `tfschema:"user"`
 	Tags                          map[string]string `tfschema:"tags"`
 }
 
@@ -87,9 +87,9 @@ func (r MonitorsResource) Arguments() map[string]*schema.Schema {
 			}, false),
 		},
 
-		"plan_data": SchemaPlanData(),
+		"plan": SchemaPlanData(),
 
-		"user_info": SchemaUserInfo(),
+		"user": SchemaUserInfo(),
 
 		"tags": tags.Schema(),
 	}
@@ -152,7 +152,7 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, monitor); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, monitor); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -183,7 +183,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				props := model.Properties
 				identityProps := model.Identity
-				userInfo := metadata.ResourceData.Get("user_info").([]interface{})
+				userInfo := metadata.ResourceData.Get("user").([]interface{})
 				monitoringStatus := true
 				if *props.MonitoringStatus == monitors.MonitoringStatusDisabled {
 					monitoringStatus = false
