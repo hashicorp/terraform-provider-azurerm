@@ -283,7 +283,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
         "Info",
         "Notice",
       ]
-      name = "test-datasource-syslog"
+      name    = "test-datasource-syslog"
       streams = ["Microsoft-Syslog", "Microsoft-CiscoAsa"]
     }
 
@@ -348,6 +348,8 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     azurerm_log_analytics_solution.test2,
   ]
 }
+
+
 
 
 `, r.template(data), data.RandomInteger)
