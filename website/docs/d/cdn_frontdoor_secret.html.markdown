@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_secret"
 description: |-
-  Gets information about an existing CDN FrontDoor (Azure Front Door standard/premium) Secret.
+  Gets information about an existing Front Door(standard/premium) Secret.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_secret
 
-Use this data source to access information about an existing CDN FrontDoor (Azure Front Door standard/premium) Secret.
+Gets information about an existing Front Door(standard/premium) Secret.
 
 ## Example Usage
 
@@ -24,19 +24,19 @@ data "azurerm_cdn_frontdoor_secret" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CDN FrontDoor Secret.
+* `name` - (Required) Specifies the name of the Front Door Secret.
 
-* `profile_name` - (Required) The name of the CDN FrontDoor Profile within which the CDN FrontDoor Secret exists.
+* `profile_name` - (Required) The name of the Front Door Profile within which the Front Door Secret exists.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the CDN FrontDoor Profile exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Front Door Profile exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Secret.
+* `id` - The ID of the Front Door Secret.
 
-* `cdn_frontdoor_profile_id` - Specifies the ID of the CDN FrontDoor Profile within which this CDN FrontDoor Secret exists.
+* `cdn_frontdoor_profile_id` - Specifies the ID of the Front Door Profile within which this Front Door Secret exists.
 
 * `secret` - A `secret` block as defined below.
 

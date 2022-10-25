@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_firewall_policy"
 description: |-
-  Manages a CDN FrontDoor (Azure Front Door standard/premium) Firewall Policy instance.
+  Manages a Front Door(standard/premium) Firewall Policy instance.
 ---
 
 # azurerm_cdn_frontdoor_firewall_policy
 
-Manages a CDN FrontDoor (Azure Front Door standard/premium) Firewall Policy instance.
+Manages a Front Door(standard/premium) Firewall Policy instance.
 
 ## Example Usage
 
@@ -135,15 +135,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The sku's pricing tier for this CDN FrontDoor Firewall Policy. Possible values include `Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`.
+* `sku_name` - (Required) The sku's pricing tier for this Front Door Firewall Policy. Possible values include `Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`.
 
--> **NOTE:** The `Standard_AzureFrontDoor` CDN FrontDoor Firewall Policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` CDN FrontDoor Firewall Policy skus may contain both `custom` and `managed` rules.
+-> **NOTE:** The `Standard_AzureFrontDoor` Front Door Firewall Policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Front Door Firewall Policy skus may contain both `custom` and `managed` rules.
 
-* `enabled` - (Optional) Is the CDN FrontDoor Firewall Policy enabled? Defaults to `true`.
+* `enabled` - (Optional) Is the Front Door Firewall Policy enabled? Defaults to `true`.
 
-* `mode` - (Optional) The CDN FrontDoor Firewall Policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
+* `mode` - (Optional) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
 
--> **NOTE:** When run in `Detection` mode, the CDN FrontDoor Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched CDN FrontDoor Rule to the Web Application Firewall logs.
+-> **NOTE:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 
@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the CDN FrontDoor Firewall Policy.
+* `tags` - (Optional) A mapping of tags to assign to the Front Door Firewall Policy.
 
 ---
 
@@ -245,11 +245,11 @@ An `exclusion` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Firewall Policy.
+* `id` - The ID of the Front Door Firewall Policy.
 
-* `location` - The Azure Region where this CDN FrontDoor Firewall Policy exists.
+* `location` - The Azure Region where this Front Door Firewall Policy exists.
 
-* `frontend_endpoint_ids` - The CDN FrontDoor Profiles frontend endpoints associated with this CDN FrontDoor Firewall Policy.
+* `frontend_endpoint_ids` - The Front Door Profiles frontend endpoints associated with this Front Door Firewall Policy.
 
 ## Timeouts
 
@@ -262,7 +262,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Frontdoor Firewall Policy can be imported using the `resource id`, e.g.
+Front Door Firewall Policies can be imported using the `resource id`, e.g.
 
 ```shell
 $ terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/frontdoorWebApplicationFirewallPolicies/firewallPolicy1

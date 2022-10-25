@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_route"
 description: |-
-  Manages a CDN FrontDoor (Azure Front Door standard/premium) Route.
+  Manages a Front Door(standard/premium) Route.
 ---
 
 # azurerm_cdn_frontdoor_route
 
-Manages a CDN FrontDoor (Azure Front Door standard/premium) Route.
+Manages a Front Door(standard/premium) Route.
 
 ## Example Usage
 
@@ -115,19 +115,19 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this CDN FrontDoor Route. Valid values must begin with a letter or number, end with a letter or number and may only contain letters, numbers and hyphens with a maximum length of 90 characters. Changing this forces a new CDN FrontDoor Route to be created.
+* `name` - (Required) The name which should be used for this Front Door Route. Valid values must begin with a letter or number, end with a letter or number and may only contain letters, numbers and hyphens with a maximum length of 90 characters. Changing this forces a new Front Door Route to be created.
 
-* `cdn_frontdoor_endpoint_id` - (Required) The resource ID of the CDN FrontDoor Endpoint where this CDN FrontDoor Route should exist. Changing this forces a new CDN FrontDoor Route to be created.
+* `cdn_frontdoor_endpoint_id` - (Required) The resource ID of the Front Door Endpoint where this Front Door Route should exist. Changing this forces a new Front Door Route to be created.
 
-* `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the CDN FrontDoor Origin Group where this CDN FrontDoor Route should be created.
+* `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the Front Door Origin Group where this Front Door Route should be created.
 
-* `cdn_frontdoor_origin_ids` - (Required) One or more CDN FrontDoor Origin resource IDs that this CDN FrontDoor Route will link to.
+* `cdn_frontdoor_origin_ids` - (Required) One or more Front Door Origin resource IDs that this Front Door Route will link to.
 
 * `forwarding_protocol` - (Required) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
 
 * `patterns_to_match` - (Required) The route patterns of the rule.
 
-* `supported_protocols` - (Required) One or more Protocols supported by this CDN FrontDoor Route. Possible values are `Http` or `Https`.
+* `supported_protocols` - (Required) One or more Protocols supported by this Front Door Route. Possible values are `Http` or `Https`.
 
 ~> **NOTE:** If `https_redirect_enabled` is set to `true` the `supported_protocols` field must contain both `Http` and `Https` values.
 
@@ -135,25 +135,25 @@ The following arguments are supported:
 
 ~> **NOTE:** To disable caching, do not provide the `cache` block in the configuration file.
 
-* `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the CDN FrontDoor Custom Domains which are associated with this CDN FrontDoor Route.
+* `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the Front Door Custom Domains which are associated with this Front Door Route.
 
-* `cdn_frontdoor_origin_path` - (Optional) A directory path on the CDN FrontDoor Origin that can be used to retrieve content (e.g. `contoso.cloudapp.net/originpath`).
+* `cdn_frontdoor_origin_path` - (Optional) A directory path on the Front Door Origin that can be used to retrieve content (e.g. `contoso.cloudapp.net/originpath`).
 
-* `cdn_frontdoor_rule_set_ids` - (Optional) A list of the CDN FrontDoor Rule Set IDs which should be assigned to this CDN FrontDoor Route.
+* `cdn_frontdoor_rule_set_ids` - (Optional) A list of the Front Door Rule Set IDs which should be assigned to this Front Door Route.
 
-* `enabled` - (Optional) Is this CDN FrontDoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
+* `enabled` - (Optional) Is this Front Door Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 
 * `https_redirect_enabled` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
 ~> **NOTE:** The `https_redirect_enabled` rule is the first rule that will be executed.
 
-* `link_to_default_domain` - (Optional) Should this CDN FrontDoor Route be linked to the default endpoint? Possible values include `true` or `false`. Defaults to `true`.
+* `link_to_default_domain` - (Optional) Should this Front Door Route be linked to the default endpoint? Possible values include `true` or `false`. Defaults to `true`.
 
 ---
 
 A `cache` block supports the following:
 
-* `query_string_caching_behavior` - (Optional) Defines how the CDN FrontDoor Route will cache requests that include query strings. Possible values include `IgnoreQueryString`, `IgnoreSpecifiedQueryStrings`, `IncludeSpecifiedQueryStrings` or `UseQueryString`. Defaults it `IgnoreQueryString`.
+* `query_string_caching_behavior` - (Optional) Defines how the Front Door Route will cache requests that include query strings. Possible values include `IgnoreQueryString`, `IgnoreSpecifiedQueryStrings`, `IncludeSpecifiedQueryStrings` or `UseQueryString`. Defaults it `IgnoreQueryString`.
 
 ~> **NOTE:** The value of the `query_string_caching_behavior` determines if the `query_strings` field will be used as an include list or an ignore list.
 
@@ -169,7 +169,7 @@ A `cache` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Route.
+* `id` - The ID of the Front Door Route.
 
 ---
 
@@ -184,7 +184,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Frontdoor Routes can be imported using the `resource id`, e.g.
+Front Door Routes can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_route.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1

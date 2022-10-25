@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_origin"
 description: |-
-  Manages a CDN FrontDoor (Azure Front Door standard/premium) Origin.
+  Manages a Front Door(standard/premium) Origin.
 ---
 
 # azurerm_cdn_frontdoor_origin
 
-Manages a CDN FrontDoor (Azure Front Door standard/premium) Origin.
+Manages a Front Door(standard/premium) Origin.
 
 !>**IMPORTANT:** If you are attempting to implement an Origin that uses its own Private Link Service with a Load Balancer the Profile resource in your configuration file **must** have a `depends_on` meta-argument which references the `azurerm_private_link_service`, see `Example Usage With Private Link Service` below.
 
@@ -194,13 +194,13 @@ resource "azurerm_private_link_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this CDN FrontDoor Origin. Changing this forces a new CDN FrontDoor Origin to be created.
+* `name` - (Required) The name which should be used for this Front Door Origin. Changing this forces a new Front Door Origin to be created.
 
-* `cdn_frontdoor_origin_group_id` - (Required) The ID of the CDN FrontDoor Origin Group within which this CDN FrontDoor Origin should exist. Changing this forces a new CDN FrontDoor Origin to be created.
+* `cdn_frontdoor_origin_group_id` - (Required) The ID of the Front Door Origin Group within which this Front Door Origin should exist. Changing this forces a new Front Door Origin to be created.
 
 * `host_name` - (Required) The IPv4 address, IPv6 address or Domain name of the Origin.
 
-!> **IMPORTANT:** This must be unique across all CDN FrontDoor Origins within a CDN FrontDoor Endpoint.
+!> **IMPORTANT:** This must be unique across all Front Door Origins within a Front Door Endpoint.
 
 * `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
@@ -220,7 +220,7 @@ The following arguments are supported:
 
 * `private_link` - (Optional) A `private_link` block as defined below.
 
--> **NOTE:** Private Link requires that the CDN FrontDoor Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
+-> **NOTE:** Private Link requires that the Front Door Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
 
 * `weight` - (Optional) The weight of the origin in a given origin group for load balancing. Must be between `1` and `1000`. Defaults to `500`.
 
@@ -232,7 +232,7 @@ A `private_link` block supports the following:
 
 !> **IMPORTANT:** Origin support for direct private end point connectivity is limited to `Storage (Azure Blobs)`, `App Services` and `internal load balancers`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
 
-!> **IMPORTANT:** To associate a Load Balancer with a CDN FrontDoor Origin via Private LInk you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the CDN FrontDoor Service. 
+!> **IMPORTANT:** To associate a Load Balancer with a Front Door Origin via Private Link you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the Front Door Service. 
 
 * `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for CDN Frontdoor Private Link Origin`.
 
@@ -257,7 +257,7 @@ A `private_link` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Origin.
+* `id` - The ID of the Front Door Origin.
 
 ## Timeouts
 
@@ -270,7 +270,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-CDN FrontDoor Origin can be imported using the `resource id`, e.g.
+Front Door Origins can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_origin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1/origins/origin1

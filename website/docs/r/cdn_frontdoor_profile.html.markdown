@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile"
 description: |-
-  Manages a CDN FrontDoor (Azure Front Door standard/premium) Profile, which contains a collection of endpoints and origin groups.
+  Manages a Front Door(standard/premium) Profile, which contains a collection of endpoints and origin groups.
 ---
 
 # azurerm_cdn_frontdoor_profile
 
-Manages a CDN FrontDoor (Azure Front Door standard/premium) Profile, which contains a collection of endpoints and origin groups.
+Manages a Front Door(standard/premium) Profile, which contains a collection of endpoints and origin groups.
 
 ## Example Usage
 
@@ -33,11 +33,11 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CDN FrontDoor Profile. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door Profile. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where this CDN FrontDoor Profile should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where this Front Door Profile should exist. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specifies the SKU for this CDN FrontDoor Profile. Possible values include `Standard_AzureFrontDoor` and `Premium_AzureFrontDoor`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) Specifies the SKU for this Front Door Profile. Possible values include `Standard_AzureFrontDoor` and `Premium_AzureFrontDoor`. Changing this forces a new resource to be created.
 
 * `response_timeout_seconds` - Specifies the maximum response timeout in seconds. Possible values are between `16` and `240` seconds (inclusive). Defaults to `120` seconds.
 
@@ -47,9 +47,9 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of this CDN FrontDoor Profile.
+* `id` - The ID of this Front Door Profile.
 
-* `resource_guid` - The UUID of this CDN FrontDoor Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
+* `resource_guid` - The UUID of this Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
 
 ## Timeouts
 
@@ -62,7 +62,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-CDN FrontDoor Profiles can be imported using the `resource id`, e.g.
+Front Door Profiles can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1

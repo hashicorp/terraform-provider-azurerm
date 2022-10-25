@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_rule"
 description: |-
-  Manages a CDN FrontDoor (Azure Front Door standard/premium) Rule.
+  Manages a Front Door(standard/premium) Rule.
 ---
 
 # azurerm_cdn_frontdoor_rule
 
-Manages a CDN FrontDoor (Azure Front Door standard/premium) Rule.
+Manages a Front Door(standard/premium) Rule.
 
 !>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
@@ -145,13 +145,13 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this CDN FrontDoor Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule to be created.
+* `name` - (Required) The name which should be used for this Front Door Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule to be created.
 
-* `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the CDN FrontDoor Rule Set for this CDN FrontDoor Rule. Changing this forces a new CDN FrontDoor Rule to be created.
+* `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Front Door Rule Set for this Front Door Rule. Changing this forces a new Front Door Rule to be created.
 
-* `order` - (Required) The order in which the rules will be applied for the CDN FrontDoor Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A CDN FrontDoor Rule with a lesser order value will be applied before a rule with a greater order value.
+* `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.
 
-->**NOTE:** If the CDN FrontDoor Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
+->**NOTE:** If the Front Door Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
 
 * `actions` - (Required) An `actions` block as defined below.
 
@@ -199,7 +199,7 @@ A `route_configuration_override_action` block supports the following:
 
 * `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
 
-* `cdn_frontdoor_origin_group_id` - (Optional) The CDN FrontDoor Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the CDN FrontDoor Endpoint route.
+* `cdn_frontdoor_origin_group_id` - (Optional) The Front Door Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the Front Door Endpoint route.
 
 * `forwarding_protocol` - (Optional) The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
@@ -211,11 +211,11 @@ A `route_configuration_override_action` block supports the following:
 
 ->**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
 
-* `compression_enabled` - (Optional) Should the CDN FrontDoor Profile dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
+* `compression_enabled` - (Optional) Should the Front Door Profile dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
 
 ->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
-* `cache_behavior` - (Optional) `HonorOrigin` the CDN FrontDoor Profile will always honor origin response header directive. If the origin directive is missing, CDN FrontDoor Profile will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your CDN FrontDoor Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your CDN FrontDoor Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
+* `cache_behavior` - (Optional) `HonorOrigin` the Front Door Profile will always honor origin response header directive. If the origin directive is missing, Front Door Profile will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
 
 ---
 
@@ -327,7 +327,7 @@ A `host_name_condition` block supports the following:
 
 A `server_port_condition` block supports the following:
 
-->The `server_port_condition` identifies requests based on which port of the CDN Frontdoor Profile server accepted the request on.
+->The `server_port_condition` identifies requests based on which port of the Front Door Profile server accepted the request on.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -351,7 +351,7 @@ A `client_port_condition` block supports the following:
 
 A `socket_address_condition` block supports the following:
 
-->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the CDN FrontDoor Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer. 
+->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer. 
 
 ->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
@@ -688,9 +688,9 @@ For rules that can transform strings, the following transforms are valid:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Rule.
+* `id` - The ID of the Front Door Rule.
 
-* `cdn_frontdoor_rule_set_name` - The name of the CDN FrontDoor Rule Set containing this CDN FrontDoor Rule.
+* `cdn_frontdoor_rule_set_name` - The name of the Front Door Rule Set containing this Front Door Rule.
 
 ## Timeouts
 
@@ -703,7 +703,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-CDN FrontDoor Rules can be imported using the `resource id`, e.g.
+Front Door Rules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/rule1

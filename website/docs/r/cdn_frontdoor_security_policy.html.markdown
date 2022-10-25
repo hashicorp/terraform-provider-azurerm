@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_security_policy"
 description: |-
-  Manages a CDN FrontDoor (Azure Front Door standard/premium) Security Policy.
+  Manages a Front Door(standard/premium) Security Policy.
 ---
 
 # azurerm_cdn_frontdoor_security_policy
 
-Manages a CDN FrontDoor (Azure Front Door standard/premium) Security Policy.
+Manages a Front Door(standard/premium) Security Policy.
 
 ## Example Usage
 
@@ -73,43 +73,43 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this CDN FrontDoor Security Policy. Possible values must not be an empty string. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `name` - (Required) The name which should be used for this Front Door Security Policy. Possible values must not be an empty string. Changing this forces a new Front Door Security Policy to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The CDN FrontDoor Profile Resource Id that is linked to this CDN FrontDoor Security Policy. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `cdn_frontdoor_profile_id` - (Required) The Front Door Profile Resource Id that is linked to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
 
-* `security_policies` - (Required) An `security_policies` block as defined below. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `security_policies` - (Required) An `security_policies` block as defined below. Changing this forces a new Front Door Security Policy to be created.
 
 ---
 
 A `security_policies` block supports the following:
 
-* `firewall` - (Required) An `firewall` block as defined below. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `firewall` - (Required) An `firewall` block as defined below. Changing this forces a new Front Door Security Policy to be created.
 
 ---
 
 A `firewall` block supports the following:
 
-* `cdn_frontdoor_firewall_policy_id` - (Required) The Resource Id of the CDN FrontDoor Firewall Policy that should be linked to this CDN FrontDoor Security Policy. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `cdn_frontdoor_firewall_policy_id` - (Required) The Resource Id of the Front Door Firewall Policy that should be linked to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
 
-* `association` - (Required) An `association` block as defined below. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `association` - (Required) An `association` block as defined below. Changing this forces a new Front Door Security Policy to be created.
 
 ---
 
 An `association` block supports the following:
 
-* `domain` - (Required) One or more `domain` blocks as defined below. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `domain` - (Required) One or more `domain` blocks as defined below. Changing this forces a new Front Door Security Policy to be created.
 
-* `patterns_to_match` - (Required) The list of paths to match for this firewall policy. Possible value includes `/*`. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `patterns_to_match` - (Required) The list of paths to match for this firewall policy. Possible value includes `/*`. Changing this forces a new Front Door Security Policy to be created.
 
 ---
 
 A `domain` block supports the following:
 
-~> **NOTE:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked CDN FrontDoor Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
+~> **NOTE:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked Front Door Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
 
-* `cdn_frontdoor_domain_id` - (Required) The Resource Id of the **CDN FrontDoor Custom Domain** or **CDN FrontDoor Endpoint** that should be bound to this CDN FrontDoor Security Policy. Changing this forces a new CDN FrontDoor Security Policy to be created.
+* `cdn_frontdoor_domain_id` - (Required) The Resource Id of the **Front Door Custom Domain** or **Front Door Endpoint** that should be bound to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
 
-* `active` - (Computed) Is the CDN FrontDoor Custom Domain/Endpoint activated?
+* `active` - (Computed) Is the Front Door Custom Domain/Endpoint activated?
 
 ---
 
@@ -117,7 +117,7 @@ A `domain` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Security Policy.
+* `id` - The ID of the Front Door Security Policy.
 
 ## Timeouts
 
@@ -129,7 +129,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Frontdoor Security Policies can be imported using the `resource id`, e.g.
+Front Door Security Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_security_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/policy1
