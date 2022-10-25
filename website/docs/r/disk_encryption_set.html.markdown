@@ -10,7 +10,6 @@ description: |-
 
 Manages a Disk Encryption Set.
 
-
 ## Example Usage
 
 ```hcl
@@ -154,8 +153,6 @@ An `identity` block exports the following:
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

@@ -351,7 +351,6 @@ A `hive` block supports the following:
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
-
 ---
 
 An `oozie` block supports the following:
@@ -457,8 +456,6 @@ The following attributes are exported:
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Hadoop Cluster.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

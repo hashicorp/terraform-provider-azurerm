@@ -18,7 +18,6 @@ Manages a Node Pool within a Kubernetes Cluster
 
 This example provisions a basic Kubernetes Node Pool. Other examples of the `azurerm_kubernetes_cluster_node_pool` resource can be found in [the `./examples/kubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes)
 
-
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"

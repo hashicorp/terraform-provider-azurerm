@@ -217,7 +217,6 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -293,7 +292,6 @@ The following arguments are supported:
 * `emails` - (Optional) A list of email addresses identified by this Certificate. Changing this forces a new resource to be created.
 * `upns` - (Optional) A list of User Principal Names identified by the Certificate. Changing this forces a new resource to be created.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -320,8 +318,6 @@ A `certificate_attribute` block exports the following:
 * `updated` - The recent update time of the Key Vault Certificate.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

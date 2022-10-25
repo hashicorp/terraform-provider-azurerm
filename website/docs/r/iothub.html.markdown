@@ -250,7 +250,7 @@ A `route` block supports the following:
 
 * `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
@@ -272,7 +272,7 @@ A `fallback_route` block supports the following:
 
 * `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Optional) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
@@ -331,7 +331,7 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub.
 
 * `event_hub_events_endpoint` -  The EventHub compatible endpoint for events data
-* `event_hub_events_namespace` - The EventHub namespace for events data   
+* `event_hub_events_namespace` - The EventHub namespace for events data
 * `event_hub_events_path` -  The EventHub compatible path for events data
 * `event_hub_operations_endpoint` -  The EventHub compatible endpoint for operational data
 * `event_hub_operations_path` -  The EventHub compatible path for operational data

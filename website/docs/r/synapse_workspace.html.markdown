@@ -197,7 +197,7 @@ The following arguments are supported:
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed AAD Tenant Ids For Linking. 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed AAD Tenant Ids For Linking.
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group.
 
@@ -269,7 +269,7 @@ A `github_repo` block supports the following:
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
-* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
+* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: <https://github.mydomain.com>.
 
 -> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
 

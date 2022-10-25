@@ -12,7 +12,8 @@ Manages a datadog Monitor.
 
 ## Example Usage
 
-###  Monitor creation with linking to Datadog organization
+### Monitor creation with linking to Datadog organization
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-datadog"
@@ -117,6 +118,7 @@ An `identity` block exports the following:
 To enable metrics flow, perform role assignment on the identity created above. `Monitoring reader(43d0d8ad-25c7-4714-9337-8ba259a9fe05)` role is required .
 
 ### Role assignment on the monitor created
+
 ```hcl
 data "azurerm_subscription" "primary" {}
 
@@ -130,6 +132,7 @@ resource "azurerm_role_assignment" "example" {
   principal_id       = azurerm_datadog_monitor.example.identity.0.principal_id
 }
 ```
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

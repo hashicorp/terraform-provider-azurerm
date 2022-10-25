@@ -10,7 +10,6 @@ description: |-
 
 Manages an Authorization Server within an API Management Service.
 
-
 ## Example Usage
 
 ```hcl

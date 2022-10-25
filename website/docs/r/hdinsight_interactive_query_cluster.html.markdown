@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
 
-~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
+~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/)
 ---
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Interactive Query Cluster.
@@ -171,7 +171,6 @@ A `script_action` block supports the following:
 * `uri` - (Required) The URI to the script.
 
 * `parameters` - (Required) The parameters for the script provided.
-
 
 ---
 
@@ -291,7 +290,7 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
---- 
+---
 
 A `metastores` block supports the following:
 
@@ -312,7 +311,6 @@ A `hive` block supports the following:
 * `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
-
 
 ---
 

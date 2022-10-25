@@ -43,6 +43,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   }
 }
 ```
+
 ## Example DNS Auth TXT Record Usage
 
 The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the CDN FrontDoor Custom Domains `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.

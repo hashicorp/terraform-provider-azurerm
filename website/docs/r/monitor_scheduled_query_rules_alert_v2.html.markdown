@@ -96,11 +96,11 @@ The following arguments are supported:
 
 * `criteria` - (Required) A `criteria` block as defined below.
 
-* `evaluation_frequency` - (Required) How often the scheduled query rule is evaluated, represented in ISO 8601 duration format. 
+* `evaluation_frequency` - (Required) How often the scheduled query rule is evaluated, represented in ISO 8601 duration format.
 
 * `scopes` - (Required) Specifies the list of resource ids that this scheduled query rule is scoped to. Changing this forces a new resource to be created.
 
-* `severity` - (Required) Severity of the alert. Should be an integer between 0 and 4. Value of 0 is severest. 
+* `severity` - (Required) Severity of the alert. Should be an integer between 0 and 4. Value of 0 is severest.
 
 * `window_duration` - (Required) Specifies the period of time in ISO 8601 duration format on which the Scheduled Query Rule will be executed (bin size). Possible values are `PT1M`, `PT5M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D` and `P2D`.
 
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `auto_mitigation_enabled` - (Optional) Specifies the flag that indicates whether the alert should be automatically resolved or not. Value should be `true` or `false`. The default is `false`.
 
-* `workspace_alerts_storage_enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule check if storage is configured. Value should be `true` or `false`. The default is `false`. 
+* `workspace_alerts_storage_enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule check if storage is configured. Value should be `true` or `false`. The default is `false`.
 
 * `description` - (Optional) Specifies the description of the scheduled query rule.
 
@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule is enabled. Value should be `true` or `false`. The default is `true`.
 
-* `mute_actions_after_alert_duration` - (Optional) Mute actions for the chosen period of time in ISO 8601 duration format after the alert is fired. 
+* `mute_actions_after_alert_duration` - (Optional) Mute actions for the chosen period of time in ISO 8601 duration format after the alert is fired.
 
 -> **NOTE** `auto_mitigation_enabled` and `mute_actions_after_alert_duration` are mutually exclusive and cannot both be set.
 
@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Monitor Scheduled Query Rule.
 
-* `target_resource_types` - (Optional) List of resource type of the target resource(s) on which the alert is created/updated. For example if the scope is a resource group and targetResourceTypes is `Microsoft.Compute/virtualMachines`, then a different alert will be fired for each virtual machine in the resource group which meet the alert criteria. 
+* `target_resource_types` - (Optional) List of resource type of the target resource(s) on which the alert is created/updated. For example if the scope is a resource group and targetResourceTypes is `Microsoft.Compute/virtualMachines`, then a different alert will be fired for each virtual machine in the resource group which meet the alert criteria.
 
 ---
 
@@ -140,9 +140,9 @@ An `action` block supports the following:
 
 A `criteria` block supports the following:
 
-* `operator` - (Required) Specifies the criteria operator. Possible values are `Equals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`,and `LessThanOrEqual`. 
+* `operator` - (Required) Specifies the criteria operator. Possible values are `Equals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`,and `LessThanOrEqual`.
 
-* `query` - (Required) The query to run on logs. The results returned by this query are used to populate the alert. 
+* `query` - (Required) The query to run on logs. The results returned by this query are used to populate the alert.
 
 * `threshold` - (Required) Specifies the criteria threshold value that activates the alert.
 
@@ -154,7 +154,7 @@ A `criteria` block supports the following:
 
 * `metric_measure_column` - (Optional) Specifies the column containing the metric measure number.
 
-* `resource_id_column` - (Optional) Specifies the column containing the resource id. The content of the column must be an uri formatted as resource id. 
+* `resource_id_column` - (Optional) Specifies the column containing the resource id. The content of the column must be an uri formatted as resource id.
 
 ---
 
@@ -172,7 +172,7 @@ A `failing_periods` block supports the following:
 
 * `minimum_failing_periods_to_trigger_alert` - (Required) Specifies the number of violations to trigger an alert. Should be smaller or equal to `number_of_evaluation_periods`. Possible value is integer between 1 and 6.
 
-* `number_of_evaluation_periods` - (Required) Specifies the number of aggregated look-back points. The look-back time window is calculated based on the aggregation granularity `window_duration` and the selected number of aggregated points. Possible value is integer between 1 and 6. 
+* `number_of_evaluation_periods` - (Required) Specifies the number of aggregated look-back points. The look-back time window is calculated based on the aggregation granularity `window_duration` and the selected number of aggregated points. Possible value is integer between 1 and 6.
 
 ## Attributes Reference
 

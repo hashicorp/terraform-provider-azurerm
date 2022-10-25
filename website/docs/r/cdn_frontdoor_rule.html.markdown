@@ -349,7 +349,7 @@ A `client_port_condition` block supports the following:
 
 A `socket_address_condition` block supports the following:
 
-->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Frontdoors edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer. 
+->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Frontdoors edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
 
 ->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
@@ -381,7 +381,7 @@ A `remote_address_condition` block supports the following:
 
 A `request_method_condition` block supports the following:
 
-->The `request_method_condition` identifies requests that use the specified HTTP request method. 
+->The `request_method_condition` identifies requests that use the specified HTTP request method.
 
 * `match_values` - (Required) A list of one or more HTTP methods. Possible values include `GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS` or `TRACE`. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -599,7 +599,7 @@ Rule Set server variables provide access to structured information about the req
 | `server_port`    | The port of the server that accepted a request. |
 | `url_path`       | Identifies the specific resource in the host that the web client wants to access. This is the part of the request URI without the arguments.<br/>For example, in the request `http://contoso.com:8080/article.aspx?id=123&title=fabrikam`, the `uri_path` value will be `/article.aspx`. |
 
-### Action Server Variable Format    
+### Action Server Variable Format
 
 Server variables can be specified using the following formats:
 

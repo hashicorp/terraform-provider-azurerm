@@ -157,7 +157,6 @@ A `rule` (application rule) block supports the following:
 
 * `web_categories` - (Optional) Specifies a list of web categories to which access is denied or allowed depending on the value of `action` above. Needs Premium SKU for Firewall Policy.
 
-
 ---
 
 A `rule` (network rule) block supports the following:
@@ -195,7 +194,7 @@ A `rule` (NAT rule) block supports the following:
 * `destination_ports` - (Optional) Specifies a list of destination ports. Only one destination port is supported in a NAT rule.
 
 * `translated_address` - (Optional) Specifies the translated address.
- 
+
 * `translated_fqdn` - (Optional) Specifies the translated FQDN.
 
 ~> **NOTE:** Exactly one of `translated_address` and `translated_fqdn` should be set.
@@ -212,7 +211,7 @@ A `protocols` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Firewall Policy Rule Collection Group.
 

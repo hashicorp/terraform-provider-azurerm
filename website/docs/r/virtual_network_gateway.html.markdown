@@ -216,13 +216,13 @@ The `vpn_client_configuration` block supports:
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
-    Values `SSTP` and `IkeV2` are incompatible with the use of 
+    Values `SSTP` and `IkeV2` are incompatible with the use of
     `aad_tenant`, `aad_audience` and `aad_issuer`.
 
 * `vpn_auth_types` - (Optional) List of the vpn authentication types for the virtual network gateway.
     The supported values are `AAD`, `Radius` and `Certificate`.
 
--> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types.
+-> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types
 ---
 
 The `bgp_settings` block supports:
@@ -260,7 +260,7 @@ The `root_certificate` block supports:
     authority. The certificate must be provided in Base-64 encoded X.509 format
     (PEM). In particular, this argument *must not* include the
     `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers.
- 
+
 ---
 
 The `root_revoked_certificate` block supports:
@@ -291,7 +291,6 @@ The `peering_addresses` supports:
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 
 * `tunnel_ip_addresses` - A list of tunnel IP addresses assigned to the BGP peer of the Virtual Network Gateway.
-
 
 ## Timeouts
 

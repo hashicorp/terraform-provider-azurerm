@@ -54,7 +54,6 @@ resource "azurerm_container_registry_token" "example" {
 
 The following arguments are supported:
 
-
 * `name` - (Required) Specifies the name of the token. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry token. Changing this forces a new resource to be created.
@@ -66,6 +65,7 @@ The following arguments are supported:
 * `enabled` - (Optional) Should the Container Registry token be enabled? Defaults to `true`.
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:

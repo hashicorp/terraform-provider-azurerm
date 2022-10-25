@@ -238,8 +238,6 @@ A `cookies_condition` block supports the following:
 
 * `match_values` - (Optional) List of values for the cookie. This is required if `operator` is not `Any`.
 
-
-
 * `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---

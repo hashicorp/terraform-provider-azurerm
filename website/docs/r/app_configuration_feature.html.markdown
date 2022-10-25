@@ -110,6 +110,7 @@ terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-
 ```
 
 If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
+
 ```shell
 terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
 ```

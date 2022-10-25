@@ -54,7 +54,6 @@ resource "azurerm_automation_webhook" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
