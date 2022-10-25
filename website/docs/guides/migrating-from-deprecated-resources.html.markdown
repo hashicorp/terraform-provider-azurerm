@@ -104,7 +104,7 @@ Successfully removed 2 resource instance(s).
 
 Now that the old resource has been removed from Terraform's Statefile we can now Import it into the Statefile as the new resource by running:
 
-```
+```text
 terraform import [resourcename].[identifier] [resourceid]
 ```
 
