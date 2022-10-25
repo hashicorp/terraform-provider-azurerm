@@ -3,14 +3,14 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor"
 description: |-
-  Manages an Azure Front Door (classic) instance.
+  Manages an Azure Front Door(classic) instance.
 ---
 
 # azurerm_frontdoor
 
-!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure CDN Front Door (Azure Front Door standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Front Door(standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
 
-Manages an Azure Front Door (classic) instance.
+Manages an Azure Front Door(classic) instance.
 
 Azure Front Door Service is Microsoft's highly available and scalable web application acceleration platform and global HTTP(S) load balancer. It provides built-in DDoS protection and application layer security and caching. Front Door enables you to build applications that maximize and automate high-availability and performance for your end-users. Use Front Door with Azure services including Web/Mobile Apps, Cloud Services and Virtual Machines – or combine it with on-premises services for hybrid deployments and smooth cloud migration.
 
