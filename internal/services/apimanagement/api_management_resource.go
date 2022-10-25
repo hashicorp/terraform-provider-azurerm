@@ -90,9 +90,9 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"publisher_name": {
 			Type:         pluginsdk.TypeString,

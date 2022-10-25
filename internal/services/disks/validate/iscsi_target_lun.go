@@ -12,7 +12,7 @@ func DiskPoolIscsiTargetLunId(input interface{}, key string) (warnings []string,
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
-	if _, err := parse.ParseIscsiTargetLunID(v); err != nil {
+	if _, err := parse.IscsiTargetLunID(v); err != nil {
 		errors = append(errors, err)
 	}
 	return
