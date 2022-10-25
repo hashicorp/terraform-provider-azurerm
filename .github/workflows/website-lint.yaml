@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 16
       - run: npm install --global markdownlint-cli
-      - run: markdownlint --disable MD013 "website/**"
+      - run: markdownlint './website/docs/**/*.markdown' --disable MD013
         continue-on-error: false
       - uses: actions/setup-go@v2
         with:
