@@ -711,8 +711,8 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		for _, fs := range *fss {
 			for _, param := range fs.Parameters {
 				cfs = append(cfs, CustomFabricSetting{
-					Parameter: fs.Name,
-					Section:   param.Name,
+					Section:   fs.Name,
+					Parameter: param.Name,
 					Value:     param.Value,
 				})
 			}
@@ -865,8 +865,6 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	out.ClusterUpgradeCadence = &model.UpgradeWave
 
 	if customSettings := model.CustomFabricSettings; len(customSettings) > 0 {
-		fs := make([]managedcluster.SettingsSectionDescription, len(customSettings))
-
 		// First we build a map of all settings per section
 		fsMap := make(map[string][]managedcluster.SettingsParameterDescription)
 		for _, cs := range customSettings {
@@ -878,6 +876,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		}
 
 		// Then we update the properties struct
+		fs := make([]managedcluster.SettingsSectionDescription, 0)
 		for k, v := range fsMap {
 			fs = append(fs, managedcluster.SettingsSectionDescription{
 				Name:       k,
