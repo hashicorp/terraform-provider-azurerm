@@ -352,7 +352,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
   shared_access_policy_key     = azurerm_eventhub_namespace.test.default_primary_key
   shared_access_policy_name    = "RootManagedSharedAccessKey"
   partition_key                = "partitionKey"
-  authentication_mode          = "Msi"
+  authentication_mode          = "ConnectionString"
 
   serialization {
     type     = "Json"
