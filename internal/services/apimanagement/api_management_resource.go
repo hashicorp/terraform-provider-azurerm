@@ -1025,12 +1025,19 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
-
-		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
+		additionalLocation, err := flattenApiManagementAdditionalLocations(props.AdditionalLocations)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("additional_location", additionalLocation); err != nil {
 			return fmt.Errorf("setting `additional_location`: %+v", err)
 		}
 
-		if err := d.Set("virtual_network_configuration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("virtual_network_configuration", virtualNetworkConfiguration); err != nil {
 			return fmt.Errorf("setting `virtual_network_configuration`: %+v", err)
 		}
 
@@ -1436,10 +1443,10 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 	return &additionalLocations, nil
 }
 
-func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
+func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, prop := range *input {
@@ -1472,7 +1479,10 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 		if prop.DisableGateway != nil {
 			gatewayDisabled = *prop.DisableGateway
 		}
-
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
+		if err != nil {
+			return results, err
+		}
 		results = append(results, map[string]interface{}{
 			"capacity":                      capacity,
 			"gateway_regional_url":          gatewayRegionalUrl,
@@ -1480,13 +1490,13 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			"private_ip_addresses":          privateIPAddresses,
 			"public_ip_address_id":          publicIpAddressId,
 			"public_ip_addresses":           publicIPAddresses,
-			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
+			"virtual_network_configuration": virtualNetworkConfiguration,
 			"zones":                         zones.Flatten(prop.Zones),
 			"gateway_disabled":              gatewayDisabled,
 		})
 	}
 
-	return results
+	return results, nil
 }
 
 func expandIdentity(input []interface{}) (*apimanagement.ServiceIdentity, error) {
@@ -1725,19 +1735,22 @@ func flattenApiManagementProtocolsCustomProperties(input map[string]*string) []i
 	return []interface{}{output}
 }
 
-func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) []interface{} {
+func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	virtualNetworkConfiguration := make(map[string]interface{})
 
 	if input.SubnetResourceID != nil {
-		subnetId, _ := networkParse.SubnetID(*input.SubnetResourceID)
+		subnetId, err := networkParse.SubnetID(*input.SubnetResourceID)
+		if err != nil {
+			return []interface{}{}, nil
+		}
 		virtualNetworkConfiguration["subnet_id"] = subnetId.ID()
 	}
 
-	return []interface{}{virtualNetworkConfiguration}
+	return []interface{}{virtualNetworkConfiguration}, nil
 }
 
 func parseApiManagementNilableDictionary(input map[string]*string, key string) bool {
