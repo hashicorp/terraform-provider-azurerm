@@ -1167,6 +1167,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 						"8.0",
+						"8.1",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -1193,6 +1194,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.7",
 						"3.8",
 						"3.9",
+						"3.10",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -3629,11 +3631,12 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		if len(parts) == 2 {
 			winAppStack.DockerContainerTag = parts[1]
 			path := strings.Split(parts[0], "/")
-			if len(path) > 2 {
+			if len(path) > 1 {
 				winAppStack.DockerContainerRegistry = path[0]
 				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+			} else {
+				winAppStack.DockerContainerName = path[0]
 			}
-			winAppStack.DockerContainerName = path[0]
 		}
 	}
 	winAppStack.CurrentStack = currentStack

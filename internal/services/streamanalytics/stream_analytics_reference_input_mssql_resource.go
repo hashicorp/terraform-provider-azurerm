@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -51,7 +51,7 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"server": {
 				Type:         pluginsdk.TypeString,
@@ -101,6 +101,12 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 			},
 
 			"delta_snapshot_query": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"table": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -156,6 +162,10 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 
 	if v, ok := d.GetOk("delta_snapshot_query"); ok {
 		properties.DeltaSnapshotQuery = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("table"); ok {
+		properties.Table = utils.String(v.(string))
 	}
 
 	props := streamanalytics.Input{
@@ -221,6 +231,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 		d.Set("refresh_interval_duration", inputDataSource.AzureSQLReferenceInputDataSourceProperties.RefreshRate)
 		d.Set("full_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.FullSnapshotQuery)
 		d.Set("delta_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.DeltaSnapshotQuery)
+		d.Set("table", inputDataSource.AzureSQLReferenceInputDataSourceProperties.Table)
 	}
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -51,7 +51,7 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"date_format": {
 				Type:         pluginsdk.TypeString,
@@ -91,6 +91,16 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+				}, false),
+			},
 		},
 	}
 }
@@ -192,6 +202,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 		d.Set("path_pattern", blobInputDataSource.PathPattern)
 		d.Set("storage_container_name", blobInputDataSource.Container)
 		d.Set("time_format", blobInputDataSource.TimeFormat)
+		d.Set("authentication_mode", blobInputDataSource.AuthenticationMode)
 
 		if accounts := blobInputDataSource.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 			account := (*accounts)[0]
@@ -233,6 +244,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 	storageAccountKey := d.Get("storage_account_key").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
+	authenticationMode := d.Get("authentication_mode").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
@@ -257,6 +269,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 							AccountKey:  utils.String(storageAccountKey),
 						},
 					},
+					AuthenticationMode: streamanalytics.AuthenticationMode(authenticationMode),
 				},
 			},
 			Serialization: serialization,

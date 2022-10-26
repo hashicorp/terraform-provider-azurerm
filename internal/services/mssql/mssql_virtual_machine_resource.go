@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -181,6 +182,61 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
+			"assessment": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"schedule": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"weekly_interval": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"assessment.0.schedule.0.monthly_occurrence"},
+										ValidateFunc: validation.IntBetween(1, 6),
+									},
+									"monthly_occurrence": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"assessment.0.schedule.0.weekly_interval"},
+										ValidateFunc: validation.IntBetween(1, 5),
+									},
+									"day_of_week": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForAssessmentDayOfWeek(), false),
+									},
+									"start_time": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"),
+											"duration must match the format HH:mm",
+										),
+									},
+								},
+							},
+						},
+
+						"run_immediately": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"key_vault_credential": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -285,7 +341,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						},
 						"data_settings":    helper.StorageSettingSchema(),
 						"log_settings":     helper.StorageSettingSchema(),
-						"temp_db_settings": helper.StorageSettingSchema(),
+						"temp_db_settings": helper.SQLTempDBStorageSettingSchema(),
 					},
 				},
 			},
@@ -360,6 +416,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
 			AutoBackupSettings:         expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{})),
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
+			AssessmentSettings:         expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
@@ -466,6 +523,10 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 			if err := d.Set("auto_patching", flattenSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
 				return fmt.Errorf("setting `auto_patching`: %+v", err)
+			}
+
+			if err := d.Set("assessment", flattenSqlVirtualMachineAssessmentSettings(props.AssessmentSettings)); err != nil {
+				return fmt.Errorf("setting `assessment`: %+v", err)
 			}
 
 			if err := d.Set("key_vault_credential", flattenSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
@@ -798,6 +859,101 @@ func flattenSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachines.AutoP
 	}
 }
 
+func expandSqlVirtualMachineAssessmentSettings(input []interface{}) *sqlvirtualmachines.AssessmentSettings {
+	if len(input) == 0 {
+		return nil
+	}
+	assessmentSetting := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachines.AssessmentSettings{
+		Enable:         utils.Bool(true),
+		RunImmediately: utils.Bool(assessmentSetting["run_immediately"].(bool)),
+		Schedule:       expandSqlVirtualMachineAssessmentSettingsSchedule(assessmentSetting["schedule"].([]interface{})),
+	}
+}
+
+func expandSqlVirtualMachineAssessmentSettingsSchedule(input []interface{}) *sqlvirtualmachines.Schedule {
+	if len(input) == 0 {
+		return &sqlvirtualmachines.Schedule{}
+	}
+
+	scheduleConfig := input[0].(map[string]interface{})
+
+	dayOfWeek := sqlvirtualmachines.AssessmentDayOfWeek(scheduleConfig["day_of_week"].(string))
+
+	schedule := &sqlvirtualmachines.Schedule{
+		Enable:    utils.Bool(true),
+		DayOfWeek: &dayOfWeek,
+		StartTime: utils.String(scheduleConfig["start_time"].(string)),
+	}
+
+	if weeklyInterval := scheduleConfig["weekly_interval"].(int); weeklyInterval != 0 {
+		schedule.WeeklyInterval = utils.Int64(int64(weeklyInterval))
+	}
+
+	if monthlyOccurrence := scheduleConfig["monthly_occurrence"].(int); monthlyOccurrence != 0 {
+		schedule.MonthlyOccurrence = utils.Int64(int64(monthlyOccurrence))
+	}
+
+	return schedule
+}
+
+func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualmachines.AssessmentSettings) []interface{} {
+	if assessmentSettings == nil || assessmentSettings.Enable == nil || !*assessmentSettings.Enable {
+		return []interface{}{}
+	}
+
+	var (
+		runImmediately bool
+		enabled        bool
+	)
+	if assessmentSettings.RunImmediately != nil {
+		runImmediately = *assessmentSettings.RunImmediately
+	}
+
+	if assessmentSettings.Enable != nil {
+		enabled = *assessmentSettings.Enable
+	}
+
+	var attr map[string]interface{}
+	if schedule := assessmentSettings.Schedule; schedule != nil {
+		var (
+			weeklyInterval    int64
+			monthlyOccurrence int64
+			dayOfWeek         string
+			startTime         string
+		)
+
+		if schedule.WeeklyInterval != nil {
+			weeklyInterval = *schedule.WeeklyInterval
+		}
+		if schedule.MonthlyOccurrence != nil {
+			monthlyOccurrence = *schedule.MonthlyOccurrence
+		}
+		if schedule.DayOfWeek != nil {
+			dayOfWeek = string(*schedule.DayOfWeek)
+		}
+		if schedule.StartTime != nil {
+			startTime = *schedule.StartTime
+		}
+
+		attr = map[string]interface{}{
+			"weekly_interval":    weeklyInterval,
+			"monthly_occurrence": monthlyOccurrence,
+			"day_of_week":        dayOfWeek,
+			"start_time":         startTime,
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"run_immediately": runImmediately,
+			"enabled":         enabled,
+			"schedule":        []interface{}{attr},
+		},
+	}
+}
+
 func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualmachines.KeyVaultCredentialSettings {
 	if len(input) == 0 {
 		return nil
@@ -949,11 +1105,16 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachi
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	dataStorageSettings := input[0].(map[string]interface{})
+	tempDbSettings := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachines.SQLTempDbSettings{
-		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
-		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
+		Luns:            expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{})),
+		DefaultFilePath: utils.String(tempDbSettings["default_file_path"].(string)),
+		DataFileCount:   utils.Int64(int64(tempDbSettings["data_file_count"].(int))),
+		DataFileSize:    utils.Int64(int64(tempDbSettings["data_file_size_mb"].(int))),
+		DataGrowth:      utils.Int64(int64(tempDbSettings["data_file_growth_in_mb"].(int))),
+		LogFileSize:     utils.Int64(int64(tempDbSettings["log_file_size_mb"].(int))),
+		LogGrowth:       utils.Int64(int64(tempDbSettings["log_file_growth_mb"].(int))),
 	}
 }
 
@@ -967,8 +1128,28 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 		attrs["luns"] = *input.Luns
 	}
 
+	if input.DataFileCount != nil {
+		attrs["data_file_count"] = *input.DataFileCount
+	}
+
+	if input.DataFileSize != nil {
+		attrs["data_file_size_mb"] = *input.DataFileSize
+	}
+
+	if input.DataGrowth != nil {
+		attrs["data_file_growth_in_mb"] = *input.DataGrowth
+	}
+
 	if input.DefaultFilePath != nil {
 		attrs["default_file_path"] = *input.DefaultFilePath
+	}
+
+	if input.LogFileSize != nil {
+		attrs["log_file_size_mb"] = *input.LogFileSize
+	}
+
+	if input.LogGrowth != nil {
+		attrs["log_file_growth_mb"] = *input.LogGrowth
 	}
 
 	return []interface{}{attrs}

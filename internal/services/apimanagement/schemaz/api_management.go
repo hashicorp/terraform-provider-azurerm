@@ -177,7 +177,11 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 			output["content_type"] = *v.ContentType
 		}
 
-		output["form_parameter"] = FlattenApiManagementOperationParameterContract(v.FormParameters)
+		formParameter, err := FlattenApiManagementOperationParameterContract(v.FormParameters)
+		if err != nil {
+			return nil, err
+		}
+		output["form_parameter"] = formParameter
 
 		if v.Examples != nil {
 			example, err := FlattenApiManagementOperationParameterExampleContract(v.Examples)
@@ -236,6 +240,18 @@ func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
 					},
 					Set: pluginsdk.HashString,
 				},
+
+				"example": SchemaApiManagementOperationParameterExampleContract(),
+
+				"schema_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"type_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -257,6 +273,14 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 		required := vs["required"].(bool)
 		valuesRaw := vs["values"].(*pluginsdk.Set).List()
 
+		schemaId := vs["schema_id"].(string)
+		typeName := vs["type_name"].(string)
+		examples := make(map[string]*apimanagement.ParameterExampleContract)
+		if vs["example"] != nil {
+			examplesRaw := vs["example"].([]interface{})
+			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
+		}
+
 		output := apimanagement.ParameterContract{
 			Name:         utils.String(name),
 			Description:  utils.String(description),
@@ -264,6 +288,9 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 			Required:     utils.Bool(required),
 			DefaultValue: nil,
 			Values:       utils.ExpandStringSlice(valuesRaw),
+			SchemaID:     utils.String(schemaId),
+			TypeName:     utils.String(typeName),
+			Examples:     examples,
 		}
 
 		// DefaultValue must be included in Values, else it returns error
@@ -278,9 +305,9 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 	return &outputs
 }
 
-func FlattenApiManagementOperationParameterContract(input *[]apimanagement.ParameterContract) []interface{} {
+func FlattenApiManagementOperationParameterContract(input *[]apimanagement.ParameterContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -309,10 +336,26 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 
 		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, utils.FlattenStringSlice(v.Values))
 
+		if v.Examples != nil {
+			example, err := FlattenApiManagementOperationParameterExampleContract(v.Examples)
+			if err != nil {
+				return nil, err
+			}
+			output["example"] = example
+		}
+
+		if v.SchemaID != nil {
+			output["schema_id"] = *v.SchemaID
+		}
+
+		if v.TypeName != nil {
+			output["type_name"] = *v.TypeName
+		}
+
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }
 
 func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {

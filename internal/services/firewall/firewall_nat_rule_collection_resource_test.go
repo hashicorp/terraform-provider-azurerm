@@ -573,7 +573,6 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     destination_ports = [
       "53",
-      "64",
     ]
 
     destination_addresses = [
@@ -599,7 +598,6 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     destination_ports = [
       "8888",
-      "9999",
     ]
 
     destination_addresses = [

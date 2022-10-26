@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	applicationinsightsvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,7 +47,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"scope_name": {
 				Type:         pluginsdk.TypeString,
@@ -62,7 +63,8 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
 					applicationinsightsvalidate.ComponentID,
-					loganalyticsValidate.LogAnalyticsWorkspaceID,
+					workspaces.ValidateWorkspaceID,
+					datacollectionendpoints.ValidateDataCollectionEndpointID,
 				),
 			},
 		},

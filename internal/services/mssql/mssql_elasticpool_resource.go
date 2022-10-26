@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -49,9 +50,9 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateMsSqlElasticPoolName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"server_name": {
 				Type:         pluginsdk.TypeString,
@@ -116,20 +117,10 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"maintenance_configuration_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "SQL_Default",
-				ValidateFunc: validation.StringInSlice([]string{"SQL_Default", "SQL_EastUS_MI_1", "SQL_EastUS2_MI_1", "SQL_WestUS2_MI_1", "SQL_SoutheastAsia_MI_1", "SQL_AustraliaEast_MI_1", "SQL_NorthEurope_MI_1", "SQL_SouthCentralUS_MI_1",
-					"SQL_UKSouth_MI_1", "SQL_WestEurope_MI_1", "SQL_EastUS_MI_2", "SQL_EastUS2_MI_2", "SQL_WestUS2_MI_2", "SQL_SoutheastAsia_MI_2", "SQL_NorthEurope_MI_2", "SQL_SouthCentralUS_MI_2",
-					"SQL_UKSouth_MI_2", "SQL_WestEurope_MI_2", "SQL_AustraliaSoutheast_MI_1", "SQL_BrazilSouth_MI_1", "SQL_CanadaCentral_MI_1", "SQL_CanadaEast_MI_1", "SQL_CentralUS_MI_1", "SQL_EastAsia_MI_1",
-					"SQL_FranceCentral_MI_1", "SQL_GermanyWestCentral_MI_1", "SQL_CentralIndia_MI_1", "SQL_JapanEast_MI_1", "SQL_JapanWest_MI_1", "SQL_NorthCentralUS_MI_1", "SQL_UKWest_MI_1", "SQL_WestUS_MI_1",
-					"SQL_AustraliaSoutheast_MI_2", "SQL_BrazilSouth_MI_2", "SQL_CanadaCentral_MI_2", "SQL_CanadaEast_MI_2", "SQL_CentralUS_MI_2", "SQL_EastAsia_MI_2", "SQL_FranceCentral_MI_2", "SQL_GermanyWestCentral_MI_2",
-					"SQL_CentralIndia_MI_2", "SQL_JapanEast_MI_2", "SQL_JapanWest_MI_2", "SQL_NorthCentralUS_MI_2", "SQL_UKWest_MI_2", "SQL_WestUS_MI_2", "SQL_KoreaCentral_MI_1", "SQL_KoreaCentral_MI_2",
-					"SQL_WestCentralUS_MI_1", "SQL_WestCentralUS_MI_2", "SQL_UAENorth_MI_1", "SQL_SwitzerlandWest_MI_1", "SQL_SwitzerlandNorth_MI_1", "SQL_UAENorth_MI_2", "SQL_SwitzerlandWest_MI_2",
-					"SQL_SwitzerlandNorth_MI_2", "SQL_FranceSouth_MI_1", "SQL_FranceSouth_MI_2", "SQL_SouthAfricaNorth_MI_1", "SQL_KoreaSouth_MI_1", "SQL_UAECentral_MI_1", "SQL_SouthAfricaNorth_MI_2",
-					"SQL_KoreaSouth_MI_2", "SQL_UAECentral_MI_2", "SQL_SouthIndia_MI_1", "SQL_SouthIndia_MI_2", "SQL_AustraliaCentral_MI_1", "SQL_AustraliaCentral2_MI_1", "SQL_AustraliaCentral_MI_2",
-					"SQL_AustraliaCentral2_MI_2", "SQL_WestIndia_MI_1", "SQL_WestIndia_MI_2", "SQL_SouthAfricaWest_MI_1", "SQL_SouthAfricaWest_MI_2", "SQL_GermanyNorth_MI_1", "SQL_GermanyNorth_MI_2", "SQL_NorwayEast_MI_1",
-					"SQL_BrazilSoutheast_MI_1", "SQL_NorwayWest_MI_1", "SQL_WestUS3_MI_1", "SQL_NorwayEast_MI_2", "SQL_BrazilSoutheast_MI_2", "SQL_NorwayWest_MI_2", "SQL_WestUS3_MI_2"}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "SQL_Default",
+				ValidateFunc: validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 			},
 
 			"per_database_settings": {

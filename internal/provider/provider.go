@@ -25,6 +25,67 @@ func TestAzureProvider() *schema.Provider {
 	return azureProvider(true)
 }
 
+func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
+	// ValidatePartnerID checks if partner_id is any of the following:
+	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
+	//  * a valid UUID prefixed with "pid-"
+	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
+
+	debugLog := func(f string, v ...interface{}) {
+		if os.Getenv("TF_LOG") == "" {
+			return
+		}
+
+		if os.Getenv("TF_ACC") != "" {
+			return
+		}
+
+		log.Printf(f, v...)
+	}
+
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if v == "" {
+		return nil, nil
+	}
+
+	// Check for pid=<guid>-partnercenter format
+	if strings.HasPrefix(v, "pid-") && strings.HasSuffix(v, "-partnercenter") {
+		g := strings.TrimPrefix(v, "pid-")
+		g = strings.TrimSuffix(g, "-partnercenter")
+
+		if _, err := validation.IsUUID(g, ""); err != nil {
+			return nil, []error{fmt.Errorf("expected %q to contain a valid UUID", v)}
+		}
+
+		debugLog("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
+		return nil, nil
+	}
+
+	// Check for pid=<guid> (without the -partnercenter suffix)
+	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
+		g := strings.TrimPrefix(v, "pid-")
+
+		if _, err := validation.IsUUID(g, ""); err != nil {
+			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
+		}
+
+		debugLog("[DEBUG] %q partner_id matches pid-<GUID>...", v)
+		return nil, nil
+	}
+
+	// Check for straight UUID
+	if _, err := validation.IsUUID(v, ""); err != nil {
+		return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
+	} else {
+		debugLog("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
+		return nil, nil
+	}
+}
+
 func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	// avoids this showing up in test output
 	debugLog := func(f string, v ...interface{}) {
@@ -171,13 +232,27 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, ""),
-				Description: "The bearer token for the request to the OIDC provider. For use When authenticating as a Service Principal using OpenID Connect.",
+				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
 			"oidc_request_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, ""),
-				Description: "The URL for the OIDC provider from which to request an ID token. For use When authenticating as a Service Principal using OpenID Connect.",
+				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
+			},
+
+			"oidc_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN", ""),
+				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
+			},
+
+			"oidc_token_file_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN_FILE_PATH", ""),
+				Description: "The path to a file containing an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			"use_oidc": {
@@ -205,7 +280,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+				ValidateFunc: validation.Any(ValidatePartnerID, validation.StringIsEmpty),
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
@@ -279,6 +354,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			ClientCertPath:      d.Get("client_certificate_path").(string),
 			IDTokenRequestToken: d.Get("oidc_request_token").(string),
 			IDTokenRequestURL:   d.Get("oidc_request_url").(string),
+			IDToken:             d.Get("oidc_token").(string),
+			IDTokenFilePath:     d.Get("oidc_token_file_path").(string),
 
 			// Feature Toggles
 			SupportsClientCertAuth:         true,

@@ -104,6 +104,8 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Kafka Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
+* `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
+
 * `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are `1.0`, `1.1` or `1.2`. Changing this forces a new resource to be created.
 
 * `encryption_in_transit_enabled` - (Optional) Whether encryption in transit is enabled for this HDInsight Kafka Cluster. Changing this forces a new resource to be created.
@@ -117,6 +119,8 @@ The following arguments are supported:
 * `metastores` - (Optional) A `metastores` block as defined below.
 
 * `monitor` - (Optional) A `monitor` block as defined below.
+
+* `extension` - (Optional) An `extension` block as defined below.
 
 * `rest_proxy` - (Optional) A `rest_proxy` block as defined below.
 
@@ -137,6 +141,14 @@ A `gateway` block supports the following:
 -> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
 * `username` - (Required) The username used for the Ambari Portal. Changing this forces a new resource to be created.
+
+---
+
+A `compute_isolation` block supports the following:
+
+* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+
+* `host_sku` - (Optional) The name of the host SKU.
 
 ---
 
@@ -256,6 +268,18 @@ A `zookeeper_node` block supports the following:
 
 ---
 
+A `display_encryption_properties` block supports the following:
+
+* `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
+
+* `encryption_at_host_enabled` - (Optional) This is indicator to show whether resource disk encryption is enabled.
+
+* `key_vault_key_id` - (Optional) The ID of the key vault key.
+
+* `key_vault_managed_identity_id` - (Optional) This is the resource ID of Managed Identity used to access the key vault.
+
+---
+
 A `kafka_management_node` block supports the following:
 
 * `username` - (Required) The Username of the local administrator for the Kafka Management Nodes. Changing this forces a new resource to be created.
@@ -328,6 +352,14 @@ A `monitor` block supports the following:
 * `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
 
 * `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
+
+---
+
+A `extension` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The workspace ID of the log analytics extension.
+
+* `primary_key` - (Required) The workspace key of the log analytics extension.
 
 ---
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -53,7 +54,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"application_insights_id": {
 				Type:         pluginsdk.TypeString,
@@ -62,7 +63,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"kind": {
 				Type:     pluginsdk.TypeString,

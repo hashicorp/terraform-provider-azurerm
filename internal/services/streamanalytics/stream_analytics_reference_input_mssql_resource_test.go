@@ -51,6 +51,21 @@ func TestAccStreamAnalyticsReferenceInputMsSql_update(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsReferenceInputMsSql_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_mssql", "test")
+	r := StreamAnalyticsReferenceInputMsSqlResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
 func TestAccStreamAnalyticsReferenceInputMsSql_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_mssql", "test")
 	r := StreamAnalyticsReferenceInputMsSqlResource{}
@@ -137,6 +152,32 @@ QUERY
 `, template, data.RandomInteger)
 }
 
+func (r StreamAnalyticsReferenceInputMsSqlResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_analytics_reference_input_mssql" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  server                    = azurerm_mssql_server.test.fully_qualified_domain_name
+  database                  = azurerm_mssql_database.test.name
+  username                  = "maurice"
+  password                  = "ludicrousdisplay"
+  refresh_type              = "RefreshPeriodicallyWithFull"
+  refresh_interval_duration = "00:10:00"
+  table                     = "exampletable"
+  full_snapshot_query       = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+
+}
+`, template, data.RandomInteger)
+}
+
 func (r StreamAnalyticsReferenceInputMsSqlResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
@@ -197,8 +238,9 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[1]d"
-  server_id = azurerm_mssql_server.test.id
+  name         = "acctest-db-%[1]d"
+  server_id    = azurerm_mssql_server.test.id
+  license_type = "LicenseIncluded"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

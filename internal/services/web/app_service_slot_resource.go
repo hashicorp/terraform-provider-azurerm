@@ -52,9 +52,9 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"app_service_name": {
 				Type:         pluginsdk.TypeString,

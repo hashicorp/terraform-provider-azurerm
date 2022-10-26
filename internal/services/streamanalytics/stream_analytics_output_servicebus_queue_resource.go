@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -50,7 +50,7 @@ func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"queue_name": {
 				Type:         pluginsdk.TypeString,
@@ -95,6 +95,16 @@ func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+			},
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+				}, false),
 			},
 		},
 	}
@@ -143,6 +153,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
 					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 					SystemPropertyColumns:  d.Get("system_property_columns").(map[string]interface{}),
+					AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -199,6 +210,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData,
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 		d.Set("property_columns", v.PropertyColumns)
 		d.Set("system_property_columns", v.SystemPropertyColumns)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)

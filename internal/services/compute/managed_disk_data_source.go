@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceManagedDisk() *pluginsdk.Resource {
@@ -156,10 +156,10 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
+	id := disks.NewDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on %s: %s", id, err)
@@ -168,53 +168,58 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.SetId(id.ID())
 
 	d.Set("name", id.DiskName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("zones", zones.Flatten(resp.Zones))
+	if model := resp.Model; model != nil {
+		d.Set("zones", zones.Flatten(model.Zones))
 
-	storageAccountType := ""
-	if sku := resp.Sku; sku != nil {
-		storageAccountType = string(sku.Name)
-	}
-	d.Set("storage_account_type", storageAccountType)
+		storageAccountType := ""
+		if sku := model.Sku; sku != nil {
+			storageAccountType = string(*sku.Name)
+		}
+		d.Set("storage_account_type", storageAccountType)
 
-	if props := resp.DiskProperties; props != nil {
-		if creationData := props.CreationData; creationData != nil {
+		if props := model.Properties; props != nil {
+			creationData := props.CreationData
 			d.Set("create_option", string(creationData.CreateOption))
 
 			imageReferenceID := ""
-			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
-				imageReferenceID = *creationData.ImageReference.ID
+			if creationData.ImageReference != nil && creationData.ImageReference.Id != nil {
+				imageReferenceID = *creationData.ImageReference.Id
 			}
 			d.Set("image_reference_id", imageReferenceID)
 
-			d.Set("source_resource_id", creationData.SourceResourceID)
-			d.Set("source_uri", creationData.SourceURI)
-			d.Set("storage_account_id", creationData.StorageAccountID)
+			d.Set("source_resource_id", creationData.SourceResourceId)
+			d.Set("source_uri", creationData.SourceUri)
+			d.Set("storage_account_id", creationData.StorageAccountId)
+
+			diskAccessId := ""
+			if props.DiskAccessId != nil {
+				diskAccessId = *props.DiskAccessId
+			}
+			d.Set("disk_access_id", diskAccessId)
+
+			d.Set("network_access_policy", string(*props.NetworkAccessPolicy))
+			d.Set("disk_size_gb", props.DiskSizeGB)
+			d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
+			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+			d.Set("os_type", props.OsType)
+
+			diskEncryptionSetId := ""
+			if props.Encryption != nil && props.Encryption.DiskEncryptionSetId != nil {
+				diskEncryptionSetId = *props.Encryption.DiskEncryptionSetId
+			}
+			d.Set("disk_encryption_set_id", diskEncryptionSetId)
+
+			if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+				return fmt.Errorf("setting `encryption_settings`: %+v", err)
+			}
 		}
 
-		diskAccessId := ""
-		if props.DiskAccessID != nil {
-			diskAccessId = *props.DiskAccessID
-		}
-		d.Set("disk_access_id", diskAccessId)
-
-		d.Set("network_access_policy", string(props.NetworkAccessPolicy))
-		d.Set("disk_size_gb", props.DiskSizeGB)
-		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
-		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
-		d.Set("os_type", props.OsType)
-
-		diskEncryptionSetId := ""
-		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
-			diskEncryptionSetId = *props.Encryption.DiskEncryptionSetID
-		}
-		d.Set("disk_encryption_set_id", diskEncryptionSetId)
-
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
-			return fmt.Errorf("setting `encryption_settings`: %+v", err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

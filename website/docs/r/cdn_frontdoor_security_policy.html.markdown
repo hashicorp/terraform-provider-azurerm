@@ -54,7 +54,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 resource "azurerm_cdn_frontdoor_security_policy" "example" {
   name                     = "Example-Security-Policy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.example.id
 
   security_policies {
     firewall {
@@ -96,7 +95,7 @@ A `firewall` block supports the following:
 
 ---
 
-A `association` block supports the following:
+An `association` block supports the following:
 
 * `domain` - (Required) One or more `domain` blocks as defined below. Changing this forces a new Frontdoor Security Policy to be created.
 

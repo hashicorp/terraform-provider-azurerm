@@ -74,7 +74,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskEphemeralResourceDisk(data),
+			Config: r.disksOSDiskEphemeral(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -89,7 +89,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeralResourceDisk(t *te
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskEphemeral(data),
+			Config: r.disksOSDiskEphemeralResourceDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -173,13 +173,28 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnly(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnlySecureBootEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data),
+			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnlySecureBootDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -501,7 +516,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F8s_v2" # has to be this large for ephemeral disks on Windows
+  sku                 = "Standard_DS4_v2" # has to be this large for ephemeral disks on Windows
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -509,7 +524,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
+    sku       = "2022-datacenter-smalldisk"
     version   = "latest"
   }
 
@@ -616,7 +631,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), enabled)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithGuestStateOnly(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
@@ -655,10 +670,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  vtpm_enabled        = true
-  secure_boot_enabled = true
+  vtpm_enabled        = %t
+  secure_boot_enabled = %t
 }
-`, r.template(data))
+`, r.template(data), vtpm, secureBoot)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {

@@ -47,7 +47,7 @@ resource "azurerm_container_registry_webhook" "webhook" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Container Registry Webhook. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Container Registry Webhook. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry Webhook. Changing this forces a new resource to be created.
 
@@ -64,6 +64,8 @@ The following arguments are supported:
 * `scope` - (Optional) Specifies the scope of repositories that can trigger an event. For example, `foo:*` means events for all tags under repository `foo`. `foo:bar` means events for 'foo:bar' only. `foo` is equivalent to `foo:latest`. Empty means all events.
 
 * `custom_headers` - (Optional) Custom headers that will be added to the webhook notifications request.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 

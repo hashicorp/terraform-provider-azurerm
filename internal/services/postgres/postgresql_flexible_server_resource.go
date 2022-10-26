@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -58,9 +57,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validate.FlexibleServerName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"administrator_login": {
 				Type:         pluginsdk.TypeString,
@@ -88,7 +87,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216}),
 			},
 
 			"version": {
@@ -276,15 +275,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
-	createModeAttr := servers.CreateMode(createMode)
-	version := servers.ServerVersion(d.Get("version").(string))
-
 	parameters := servers.Server{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &servers.ServerProperties{
-			CreateMode:       &createModeAttr,
 			Network:          expandArmServerNetwork(d),
-			Version:          &version,
 			Storage:          expandArmServerStorage(d),
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
@@ -301,6 +295,16 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
+	if createMode != "" {
+		createModeAttr := servers.CreateMode(createMode)
+		parameters.Properties.CreateMode = &createModeAttr
+	}
+
+	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
+		version := servers.ServerVersion(v.(string))
+		parameters.Properties.Version = &version
+	}
+
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
 		parameters.Properties.AvailabilityZone = utils.String(v.(string))
 	}
@@ -315,7 +319,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if err != nil {
 			return fmt.Errorf("unable to parse `point_in_time_restore_time_in_utc` value")
 		}
-		parameters.Properties.PointInTimeUTC = utils.String(v.String())
+		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
 	}
 
 	if err = client.CreateThenPoll(ctx, id, parameters); err != nil {

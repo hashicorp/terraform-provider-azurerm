@@ -24,3 +24,8 @@ func StringPtr(s string) *string {
 func ArrayStringPtr(s []string) *[]string {
 	return &s
 }
+
+// Float32Ptr returns a pointer to the provided float32 variable.
+func Float32Ptr(f float32) *float32 {
+	return &f
+}

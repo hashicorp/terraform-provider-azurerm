@@ -173,13 +173,28 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *te
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnly(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnlySecureBootEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data),
+			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_disksOSDiskConfidentialVmWithGuestStateOnlySecureBootDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksOSDiskConfidentialVmWithGuestStateOnly(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -626,7 +641,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, enabled)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithGuestStateOnly(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
@@ -667,10 +682,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  vtpm_enabled        = true
-  secure_boot_enabled = true
+  vtpm_enabled        = %t
+  secure_boot_enabled = %t
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, vtpm, secureBoot)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {

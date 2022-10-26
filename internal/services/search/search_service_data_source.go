@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,7 +29,7 @@ func dataSourceSearchService() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"replica_count": {
 				Type:     pluginsdk.TypeInt,

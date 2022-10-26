@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -38,6 +38,11 @@ func resourceWebPubSub() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WebPubsubV0ToV1{},
+		}),
+		SchemaVersion: 1,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WebPubsubID(id)
 			return err
@@ -50,9 +55,9 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateWebpubsubName(),
 			},
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,

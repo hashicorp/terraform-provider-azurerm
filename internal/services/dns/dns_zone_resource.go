@@ -28,9 +28,10 @@ func resourceDnsZone() *pluginsdk.Resource {
 		Update: resourceDnsZoneCreateUpdate,
 		Delete: resourceDnsZoneDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.DnsZoneV0ToV1{},
+			1: migration.DnsZoneV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -210,7 +211,7 @@ func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := zones.ParseDnsZoneIDInsensitively(d.Id())
+	id, err := zones.ParseDnsZoneID(d.Id())
 	if err != nil {
 		return err
 	}

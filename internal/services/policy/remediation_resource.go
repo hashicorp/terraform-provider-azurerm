@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +24,7 @@ import (
 )
 
 func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmResourcePolicyRemediationCreateUpdate,
 		Read:   resourceArmResourcePolicyRemediationRead,
 		Update: resourceArmResourcePolicyRemediationCreateUpdate,
@@ -63,6 +65,24 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 				ValidateFunc:     validate.PolicyAssignmentID,
 			},
 
+			"failure_percentage": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validate2.FloatInRange(0, 1.0),
+			},
+
+			"parallel_deployments": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate2.IntegerPositive,
+			},
+
+			"resource_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate2.IntegerPositive,
+			},
+
 			"location_filters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -72,12 +92,9 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 				},
 			},
 
-			"policy_definition_id": {
+			"policy_definition_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.PolicyDefinitionID,
 			},
 
 			"resource_discovery_mode": {
@@ -91,6 +108,18 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["policy_definition_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validate.PolicyDefinitionID,
+			Deprecated:       "`policy_definition_id` will be removed in version 4.0 of the AzureRM Provider in favour of `policy_definition_reference_id`.",
+		}
+	}
+	return resource
 }
 
 func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -115,16 +144,8 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	parameters := remediations.Remediation{
-		Properties: &remediations.RemediationProperties{
-			Filters: &remediations.RemediationFilters{
-				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
-			},
-			PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_id").(string)),
-		},
+		Properties: readRemediationProperties(d),
 	}
-	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
-	parameters.Properties.ResourceDiscoveryMode = &mode
 
 	if _, err := client.RemediationsCreateOrUpdateAtResource(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
@@ -157,22 +178,7 @@ func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", id.RemediationName)
 	d.Set("resource_id", id.ResourceId)
 
-	if props := resp.Model.Properties; props != nil {
-		locations := []interface{}{}
-		if filters := props.Filters; filters != nil {
-			locations = utils.FlattenStringSlice(filters.Locations)
-		}
-		if err := d.Set("location_filters", locations); err != nil {
-			return fmt.Errorf("setting `location_filters`: %+v", err)
-		}
-
-		d.Set("policy_assignment_id", props.PolicyAssignmentId)
-		d.Set("policy_definition_id", props.PolicyDefinitionReferenceId)
-		d.Set("resource_discovery_mode", utils.NormalizeNilableString((*string)(props.ResourceDiscoveryMode)))
-
-	}
-
-	return nil
+	return setRemediationProperties(d, resp.Model.Properties)
 }
 
 func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -264,6 +270,56 @@ func waitRemediationToDelete(ctx context.Context,
 				return fmt.Errorf("waiting for %s to be canceled: %+v", id, err)
 			}
 		}
+	}
+	return nil
+}
+
+// readRemediationProperties sets the properties of the remediation, useful when add new properties to the model
+func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.RemediationProperties) {
+	prop = &remediations.RemediationProperties{
+		Filters: &remediations.RemediationFilters{
+			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+		},
+		PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
+		PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_reference_id").(string)),
+	}
+	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
+	prop.ResourceDiscoveryMode = &mode
+	if v := d.Get("failure_percentage").(float64); v != 0 {
+		prop.FailureThreshold = &remediations.RemediationPropertiesFailureThreshold{
+			Percentage: utils.Float(v),
+		}
+	}
+	if v := d.Get("parallel_deployments").(int); v != 0 {
+		prop.ParallelDeployments = utils.Int64(int64(v))
+	}
+	if v := d.Get("resource_count").(int); v != 0 {
+		prop.ResourceCount = utils.Int64(int64(v))
+	}
+	return
+}
+
+// setRemediationProperties sets the properties of the remediation, useful when add new properties to the model
+func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.RemediationProperties) error {
+	if prop == nil {
+		return nil
+	}
+	locations := []interface{}{}
+	if filters := prop.Filters; filters != nil {
+		locations = utils.FlattenStringSlice(filters.Locations)
+	}
+	if err := d.Set("location_filters", locations); err != nil {
+		return fmt.Errorf("setting `location_filters`: %+v", err)
+	}
+
+	d.Set("policy_assignment_id", prop.PolicyAssignmentId)
+	d.Set("policy_definition_reference_id", prop.PolicyDefinitionReferenceId)
+	d.Set("resource_discovery_mode", utils.NormalizeNilableString((*string)(prop.ResourceDiscoveryMode)))
+
+	d.Set("resource_count", prop.ResourceCount)
+	d.Set("parallel_deployments", prop.ParallelDeployments)
+	if prop.FailureThreshold != nil {
+		d.Set("failure_percentage", prop.FailureThreshold.Percentage)
 	}
 	return nil
 }

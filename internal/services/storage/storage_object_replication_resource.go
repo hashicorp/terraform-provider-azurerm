@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: @tombuildsstuff: this wants a state migration to move the ID to `{id1}|{id2}` to match other resources
+
 func resourceStorageObjectReplication() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceStorageObjectReplicationCreate,
@@ -122,8 +124,8 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	srcId := objectreplicationpolicies.NewObjectReplicationPoliciesID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.AccountName, "default")
-	dstId := objectreplicationpolicies.NewObjectReplicationPoliciesID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.AccountName, "default")
+	srcId := objectreplicationpolicies.NewObjectReplicationPolicyID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.AccountName, "default")
+	dstId := objectreplicationpolicies.NewObjectReplicationPolicyID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.AccountName, "default")
 
 	resp, err := client.List(ctx, *dstAccount)
 	if err != nil {

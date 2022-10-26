@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -50,7 +50,7 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"topic_name": {
 				Type:         pluginsdk.TypeString,
@@ -96,6 +96,16 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeMsi),
+					string(streamanalytics.AuthenticationModeConnectionString),
+				}, false),
+			},
 		},
 	}
 }
@@ -140,6 +150,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 					SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
+					AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -194,6 +205,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		d.Set("servicebus_namespace", v.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 		d.Set("property_columns", v.PropertyColumns)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
 		if err = d.Set("system_property_columns", utils.FlattenMapStringPtrString(v.SystemPropertyColumns)); err != nil {
 			return err

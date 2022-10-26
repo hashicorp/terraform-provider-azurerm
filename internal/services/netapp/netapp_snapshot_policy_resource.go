@@ -36,7 +36,7 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := snapshotpolicy.ParseSnapshotPoliciesID(id)
+			_, err := snapshotpolicy.ParseSnapshotPolicyID(id)
 			return err
 		}),
 
@@ -48,9 +48,9 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				ValidateFunc: netAppValidate.SnapshotName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -201,7 +201,7 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := snapshotpolicy.NewSnapshotPoliciesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := snapshotpolicy.NewSnapshotPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.SnapshotPoliciesGet(ctx, id)
@@ -248,7 +248,7 @@ func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := snapshotpolicy.ParseSnapshotPoliciesID(d.Id())
+	id, err := snapshotpolicy.ParseSnapshotPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -278,7 +278,7 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := snapshotpolicy.ParseSnapshotPoliciesID(d.Id())
+	id, err := snapshotpolicy.ParseSnapshotPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -326,7 +326,7 @@ func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := snapshotpolicy.ParseSnapshotPoliciesID(d.Id())
+	id, err := snapshotpolicy.ParseSnapshotPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -507,7 +507,7 @@ func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicy.Mont
 	}
 }
 
-func waitForSnapshotPolicyCreation(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPoliciesId, timeout time.Duration) error {
+func waitForSnapshotPolicyCreation(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPolicyId, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -525,7 +525,7 @@ func waitForSnapshotPolicyCreation(ctx context.Context, client *snapshotpolicy.S
 	return nil
 }
 
-func waitForSnapshotPolicyDeletion(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPoliciesId, timeout time.Duration) error {
+func waitForSnapshotPolicyDeletion(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPolicyId, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -543,7 +543,7 @@ func waitForSnapshotPolicyDeletion(ctx context.Context, client *snapshotpolicy.S
 	return nil
 }
 
-func netappSnapshotPolicyStateRefreshFunc(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPoliciesId) pluginsdk.StateRefreshFunc {
+func netappSnapshotPolicyStateRefreshFunc(ctx context.Context, client *snapshotpolicy.SnapshotPolicyClient, id snapshotpolicy.SnapshotPolicyId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.SnapshotPoliciesGet(ctx, id)
 		if err != nil {

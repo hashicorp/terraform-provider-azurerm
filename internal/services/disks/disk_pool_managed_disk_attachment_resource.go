@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,10 +20,15 @@ import (
 type DiskPoolManagedDiskAttachmentResource struct{}
 
 var _ sdk.Resource = DiskPoolManagedDiskAttachmentResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DiskPoolManagedDiskAttachmentResource{}
 
 type DiskPoolManagedDiskAttachmentModel struct {
 	DiskPoolId string `tfschema:"disk_pool_id"`
 	DiskId     string `tfschema:"managed_disk_id"`
+}
+
+func (DiskPoolManagedDiskAttachmentResource) DeprecationMessage() string {
+	return "The `azurerm_disk_pool_managed_disk_attachment` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
 }
 
 func (d DiskPoolManagedDiskAttachmentResource) Arguments() map[string]*schema.Schema {
@@ -56,7 +62,7 @@ func (d DiskPoolManagedDiskAttachmentResource) ResourceType() string {
 
 func (d DiskPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			attachment := DiskPoolManagedDiskAttachmentModel{}
 			err := metadata.Decode(&attachment)
@@ -77,7 +83,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 			}
 			locks.ByID(attachment.DiskPoolId)
 			defer locks.UnlockByID(attachment.DiskPoolId)
-			id := diskpools.NewDiskPoolManagedDiskAttachmentId(*poolId, *diskId)
+			id := parse.NewDiskPoolManagedDiskAttachmentId(*poolId, *diskId)
 
 			client := metadata.Client.Disks.DiskPoolsClient
 			poolResp, err := client.Get(ctx, *poolId)
@@ -122,7 +128,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := diskpools.DiskPoolManagedDiskAttachmentID(metadata.ResourceData.Id())
+			id, err := parse.DiskPoolManagedDiskAttachmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -157,7 +163,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Read() sdk.ResourceFunc {
 
 func (d DiskPoolManagedDiskAttachmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diskToDetach := &DiskPoolManagedDiskAttachmentModel{}
 			err := metadata.Decode(diskToDetach)

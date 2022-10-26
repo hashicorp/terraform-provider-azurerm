@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -36,6 +35,7 @@ type WindowsWebAppModel struct {
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                      `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
@@ -67,7 +67,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.WebAppName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
@@ -110,7 +110,14 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(web.ClientCertModeOptional),
 				string(web.ClientCertModeRequired),
+				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -278,7 +285,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 						}
 					}
 				}
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.%s", webApp.Name, servicePlanId.ServerfarmName, nameSuffix))
+				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
 				availabilityRequest.IsFqdn = utils.Bool(true)
 			}
 
@@ -323,6 +330,10 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			if webApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
+			}
+
+			if webApp.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(webApp.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -508,6 +519,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
 				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(props.ClientCertExclusionPaths),
 				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
@@ -653,6 +665,9 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {

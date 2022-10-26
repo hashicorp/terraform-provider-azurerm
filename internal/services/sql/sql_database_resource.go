@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -442,9 +443,9 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ValidateMsSqlDatabaseName,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_name": {
 			Type:         pluginsdk.TypeString,
