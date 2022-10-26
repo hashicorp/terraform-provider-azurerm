@@ -104,6 +104,7 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 			Config: r.nfsv3FromSnapshot(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("create_from_snapshot_resource_id").HasValue(fmt.Sprintf("/snapshots/acctest-Snapshot-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep("create_from_snapshot_resource_id"),
