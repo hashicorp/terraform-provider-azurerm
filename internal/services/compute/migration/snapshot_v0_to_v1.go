@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -72,26 +71,7 @@ func (SnapshotV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"encryption_settings": snapshotEncryptionSettingsSchemaV0(),
-
-		"trusted_launch_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"tags": {
-			Type:     schema.TypeMap,
-			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-		},
-	}
-}
-
-func snapshotEncryptionSettingsSchemaV0() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
+		"encryption_settings": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -136,48 +116,18 @@ func snapshotEncryptionSettingsSchemaV0() *pluginsdk.Schema {
 					},
 				},
 			},
-		}
-	}
+		},
 
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"disk_encryption_key": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"secret_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
+		"trusted_launch_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 
-							"source_vault_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-						},
-					},
-				},
-				"key_encryption_key": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"key_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-
-							"source_vault_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-						},
-					},
-				},
+		"tags": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
 			},
 		},
 	}
