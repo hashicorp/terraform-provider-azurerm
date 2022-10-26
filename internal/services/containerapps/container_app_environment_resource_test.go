@@ -122,9 +122,6 @@ resource "azurerm_container_app_environment" "test" {
 
 func (r ContainerAppEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 %[1]s
 

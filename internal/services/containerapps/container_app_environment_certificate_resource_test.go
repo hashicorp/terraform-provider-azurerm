@@ -99,8 +99,8 @@ provider "azurerm" {
 resource "azurerm_container_app_environment_certificate" "test" {
   name                         = "acctest-cacert%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id // TODO - self signed are not valid?	
-  certificate_blob             = base64encode(file("testdata/testPrivateKey.crt"))
-  certificate_password         = "testacc"
+  certificate_blob             = filebase64("testdata/testacc.pfx")
+  certificate_password         = "TestAcc"
 
   tags = {
     env = "testAcc"
