@@ -989,16 +989,8 @@ type ApplicationStackWindowsFunctionApp struct {
 	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `3.1`. Version 6 is in preview on Windows Only
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`
-<<<<<<< HEAD
-	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`
-	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `~7`, `7.2`
-||||||| 07b2e25ea1
-	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`
-	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
-=======
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17` (In-Preview)
 	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
->>>>>>> upstream/main
 	CustomHandler         bool   `tfschema:"use_custom_runtime"`          // Supported values `true`
 }
 
