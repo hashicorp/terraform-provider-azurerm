@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -133,7 +132,52 @@ func (ManagedDiskV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"encryption_settings": managedDiskEncryptionSettingsSchemaV0(),
+		"encryption_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"disk_encryption_key": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"secret_url": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"source_vault_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+					"key_encryption_key": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"key_url": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"source_vault_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 
 		"network_access_policy": {
 			Type:     pluginsdk.TypeString,
@@ -196,100 +240,6 @@ func (ManagedDiskV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
-			},
-		},
-	}
-}
-
-func managedDiskEncryptionSettingsSchemaV0() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-					"disk_encryption_key": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"secret_url": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-
-								"source_vault_id": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-							},
-						},
-					},
-					"key_encryption_key": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"key_url": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-
-								"source_vault_id": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"disk_encryption_key": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"secret_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-
-							"source_vault_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-						},
-					},
-				},
-				"key_encryption_key": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"key_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-
-							"source_vault_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-						},
-					},
-				},
 			},
 		},
 	}
