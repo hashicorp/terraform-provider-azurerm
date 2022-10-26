@@ -194,28 +194,25 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Snapshot %q: %+v", id.SnapshotName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.SnapshotName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != "" {
-			d.Set("location", azure.NormalizeLocation(location))
-		}
+		d.Set("location", azure.NormalizeLocation(model.Location))
 
 		if props := model.Properties; props != nil {
 			data := props.CreationData
 			d.Set("create_option", string(data.CreateOption))
+			d.Set("storage_account_id", data.StorageAccountId)
 
-			if accountId := data.StorageAccountId; accountId != nil {
-				d.Set("storage_account_id", accountId)
-			}
-
+			diskSizeGb := 0
 			if props.DiskSizeGB != nil {
-				d.Set("disk_size_gb", int(*props.DiskSizeGB))
+				diskSizeGb = int(*props.DiskSizeGB)
 			}
+			d.Set("disk_size_gb", diskSizeGb)
 
 			if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 				return fmt.Errorf("setting `encryption_settings`: %+v", err)
@@ -223,9 +220,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			trustedLaunchEnabled := false
 			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {
-				if *securityProfile.SecurityType == snapshots.DiskSecurityTypesTrustedLaunch {
-					trustedLaunchEnabled = true
-				}
+				trustedLaunchEnabled = *securityProfile.SecurityType == snapshots.DiskSecurityTypesTrustedLaunch
 			}
 			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 		}
@@ -249,7 +244,7 @@ func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting Snapshot: %+v", err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

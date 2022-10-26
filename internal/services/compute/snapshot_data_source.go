@@ -133,17 +133,27 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
+			osType := ""
 			if props.OsType != nil {
-				d.Set("os_type", string(*props.OsType))
+				osType = string(*props.OsType)
 			}
+			d.Set("os_type", osType)
 
+			timeCreated := ""
 			if props.TimeCreated != nil {
-				d.Set("time_created", *props.TimeCreated)
+				t, err := time.Parse(time.RFC3339, *props.TimeCreated)
+				if err != nil {
+					return fmt.Errorf("converting `time_reated`: %+v", err)
+				}
+				timeCreated = t.Format(time.RFC3339)
 			}
+			d.Set("time_created", timeCreated)
 
+			diskSizeGb := 0
 			if props.DiskSizeGB != nil {
-				d.Set("disk_size_gb", int(*props.DiskSizeGB))
+				diskSizeGb = int(*props.DiskSizeGB)
 			}
+			d.Set("disk_size_gb", diskSizeGb)
 
 			if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 				return fmt.Errorf("setting `encryption_settings`: %+v", err)
@@ -151,26 +161,15 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			trustedLaunchEnabled := false
 			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {
-				if *securityProfile.SecurityType == snapshots.DiskSecurityTypesTrustedLaunch {
-					trustedLaunchEnabled = true
-				}
+				trustedLaunchEnabled = *securityProfile.SecurityType == snapshots.DiskSecurityTypesTrustedLaunch
 			}
 			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 
 			data := props.CreationData
 			d.Set("creation_option", string(data.CreateOption))
-
-			if data.SourceUri != nil {
-				d.Set("source_uri", data.SourceUri)
-			}
-
-			if data.SourceResourceId != nil {
-				d.Set("source_resource_id", data.SourceResourceId)
-			}
-
-			if data.StorageAccountId != nil {
-				d.Set("storage_account_id", data.StorageAccountId)
-			}
+			d.Set("source_uri", data.SourceUri)
+			d.Set("source_resource_id", data.SourceResourceId)
+			d.Set("storage_account_id", data.StorageAccountId)
 		}
 	}
 

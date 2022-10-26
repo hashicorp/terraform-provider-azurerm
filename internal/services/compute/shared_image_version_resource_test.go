@@ -281,7 +281,7 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 
 	snapshotId := snapshots.NewSnapshotID(subscriptionId, resourceGroup, snapShotName)
 	if err := client.Compute.SnapshotsClient.RevokeAccessThenPoll(ctx, snapshotId); err != nil {
-		return fmt.Errorf("bad: cannot revoke SAS on the snapshot: %+v", err)
+		return fmt.Errorf("revoking SAS on %s: %+v", snapshotId, err)
 	}
 
 	return nil
