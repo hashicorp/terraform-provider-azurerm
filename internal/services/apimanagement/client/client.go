@@ -9,23 +9,23 @@ import (
 type Client struct {
 	ApiClient                          *apimanagement.APIClient
 	ApiDiagnosticClient                *apimanagement.APIDiagnosticClient
-	ApiPoliciesClient                  *apimanagement.APIPolicyClient
-	ApiOperationsClient                *apimanagement.APIOperationClient
 	ApiOperationPoliciesClient         *apimanagement.APIOperationPolicyClient
+	ApiOperationsClient                *apimanagement.APIOperationClient
+	ApiPoliciesClient                  *apimanagement.APIPolicyClient
 	ApiReleasesClient                  *apimanagement.APIReleaseClient
 	ApiSchemasClient                   *apimanagement.APISchemaClient
-	ApiVersionSetClient                *apimanagement.APIVersionSetClient
 	ApiTagDescriptionClient            *apimanagement.APITagDescriptionClient
+	ApiVersionSetClient                *apimanagement.APIVersionSetClient
 	AuthorizationServersClient         *apimanagement.AuthorizationServerClient
 	BackendClient                      *apimanagement.BackendClient
 	CacheClient                        *apimanagement.CacheClient
 	CertificatesClient                 *apimanagement.CertificateClient
-	DiagnosticClient                   *apimanagement.DiagnosticClient
 	DeletedServicesClient              *apimanagement.DeletedServicesClient
+	DiagnosticClient                   *apimanagement.DiagnosticClient
 	EmailTemplateClient                *apimanagement.EmailTemplateClient
-	GatewayClient                      *apimanagement.GatewayClient
-	GatewayCertificateAuthorityClient  *apimanagement.GatewayCertificateAuthorityClient
 	GatewayApisClient                  *apimanagement.GatewayAPIClient
+	GatewayCertificateAuthorityClient  *apimanagement.GatewayCertificateAuthorityClient
+	GatewayClient                      *apimanagement.GatewayClient
 	GatewayHostNameConfigurationClient *apimanagement.GatewayHostnameConfigurationClient
 	GlobalSchemaClient                 *pandoraAPIMGlobalSchema.SchemaClient
 	GroupClient                        *apimanagement.GroupClient
@@ -37,10 +37,10 @@ type Client struct {
 	NotificationRecipientUserClient    *apimanagement.NotificationRecipientUserClient
 	OpenIdConnectClient                *apimanagement.OpenIDConnectProviderClient
 	PolicyClient                       *apimanagement.PolicyClient
-	ProductsClient                     *apimanagement.ProductClient
 	ProductApisClient                  *apimanagement.ProductAPIClient
 	ProductGroupsClient                *apimanagement.ProductGroupClient
 	ProductPoliciesClient              *apimanagement.ProductPolicyClient
+	ProductsClient                     *apimanagement.ProductClient
 	ServiceClient                      *apimanagement.ServiceClient
 	SignInClient                       *apimanagement.SignInSettingsClient
 	SignUpClient                       *apimanagement.SignUpSettingsClient
@@ -108,8 +108,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	gatewayApisClient := apimanagement.NewGatewayAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayApisClient.Client, o.ResourceManagerAuthorizer)
 
-	gatewayHostNameConfigurationClient := apimanagement.NewGatewayHostnameConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gatewayHostNameConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	gatewayHostnameConfigurationClient := apimanagement.NewGatewayHostnameConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayHostnameConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
 	globalSchemaClient := pandoraAPIMGlobalSchema.NewSchemaClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&globalSchemaClient.Client, o.ResourceManagerAuthorizer)
@@ -177,24 +177,24 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		ApiClient:                          &apiClient,
 		ApiDiagnosticClient:                &apiDiagnosticClient,
-		ApiPoliciesClient:                  &apiPoliciesClient,
-		ApiOperationsClient:                &apiOperationsClient,
 		ApiOperationPoliciesClient:         &apiOperationPoliciesClient,
+		ApiOperationsClient:                &apiOperationsClient,
+		ApiPoliciesClient:                  &apiPoliciesClient,
 		ApiReleasesClient:                  &apiReleasesClient,
 		ApiSchemasClient:                   &apiSchemasClient,
-		ApiVersionSetClient:                &apiVersionSetClient,
 		ApiTagDescriptionClient:            &apiTagDescriptionClient,
+		ApiVersionSetClient:                &apiVersionSetClient,
 		AuthorizationServersClient:         &authorizationServersClient,
 		BackendClient:                      &backendClient,
 		CacheClient:                        &cacheClient,
 		CertificatesClient:                 &certificatesClient,
-		DiagnosticClient:                   &diagnosticClient,
 		DeletedServicesClient:              &deletedServicesClient,
+		DiagnosticClient:                   &diagnosticClient,
 		EmailTemplateClient:                &emailTemplateClient,
-		GatewayClient:                      &gatewayClient,
-		GatewayCertificateAuthorityClient:  &gatewayCertificateAuthorityClient,
 		GatewayApisClient:                  &gatewayApisClient,
-		GatewayHostNameConfigurationClient: &gatewayHostNameConfigurationClient,
+		GatewayCertificateAuthorityClient:  &gatewayCertificateAuthorityClient,
+		GatewayClient:                      &gatewayClient,
+		GatewayHostNameConfigurationClient: &gatewayHostnameConfigurationClient,
 		GlobalSchemaClient:                 &globalSchemaClient,
 		GroupClient:                        &groupClient,
 		GroupUsersClient:                   &groupUsersClient,
@@ -205,10 +205,10 @@ func NewClient(o *common.ClientOptions) *Client {
 		NotificationRecipientUserClient:    &notificationRecipientUserClient,
 		OpenIdConnectClient:                &openIdConnectClient,
 		PolicyClient:                       &policyClient,
-		ProductsClient:                     &productsClient,
 		ProductApisClient:                  &productApisClient,
 		ProductGroupsClient:                &productGroupsClient,
 		ProductPoliciesClient:              &productPoliciesClient,
+		ProductsClient:                     &productsClient,
 		ServiceClient:                      &serviceClient,
 		SignInClient:                       &signInClient,
 		SignUpClient:                       &signUpClient,
