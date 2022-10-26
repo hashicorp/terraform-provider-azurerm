@@ -658,6 +658,10 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 
 	if utils.NormaliseNilableBool(props.EnableBgp) {
 		if _, ok := d.GetOk("custom_bgp_addresses"); ok {
+			if virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat == nil || virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings == nil || virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings.BgpPeeringAddresses == nil {
+				return nil, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway `%s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.ID)
+			}
+
 			gatewayCustomBgpIPAddresses, err := expandGatewayCustomBgpIPAddresses(d, virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings.BgpPeeringAddresses)
 			if err != nil {
 				return nil, err
@@ -774,28 +778,40 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 	primaryAddress := bgAs["primary"].(string)
 	secondaryAddress := bgAs["secondary"].(string)
 
-	var primaryIpConfiguration *string
-	var secondaryIpConfiguration *string
+	var primaryIpConfiguration string
+	var secondaryIpConfiguration string
+
+	if bgpPeeringAddresses == nil {
+		return &customBgpIpAddresses, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway`, addresses returned nil")
+	}
 
 	for _, address := range *bgpPeeringAddresses {
+		if address.CustomBgpIPAddresses == nil {
+			continue
+		}
+
 		for _, ip := range *address.CustomBgpIPAddresses {
+			if address.IpconfigurationID == nil {
+				continue
+			}
+
 			if ip == primaryAddress {
-				primaryIpConfiguration = address.IpconfigurationID
+				primaryIpConfiguration = *address.IpconfigurationID
 			} else if ip == secondaryAddress {
-				secondaryIpConfiguration = address.IpconfigurationID
+				secondaryIpConfiguration = *address.IpconfigurationID
 			}
 		}
 	}
 
-	if len(*primaryIpConfiguration) == 0 || len(*secondaryIpConfiguration) == 0 {
+	if len(primaryIpConfiguration) == 0 || len(secondaryIpConfiguration) == 0 {
 		return &customBgpIpAddresses, fmt.Errorf("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
 	}
 
 	customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
-		IPConfigurationID:  primaryIpConfiguration,
+		IPConfigurationID:  &primaryIpConfiguration,
 		CustomBgpIPAddress: utils.String(primaryAddress),
 	}, network.GatewayCustomBgpIPAddressIPConfiguration{
-		IPConfigurationID:  secondaryIpConfiguration,
+		IPConfigurationID:  &secondaryIpConfiguration,
 		CustomBgpIPAddress: utils.String(secondaryAddress),
 	})
 
