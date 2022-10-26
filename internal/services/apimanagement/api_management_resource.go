@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1732,7 +1733,8 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	virtualNetworkConfiguration := make(map[string]interface{})
 
 	if input.SubnetResourceID != nil {
-		virtualNetworkConfiguration["subnet_id"] = *input.SubnetResourceID
+		subnetId, _ := networkParse.SubnetID(*input.SubnetResourceID)
+		virtualNetworkConfiguration["subnet_id"] = subnetId.ID()
 	}
 
 	return []interface{}{virtualNetworkConfiguration}
