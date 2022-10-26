@@ -136,7 +136,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_contact" "test" {
-  name = "%s"
+  name  = "%s"
   email = "%s"
   phone = "%s"
 
@@ -153,7 +153,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_contact" "test" {
-  name = "%s"
+  name  = "%s"
   email = "%s"
 
   alert_notifications = %t
