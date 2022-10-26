@@ -164,11 +164,6 @@ func (r PointToSiteVPNGatewayResource) updated(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-RouteTable-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
 resource "azurerm_point_to_site_vpn_gateway" "test" {
   name                        = "acctestp2sVPNG-%d"
   location                    = azurerm_resource_group.test.location
@@ -185,16 +180,16 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     }
 
     route {
-      associated_route_table_id = azurerm_virtual_hub_route_table.test.id
+      associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id
 
       propagated_route_table {
-        ids    = [azurerm_virtual_hub_route_table.test.id]
+        ids    = [azurerm_virtual_hub.test.default_route_table_id]
         labels = ["label1", "label2"]
       }
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PointToSiteVPNGatewayResource) requiresImport(data acceptance.TestData) string {

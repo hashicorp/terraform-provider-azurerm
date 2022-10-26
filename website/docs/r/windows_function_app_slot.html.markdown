@@ -103,6 +103,8 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
 
 ~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
@@ -381,7 +383,7 @@ An `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`
+* `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
 
@@ -450,6 +452,22 @@ A `headers` block supports the following:
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 
 * `x_forwarded_host` - (Optional) Specifies a list of Hosts for which matching should be applied.
+
+---
+
+A `storage_account` block supports the following:
+
+* `access_key` - (Required) The Access key for the storage account.
+
+* `account_name` - (Required) The Name of the Storage Account.
+
+* `name` - (Required) The name which should be used for this Storage Account.
+
+* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
+
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles`.
+
+* `mount_path` - (Optional) The path at which to mount the storage share.
 
 
 ## Attributes Reference

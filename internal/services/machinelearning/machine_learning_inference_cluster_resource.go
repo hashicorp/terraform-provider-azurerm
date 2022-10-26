@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -56,7 +56,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"machine_learning_workspace_id": {
 				Type:     pluginsdk.TypeString,
@@ -163,13 +163,18 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Get AKS Compute Properties
-	aksID, err := parse.KubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
+	aksID, err := managedclusters.ParseManagedClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
-	aks, err := aksClient.Get(ctx, aksID.ResourceGroup, aksID.ManagedClusterName)
+	aks, err := aksClient.Get(ctx, *aksID)
 	if err != nil {
 		return err
+	}
+
+	aksModel := aks.Model
+	if aksModel == nil {
+		return fmt.Errorf("AKS not found")
 	}
 
 	identity, err := expandIdentity(d.Get("identity").([]interface{}))
@@ -178,7 +183,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	inferenceClusterParameters := machinelearningcomputes.ComputeResource{
-		Properties: expandAksComputeProperties(&aks, d),
+		Properties: expandAksComputeProperties(aksID.ID(), aksModel, d),
 		Identity:   identity,
 		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -230,7 +235,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	aksComputeProperties := computeResource.Model.Properties.(machinelearningcomputes.AKS)
 
 	// Retrieve AKS Cluster ID
-	aksId, err := parse.KubernetesClusterID(*aksComputeProperties.ResourceId)
+	aksId, err := managedclusters.ParseManagedClusterID(*aksComputeProperties.ResourceId)
 	if err != nil {
 		return err
 	}
@@ -277,10 +282,10 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *pluginsdk.ResourceData) machinelearningcomputes.AKS {
-	fqdn := aks.PrivateFQDN
+func expandAksComputeProperties(aksId string, aks *managedclusters.ManagedCluster, d *pluginsdk.ResourceData) machinelearningcomputes.AKS {
+	fqdn := aks.Properties.PrivateFQDN
 	if fqdn == nil {
-		fqdn = aks.Fqdn
+		fqdn = aks.Properties.Fqdn
 	}
 
 	return machinelearningcomputes.AKS{
@@ -289,9 +294,9 @@ func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *plugins
 			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
 			ClusterPurpose:   utils.ToPtr(machinelearningcomputes.ClusterPurpose(d.Get("cluster_purpose").(string))),
 		},
-		ComputeLocation: aks.Location,
+		ComputeLocation: utils.String(aks.Location),
 		Description:     utils.String(d.Get("description").(string)),
-		ResourceId:      aks.ID,
+		ResourceId:      utils.String(aksId),
 	}
 }
 

@@ -1,3 +1,51 @@
+## 3.29.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` [GH-18903]
+* **New Resource:** `azurerm_nginx_configuration` [GH-18761]
+* **New Resource:** `azurerm_nginx_certificate` [GH-18762]
+* **New Resource:** `azurerm_private_dns_resolver` [GH-18473]
+
+ENHANCEMENTS:
+
+* dependencies `containerinstance` - updating to use `2021-10-01` [GH-17785]
+* Dependencies: update `go-azure-helpers` to `v0.45.0` [GH-18968]
+* containerservice: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18705]
+* customproviders - refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18978]
+* disks: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18928]
+* Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` [GH-18898]
+* `azurerm_container_group` - the `network_profile_id` property hasbeen deprecated in favour of `subnet_ids` as the newer versions of the API no longer support it [GH-17785]
+* `azurerm_hdinsight_kafka_cluster` - support for the `compute_isolation` block [GH-17449]
+* `azurerm_hdinsight_spark_cluster` - support for the `compute_isolation` block [GH-17449]
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `compute_isolation` block [GH-17449]
+* `azurerm_hdinsight_hbase_cluster` - support for the `compute_isolation` block [GH-17449]
+* `azurerm_hdinsight_hadoop_cluster` - support for the `compute_isolation` block [GH-17449]
+* `azurerm_container_group` - support for the `dns_name_label_reuse_policy` block [GH-17785]
+* `azurerm_linux_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_linux_function_app` - support for Java 17 [GH-18689]
+* `azurerm_linux_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_logic_app_action_http` - support for the `queries` property [GH-18934]
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - add `evaluation_frequency`, `window_duration`, `mute_actions_after_alert_duration`, and `query_time_range_override`validation [GH-18960]
+* `azurerm_mssql_virtual_machine` - =support for the `assessment` block [GH-18923]
+* `azurerm_logic_app_standard` - support for the `scm_ip_restriction` block and the `scm_use_main_ip_restriction`, `scm_min_tls_version`, `scm_type` properties [GH-18853]
+* `azurerm_postgresql_server` - can now set `public_network_access_enabled` during creation when point in time restore is used [GH-18962]
+* `azurerm_servicebus_namespace_disaster_recovery_config` - support the `alias_authorization_rule_id` property [GH-18729]
+* `azurerm_synapse_workspace` - `sql_administrator_login` and `sql_administrator_login_password` are now no longer required for the creation of this resource [GH-18850]
+* `azurerm_windows_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_windows_function_app` - support for Java 17 [GH-18689]
+* `azurerm_windows_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+
+BUG FIXES:
+
+*  provider: will no loner automatically register the `Microsoft.StoragePool` provider as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_disk_pool` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_disk_pool_iscsi_target` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_disk_pool_iscsi_target_lun` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_disk_pool_managed_disk_attachment` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_key_vault_certificate` - new versions of key vault certs can now be imported [GH-18848]
+* `azurerm_postgresql_server` - correctly create replicas when CMK is enabled [GH-18805]
+
 ## 3.28.0 (October 20, 2022)
 
 FEATURES:

@@ -139,7 +139,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "Airtel-Chennai2-CLS"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   tags = {
     ENV = "Test"
@@ -158,7 +158,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "Area51-ERDirect"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   link1 {
     admin_enabled = true
@@ -199,7 +199,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "CDC-Canberra"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
     type         = "UserAssigned"
@@ -266,7 +266,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "CDC-Canberra2"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
     type         = "UserAssigned"

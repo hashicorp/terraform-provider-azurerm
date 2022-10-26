@@ -3,7 +3,7 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_rule"
 description: |-
-  Manages a Front Door(standard/premium) Rule.
+  Manages a Front Door (standard/premium) Rule.
 ---
 
 # azurerm_cdn_frontdoor_rule

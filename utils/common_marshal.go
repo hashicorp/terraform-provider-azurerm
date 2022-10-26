@@ -54,6 +54,15 @@ func ExpandInt32Slice(input []interface{}) *[]int32 {
 	return &result
 }
 
+func ExpandInt64Slice(input []interface{}) *[]int64 {
+	result := make([]int64, len(input))
+	for i, item := range input {
+		result[i] = int64(item.(int))
+	}
+
+	return &result
+}
+
 func FlattenStringSlice(input *[]string) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
@@ -97,6 +106,16 @@ func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} 
 }
 
 func FlattenInt32Slice(input *[]int32) []interface{} {
+	result := make([]interface{}, 0)
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func FlattenInt64Slice(input *[]int64) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {

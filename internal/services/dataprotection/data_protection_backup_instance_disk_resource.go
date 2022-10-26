@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -65,7 +64,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				ValidateFunc: computeValidate.ManagedDiskID,
 			},
 
-			"snapshot_resource_group_name": azure.SchemaResourceGroupName(),
+			"snapshot_resource_group_name": commonschema.ResourceGroupName(),
 
 			"backup_policy_id": {
 				Type:         schema.TypeString,

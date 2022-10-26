@@ -170,6 +170,28 @@ func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.assessmentSettingsWeekly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.assessmentSettingsMonthly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlVirtualMachineResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := sqlvirtualmachines.ParseSqlVirtualMachineID(state.ID)
 	if err != nil {
@@ -650,6 +672,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     temp_db_settings {
       luns              = [0]
       default_file_path = "F:\\SQLTemp"
+      log_file_size_mb  = 512
     }
   }
 }
@@ -681,4 +704,42 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlVirtualMachineResource) assessmentSettingsWeekly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  assessment {
+    schedule {
+      day_of_week     = "Monday"
+      weekly_interval = 1
+      start_time      = "00:00"
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r MsSqlVirtualMachineResource) assessmentSettingsMonthly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  assessment {
+    schedule {
+      day_of_week        = "Tuesday"
+      monthly_occurrence = 3
+      start_time         = "01:02"
+    }
+  }
+}
+`, r.template(data))
 }

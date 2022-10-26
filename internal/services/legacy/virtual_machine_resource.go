@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -74,12 +75,21 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// @tombuildsstuff: since this is the legacy VM this is intentionally not being updated albeit it's semantically wrong
-			"zones": azure.SchemaSingleZone(),
+			"zones": {
+				// @tombuildsstuff: since this is the legacy VM resource this is intentionally not using commonschema for consistency
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 
 			"plan": {
 				Type:     pluginsdk.TypeList,
@@ -648,7 +658,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	osDisk, err := expandAzureRmVirtualMachineOsDisk(d)
 	if err != nil {
