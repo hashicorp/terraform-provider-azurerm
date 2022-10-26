@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_api_management_gateway_host_name_configuration` [GH-17166]
 * **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` [GH-18903]
 * **New Resource:** `azurerm_nginx_configuration` [GH-18761]
 * **New Resource:** `azurerm_nginx_certificate` [GH-18762]
