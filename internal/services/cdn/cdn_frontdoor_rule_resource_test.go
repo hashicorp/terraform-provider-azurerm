@@ -45,7 +45,7 @@ func TestAccCdnFrontDoorRule_urlRedirectAction(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_originGroupIdOptional(t *testing.T) {
+func TestAccCdnFrontDoorRule_optionalOriginGroupId(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
@@ -60,7 +60,7 @@ func TestAccCdnFrontDoorRule_originGroupIdOptional(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
+func TestAccCdnFrontDoorRule_optionalDisableCache(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
@@ -75,7 +75,7 @@ func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
+func TestAccCdnFrontDoorRule_optionalOriginGroupIdError(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
@@ -90,7 +90,7 @@ func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_disableCacheError(t *testing.T) {
+func TestAccCdnFrontDoorRule_optionalDisableCacheError(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
