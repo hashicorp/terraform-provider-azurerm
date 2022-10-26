@@ -31,6 +31,7 @@ ENHANCEMENTS:
 * `azurerm_logic_app_action_http` - support for the `queries` property [GH-18934]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - add `evaluation_frequency`, `window_duration`, `mute_actions_after_alert_duration`, and `query_time_range_override`validation [GH-18960]
 * `azurerm_mssql_virtual_machine` - =support for the `assessment` block [GH-18923]
+* `azurerm_mssql_server_transparent_data_encryption` - support for autorotation of keyvault keys [GH-18523]
 * `azurerm_logic_app_standard` - support for the `scm_ip_restriction` block and the `scm_use_main_ip_restriction`, `scm_min_tls_version`, `scm_type` properties [GH-18853]
 * `azurerm_postgresql_server` - can now set `public_network_access_enabled` during creation when point in time restore is used [GH-18962]
 * `azurerm_servicebus_namespace_disaster_recovery_config` - support the `alias_authorization_rule_id` property [GH-18729]
