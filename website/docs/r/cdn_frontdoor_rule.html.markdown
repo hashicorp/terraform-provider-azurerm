@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_rule"
 description: |-
-  Manages a Frontdoor Rule.
+  Manages a Front Door (standard/premium) Rule.
 ---
 
 # azurerm_cdn_frontdoor_rule
 
-Manages a Frontdoor Rule.
+Manages a Front Door (standard/premium) Rule.
 
 !>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
@@ -145,13 +145,13 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule to be created.
+* `name` - (Required) The name which should be used for this Front Door Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Front Door Rule to be created.
 
-* `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Frontdoor Rule Set for this Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
+* `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Front Door Rule Set for this Front Door Rule. Changing this forces a new Front Door Rule to be created.
 
-* `order` - (Required) The order in which the rules will be applied for the Frontdoor Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Frontdoor Rule with a lesser order value will be applied before a rule with a greater order value.
+* `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.
 
-->**NOTE:** If the Frontdoor Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
+->**NOTE:** If the Front Door Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
 
 * `actions` - (Required) An `actions` block as defined below.
 
@@ -163,7 +163,7 @@ The following arguments are supported:
 
 An `actions` block supports the following:
 
-->**NOTE:** You may include upto 5 separate actions in the `actions` block.
+->**NOTE:** You may include up to 5 separate actions in the `actions` block.
 
 Some actions support `Action Server Variables` which provide access to structured information about the request. For more information about `Action Server Variables` see the `Action Server Variables` as defined below.
 
@@ -197,23 +197,25 @@ An `url_redirect_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-* `cdn_frontdoor_origin_group_id` - (Required) The origin group resource ID that the request should be routed to. This overrides the configuration specified in the Frontdoor endpoint route.
-
 * `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
 
-* `forwarding_protocol` - (Optional)  The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
+* `cdn_frontdoor_origin_group_id` - (Optional) The Front Door Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the Front Door Endpoint route.
 
-* `query_string_caching_behavior` - (Optional)  `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` query strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`. Defaults to `IgnoreQueryString`.
+* `forwarding_protocol` - (Optional) The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`. Defaults to `MatchRequest`. Possible values include `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
+
+->**NOTE:** If the `cdn_frontdoor_origin_group_id` is not defined you cannot set the `forwarding_protocol`.
+
+* `query_string_caching_behavior` - (Optional) `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` query strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`. Defaults to `IgnoreQueryString`.
 
 * `query_string_parameters` - (Optional) A list of query string parameter names.
 
 ->**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
 
-* `compression_enabled` - (Optional) Should Frontdoor dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
+* `compression_enabled` - (Optional) Should the Front Door Profile dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
 
 ->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
-* `cache_behavior` - (Optional) `HonorOrigin` Frontdoor will always honor origin response header directive. If the origin directive is missing, Frontdoor will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
+* `cache_behavior` - (Optional) `HonorOrigin` the Front Door Profile will always honor origin response header directive. If the origin directive is missing, Front Door Profile will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
 
 ---
 
@@ -257,7 +259,7 @@ A `request_header_action` block supports the following:
 
 A `conditions` block supports the following:
 
-->**NOTE:** You may include upto 10 separate conditions in the `conditions` block.
+->**NOTE:** You may include up to 10 separate conditions in the `conditions` block.
 
 * `remote_address_condition` - (Optional) A `remote_address_condition` block as defined below.
 
@@ -319,13 +321,13 @@ A `host_name_condition` block supports the following:
 
 * `match_values` - (Required) A list of one or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
 A `server_port_condition` block supports the following:
 
-->The `server_port_condition` identifies requests based on which port of the Frontdoor server accepted the request on.
+->The `server_port_condition` identifies requests based on which port of the Front Door Profile server accepted the request on.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -349,7 +351,7 @@ A `client_port_condition` block supports the following:
 
 A `socket_address_condition` block supports the following:
 
-->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Frontdoors edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
+->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
 
 ->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
@@ -401,7 +403,7 @@ A `query_string_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the query string to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -417,7 +419,7 @@ A `post_args_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the `POST` argument to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -431,7 +433,7 @@ A `request_uri_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request URL to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -447,7 +449,7 @@ A `request_header_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -463,7 +465,7 @@ A `request_body_condition` block supports the following:
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -489,7 +491,7 @@ An `url_path_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request path to match. Don't include the leading slash (`/`). If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -503,7 +505,7 @@ An `url_file_extension_condition` block supports the following:
 
 * `match_values` - (Required) A list of one or more string or integer values(e.g. "1") representing the value of the request file extension to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -517,7 +519,7 @@ An `url_filename_condition` block supports the following:
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -545,7 +547,7 @@ A `cookies_condition` block supports the following:
 
 * `match_values` - (Optional) One or more string or integer values(e.g. "1") representing the value of the request header to match. If multiple values are specified, they're evaluated using `OR` logic.
 
-* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`.  Details can be found in the `Condition Transform List` below.
+* `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
 ---
 
@@ -585,7 +587,7 @@ Rule Set server variables provide access to structured information about the req
 
 | Variable name | Description |
 |---------------|-------------|
-| `socket_ip`      | The IP address of the direct connection to Azure Front Door edge. If the client used an HTTP proxy or a load balancer to send the request, the value of `socket_ip` is the IP address of the proxy or load balancer. |
+| `socket_ip`      | The IP address of the direct connection to Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of `socket_ip` is the IP address of the proxy or load balancer. |
 | `client_ip`      | The IP address of the client that made the original request. If there was an `X-Forwarded-For` header in the request, then the client IP address is picked from the header. |
 | `client_port`    | The IP port of the client that made the request. |
 | `hostname`       | The host name in the request from the client. |
@@ -686,22 +688,22 @@ For rules that can transform strings, the following transforms are valid:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Rule.
+* `id` - The ID of the Front Door Rule.
 
-* `cdn_frontdoor_rule_set_name` - The name of the Frontdoor Rule Set containing this Frontdoor Rule.
+* `cdn_frontdoor_rule_set_name` - The name of the Front Door Rule Set containing this Front Door Rule.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the cdn Rule.
-* `read` - (Defaults to 5 minutes) Used when retrieving the cdn Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the cdn Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the cdn Rule.
+* `create` - (Defaults to 30 minutes) Used when creating the Front Door Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Rule.
 
 ## Import
 
-cdn Rules can be imported using the `resource id`, e.g.
+Front Door Rules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1/rules/rule1
