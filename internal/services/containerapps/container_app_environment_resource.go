@@ -358,6 +358,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = tags.Expand(state.Tags)
 			}
 
+			// (@jackofallops) This is not updatable and needs to be removed since the read does not return the sensitive Key field.
+			// Whilst not ideal, this means we don't need to try and retrieve it again just to send a no-op.
+			existing.Model.Properties.AppLogsConfiguration = nil
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
