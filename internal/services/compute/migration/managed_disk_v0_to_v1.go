@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -15,12 +16,15 @@ type ManagedDiskV0ToV1 struct{}
 
 func (ManagedDiskV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		oldId, err := disks.ParseDiskIDInsensitively(rawState["id"].(string))
+		oldIdRaw := rawState["id"].(string)
+		oldId, err := disks.ParseDiskIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}
 
-		rawState["id"] = oldId.ID()
+		newId := oldId.ID()
+		log.Printf("[DEBUG] Updating the ID from %q to %q", oldIdRaw, newId)
+		rawState["id"] = newId
 		return rawState, nil
 	}
 }
@@ -129,7 +133,7 @@ func (ManagedDiskV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"encryption_settings": encryptionSettingsSchema(),
+		"encryption_settings": managedDiskEncryptionSettingsSchemaV0(),
 
 		"network_access_policy": {
 			Type:     pluginsdk.TypeString,
@@ -197,7 +201,7 @@ func (ManagedDiskV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func encryptionSettingsSchema() *pluginsdk.Schema {
+func managedDiskEncryptionSettingsSchemaV0() *pluginsdk.Schema {
 	if !features.FourPointOhBeta() {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
