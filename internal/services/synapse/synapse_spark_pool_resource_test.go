@@ -258,6 +258,8 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size_family                    = "MemoryOptimized"
   node_size                           = "Medium"
   dynamic_executor_allocation_enabled = true
+  min_executor                        = 1
+  max_executor                        = 3
   session_level_packages_enabled      = true
   cache_size                          = 100
   auto_pause {

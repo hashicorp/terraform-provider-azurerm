@@ -108,6 +108,10 @@ The following arguments are supported:
 ~> **NOTE:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
 
 * `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
+
+* `min_executor` - (Optional) The minimum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`. Defaults to `0`.
+
+* `max_executor` - (Optional) The maximum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`. Defaults to `1`.
   
 * `library_requirement` - (Optional)  A `library_requirement` block as defined below.
 
