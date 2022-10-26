@@ -362,6 +362,27 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r StreamAnalyticsStreamInputEventHubResource) msiWithoutSharedAccessPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
+  name                         = "acctestinput-%d"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+  eventhub_name                = azurerm_eventhub.test.name
+  servicebus_namespace         = azurerm_eventhub_namespace.test.name
+  authentication_mode          = "Msi"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r StreamAnalyticsStreamInputEventHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -416,25 +437,4 @@ QUERY
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r StreamAnalyticsStreamInputEventHubResource) msiWithoutSharedAccessPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
-  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  eventhub_name                = azurerm_eventhub.test.name
-  servicebus_namespace         = azurerm_eventhub_namespace.test.name
-  authentication_mode          = "Msi"
-
-  serialization {
-    type     = "Json"
-    encoding = "UTF8"
-  }
-}
-`, r.template(data), data.RandomInteger)
 }
