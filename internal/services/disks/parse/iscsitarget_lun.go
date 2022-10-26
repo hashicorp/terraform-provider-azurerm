@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 )
 
 const iscsiTargetLunSeparator = "/lun|"
@@ -15,10 +15,10 @@ var _ resourceids.Id = DiskPoolIscsiTargetLunId{}
 
 type DiskPoolIscsiTargetLunId struct {
 	IscsiTargetId iscsitargets.IscsiTargetId
-	ManagedDiskId computeParse.ManagedDiskId
+	ManagedDiskId disks.DiskId
 }
 
-func NewDiskPoolIscsiTargetLunId(iscsiTargetId iscsitargets.IscsiTargetId, managedDiskId computeParse.ManagedDiskId) DiskPoolIscsiTargetLunId {
+func NewDiskPoolIscsiTargetLunId(iscsiTargetId iscsitargets.IscsiTargetId, managedDiskId disks.DiskId) DiskPoolIscsiTargetLunId {
 	return DiskPoolIscsiTargetLunId{
 		IscsiTargetId: iscsiTargetId,
 		ManagedDiskId: managedDiskId,
@@ -53,7 +53,7 @@ func IscsiTargetLunID(input string) (*DiskPoolIscsiTargetLunId, error) {
 	if err != nil {
 		return nil, fmt.Errorf("malformed iscsi target id: %q, %v", input, err)
 	}
-	managedDiskId, err := computeParse.ManagedDiskID(parts[1])
+	managedDiskId, err := disks.ParseDiskID(parts[1])
 	if managedDiskId == nil {
 		return nil, fmt.Errorf("malformed iscsi target id: %q", input)
 	}

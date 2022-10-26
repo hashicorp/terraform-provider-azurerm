@@ -41,7 +41,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedDiskID(id)
+			_, err := disks.ParseDiskID(id)
 			return err
 		}),
 
