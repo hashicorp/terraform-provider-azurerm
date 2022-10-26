@@ -16,12 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// seems you can only set one contact:
-// Invalid security contact name was provided - only 'defaultX' is allowed where X is an index
-// Invalid security contact name 'default0' was provided. Expected 'default1'
-// Message="Invalid security contact name 'default2' was provided. Expected 'default1'"
-const securityCenterContactName = "default1"
-
 func resourceSecurityCenterContact() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterContactCreateUpdate,
@@ -42,6 +36,13 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"email": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -74,7 +75,8 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewContactID(subscriptionId, securityCenterContactName)
+	id := parse.NewContactID(subscriptionId, d.Get("name").(string))
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.SubscriptionId)
 		if err != nil {
