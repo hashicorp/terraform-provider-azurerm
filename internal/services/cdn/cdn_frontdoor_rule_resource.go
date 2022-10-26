@@ -261,10 +261,10 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
+									// Removed Default value for new issue raised in issue #18889, https://github.com/hashicorp/terraform-provider-azurerm/issues/18889#issuecomment-1290253767
 									"query_string_caching_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
 											string(cdn.RuleQueryStringCachingBehaviorUseQueryString),
@@ -288,23 +288,24 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"compression_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  false,
 									},
 
+									// Exposed Disabled for new issue raised in issue #18889
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.RuleCacheBehaviorHonorOrigin),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.RuleCacheBehaviorHonorOrigin),
 											string(cdn.RuleCacheBehaviorOverrideAlways),
 											string(cdn.RuleCacheBehaviorOverrideIfOriginMissing),
+											string(cdn.RuleIsCompressionEnabledDisabled),
 										}, false),
 									},
 
+									// Made Optional for new issue raised in issue #18889
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.CdnFrontDoorCacheDuration,
 									},
 								},

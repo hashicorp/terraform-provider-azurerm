@@ -214,8 +214,15 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 		item := v.(map[string]interface{})
 
 		var originGroupOverride cdn.OriginGroupOverride
+		var cacheConfiguration cdn.CacheConfiguration
 		originGroupIdRaw := item["cdn_frontdoor_origin_group_id"].(string)
 		protocol := item["forwarding_protocol"].(string)
+		cacheBehavior := item["cache_behavior"].(string)
+		compressionEnabled := cdn.RuleIsCompressionEnabledEnabled
+
+		if !item["compression_enabled"].(bool) {
+			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
+		}
 
 		// set the default value for forwarding protocol to avoid a breaking change...
 		if protocol == "" {
@@ -237,23 +244,59 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol', got %q", forwardingProtocol)
 		}
 
-		compressionEnabled := cdn.RuleIsCompressionEnabledEnabled
-		if !item["compression_enabled"].(bool) {
-			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
-		}
+		if cacheBehavior == string(cdn.RuleIsCompressionEnabledDisabled) {
+			if queryStringCachingBehavior := cdn.RuleQueryStringCachingBehavior(item["query_string_caching_behavior"].(string)); queryStringCachingBehavior != "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'query_string_caching_behavior', got %q", queryStringCachingBehavior)
+			}
 
-		cacheConfiguration := &cdn.CacheConfiguration{
-			QueryStringCachingBehavior: cdn.RuleQueryStringCachingBehavior(item["query_string_caching_behavior"].(string)),
-			QueryParameters:            expandStringSliceToCsvFormat(item["query_string_parameters"].([]interface{})),
-			IsCompressionEnabled:       compressionEnabled,
-			CacheBehavior:              cdn.RuleCacheBehavior(item["cache_behavior"].(string)),
-			CacheDuration:              utils.String(item["cache_duration"].(string)),
+			if queryParameters := item["query_string_parameters"].([]interface{}); len(queryParameters) != 0 {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'query_string_parameters', got %d", len(queryParameters))
+			}
+
+			if cacheDuration := item["cache_duration"].(string); cacheDuration != "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'cache_duration', got %q", cacheDuration)
+			}
+		} else {
+			// since 'cache_duration', 'query_string_caching_behavior' and 'cache_behavior' are optional create a default values
+			// for those values if not set.
+			cacheDuration := "1.12:00:00"
+			queryStringCachingBehavior := string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString)
+			cacheBehavior := string(cdn.RuleCacheBehaviorHonorOrigin)
+
+			if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw != "" {
+				cacheBehavior = cacheBehaviorRaw
+			}
+
+			if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw != "" {
+				cacheDuration = cacheDurationRaw
+			}
+
+			if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw != "" {
+				queryStringCachingBehavior = queryStringCachingBehaviorRaw
+			}
+
+			cacheConfiguration = cdn.CacheConfiguration{
+				QueryStringCachingBehavior: cdn.RuleQueryStringCachingBehavior(queryStringCachingBehavior),
+				QueryParameters:            expandStringSliceToCsvFormat(item["query_string_parameters"].([]interface{})),
+				IsCompressionEnabled:       compressionEnabled,
+				CacheBehavior:              cdn.RuleCacheBehavior(cacheBehavior),
+				CacheDuration:              utils.String(cacheDuration),
+			}
+
+			if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
+				if cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' cannot be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
+				}
+			} else {
+				if cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorUseQueryString || cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreQueryString {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
+				}
+			}
 		}
 
 		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
 			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
-				TypeName:           utils.String(m.RouteConfigurationOverride.TypeName),
-				CacheConfiguration: cacheConfiguration,
+				TypeName: utils.String(m.RouteConfigurationOverride.TypeName),
 			},
 		}
 
@@ -261,15 +304,8 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			routeConfigurationOverrideAction.Parameters.OriginGroupOverride = &originGroupOverride
 		}
 
-		queryStringCachingBehavior := cacheConfiguration.QueryStringCachingBehavior
-		if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
-			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' cannot be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
-			}
-		} else {
-			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorUseQueryString || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreQueryString {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
-			}
+		if cacheConfiguration.CacheDuration != nil {
+			routeConfigurationOverrideAction.Parameters.CacheConfiguration = &cacheConfiguration
 		}
 
 		output = append(output, routeConfigurationOverrideAction)
@@ -374,13 +410,14 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleR
 			compressionEnabled = config.IsCompressionEnabled == cdn.RuleIsCompressionEnabledEnabled
 			cacheDuration = *config.CacheDuration
 			queryParameters = flattenCsvToStringSlice(config.QueryParameters)
+		} else {
+			cacheBehavior = string(cdn.RuleIsCompressionEnabledDisabled)
 		}
 
 		if override := params.OriginGroupOverride; override != nil {
 			forwardingProtocol = string(override.ForwardingProtocol)
 
-			// NOTE: Need to normalize this ID here because if you modified this in portal the
-			// resourceGroup comes back as resourcegroup.
+			// NOTE: Need to normalize this ID here because if you modified this in portal the resourceGroup comes back as resourcegroup.
 			// ignore the error here since it was set on the resource in Azure and we know it is valid.
 			if originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.ID); err == nil {
 				originGroupId = originGroup.ID()
