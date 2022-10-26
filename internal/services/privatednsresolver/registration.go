@@ -50,5 +50,6 @@ func (r Registration) Resources() []sdk.Resource {
 		PrivateDNSResolverDnsResolverResource{},
 		PrivateDNSResolverInboundEndpointResource{},
 		PrivateDNSResolverOutboundEndpointResource{},
+		PrivateDNSResolverVirtualNetworkLinkResource{},
 	}
 }
