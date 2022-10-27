@@ -18,15 +18,15 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_private_dns_resolver_private_dns_resolver" "example" {
+resource "azurerm_private_dns_resolver" "example" {
   name                = "example-drdr"
   resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_private_dns_resolver_outbound_endpoint" "example" {
-  name                                         = "example-droe"
-  private_dns_resolver_private_dns_resolver_id = azurerm_private_dns_resolver_private_dns_resolver.test.id
-  location                                     = "West Europe"
+  name                    = "example-droe"
+  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
+  location                = "West Europe"
   subnet {
     id = ""
   }
@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name which should be used for this Private DNS Resolver Outbound Endpoint. Changing this forces a new Private DNS Resolver Outbound Endpoint to be created.
 
-* `private_dns_resolver_private_dns_resolver_id` - (Required) Specifies the ID of the Private DNS Resolver Outbound Endpoint. Changing this forces a new Private DNS Resolver Outbound Endpoint to be created.
+* `private_dns_resolver_id` - (Required) Specifies the ID of the Private DNS Resolver Outbound Endpoint. Changing this forces a new Private DNS Resolver Outbound Endpoint to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Private DNS Resolver Outbound Endpoint should exist. Changing this forces a new Private DNS Resolver Outbound Endpoint to be created.
 
