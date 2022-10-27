@@ -1,6 +1,4 @@
 // Package artifacts implements the Azure ARM Artifacts service API version 2021-06-01-preview.
-//
-//
 package artifacts
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
