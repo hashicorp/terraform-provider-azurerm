@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `custom_subdomain_name` - (Required) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
+* `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
+
 * `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -103,6 +105,14 @@ A `virtual_network_rules` block supports the following:
 * `subnet_id` - (Required) The ID of the subnet which should be able to access this Cognitive Account.
 
 * `ignore_missing_vnet_service_endpoint` - (Optional) Whether ignore missing vnet service endpoint or not. Default to `false`.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Cognitive Account.
+
+* `identity_client_id` - (Optional) The Client ID of the User Assigned Identity that has access to the key. This property only needs to be specified when there're multiple identities attached to the Cognitive Account.
 
 ---
 

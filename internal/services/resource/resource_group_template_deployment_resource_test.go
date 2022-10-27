@@ -273,6 +273,21 @@ func TestAccResourceGroupTemplateDeployment_templateSpecResources(t *testing.T) 
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_nestedResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nestedResources(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
 	if err != nil {
@@ -888,4 +903,65 @@ resource "azurerm_resource_group_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ResourceGroupTemplateDeploymentResource) nestedResources(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+  parameters_content = jsonencode({
+    "healthdicomservicename" = {
+      value = "hd%[1]d"
+    },
+    "healthworkspacename" = {
+      value = "hw%[1]d"
+    }
+  })
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "healthdicomservicename": {
+      "type": "String",
+      "defaultValue": ""
+    },
+    "healthworkspacename": {
+      "type": "String",
+      "defaultValue": ""
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.HealthcareApis/workspaces",
+      "apiVersion": "2022-06-01",
+      "name": "[parameters('healthworkspacename')]",
+      "location": %[2]q
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/dicomservices",
+      "apiVersion": "2022-06-01",
+      "name": "[concat(parameters('healthworkspacename'), '/', parameters('healthdicomservicename'))]",
+      "location": %[2]q,
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces', parameters('healthworkspacename'))]"
+      ]
+    }
+  ]
+}
+TEMPLATE
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

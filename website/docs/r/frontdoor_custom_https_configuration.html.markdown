@@ -3,12 +3,14 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_custom_https_configuration"
 description: |-
-  Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint.
+  Manages the Custom Https Configuration for an Azure Front Door (classic) Frontend Endpoint.
 ---
 
 # azurerm_frontdoor_custom_https_configuration
 
-Manages the Custom HTTPS Configuration for an Azure Front Door Frontend Endpoint..
+Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Frontend Endpoint.
+
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
 
 -> **NOTE:** Defining custom HTTPS configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
 
@@ -16,7 +18,7 @@ Manages the Custom HTTPS Configuration for an Azure Front Door Frontend Endpoint
 
 !> **BREAKING CHANGE:** The `resource_group_name` field has been removed as of the `v2.58.0` provider release. If the `resource_group_name` field has been defined in your current `azurerm_frontdoor_custom_https_configuration` resource configuration file please remove it else you will receive a `An argument named "resource_group_name" is not expected here.` error. If your pre-existing Front Door instance contained inline `custom_https_configuration` blocks there are additional steps that will need to be completed to successfully migrate your Front Door onto the `v2.58.0` provider which [can be found in this guide](../guides/2.58.0-frontdoor-upgrade-guide.html).
 
-!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and Front Door resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -97,7 +99,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 
 The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments: 
 
-* `frontend_endpoint_id` - (Required) The ID of the FrontDoor Frontend Endpoint which this configuration refers to.
+* `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to.
 
 * `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?
 

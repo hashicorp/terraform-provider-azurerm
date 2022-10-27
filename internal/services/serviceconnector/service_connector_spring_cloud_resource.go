@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -124,9 +125,17 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 
 			serviceConnectorProperties := servicelinker.LinkerProperties{
 				AuthInfo: authInfo,
-				TargetService: servicelinker.AzureResource{
+			}
+
+			if _, err := parse.StorageAccountID(model.TargetResourceId); err == nil {
+				targetResourceId := model.TargetResourceId + "/blobServices/default"
+				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
+					Id: &targetResourceId,
+				}
+			} else {
+				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
 					Id: &model.TargetResourceId,
-				},
+				}
 			}
 
 			if model.ClientType != "" {
@@ -148,7 +157,7 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 				Properties: serviceConnectorProperties,
 			}
 
-			if _, err = client.LinkerCreateOrUpdate(ctx, id, props); err != nil {
+			if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -68,19 +67,8 @@ func TestAccManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 func TestAccManagedDisk_import(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	vm := LinuxVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// need to create a vm and then delete it so we can use the vhd to test import
-			Config:             vm.authSSH(data),
-			Destroy:            false,
-			ExpectNonEmptyPlan: true,
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That("azurerm_linux_virtual_machine.test").ExistsInAzure(vm),
-				data.CheckWithClientForResource(r.destroyVirtualMachine, "azurerm_linux_virtual_machine.test"),
-			),
-		},
 		{
 			Config: r.importConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -146,7 +134,7 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("tags.cost-center").HasValue("ops"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(compute.StorageAccountTypesStandardLRS)),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(disks.DiskStorageAccountTypesStandardLRS)),
 			),
 		},
 		{
@@ -156,7 +144,7 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(compute.StorageAccountTypesPremiumLRS)),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(disks.DiskStorageAccountTypesPremiumLRS)),
 			),
 		},
 	})
@@ -172,7 +160,6 @@ func TestAccManagedDisk_encryption(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.secret_url").Exists(),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.source_vault_id").Exists(),
@@ -181,6 +168,14 @@ func TestAccManagedDisk_encryption(t *testing.T) {
 				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.0.source_vault_id").Exists(),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.encryptionUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -662,18 +657,77 @@ func TestAccManagedDisk_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccManagedDisk_storageAccountType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountType(data, "westeurope"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_premiumV2WithIOpsReadWriteAndMBpsReadWrite(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumV2WithIOpsReadWriteAndMBpsReadWrite(data, "westeurope", 3000, 125),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premiumV2WithIOpsReadWriteAndMBpsReadWrite(data, "westeurope", 4000, 200),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_premiumV2WithIOpsReadOnlyAndMBpsReadOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data, "westeurope", 3000, 125),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data, "westeurope", 4000, 126),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedDiskID(state.ID)
+	id, err := disks.ParseDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+	resp, err := clients.Compute.DisksClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Managed Disk %q", id.String())
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ManagedDiskResource) destroyVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -777,12 +831,76 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+# NOTE: using the legacy vm resource since this test requires an unmanaged disk
+resource "azurerm_virtual_machine" "test" {
+  name                          = "acctestvm-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
+  vm_size                       = "Standard_F2"
+  delete_os_disk_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+  }
+
+  os_profile {
+    computer_name  = "acctestvm-%[1]d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags = {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
+  name                     = "accsa%[1]d"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -800,7 +918,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%d"
+  name                 = "acctestd-%[1]d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
@@ -812,8 +930,12 @@ resource "azurerm_managed_disk" "test" {
   tags = {
     environment = "acctest"
   }
+
+  depends_on = [
+    azurerm_virtual_machine.test,
+  ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) copy(data acceptance.TestData) string {
@@ -1030,7 +1152,7 @@ resource "azurerm_managed_disk" "test" {
 `, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (ManagedDiskResource) encryption(data acceptance.TestData) string {
+func (ManagedDiskResource) encryptionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1099,6 +1221,12 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (r ManagedDiskResource) encryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
@@ -1109,8 +1237,6 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "1"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = "${azurerm_key_vault_secret.test.id}"
       source_vault_id = "${azurerm_key_vault.test.id}"
@@ -1127,7 +1253,85 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.encryptionTemplate(data), data.RandomInteger)
+}
+
+func (r ManagedDiskResource) encryptionUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault" "test2" {
+  name                = "acctestkv2-%[2]s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  sku_name            = "standard"
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.object_id}"
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  enabled_for_disk_encryption = true
+}
+
+resource "azurerm_key_vault_secret" "test2" {
+  name         = "secret2-%[2]s"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test2.id
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "key2-%[2]s"
+  key_vault_id = azurerm_key_vault.test2.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%[3]d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+
+  encryption_settings {
+    disk_encryption_key {
+      secret_url      = "${azurerm_key_vault_secret.test2.id}"
+      source_vault_id = "${azurerm_key_vault.test2.id}"
+    }
+
+    key_encryption_key {
+      key_url         = "${azurerm_key_vault_key.test2.id}"
+      source_vault_id = "${azurerm_key_vault.test2.id}"
+    }
+  }
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, r.encryptionTemplate(data), data.RandomString, data.RandomInteger)
 }
 
 func (ManagedDiskResource) create_withUltraSSD(data acceptance.TestData) string {
@@ -2109,4 +2313,90 @@ resource "azurerm_managed_disk" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) storageAccountType(data acceptance.TestData, location string) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+  logical_sector_size  = 512
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) premiumV2WithIOpsReadWriteAndMBpsReadWrite(data acceptance.TestData, location string, diskIOpsReadWrite, diskMBpsReadWrite int) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 256
+  disk_iops_read_write = %d
+  disk_mbps_read_write = %d
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, diskIOpsReadWrite, diskMBpsReadWrite)
+}
+
+func (ManagedDiskResource) premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data acceptance.TestData, location string, diskIOpsReadOnly, diskMBpsReadOnly int) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 256
+  disk_iops_read_only  = %d
+  disk_mbps_read_only  = %d
+  max_shares           = 5
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, diskIOpsReadOnly, diskMBpsReadOnly)
 }

@@ -159,9 +159,9 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
 
   response_timeout_seconds = 120
-  sku_name                 = "Premium_AzureFrontDoor"
 
   tags = {
     ENV = "Production"

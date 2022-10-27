@@ -8,11 +8,14 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	providers "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -140,6 +143,55 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 	return output
 }
 
+func deleteNestedResource(ctx context.Context, resourcesClient *resources.Client, resourceProviderApiVersions *map[string]string, nestedResource resources.Reference) error {
+	parsedId, err := azure.ParseAzureResourceID(*nestedResource.ID)
+	if err != nil {
+		return fmt.Errorf("parsing ID %q from Template Output to delete it: %+v", *nestedResource.ID, err)
+	}
+
+	resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[strings.ToLower(parsedId.Provider)]
+	if !ok {
+		resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[strings.ToLower(parsedId.SecondaryProvider)]
+		if !ok {
+			return fmt.Errorf("API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
+		}
+	}
+
+	log.Printf("[DEBUG] Deleting Nested Resource %q..", *nestedResource.ID)
+	future, err := resourcesClient.DeleteByID(ctx, *nestedResource.ID, resourceProviderApiVersion)
+
+	// NOTE: resourceProviderApiVersion is gotten from one of resource types of the provider.
+	// When the provider has multiple resource types, it may cause API version mismatched.
+	// For such error, try to get available API version from error code. Ugly but this seems sufficient for now
+	if err != nil && strings.Contains(err.Error(), `Code="NoRegisteredProviderFound"`) {
+		apiPat := regexp.MustCompile(`\d{4}-\d{2}-\d{2}(-preview)*`)
+		matches := apiPat.FindAllStringSubmatch(err.Error(), -1)
+		for _, match := range matches {
+			if resourceProviderApiVersion != match[0] {
+				future, err = resourcesClient.DeleteByID(ctx, *nestedResource.ID, match[0])
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			log.Printf("[DEBUG] Nested Resource %q has been deleted.. continuing..", *nestedResource.ID)
+			return nil
+		}
+
+		return fmt.Errorf("deleting Nested Resource %q: %+v", *nestedResource.ID, err)
+	}
+
+	log.Printf("[DEBUG] Waiting for Deletion of Nested Resource %q..", *nestedResource.ID)
+	if err := future.WaitForCompletionRef(ctx, resourcesClient.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of Nested Resource %q: %+v", *nestedResource.ID, err)
+	}
+
+	log.Printf("[DEBUG] Deleted Nested Resource %q.", *nestedResource.ID)
+	return nil
+}
+
 func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client, properties resources.DeploymentPropertiesExtended) error {
 	if properties.Providers == nil {
 		return fmt.Errorf("`properties.Providers` was nil - insufficient data to clean up this Template Deployment")
@@ -159,62 +211,44 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 
 	log.Printf("[DEBUG] Deleting the resources provisioned in this Template..")
 	nestedResources := *properties.OutputResources
-
-	// NOTE: this likely wants splitting out into a parallel loop which retries resources which fail deletion
-	// for example when A depends on B - try deleting them both then loop, and if both subsequentally fail then error
-	// but this seems sufficient for now
-	for _, nestedResource := range nestedResources {
-		if nestedResource.ID == nil {
-			continue
-		}
-
-		parsedId, err := azure.ParseAzureResourceID(*nestedResource.ID)
-		if err != nil {
-			return fmt.Errorf("parsing ID %q from Template Output to delete it: %+v", *nestedResource.ID, err)
-		}
-
-		resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[strings.ToLower(parsedId.Provider)]
-		if !ok {
-			resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[strings.ToLower(parsedId.SecondaryProvider)]
-			if !ok {
-				return fmt.Errorf("API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
-			}
-		}
-
-		log.Printf("[DEBUG] Deleting Nested Resource %q..", *nestedResource.ID)
-		future, err := resourcesClient.DeleteByID(ctx, *nestedResource.ID, resourceProviderApiVersion)
-
-		// NOTE: resourceProviderApiVersion is gotten from one of resource types of the provider.
-		// When the provider has multiple resource types, it may cause API version mismatched.
-		// For such error, try to get available API version from error code. Ugly but this seems sufficient for now
-		if err != nil && strings.Contains(err.Error(), `Code="NoRegisteredProviderFound"`) {
-			apiPat := regexp.MustCompile(`\d{4}-\d{2}-\d{2}(-preview)*`)
-			matches := apiPat.FindAllStringSubmatch(err.Error(), -1)
-			for _, match := range matches {
-				if resourceProviderApiVersion != match[0] {
-					future, err = resourcesClient.DeleteByID(ctx, *nestedResource.ID, match[0])
-					break
-				}
-			}
-		}
-
-		if err != nil {
-			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
-				log.Printf("[DEBUG] Nested Resource %q has been deleted.. continuing..", *nestedResource.ID)
-				continue
-			}
-			return fmt.Errorf("deleting Nested Resource %q: %+v", *nestedResource.ID, err)
-		}
-
-		log.Printf("[DEBUG] Waiting for Deletion of Nested Resource %q..", *nestedResource.ID)
-		if err := future.WaitForCompletionRef(ctx, resourcesClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of Nested Resource %q: %+v", *nestedResource.ID, err)
-		}
-
-		log.Printf("[DEBUG] Deleted Nested Resource %q.", *nestedResource.ID)
+	deletedResources := make(map[string]bool)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not retrieve context deadline")
 	}
 
-	return nil
+	return pluginsdk.Retry(time.Until(deadline), func() *resource.RetryError {
+		deletedTimes := 0
+		var errorList []error
+		for _, nestedResource := range nestedResources {
+			if nestedResource.ID == nil {
+				continue
+			}
+
+			if _, exists := deletedResources[*nestedResource.ID]; exists {
+				continue
+			}
+
+			err = deleteNestedResource(ctx, resourcesClient, resourceProviderApiVersions, nestedResource)
+			if err != nil {
+				errorList = append(errorList, err)
+			} else {
+				deletedResources[*nestedResource.ID] = true
+				deletedTimes++
+			}
+		}
+
+		if deletedTimes > 0 {
+			return pluginsdk.RetryableError(fmt.Errorf("may exist nested resources to delete, retrying"))
+		}
+
+		// If `deletedTimes` is 0, it means all resources have been successfully deleted if the `errorList` is empty, or the remaining resources cannot be deleted
+		if len(errorList) > 0 {
+			return pluginsdk.NonRetryableError(fmt.Errorf("%+v", errorList[0]))
+		}
+
+		return nil
+	})
 }
 
 func determineResourceProviderAPIVersionsForResources(ctx context.Context, client *providers.ProvidersClient, providers []resources.Provider) (*map[string]string, error) {

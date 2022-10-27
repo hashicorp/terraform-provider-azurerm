@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,6 +72,26 @@ func TestAccContainerGroup_SystemAssignedIdentityNoNetwork(t *testing.T) {
 			Config: r.SystemAssignedIdentityNoNetwork(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zones.#").HasValue("0"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+			),
+		},
+		data.ImportStep("identity.0.principal_id", "ip_address_type"),
+	})
+}
+
+func TestAccContainerGroup_SystemAssignedIdentityWithZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.SystemAssignedIdentityWithZones(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
@@ -107,7 +127,7 @@ func TestAccContainerGroup_UserAssignedIdentityWithVirtualNetwork(t *testing.T) 
 		{
 			Config: r.UserAssignedIdentityWithVirtualNetwork(data),
 		},
-		data.ImportStep("network_profile_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -338,6 +358,12 @@ func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 
 func TestAccContainerGroup_linuxComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+
+	// Override locations for this test to location that has GPU SKU support:
+	// https://learn.microsoft.com/en-us/azure/container-instances/container-instances-gpu
+	data.Locations.Primary = "northeurope"
+	data.Locations.Secondary = "westeurope"
+
 	r := ContainerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -345,6 +371,7 @@ func TestAccContainerGroup_linuxComplete(t *testing.T) {
 			Config: r.linuxComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dns_name_label_reuse_policy").HasValue("Unsecure"),
 				check.That(data.ResourceName).Key("container.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.commands.#").HasValue("3"),
@@ -412,13 +439,12 @@ func TestAccContainerGroup_virtualNetwork(t *testing.T) {
 			Config: r.virtualNetwork(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "identity"),
+				check.That(data.ResourceName).Key("dns_label_name").DoesNotExist(),
 				check.That(data.ResourceName).Key("container.#").HasValue("1"),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 				check.That(data.ResourceName).Key("ip_address_type").HasValue("Private"),
-				check.That(data.ResourceName).Key("network_profile_id").Exists(),
+				check.That(data.ResourceName).Key("subnet_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("dns_config.#").HasValue("1"),
 			),
 		},
@@ -451,20 +477,19 @@ func TestAccContainerGroup_SystemAssignedIdentityVirtualNetwork(t *testing.T) {
 			Config: r.SystemAssignedIdentityVirtualNetwork(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "identity"),
+				check.That(data.ResourceName).Key("dns_label_name").DoesNotExist(),
 				check.That(data.ResourceName).Key("container.#").HasValue("1"),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 				check.That(data.ResourceName).Key("ip_address_type").HasValue("Private"),
-				check.That(data.ResourceName).Key("network_profile_id").Exists(),
+				check.That(data.ResourceName).Key("subnet_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("dns_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
-		data.ImportStep("identity.0.principal_id", "network_profile_id"),
+		data.ImportStep("identity.0.principal_id"),
 	})
 }
 
@@ -837,6 +862,44 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (ContainerGroupResource) SystemAssignedIdentityWithZones(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  zones = ["1"]
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (ContainerGroupResource) UserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -918,21 +981,6 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -946,7 +994,6 @@ resource "azurerm_container_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
   os_type             = "Linux"
-  network_profile_id  = azurerm_network_profile.test.id
   container {
     name   = "hw"
     image  = "ubuntu:20.04"
@@ -957,6 +1004,8 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
   }
+
+  subnet_ids = [azurerm_subnet.test.id]
 
   identity {
     type         = "UserAssigned"
@@ -1452,27 +1501,11 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.test.id
   os_type             = "Linux"
 
   container {
@@ -1489,6 +1522,8 @@ resource "azurerm_container_group" "test" {
     options        = ["one:option", "two:option", "red:option", "blue:option"]
     search_domains = ["default.svc.cluster.local."]
   }
+
+  subnet_ids = [azurerm_subnet.test.id]
 
   tags = {
     environment = "Testing"
@@ -1531,29 +1566,15 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "test" {
   count               = %d
   name                = "acctestcontainergroup-${count.index}-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.test.id
   os_type             = "Linux"
+
+  subnet_ids = [azurerm_subnet.test.id]
 
   container {
     name   = "hw"
@@ -1602,27 +1623,11 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test" {
-  name                = "testnetprofile"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "testcnic"
-
-    ip_configuration {
-      name      = "testipconfig"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.test.id
   os_type             = "Linux"
 
   container {
@@ -1634,6 +1639,8 @@ resource "azurerm_container_group" "test" {
       port = 80
     }
   }
+
+  subnet_ids = [azurerm_subnet.test.id]
 
   dns_config {
     nameservers = ["reddog.microsoft.com", "somecompany.somedomain"]
@@ -1850,13 +1857,14 @@ resource "azurerm_storage_share" "test" {
 }
 
 resource "azurerm_container_group" "test" {
-  name                = "acctestcontainergroup-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "Public"
-  dns_name_label      = "acctestcontainergroup-%d"
-  os_type             = "Linux"
-  restart_policy      = "OnFailure"
+  name                        = "acctestcontainergroup-%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  ip_address_type             = "Public"
+  dns_name_label              = "acctestcontainergroup-%d"
+  dns_name_label_reuse_policy = "Unsecure"
+  os_type                     = "Linux"
+  restart_policy              = "OnFailure"
 
   container {
     name   = "hf"

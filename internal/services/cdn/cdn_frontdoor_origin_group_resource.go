@@ -144,12 +144,12 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profile, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorOriginGroupID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
+	id := parse.NewFrontDoorOriginGroupID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -207,11 +207,11 @@ func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 
 	if props := resp.AFDOriginGroupProperties; props != nil {
 		if err := d.Set("health_probe", flattenCdnFrontDoorOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
-			return fmt.Errorf("setting `health_probe`: %+v", err)
+			return fmt.Errorf("setting 'health_probe': %+v", err)
 		}
 
 		if err := d.Set("load_balancing", flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(props.LoadBalancingSettings)); err != nil {
-			return fmt.Errorf("setting `load_balancing`: %+v", err)
+			return fmt.Errorf("setting 'load_balancing': %+v", err)
 		}
 
 		d.Set("session_affinity_enabled", flattenEnabledBool(props.SessionAffinityState))

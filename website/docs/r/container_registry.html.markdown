@@ -34,7 +34,7 @@ resource "azurerm_container_registry" "acr" {
     tags                    = {}
   }
   georeplications {
-    location                = "westeurope"
+    location                = "North Europe"
     zone_redundancy_enabled = true
     tags                    = {}
   }
@@ -135,7 +135,7 @@ resource "azurerm_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Container Registry. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Container Registry. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
@@ -154,6 +154,8 @@ The following arguments are supported:
 ~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
 
 ~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
+
+~> **NOTE:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 

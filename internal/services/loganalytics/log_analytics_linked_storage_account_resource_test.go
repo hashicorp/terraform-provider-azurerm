@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedstorageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -102,18 +101,17 @@ func TestAcclogAnalyticsLinkedStorageAccount_ingestion(t *testing.T) {
 }
 
 func (t LogAnalyticsLinkedStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsLinkedStorageAccountID(state.ID)
+	id, err := linkedstorageaccounts.ParseDataSourceTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	dataSourceType := operationalinsights.DataSourceType(id.LinkedStorageAccountName)
 
-	resp, err := clients.LogAnalytics.LinkedStorageAccountClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, dataSourceType)
+	resp, err := clients.LogAnalytics.LinkedStorageAccountClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Linked Service Storage Account (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogAnalyticsLinkedStorageAccountResource) template(data acceptance.TestData) string {
@@ -149,7 +147,7 @@ func (r LogAnalyticsLinkedStorageAccountResource) basic(data acceptance.TestData
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "customlogs"
+  data_source_type      = "CustomLogs"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id]
@@ -183,7 +181,7 @@ resource "azurerm_storage_account" "test2" {
 }
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "customlogs"
+  data_source_type      = "CustomLogs"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
@@ -196,7 +194,7 @@ func (r LogAnalyticsLinkedStorageAccountResource) ingestion(data acceptance.Test
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "ingestion"
+  data_source_type      = "Ingestion"
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
   storage_account_ids   = [azurerm_storage_account.test.id]

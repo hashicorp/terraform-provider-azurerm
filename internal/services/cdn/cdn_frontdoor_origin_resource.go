@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	privateLinkServiceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -22,7 +21,7 @@ import (
 )
 
 func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorOriginCreate,
 		Read:   resourceCdnFrontDoorOriginRead,
 		Update: resourceCdnFrontDoorOriginUpdate,
@@ -67,10 +66,22 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"health_probes_enabled": {
+			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Computed: !features.FourPointOhBeta(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return true
+				}(),
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"health_probes_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"http_port": {
@@ -144,6 +155,20 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		// The API comments about this properties function is incorrect, it does
+		// not disable the health probes it disabled the origin resource itself
+		resource.Schema["health_probes_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`health_probes_enabled` will be removed in favour of the `enabled` property in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"enabled"},
+		}
+	}
+
+	return resource
 }
 
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -152,12 +177,14 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	originGroupId, err := parse.FrontDoorOriginGroupID(d.Get("cdn_frontdoor_origin_group_id").(string))
+	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
+	originGroup, err := parse.FrontDoorOriginGroupID(originGroupRaw)
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
+	id := parse.NewFrontDoorOriginID(originGroup.SubscriptionId, originGroup.ResourceGroup, originGroup.ProfileName, originGroup.OriginGroupName, d.Get("name").(string))
+
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -183,13 +210,21 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if profile.Sku == nil {
-		return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
+		return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
 	}
 	skuName := profile.Sku.Name
 
+	var enabled bool
+	if !features.FourPointOhBeta() {
+		enabled = d.Get("health_probes_enabled").(bool)
+	}
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
+		enabled = d.Get("enabled").(bool)
+	}
+
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 	props := &cdn.AFDOriginProperties{
-		EnabledState:                expandEnabledBool(d.Get("health_probes_enabled").(bool)),
+		EnabledState:                expandEnabledBool(enabled),
 		EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 		HostName:                    utils.String(d.Get("host_name").(string)),
 		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -249,11 +284,14 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.AFDOriginProperties; props != nil {
 		if err := d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource)); err != nil {
-			return fmt.Errorf("setting `private_link`: %+v", err)
+			return fmt.Errorf("setting 'private_link': %+v", err)
 		}
 
 		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
-		d.Set("health_probes_enabled", flattenEnabledBool(props.EnabledState))
+		if !features.FourPointOhBeta() {
+			d.Set("health_probes_enabled", flattenEnabledBool(props.EnabledState))
+		}
+		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
 		d.Set("https_port", props.HTTPSPort)
@@ -281,21 +319,33 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("certificate_name_check_enabled") {
 		params.EnforceCertificateNameCheck = utils.Bool(d.Get("certificate_name_check_enabled").(bool))
 	}
-	if d.HasChange("health_probes_enabled") {
-		params.EnabledState = expandEnabledBool(d.Get("health_probes_enabled").(bool))
+
+	if !features.FourPointOhBeta() {
+		if d.HasChange("health_probes_enabled") {
+			params.EnabledState = expandEnabledBool(d.Get("health_probes_enabled").(bool))
+		}
 	}
+
+	if d.HasChange("enabled") {
+		params.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
+	}
+
 	if d.HasChange("host_name") {
 		params.HostName = utils.String(d.Get("host_name").(string))
 	}
+
 	if d.HasChange("http_port") {
 		params.HTTPPort = utils.Int32(int32(d.Get("http_port").(int)))
 	}
+
 	if d.HasChange("https_port") {
 		params.HTTPSPort = utils.Int32(int32(d.Get("https_port").(int)))
 	}
+
 	if d.HasChange("origin_host_header") {
 		params.OriginHostHeader = utils.String(d.Get("origin_host_header").(string))
 	}
+
 	if d.HasChange("private_link") {
 		// I need to get the profile SKU so I know if it is valid or not to define a private link as
 		// private links are only allowed in the premium sku...
@@ -308,9 +358,11 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 
 			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 		}
+
 		if profile.Sku == nil {
-			return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
+			return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
 		}
+
 		skuName := profile.Sku.Name
 
 		enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
@@ -318,11 +370,14 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
+
 		params.SharedPrivateLinkResource = privateLinkSettings
 	}
+
 	if d.HasChange("priority") {
 		params.Priority = utils.Int32(int32(d.Get("priority").(int)))
 	}
+
 	if d.HasChange("weight") {
 		params.Weight = utils.Int32(int32(d.Get("weight").(int)))
 	}
@@ -330,10 +385,12 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	payload := cdn.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &params,
 	}
+
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
@@ -382,18 +439,17 @@ func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 
 func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
-		// TODO: Should this return an empty object?
-		// WS: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
+		// NOTE: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
 		// Property 'AfdOrigin.SharedPrivateLinkResource.PrivateLink' is required but it was not set; Property 'AfdOrigin.SharedPrivateLinkResource.RequestMessage' is required but it was not set
 		return nil, nil
 	}
 
 	if skuName != cdn.SkuNamePremiumAzureFrontDoor {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when the Frontdoor Profile is using a %q SKU, got %q", cdn.SkuNamePremiumAzureFrontDoor, skuName)
+		return nil, fmt.Errorf("the 'private_link' field can only be configured when the Frontdoor Profile is using a 'Premium_AzureFrontDoor' SKU, got %q", skuName)
 	}
 
 	if !enableCertNameCheck {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when `certificate_name_check_enabled` is set to `true`")
+		return nil, fmt.Errorf("the 'private_link' field can only be configured when 'certificate_name_check_enabled' is set to 'true'")
 	}
 
 	// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
@@ -404,7 +460,7 @@ func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableC
 	_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
 	if err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
-		return nil, fmt.Errorf("either `private_link` or `target_type` must be specified")
+		return nil, fmt.Errorf("either 'private_link' or 'target_type' must be specified")
 	}
 
 	config := input[0].(map[string]interface{})

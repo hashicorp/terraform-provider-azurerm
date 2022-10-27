@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -93,6 +93,16 @@ func flattenAlertRuleTactics(input *[]securityinsight.AttackTactic) []interface{
 	}
 
 	return output
+}
+
+func expandAlertRuleTechnicals(input []interface{}) *[]string {
+	result := make([]string, 0)
+
+	for _, e := range input {
+		result = append(result, e.(string))
+	}
+
+	return &result
 }
 
 func expandAlertRuleIncidentConfiguration(input []interface{}, createIncidentKey string, withGroupByPrefix bool) *securityinsight.IncidentConfiguration {

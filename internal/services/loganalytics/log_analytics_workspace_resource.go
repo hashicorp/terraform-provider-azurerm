@@ -9,13 +9,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -57,7 +57,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validate.LogAnalyticsWorkspaceName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -230,7 +230,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	parameters := workspaces.Workspace{
 		Name:     &name,
 		Location: location,
-		Tags:     tags.Expand(t),
+		Tags:     expandTags(t),
 		Properties: &workspaces.WorkspaceProperties{
 			Sku:                             sku,
 			PublicNetworkAccessForIngestion: &internetIngestionEnabled,
@@ -266,8 +266,9 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
+	if err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -277,7 +278,6 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
-	sharedKeysClient := meta.(*clients.Client).LogAnalytics.SharedKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := workspaces.ParseWorkspaceID(d.Id())
@@ -296,54 +296,91 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
 
+	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("internet_ingestion_enabled", *props.PublicNetworkAccessForIngestion == workspaces.PublicNetworkAccessTypeEnabled)
-			d.Set("internet_query_enabled", *props.PublicNetworkAccessForQuery == workspaces.PublicNetworkAccessTypeEnabled)
-			d.Set("workspace_id", props.CustomerId)
+
+			internetIngestionEnabled := true
+			if props.PublicNetworkAccessForIngestion != nil {
+				internetIngestionEnabled = *props.PublicNetworkAccessForIngestion == workspaces.PublicNetworkAccessTypeEnabled
+			}
+			d.Set("internet_ingestion_enabled", internetIngestionEnabled)
+
+			internetQueryEnabled := true
+			if props.PublicNetworkAccessForQuery != nil {
+				internetQueryEnabled = *props.PublicNetworkAccessForQuery == workspaces.PublicNetworkAccessTypeEnabled
+			}
+			d.Set("internet_query_enabled", internetQueryEnabled)
+
+			customerId := ""
+			if props.CustomerId != nil {
+				customerId = *props.CustomerId
+			}
+			d.Set("workspace_id", customerId)
 
 			skuName := ""
-			if sku := props.Sku; sku != nil {
+			if props.Sku != nil {
+				sku := *props.Sku
 				for _, v := range workspaces.PossibleValuesForWorkspaceSkuNameEnum() {
 					if strings.EqualFold(v, string(sku.Name)) {
 						skuName = v
 					}
-				}
 
+				}
 				if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
 					d.Set("reservation_capacity_in_gb_per_day", capacityReservationLevel)
 				}
 			}
 			d.Set("sku", skuName)
 
-			d.Set("cmk_for_query_forced", props.ForceCmkForQuery)
-			d.Set("retention_in_days", props.RetentionInDays)
+			forceCmkForQuery := false
+			if props.ForceCmkForQuery != nil {
+				forceCmkForQuery = *props.ForceCmkForQuery
+			}
+			d.Set("cmk_for_query_forced", forceCmkForQuery)
 
-			if props.Sku != nil && strings.EqualFold(string(props.Sku.Name), string(workspaces.WorkspaceSkuNameEnumFree)) {
+			var retentionInDays int64
+			if props.RetentionInDays != nil {
+				retentionInDays = *props.RetentionInDays
+			}
+			d.Set("retention_in_days", retentionInDays)
+
+			switch {
+			case strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumFree)):
 				// Special case for "Free" tier
 				d.Set("daily_quota_gb", utils.Float(0.5))
-			} else if workspaceCapping := props.WorkspaceCapping; workspaceCapping != nil {
-				d.Set("daily_quota_gb", props.WorkspaceCapping.DailyQuotaGb)
-			} else {
+			case props.WorkspaceCapping != nil && props.WorkspaceCapping.DailyQuotaGb != nil:
+				d.Set("daily_quota_gb", *props.WorkspaceCapping.DailyQuotaGb)
+			default:
 				d.Set("daily_quota_gb", utils.Float(-1))
+			}
+
+			sharedKeysResp, err := client.SharedKeysGetSharedKeys(ctx, *id)
+			if err != nil {
+				log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)
+			} else {
+				if sharedKeysModel := sharedKeysResp.Model; sharedKeysModel != nil {
+					primarySharedKey := ""
+					if sharedKeysModel.PrimarySharedKey != nil {
+						primarySharedKey = *sharedKeysModel.PrimarySharedKey
+					}
+					d.Set("primary_shared_key", primarySharedKey)
+
+					secondarySharedKey := ""
+					if sharedKeysModel.SecondarySharedKey != nil {
+						secondarySharedKey = *sharedKeysModel.SecondarySharedKey
+					}
+					d.Set("secondary_shared_key", secondarySharedKey)
+				}
 			}
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}
 	}
-
-	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroupName, id.WorkspaceName)
-	if err != nil {
-		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)
-	} else {
-		d.Set("primary_shared_key", sharedKeys.PrimarySharedKey)
-		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
-	}
-
 	return nil
 }
 
@@ -351,15 +388,15 @@ func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	PermanentlyDeleteOnDestroy := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy
-	parameters := workspaces.DeleteOperationOptions{
-		Force: utils.Bool(PermanentlyDeleteOnDestroy),
-	}
-	if err := client.DeleteThenPoll(ctx, *id, parameters); err != nil {
+	err = client.DeleteThenPoll(ctx, *id, workspaces.DeleteOperationOptions{Force: utils.Bool(PermanentlyDeleteOnDestroy)})
+	if err != nil {
 		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.WorkspaceName, err)
 	}
 

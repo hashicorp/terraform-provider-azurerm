@@ -21,7 +21,7 @@ const (
 	ShortTypeDirectoryRoleTemplate                       ShortType = "directoryRoleTemplate"
 	ShortTypeDomain                                      ShortType = "domain"
 	ShortTypeEmailAuthenticationMethod                   ShortType = "emailAuthenticationMethod"
-	ShortTypeExternalSponsors              			     ShortType = "externalSponsors"
+	ShortTypeExternalSponsors                            ShortType = "externalSponsors"
 	ShortTypeFido2AuthenticationMethod                   ShortType = "fido2AuthenticationMethod"
 	ShortTypeGroup                                       ShortType = "group"
 	ShortTypeGroupMembers                                ShortType = "groupMembers"

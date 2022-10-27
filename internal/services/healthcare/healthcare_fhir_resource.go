@@ -118,6 +118,32 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
+			"oci_artifact": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"login_server": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"image_name": {
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+							Optional:     true,
+						},
+
+						"digest": {
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+							Optional:     true,
+						},
+					},
+				},
+			},
+
 			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -183,6 +209,11 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -242,11 +273,18 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	acrConfig, hasValues := d.GetOk("container_registry_login_server_url")
+	acrConfig := healthcareapis.FhirServiceAcrConfiguration{}
+	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
-		parameters.FhirServiceProperties.AcrConfiguration = result
+		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
+		acrConfig.OciArtifacts = ociArtifacts
 	}
+	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
+	if hasValues {
+		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
+		acrConfig.LoginServers = loginServers
+	}
+	parameters.FhirServiceProperties.AcrConfiguration = &acrConfig
 
 	future, err := client.CreateOrUpdate(ctx, fhirServiceId.ResourceGroup, fhirServiceId.WorkspaceName, fhirServiceId.Name, parameters)
 	if err != nil {
@@ -311,8 +349,17 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("authentication", flattenFhirAuthentication(props.AuthenticationConfiguration))
 		d.Set("cors", flattenFhirCorsConfiguration(props.CorsConfiguration))
 		d.Set("container_registry_login_server_url", flattenFhirAcrLoginServer(props.AcrConfiguration))
+		if acrConfig := props.AcrConfiguration; acrConfig != nil {
+			if artifacts := acrConfig.OciArtifacts; artifacts != nil {
+				d.Set("oci_artifact", flattenOciArtifacts(artifacts))
+			}
+
+		}
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
 			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
+		}
+		if props.PublicNetworkAccess != "" {
+			d.Set("public_network_access_enabled", props.PublicNetworkAccess == healthcareapis.PublicNetworkAccessEnabled)
 		}
 
 		if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
@@ -321,6 +368,31 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandOciArtifacts(input []interface{}) *[]healthcareapis.ServiceOciArtifactEntry {
+	output := make([]healthcareapis.ServiceOciArtifactEntry, 0)
+
+	for _, artifactSet := range input {
+		artifactRaw := artifactSet.(map[string]interface{})
+
+		loginServer := artifactRaw["login_server"].(string)
+		artifact := healthcareapis.ServiceOciArtifactEntry{
+			LoginServer: &loginServer,
+			ImageName:   nil,
+			Digest:      nil,
+		}
+		if image := artifactRaw["image_name"].(string); image != "" {
+			artifact.ImageName = &image
+		}
+		if digest := artifactRaw["digest"].(string); digest != "" {
+			artifact.Digest = &digest
+		}
+
+		output = append(output, artifact)
+	}
+
+	return &output
 }
 
 func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -358,11 +430,18 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	acrConfig, hasValues := d.GetOk("container_registry_login_server_url")
+	acrConfig := healthcareapis.FhirServiceAcrConfiguration{}
+	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
-		parameters.FhirServiceProperties.AcrConfiguration = result
+		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
+		acrConfig.OciArtifacts = ociArtifacts
 	}
+	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
+	if hasValues {
+		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
+		acrConfig.LoginServers = loginServers
+	}
+	parameters.FhirServiceProperties.AcrConfiguration = &acrConfig
 
 	future, err := client.CreateOrUpdate(ctx, fhirServiceId.ResourceGroup, fhirServiceId.WorkspaceName, fhirServiceId.Name, parameters)
 	if err != nil {
@@ -520,30 +599,26 @@ func expandFhirCorsConfiguration(input []interface{}) *healthcareapis.FhirServic
 	return cors
 }
 
-func expandFhirAcrLoginServer(input []interface{}) *healthcareapis.FhirServiceAcrConfiguration {
+func expandFhirAcrLoginServer(input []interface{}) *[]string {
 	acrLoginServers := make([]string, 0)
 
 	if len(input) == 0 {
-		return &healthcareapis.FhirServiceAcrConfiguration{
-			LoginServers: &acrLoginServers,
-		}
+		return &acrLoginServers
 	}
 
 	for _, item := range input {
 		acrLoginServers = append(acrLoginServers, item.(string))
 	}
-	return &healthcareapis.FhirServiceAcrConfiguration{
-		LoginServers: &acrLoginServers,
-	}
+	return &acrLoginServers
 }
 
-func flattenFhirAcrLoginServer(acrLoginServer *healthcareapis.FhirServiceAcrConfiguration) []string {
+func flattenFhirAcrLoginServer(acrConfig *healthcareapis.FhirServiceAcrConfiguration) []string {
 	result := make([]string, 0)
-	if acrLoginServer == nil {
+	if acrConfig == nil {
 		return result
 	}
 
-	if loginServer := acrLoginServer.LoginServers; loginServer != nil {
+	if loginServer := acrConfig.LoginServers; loginServer != nil {
 		result = append(result, *loginServer...)
 	}
 	return result
@@ -561,6 +636,29 @@ func flattenFhirAccessPolicy(policies *[]healthcareapis.FhirServiceAccessPolicyE
 			result = append(result, *objectId)
 		}
 	}
+	return result
+}
+
+func flattenOciArtifacts(artifacts *[]healthcareapis.ServiceOciArtifactEntry) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if artifacts == nil {
+		return result
+	}
+	for _, artifact := range *artifacts {
+		artifactRaw := make(map[string]interface{})
+
+		if loginServer := artifact.LoginServer; loginServer != nil {
+			artifactRaw["login_server"] = *loginServer
+		}
+		if imageName := artifact.ImageName; imageName != nil {
+			artifactRaw["image_name"] = *imageName
+		}
+		if digest := artifact.Digest; digest != nil {
+			artifactRaw["digest"] = *digest
+		}
+		result = append(result, artifactRaw)
+	}
+
 	return result
 }
 

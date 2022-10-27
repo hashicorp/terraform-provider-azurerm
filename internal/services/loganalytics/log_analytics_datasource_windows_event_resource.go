@@ -4,22 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/datasources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
@@ -30,9 +28,9 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 		Delete: resourceLogAnalyticsDataSourceWindowsEventDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataSourceID(id)
+			_, err := datasources.ParseDataSourceID(id)
 			return err
-		}, importLogAnalyticsDataSource(operationalinsights.WindowsEvent)),
+		}, importLogAnalyticsDataSource(datasources.DataSourceKindWindowsEvent)),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -54,7 +52,7 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"workspace_name": {
 				Type:             pluginsdk.TypeString,
@@ -102,29 +100,29 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
+	id := datasources.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_event", id.ID())
 		}
 	}
 
-	params := operationalinsights.DataSource{
-		Kind: operationalinsights.WindowsEvent,
+	params := datasources.DataSource{
+		Kind: datasources.DataSourceKindWindowsEvent,
 		Properties: &dataSourceWindowsEvent{
 			EventLogName: d.Get("event_log_name").(string),
 			EventTypes:   expandLogAnalyticsDataSourceWindowsEventEventType(d.Get("event_types").(*pluginsdk.Set).List()),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating Windows Event %s: %+v", id, err)
 	}
 
@@ -137,14 +135,14 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataSourceID(d.Id())
+	id, err := datasources.ParseDataSourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Windows Event %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -153,22 +151,26 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.DataSourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("workspace_name", id.WorkspaceName)
-	if props := resp.Properties; props != nil {
-		propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
-		if err != nil {
-			return fmt.Errorf("failed to flatten properties map to json: %+v", err)
-		}
 
-		prop := dataSourceWindowsEvent{}
-		if err := json.Unmarshal([]byte(propStr), &prop); err != nil {
-			return fmt.Errorf("failed to decode properties json: %+v", err)
-		}
+	if model := resp.Model; model != nil {
 
-		d.Set("event_log_name", prop.EventLogName)
-		d.Set("event_types", flattenLogAnalyticsDataSourceWindowsEventEventType(prop.EventTypes))
+		if props := resp.Model.Properties; props != nil {
+			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
+			if err != nil {
+				return fmt.Errorf("failed to flatten properties map to json: %+v", err)
+			}
+
+			prop := dataSourceWindowsEvent{}
+			if err := json.Unmarshal([]byte(propStr), &prop); err != nil {
+				return fmt.Errorf("failed to decode properties json: %+v", err)
+			}
+
+			d.Set("event_log_name", prop.EventLogName)
+			d.Set("event_types", flattenLogAnalyticsDataSourceWindowsEventEventType(prop.EventTypes))
+		}
 	}
 
 	return nil
@@ -179,12 +181,12 @@ func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataSourceID(d.Id())
+	id, err := datasources.ParseDataSourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Windows Event %s: %+v", *id, err)
 	}
 
@@ -196,7 +198,7 @@ func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceW
 	for _, e := range eventTypes {
 		// The casing isn't preserved by the API for event types, so we need to normalise it here until
 		// https://github.com/Azure/azure-rest-api-specs/issues/18163 is fixed
-		output = append(output, strings.ToLower(e.EventType))
+		output = append(output, e.EventType)
 	}
 	return output
 }

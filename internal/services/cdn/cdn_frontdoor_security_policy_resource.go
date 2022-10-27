@@ -140,13 +140,13 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 
 	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profile, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
 	securityPolicyName := d.Get("name").(string)
-	id := parse.NewFrontDoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
+	id := parse.NewFrontDoorSecurityPolicyID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, securityPolicyName)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
 	if err != nil {
@@ -160,20 +160,20 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
-	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+	resp, err := profileClient.Get(ctx, profile.ResourceGroup, profile.ProfileName)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve the %q from the linked %q: %+v", "sku_name", "azurerm_cdn_frontdoor_profile", err)
+		return fmt.Errorf("unable to retrieve the 'sku_name' from the CDN FrontDoor Profile(Name: %q)': %+v", profile.ProfileName, err)
 	}
 
-	if profile.Sku == nil {
-		return fmt.Errorf("retreving the parent %q: `sku` was nil", *profileId)
+	if resp.Sku == nil {
+		return fmt.Errorf("the CDN FrontDoor Profile(Name: %q) 'sku' was nil", profile.ProfileName)
 	}
 
-	isStandardSku := strings.HasPrefix(strings.ToLower(string(profile.Sku.Name)), "standard")
+	isStandardSku := strings.HasPrefix(strings.ToLower(string(resp.Sku.Name)), "standard")
 
 	params, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
 	if err != nil {
-		return fmt.Errorf("expanding %q: %+v", "security_policies", err)
+		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
 
 	props := cdn.SecurityPolicy{

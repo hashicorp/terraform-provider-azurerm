@@ -19,7 +19,7 @@ type SnapshotPoliciesUpdateOperationResponse struct {
 }
 
 // SnapshotPoliciesUpdate ...
-func (c SnapshotPolicyClient) SnapshotPoliciesUpdate(ctx context.Context, id SnapshotPoliciesId, input SnapshotPolicyPatch) (result SnapshotPoliciesUpdateOperationResponse, err error) {
+func (c SnapshotPolicyClient) SnapshotPoliciesUpdate(ctx context.Context, id SnapshotPolicyId, input SnapshotPolicyPatch) (result SnapshotPoliciesUpdateOperationResponse, err error) {
 	req, err := c.preparerForSnapshotPoliciesUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "snapshotpolicy.SnapshotPolicyClient", "SnapshotPoliciesUpdate", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c SnapshotPolicyClient) SnapshotPoliciesUpdate(ctx context.Context, id Sna
 }
 
 // SnapshotPoliciesUpdateThenPoll performs SnapshotPoliciesUpdate then polls until it's completed
-func (c SnapshotPolicyClient) SnapshotPoliciesUpdateThenPoll(ctx context.Context, id SnapshotPoliciesId, input SnapshotPolicyPatch) error {
+func (c SnapshotPolicyClient) SnapshotPoliciesUpdateThenPoll(ctx context.Context, id SnapshotPolicyId, input SnapshotPolicyPatch) error {
 	result, err := c.SnapshotPoliciesUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SnapshotPoliciesUpdate: %+v", err)
@@ -50,7 +50,7 @@ func (c SnapshotPolicyClient) SnapshotPoliciesUpdateThenPoll(ctx context.Context
 }
 
 // preparerForSnapshotPoliciesUpdate prepares the SnapshotPoliciesUpdate request.
-func (c SnapshotPolicyClient) preparerForSnapshotPoliciesUpdate(ctx context.Context, id SnapshotPoliciesId, input SnapshotPolicyPatch) (*http.Request, error) {
+func (c SnapshotPolicyClient) preparerForSnapshotPoliciesUpdate(ctx context.Context, id SnapshotPolicyId, input SnapshotPolicyPatch) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
