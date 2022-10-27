@@ -76,6 +76,21 @@ func TestAccLogicAppActionHttp_headers(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppActionHttp_queries(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.queries(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppActionHttp_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 	r := LogicAppActionHttpResource{}
@@ -189,6 +204,24 @@ resource "azurerm_logic_app_action_http" "test" {
   uri          = "http://example.com/hello"
 
   headers = {
+    "Hello"     = "World"
+    "Something" = "New"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppActionHttpResource) queries(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "test" {
+  name         = "action%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "GET"
+  uri          = "http://example.com/hello"
+
+  queries = {
     "Hello"     = "World"
     "Something" = "New"
   }

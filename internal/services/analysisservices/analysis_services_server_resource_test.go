@@ -502,7 +502,7 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, *id)
+	resp, err := clients.AnalysisServices.Servers.GetDetails(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -511,7 +511,7 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 }
 
 func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	client := clients.AnalysisServices.ServerClient
+	client := clients.AnalysisServices.Servers
 
 	id, err := servers.ParseServerID(state.ID)
 	if err != nil {
@@ -527,7 +527,7 @@ func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *cl
 
 func (t AnalysisServicesServerResource) checkState(expectedState servers.State) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		client := clients.AnalysisServices.ServerClient
+		client := clients.AnalysisServices.Servers
 
 		id, err := servers.ParseServerID(state.ID)
 		if err != nil {

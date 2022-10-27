@@ -130,6 +130,8 @@ The following arguments are supported:
 
 ~> **Note:** The `tier_to_archive_after_days_since_modification_greater_than` and `tier_to_archive_after_days_since_last_access_time_greater_than` can not be set at the same time.
 
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
+
 * `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be between 0 and 99999.
 * `delete_after_days_since_last_access_time_greater_than` - The age in days after last access time to delete the blob. Must be between `0` and `99999`.
 
@@ -142,6 +144,7 @@ The following arguments are supported:
 `snapshot` supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob snapshot to archive storage. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
 * `change_tier_to_cool_after_days_since_creation` - The age in days after creation to tier blob snapshot to cool storage. Must be between 0 and 99999.
 * `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot. Must be between 0 and 99999.
 
@@ -150,6 +153,7 @@ The following arguments are supported:
 `version` supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
 * `change_tier_to_cool_after_days_since_creation` - The age in days creation create to  tier blob version to cool storage. Must be between 0 and 99999.
 * `delete_after_days_since_creation` - The age in days after creation to delete the blob version. Must be between 0 and 99999.
 

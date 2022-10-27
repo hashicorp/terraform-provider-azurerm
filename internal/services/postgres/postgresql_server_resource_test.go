@@ -798,7 +798,8 @@ resource "azurerm_postgresql_server" "restore" {
   creation_source_server_id = azurerm_postgresql_server.test.id
   restore_point_in_time     = "%[3]s"
 
-  ssl_enforcement_enabled = true
+  ssl_enforcement_enabled       = true
+  public_network_access_enabled = false
 }
 `, r.gp(data, version), data.RandomInteger, restoreTime, version)
 }

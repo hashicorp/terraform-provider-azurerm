@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) SKU name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
 
-* `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium` and `Standard`.
+* `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium`, `Standard` and `Basic`.
 
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 

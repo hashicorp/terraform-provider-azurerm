@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworker"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup"
@@ -19,7 +20,8 @@ type Client struct {
 	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
 	JobScheduleClient           *automation.JobScheduleClient
 	ModuleClient                *automation.ModuleClient
-	RunbookClient               *automation.RunbookClient
+	RunbookClient               *runbook.RunbookClient
+	RunbookClientHack           *automation.RunbookClient
 	RunbookDraftClient          *automation.RunbookDraftClient
 	RunBookWgClient             *hybridrunbookworkergroup.HybridRunbookWorkerGroupClient
 	RunbookWorkerClient         *hybridrunbookworker.HybridRunbookWorkerClient
@@ -62,7 +64,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	moduleClient := automation.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&moduleClient.Client, o.ResourceManagerAuthorizer)
 
-	runbookClient := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	runbookClient2 := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&runbookClient2.Client, o.ResourceManagerAuthorizer)
+
+	runbookClient := runbook.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&runbookClient.Client, o.ResourceManagerAuthorizer)
 
 	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -104,6 +109,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		JobScheduleClient:           &jobScheduleClient,
 		ModuleClient:                &moduleClient,
 		RunbookClient:               &runbookClient,
+		RunbookClientHack:           &runbookClient2,
 		RunbookDraftClient:          &runbookDraftClient,
 		RunBookWgClient:             &runbookWgClient,
 		RunbookWorkerClient:         &runbookWorkerClient,

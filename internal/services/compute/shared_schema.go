@@ -435,9 +435,9 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 	}, nil
 }
 
-func flattenSourceImageReference(input *compute.ImageReference) []interface{} {
+func flattenSourceImageReference(input *compute.ImageReference, hasImageId bool) []interface{} {
 	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
-	if input == nil || input.ID != nil {
+	if input == nil || hasImageId {
 		return []interface{}{}
 	}
 
