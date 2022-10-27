@@ -1745,7 +1745,7 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	if input.SubnetResourceID != nil {
 		subnetId, err := networkParse.SubnetID(*input.SubnetResourceID)
 		if err != nil {
-			return []interface{}{}, nil
+			return []interface{}{}, err
 		}
 		virtualNetworkConfiguration["subnet_id"] = subnetId.ID()
 	}
