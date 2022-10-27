@@ -17,6 +17,10 @@ import (
 type TagRulesDatadogMonitorResource struct{}
 
 func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -31,6 +35,10 @@ func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 }
 
 func TestAccDatadogMonitorTagRules_update(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

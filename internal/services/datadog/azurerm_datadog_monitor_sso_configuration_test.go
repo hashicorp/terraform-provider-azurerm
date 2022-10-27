@@ -17,6 +17,14 @@ import (
 type SSODatadogMonitorResource struct{}
 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
+	if os.Getenv("ARM_TEST_ENTERPRISE_APP_ID") == "" {
+		t.Skip("Skipping as Enterprise App Id for SAML is not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -32,6 +40,14 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 }
 
 func TestAccDatadogMonitorSSO_update(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
+		return
+	}
+	if os.Getenv("ARM_TEST_ENTERPRISE_APP_ID") == "" {
+		t.Skip("Skipping as Enterprise App Id for SAML is not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -117,9 +133,9 @@ func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
   single_sign_on_enabled    = "Enable"
-  enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
+  enterprise_application_id = %q
 }
-`, r.template(data))
+`, r.template(data), os.Getenv("ARM_TEST_ENTERPRISE_APP_ID"))
 }
 
 func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
@@ -129,7 +145,7 @@ func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
   single_sign_on_enabled    = "Disable"
-  enterprise_application_id = "183bc0b4-c560-4a55-8b7e-3eac5ad18774"
+  enterprise_application_id = %q
 }
-`, r.template(data))
+`, r.template(data), os.Getenv("ARM_TEST_ENTERPRISE_APP_ID"))
 }
