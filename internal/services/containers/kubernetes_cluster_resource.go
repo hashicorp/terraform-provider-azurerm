@@ -1036,6 +1036,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"workload_autoscaler_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"keda_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1128,6 +1143,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	windowsProfileRaw := d.Get("windows_profile").([]interface{})
 	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
+	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
+	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
+
 	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 
@@ -1200,23 +1218,24 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
-			ApiServerAccessProfile: &apiAccessProfile,
-			AadProfile:             azureADProfile,
-			AddonProfiles:          addonProfiles,
-			AgentPoolProfiles:      agentProfiles,
-			AutoScalerProfile:      autoScalerProfile,
-			DnsPrefix:              utils.String(dnsPrefix),
-			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			KubernetesVersion:      utils.String(kubernetesVersion),
-			LinuxProfile:           linuxProfile,
-			WindowsProfile:         windowsProfile,
-			NetworkProfile:         networkProfile,
-			NodeResourceGroup:      utils.String(nodeResourceGroup),
-			PublicNetworkAccess:    &publicNetworkAccess,
-			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
-			HTTPProxyConfig:        httpProxyConfig,
-			OidcIssuerProfile:      oidcIssuerProfile,
-			SecurityProfile:        securityProfile,
+			ApiServerAccessProfile:    &apiAccessProfile,
+			AadProfile:                azureADProfile,
+			AddonProfiles:             addonProfiles,
+			AgentPoolProfiles:         agentProfiles,
+			AutoScalerProfile:         autoScalerProfile,
+			DnsPrefix:                 utils.String(dnsPrefix),
+			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
+			KubernetesVersion:         utils.String(kubernetesVersion),
+			LinuxProfile:              linuxProfile,
+			WindowsProfile:            windowsProfile,
+			NetworkProfile:            networkProfile,
+			NodeResourceGroup:         utils.String(nodeResourceGroup),
+			PublicNetworkAccess:       &publicNetworkAccess,
+			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:           httpProxyConfig,
+			OidcIssuerProfile:         oidcIssuerProfile,
+			SecurityProfile:           securityProfile,
+			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1678,6 +1697,21 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile = microsoftDefender
 	}
 
+	if d.HasChange("workload_autoscaler_profile") {
+		updateCluster = true
+		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
+		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
+		if workloadAutoscalerProfile == nil {
+			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
+				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
+					Enabled: false,
+				},
+			}
+		} else {
+			existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
+		}
+	}
+
 	if d.HasChanges("workload_identity_enabled") {
 		updateCluster = true
 		workloadIdentity := d.Get("workload_identity_enabled").(bool)
@@ -1957,6 +1991,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
+		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile, d)
+		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
+			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+		}
+
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
@@ -2234,6 +2273,22 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *managedclusters
 	}
 }
 
+func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	kedaEnabled := managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{}
+	if v := config["keda_enabled"].(bool); v {
+		kedaEnabled.Enabled = v
+	}
+
+	return &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
+		Keda: &kedaEnabled,
+	}
+}
+
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
@@ -2274,6 +2329,23 @@ func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClus
 			"admin_username": adminUsername,
 			"license":        license,
 			"gmsa":           gmsaProfile,
+		},
+	}
+}
+
+func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile, d *pluginsdk.ResourceData) []interface{} {
+	if profile == nil || len(d.Get("workload_autoscaler_profile").([]interface{})) == 0 {
+		return []interface{}{}
+	}
+
+	kedaEnabled := false
+	if v := profile.Keda; v != nil {
+		kedaEnabled = profile.Keda.Enabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"keda_enabled": kedaEnabled,
 		},
 	}
 }
