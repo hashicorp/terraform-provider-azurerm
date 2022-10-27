@@ -250,7 +250,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										ValidateFunc: validate.FrontDoorOriginGroupID,
 									},
 
-									// Removed Default value for issue #18889, default value is applied in the ExpandCdnFrontDoorRouteConfigurationOverrideAction func
+									// Removed Default value for issue #18889
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -261,7 +261,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// Removed Default value for new issue raised in issue #18889, https://github.com/hashicorp/terraform-provider-azurerm/issues/18889#issuecomment-1290253767
+									// Removed Default value for issue #19008
 									"query_string_caching_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -290,7 +290,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										Optional: true,
 									},
 
-									// Exposed Disabled for new issue raised in issue #18889
+									// Exposed Disabled for issue #19008
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -302,7 +302,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// Made Optional for new issue raised in issue #18889
+									// Made Optional for issue #19008
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,

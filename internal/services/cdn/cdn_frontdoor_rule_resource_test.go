@@ -89,8 +89,23 @@ func TestAccCdnFrontDoorRule_originGroupIdOptionalUpdate(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
+func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptionalError(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol'"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -105,7 +120,7 @@ func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_disableCacheOriginGroupId(t *testing.T) {
-	// NOTE: Regression test case for issue #18889
+	// NOTE: Regression test case for issue #19008
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -120,7 +135,7 @@ func TestAccCdnFrontDoorRule_disableCacheOriginGroupId(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate(t *testing.T) {
-	// NOTE: Regression test case for issue #18889
+	// NOTE: Regression test case for issue #19008
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -149,7 +164,7 @@ func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_disableCacheUpdate(t *testing.T) {
-	// NOTE: Regression test case for issue #18889
+	// NOTE: Regression test case for issue #19008
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -177,23 +192,8 @@ func TestAccCdnFrontDoorRule_disableCacheUpdate(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
-	// NOTE: Regression test case for issue #18889
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
-	r := CdnFrontDoorRuleResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.originGroupIdOptionalError(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-			ExpectError: regexp.MustCompile("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol'"),
-		},
-	})
-}
-
 func TestAccCdnFrontDoorRule_disableCacheError(t *testing.T) {
-	// NOTE: Regression test case for issue #18889
+	// NOTE: Regression test case for issue #19008
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
