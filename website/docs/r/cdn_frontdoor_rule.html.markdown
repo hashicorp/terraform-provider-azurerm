@@ -199,7 +199,7 @@ A `route_configuration_override_action` block supports the following:
 
 ->**NOTE:** In the v3.x of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will have default values. You can use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) functionality to ignore these default values. In v4.0 of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will **NOT** have default values and will need to be explicitly set in the configuration file.
 
-* `cache_duration` - (Optional) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
+* `cache_duration` - (Optional) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`). Defaults to `1.12:00:00`.
 
 * `cdn_frontdoor_origin_group_id` - (Optional) The Front Door Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the Front Door Endpoint route.
 
@@ -217,7 +217,7 @@ A `route_configuration_override_action` block supports the following:
 
 ->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
-* `cache_behavior` - (Optional) `HonorOrigin` the Front Door Profile will always honor origin response header directive. If the origin directive is missing, Front Door Profile will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
+* `cache_behavior` - (Optional) `HonorOrigin` the Front Door Profile will always honor origin response header directive. If the origin directive is missing, Front Door Profile will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. `Disabled` Front Door will not cache the response contents, irrespective of origin response directives. Possible values include `HonorOrigin`, `OverrideAlways`, `OverrideIfOriginMissing` or `Disabled`. Defaults to `HonorOrigin`.
 
 ---
 
