@@ -1181,7 +1181,11 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 	for _, item := range *input {
 		if action, ok := item.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
+			flattened, err := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
+			if err != nil {
+				return nil, fmt.Errorf("'route_configuration_override_action' unable to parse 'cdn_frontdoor_origin_group_id': %+v", err)
+			}
+
 			routeConfigOverrideActions = append(routeConfigOverrideActions, flattened)
 			continue
 		}

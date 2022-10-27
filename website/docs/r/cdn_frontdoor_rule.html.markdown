@@ -197,7 +197,7 @@ An `url_redirect_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-->**NOTE:** While `cache_duration`, `cache_behavior` and `query_string_caching_behavior` do have default values, if you do not define these properties in your configuration file you will receive a diff during plan.
+->**NOTE:** In the v3.x of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will have default values, meaning if you do not define these properties in your configuration file you will receive a diff during plan. You can use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) functionality to ignore these default values. In v4.0 of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will **NOT** have default values and will need to be explicitly set in the configuration file.
 
 * `cache_duration` - (Optional) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
 

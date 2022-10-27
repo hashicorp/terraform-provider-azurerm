@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -224,24 +225,28 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
 		}
 
-		// set the default value for forwarding protocol to avoid a breaking change...
-		if protocol == "" {
-			protocol = string(cdn.ForwardingProtocolMatchRequest)
+		if !features.FourPointOhBeta() {
+			// set the default value for forwarding protocol to avoid a breaking change...
+			if protocol == "" {
+				protocol = string(cdn.ForwardingProtocolMatchRequest)
+			}
 		}
-
-		forwardingProtocol := cdn.ForwardingProtocol(protocol)
 
 		// NOTE: It is valid to not define the originGroupOverride in the Route Configuration Override Action
 		// however, if you do not define the Origin Group ID you also cannot define the Forwarding Protocol either
 		if originGroupIdRaw != "" {
+			if protocol == "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'forwarding_protocol' field must be set")
+			}
+
 			originGroupOverride = cdn.OriginGroupOverride{
 				OriginGroup: &cdn.ResourceReference{
 					ID: utils.String(originGroupIdRaw),
 				},
-				ForwardingProtocol: forwardingProtocol,
+				ForwardingProtocol: cdn.ForwardingProtocol(protocol),
 			}
 		} else if originGroupIdRaw == "" && item["forwarding_protocol"].(string) != "" {
-			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol', got %q", forwardingProtocol)
+			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol', got %q", protocol)
 		}
 
 		if cacheBehavior == string(cdn.RuleIsCompressionEnabledDisabled) {
@@ -257,22 +262,48 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'cache_duration', got %q", cacheDuration)
 			}
 		} else {
-			// since 'cache_duration', 'query_string_caching_behavior' and 'cache_behavior' are optional create a default values
-			// for those values if not set.
-			cacheDuration := "1.12:00:00"
-			queryStringCachingBehavior := string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString)
-			cacheBehavior := string(cdn.RuleCacheBehaviorHonorOrigin)
+			var cacheDuration string
+			var queryStringCachingBehavior string
+			var cacheBehavior string
 
-			if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw != "" {
-				cacheBehavior = cacheBehaviorRaw
+			if !features.FourPointOhBeta() {
+				// since 'cache_duration', 'query_string_caching_behavior' and 'cache_behavior' are optional create a default values
+				// for those values if not set.
+				cacheDuration = "1.12:00:00"
+				queryStringCachingBehavior = string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString)
+				cacheBehavior = string(cdn.RuleCacheBehaviorHonorOrigin)
+
+				if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw != "" {
+					cacheBehavior = cacheBehaviorRaw
+				}
+
+				if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw != "" {
+					cacheDuration = cacheDurationRaw
+				}
+
+				if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw != "" {
+					queryStringCachingBehavior = queryStringCachingBehaviorRaw
+				}
 			}
 
-			if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw != "" {
-				cacheDuration = cacheDurationRaw
-			}
+			if features.FourPointOhBeta() {
+				if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw == "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_behavior' field must be set")
+				} else {
+					cacheBehavior = cacheBehaviorRaw
+				}
 
-			if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw != "" {
-				queryStringCachingBehavior = queryStringCachingBehaviorRaw
+				if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw == "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
+				} else {
+					cacheDuration = cacheDurationRaw
+				}
+
+				if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw == "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set")
+				} else {
+					queryStringCachingBehavior = queryStringCachingBehaviorRaw
+				}
 			}
 
 			cacheConfiguration = cdn.CacheConfiguration{
@@ -394,7 +425,7 @@ func FlattenCdnFrontDoorUrlRewriteAction(input cdn.URLRewriteAction) map[string]
 	}
 }
 
-func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleRouteConfigurationOverrideAction) map[string]interface{} {
+func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleRouteConfigurationOverrideAction) (map[string]interface{}, error) {
 	queryStringCachingBehavior := ""
 	cacheBehavior := ""
 	compressionEnabled := false
@@ -419,9 +450,12 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleR
 
 			// NOTE: Need to normalize this ID here because if you modified this in portal the resourceGroup comes back as resourcegroup.
 			// ignore the error here since it was set on the resource in Azure and we know it is valid.
-			if originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.ID); err == nil {
-				originGroupId = originGroup.ID()
+			originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.ID)
+			if err != nil {
+				return nil, err
 			}
+
+			originGroupId = originGroup.ID()
 		}
 	}
 
@@ -433,5 +467,5 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleR
 		"query_string_parameters":       queryParameters,
 		"forwarding_protocol":           forwardingProtocol,
 		"cdn_frontdoor_origin_group_id": originGroupId,
-	}
+	}, nil
 }
