@@ -294,10 +294,10 @@ resource "azurerm_container_app" "test" {
           value = "no-cache"
         }
 
-        initial_delay     = 5
-        interval          = 20
-        timeout           = 2
-        failure_threshold = 1
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
       }
 
       startup_probe {
@@ -324,7 +324,7 @@ resource "azurerm_container_app" "test" {
 
   ingress {
     allow_insecure_connections = true
-    is_external                = true
+    external_enabled           = true
     target_port                = 5000
     transport                  = "http"
     traffic_weight {
@@ -334,9 +334,9 @@ resource "azurerm_container_app" "test" {
   }
 
   registry {
-    server                    = azurerm_container_registry.test.login_server
-    username                  = azurerm_container_registry.test.admin_username
-    password_secret_reference = "registry-password"
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
+    password_secret_name = "registry-password"
   }
 
   secret {
@@ -392,10 +392,10 @@ resource "azurerm_container_app" "test" {
           value = "no-cache"
         }
 
-        initial_delay     = 5
-        interval          = 20
-        timeout           = 2
-        failure_threshold = 1
+        initial_delay                    = 5
+        termination_grace_period_seconds = 20
+        timeout                          = 2
+        failure_count_threshold          = 1
       }
 
       startup_probe {
@@ -431,9 +431,9 @@ resource "azurerm_container_app" "test" {
   }
 
   registry {
-    server                    = azurerm_container_registry.test.login_server
-    username                  = azurerm_container_registry.test.admin_username
-    password_secret_reference = "registry-password"
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
+    password_secret_name = "registry-password"
   }
 
   secret {
@@ -469,12 +469,12 @@ resource "azurerm_container_app" "test" {
       //command = ["node"]
 
       readiness_probe {
-        transport         = "http"
-        port              = 5000
-        path              = "/uptime"
-        timeout           = 2
-        failure_threshold = 1
-        success_threshold = 1
+        transport               = "http"
+        port                    = 5000
+        path                    = "/uptime"
+        timeout                 = 2
+        failure_count_threshold = 1
+        success_count_threshold = 1
 
         header {
           name  = "Cache-Control"
@@ -492,17 +492,17 @@ resource "azurerm_container_app" "test" {
           value = "no-cache"
         }
 
-        initial_delay     = 5
-        interval          = 20
-        timeout           = 2
-        failure_threshold = 3
+        initial_delay                    = 5
+        termination_grace_period_seconds = 20
+        timeout                          = 2
+        failure_count_threshold          = 3
       }
 
       startup_probe {
-        transport         = "tcp"
-        port              = 5000
-        timeout           = 5
-        failure_threshold = 1
+        transport               = "tcp"
+        port                    = 5000
+        timeout                 = 5
+        failure_count_threshold = 1
       }
 
       //volume_mounts {
@@ -524,7 +524,7 @@ resource "azurerm_container_app" "test" {
 
   ingress {
     allow_insecure_connections = true
-    is_external                = true
+    external_enabled           = true
     target_port                = 5000
     transport                  = "auto"
 
@@ -540,9 +540,9 @@ resource "azurerm_container_app" "test" {
   }
 
   registry {
-    server                    = azurerm_container_registry.test.login_server
-    username                  = azurerm_container_registry.test.admin_username
-    password_secret_reference = "registry-password"
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
+    password_secret_name = "registry-password"
   }
 
   secret {
@@ -589,12 +589,12 @@ resource "azurerm_container_app" "test" {
       //command = ["node"]
 
       readiness_probe {
-        transport         = "http"
-        port              = 5000
-        path              = "/uptime"
-        timeout           = 2
-        failure_threshold = 1
-        success_threshold = 1
+        transport               = "http"
+        port                    = 5000
+        path                    = "/uptime"
+        timeout                 = 2
+        failure_count_threshold = 1
+        success_count_threshold = 1
 
         header {
           name  = "Cache-Control"
@@ -612,17 +612,17 @@ resource "azurerm_container_app" "test" {
           value = "no-cache"
         }
 
-        initial_delay     = 5
-        interval          = 20
-        timeout           = 2
-        failure_threshold = 3
+        initial_delay                    = 5
+        termination_grace_period_seconds = 20
+        timeout                          = 2
+        failure_count_threshold          = 3
       }
 
       startup_probe {
-        transport         = "tcp"
-        port              = 5000
-        timeout           = 5
-        failure_threshold = 1
+        transport               = "tcp"
+        port                    = 5000
+        timeout                 = 5
+        failure_count_threshold = 1
       }
 
       //volume_mounts {
@@ -644,7 +644,7 @@ resource "azurerm_container_app" "test" {
 
   ingress {
     allow_insecure_connections = true
-    is_external                = true
+    external_enabled           = true
     target_port                = 5000
     transport                  = "auto"
 
@@ -660,9 +660,9 @@ resource "azurerm_container_app" "test" {
   }
 
   registry {
-    server                    = azurerm_container_registry.test.login_server
-    username                  = azurerm_container_registry.test.admin_username
-    password_secret_reference = "registry-password"
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
+    password_secret_name = "registry-password"
   }
 
   secret {

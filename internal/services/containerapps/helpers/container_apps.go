@@ -14,7 +14,7 @@ import (
 )
 
 type Registry struct {
-	PasswordSecretRef string `tfschema:"password_secret_reference"`
+	PasswordSecretRef string `tfschema:"password_secret_name"`
 	Server            string `tfschema:"server"`
 	UserName          string `tfschema:"username"`
 }
@@ -40,7 +40,7 @@ func ContainerAppRegistrySchema() *pluginsdk.Schema {
 					Description:  "The username to use for this Container Registry.",
 				},
 
-				"password_secret_reference": {
+				"password_secret_name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -88,7 +88,7 @@ func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) [
 type Ingress struct {
 	AllowInsecure  bool            `tfschema:"allow_insecure_connections"`
 	CustomDomains  []CustomDomain  `tfschema:"custom_domain"`
-	IsExternal     bool            `tfschema:"is_external"`
+	IsExternal     bool            `tfschema:"external_enabled"`
 	FQDN           string          `tfschema:"fqdn"`
 	TargetPort     int             `tfschema:"target_port"`
 	TrafficWeights []TrafficWeight `tfschema:"traffic_weight"`
@@ -117,7 +117,7 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"is_external": {
+				"external_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -245,7 +245,7 @@ type TrafficWeight struct {
 	Label          string `tfschema:"label"`
 	LatestRevision bool   `tfschema:"latest_revision"`
 	RevisionSuffix string `tfschema:"revision_suffix"`
-	Weight         int    `tfschema:"weight"`
+	Weight         int    `tfschema:"percentage"`
 }
 
 func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
@@ -275,7 +275,7 @@ func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 					Description: "This traffic Weight relates to the latest stable Container Revision.",
 				},
 
-				"weight": {
+				"percentage": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 100), // TODO - this may just be multiples of 10?
@@ -412,9 +412,9 @@ func FlattenContainerAppDapr(input *containerapps.Dapr) []Dapr {
 }
 
 type DaprMetadata struct {
-	Name      string `tfschema:"name"`
-	Value     string `tfschema:"value"`
-	SecretRef string `tfschema:"secret_reference"`
+	Name       string `tfschema:"name"`
+	Value      string `tfschema:"value"`
+	SecretName string `tfschema:"secret_name"`
 }
 
 func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
@@ -437,7 +437,7 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 					Description: "The value for this metadata configuration item.",
 				},
 
-				"secret_reference": {
+				"secret_name": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Description: "The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.",
@@ -465,7 +465,7 @@ func ContainerAppEnvironmentDaprMetadataDataSourceSchema() *pluginsdk.Schema {
 					Description: "The value for this metadata configuration item.",
 				},
 
-				"secret_reference": {
+				"secret_name": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Description: "The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.",
@@ -894,7 +894,7 @@ func flattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []Containe
 type ContainerEnvVar struct {
 	Name            string `tfschema:"name"`
 	Value           string `tfschema:"value"`
-	SecretReference string `tfschema:"secret_reference"`
+	SecretReference string `tfschema:"secret_name"`
 }
 
 func ContainerEnvVarSchema() *pluginsdk.Schema {
@@ -914,10 +914,10 @@ func ContainerEnvVarSchema() *pluginsdk.Schema {
 				"value": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The value for this environment variable. **NOTE:** This value is ignored if `secret_reference` is used",
+					Description: "The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used",
 				},
 
-				"secret_reference": {
+				"secret_name": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Description: "The name of the secret that contains the value for this environment variable.",
@@ -973,10 +973,10 @@ type ContainerAppReadinessProbe struct {
 	Port             int          `tfschema:"port"`
 	Path             string       `tfschema:"path"`
 	Headers          []HttpHeader `tfschema:"header"`
-	Interval         int          `tfschema:"interval"`
+	Interval         int          `tfschema:"interval_seconds"`
 	Timeout          int          `tfschema:"timeout"`
-	FailureThreshold int          `tfschema:"failure_threshold"`
-	SuccessThreshold int          `tfschema:"success_threshold"`
+	FailureThreshold int          `tfschema:"failure_count_threshold"`
+	SuccessThreshold int          `tfschema:"success_count_threshold"`
 }
 
 func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
@@ -1039,7 +1039,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"interval": {
+				"interval_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
@@ -1055,7 +1055,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Description:  "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
 				},
 
-				"failure_threshold": {
+				"failure_count_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
@@ -1063,7 +1063,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
 				},
 
-				"success_threshold": {
+				"success_count_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
@@ -1163,10 +1163,10 @@ type ContainerAppLivenessProbe struct {
 	Path                   string       `tfschema:"path"`
 	Headers                []HttpHeader `tfschema:"header"`
 	InitialDelay           int          `tfschema:"initial_delay"`
-	Interval               int          `tfschema:"interval"`
+	Interval               int          `tfschema:"interval_seconds"`
 	Timeout                int          `tfschema:"timeout"`
-	FailureThreshold       int          `tfschema:"failure_threshold"`
-	TerminationGracePeriod int          `tfschema:"termination_grace_period"` // Alpha feature requiring `ProbeTerminationGracePeriod` to be enabled on the subscription?
+	FailureThreshold       int          `tfschema:"failure_count_threshold"`
+	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"` // Alpha feature requiring `ProbeTerminationGracePeriod` to be enabled on the subscription?
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
@@ -1237,7 +1237,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Description:  "The time in seconds to wait after the container has started before the probe is started.",
 				},
 
-				"interval": {
+				"interval_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
@@ -1253,7 +1253,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Description:  "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
 				},
 
-				"failure_threshold": {
+				"failure_count_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
@@ -1261,7 +1261,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
 				},
 
-				"termination_grace_period": {
+				"termination_grace_period_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
 					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
@@ -1358,10 +1358,10 @@ type ContainerAppStartupProbe struct {
 	Port                   int          `tfschema:"port"`
 	Path                   string       `tfschema:"path"`
 	Headers                []HttpHeader `tfschema:"header"`
-	Interval               int          `tfschema:"interval"`
+	Interval               int          `tfschema:"interval_seconds"`
 	Timeout                int          `tfschema:"timeout"`
-	FailureThreshold       int          `tfschema:"failure_threshold"`
-	TerminationGracePeriod int          `tfschema:"termination_grace_period"` // Alpha feature requiring `ProbeTerminationGracePeriod` to be enabled on the subscription?
+	FailureThreshold       int          `tfschema:"failure_count_threshold"`
+	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"` // Alpha feature requiring `ProbeTerminationGracePeriod` to be enabled on the subscription?
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
@@ -1424,7 +1424,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"interval": {
+				"interval_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
@@ -1440,7 +1440,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Description:  "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
 				},
 
-				"failure_threshold": {
+				"failure_count_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
@@ -1448,7 +1448,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
 				},
 
-				"termination_grace_period": {
+				"termination_grace_period_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
 					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",

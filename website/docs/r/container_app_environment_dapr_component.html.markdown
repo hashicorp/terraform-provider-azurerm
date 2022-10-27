@@ -52,7 +52,7 @@ A `metadata` block supports the following:
 
 * `name` - (Required) The name of the Metadata configuration item.
 
-* `secret_reference` - (Optional) The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.
+* `secret_name` - (Optional) The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.
 
 * `value` - (Optional) The value for this metadata configuration item.
 

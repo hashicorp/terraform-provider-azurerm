@@ -15,7 +15,7 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) Name() string {
-	return "ContainerApps"
+	return "Container Apps"
 }
 
 func (r Registration) DataSources() []sdk.DataSource {

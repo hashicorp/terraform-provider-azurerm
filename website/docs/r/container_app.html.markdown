@@ -141,7 +141,7 @@ A `container` block supports the following:
 
 A `liveness_probe` block supports the following:
 
-* `failure_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -149,7 +149,7 @@ A `liveness_probe` block supports the following:
 
 * `initial_delay` - (Optional) The time in seconds to wait after the container has started before the probe is started.
 
-* `interval` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
+* `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `tcp` type probes. Defaults to `/`.
 
@@ -175,27 +175,27 @@ An `env` block supports the following:
 
 * `name` - (Required) The name of the environment variable for the container.
 
-* `secret_reference` - (Optional) The name of the secret that contains the value for this environment variable.
+* `secret_name` - (Optional) The name of the secret that contains the value for this environment variable.
 
-* `value` - (Optional) The value for this environment variable. **NOTE:** This value is ignored if `secret_reference` is used
+* `value` - (Optional) The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used
 
 ---
 
 A `readiness_probe` block supports the following:
 
-* `failure_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
 * `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.
 
-* `interval` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
+* `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
 * `path` - (Optional) The URI to use for http type probes. Not valid for `tcp` type probes. Defaults to `/`.
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `success_threshold` - (Optional) The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.
+* `success_count_threshold` - (Optional) The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.
 
@@ -213,13 +213,13 @@ A `header` block supports the following:
 
 A `startup_probe` block supports the following:
 
-* `failure_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
 * `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.
 
-* `interval` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
+* `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `tcp` type probes. Defaults to `/`.
 
@@ -257,7 +257,7 @@ An `ingress` block supports the following:
 
 * `fqdn` -  The FQDN of the ingress.
 
-* `is_external` - (Optional) Is this an external Ingress.
+* `external_enabled` - (Optional) Is this an external Ingress.
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
 
@@ -277,7 +277,7 @@ A `traffic_weight` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix string to which this `traffic_weight` applies.
 
-* `weight` - (Required) The weight (%) of traffic to send to this revision. 
+* `percentage` - (Required) The amount (%) of traffic to send to this revision. 
 
 ~> **Note:** The cumulative values for `weight` must equal 100 exactly and explicitly, no default weights are assumed. 
 
@@ -295,7 +295,7 @@ A `dapr` block supports the following:
 
 A `registry` block supports the following:
 
-* `password_secret_reference` - (Required) The name of the Secret Reference containing the password value for this user on the Container Registry.
+* `password_secret_name` - (Required) The name of the Secret Reference containing the password value for this user on the Container Registry.
 
 * `server` - (Required) The hostname for the Container Registry.
 
@@ -316,7 +316,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The location this Container App is deployed in. This is the same as the Environment in which it is deployed.
 
-* `outbound_ip_addresses` - An `outbound_ip_addresses` block as detailed above.
+* `outbound_ip_addresses` - An list of IP Addresses which the Container App can use.
 
 
 ## Timeouts

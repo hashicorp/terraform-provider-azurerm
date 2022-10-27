@@ -311,8 +311,8 @@ func expandDaprComponentPropertiesMetadata(input []helpers.DaprMetadata) *[]dapr
 		if v.Value != "" {
 			d.Value = pointer.To(v.Value)
 		}
-		if v.SecretRef != "" {
-			d.SecretRef = pointer.To(v.SecretRef)
+		if v.SecretName != "" {
+			d.SecretRef = pointer.To(v.SecretName)
 		}
 		result = append(result, d)
 	}
@@ -328,9 +328,9 @@ func flattenDaprComponentPropertiesMetadata(input *[]daprcomponents.DaprMetadata
 	result := make([]helpers.DaprMetadata, 0)
 	for _, v := range *input {
 		result = append(result, helpers.DaprMetadata{
-			Name:      pointer.From(v.Name),
-			SecretRef: pointer.From(v.SecretRef),
-			Value:     pointer.From(v.Value),
+			Name:       pointer.From(v.Name),
+			SecretName: pointer.From(v.SecretRef),
+			Value:      pointer.From(v.Value),
 		})
 	}
 

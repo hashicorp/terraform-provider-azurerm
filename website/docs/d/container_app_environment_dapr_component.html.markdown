@@ -59,7 +59,7 @@ A `metadata` block exports the following:
 
 * `name` -  The name of the Metadata configuration item.
 
-* `secret_reference` -  The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.
+* `secret_name` -  The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.
 
 * `value` -  The value for this metadata configuration item.
 

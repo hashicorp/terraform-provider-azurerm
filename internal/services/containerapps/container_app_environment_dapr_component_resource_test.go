@@ -184,8 +184,8 @@ resource "azurerm_container_app_environment_dapr_component" "test" {
   }
 
   metadata {
-    name             = "storage-account-key"
-    secret_reference = "storage-account-access-key"
+    name        = "storage-account-key"
+    secret_name = "storage-account-access-key"
   }
 
   metadata {
@@ -247,8 +247,8 @@ resource "azurerm_container_app_environment_dapr_component" "test" {
   }
 
   metadata {
-    name             = "storage-account-key"
-    secret_reference = "storage-account-access-key"
+    name        = "storage-account-key"
+    secret_name = "storage-account-access-key"
   }
 
   metadata {
@@ -263,6 +263,8 @@ resource "azurerm_container_app_environment_dapr_component" "test" {
 
   scopes = ["testapp", "updatedapp"]
 }
+
+
 
 
 `, r.template(data), data.RandomInteger, data.RandomString)
