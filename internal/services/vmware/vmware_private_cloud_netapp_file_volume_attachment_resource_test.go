@@ -31,7 +31,7 @@ func (r VmwareNetappFileVolumeAttachmentResource) Exists(ctx context.Context, cl
 	return utils.Bool(true), nil
 }
 
-func TestAccVmwarePrivateCloudNetappFileVolumeAttachment(t *testing.T) {
+func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
 	r := VmwareNetappFileVolumeAttachmentResource{}
 
@@ -45,14 +45,54 @@ func TestAccVmwarePrivateCloudNetappFileVolumeAttachment(t *testing.T) {
 	})
 }
 
+// for testing purpose as the creation of vmware private cloud takes long time.
+func TestAccVmwarePrivateCloudNetappFileVolumeAttachmentDataSource(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
+	r := VmwareNetappFileVolumeAttachmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDataSourcePc(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r VmwareNetappFileVolumeAttachmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-vmware-nat-%d"
+  location = "centralus"
+}
+
+%s
+
 %s
 resource "azurerm_vmware_netapp_volume_attachment" "test" {
   name              = "acctest-vmwareattachment-%d"
   netapp_volume_id  = azurerm_netapp_volume.test.id
   vmware_cluster_id = azurerm_vmware_cluster.test.id
-}`, r.templatePrivateCloud(data), data.RandomInteger)
+
+  depends_on = [azurerm_virtual_network_gateway_connection.test]
+}`, data.RandomInteger, r.templatePrivateCloud(data), r.templateNetappFile(data), data.RandomInteger)
+}
+
+func (r VmwareNetappFileVolumeAttachmentResource) basicDataSourcePc(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_vmware_netapp_volume_attachment" "test" {
+  name              = "acctest-vmwareattachment-%d"
+  netapp_volume_id  = azurerm_netapp_volume.test.id
+  vmware_cluster_id = "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/xiaxintestrg-avs/providers/Microsoft.AVS/privateClouds/xiaxintest-PC-VM/clusters/Cluster-1"
+
+  depends_on = [azurerm_virtual_network_gateway_connection.test]
+}`, r.templatePrivateCloudDataSource(data), r.templateNetappFile(data), data.RandomInteger)
 }
 
 func (r VmwareNetappFileVolumeAttachmentResource) templatePrivateCloud(data acceptance.TestData) string {
@@ -65,6 +105,29 @@ provider "azurerm" {
 }
 
 %s
+
+resource "azurerm_subnet" "gatewaySubnet" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.1.0/24"]
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvnetgw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type = "ExpressRoute"
+  sku  = "Standard"
+
+  ip_configuration {
+    name                 = "vnetGatewayConfig"
+    public_ip_address_id = azurerm_public_ip.test.id
+    subnet_id            = azurerm_subnet.gatewaySubnet.id
+  }
+}
+
 resource "azurerm_vmware_private_cloud" "test" {
   name                = "acctest-PC-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -96,91 +159,75 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
   type                       = "ExpressRoute"
   virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
-  express_route_circuit_id   = azurerm_vmware_private_cloud.test.express_route_id
+  express_route_circuit_id   = azurerm_vmware_private_cloud.test.circuit[0].express_route_id
   authorization_key          = azurerm_vmware_express_route_authorization.test.express_route_authorization_key
 }
-`, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r VmwareNetappFileVolumeAttachmentResource) templatePrivateCloudDataSource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  # In Vmware acctest, please disable correlation request id, else the continuous operations like update or delete will not be triggered
+  # issue https://github.com/Azure/azure-rest-api-specs/issues/14086 
+  disable_correlation_request_id = true
+}
+
+%s
+
+data "azurerm_resource_group" "test" {
+  name = "xiaxintestrg-avs"
+}
+
+resource "azurerm_subnet" "gatewaySubnet" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = data.azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.1.0/24"]
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvnetgw-%d"
+  location            = "centralus"
+  resource_group_name = data.azurerm_resource_group.test.name
+
+  type = "ExpressRoute"
+  sku  = "Standard"
+
+  ip_configuration {
+    name                 = "vnetGatewayConfig"
+    public_ip_address_id = azurerm_public_ip.test.id
+    subnet_id            = azurerm_subnet.gatewaySubnet.id
+  }
+}
+
+data "azurerm_vmware_private_cloud" "test" {
+  name                = "xiaxintest-PC-VM"
+  resource_group_name = data.azurerm_resource_group.test.name
+}
+
+resource "azurerm_vmware_express_route_authorization" "test" {
+  name             = "acctest-VmwareAuthorization-%d"
+  private_cloud_id = data.azurerm_vmware_private_cloud.test.id
+}
+
+resource "azurerm_virtual_network_gateway_connection" "test" {
+  name                = "acctestvnetgwconn-%d"
+  location            = "centralus"
+  resource_group_name = data.azurerm_resource_group.test.name
+
+  type                       = "ExpressRoute"
+  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
+  express_route_circuit_id   = data.azurerm_vmware_private_cloud.test.circuit[0].express_route_id
+  authorization_key          = azurerm_vmware_express_route_authorization.test.express_route_authorization_key
+}
+`, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VmwareNetappFileVolumeAttachmentResource) templateNetappFile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
 
-resource "azurerm_netapp_account" "test" {
-  name                = "acctest-NetAppAccount-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-
-resource "azurerm_netapp_pool" "test" {
-  name                = "acctest-NetAppPool-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  service_level       = "Standard"
-  size_in_tb          = 4
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-
-resource "azurerm_netapp_volume" "test" {
-  name                            = "acctest-NetAppVolume-%d"
-  location                        = azurerm_resource_group.test.location
-  resource_group_name             = azurerm_resource_group.test.name
-  account_name                    = azurerm_netapp_account.test.name
-  pool_name                       = azurerm_netapp_pool.test.name
-  volume_path                     = "my-unique-file-path-%d"
-  service_level                   = "Standard"
-  subnet_id                       = azurerm_subnet.netappSubnet.id
-  protocols                       = ["NFSv3"]
-  storage_quota_in_gb             = 100
-  azure_vmware_data_store_enabled = true
-
-  export_policy_rule {
-    rule_index          = 1
-    allowed_clients     = ["0.0.0.0/0"]
-    protocols_enabled   = ["NFSv3"]
-    unix_read_only      = false
-    unix_read_write     = true
-    root_access_enabled = true
-  }
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}`, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r VmwareNetappFileVolumeAttachmentResource) templateVnet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VirtualNetwork-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
 
 resource "azurerm_subnet" "netappSubnet" {
   name                 = "acctest-Subnet-%d"
@@ -198,26 +245,79 @@ resource "azurerm_subnet" "netappSubnet" {
   }
 }
 
-resource "azurerm_subnet" "gatewaySubnet" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.1.0/24"]
-}
-
-resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctestvnetgw-%d"
-  location            = azurerm_resource_group.test.location
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = "central us"
   resource_group_name = azurerm_resource_group.test.name
 
-  type = "ExpressRoute"
-  sku  = "Standard"
-
-  ip_configuration {
-    name                 = "vnetGatewayConfig"
-    public_ip_address_id = azurerm_public_ip.test.id
-    subnet_id            = azurerm_subnet.gatewaySubnet.id
+  tags = {
+    "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  location            = "centralus"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+
+  tags = {
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                            = "acctest-NetAppVolume-%d"
+  location                        = "centralus"
+  resource_group_name             = azurerm_resource_group.test.name
+  account_name                    = azurerm_netapp_account.test.name
+  pool_name                       = azurerm_netapp_pool.test.name
+  volume_path                     = "my-unique-file-path-%d"
+  service_level                   = "Standard"
+  subnet_id                       = azurerm_subnet.netappSubnet.id
+  protocols                       = ["NFSv3"]
+  storage_quota_in_gb             = 100
+  azure_vmware_data_store_enabled = true
+  snapshot_directory_visible      = true
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocols_enabled   = ["NFSv3"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
+
+  tags = {
+    "SkipASMAzSecPack" = "true"
+  }
+}`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r VmwareNetappFileVolumeAttachmentResource) templateVnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = "centralus"
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%d"
+  location            = "centralus"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
+
+  tags = {
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+
+`, data.RandomInteger, data.RandomInteger)
 }
