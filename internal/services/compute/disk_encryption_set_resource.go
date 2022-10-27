@@ -146,11 +146,11 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if keyVaultDetails != nil {
 		params.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
-				Id: utils.String(keyVaultDetails.keyVaultId),
-			}
+			Id: utils.String(keyVaultDetails.keyVaultId),
+		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id, params)
+	err = client.CreateOrUpdateThenPoll(ctx, id, params)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
