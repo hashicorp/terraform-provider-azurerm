@@ -156,7 +156,7 @@ A `time_period` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Management Group Consumption Budget.
 

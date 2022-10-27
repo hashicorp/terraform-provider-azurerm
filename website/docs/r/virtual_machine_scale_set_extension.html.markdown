@@ -73,7 +73,7 @@ The following arguments are supported:
 ~> **Note:** The `Publisher` and `Type` of Virtual Machine Scale Set Extensions can be found using the Azure CLI, via:
 
 ```shell
-$ az vmss extension image list --location westus -o table
+az vmss extension image list --location westus -o table
 ```
 
 ---

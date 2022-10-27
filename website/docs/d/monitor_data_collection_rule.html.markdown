@@ -33,7 +33,7 @@ output "rule_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Resource.
- 
+
 * `data_flow` - One or more `data_flow` blocks as defined below.
 
 * `destinations` - A `destinations` block as defined below.

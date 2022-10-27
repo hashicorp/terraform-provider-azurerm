@@ -15,6 +15,7 @@ Manages an Azure Front Door (classic) instance.
 Azure Front Door Service is Microsoft's highly available and scalable web application acceleration platform and global HTTP(S) load balancer. It provides built-in DDoS protection and application layer security and caching. Front Door enables you to build applications that maximize and automate high-availability and performance for your end-users. Use Front Door with Azure services including Web/Mobile Apps, Cloud Services and Virtual Machines – or combine it with on-premises services for hybrid deployments and smooth cloud migration.
 
 Below are some of the key scenarios that Azure Front Door Service addresses:
+
 * Use Front Door to improve application scale and availability with instant multi-region failover
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
@@ -286,7 +287,7 @@ The `redirect_configuration` block supports the following:
 
 * `provisioning_substate` - Provisioning substate of the Front Door
 
-[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+[//]: *"* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
 ---
 

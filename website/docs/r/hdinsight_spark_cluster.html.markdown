@@ -309,7 +309,6 @@ A `hive` block supports the following:
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
-
 ---
 
 An `oozie` block supports the following:

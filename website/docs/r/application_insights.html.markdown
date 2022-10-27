@@ -67,7 +67,6 @@ output "app_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -98,7 +97,7 @@ The following arguments are supported:
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
-* `internet_ingestion_enabled ` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Application Insights component support querying over the Public Internet? Defaults to `true`.
 

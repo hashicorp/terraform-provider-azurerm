@@ -40,11 +40,11 @@ EOT
   config_file {
     content = base64encode(<<-EOT
 location /bbb {
-	default_type text/html;
-	return 200 '<!doctype html><html lang="en"><head></head><body>
-		<div>this one will be updated</div>
-		<div>at 10:38 am</div>
-	</body></html>';
+ default_type text/html;
+ return 200 '<!doctype html><html lang="en"><head></head><body>
+  <div>this one will be updated</div>
+  <div>at 10:38 am</div>
+ </body></html>';
 }
 EOT
     )
@@ -87,7 +87,7 @@ A `config_file` (Protected File) block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of this Nginx Configuration.
 

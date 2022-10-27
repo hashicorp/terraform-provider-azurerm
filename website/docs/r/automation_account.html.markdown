@@ -91,6 +91,7 @@ The following attributes are exported:
 * `dsc_secondary_access_key` - The Secondary Access Key for the DSC Endpoint associated with this Automation Account.
 
 * `hybrid_service_url` - The URL of automation hybrid service which is used for hybrid worker on-boarding With this Automation Account.
+
 ---
 
 An `identity` block exports the following:

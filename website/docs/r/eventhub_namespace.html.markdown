@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. 
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
@@ -143,8 +143,6 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

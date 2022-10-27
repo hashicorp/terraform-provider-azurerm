@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `health_probe` - (Optional) A `health_probe` block as defined below.
 
-* `restore_traffic_time_to_healed_or_new_endpoint_in_minutes` - (Optional) Specifies the amount of time which should elapse before shifting traffic to another endpoint when a healthy endpoint becomes unhealthy or a new endpoint is added. Possible values are between `0` and `50` minutes (inclusive). Default is `10` minutes. 
+* `restore_traffic_time_to_healed_or_new_endpoint_in_minutes` - (Optional) Specifies the amount of time which should elapse before shifting traffic to another endpoint when a healthy endpoint becomes unhealthy or a new endpoint is added. Possible values are between `0` and `50` minutes (inclusive). Default is `10` minutes.
 
 -> **NOTE:** This property is currently not used, but will be in the near future.
 

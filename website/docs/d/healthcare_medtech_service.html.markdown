@@ -22,6 +22,7 @@ output "azurerm_healthcare_medtech_service_id" {
   value = data.azurerm_healthcare_medtech_service.example.id
 }
 ```
+
 ## Argument Reference
 
 * `name` - The name of the Healthcare Med Tech Service.

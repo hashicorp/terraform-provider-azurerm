@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `request_message` - (Optional) The request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
-## Attributes Reference:
+## Attributes Reference
 
 The following attributes are exported:
 

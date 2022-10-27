@@ -119,7 +119,7 @@ An `additional_capabilities` block supports the following:
 
 ---
 
-An `os_profile` block supports the following: 
+An `os_profile` block supports the following:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Orchestrated Virtual Machine Scale Set.
 
@@ -137,7 +137,7 @@ A `windows_configuration` block supports the following:
 
 * `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
-* `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below. 
+* `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below.
 
 -> **NOTE:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
@@ -255,7 +255,7 @@ A `certificate` block supports the following:
 
 * `url` - (Required) The Secret URL of a Key Vault Certificate.
 
--> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource. 
+-> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
 
 ---
 
@@ -299,7 +299,7 @@ An `extension` block supports the following:
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
 
--> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information. 
+-> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information.
 
 * `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`. Defaults to `false`.
 
@@ -371,7 +371,7 @@ An `os_disk` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk.
 
--> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions 
+-> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.
 

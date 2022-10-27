@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine Scale Set.
 
@@ -109,7 +109,6 @@ An `identity` block exports the following:
 
 * `tag` - The IP Tag associated with the Public IP.
 * `type` - The Type of IP Tag.
-
 
 ## Timeouts
 

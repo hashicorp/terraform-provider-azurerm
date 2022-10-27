@@ -107,7 +107,8 @@ The following arguments are supported:
 * `prefix_match` - (Optional) An array of strings for prefixes to be matched.
 * `match_blob_index_tag` - (Optional) A `match_blob_index_tag` block as defined below. The block defines the blob index tag based filtering for blob objects.
 
-~> **NOTE:** The `match_blob_index_tag` property requires enabling the `blobIndex` feature with [PSH or CLI commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/). 
+~> **NOTE:** The `match_blob_index_tag` property requires enabling the `blobIndex` feature with [PSH or CLI commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/).
+
 ---
 
 `actions` supports the following:
@@ -126,7 +127,7 @@ The following arguments are supported:
 ~> **Note:** The `tier_to_cool_after_days_since_modification_greater_than` and `tier_to_cool_after_days_since_last_access_time_greater_than` can not be set at the same time.
 
 * `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between 0 and 99999.
-* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0 and `99999`.
+* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0 and`99999`.
 
 ~> **Note:** The `tier_to_archive_after_days_since_modification_greater_than` and `tier_to_archive_after_days_since_last_access_time_greater_than` can not be set at the same time.
 

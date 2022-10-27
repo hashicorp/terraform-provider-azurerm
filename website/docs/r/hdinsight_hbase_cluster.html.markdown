@@ -285,7 +285,7 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
---- 
+---
 
 A `metastores` block supports the following:
 
@@ -306,7 +306,6 @@ A `hive` block supports the following:
 * `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
-
 
 ---
 
