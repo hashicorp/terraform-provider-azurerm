@@ -117,7 +117,7 @@ func (r ContainerAppEnvironmentCertificateDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
