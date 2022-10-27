@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_nginx_configuration` [GH-18761]
 * **New Resource:** `azurerm_nginx_certificate` [GH-18762]
 * **New Resource:** `azurerm_private_dns_resolver` [GH-18473]
+* **New Resource:** `azurerm_private_dns_resolver_dns_forwarding_ruleset` [GH-19012]
 * **New Resource:** `azurerm_private_dns_resolver_inbound_endpoint` [GH-18983]
 * **New Resource:** `azurerm_private_dns_resolver_outbound_endpoint` [GH-18986]
 
