@@ -132,8 +132,11 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 				Key:                  decodedKey,
 				Label:                model.Label,
 			}
-
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
+			// @favoretti: API returns pagination nextLink (Link header) without complete URI, only path:
+			// Link: "</kv?somepath...>; rel=next;"
+			// whereas the client expects a complete URI to be present and therefore fails to fetch all results if
+			// store contains more than 100 entries
+			client, err := metadata.Client.AppConfiguration.LinkWorkaroundDataPlaneClient(ctx, model.ConfigurationStoreId)
 			if client == nil {
 				return fmt.Errorf("building data plane client: app configuration %q was not found", model.ConfigurationStoreId)
 			}
