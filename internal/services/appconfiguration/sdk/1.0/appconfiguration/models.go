@@ -336,7 +336,6 @@ func (kvlr KeyValueListResult) keyValueListResultPreparer(ctx context.Context) (
 	if !kvlr.hasNextLink() {
 		return nil, nil
 	}
-
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
