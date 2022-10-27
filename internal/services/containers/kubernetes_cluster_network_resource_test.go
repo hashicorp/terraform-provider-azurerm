@@ -261,9 +261,32 @@ func TestAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.outboundTypeLoadBalancerConfig(data),
+			Config: r.outboundTypeLoadBalancerConfig(data, data.RandomInteger),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_outboundTypeMigration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	index := data.RandomInteger
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.outboundTypeLoadBalancerConfig(data, index),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.natGatewayProfileConfig(data, index, 3, 10),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.outbound_type").HasValue("managedNATGateway"),
 			),
 		},
 		data.ImportStep(),
@@ -273,10 +296,11 @@ func TestAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	index := data.RandomInteger
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.natGatewayProfileConfig(data, 3, 10),
+			Config: r.natGatewayProfileConfig(data, index, 3, 10),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("3"),
@@ -287,7 +311,7 @@ func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 		data.ImportStep(),
 
 		{
-			Config: r.natGatewayProfileConfig(data, 4, 5),
+			Config: r.natGatewayProfileConfig(data, index, 4, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("4"),
@@ -1303,7 +1327,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) natGatewayProfileConfig(data acceptance.TestData, ipCount int, idleTimeOut int) string {
+func (KubernetesClusterResource) natGatewayProfileConfig(data acceptance.TestData, index int, ipCount int, idleTimeOut int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1429,7 +1453,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) outboundTypeLoadBalancerConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) outboundTypeLoadBalancerConfig(data acceptance.TestData, index int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1467,7 +1491,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     outbound_type      = "loadBalancer"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, index, data.Locations.Primary, index, index)
 }
 
 func (KubernetesClusterResource) privateClusterConfig(data acceptance.TestData, enablePrivateCluster bool) string {
