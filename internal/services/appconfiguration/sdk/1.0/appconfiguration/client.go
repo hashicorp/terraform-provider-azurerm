@@ -1,6 +1,4 @@
 // Package appconfiguration implements the Azure ARM Appconfiguration service API version 1.0.
-//
-//
 package appconfiguration
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -1056,7 +1054,7 @@ func (client BaseClient) GetKeyValuesResponder(resp *http.Response) (result KeyV
 
 // getKeyValuesNextResults retrieves the next set of results, if any.
 func (client BaseClient) getKeyValuesNextResults(ctx context.Context, lastResults KeyValueListResult) (result KeyValueListResult, err error) {
-	req, err := lastResults.keyValueListResultPreparer(ctx)
+	req, err := lastResults.keyValueListResultPreparer(ctx, client.Endpoint)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", nil, "Failure preparing next results request")
 	}
@@ -1334,7 +1332,7 @@ func (client BaseClient) GetRevisionsResponder(resp *http.Response) (result KeyV
 
 // getRevisionsNextResults retrieves the next set of results, if any.
 func (client BaseClient) getRevisionsNextResults(ctx context.Context, lastResults KeyValueListResult) (result KeyValueListResult, err error) {
-	req, err := lastResults.keyValueListResultPreparer(ctx)
+	req, err := lastResults.keyValueListResultPreparer(ctx, client.Endpoint)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getRevisionsNextResults", nil, "Failure preparing next results request")
 	}
