@@ -279,7 +279,7 @@ func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 100), // TODO - this may just be multiples of 10?
-					Description:  "The weight (%) of traffic to send to this revision.",
+					Description:  "The percentage of traffic to send to this revision.",
 				},
 			},
 		},

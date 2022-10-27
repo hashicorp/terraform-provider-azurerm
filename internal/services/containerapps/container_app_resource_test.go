@@ -329,7 +329,7 @@ resource "azurerm_container_app" "test" {
     transport                  = "http"
     traffic_weight {
       latest_revision = true
-      weight          = 100
+      percentage          = 100
     }
   }
 
@@ -426,7 +426,7 @@ resource "azurerm_container_app" "test" {
     transport                  = "http"
     traffic_weight {
       latest_revision = true
-      weight          = 100
+      percentage          = 100
     }
   }
 
@@ -530,12 +530,12 @@ resource "azurerm_container_app" "test" {
 
     traffic_weight {
       latest_revision = true
-      weight          = 20
+      percentage          = 20
     }
 
     traffic_weight {
       revision_suffix = "rev1"
-      weight          = 80
+      percentage          = 80
     }
   }
 
@@ -650,12 +650,12 @@ resource "azurerm_container_app" "test" {
 
     traffic_weight {
       latest_revision = true
-      weight          = 20
+      percentage          = 20
     }
 
     traffic_weight {
       revision_suffix = "rev1"
-      weight          = 80
+      percentage          = 80
     }
   }
 
