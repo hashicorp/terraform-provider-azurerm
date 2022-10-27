@@ -13,7 +13,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-azure-helpers v0.45.0
-	github.com/hashicorp/go-azure-sdk v0.20221025.1113207
+	github.com/hashicorp/go-azure-sdk v0.20221026.1165012
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
@@ -79,7 +79,6 @@ require (
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.1.12 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210629200056-84d6f6074151 // indirect
 	google.golang.org/grpc v1.48.0 // indirect

@@ -44,3 +44,56 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 	out := ProvisioningState(input)
 	return &out, nil
 }
+
+type Reason string
+
+const (
+	ReasonAlreadyExists Reason = "AlreadyExists"
+	ReasonInvalid       Reason = "Invalid"
+)
+
+func PossibleValuesForReason() []string {
+	return []string{
+		string(ReasonAlreadyExists),
+		string(ReasonInvalid),
+	}
+}
+
+func parseReason(input string) (*Reason, error) {
+	vals := map[string]Reason{
+		"alreadyexists": ReasonAlreadyExists,
+		"invalid":       ReasonInvalid,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Reason(input)
+	return &out, nil
+}
+
+type ScriptType string
+
+const (
+	ScriptTypeMicrosoftPointKustoClustersDatabasesScripts ScriptType = "Microsoft.Kusto/clusters/databases/scripts"
+)
+
+func PossibleValuesForScriptType() []string {
+	return []string{
+		string(ScriptTypeMicrosoftPointKustoClustersDatabasesScripts),
+	}
+}
+
+func parseScriptType(input string) (*ScriptType, error) {
+	vals := map[string]ScriptType{
+		"microsoft.kusto/clusters/databases/scripts": ScriptTypeMicrosoftPointKustoClustersDatabasesScripts,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ScriptType(input)
+	return &out, nil
+}
