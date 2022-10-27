@@ -715,6 +715,8 @@ A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
 
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation](Microsoft.ContainerService/AKS-KedaPreview) for more information.
+
 ---
 
 A `http_proxy_config` block supports the following:
