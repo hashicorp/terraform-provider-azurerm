@@ -4,6 +4,8 @@ FEATURES:
 
 * **New Data Source:** `azurerm_api_management_gateway_host_name_configuration` [GH-17166]
 * **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` [GH-18903]
+* **New Resource:** `azurerm_datadog_monitor_tag_rule` [GH-17825]
+* **New Resource:** `azurerm_datadog_monitor_sso_configuration` [GH-17825]
 * **New Resource:** `azurerm_iothub_device_update_account` [GH-18789]
 * **New Resource:** `azurerm_iothub_device_update_instance` [GH-18789]
 * **New Resource:** `azurerm_nginx_configuration` [GH-18761]
