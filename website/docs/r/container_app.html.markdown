@@ -155,7 +155,7 @@ A `liveness_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.
 
