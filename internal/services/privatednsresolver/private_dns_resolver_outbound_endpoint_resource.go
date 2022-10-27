@@ -19,11 +19,11 @@ import (
 )
 
 type PrivateDNSResolverOutboundEndpointModel struct {
-	Name                            string            `tfschema:"name"`
-	PrivateDNSResolverDnsResolverId string            `tfschema:"private_dns_resolver_id"`
-	Location                        string            `tfschema:"location"`
-	SubnetId                        string            `tfschema:"subnet_id"`
-	Tags                            map[string]string `tfschema:"tags"`
+	Name                 string            `tfschema:"name"`
+	PrivateDNSResolverId string            `tfschema:"private_dns_resolver_id"`
+	Location             string            `tfschema:"location"`
+	SubnetId             string            `tfschema:"subnet_id"`
+	Tags                 map[string]string `tfschema:"tags"`
 }
 
 type PrivateDNSResolverOutboundEndpointResource struct{}
@@ -85,7 +85,7 @@ func (r PrivateDNSResolverOutboundEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.PrivateDnsResolver.OutboundEndpointsClient
-			dnsResolverId, err := dnsresolvers.ParseDnsResolverID(model.PrivateDNSResolverDnsResolverId)
+			dnsResolverId, err := dnsresolvers.ParseDnsResolverID(model.PrivateDNSResolverId)
 			if err != nil {
 				return err
 			}
@@ -187,9 +187,9 @@ func (r PrivateDNSResolverOutboundEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			state := PrivateDNSResolverOutboundEndpointModel{
-				Name:                            id.OutboundEndpointName,
-				PrivateDNSResolverDnsResolverId: dnsresolvers.NewDnsResolverID(id.SubscriptionId, id.ResourceGroupName, id.DnsResolverName).ID(),
-				Location:                        location.Normalize(model.Location),
+				Name:                 id.OutboundEndpointName,
+				PrivateDNSResolverId: dnsresolvers.NewDnsResolverID(id.SubscriptionId, id.ResourceGroupName, id.DnsResolverName).ID(),
+				Location:             location.Normalize(model.Location),
 			}
 
 			properties := &model.Properties
