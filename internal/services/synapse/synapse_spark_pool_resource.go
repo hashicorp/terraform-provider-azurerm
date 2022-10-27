@@ -330,14 +330,20 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("compute_isolation_enabled", props.IsComputeIsolationEnabled)
 
 		dynamicExecutorAllocationEnabled := false
+		minExector := 0
+		maxExecutor := 0
 		if props.DynamicExecutorAllocation != nil {
 			dynamicExecutorAllocationEnabled = *props.DynamicExecutorAllocation.Enabled
+			if props.DynamicExecutorAllocation.MinExecutors != nil {
+				minExector = int(*props.DynamicExecutorAllocation.MinExecutors)
+			}
+			if props.DynamicExecutorAllocation.MaxExecutors != nil {
+				maxExecutor = int(*props.DynamicExecutorAllocation.MaxExecutors)
+			}
 		}
 		d.Set("dynamic_executor_allocation_enabled", dynamicExecutorAllocationEnabled)
-		if dynamicExecutorAllocationEnabled {
-			d.Set("min_executor", *props.DynamicExecutorAllocation.MinExecutors)
-			d.Set("max_executor", *props.DynamicExecutorAllocation.MaxExecutors)
-		}
+		d.Set("min_executor", minExector)
+		d.Set("max_executor", maxExecutor)
 
 		d.Set("node_count", props.NodeCount)
 		d.Set("node_size", props.NodeSize)
