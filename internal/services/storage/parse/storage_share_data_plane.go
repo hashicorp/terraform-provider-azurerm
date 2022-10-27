@@ -5,12 +5,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
 // TODO: tests for this
-var _ resourceid.Formatter = StorageShareDataPlaneId{}
+var _ resourceids.Id = StorageShareDataPlaneId{}
 
 type StorageShareDataPlaneId struct {
 	AccountName  string
@@ -18,7 +18,15 @@ type StorageShareDataPlaneId struct {
 	Name         string
 }
 
-// only present to comply with the interface
+func (id StorageShareDataPlaneId) String() string {
+	components := []string{
+		fmt.Sprintf("Account Name %q", id.AccountName),
+		fmt.Sprintf("Domain Suffix %q", id.DomainSuffix),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return fmt.Sprintf("Storage Share (%s)", strings.Join(components, " / "))
+}
+
 func (id StorageShareDataPlaneId) ID() string {
 	return fmt.Sprintf("https://%s.file.%s/%s", id.AccountName, id.DomainSuffix, id.Name)
 }

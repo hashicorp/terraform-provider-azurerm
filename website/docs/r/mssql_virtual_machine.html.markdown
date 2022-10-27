@@ -63,6 +63,8 @@ The following arguments are supported:
 
 * `storage_configuration` - (Optional) An `storage_configuration` block as defined below.
 
+* `assessment` - (Optional) An `assessment` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -87,13 +89,13 @@ The `auto_backup` block supports the following:
 
 The `manual_schedule` block supports the following:
 
-* `full_backup_frequency` - (Optional) Frequency of full backups. Valid values include `Daily` or `Weekly`. Required when `backup_schedule_automated` is false.
+* `full_backup_frequency` - (Required) Frequency of full backups. Valid values include `Daily` or `Weekly`.
 
-* `full_backup_start_hour` - (Optional) Start hour of a given day during which full backups can take place. Valid values are from `0` to `23`. Required when `backup_schedule_automated` is false.
+* `full_backup_start_hour` - (Required) Start hour of a given day during which full backups can take place. Valid values are from `0` to `23`.
 
-* `full_backup_window_in_hours` - (Optional) Duration of the time window of a given day during which full backups can take place, in hours. Valid values are between `1` and `23`. Required when `backup_schedule_automated` is false.
+* `full_backup_window_in_hours` - (Required) Duration of the time window of a given day during which full backups can take place, in hours. Valid values are between `1` and `23`.
 
-* `log_backup_frequency_in_minutes` - (Optional) Frequency of log backups, in minutes. Valid values are from `5` to `60`. Required when `backup_schedule_automated` is false.
+* `log_backup_frequency_in_minutes` - (Required) Frequency of log backups, in minutes. Valid values are from `5` to `60`.
 
 ---
 
@@ -129,7 +131,7 @@ The `storage_configuration` block supports the following:
 
 * `log_settings` - (Optional) An `storage_settings` as defined below.
 
-* `temp_db_settings` - (Optional) An `storage_settings` as defined below.
+* `temp_db_settings` - (Optional) An `temp_db_settings` as defined below.
 
 ---
 
@@ -139,9 +141,52 @@ The `storage_settings` block supports the following:
 
 * `luns` - (Required) A list of Logical Unit Numbers for the disks. 
 
+---
+
+The `temp_db_settings` block supports the following:
+
+* `default_file_path` - (Required) The SQL Server default path
+
+* `luns` - (Required) A list of Logical Unit Numbers for the disks. 
+
+* `data_file_count` - (Optional) The SQL Server default file count. This value defaults to `8`
+
+* `data_file_size_mb` - (Optional) The SQL Server default file size - This value defaults to `256`
+
+* `data_file_growth_in_mb` - (Optional) The SQL Server default file size - This value defaults to `512`
+
+* `log_file_size_mb` - (Optional) The SQL Server default file size - This value defaults to `256`
+
+* `log_file_growth_mb` - (Optional) The SQL Server default file size - This value defaults to `512`
+
+---
+
+The `assessment` block supports the following:
+
+* `enabled` - (Optional) Should Assessment be enabled? Defaults to `true`.
+
+* `run_immediately` - (Optional) Should Assessment be run immediately? Defaults to `false`.
+
+* `schedule` - (Optional) An `schedule` block as defined below.
+
+---
+
+The `schedule` block supports the following:
+
+* `weekly_interval` - (Optional) How many weeks between assessment runs. Valid values are between `1` and `6`.
+
+* `monthly_occurrence` - (Optional) How many months between assessment runs. Valid values are between `1` and `5`.
+
+~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
+
+* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`. 
+
+* `start_time` - (Optional) What time the assessment will be run. Must be in the format `HH:mm`.
+
 ## Attributes Reference
 
 The following attributes are exported:
+
 * `id` - The ID of the SQL Virtual Machine.
 
 ## Timeouts

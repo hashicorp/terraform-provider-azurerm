@@ -50,9 +50,9 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"encryption": {
 				Type:         pluginsdk.TypeList,

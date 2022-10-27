@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -61,7 +62,7 @@ func resourceArmDevTestWindowsVirtualMachine() *pluginsdk.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"size": {
 				Type:     pluginsdk.TypeString,

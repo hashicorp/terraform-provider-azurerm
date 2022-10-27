@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
+
+var _ resourceids.Id = AppConfigurationFeatureId{}
 
 type AppConfigurationFeatureId struct {
 	ConfigurationStoreId string
@@ -13,8 +16,17 @@ type AppConfigurationFeatureId struct {
 	Label                string
 }
 
-func (k AppConfigurationFeatureId) ID() string {
-	return fmt.Sprintf("%s/AppConfigurationFeature/%s/Label/%s", k.ConfigurationStoreId, k.Name, k.Label)
+func (id AppConfigurationFeatureId) ID() string {
+	return fmt.Sprintf("%s/AppConfigurationFeature/%s/Label/%s", id.ConfigurationStoreId, id.Name, id.Label)
+}
+
+func (id AppConfigurationFeatureId) String() string {
+	components := []string{
+		fmt.Sprintf("Configuration Store Id %q", id.ConfigurationStoreId),
+		fmt.Sprintf("Label %q", id.Label),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return fmt.Sprintf("Feature: %s", strings.Join(components, " / "))
 }
 
 func FeatureId(input string) (*AppConfigurationFeatureId, error) {

@@ -60,7 +60,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"virtual_machine_size": {
 				Type:             pluginsdk.TypeString,

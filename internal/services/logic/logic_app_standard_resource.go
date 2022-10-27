@@ -50,9 +50,9 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validate.LogicAppStandardName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
@@ -757,6 +757,47 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
+				"scm_ip_restriction": schemaLogicAppStandardIpRestriction(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"scm_min_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
+					}, false),
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.ScmTypeBitbucketGit),
+						string(web.ScmTypeBitbucketHg),
+						string(web.ScmTypeCodePlexGit),
+						string(web.ScmTypeCodePlexHg),
+						string(web.ScmTypeDropbox),
+						string(web.ScmTypeExternalGit),
+						string(web.ScmTypeExternalHg),
+						string(web.ScmTypeGitHub),
+						string(web.ScmTypeLocalGit),
+						string(web.ScmTypeNone),
+						string(web.ScmTypeOneDrive),
+						string(web.ScmTypeTfs),
+						string(web.ScmTypeVSO),
+						string(web.ScmTypeVSTSRM),
+					}, false),
+				},
+
 				"use_32_bit_worker_process": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -1009,6 +1050,15 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
+	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
+
+	if input.ScmIPSecurityRestrictionsUseMain != nil {
+		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
+	}
+
+	result["scm_type"] = string(input.ScmType)
+	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
+
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
 
@@ -1211,6 +1261,27 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 			return siteConfig, err
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
+	}
+
+	if v, ok := config["scm_ip_restriction"]; ok {
+		scmIPSecurityRestrictions := v.([]interface{})
+		scmRestrictions, err := expandLogicAppStandardIpRestriction(scmIPSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
+		}
+		siteConfig.ScmIPSecurityRestrictions = &scmRestrictions
+	}
+
+	if v, ok := config["scm_use_main_ip_restriction"]; ok {
+		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["scm_min_tls_version"]; ok {
+		siteConfig.ScmMinTLSVersion = web.SupportedTLSVersions(v.(string))
+	}
+
+	if v, ok := config["scm_type"]; ok {
+		siteConfig.ScmType = web.ScmType(v.(string))
 	}
 
 	if v, ok := config["min_tls_version"]; ok {

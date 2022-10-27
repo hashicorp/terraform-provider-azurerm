@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
@@ -104,6 +105,7 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 			Config: r.nfsv3FromSnapshot(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("create_from_snapshot_resource_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("(.)/snapshots/acctest-Snapshot-%d", data.RandomInteger))),
 			),
 		},
 		data.ImportStep("create_from_snapshot_resource_id"),
