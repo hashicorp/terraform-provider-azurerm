@@ -75,7 +75,7 @@ func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileKeda(t *testing.T) {
+func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnOff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -94,6 +94,28 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKeda(t *testing.T) {
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("false"),
 			),
 		},
+	})
+}
+
+func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnAbsent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.basicVMSSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 

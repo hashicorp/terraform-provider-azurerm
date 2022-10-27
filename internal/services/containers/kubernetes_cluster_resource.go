@@ -1039,7 +1039,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"workload_autoscaler_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1636,13 +1635,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.WindowsProfile = windowsProfile
 	}
 
-	if d.HasChange("workload_autoscaler_profile") {
-		updateCluster = true
-		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
-		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
-		existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
-	}
-
 	if d.HasChange("identity") {
 		updateCluster = true
 		managedClusterIdentityRaw := d.Get("identity").([]interface{})
@@ -1703,6 +1695,21 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 		existing.Model.Properties.SecurityProfile = microsoftDefender
+	}
+
+	if d.HasChange("workload_autoscaler_profile") {
+		updateCluster = true
+		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
+		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
+		if workloadAutoscalerProfile == nil {
+			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
+				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
+					Enabled: false,
+				},
+			}
+		} else {
+			existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
+		}
 	}
 
 	if d.HasChanges("workload_identity_enabled") {
@@ -2327,7 +2334,7 @@ func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClus
 }
 
 func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile, d *pluginsdk.ResourceData) []interface{} {
-	if profile == nil {
+	if profile == nil || len(d.Get("workload_autoscaler_profile").([]interface{})) == 0 {
 		return []interface{}{}
 	}
 
