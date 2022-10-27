@@ -1,4 +1,4 @@
-package appconfiguration
+package azuresdkhacks
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,7 +9,9 @@ package appconfiguration
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -332,15 +334,20 @@ func (kvlr KeyValueListResult) hasNextLink() bool {
 
 // keyValueListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (kvlr KeyValueListResult) keyValueListResultPreparer(ctx context.Context) (*http.Request, error) {
+func (kvlr KeyValueListResult) keyValueListResultPreparer(ctx context.Context, endpoint string) (*http.Request, error) {
 	if !kvlr.hasNextLink() {
 		return nil, nil
+	}
+
+	nextLinkWithEndpoint := *kvlr.NextLink
+	if !strings.HasPrefix(*kvlr.NextLink, endpoint) {
+		nextLinkWithEndpoint = fmt.Sprintf("%s%s", endpoint, *kvlr.NextLink)
 	}
 
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(kvlr.NextLink)))
+		autorest.WithBaseURL(to.String(&nextLinkWithEndpoint)))
 }
 
 // KeyValueListResultPage contains a page of KeyValue values.

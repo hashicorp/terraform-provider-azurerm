@@ -133,7 +133,7 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 				Label:                model.Label,
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
+			client, err := metadata.Client.AppConfiguration.LinkWorkaroundDataPlaneClient(ctx, model.ConfigurationStoreId)
 			if client == nil {
 				return fmt.Errorf("building data plane client: app configuration %q was not found", model.ConfigurationStoreId)
 			}
