@@ -889,29 +889,29 @@ func TestAccWindowsVirtualMachineScaleSet_otherLicenseTypeUpdated(t *testing.T) 
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationsBasic(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsBasic(data),
+			Config: r.otherGalleryApplicationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationsComplete(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsComplete(data),
+			Config: r.otherGalleryApplicationComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3535,7 +3535,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), licenseType)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsBasic(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3571,14 +3571,14 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
   }
 }
-`, r.otherGalleryApplicationsTemplate(data))
+`, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsComplete(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3614,17 +3614,17 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id             = azurerm_gallery_application_version.test.id
-    configuration_reference_blob_uri = azurerm_storage_blob.test2.id
-    order                            = 1
-    tag                              = "app"
+  gallery_application {
+    version_id             = azurerm_gallery_application_version.test.id
+    configuration_blob_uri = azurerm_storage_blob.test2.id
+    order                  = 1
+    tag                    = "app"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data))
+`, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsTemplate(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

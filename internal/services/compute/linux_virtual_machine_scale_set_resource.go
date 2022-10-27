@@ -199,7 +199,15 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+	if !features.FourPointOhBeta() {
+		if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+			virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
+				GalleryApplications: galleryApplications,
+			}
+		}
+	}
+
+	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
 			GalleryApplications: galleryApplications,
 		}
@@ -912,7 +920,11 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		d.Set("eviction_policy", string(profile.EvictionPolicy))
 
 		if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
-			d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
+
+			if !features.FourPointOhBeta() {
+				d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			}
 		}
 
 		// the service just return empty when this is not assigned when provisioned
@@ -1260,7 +1272,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
-		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
+		"gallery_application": VirtualMachineScaleSetGalleryApplicationSchema(),
 
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,
@@ -1413,6 +1425,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
+		resourceSchema["gallery_applications"] = VirtualMachineScaleSetGalleryApplicationsSchema()
 		resourceSchema["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
 
 		resourceSchema["scale_in_policy"] = &schema.Schema{
