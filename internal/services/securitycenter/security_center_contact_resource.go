@@ -144,6 +144,7 @@ func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	d.Set("name", id.SecurityContactName)
 
 	if props := resp.ContactProperties; props != nil {
 		d.Set("email", props.Email)
