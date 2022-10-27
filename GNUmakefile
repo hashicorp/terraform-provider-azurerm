@@ -18,7 +18,6 @@ tools:
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.45.0
-	npm install --global markdownlint-cli
 
 build: fmtcheck generate
 	go install
@@ -121,7 +120,6 @@ website-lint:
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories
 	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
-	@sh -c "'$(CURDIR)/scripts/markdownlint-website.sh'"
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
