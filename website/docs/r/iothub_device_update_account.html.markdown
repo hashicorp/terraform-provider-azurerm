@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `public_network_access` - (Optional) The Public Network Access setting of the IoT Hub Device Update Account. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+* `public_network_access_enabled` - (Optional) Specifies whether the public network access is enabled for the IoT Hub Device Update Account. Possible values are `true` and `false`. Defaults to `true`.
 
 * `sku` - (Optional) Sku of the IoT Hub Device Update Account. Possible values are `Free` and `Standard`. Defaults to `Standard`.
 

@@ -23,13 +23,13 @@ var (
 )
 
 type IotHubDeviceUpdateAccountModel struct {
-	Name                string                            `tfschema:"name"`
-	ResourceGroupName   string                            `tfschema:"resource_group_name"`
-	Location            string                            `tfschema:"location"`
-	HostName            string                            `tfschema:"host_name"`
-	PublicNetworkAccess deviceupdates.PublicNetworkAccess `tfschema:"public_network_access"`
-	Sku                 deviceupdates.SKU                 `tfschema:"sku"`
-	Tags                map[string]string                 `tfschema:"tags"`
+	Name                       string            `tfschema:"name"`
+	ResourceGroupName          string            `tfschema:"resource_group_name"`
+	Location                   string            `tfschema:"location"`
+	HostName                   string            `tfschema:"host_name"`
+	PublicNetworkAccessEnabled bool              `tfschema:"public_network_access_enabled"`
+	Sku                        deviceupdates.SKU `tfschema:"sku"`
+	Tags                       map[string]string `tfschema:"tags"`
 }
 
 func (r IotHubDeviceUpdateAccountResource) Arguments() map[string]*pluginsdk.Schema {
@@ -47,14 +47,10 @@ func (r IotHubDeviceUpdateAccountResource) Arguments() map[string]*pluginsdk.Sch
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-		"public_network_access": {
-			Type:     pluginsdk.TypeString,
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  deviceupdates.PublicNetworkAccessEnabled,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deviceupdates.PublicNetworkAccessEnabled),
-				string(deviceupdates.PublicNetworkAccessDisabled),
-			}, false),
+			Default:  true,
 		},
 
 		"sku": {
@@ -118,11 +114,16 @@ func (r IotHubDeviceUpdateAccountResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			publicNetworkAccess := deviceupdates.PublicNetworkAccessEnabled
+			if !model.PublicNetworkAccessEnabled {
+				publicNetworkAccess = deviceupdates.PublicNetworkAccessDisabled
+			}
+
 			input := &deviceupdates.Account{
 				Location: location.Normalize(model.Location),
 				Identity: identityValue,
 				Properties: &deviceupdates.AccountProperties{
-					PublicNetworkAccess: &model.PublicNetworkAccess,
+					PublicNetworkAccess: &publicNetworkAccess,
 					Sku:                 &model.Sku,
 				},
 				Tags: &model.Tags,
@@ -183,14 +184,19 @@ func (r IotHubDeviceUpdateAccountResource) Read() sdk.ResourceFunc {
 					state.HostName = *properties.HostName
 				}
 
-				if properties.PublicNetworkAccess != nil {
-					state.PublicNetworkAccess = *properties.PublicNetworkAccess
+				publicNetworkAccessEnabled := true
+				if properties.PublicNetworkAccess != nil && *properties.PublicNetworkAccess == deviceupdates.PublicNetworkAccessDisabled {
+					publicNetworkAccessEnabled = false
 				}
+				state.PublicNetworkAccessEnabled = publicNetworkAccessEnabled
 
+				sku := deviceupdates.SKUStandard
 				if properties.Sku != nil {
-					state.Sku = *properties.Sku
+					sku = *properties.Sku
 				}
+				state.Sku = sku
 			}
+
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -238,8 +244,12 @@ func (r IotHubDeviceUpdateAccountResource) Update() sdk.ResourceFunc {
 				existing.Identity = identityValue
 			}
 
-			if metadata.ResourceData.HasChange("public_network_access") {
-				existing.Properties.PublicNetworkAccess = &model.PublicNetworkAccess
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				publicNetworkAccess := deviceupdates.PublicNetworkAccessEnabled
+				if !model.PublicNetworkAccessEnabled {
+					publicNetworkAccess = deviceupdates.PublicNetworkAccessDisabled
+				}
+				existing.Properties.PublicNetworkAccess = &publicNetworkAccess
 			}
 
 			if metadata.ResourceData.HasChange("sku") {

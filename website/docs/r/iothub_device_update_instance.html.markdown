@@ -44,10 +44,10 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_iothub_device_update_instance" "example" {
-  name                            = "example"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.example.id
-  iothub_id                       = azurerm_iothub.example.id
-  diagnostic_enabled              = true
+  name                     = "example"
+  device_update_account_id = azurerm_iothub_device_update_account.example.id
+  iothub_id                = azurerm_iothub.example.id
+  diagnostic_enabled       = true
 
   diagnostic_storage_account {
     connection_string = azurerm_storage_account.example.primary_connection_string
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name which should be used for this IoT Hub Device Update Instance. Changing this forces a new resource to be created.
 
-* `iothub_device_update_account_id` - (Required) Specifies the ID of the IoT Hub Device Update Account where the IoT Hub Device Update Instance exists. Changing this forces a new resource to be created.
+* `device_update_account_id` - (Required) Specifies the ID of the IoT Hub Device Update Account where the IoT Hub Device Update Instance exists. Changing this forces a new resource to be created.
 
 * `iothub_id` - (Required) Specifies the ID of the IoT Hub associated with the IoT Hub Device Update Instance. Changing this forces a new resource to be created.
 

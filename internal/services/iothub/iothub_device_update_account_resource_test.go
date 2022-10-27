@@ -24,7 +24,7 @@ func TestAccIotHubDeviceUpdateAccount_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("host_name").Exists(),
 			),
@@ -101,14 +101,14 @@ func TestAccIotHubDeviceUpdateAccount_publicNetworkAccess(t *testing.T) {
 	r := IotHubDeviceUpdateAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccessDisabled(data),
+			Config: r.publicNetworkAccess(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.publicNetworkAccessEnabled(data),
+			Config: r.publicNetworkAccess(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -122,14 +122,14 @@ func TestAccIotHubDeviceUpdateAccount_sku(t *testing.T) {
 	r := IotHubDeviceUpdateAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku(data),
+			Config: r.sku(data, "Free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.skuUpdated(data),
+			Config: r.sku(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -214,11 +214,11 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_iothub_device_update_account" "test" {
-  name                  = "acc-dua-%s"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  public_network_access = "Disabled"
-  sku                   = "Free"
+  name                          = "acc-dua-%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  public_network_access_enabled = false
+  sku                           = "Free"
 
   identity {
     type = "SystemAssigned, UserAssigned"
@@ -316,7 +316,7 @@ resource "azurerm_iothub_device_update_account" "test" {
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r IotHubDeviceUpdateAccountResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
+func (r IotHubDeviceUpdateAccountResource) publicNetworkAccess(data acceptance.TestData, enabled bool) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -326,12 +326,12 @@ resource "azurerm_iothub_device_update_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  public_network_access = "Disabled"
+  public_network_access_enabled = %t
 }
-`, template, data.RandomString)
+`, template, data.RandomString, enabled)
 }
 
-func (r IotHubDeviceUpdateAccountResource) publicNetworkAccessEnabled(data acceptance.TestData) string {
+func (r IotHubDeviceUpdateAccountResource) sku(data acceptance.TestData, sku string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -341,39 +341,9 @@ resource "azurerm_iothub_device_update_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  public_network_access = "Enabled"
+  sku = "%s"
 }
-`, template, data.RandomString)
-}
-
-func (r IotHubDeviceUpdateAccountResource) sku(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_iothub_device_update_account" "test" {
-  name                = "acc-dua-%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku = "Free"
-}
-`, template, data.RandomString)
-}
-
-func (r IotHubDeviceUpdateAccountResource) skuUpdated(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_iothub_device_update_account" "test" {
-  name                = "acc-dua-%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku = "Standard"
-}
-`, template, data.RandomString)
+`, template, data.RandomString, sku)
 }
 
 func (r IotHubDeviceUpdateAccountResource) tags(data acceptance.TestData) string {

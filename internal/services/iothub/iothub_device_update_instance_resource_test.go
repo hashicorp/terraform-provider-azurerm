@@ -182,9 +182,9 @@ func (r IotHubDeviceUpdateInstanceResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
+  name                     = "acc-dui-%s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
 }
 `, template, data.RandomString)
 }
@@ -203,10 +203,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%[2]s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
-  diagnostic_enabled              = true
+  name                     = "acc-dui-%[2]s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
+  diagnostic_enabled       = true
 
   diagnostic_storage_account {
     connection_string = azurerm_storage_account.test.primary_connection_string
@@ -226,9 +226,9 @@ func (r IotHubDeviceUpdateInstanceResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_iothub_device_update_instance" "import" {
-  name                            = azurerm_iothub_device_update_instance.test.name
-  iothub_device_update_account_id = azurerm_iothub_device_update_instance.test.iothub_device_update_account_id
-  iothub_id                       = azurerm_iothub_device_update_instance.test.iothub_id
+  name                     = azurerm_iothub_device_update_instance.test.name
+  device_update_account_id = azurerm_iothub_device_update_instance.test.device_update_account_id
+  iothub_id                = azurerm_iothub_device_update_instance.test.iothub_id
 }
 `, config)
 }
@@ -247,9 +247,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%[2]s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
+  name                     = "acc-dui-%[2]s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
 
 
   diagnostic_storage_account {
@@ -282,9 +282,9 @@ resource "azurerm_storage_account" "test2" {
 }
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%[2]s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
+  name                     = "acc-dui-%[2]s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
 
 
   diagnostic_storage_account {
@@ -301,9 +301,9 @@ func (r IotHubDeviceUpdateInstanceResource) diagnosticEnabled(data acceptance.Te
 %s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
+  name                     = "acc-dui-%s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
 
   diagnostic_enabled = true
 }
@@ -316,9 +316,9 @@ func (r IotHubDeviceUpdateInstanceResource) diagnosticDisabled(data acceptance.T
 %s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
+  name                     = "acc-dui-%s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
 
   diagnostic_enabled = false
 }
@@ -331,9 +331,9 @@ func (r IotHubDeviceUpdateInstanceResource) tags(data acceptance.TestData) strin
 %s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
+  name                     = "acc-dui-%s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
 
   tags = {
     environment = "AccTest"
@@ -348,9 +348,9 @@ func (r IotHubDeviceUpdateInstanceResource) tagsUpdated(data acceptance.TestData
 %s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                            = "acc-dui-%s"
-  iothub_device_update_account_id = azurerm_iothub_device_update_account.test.id
-  iothub_id                       = azurerm_iothub.test.id
+  name                     = "acc-dui-%s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
 
   tags = {
     environment = "AccTest2"

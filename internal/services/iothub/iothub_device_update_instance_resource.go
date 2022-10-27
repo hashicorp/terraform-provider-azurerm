@@ -23,12 +23,12 @@ var (
 )
 
 type IotHubDeviceUpdateInstanceModel struct {
-	Name                        string                          `tfschema:"name"`
-	DiagnosticStorageAccount    []DiagnosticStorageAccountModel `tfschema:"diagnostic_storage_account"`
-	DiagnosticEnabled           bool                            `tfschema:"diagnostic_enabled"`
-	IotHubDeviceUpdateAccountId string                          `tfschema:"iothub_device_update_account_id"`
-	IotHubId                    string                          `tfschema:"iothub_id"`
-	Tags                        map[string]string               `tfschema:"tags"`
+	Name                     string                          `tfschema:"name"`
+	DeviceUpdateAccountId    string                          `tfschema:"device_update_account_id"`
+	DiagnosticStorageAccount []DiagnosticStorageAccountModel `tfschema:"diagnostic_storage_account"`
+	DiagnosticEnabled        bool                            `tfschema:"diagnostic_enabled"`
+	IotHubId                 string                          `tfschema:"iothub_id"`
+	Tags                     map[string]string               `tfschema:"tags"`
 }
 
 type DiagnosticStorageAccountModel struct {
@@ -45,7 +45,7 @@ func (r IotHubDeviceUpdateInstanceResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validate.IotHubDeviceUpdateInstanceName,
 		},
 
-		"iothub_device_update_account_id": {
+		"device_update_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -117,7 +117,7 @@ func (r IotHubDeviceUpdateInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.IoTHub.DeviceUpdatesClient
-			deviceUpdateAccountId, err := deviceupdates.ParseAccountID(model.IotHubDeviceUpdateAccountId)
+			deviceUpdateAccountId, err := deviceupdates.ParseAccountID(model.DeviceUpdateAccountId)
 			if err != nil {
 				return err
 			}
@@ -192,8 +192,8 @@ func (r IotHubDeviceUpdateInstanceResource) Read() sdk.ResourceFunc {
 			}
 
 			state := IotHubDeviceUpdateInstanceModel{
-				Name:                        *model.Name,
-				IotHubDeviceUpdateAccountId: deviceupdates.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
+				Name:                  *model.Name,
+				DeviceUpdateAccountId: deviceupdates.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 			}
 
 			properties := model.Properties
