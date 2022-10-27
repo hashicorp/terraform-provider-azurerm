@@ -109,9 +109,9 @@ The following arguments are supported:
 
 * `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
 
-* `min_executor` - (Optional) The minimum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`. Defaults to `0`.
+* `min_executor` - (Optional) The minimum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`.
 
-* `max_executor` - (Optional) The maximum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`. Defaults to `1`.
+* `max_executor` - (Optional) The maximum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`.
   
 * `library_requirement` - (Optional)  A `library_requirement` block as defined below.
 

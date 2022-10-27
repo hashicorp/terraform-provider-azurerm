@@ -95,14 +95,12 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 200),
-				Default:      0,
 			},
 
 			"max_executor": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 200),
-				Default:      1,
 			},
 
 			"node_count": {
