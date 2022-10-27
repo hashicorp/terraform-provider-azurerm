@@ -46,6 +46,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_server` - can now set `public_network_access_enabled` during creation when point in time restore is used [GH-18962]
 * `azurerm_servicebus_namespace_disaster_recovery_config` - support the `alias_authorization_rule_id` property [GH-18729]
 * `azurerm_synapse_workspace` - `sql_administrator_login` and `sql_administrator_login_password` are now no longer required for the creation of this resource [GH-18850]
+* `azurerm_synapse_workspace` - enable user assigned managed identity [GH-19007]
 * `azurerm_windows_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_windows_function_app` - support for Java 17 [GH-18689]
 * `azurerm_windows_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
