@@ -54,7 +54,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 5 per location, using 3 as they can take some time to clear
-        "containerapps" to testConfiguration(parallelism = 3),
+        "containerapps" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope","eastus","canadacentral", false)),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), useDevTestSubscription = true),
