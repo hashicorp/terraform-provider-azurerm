@@ -220,9 +220,9 @@ ENHANCEMENTS:
 * `azurerm_healthcare_fhir_service` - support for the `oci_artifact` block ([#18571](https://github.com/hashicorp/terraform-provider-azurerm/issues/18571))
 * `azurerm_healthcare_fhir` - support for the `public_network_access_enabled` property ([#18566](https://github.com/hashicorp/terraform-provider-azurerm/issues/18566))
 * `azurerm_iotcentral_application` - support for the `identity` and `public_network_access_enabled` properties ([#18564](https://github.com/hashicorp/terraform-provider-azurerm/issues/18564))
+* `azurerm_linux_virtual_machine` - support for the `gallery_application` property ([#18406](https://github.com/hashicorp/terraform-provider-azurerm/issues/18406))
 * `azurerm_machine_learning_workspace` - support for the `public_network_access_enabled` and `v1_legacy_mode` properties ([#18469](https://github.com/hashicorp/terraform-provider-azurerm/issues/18469))
 * `azurerm_storage_account` - support for the `multichannel_enabled` property ([#17999](https://github.com/hashicorp/terraform-provider-azurerm/issues/17999))
-* `azurerm_windows_virtual_machine` - support for the `gallery_application` property ([#18406](https://github.com/hashicorp/terraform-provider-azurerm/issues/18406))
 * `azurerm_virtual_hub_bgp_connection` - support for the `virtual_network_connection_id` property ([#18469](https://github.com/hashicorp/terraform-provider-azurerm/issues/18469))
 * `azurerm_windows_virtual_machine` - support for the `gallery_application` property ([#18406](https://github.com/hashicorp/terraform-provider-azurerm/issues/18406))
 
