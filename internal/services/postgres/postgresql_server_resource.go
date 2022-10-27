@@ -439,11 +439,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("restore_point_in_time must be set when create_mode is PointInTimeRestore")
 		}
 
-		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
-		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
-			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
-		}
-
 		props = &servers.ServerPropertiesForRestore{
 			SourceServerId:           source,
 			RestorePointInTime:       v.(string),
@@ -528,6 +523,19 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 		if err = client.UpdateThenPoll(ctx, id, properties); err != nil {
 			return fmt.Errorf("updating Public Network Access for Replica %q: %+v", id, err)
+		}
+	}
+
+	if mode == servers.CreateModePointInTimeRestore {
+		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
+		properties := servers.ServerUpdateParameters{
+			Properties: &servers.ServerUpdateParametersProperties{
+				PublicNetworkAccess: &publicAccess,
+			},
+		}
+
+		if err = client.UpdateThenPoll(ctx, id, properties); err != nil {
+			return fmt.Errorf("updating Public Network Access for PointInTimeRestore %q: %+v", id, err)
 		}
 	}
 
@@ -636,18 +644,11 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if mode == servers.CreateModePointInTimeRestore {
-		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
-		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
-			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
-		}
-	} else {
-		publicAccess := servers.PublicNetworkAccessEnumEnabled
-		if v := d.Get("public_network_access_enabled"); !v.(bool) {
-			publicAccess = servers.PublicNetworkAccessEnumDisabled
-		}
-		properties.Properties.PublicNetworkAccess = &publicAccess
+	publicAccess := servers.PublicNetworkAccessEnumEnabled
+	if v := d.Get("public_network_access_enabled"); !v.(bool) {
+		publicAccess = servers.PublicNetworkAccessEnumDisabled
 	}
+	properties.Properties.PublicNetworkAccess = &publicAccess
 
 	oldCreateMode, newCreateMode := d.GetChange("create_mode")
 	replicaUpdatedToDefault := servers.CreateMode(oldCreateMode.(string)) == servers.CreateModeReplica && servers.CreateMode(newCreateMode.(string)) == servers.CreateModeDefault

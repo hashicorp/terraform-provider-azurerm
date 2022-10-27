@@ -136,9 +136,6 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: &diskencryptionsets.EncryptionSetProperties{
 			ActiveKey: &diskencryptionsets.KeyForDiskEncryptionSet{
 				KeyUrl: keyVaultKeyId,
-				SourceVault: &diskencryptionsets.SourceVault{
-					Id: utils.String(keyVaultDetails.keyVaultId),
-				},
 			},
 			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 			EncryptionType:                    &encryptionType,
@@ -147,7 +144,13 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags:     tags.Expand(t),
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, params)
+	if keyVaultDetails != nil {
+		params.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
+				Id: utils.String(keyVaultDetails.keyVaultId),
+			}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id, params)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}

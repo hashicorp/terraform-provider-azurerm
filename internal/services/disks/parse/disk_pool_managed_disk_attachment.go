@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 )
 
 const storageDiskPoolManagedDiskAttachmentIdSeparator = "/managedDisks|"
@@ -15,10 +15,10 @@ var _ resourceids.Id = DiskPoolManagedDiskAttachmentId{}
 
 type DiskPoolManagedDiskAttachmentId struct {
 	DiskPoolId    diskpools.DiskPoolId
-	ManagedDiskId computeParse.ManagedDiskId
+	ManagedDiskId disks.DiskId
 }
 
-func NewDiskPoolManagedDiskAttachmentId(diskPoolId diskpools.DiskPoolId, managedDiskId computeParse.ManagedDiskId) DiskPoolManagedDiskAttachmentId {
+func NewDiskPoolManagedDiskAttachmentId(diskPoolId diskpools.DiskPoolId, managedDiskId disks.DiskId) DiskPoolManagedDiskAttachmentId {
 	return DiskPoolManagedDiskAttachmentId{
 		DiskPoolId:    diskPoolId,
 		ManagedDiskId: managedDiskId,
@@ -53,7 +53,7 @@ func DiskPoolManagedDiskAttachmentID(input string) (*DiskPoolManagedDiskAttachme
 	if err != nil {
 		return nil, fmt.Errorf("malformed disks pool id: %q, %v", poolId.ID(), err)
 	}
-	diskId, err := computeParse.ManagedDiskID(parts[1])
+	diskId, err := disks.ParseDiskID(parts[1])
 	if diskId == nil {
 		return nil, fmt.Errorf("malformed disks pool managed disk attachment id:%q", input)
 	}

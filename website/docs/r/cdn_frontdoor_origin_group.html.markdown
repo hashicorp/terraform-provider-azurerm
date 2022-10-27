@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_origin_group"
 description: |-
-  Manages a CDN FrontDoor Origin Group.
+  Manages a Front Door (standard/premium) Origin Group.
 ---
 
 # azurerm_cdn_frontdoor_origin_group
 
-Manages a CDN FrontDoor Origin Group.
+Manages a Front Door (standard/premium) Origin Group.
 
 ## Example Usage
 
@@ -49,9 +49,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this CDN FrontDoor Origin Group. Changing this forces a new CDN FrontDoor Origin Group to be created.
+* `name` - (Required) The name which should be used for this Front Door Origin Group. Changing this forces a new Front Door Origin Group to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the CDN FrontDoor Profile within which this CDN FrontDoor Origin Group should exist. Changing this forces a new CDN FrontDoor Origin Group to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile within which this Front Door Origin Group should exist. Changing this forces a new Front Door Origin Group to be created.
 
 * `load_balancing` - (Required) A `load_balancing` block as defined below.
 
@@ -93,20 +93,20 @@ A `load_balancing` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Origin Group.
+* `id` - The ID of the Front Door Origin Group.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the CDN FrontDoor Origin Group.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Origin Group.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN FrontDoor Origin Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CDN FrontDoor Origin Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Front Door Origin Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Origin Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Origin Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Origin Group.
 
 ## Import
 
-CDN FrontDoor Origin Groups can be imported using the `resource id`, e.g.
+Front Door Origin Groups can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_origin_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/originGroup1

@@ -366,9 +366,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient
-		_, err = snapshotClient.Get(ctx, *parsedSnapshotResourceID)
+		snapshotResponse, err := snapshotClient.Get(ctx, *parsedSnapshotResourceID)
 		if err != nil {
 			return fmt.Errorf("getting snapshot from %s: %+v", id, err)
+		}
+		if model := snapshotResponse.Model; model != nil && model.Id != nil {
+			snapshotID = *model.Id
 		}
 
 		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.AccountName, parsedSnapshotResourceID.PoolName, parsedSnapshotResourceID.VolumeName)
