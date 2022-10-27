@@ -51,7 +51,7 @@ resource "azurerm_private_dns_resolver_outbound_endpoint" "example" {
   name                    = "example-endpoint"
   private_dns_resolver_id = azurerm_private_dns_resolver.example.id
   location                = azurerm_private_dns_resolver.example.location
-  subnet_id               = azurerm_subnet.test.id
+  subnet_id               = azurerm_subnet.example.id
   tags = {
     key = "value"
   }
