@@ -91,13 +91,13 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"min_executor": {
+			"min_executors": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 200),
 			},
 
-			"max_executor": {
+			"max_executors": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 200),
@@ -260,8 +260,8 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
 				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
-				MinExecutors: utils.Int32(int32(d.Get("min_executor").(int))),
-				MaxExecutors: utils.Int32(int32(d.Get("max_executor").(int))),
+				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
+				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
 			},
 			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
@@ -342,8 +342,8 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 		d.Set("dynamic_executor_allocation_enabled", dynamicExecutorAllocationEnabled)
-		d.Set("min_executor", minExector)
-		d.Set("max_executor", maxExecutor)
+		d.Set("min_executors", minExector)
+		d.Set("max_executors", maxExecutor)
 
 		d.Set("node_count", props.NodeCount)
 		d.Set("node_size", props.NodeSize)
@@ -381,8 +381,8 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
 				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
-				MinExecutors: utils.Int32(int32(d.Get("min_executor").(int))),
-				MaxExecutors: utils.Int32(int32(d.Get("max_executor").(int))),
+				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
+				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
 			},
 			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
 			LibraryRequirements:         expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
