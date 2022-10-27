@@ -1119,7 +1119,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"outbound_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
+							ForceNew: false,
 							Default:  string(managedclusters.OutboundTypeLoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.OutboundTypeLoadBalancer),
@@ -2041,7 +2041,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("both `loadBalancerProfile` and `natGatewayProfile` are nil in Azure")
 		}
 
+		if key := "network_profile.outbound_type"; d.HasChange(key) {
+			outboundTypeStr := d.Get(key).(string)
+			outboundType := managedclusters.OutboundType(outboundTypeStr)
+			existing.Model.Properties.NetworkProfile.OutboundType = &outboundType
+		}
+
 		if networkProfile.LoadBalancerProfile != nil {
+
 			loadBalancerProfile := *networkProfile.LoadBalancerProfile
 
 			if key := "network_profile.0.load_balancer_profile.0.effective_outbound_ips"; d.HasChange(key) {

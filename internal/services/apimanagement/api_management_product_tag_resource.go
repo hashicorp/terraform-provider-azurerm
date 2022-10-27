@@ -72,7 +72,11 @@ func resourceApiManagementProductTagCreate(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return fmt.Errorf(" creating product tag (id : %s): %+v", id, err)
 	}
-	d.SetId(*resp.ID)
+	tagID, err := parse.TagID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf(" creating product tag (id : %s): %+v", id, err)
+	}
+	d.SetId(tagID.ID())
 
 	return resourceApiManagementProductTagRead(d, meta)
 }

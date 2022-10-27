@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -158,7 +159,11 @@ func dataSourceArmRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	if role.ID == nil {
 		return fmt.Errorf("returned role had a nil ID (id %q, scope %q, name %q)", defId, scope, name)
 	}
-	d.SetId(*role.ID)
+	roleID, err := parse.RoleDefinitionId(*role.ID)
+	if err != nil {
+		return fmt.Errorf("failed to parse roleID: %+v", err)
+	}
+	d.SetId(roleID.RoleID)
 
 	if props := role.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
