@@ -11,7 +11,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies `containerinstance` - updating to use `2021-10-01` [GH-17785]
+* Dependencies `compute` - updating to `2022-08-01` [GH-18994]
+* Dependencies `containerinstance` - updating to `2021-10-01` [GH-17785]
 * Dependencies: update `go-azure-helpers` to `v0.45.0` [GH-18968]
 * containerservice: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18705]
 * customproviders - refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18978]
