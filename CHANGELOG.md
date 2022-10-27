@@ -56,12 +56,14 @@ BUG FIXES:
 * `azurerm_disk_pool_iscsi_target` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
 * `azurerm_disk_pool_iscsi_target_lun` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
 * `azurerm_disk_pool_managed_disk_attachment` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
+* `azurerm_linux_virtual_machine_scale_set` - the `gallery_applications` block has been renamted to `gallery_application` [GH-19014]
 * `azurerm_managed_disk` - `logical_sector_size`, `disk_iops_read_write`, `disk_mbps_read_write`, `disk_iops_read_only` and `disk_mbps_read_only` can be set when `storage_account_type` is `PremiumV2_LRS` [GH-18991]
 * `azurerm_monitor_data_collection_rule` - correctly support streams [GH-18966]
 * `azurerm_netapp_volume` - correctly set snapshot ID when `create_from_snapshot_resource_id` is specified [GH-18996]
 * `azurerm_key_vault_certificate` - new versions of key vault certs can now be imported [GH-18848]
 * `azurerm_postgresql_server` - correctly create replicas when CMK is enabled [GH-18805]
 * `azurerm_stream_analytics_stream_input_eventhub` - `shared_access_policy_key` and `shared_access_policy_name` are no longer required [GH-18959]
+* `azurerm_windows_virtual_machine_scale_set` - the `gallery_applications` block has been renamted to `gallery_application` [GH-19014]
 
 ## 3.28.0 (October 20, 2022)
 
