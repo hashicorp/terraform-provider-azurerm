@@ -7,14 +7,16 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/deletedconfigurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 )
 
 type Client struct {
-	ConfigurationStoresClient *configurationstores.ConfigurationStoresClient
-	tokenFunc                 func(endpoint string) (autorest.Authorizer, error)
-	configureClientFunc       func(c *autorest.Client, authorizer autorest.Authorizer)
+	ConfigurationStoresClient        *configurationstores.ConfigurationStoresClient
+	DeletedConfigurationStoresClient *deletedconfigurationstores.DeletedConfigurationStoresClient
+	tokenFunc                        func(endpoint string) (autorest.Authorizer, error)
+	configureClientFunc              func(c *autorest.Client, authorizer autorest.Authorizer)
 }
 
 func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string) (*appconfiguration.BaseClient, error) {
@@ -52,9 +54,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	configurationStores := configurationstores.NewConfigurationStoresClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&configurationStores.Client, o.ResourceManagerAuthorizer)
 
+	deletedConfigurationStores := deletedconfigurationstores.NewDeletedConfigurationStoresClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&deletedConfigurationStores.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		ConfigurationStoresClient: &configurationStores,
-		tokenFunc:                 o.TokenFunc,
-		configureClientFunc:       o.ConfigureClient,
+		ConfigurationStoresClient:        &configurationStores,
+		DeletedConfigurationStoresClient: &deletedConfigurationStores,
+		tokenFunc:                        o.TokenFunc,
+		configureClientFunc:              o.ConfigureClient,
 	}
 }

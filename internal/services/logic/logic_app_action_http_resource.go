@@ -80,6 +80,15 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"queries": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"run_after": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -121,10 +130,17 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	queriesRaw := d.Get("queries").(map[string]interface{})
+	queries, err := expandLogicAppActionHttpQueries(queriesRaw)
+	if err != nil {
+		return err
+	}
+
 	inputs := map[string]interface{}{
 		"method":  d.Get("method").(string),
 		"uri":     d.Get("uri").(string),
 		"headers": headers,
+		"queries": queries,
 	}
 
 	// storing action's body in json object to keep consistent with azure portal
@@ -214,6 +230,13 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	if queries := inputs["queries"]; queries != nil {
+		qv := queries.(map[string]interface{})
+		if err := d.Set("queries", qv); err != nil {
+			return fmt.Errorf("setting `queries` for HTTP Action %q: %+v", id.Name, err)
+		}
+	}
+
 	v = action["runAfter"]
 	if v != nil {
 		runAfter, ok := v.(map[string]interface{})
@@ -255,4 +278,19 @@ func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[st
 	}
 
 	return &headers, nil
+}
+
+func expandLogicAppActionHttpQueries(queriesRaw map[string]interface{}) (*map[string]string, error) {
+	queries := make(map[string]string)
+
+	for i, v := range queriesRaw {
+		value, err := tags.TagValueToString(v)
+		if err != nil {
+			return nil, err
+		}
+
+		queries[i] = value
+	}
+
+	return &queries, nil
 }

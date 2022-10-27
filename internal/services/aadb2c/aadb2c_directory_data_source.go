@@ -94,7 +94,7 @@ func (r AadB2cDirectoryDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state AadB2cDirectoryDataSourceModel

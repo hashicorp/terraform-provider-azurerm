@@ -159,7 +159,7 @@ The following arguments are supported:
 
 ---
 
-The `custom_rule` block supports the following:
+A `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
@@ -209,7 +209,7 @@ A `managed_rule` block supports the following:
 
 ---
 
-A `override` block supports the following:
+An `override` block supports the following:
 
 * `rule_group_name` - (Required) The managed rule group to override.
 
@@ -231,9 +231,11 @@ A `rule` block supports the following:
 
 ---
 
-A `exclusion` block supports the following:
+An `exclusion` block supports the following:
 
-* `match_variable` - (Required) The variable type to be excluded. Possible values are `QueryStringArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+* `match_variable` - (Required) The variable type to be excluded. Possible values are `QueryStringArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestBodyJsonArgNames`
+
+-> **NOTE:** `RequestBodyJsonArgNames` is only available on Default Rule Set (DRS) 2.0 or later
 
 * `operator` - (Required) Comparison operator to apply to the selector when specifying which elements in the collection this exclusion applies to. Possible values are: `Equals`, `Contains`, `StartsWith`, `EndsWith`, `EqualsAny`.
 

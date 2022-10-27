@@ -81,11 +81,11 @@ The following arguments are supported:
 
 * `container_registry_login_server_url` - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
 
+* `oci_artifact` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of objects describing [OCI artifacts for export](https://learn.microsoft.com/en-gb/azure/healthcare-apis/fhir/de-identified-export) as defined below.
+
 * `authentication` - (Required) An `authentication` block as defined below.
 
 * `configuration_export_storage_account_name` - (Optional) Specifies the name of the storage account which the operation configuration information is exported to.
-
-* `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled.
 
 ---
 An `identity` block supports the following:
@@ -108,11 +108,24 @@ An `authentication` supports the following:
   Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
 * `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is https://<name>.fhir.azurehealthcareapis.com
 
+---
+
+A `oci_artifact` block supports the following:
+
+* `login_server` - (Required) An Azure container registry used for export operations of the service instance.
+
+* `image_name` - (Optional) An image within Azure container registry used for export operations of the service instance.
+
+* `digest` - (Optional) A digest of an image within Azure container registry used for export operations of the service instance to narrow the artifacts down.
+
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Healthcare FHIR Service.
+
+* `public_network_access_enabled` - Whether public networks access is enabled.
 
 ## Timeouts
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Diagnostic Setting. Changing this forces a new resource to be created.
 
+-> **NOTE:** If the name is set to 'service' it will not be possible to fully delete the diagnostic setting. This is due to legacy API support.
+
 * `target_resource_id` - (Required) The ID of an existing Resource on which to configure Diagnostic Settings. Changing this forces a new resource to be created.
 
 * `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.

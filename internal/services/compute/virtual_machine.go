@@ -486,3 +486,106 @@ func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsP
 		},
 	}
 }
+
+func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 100,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"version_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validate.GalleryApplicationVersionID,
+				},
+
+				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
+				"configuration_blob_uri": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+
+				"order": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 2147483647),
+				},
+
+				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
+				"tag": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGalleryApplication {
+	out := make([]compute.VMGalleryApplication, 0)
+	if len(input) == 0 {
+		return &out
+	}
+
+	for _, v := range input {
+		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
+		order := v.(map[string]interface{})["order"].(int)
+		tag := v.(map[string]interface{})["tag"].(string)
+
+		app := &compute.VMGalleryApplication{
+			PackageReferenceID:     utils.String(packageReferenceId),
+			ConfigurationReference: utils.String(configurationReference),
+			Order:                  utils.Int32(int32(order)),
+			Tags:                   utils.String(tag),
+		}
+
+		out = append(out, *app)
+	}
+
+	return &out
+}
+
+func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplication) []interface{} {
+	if len(*input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var packageReferenceId, configurationReference, tag string
+		var order int
+
+		if v.PackageReferenceID != nil {
+			packageReferenceId = *v.PackageReferenceID
+		}
+
+		if v.ConfigurationReference != nil {
+			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.Order != nil {
+			order = int(*v.Order)
+		}
+
+		if v.Tags != nil {
+			tag = *v.Tags
+		}
+
+		app := map[string]interface{}{
+			"version_id":             packageReferenceId,
+			"configuration_blob_uri": configurationReference,
+			"order":                  order,
+			"tag":                    tag,
+		}
+
+		out = append(out, app)
+	}
+
+	return out
+}

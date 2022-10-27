@@ -78,6 +78,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // IoT Central is only available in certain locations
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
+        // IoT Hub Device Update is only available in certain locations
+        "iothub" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "eastus2", "westus2", false)),
+
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
 
@@ -97,6 +100,9 @@ var serviceTestConfigurationOverrides = mapOf(
         "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         "policy" to testConfiguration(useAltSubscription = true),
+
+         // Private DNS Resolver is only available in certain locations
+         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),

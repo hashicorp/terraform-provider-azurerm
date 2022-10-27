@@ -686,6 +686,21 @@ func TestAccLinuxWebAppSlot_withPython39(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withPython310(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.python(data, "3.10"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withRuby26(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -1224,9 +1239,10 @@ resource "azurerm_linux_web_app_slot" "test" {
     }
   }
 
-  client_affinity_enabled    = true
-  client_certificate_enabled = true
-  client_certificate_mode    = "Optional"
+  client_affinity_enabled            = true
+  client_certificate_enabled         = true
+  client_certificate_mode            = "Optional"
+  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {
     name  = "First"

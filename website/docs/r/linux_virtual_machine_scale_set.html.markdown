@@ -468,7 +468,7 @@ An `os_disk` block supports the following:
 
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine Scale Set is Confidential VMSS. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
--> **NOTE:** `secure_boot_enabled` and `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
+-> **NOTE:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
 
 -> **NOTE:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 

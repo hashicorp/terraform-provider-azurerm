@@ -160,7 +160,6 @@ func TestAccManagedDisk_encryption(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.secret_url").Exists(),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.source_vault_id").Exists(),
@@ -169,6 +168,14 @@ func TestAccManagedDisk_encryption(t *testing.T) {
 				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.0.source_vault_id").Exists(),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.encryptionUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1101,7 +1108,7 @@ resource "azurerm_managed_disk" "test" {
 `, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (ManagedDiskResource) encryption(data acceptance.TestData) string {
+func (ManagedDiskResource) encryptionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1170,6 +1177,12 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (r ManagedDiskResource) encryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
@@ -1180,8 +1193,6 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "1"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = "${azurerm_key_vault_secret.test.id}"
       source_vault_id = "${azurerm_key_vault.test.id}"
@@ -1198,7 +1209,85 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.encryptionTemplate(data), data.RandomInteger)
+}
+
+func (r ManagedDiskResource) encryptionUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault" "test2" {
+  name                = "acctestkv2-%[2]s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  sku_name            = "standard"
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.object_id}"
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  enabled_for_disk_encryption = true
+}
+
+resource "azurerm_key_vault_secret" "test2" {
+  name         = "secret2-%[2]s"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test2.id
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "key2-%[2]s"
+  key_vault_id = azurerm_key_vault.test2.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%[3]d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+
+  encryption_settings {
+    disk_encryption_key {
+      secret_url      = "${azurerm_key_vault_secret.test2.id}"
+      source_vault_id = "${azurerm_key_vault.test2.id}"
+    }
+
+    key_encryption_key {
+      key_url         = "${azurerm_key_vault_key.test2.id}"
+      source_vault_id = "${azurerm_key_vault.test2.id}"
+    }
+  }
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, r.encryptionTemplate(data), data.RandomString, data.RandomInteger)
 }
 
 func (ManagedDiskResource) create_withUltraSSD(data acceptance.TestData) string {

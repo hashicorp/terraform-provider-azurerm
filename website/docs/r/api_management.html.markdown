@@ -55,6 +55,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Premium SKU's are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
 
+~> **NOTE:** Consumption SKU capacity should be 0 (e.g. `Consumption_0`) as this tier includes automatic scaling.
+
 ---
 
 * `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
@@ -117,6 +119,8 @@ A `additional_location` block supports the following:
 ~> **NOTE:** Availability zones and custom public IPs are only supported in the Premium tier.
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
+
+* `gateway_disabled` - (Optional) Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
 
 ---
 
@@ -414,6 +418,10 @@ The `hostname_configuration` block exports the following:
 * `thumbprint` - The thumbprint of the certificate.
 
 * `subject` - The subject of the certificate.
+
+* `certificate_source` - The source of the certificate.
+
+* `certificate_status` - The status of the certificate.
 
 
 ## Timeouts

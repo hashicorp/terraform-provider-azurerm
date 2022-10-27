@@ -2,6 +2,7 @@ package features
 
 type UserFeatures struct {
 	ApiManagement          ApiManagementFeatures
+	AppConfiguration       AppConfigurationFeatures
 	ApplicationInsights    ApplicationInsightFeatures
 	CognitiveAccount       CognitiveAccountFeatures
 	VirtualMachine         VirtualMachineFeatures
@@ -59,4 +60,9 @@ type ApiManagementFeatures struct {
 
 type ApplicationInsightFeatures struct {
 	DisableGeneratedRule bool
+}
+
+type AppConfigurationFeatures struct {
+	PurgeSoftDeleteOnDestroy bool
+	RecoverSoftDeleted       bool
 }

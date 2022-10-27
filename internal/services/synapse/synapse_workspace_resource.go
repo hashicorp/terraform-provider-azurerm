@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -61,9 +60,9 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"storage_data_lake_gen2_filesystem_id": {
 				Type:     pluginsdk.TypeString,
@@ -73,14 +72,14 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 
 			"sql_administrator_login": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SqlAdministratorLoginName,
 			},
 
 			"sql_administrator_login_password": {
 				Type:      pluginsdk.TypeString,
-				Required:  true,
+				Optional:  true,
 				Sensitive: true,
 			},
 

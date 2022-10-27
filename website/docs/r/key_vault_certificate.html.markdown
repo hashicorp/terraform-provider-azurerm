@@ -238,8 +238,8 @@ The following arguments are supported:
 
 `certificate` supports the following:
 
-* `contents` - (Required) The base64-encoded certificate contents. Changing this forces a new resource to be created.
-* `password` - (Optional) The password associated with the certificate. Changing this forces a new resource to be created.
+* `contents` - (Required) The base64-encoded certificate contents.
+* `password` - (Optional) The password associated with the certificate.
 
 `certificate_policy` supports the following:
 

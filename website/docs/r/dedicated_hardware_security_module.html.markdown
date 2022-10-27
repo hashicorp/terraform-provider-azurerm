@@ -89,7 +89,12 @@ resource "azurerm_dedicated_hardware_security_module" "example" {
   name                = "example-hsm"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "SafeNet Luna Network HSM A790"
+  sku_name            = "payShield10K_LMK1_CPS60"
+
+  management_network_profile {
+    network_interface_private_ip_addresses = ["10.2.1.7"]
+    subnet_id                              = azurerm_subnet.example2.id
+  }
 
   network_profile {
     network_interface_private_ip_addresses = ["10.2.1.8"]
@@ -118,7 +123,11 @@ The following arguments are supported:
 
 * `network_profile` - (Required)  A `network_profile` block as defined below.
 
-* `sku_name` - (Required) The SKU name of the dedicated hardware security module. Changing this forces a new Dedicated Hardware Security Module to be created.
+* `sku_name` - (Required) The SKU name of the dedicated hardware security module. Possible values are `payShield10K_LMK1_CPS60`,`payShield10K_LMK1_CPS250`,`payShield10K_LMK1_CPS2500`,`payShield10K_LMK2_CPS60`,`payShield10K_LMK2_CPS250`,`payShield10K_LMK2_CPS2500` and `SafeNet Luna Network HSM A790`. Changing this forces a new Dedicated Hardware Security Module to be created.
+
+* `management_network_profile` - (Optional)  A `management_network_profile` block as defined below.
+
+->**NOTE:**  The `management_network_profile` should not be specified when `sku_name` is `SafeNet Luna Network HSM A790`.
 
 * `stamp_id` - (Optional) The ID of the stamp. Possible values are `stamp1` or `stamp2`. Changing this forces a new Dedicated Hardware Security Module to be created.
 
@@ -129,6 +138,12 @@ The following arguments are supported:
 ---
 
 An `network_profile` block exports the following:
+
+* `network_interface_private_ip_addresses` - (Required) The private IPv4 address of the network interface. Changing this forces a new Dedicated Hardware Security Module to be created.
+
+* `subnet_id` - (Required) The ID of the subnet. Changing this forces a new Dedicated Hardware Security Module to be created.
+
+A `management_network_profile` block exports the following:
 
 * `network_interface_private_ip_addresses` - (Required) The private IPv4 address of the network interface. Changing this forces a new Dedicated Hardware Security Module to be created.
 

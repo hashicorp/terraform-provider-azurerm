@@ -129,6 +129,13 @@ func TestAccLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.integrationServiceEnvironmentUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -349,6 +356,23 @@ resource "azurerm_logic_app_workflow" "test" {
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
   integration_service_environment_id = azurerm_integration_service_environment.test.id
+}
+`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
+}
+
+func (r LogicAppWorkflowResource) integrationServiceEnvironmentUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                               = "acctestlaw-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  integration_service_environment_id = azurerm_integration_service_environment.test.id
+
+  tags = {
+    "Source" = "AcceptanceTests"
+  }
 }
 `, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
 }

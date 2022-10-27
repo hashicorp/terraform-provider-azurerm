@@ -3,29 +3,79 @@ package compute
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func encryptionSettingsSchema() *pluginsdk.Schema {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+
+						// Azure can change enabled from false to true, but not the other way around, so
+						//   to keep idempotency, we'll conservatively set this to ForceNew=true
+						ForceNew:   true,
+						Deprecated: "Deprecated, Azure Disk Encryption is now configured directly by `disk_encryption_key` and `key_encryption_key`. To disable Azure Disk Encryption, please remove `encryption_settings` block. To enabled, specify a `encryption_settings` block`",
+					},
+					"disk_encryption_key": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"secret_url": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"source_vault_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+					"key_encryption_key": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"key_url": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"source_vault_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-
-					// Azure can change enabled from false to true, but not the other way around, so
-					//   to keep idempotency, we'll conservatively set this to ForceNew=true
-					ForceNew: true,
-				},
-
 				"disk_encryption_key": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -64,10 +114,18 @@ func encryptionSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandSnapshotDiskEncryptionSettings(settings map[string]interface{}) *compute.EncryptionSettingsCollection {
-	enabled := settings["enabled"].(bool)
+func expandSnapshotDiskEncryptionSettings(settingsList []interface{}) *compute.EncryptionSettingsCollection {
+	if len(settingsList) == 0 {
+		return &compute.EncryptionSettingsCollection{}
+	}
+	settings := settingsList[0].(map[string]interface{})
+
 	config := &compute.EncryptionSettingsCollection{
-		Enabled: utils.Bool(enabled),
+		Enabled: utils.Bool(true),
+	}
+
+	if !features.FourPointOhBeta() {
+		config.Enabled = utils.Bool(settings["enabled"].(bool))
 	}
 
 	var diskEncryptionKey *compute.KeyVaultAndSecretReference
@@ -113,11 +171,6 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *compute.Encryptio
 		return []interface{}{}
 	}
 
-	enabled := false
-	if encryptionSettings.Enabled != nil {
-		enabled = *encryptionSettings.Enabled
-	}
-
 	diskEncryptionKeys := make([]interface{}, 0)
 	keyEncryptionKeys := make([]interface{}, 0)
 	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
@@ -159,19 +212,40 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *compute.Encryptio
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":             enabled,
-			"disk_encryption_key": diskEncryptionKeys,
-			"key_encryption_key":  keyEncryptionKeys,
-		},
+	if len(diskEncryptionKeys) > 0 {
+		if !features.FourPointOhBeta() {
+			return []interface{}{
+				map[string]interface{}{
+					"enabled":             true,
+					"disk_encryption_key": diskEncryptionKeys,
+					"key_encryption_key":  keyEncryptionKeys,
+				},
+			}
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"disk_encryption_key": diskEncryptionKeys,
+				"key_encryption_key":  keyEncryptionKeys,
+			},
+		}
+	} else {
+		return []interface{}{}
 	}
 }
 
-func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *disks.EncryptionSettingsCollection {
-	enabled := settings["enabled"].(bool)
+func expandManagedDiskEncryptionSettings(settingsList []interface{}) *disks.EncryptionSettingsCollection {
+	if len(settingsList) == 0 {
+		return &disks.EncryptionSettingsCollection{}
+	}
+	settings := settingsList[0].(map[string]interface{})
+
 	config := &disks.EncryptionSettingsCollection{
-		Enabled: enabled,
+		Enabled: true,
+	}
+
+	if !features.FourPointOhBeta() {
+		config.Enabled = settings["enabled"].(bool)
 	}
 
 	var diskEncryptionKey *disks.KeyVaultAndSecretReference
@@ -217,11 +291,6 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSe
 		return []interface{}{}
 	}
 
-	enabled := false
-	if encryptionSettings.Enabled {
-		enabled = encryptionSettings.Enabled
-	}
-
 	diskEncryptionKeys := make([]interface{}, 0)
 	keyEncryptionKeys := make([]interface{}, 0)
 	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
@@ -263,11 +332,24 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSe
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":             enabled,
-			"disk_encryption_key": diskEncryptionKeys,
-			"key_encryption_key":  keyEncryptionKeys,
-		},
+	if len(diskEncryptionKeys) > 0 {
+		if !features.FourPointOhBeta() {
+			return []interface{}{
+				map[string]interface{}{
+					"enabled":             true,
+					"disk_encryption_key": diskEncryptionKeys,
+					"key_encryption_key":  keyEncryptionKeys,
+				},
+			}
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"disk_encryption_key": diskEncryptionKeys,
+				"key_encryption_key":  keyEncryptionKeys,
+			},
+		}
+	} else {
+		return []interface{}{}
 	}
 }

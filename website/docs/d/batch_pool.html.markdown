@@ -140,6 +140,8 @@ A `start_task` block exports the following:
 
 * `command_line` - The command line executed by the start task.
 
+* `container` - The settings for the container under which the start task runs.
+
 * `task_retry_maximum` - The number of retry count
 
 * `wait_for_success` - A flag that indicates if the Batch pool should wait for the start task to be completed.
@@ -149,6 +151,18 @@ A `start_task` block exports the following:
 * `user_identity` - A `user_identity` block that describes the user identity under which the start task runs.
 
 * `resource_file` - One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
+---
+
+A `container` block exports the following:
+
+* `image_name` - The image to use to create the container in which the task will run.
+
+* `run_options` - Additional options to the container create command.
+
+* `registry` - The same reference as `container_registries` block defined as follows.
+
+* `working_directory` - A flag to indicate where the container task working directory is.
 
 ---
 
@@ -298,7 +312,13 @@ A `network_configuration` block exports the following:
 
 * `subnet_id` - The ARM resource identifier of the virtual network subnet which the compute nodes of the pool are joined too.
 
+* `dynamic_vnet_assignment_scope` - The scope of dynamic vnet assignment.
+
 * `endpoint_configuration` - The inbound NAT pools that are used to address specific ports on the individual compute node externally.
+
+* `public_ips` - A list of public IP ids that will be allocated to nodes.
+
+* `public_address_provisioning_type` - Type of public IP address provisioning.
 
 ---
 
@@ -323,6 +343,8 @@ A `network_security_group_rules` block exports the following:
 * `priority` - The priority for this rule.
 
 * `source_address_prefix` - The source address prefix or tag to match for the rule.
+
+* `source_port_ranges` - The source port ranges to match for the rule.
 
 ---
 

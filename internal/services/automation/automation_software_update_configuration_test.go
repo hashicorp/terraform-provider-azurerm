@@ -81,6 +81,21 @@ func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
 	})
 }
 
+func TestAccSoftwareUpdateConfiguration_windows(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windows(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always return null
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
 func (a SoftwareUpdateConfigurationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -146,6 +161,8 @@ func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) st
 
 %s
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_automation_software_update_configuration" "test" {
   automation_account_id = azurerm_automation_account.test.id
   name                  = "acctest-suc-%[2]d"
@@ -163,7 +180,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
   target {
     azure_query {
-      scope     = [azurerm_resource_group.test.id]
+      scope     = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}"]
       locations = [azurerm_resource_group.test.location]
       tags {
         tag    = "foo"
@@ -194,9 +211,66 @@ resource "azurerm_automation_software_update_configuration" "test" {
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
+func (a SoftwareUpdateConfigurationResource) windows(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_automation_software_update_configuration" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+  operating_system      = "Windows"
+
+  windows {
+    classifications_included = ["Critical", "Security"]
+    reboot                   = "IfRequired"
+  }
+
+  duration            = "PT1H1M1S"
+  virtual_machine_ids = []
+
+  target {
+    azure_query {
+      scope     = [azurerm_resource_group.test.id]
+      locations = [azurerm_resource_group.test.location]
+      tags {
+        tag    = "foo"
+        values = ["barbar2"]
+      }
+      tag_filter = "Any"
+    }
+
+    non_azure_query {
+      function_alias = "savedSearch1"
+      workspace_id   = azurerm_log_analytics_workspace.test.id
+    }
+  }
+
+  schedule {
+    description         = "foo-schedule"
+    start_time          = "%[3]s"
+    expiry_time         = "%[4]s"
+    is_enabled          = true
+    interval            = 1
+    frequency           = "Hour"
+    time_zone           = "Etc/UTC"
+    advanced_week_days  = ["Monday", "Tuesday"]
+    advanced_month_days = [1, 10, 15]
+    monthly_occurrence {
+      occurrence = 1
+      day        = "Tuesday"
+    }
+  }
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+`, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
+}
+
 // software update need log analytic location map correct, if use a random location like `East US` will cause
 // error like `chosen Azure Automation does not have a Log Analytics workspace linked for operation to succeed`.
-//  so location hardcode as `West US`
+// so location hardcode as `West US`
 // see more https://learn.microsoft.com/en-us/azure/automation/how-to/region-mappings
 func (a SoftwareUpdateConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`

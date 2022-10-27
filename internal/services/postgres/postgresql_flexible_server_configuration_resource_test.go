@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"

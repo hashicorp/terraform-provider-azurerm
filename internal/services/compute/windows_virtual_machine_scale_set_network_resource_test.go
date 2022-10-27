@@ -452,7 +452,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F4"
+  sku                 = "Standard_D2s_v3" # intentional for accelerated networking
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -1550,7 +1550,46 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
 func (r WindowsVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-%[3]s"
+
+  sku = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 50000
+  frontend_port_end              = 50120
+  backend_port                   = 22
+}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -1582,18 +1621,22 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       primary   = true
       subnet_id = azurerm_subnet.test.id
 
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+
       public_ip_address {
-        name = "first"
+        name                    = "pip-%[3]s"
+        idle_timeout_in_minutes = 15
 
         ip_tag {
-          tag  = "/Sql"
-          type = "FirstPartyUsage"
+          type = "RoutingPreference"
+          tag  = "Internet"
         }
       }
     }
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger, data.RandomStringOfLength(9))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
