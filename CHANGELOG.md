@@ -27,6 +27,7 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_hbase_cluster` - support for the `compute_isolation` block [GH-17449]
 * `azurerm_hdinsight_hadoop_cluster` - support for the `compute_isolation` block [GH-17449]
 * `azurerm_container_group` - support for the `dns_name_label_reuse_policy` block [GH-17785]
+* `azurerm_kubernetes_cluster` - support for the `workload_autoscaler_profile` block [GH-18967]
 * `azurerm_linux_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
 * `azurerm_linux_function_app` - support for Java 17 [GH-18689]
 * `azurerm_linux_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
