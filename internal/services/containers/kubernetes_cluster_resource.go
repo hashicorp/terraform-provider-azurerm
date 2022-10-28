@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
+	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -387,7 +387,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"dns_zone_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: dnsValidate.ValidateDnsZoneID,
 						},
 					},
@@ -1317,9 +1317,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
-		parameters.ManagedClusterProperties.IngressProfile = ingressProfile
+		parameters.Properties.IngressProfile = ingressProfile
 	}
-  
+
 	future, err := client.CreateOrUpdate(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -1745,7 +1745,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
-		existing.ManagedClusterProperties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
+		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
 	}
 
 	if updateCluster {
@@ -3344,41 +3344,33 @@ func base64IsEncoded(data string) bool {
 	return err == nil
 }
 
-func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *containerservice.ManagedClusterIngressProfile {
-	if len(input) == 0 && d.HasChange("web_app_routing") {
-		return &containerservice.ManagedClusterIngressProfile{
-			WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
+func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
+	if (len(input) == 0 || input[0] == nil) && d.HasChange("web_app_routing") {
+		return &managedclusters.ManagedClusterIngressProfile{
+			WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 				Enabled: utils.Bool(false),
 			},
 		}
-	} else if len(input) == 0 {
+	} else if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	if input[0] == nil {
-		return &containerservice.ManagedClusterIngressProfile{
-			WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
-				Enabled: utils.Bool(true),
-			},
-		}
-	}
-
 	config := input[0].(map[string]interface{})
-	return &containerservice.ManagedClusterIngressProfile{
-		WebAppRouting: &containerservice.ManagedClusterIngressProfileWebAppRouting{
+	return &managedclusters.ManagedClusterIngressProfile{
+		WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 			Enabled:           utils.Bool(true),
-			DNSZoneResourceID: utils.String(config["dns_zone_id"].(string)),
+			DnsZoneResourceId: utils.String(config["dns_zone_id"].(string)),
 		},
 	}
 }
 
-func flattenKubernetesClusterIngressProfile(input *containerservice.ManagedClusterIngressProfile) []interface{} {
+func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile) []interface{} {
 	if input == nil || input.WebAppRouting == nil || (input.WebAppRouting.Enabled != nil && !*input.WebAppRouting.Enabled) {
 		return []interface{}{}
 	}
 
 	dnsZoneId := ""
-	if v := input.WebAppRouting.DNSZoneResourceID; v != nil {
+	if v := input.WebAppRouting.DnsZoneResourceId; v != nil {
 		dnsZoneId = *v
 	}
 
