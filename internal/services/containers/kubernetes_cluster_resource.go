@@ -1908,11 +1908,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
 
-		publicNetworkAccess := "Enabled"
+		publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
 		if props.PublicNetworkAccess != nil {
-			publicNetworkAccess = publicNetworkAccess
+			publicNetworkAccess = *props.PublicNetworkAccess
 		}
-		d.Set("public_network_access_enabled", publicNetworkAccess != string(managedclusters.PublicNetworkAccessDisabled))
+		d.Set("public_network_access_enabled", publicNetworkAccess != managedclusters.PublicNetworkAccessDisabled)
 
 		upgradeChannel := ""
 		if profile := props.AutoUpgradeProfile; profile != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
