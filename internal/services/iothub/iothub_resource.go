@@ -372,6 +372,7 @@ func resourceIotHub() *pluginsdk.Resource {
 								"DeviceJobLifecycleEvents",
 								"DeviceLifecycleEvents",
 								"DeviceMessages",
+								"DigitalTwinChangeEvents",
 								"Invalid",
 								"TwinChangeEvents",
 							}, false),
