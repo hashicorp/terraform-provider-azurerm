@@ -1,4 +1,4 @@
-## 3.29.0 (Unreleased)
+## 3.30.0 (Unreleased)
 
 ENHANCEMENTS:
 
@@ -7,6 +7,12 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
+
+## 3.29.1 (October 28, 2022)
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - prevent panic when setting `public_network_access_enabled` [GH-19048]
 
 ## 3.29.0 (October 27, 2022)
 
