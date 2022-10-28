@@ -502,8 +502,8 @@ func expandOptimizedAutoScale(input []interface{}) *clusters.OptimizedAutoscale 
 	optimizedAutoScale := &clusters.OptimizedAutoscale{
 		Version:   1,
 		IsEnabled: true,
-		Minimum:   config["minimum_instances"].(int64),
-		Maximum:   config["maximum_instances"].(int64),
+		Minimum:   int64(config["minimum_instances"].(int)),
+		Maximum:   int64(config["maximum_instances"].(int)),
 	}
 
 	return optimizedAutoScale
