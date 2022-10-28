@@ -79,7 +79,7 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(clusterprincipalassignments.PossibleValuesForPrincipalAssignmentType(), false),
+				ValidateFunc: validation.StringInSlice(clusterprincipalassignments.PossibleValuesForPrincipalType(), false),
 			},
 
 			"role": {
