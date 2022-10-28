@@ -1,3 +1,9 @@
+## 3.29.1 (October 28, 2022)
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - prevent panic when setting `public_network_access_enabled` [GH-19048]
+
 ## 3.29.0 (October 27, 2022)
 
 FEATURES:
