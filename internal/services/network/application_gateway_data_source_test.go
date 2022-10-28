@@ -46,7 +46,6 @@ func TestAccDataSourceAppGateway_backendAddressPool(t *testing.T) {
 		{
 			Config: r.backendAddressPool(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("backend_address_pool.0.#").HasValue("1"),
 				check.That(data.ResourceName).Key("backend_address_pool.0.id").Exists(),
 				check.That(data.ResourceName).Key("backend_address_pool.0.name").Exists(),
 			),
