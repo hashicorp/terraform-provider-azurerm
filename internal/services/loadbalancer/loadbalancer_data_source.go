@@ -207,7 +207,7 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 			"private_ip_address_version":    privateIpAddressVersion,
 			"public_ip_address_id":          publicIpAddressId,
 			"subnet_id":                     subnetId,
-			"zones":                         zones.Flatten(config.Zones),
+			"zones":                         zones.FlattenUntyped(config.Zones),
 		})
 	}
 	return result

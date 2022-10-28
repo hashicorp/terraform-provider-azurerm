@@ -84,7 +84,7 @@ func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta inte
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		parameters.Zones = &zones
 	}

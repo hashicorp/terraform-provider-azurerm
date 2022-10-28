@@ -448,7 +448,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		profile.AvailabilityZones = &zones
 	}
@@ -765,7 +765,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 	if model := resp.Model; model != nil && model.Properties != nil {
 		props := model.Properties
-		d.Set("zones", zones.Flatten(props.AvailabilityZones))
+		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)

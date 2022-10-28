@@ -763,7 +763,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		// ScaleSetPriority:       "",
 	}
 
-	zones := zones.Expand(raw["zones"].(*schema.Set).List())
+	zones := zones.ExpandUntyped(raw["zones"].(*schema.Set).List())
 	if len(zones) > 0 {
 		profile.AvailabilityZones = &zones
 	}
@@ -1261,7 +1261,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"only_critical_addons_enabled":  criticalAddonsEnabled,
 		"kubelet_config":                flattenClusterNodePoolKubeletConfig(agentPool.KubeletConfig),
 		"linux_os_config":               linuxOSConfig,
-		"zones":                         zones.Flatten(agentPool.AvailabilityZones),
+		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
 	}
 
