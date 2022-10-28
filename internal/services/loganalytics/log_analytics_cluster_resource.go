@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,9 +55,14 @@ func resourceLogAnalyticsCluster() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 			"size_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1000,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Default: func() int {
+					if !features.FourPointOh() {
+						return 1000
+					}
+					return 500
+				}(),
 				ValidateFunc: validation.IntInSlice([]int{500, 1000, 2000, 5000}),
 			},
 
