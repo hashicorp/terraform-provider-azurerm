@@ -1,5 +1,5 @@
 ---
-subcategory: "DNS Resolver"
+subcategory: "Private DNS Resolver"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_resolver_forwarding_rule"
 description: |-
