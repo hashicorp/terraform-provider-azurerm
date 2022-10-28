@@ -169,7 +169,7 @@ A `schedule` block supports the following:
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
-* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
+* `time_zone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
 * `advanced_week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 
@@ -187,7 +187,7 @@ The `monthly_occurrence` block supports:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Software Update Configuration.
 

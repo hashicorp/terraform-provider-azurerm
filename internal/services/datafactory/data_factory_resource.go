@@ -60,7 +60,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 				ValidateFunc: validate.DataFactoryName(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788

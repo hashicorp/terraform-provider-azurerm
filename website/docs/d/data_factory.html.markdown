@@ -67,13 +67,13 @@ A `github_configuration` block exports the following:
 
 An `identity` block exports the following:
 
-* `type` - The type of Managed Service Identity that is configured on this Data Factory.
+- `type` - The type of Managed Service Identity that is configured on this Data Factory.
 
-* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
+- `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
 
-* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
+- `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
 
-* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Data Factory.
+- `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Data Factory.
 
 ---
 

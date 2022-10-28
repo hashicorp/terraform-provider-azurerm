@@ -8,14 +8,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
@@ -62,10 +60,10 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.ManagedDiskID,
+				ValidateFunc: disks.ValidateDiskID,
 			},
 
-			"snapshot_resource_group_name": azure.SchemaResourceGroupName(),
+			"snapshot_resource_group_name": commonschema.ResourceGroupName(),
 
 			"backup_policy_id": {
 				Type:         schema.TypeString,
@@ -98,7 +96,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		}
 	}
 
-	diskId, _ := computeParse.ManagedDiskID(d.Get("disk_id").(string))
+	diskId, _ := disks.ParseDiskID(d.Get("disk_id").(string))
 	location := location.Normalize(d.Get("location").(string))
 	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 	snapshotResourceGroupId := resourceParse.NewResourceGroupID(subscriptionId, d.Get("snapshot_resource_group_name").(string))

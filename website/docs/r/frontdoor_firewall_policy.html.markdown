@@ -3,14 +3,16 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_firewall_policy"
 description: |-
-  Manages an Azure Front Door Web Application Firewall Policy instance.
+  Manages an Azure Front Door (classic) Web Application Firewall Policy instance.
 ---
 
 # azurerm_frontdoor_firewall_policy
 
-Manages an Azure Front Door Web Application Firewall Policy instance.
+Manages an Azure Front Door (classic) Web Application Firewall Policy instance.
 
-!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
+
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and Front Door resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 ## Example Usage
 
@@ -229,9 +231,9 @@ The `exclusion` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the FrontDoor Firewall Policy.
+* `id` - The ID of the Front Door Firewall Policy.
 
-* `location` - The Azure Region where this FrontDoor Firewall Policy exists.
+* `location` - The Azure Region where this Front Door Firewall Policy exists.
 
 * `frontend_endpoint_ids` - The Frontend Endpoints associated with this Front Door Web Application Firewall policy.
 
@@ -239,15 +241,15 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the FrontDoor Web Application Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the FrontDoor Web Application Firewall Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor Web Application Firewall Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the FrontDoor Web Application Firewall Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the Front Door Web Application Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Web Application Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Web Application Firewall Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Web Application Firewall Policy.
 
 ## Import
 
 FrontDoor Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/examplefdwafpolicy
+terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/examplefdwafpolicy
 ```

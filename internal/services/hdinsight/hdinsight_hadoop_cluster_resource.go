@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,9 +71,9 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"cluster_version": SchemaHDInsightClusterVersion(),
 
@@ -96,6 +97,8 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 			},
 
 			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
+
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
 
 			"gateway": SchemaHDInsightsGateway(),
 
@@ -224,6 +227,8 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
+
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
 	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
@@ -272,6 +277,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
+			ComputeIsolationProperties: computeIsolationProperties,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
@@ -463,6 +469,12 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
 				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+			}
+		}
+
+		if props.ComputeIsolationProperties != nil {
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 		}
 

@@ -59,7 +59,7 @@ resource "azurerm_synapse_workspace" "example" {
 
 ## Example Usage - creating a workspace with Customer Managed Key and Azure AD Admin
 
-```
+```hcl
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -122,12 +122,12 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  
+
   customer_managed_key {
     key_versionless_id = azurerm_key_vault_key.example.versionless_id
     key_name           = "enckey"
   }
-  
+
   identity {
     type = "SystemAssigned"
   }
@@ -161,7 +161,7 @@ resource "azurerm_synapse_workspace_aad_admin" "example" {
   object_id            = "00000000-0000-0000-0000-000000000000"
   tenant_id            = "00000000-0000-0000-0000-000000000000"
 
-  depends_on           = [azurerm_synapse_workspace_key.example]
+  depends_on = [azurerm_synapse_workspace_key.example]
 }
 ```
 
@@ -179,9 +179,9 @@ The following arguments are supported:
 
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 
-* `sql_administrator_login` - (Required) Specifies The login name of the SQL administrator. Changing this forces a new resource to be created.
+* `sql_administrator_login` - (Optional) Specifies The login name of the SQL administrator. Changing this forces a new resource to be created. If this is not provided `aad_admin` or `customer_managed_key` must be provided.
 
-* `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
+* `sql_administrator_login_password` - (Optional) The Password associated with the `sql_administrator_login` for the SQL administrator. If this is not provided `aad_admin` or `customer_managed_key` must be provided.
 
 ---
 
@@ -197,7 +197,7 @@ The following arguments are supported:
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed AAD Tenant Ids For Linking. 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed AAD Tenant Ids For Linking.
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group.
 
@@ -253,7 +253,11 @@ A `customer_managed_key` block supports the following:
 
 The `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Synapse Workspace. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be associated with this Synapse Workspace. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Synapse Workspace.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -269,7 +273,7 @@ A `github_repo` block supports the following:
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
-* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
+* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: <https://github.mydomain.com>.
 
 -> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
 

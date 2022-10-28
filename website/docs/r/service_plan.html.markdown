@@ -47,7 +47,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Isolated SKUs (`I1`, `I2`, `I3`, `I1v2`, `I2v2`, and `I3v2`) can only be used with App Service Environments
 
-~> **NOTE:** Elastic and Consumption SKUs (`Y1`, `EP1`, `EP2`, and `EP3`) are for use with Function Apps. 
+~> **NOTE:** Elastic and Consumption SKUs (`Y1`, `EP1`, `EP2`, and `EP3`) are for use with Function Apps.
 
 ---
 
@@ -57,25 +57,25 @@ The following arguments are supported:
 
 * `maximum_elastic_worker_count` - (Optional) The maximum number of workers to use in an Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
 
-* `worker_count` - (Optional) The number of Workers (instances) to be allocated. 
+* `worker_count` - (Optional) The number of Workers (instances) to be allocated.
 
 * `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
- 
+
 * `zone_balancing_enabled` - (Optional) Should the Service Plan balance across Availability Zones in the region. Defaults to `false`.
 
-~> **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region. 
+~> **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the AppService.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Service Plan.
 
 * `kind` - A string representing the Kind of Service Plan.
 
-* `reserved` - Whether this is a reserved Service Plan Type. `true` if `os_type` is `Linux`, otherwise `false`. 
+* `reserved` - Whether this is a reserved Service Plan Type. `true` if `os_type` is `Linux`, otherwise `false`.
 
 ## Timeouts
 

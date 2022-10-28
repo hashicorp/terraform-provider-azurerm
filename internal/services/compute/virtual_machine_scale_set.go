@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
@@ -74,9 +74,9 @@ func expandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 		Type: compute.ResourceIdentityType(string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
+		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{
+			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
 				// intentionally empty
 			}
 		}
@@ -178,14 +178,21 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 	}
 }
 
-func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
+func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 100,
+		Computed: !features.FourPointOhBeta(),
+		ConflictsWith: func() []string {
+			if !features.FourPointOhBeta() {
+				return []string{"gallery_applications"}
+			}
+			return []string{}
+		}(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"package_reference_id": {
+				"version_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -193,7 +200,7 @@ func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
 				},
 
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
-				"configuration_reference_blob_uri": {
+				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -218,6 +225,119 @@ func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      100,
+		Computed:      !features.FourPointOhBeta(),
+		ConflictsWith: []string{"gallery_application"},
+		Deprecated:    "`gallery_applications` has been renamed to `gallery_application` and will be deprecated in 4.0",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"package_reference_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.GalleryApplicationVersionID,
+					Deprecated:   "`package_reference_id` has been renamed to `version_id` and will be deprecated in 4.0",
+				},
+
+				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
+				"configuration_reference_blob_uri": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					Deprecated:   "`configuration_reference_blob_uri` has been renamed to `configuration_blob_uri` and will be deprecated in 4.0",
+				},
+
+				"order": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 2147483647),
+				},
+
+				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
+				"tag": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineScaleSetGalleryApplication(input []interface{}) *[]compute.VMGalleryApplication {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]compute.VMGalleryApplication, 0)
+
+	for _, v := range input {
+		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
+		order := v.(map[string]interface{})["order"].(int)
+		tag := v.(map[string]interface{})["tag"].(string)
+
+		app := &compute.VMGalleryApplication{
+			PackageReferenceID:     utils.String(packageReferenceId),
+			ConfigurationReference: utils.String(configurationReference),
+			Order:                  utils.Int32(int32(order)),
+			Tags:                   utils.String(tag),
+		}
+
+		out = append(out, *app)
+	}
+
+	return &out
+}
+
+func flattenVirtualMachineScaleSetGalleryApplication(input *[]compute.VMGalleryApplication) []interface{} {
+	if len(*input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var packageReferenceId, configurationReference, tag string
+		var order int
+
+		if v.PackageReferenceID != nil {
+			packageReferenceId = *v.PackageReferenceID
+		}
+
+		if v.ConfigurationReference != nil {
+			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.Order != nil {
+			order = int(*v.Order)
+		}
+
+		if v.Tags != nil {
+			tag = *v.Tags
+		}
+
+		app := map[string]interface{}{
+			"version_id":             packageReferenceId,
+			"configuration_blob_uri": configurationReference,
+			"order":                  order,
+			"tag":                    tag,
+		}
+
+		out = append(out, app)
+	}
+
+	return out
 }
 
 func expandVirtualMachineScaleSetGalleryApplications(input []interface{}) *[]compute.VMGalleryApplication {

@@ -100,6 +100,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 ## Arguments Reference
 
 The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `machine_learning_workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning Compute Cluster to be created.
@@ -113,6 +114,7 @@ The following arguments are supported:
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
   
 ---
+
 * `ssh` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `ssh` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
@@ -158,7 +160,7 @@ A `scale_settings` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Machine Learning Compute Cluster.
 

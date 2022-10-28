@@ -755,10 +755,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationBasic(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsBasic(data),
+			Config: r.otherGalleryApplicationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -771,7 +771,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationComplete(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsComplete(data),
+			Config: r.otherGalleryApplicationComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3067,7 +3067,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationsBasic(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3105,14 +3105,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
   }
 }
-`, r.otherGalleryApplicationsTemplate(data), data.RandomInteger)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationsComplete(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3150,17 +3150,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id             = azurerm_gallery_application_version.test.id
-    configuration_reference_blob_uri = azurerm_storage_blob.test2.id
-    order                            = 1
-    tag                              = "app"
+  gallery_application {
+    version_id             = azurerm_gallery_application_version.test.id
+    configuration_blob_uri = azurerm_storage_blob.test2.id
+    order                  = 1
+    tag                    = "app"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data), data.RandomInteger)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationsTemplate(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

@@ -225,6 +225,9 @@ service/postgresql:
 service/power-bi:
   - internal/services/powerbi/**/*
 
+service/private-dns-resolver:
+  - internal/services/privatednsresolver/**/*
+
 service/purview:
   - internal/services/purview/**/*
 

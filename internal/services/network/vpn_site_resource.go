@@ -47,7 +47,7 @@ func resourceVpnSite() *pluginsdk.Resource {
 				ValidateFunc: validate.VpnSiteName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 

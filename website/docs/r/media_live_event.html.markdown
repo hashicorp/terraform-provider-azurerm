@@ -107,6 +107,7 @@ The following arguments are supported:
 * `transcription_languages` - (Optional) Specifies a list of languages (locale) to be used for speech-to-text transcription – it should match the spoken language in the audio track. The value should be in `BCP-47` format (e.g: `en-US`). [See the Microsoft Documentation for more information about the live transcription feature and the list of supported languages](https://go.microsoft.com/fwlink/?linkid=2133742 ).
 
 * `use_static_hostname` - (Optional) Specifies whether a static hostname would be assigned to the live event preview and ingest endpoints. Changing this forces a new Live Event to be created.
+
 ---
 
 A `cross_site_access_policy` block supports the following:
@@ -165,7 +166,7 @@ A `preview` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Live Event.
 

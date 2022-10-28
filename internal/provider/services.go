@@ -85,6 +85,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
@@ -129,10 +130,12 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
+		databricks.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
+		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
 		loadbalancer.Registration{},
@@ -141,6 +144,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mssql.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
+		privatednsresolver.Registration{},
 		recoveryservices.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},

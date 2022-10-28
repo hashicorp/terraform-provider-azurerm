@@ -329,13 +329,28 @@ func TestAccWindowsVirtualMachine_diskOSWriteAcceleratorEnabled(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithGuestStateOnly(t *testing.T) {
+func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithGuestStateOnlySecureBootEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSConfidentialVmWithGuestStateOnly(data),
+			Config: r.diskOSConfidentialVmWithGuestStateOnly(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithGuestStateOnlySecureBootDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSConfidentialVmWithGuestStateOnly(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -864,7 +879,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), enabled)
 }
 
-func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
@@ -894,10 +909,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  vtpm_enabled        = true
-  secure_boot_enabled = true
+  vtpm_enabled        = %t
+  secure_boot_enabled = %t
 }
-`, r.template(data))
+`, r.template(data), vtpm, secureBoot)
 }
 
 func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {

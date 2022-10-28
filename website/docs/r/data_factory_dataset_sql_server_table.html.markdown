@@ -71,7 +71,6 @@ A `schema_column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-
 ## Attributes Reference
 
 The following attributes are exported:

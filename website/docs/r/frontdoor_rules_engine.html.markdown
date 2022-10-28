@@ -3,12 +3,14 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_rules_engine"
 description: |-
-  Manages an Azure Front Door Rules Engine configuration and rules.
+  Manages an Azure Front Door (classic) Rules Engine configuration and rules.
 ---
 
 # azurerm_frontdoor_rules_engine
 
-Manages an Azure Front Door Rules Engine configuration and rules.
+Manages an Azure Front Door (classic) Rules Engine configuration and rules.
+
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
 
 ## Example Usage
 

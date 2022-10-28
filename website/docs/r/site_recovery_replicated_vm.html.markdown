@@ -246,7 +246,7 @@ The following arguments are supported:
 
 * `managed_disk` - (Required) One or more `managed_disk` block.
 
-* `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover). 
+* `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
 * `network_interface` - (Optional) One or more `network_interface` block.
 

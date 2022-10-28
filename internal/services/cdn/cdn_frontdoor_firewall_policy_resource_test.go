@@ -289,12 +289,12 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   }
 
   managed_rule {
-    type    = "DefaultRuleSet"
-    version = "1.0"
+    type    = "Microsoft_DefaultRuleSet"
+    version = "2.0"
     action  = "Block"
 
     exclusion {
-      match_variable = "QueryStringArgNames"
+      match_variable = "RequestBodyJsonArgNames"
       operator       = "Equals"
       selector       = "not_suspicious"
     }
@@ -305,7 +305,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
       rule {
         rule_id = "933100"
         enabled = false
-        action  = "Block"
+        action  = "Log"
       }
     }
 
@@ -320,7 +320,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
       rule {
         rule_id = "942200"
-        action  = "Block"
+        action  = "Log"
 
         exclusion {
           match_variable = "QueryStringArgNames"

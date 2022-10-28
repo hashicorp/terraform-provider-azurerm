@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management Group.
 
-
 ## Example Usage
 
 ```hcl
@@ -37,7 +36,6 @@ resource "azurerm_api_management_group" "example" {
   description         = "This is an example API management group."
 }
 ```
-
 
 ## Argument Reference
 

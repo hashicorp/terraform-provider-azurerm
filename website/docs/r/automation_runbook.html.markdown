@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
 
-* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell` or `Script`.
+* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `Python3`, `Python2` or `Script`.
 
 * `log_progress` - (Required) Progress log option.
 
@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. 
+* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks.
 Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
 
 * `draft` - (Required) A `draft` block as defined below .

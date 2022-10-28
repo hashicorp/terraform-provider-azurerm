@@ -152,7 +152,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `gallery_applications` - (Optional) A `gallery_applications` block as defined below.
+* `gallery_application` - (Optional) A `gallery_application` block as defined below.
 
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
@@ -348,13 +348,11 @@ An `extension` block supports the following:
 
 ---
 
-A `gallery_applications` block supports the following:
+A `gallery_application` block supports the following:
 
-* `package_reference_id` - (Required) Specifies the Gallery Application Version resource ID. Changing this forces a new resource to be created.
+* `version_id` - (Required) Specifies the Gallery Application Version resource ID. Changing this forces a new resource to be created.
 
--> **NOTE:** The `package_reference_id` should be in the form of `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/applications/application1/versions/version1`.
-
-* `configuration_reference_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resource to be created.
+* `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resource to be created.
 
 * `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`. Changing this forces a new resource to be created.
 
@@ -456,7 +454,7 @@ An `os_disk` block supports the following:
 
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine Scale Set is Confidential VMSS. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
--> **NOTE:** `secure_boot_enabled` and `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
+-> **NOTE:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
 
 -> **NOTE:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 

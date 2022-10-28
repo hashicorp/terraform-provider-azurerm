@@ -28,13 +28,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_api_management":                 dataSourceApiManagementService(),
-		"azurerm_api_management_api":             dataSourceApiManagementApi(),
-		"azurerm_api_management_api_version_set": dataSourceApiManagementApiVersionSet(),
-		"azurerm_api_management_gateway":         dataSourceApiManagementGateway(),
-		"azurerm_api_management_group":           dataSourceApiManagementGroup(),
-		"azurerm_api_management_product":         dataSourceApiManagementProduct(),
-		"azurerm_api_management_user":            dataSourceApiManagementUser(),
+		"azurerm_api_management":                                 dataSourceApiManagementService(),
+		"azurerm_api_management_api":                             dataSourceApiManagementApi(),
+		"azurerm_api_management_api_version_set":                 dataSourceApiManagementApiVersionSet(),
+		"azurerm_api_management_gateway":                         dataSourceApiManagementGateway(),
+		"azurerm_api_management_gateway_host_name_configuration": dataSourceApiManagementGatewayHostNameConfiguration(),
+		"azurerm_api_management_group":                           dataSourceApiManagementGroup(),
+		"azurerm_api_management_product":                         dataSourceApiManagementProduct(),
+		"azurerm_api_management_user":                            dataSourceApiManagementUser(),
 	}
 }
 
@@ -45,8 +46,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_api":                             resourceApiManagementApi(),
 		"azurerm_api_management_api_diagnostic":                  resourceApiManagementApiDiagnostic(),
 		"azurerm_api_management_api_operation":                   resourceApiManagementApiOperation(),
-		"azurerm_api_management_api_operation_tag":               resourceApiManagementApiOperationTag(),
 		"azurerm_api_management_api_operation_policy":            resourceApiManagementApiOperationPolicy(),
+		"azurerm_api_management_api_operation_tag":               resourceApiManagementApiOperationTag(),
 		"azurerm_api_management_api_policy":                      resourceApiManagementApiPolicy(),
 		"azurerm_api_management_api_release":                     resourceApiManagementApiRelease(),
 		"azurerm_api_management_api_schema":                      resourceApiManagementApiSchema(),
@@ -63,6 +64,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_gateway_api":                     resourceApiManagementGatewayApi(),
 		"azurerm_api_management_gateway_certificate_authority":   resourceApiManagementGatewayCertificateAuthority(),
 		"azurerm_api_management_gateway_host_name_configuration": resourceApiManagementGatewayHostNameConfiguration(),
+		"azurerm_api_management_global_schema":                   resourceApiManagementGlobalSchema(),
 		"azurerm_api_management_group":                           resourceApiManagementGroup(),
 		"azurerm_api_management_group_user":                      resourceApiManagementGroupUser(),
 		"azurerm_api_management_identity_provider_aad":           resourceApiManagementIdentityProviderAAD(),
@@ -76,13 +78,12 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_openid_connect_provider":         resourceApiManagementOpenIDConnectProvider(),
 		"azurerm_api_management_policy":                          resourceApiManagementPolicy(),
 		"azurerm_api_management_product":                         resourceApiManagementProduct(),
-		"azurerm_api_management_product_tag":                     resourceApiManagementProductTag(),
 		"azurerm_api_management_product_api":                     resourceApiManagementProductApi(),
 		"azurerm_api_management_product_group":                   resourceApiManagementProductGroup(),
 		"azurerm_api_management_product_policy":                  resourceApiManagementProductPolicy(),
+		"azurerm_api_management_product_tag":                     resourceApiManagementProductTag(),
 		"azurerm_api_management_redis_cache":                     resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                    resourceApiManagementSubscription(),
-		"azurerm_api_management_global_schema":                   resourceApiManagementGlobalSchema(),
 		"azurerm_api_management_tag":                             resourceApiManagementTag(),
 		"azurerm_api_management_user":                            resourceApiManagementUser(),
 	}

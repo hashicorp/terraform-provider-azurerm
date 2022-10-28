@@ -115,6 +115,29 @@ func SchemaHDInsightsGateway() *pluginsdk.Schema {
 	}
 }
 
+func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"compute_isolation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"host_sku": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
 func SchemaHDInsightsExternalMetastore() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -424,6 +447,21 @@ func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]hdinsight.Script
 	return &scriptActions
 }
 
+func ExpandHDInsightComputeIsolationProperties(input []interface{}) *hdinsight.ComputeIsolationProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
+	hostSku := v["host_sku"].(string)
+
+	return &hdinsight.ComputeIsolationProperties{
+		EnableComputeIsolation: &enableComputeIsolation,
+		HostSku:                &hostSku,
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
@@ -554,6 +592,29 @@ func ExpandHDInsightsNetwork(input []interface{}) *hdinsight.NetworkProperties {
 	return &hdinsight.NetworkProperties{
 		ResourceProviderConnection: connDir,
 		PrivateLink:                privateLink,
+	}
+}
+
+func FlattenHDInsightComputeIsolationProperties(input hdinsight.ComputeIsolationProperties) []interface{} {
+	var hostSku string
+	var enableComputeIsolation bool
+
+	if input.EnableComputeIsolation != nil {
+		enableComputeIsolation = *input.EnableComputeIsolation
+	}
+	if input.HostSku != nil {
+		hostSku = *input.HostSku
+	}
+
+	if !enableComputeIsolation {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"compute_isolation_enabled": enableComputeIsolation,
+			"host_sku":                  hostSku,
+		},
 	}
 }
 

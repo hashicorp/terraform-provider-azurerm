@@ -61,7 +61,6 @@ A `access_policy` block supports the following:
 
 * `start` - (Required) The ISO8061 UTC time at which this Access Policy should be valid from.
 
-
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:

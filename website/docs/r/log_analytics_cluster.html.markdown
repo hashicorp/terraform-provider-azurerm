@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_log_analytics_cluster
 
-~> **Note:** Log Analytics Clusters are subject to 14-day soft delete policy. Clusters created with the same resource group & name as a previously deleted cluster will be recovered rather than creating anew. 
+~> **Note:** Log Analytics Clusters are subject to 14-day soft delete policy. Clusters created with the same resource group & name as a previously deleted cluster will be recovered rather than creating anew.
 
 Manages a Log Analytics Cluster.
 
@@ -63,7 +63,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Log Analytics Cluster.
 

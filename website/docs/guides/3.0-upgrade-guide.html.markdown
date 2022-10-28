@@ -6,7 +6,9 @@ Azure Resource Manager: 3.0 Upgrade Guide
 
 ---
 
-# v3.0 of the AzureRM Provider
+# AzureRM Provider
+
+## AzureRM Provider Version v3.0
 
 The last major release for the AzureRM provider was in February 2020. Since then we've added support for nearly 400 Resources and 100 Data Sources, bringing the total supported features to 761 Resources and 238 Data Sources at the time of writing this guide.
 
@@ -66,6 +68,7 @@ More information on [how to pin the version of a Terraform Provider being used c
 -> **Note:** Version `2.97.0`-`2.99.0` of the Azure Provider allow you to opt-into the Beta of these features - [see the Beta guide for more information](https://registry.terraform.io/providers/hashicorp/azurerm/2.97.0/docs/guides/3.0-beta)
 
 At a high level, version 3.0 includes the following changes:
+
 * [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service)
 * [Soft Delete Recovery/Purging for Certificates, Keys, and Secrets](#soft-delete-for-key-vault)
 * [Switching to Microsoft Authentication Library (MSAL)](#switching-to-msal)
@@ -92,41 +95,41 @@ The following new **Data Sources** will be available:
 The following new **Resources** will be available:
 
 * [azurerm_app_service_source_control](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service_source_control)
-    * New Resource to apply Source Control configuration to Web and Function Apps (for use with Linux and Windows based versions)
+  * New Resource to apply Source Control configuration to Web and Function Apps (for use with Linux and Windows based versions)
 * [azurerm_app_service_source_control_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service_source_control_slot)
-    * New Resource to apply Source Control configuration to Web and Function App Slots (for use with Linux and Windows based versions)
+  * New Resource to apply Source Control configuration to Web and Function App Slots (for use with Linux and Windows based versions)
 * [azurerm_function_app_active_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_active_slot)
-    * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Function Apps.
+  * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Function Apps.
 * [azurerm_function_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_hybrid_connection)
   * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
 * [azurerm_linux_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app)
-    * Supersedes `azurerm_function_app` for Linux based Function Apps
+  * Supersedes `azurerm_function_app` for Linux based Function Apps
 * [azurerm_linux_function_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app_slot)
-    * Supersedes `azurerm_function_app_slot` for Deployment Slots on Linux based Function Apps
+  * Supersedes `azurerm_function_app_slot` for Deployment Slots on Linux based Function Apps
 * [azurerm_linux_web_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app)
-    * Supersedes `azurerm_app_service` for Linux based Web Apps
+  * Supersedes `azurerm_app_service` for Linux based Web Apps
 * [azurerm_linux_web_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app_slot)
-    * Supersedes `azurerm_app_service_slot` for Deployment Slots on Linux based Web Apps
+  * Supersedes `azurerm_app_service_slot` for Deployment Slots on Linux based Web Apps
 * [azurerm_service_plan](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan)
-    * Supersedes `azurerm_app_service_plan`
+  * Supersedes `azurerm_app_service_plan`
 * [azurerm_source_control_token](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/source_control_token)
-    * Supersedes `azurerm_app_service_source_control_token`
+  * Supersedes `azurerm_app_service_source_control_token`
 * [azurerm_web_app_active_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_active_slot)
-    * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Web Apps.
+  * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Web Apps.
 * [azurerm_web_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_hybrid_connection)
   * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
 * [azurerm_windows_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app)
-    * Supersedes `azurerm_function_app` for Windows based Function Apps.
+  * Supersedes `azurerm_function_app` for Windows based Function Apps.
 * [azurerm_windows_function_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app_slot)
-    * Supersedes `azurerm_function_app_slot` for Deployment Slots on Windows based Function Apps
+  * Supersedes `azurerm_function_app_slot` for Deployment Slots on Windows based Function Apps
 * [azurerm_windows_web_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_web_app)
-    * Supersedes `azurerm_app_service` for Windows based Web Apps.
+  * Supersedes `azurerm_app_service` for Windows based Web Apps.
 * [azurerm_windows_web_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_web_app_slot)
-    * Supersedes `azurerm_app_service_slot` for Deployment Slots on Windows based Web Apps
+  * Supersedes `azurerm_app_service_slot` for Deployment Slots on Windows based Web Apps
 
 ## Migrating to New & Renamed Resources
 
-When migrating to the new version of deprecated resources the schema may be different than what currently exists in state. Therefore, it is recommended to first update your terraform configuration with the new resource, use `terraform state rm`, and then `terraform import`. 
+When migrating to the new version of deprecated resources the schema may be different than what currently exists in state. Therefore, it is recommended to first update your terraform configuration with the new resource, use `terraform state rm`, and then `terraform import`.
 
 A guide on how to do this can be found in the [Migrating from Deprecated Resources Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/migrating-from-deprecated-resources) and a tutorial for `terraform import` can be found [here](https://learn.hashicorp.com/tutorials/terraform/state-import)
 
@@ -168,7 +171,7 @@ Authentication to APIs such as Resource Manager was previously performed using t
 
 **Resources with a `min_tls_version` field:** The default minimum TLS version will be `1.2`.
 
-**Resources supporting Availability Zones (containing a `zones` field):** 
+**Resources supporting Availability Zones (containing a `zones` field):**
 
 Zones will be made behaviourally consistent across the Provider, that means:
 
@@ -203,7 +206,7 @@ When the resource can be provisioned across multiple Zones, the following behavi
 * `azurerm_database_migration_service` - The provider will now delete this resource even if it still contains running tasks.
 * `azurerm_iothub` - When creating a new `azurerm_iothub` resource, a Fallback Route will be enabled by default.
 * `azurerm_mssql_database` - The new field `transparent_data_encryption_enabled` will be set to `true` and can not be disabled on servers with SKUs other than ones starting with `DW`.
-* `azurerm_storage_share` - The `quota` property is now required instead of defaulting to `5120` GB. 
+* `azurerm_storage_share` - The `quota` property is now required instead of defaulting to `5120` GB.
 
 ## Removal of Deprecated Fields, Data Sources and Resources
 
@@ -669,35 +672,35 @@ The field `customer_managed_key_identity_id` must be supplied if `customer_manag
 
 ## Resource: `azurerm_data_lake_analytics_account`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
 
 ## Resource: `azurerm_data_lake_analytics_firewall_rule`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
 
 ### Resource `azurerm_data_lake_store_file`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
 
 ### Resource `azurerm_data_lake_store_firewall_rule`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
 
 ### Resource `azurerm_data_lake_store`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
 
 ### Resource `azurerm_data_lake_store_virtual_network_rule`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
 
 ## Resource: `azurerm_data_share_dataset_data_lake_gen1`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
 
 ### Resource: `azurerm_devspace_controller`
 
-The `azurerm_devspace_controller` resource will be removed since DevSpace Controllers are deprecated and new Controllers cannot be provisioned. 
+The `azurerm_devspace_controller` resource will be removed since DevSpace Controllers are deprecated and new Controllers cannot be provisioned.
 
 ### Resource: `azurerm_eventgrid_event_subscription`
 
@@ -1089,7 +1092,7 @@ The deprecated block `extended_auditing_policy` will be removed and replaced by 
 
 The default value of the field `minimum_tls_version` will be set to `1.2`.
 
-The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). 
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
 
 ### Resource: `azurerm_mysql_server`
 

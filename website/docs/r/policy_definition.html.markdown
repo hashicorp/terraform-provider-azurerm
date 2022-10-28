@@ -30,7 +30,7 @@ METADATA
 
 
   policy_rule = <<POLICY_RULE
-	{
+ {
     "if": {
       "not": {
         "field": "location",
@@ -45,7 +45,7 @@ POLICY_RULE
 
 
   parameters = <<PARAMETERS
-	{
+ {
     "allowedLocations": {
       "type": "Array",
       "metadata": {

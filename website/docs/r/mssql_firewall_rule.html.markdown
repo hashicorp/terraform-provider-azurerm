@@ -34,6 +34,7 @@ resource "azurerm_mssql_firewall_rule" "example" {
   end_ip_address   = "10.0.17.62"
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
