@@ -3,6 +3,8 @@
 ENHANCEMENTS:
 
 * `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
+* `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
+* `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 
 BUG FIXES:
 
