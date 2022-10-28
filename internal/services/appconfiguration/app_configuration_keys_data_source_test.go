@@ -18,7 +18,7 @@ func TestAccAppConfigurationKeysDataSource_allkeys(t *testing.T) {
 		{
 			Config: d.allKeys(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("items.#").HasValue("4"),
+				check.That(data.ResourceName).Key("items.#").HasValue("5"),
 			),
 		},
 	})
