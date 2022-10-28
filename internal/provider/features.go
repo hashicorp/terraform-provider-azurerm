@@ -246,6 +246,11 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
+					"extension_types_to_ignore": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Default:  []string{},
+					},
 				},
 			},
 		},
@@ -427,6 +432,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := scaleSetRaw["scale_to_zero_before_deletion"]; ok {
 				featuresMap.VirtualMachineScaleSet.ScaleToZeroOnDelete = v.(bool)
+			}
+			if v, ok := scaleSetRaw["extension_types_to_ignore"]; ok {
+				featuresMap.VirtualMachineScaleSet.ExtensionTypesToIgnore = v.([]string)
 			}
 		}
 	}

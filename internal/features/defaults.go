@@ -46,6 +46,7 @@ func Default() UserFeatures {
 			ForceDelete:               false,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
+			ExtensionTypesToIgnore:    []string{},
 		},
 	}
 }
