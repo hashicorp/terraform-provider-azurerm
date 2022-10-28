@@ -1,3 +1,9 @@
+## 3.29.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
+
 ## 3.29.0 (October 27, 2022)
 
 FEATURES:
