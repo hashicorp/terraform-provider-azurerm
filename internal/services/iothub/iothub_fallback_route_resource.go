@@ -53,6 +53,7 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 					string(devices.RoutingSourceDeviceJobLifecycleEvents),
 					string(devices.RoutingSourceDeviceLifecycleEvents),
 					string(devices.RoutingSourceDeviceMessages),
+					"DigitalTwinChangeEvents", // TODO: bug in azure-sdk-for-go
 					string(devices.RoutingSourceInvalid),
 					string(devices.RoutingSourceTwinChangeEvents),
 				}, false),
