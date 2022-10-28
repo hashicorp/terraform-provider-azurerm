@@ -112,7 +112,7 @@ func (r ContactResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			contactProfile := contact.ResourceReference{
