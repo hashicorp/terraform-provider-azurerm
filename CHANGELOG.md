@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_container_group` - the `network_profile_id` property hasbeen deprecated in favour of `subnet_ids` as the newer versions of the API no longer support it [GH-17785]
 * `azurerm_cdn_frontdoor_rule` - allow the `cdn_frontdoor_origin_group_id` field to be optional in the `route_configuration_override_action` [GH-18906]
 * `azurerm_cdn_frontdoor_rule` - expose `Disabled` as a possible value of `cache_behavior` in the `route_configuration_override_action` [GH-18906]
+* `azurerm_disk_encryption_set` - support for identities `UserAssigned` and `SystemAssigned,UserAssgined` [GH-18525]
 * `azurerm_hdinsight_kafka_cluster` - support for the `compute_isolation` block [GH-17449]
 * `azurerm_hdinsight_spark_cluster` - support for the `compute_isolation` block [GH-17449]
 * `azurerm_hdinsight_interactive_query_cluster` - support for the `compute_isolation` block [GH-17449]
