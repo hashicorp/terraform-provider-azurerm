@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
 
+BUG FIXES:
+
+* Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
+
 ## 3.29.0 (October 27, 2022)
 
 FEATURES:
