@@ -453,9 +453,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		d.Set("virtual_network_gateway_id", conn.VirtualNetworkGateway1.ID)
 	}
 
-	if conn.AuthorizationKey != nil {
-		d.Set("authorization_key", conn.AuthorizationKey)
-	}
+	// not returned from api - getting from state
+	d.Set("authorization_key", d.Get("authorization_key").(string))
 
 	if conn.DpdTimeoutSeconds != nil {
 		d.Set("dpd_timeout_seconds", conn.DpdTimeoutSeconds)
