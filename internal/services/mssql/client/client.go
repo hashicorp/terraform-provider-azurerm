@@ -34,6 +34,7 @@ type Client struct {
 	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
 	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
+	ServerDevOpsAuditSettingsClient                    *sql.ServerDevOpsAuditSettingsClient
 	ServerKeysClient                                   *sql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
@@ -125,6 +126,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverExtendedBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	serverDevOpsAuditSettingsClient := sql.NewServerDevOpsAuditSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverDevOpsAuditSettingsClient.Client, o.ResourceManagerAuthorizer)
+
 	serverKeysClient := sql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverKeysClient.Client, o.ResourceManagerAuthorizer)
 
@@ -174,6 +178,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerConnectionPoliciesClient:                  &serverConnectionPoliciesClient,
 		ServerDNSAliasClient:                            &serverDNSAliasClient,
 		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
+		ServerDevOpsAuditSettingsClient:                 &serverDevOpsAuditSettingsClient,
 		ServerKeysClient:                                &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:               &serverSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient:            &serverVulnerabilityAssessmentsClient,
