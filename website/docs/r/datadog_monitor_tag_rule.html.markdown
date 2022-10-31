@@ -91,4 +91,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Tag Rules on the Datadog Monitor can be imported using the `tag rule resource id`, e.g.
 
 ```shell
-terraform import azurerm_datadog_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Datadog/monitors/monitor1/tagRules/default
+terraform import azurerm_datadog_monitor_tag_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Datadog/monitors/monitor1/tagRules/default
