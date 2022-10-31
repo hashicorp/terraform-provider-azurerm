@@ -48,7 +48,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Contact.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Security Center Contact.
 
-
 ## Import
 
 The contact can be imported using the `resource id`, e.g.

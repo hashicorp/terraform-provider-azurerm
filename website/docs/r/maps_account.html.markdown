@@ -41,7 +41,6 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:

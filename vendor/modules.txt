@@ -9,7 +9,6 @@ github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
-github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
 github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
@@ -57,6 +56,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/s
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
+github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup
@@ -75,7 +75,6 @@ github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagec
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
 github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
-github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse
 github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
 github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub
@@ -207,7 +206,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedh
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance
@@ -239,6 +240,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/workspace
 github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate
 github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource
+github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/dns
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets
@@ -595,6 +597,9 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
+# github.com/tombuildsstuff/kermit v0.20221025.1151856
+## explicit; go 1.18
+github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack

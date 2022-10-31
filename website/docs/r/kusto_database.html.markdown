@@ -56,7 +56,6 @@ The following arguments are supported:
 
 * `soft_delete_period` - (Optional) The time the data should be kept before it stops being accessible to queries as ISO 8601 timespan. Default is unlimited. For more information see: [ISO 8601 Timespan](https://en.wikipedia.org/wiki/ISO_8601#Durations)
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -66,8 +65,6 @@ The following attributes are exported:
 * `size` - The size of the database in bytes.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

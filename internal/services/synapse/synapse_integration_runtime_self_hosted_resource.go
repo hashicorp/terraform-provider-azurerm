@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -99,7 +99,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Resour
 		Name: utils.String(id.Name),
 		Properties: synapse.SelfHostedIntegrationRuntime{
 			Description: utils.String(d.Get("description").(string)),
-			Type:        synapse.TypeSelfHosted,
+			Type:        synapse.TypeBasicIntegrationRuntimeTypeSelfHosted,
 		},
 	}
 

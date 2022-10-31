@@ -54,7 +54,7 @@ The following arguments are supported:
 
 ---
 
-A `schedule` block supports the following: 
+A `schedule` block supports the following:
 
 * `at_these_minutes` - Specifies a list of minutes when the trigger should run. Valid values are between 0 and 59.
 

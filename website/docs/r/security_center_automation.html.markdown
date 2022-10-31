@@ -141,7 +141,6 @@ A `rule` block supports the following:
 
 ~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
 
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

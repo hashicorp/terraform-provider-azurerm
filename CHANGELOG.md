@@ -1,50 +1,92 @@
-## 3.29.0 (Unreleased)
-
-FEATURES:
-
-* **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` [GH-18903]
-* **New Resource:** `azurerm_nginx_configuration` [GH-18761]
-* **New Resource:** `azurerm_nginx_certificate` [GH-18762]
-* **New Resource:** `azurerm_private_dns_resolver` [GH-18473]
+## 3.30.0 (Unreleased)
 
 ENHANCEMENTS:
 
-* dependencies `containerinstance` - updating to use `2021-10-01` [GH-17785]
-* Dependencies: update `go-azure-helpers` to `v0.45.0` [GH-18968]
-* containerservice: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18705]
-* customproviders - refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18978]
-* disks: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18928]
-* Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` [GH-18898]
-* `azurerm_container_group` - the `network_profile_id` property hasbeen deprecated in favour of `subnet_ids` as the newer versions of the API no longer support it [GH-17785]
-* `azurerm_hdinsight_kafka_cluster` - support for the `compute_isolation` block [GH-17449]
-* `azurerm_hdinsight_spark_cluster` - support for the `compute_isolation` block [GH-17449]
-* `azurerm_hdinsight_interactive_query_cluster` - support for the `compute_isolation` block [GH-17449]
-* `azurerm_hdinsight_hbase_cluster` - support for the `compute_isolation` block [GH-17449]
-* `azurerm_hdinsight_hadoop_cluster` - support for the `compute_isolation` block [GH-17449]
-* `azurerm_container_group` - support for the `dns_name_label_reuse_policy` block [GH-17785]
-* `azurerm_linux_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
-* `azurerm_linux_function_app` - support for Java 17 [GH-18689]
-* `azurerm_linux_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
-* `azurerm_logic_app_action_http` - support for the `queries` property [GH-18934]
-* `azurerm_monitor_scheduled_query_rules_alert_v2` - add `evaluation_frequency`, `window_duration`, `mute_actions_after_alert_duration`, and `query_time_range_override`validation [GH-18960]
-* `azurerm_mssql_virtual_machine` - =support for the `assessment` block [GH-18923]
-* `azurerm_logic_app_standard` - support for the `scm_ip_restriction` block and the `scm_use_main_ip_restriction`, `scm_min_tls_version`, `scm_type` properties [GH-18853]
-* `azurerm_postgresql_server` - can now set `public_network_access_enabled` during creation when point in time restore is used [GH-18962]
-* `azurerm_servicebus_namespace_disaster_recovery_config` - support the `alias_authorization_rule_id` property [GH-18729]
-* `azurerm_synapse_workspace` - `sql_administrator_login` and `sql_administrator_login_password` are now no longer required for the creation of this resource [GH-18850]
-* `azurerm_windows_function_app` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
-* `azurerm_windows_function_app` - support for Java 17 [GH-18689]
-* `azurerm_windows_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations [GH-18760]
+* `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
+* `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
+* `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 
 BUG FIXES:
 
-*  provider: will no loner automatically register the `Microsoft.StoragePool` provider as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
-* `azurerm_disk_pool` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
-* `azurerm_disk_pool_iscsi_target` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
-* `azurerm_disk_pool_iscsi_target_lun` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
-* `azurerm_disk_pool_managed_disk_attachment` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available [GH-18905]
-* `azurerm_key_vault_certificate` - new versions of key vault certs can now be imported [GH-18848]
-* `azurerm_postgresql_server` - correctly create replicas when CMK is enabled [GH-18805]
+* Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
+
+## 3.29.1 (October 28, 2022)
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - prevent panic when setting `public_network_access_enabled` [GH-19048]
+
+## 3.29.0 (October 27, 2022)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_api_management_gateway_host_name_configuration` ([#17166](https://github.com/hashicorp/terraform-provider-azurerm/issues/17166))
+* **New Data Source:** `azurerm_cdn_frontdoor_firewall_policy` ([#18903](https://github.com/hashicorp/terraform-provider-azurerm/issues/18903))
+* **New Resource:** `azurerm_datadog_monitor_tag_rule` ([#17825](https://github.com/hashicorp/terraform-provider-azurerm/issues/17825))
+* **New Resource:** `azurerm_datadog_monitor_sso_configuration` ([#17825](https://github.com/hashicorp/terraform-provider-azurerm/issues/17825))
+* **New Resource:** `azurerm_iothub_device_update_account` ([#18789](https://github.com/hashicorp/terraform-provider-azurerm/issues/18789))
+* **New Resource:** `azurerm_iothub_device_update_instance` ([#18789](https://github.com/hashicorp/terraform-provider-azurerm/issues/18789))
+* **New Resource:** `azurerm_nginx_configuration` ([#18761](https://github.com/hashicorp/terraform-provider-azurerm/issues/18761))
+* **New Resource:** `azurerm_nginx_certificate` ([#18762](https://github.com/hashicorp/terraform-provider-azurerm/issues/18762))
+* **New Resource:** `azurerm_private_dns_resolver` ([#18473](https://github.com/hashicorp/terraform-provider-azurerm/issues/18473))
+* **New Resource:** `azurerm_private_dns_resolver_dns_forwarding_ruleset` ([#19012](https://github.com/hashicorp/terraform-provider-azurerm/issues/19012))
+* **New Resource:** `azurerm_private_dns_resolver_inbound_endpoint` ([#18983](https://github.com/hashicorp/terraform-provider-azurerm/issues/18983))
+* **New Resource:** `azurerm_private_dns_resolver_outbound_endpoint` ([#18986](https://github.com/hashicorp/terraform-provider-azurerm/issues/18986))
+
+ENHANCEMENTS:
+
+* Dependencies `compute` - updating to `2022-08-01` ([#18994](https://github.com/hashicorp/terraform-provider-azurerm/issues/18994))
+* Dependencies `containerinstance` - updating to `2021-10-01` ([#17785](https://github.com/hashicorp/terraform-provider-azurerm/issues/17785))
+* Dependencies: update `go-azure-helpers` to `v0.45.0` ([#18968](https://github.com/hashicorp/terraform-provider-azurerm/issues/18968))
+* containerservice: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#18705](https://github.com/hashicorp/terraform-provider-azurerm/issues/18705))
+* customproviders - refactoring to use `github.com/hashicorp/go-azure-sdk` ([#18978](https://github.com/hashicorp/terraform-provider-azurerm/issues/18978))
+* snapshot - refactoring to use `github.com/hashicorp/go-azure-sdk` ([#18957](https://github.com/hashicorp/terraform-provider-azurerm/issues/18957))
+* disks: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#18928](https://github.com/hashicorp/terraform-provider-azurerm/issues/18928))
+* Data Source: `azurerm_storage_management_policy` - add support for `tier_to_archive_after_days_since_last_tier_change_greater_than` ([#18898](https://github.com/hashicorp/terraform-provider-azurerm/issues/18898))
+* `azurerm_container_group` - the `network_profile_id` property hasbeen deprecated in favour of `subnet_ids` as the newer versions of the API no longer support it ([#17785](https://github.com/hashicorp/terraform-provider-azurerm/issues/17785))
+* `azurerm_cdn_frontdoor_rule` - allow the `cdn_frontdoor_origin_group_id` field to be optional in the `route_configuration_override_action` ([#18906](https://github.com/hashicorp/terraform-provider-azurerm/issues/18906))
+* `azurerm_cdn_frontdoor_rule` - expose `Disabled` as a possible value of `cache_behavior` in the `route_configuration_override_action` ([#18906](https://github.com/hashicorp/terraform-provider-azurerm/issues/18906))
+* `azurerm_disk_encryption_set` - support for identities `UserAssigned` and `SystemAssigned,UserAssgined` ([#18525](https://github.com/hashicorp/terraform-provider-azurerm/issues/18525))
+* `azurerm_hdinsight_kafka_cluster` - support for the `compute_isolation` block ([#17449](https://github.com/hashicorp/terraform-provider-azurerm/issues/17449))
+* `azurerm_hdinsight_spark_cluster` - support for the `compute_isolation` block ([#17449](https://github.com/hashicorp/terraform-provider-azurerm/issues/17449))
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `compute_isolation` block ([#17449](https://github.com/hashicorp/terraform-provider-azurerm/issues/17449))
+* `azurerm_hdinsight_hbase_cluster` - support for the `compute_isolation` block ([#17449](https://github.com/hashicorp/terraform-provider-azurerm/issues/17449))
+* `azurerm_hdinsight_hadoop_cluster` - support for the `compute_isolation` block ([#17449](https://github.com/hashicorp/terraform-provider-azurerm/issues/17449))
+* `azurerm_container_group` - support for the `dns_name_label_reuse_policy` block ([#17785](https://github.com/hashicorp/terraform-provider-azurerm/issues/17785))
+* `azurerm_kubernetes_cluster` - support for the `workload_autoscaler_profile` block ([#18967](https://github.com/hashicorp/terraform-provider-azurerm/issues/18967))
+* `azurerm_linux_function_app` - support for using `storage_account` external Azure Storage Account configurations ([#18760](https://github.com/hashicorp/terraform-provider-azurerm/issues/18760))
+* `azurerm_linux_function_app` - support for Java 17 ([#18689](https://github.com/hashicorp/terraform-provider-azurerm/issues/18689))
+* `azurerm_linux_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations ([#18760](https://github.com/hashicorp/terraform-provider-azurerm/issues/18760))
+* `azurerm_logic_app_action_http` - support for the `queries` property ([#18934](https://github.com/hashicorp/terraform-provider-azurerm/issues/18934))
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - add `evaluation_frequency`, `window_duration`, `mute_actions_after_alert_duration`, and `query_time_range_override`validation ([#18960](https://github.com/hashicorp/terraform-provider-azurerm/issues/18960))
+* `azurerm_mssql_virtual_machine` - =support for the `assessment` block ([#18923](https://github.com/hashicorp/terraform-provider-azurerm/issues/18923))
+* `azurerm_mssql_server_transparent_data_encryption` - support for autorotation of keyvault keys ([#18523](https://github.com/hashicorp/terraform-provider-azurerm/issues/18523))
+* `azurerm_logic_app_standard` - support for the `scm_ip_restriction` block and the `scm_use_main_ip_restriction`, `scm_min_tls_version`, `scm_type` properties ([#18853](https://github.com/hashicorp/terraform-provider-azurerm/issues/18853))
+* `azurerm_postgresql_server` - can now set `public_network_access_enabled` during creation when point in time restore is used ([#18962](https://github.com/hashicorp/terraform-provider-azurerm/issues/18962))
+* `azurerm_servicebus_namespace_disaster_recovery_config` - support the `alias_authorization_rule_id` property ([#18729](https://github.com/hashicorp/terraform-provider-azurerm/issues/18729))
+* `azurerm_synapse_workspace` - `sql_administrator_login` and `sql_administrator_login_password` are now no longer required for the creation of this resource ([#18850](https://github.com/hashicorp/terraform-provider-azurerm/issues/18850))
+* `azurerm_synapse_workspace` - enable user assigned managed identity ([#19007](https://github.com/hashicorp/terraform-provider-azurerm/issues/19007))
+* `azurerm_windows_function_app` - support for using `storage_account` external Azure Storage Account configurations ([#18760](https://github.com/hashicorp/terraform-provider-azurerm/issues/18760))
+* `azurerm_windows_function_app` - support for Java 17 ([#18689](https://github.com/hashicorp/terraform-provider-azurerm/issues/18689))
+* `azurerm_windows_function_app_slot` - support for using `storage_account` external Azure Storage Account configurations ([#18760](https://github.com/hashicorp/terraform-provider-azurerm/issues/18760))
+
+BUG FIXES:
+
+*  provider: will no loner automatically register the `Microsoft.StoragePool` provider as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available ([#18905](https://github.com/hashicorp/terraform-provider-azurerm/issues/18905))
+*  `azurerm_app_configuration_keys` - will now correctly retrieve result if more than 100 entries are returned ([#19020](https://github.com/hashicorp/terraform-provider-azurerm/issues/19020))
+* `azurerm_data_factory_dataset_parquet` - `azure_blob_storage_location.path` and `http_server_location.path` are now Optional ([#19009](https://github.com/hashicorp/terraform-provider-azurerm/issues/19009))
+* `azurerm_disk_pool` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available ([#18905](https://github.com/hashicorp/terraform-provider-azurerm/issues/18905))
+* `azurerm_disk_pool_iscsi_target` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available ([#18905](https://github.com/hashicorp/terraform-provider-azurerm/issues/18905))
+* `azurerm_disk_pool_iscsi_target_lun` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available ([#18905](https://github.com/hashicorp/terraform-provider-azurerm/issues/18905))
+* `azurerm_disk_pool_managed_disk_attachment` - has been deprecated as Azure has halted the preview of Azure Disk Pools, and it will not be made generally available ([#18905](https://github.com/hashicorp/terraform-provider-azurerm/issues/18905))
+* `azurerm_linux_virtual_machine_scale_set` - the `gallery_applications` block has been renamted to `gallery_application` ([#19014](https://github.com/hashicorp/terraform-provider-azurerm/issues/19014))
+* `azurerm_managed_disk` - `logical_sector_size`, `disk_iops_read_write`, `disk_mbps_read_write`, `disk_iops_read_only` and `disk_mbps_read_only` can be set when `storage_account_type` is `PremiumV2_LRS` ([#18991](https://github.com/hashicorp/terraform-provider-azurerm/issues/18991))
+* `azurerm_monitor_data_collection_rule` - correctly support streams ([#18966](https://github.com/hashicorp/terraform-provider-azurerm/issues/18966))
+* `azurerm_netapp_volume` - correctly set snapshot ID when `create_from_snapshot_resource_id` is specified ([#18996](https://github.com/hashicorp/terraform-provider-azurerm/issues/18996))
+* `azurerm_key_vault_certificate` - new versions of key vault certs can now be imported ([#18848](https://github.com/hashicorp/terraform-provider-azurerm/issues/18848))
+* `azurerm_postgresql_server` - correctly create replicas when CMK is enabled ([#18805](https://github.com/hashicorp/terraform-provider-azurerm/issues/18805))
+* `azurerm_stream_analytics_stream_input_eventhub` - `shared_access_policy_key` and `shared_access_policy_name` are no longer required ([#18959](https://github.com/hashicorp/terraform-provider-azurerm/issues/18959))
+* `azurerm_windows_virtual_machine_scale_set` - the `gallery_applications` block has been renamted to `gallery_application` ([#19014](https://github.com/hashicorp/terraform-provider-azurerm/issues/19014))
 
 ## 3.28.0 (October 20, 2022)
 
@@ -203,9 +245,9 @@ ENHANCEMENTS:
 * `azurerm_healthcare_fhir_service` - support for the `oci_artifact` block ([#18571](https://github.com/hashicorp/terraform-provider-azurerm/issues/18571))
 * `azurerm_healthcare_fhir` - support for the `public_network_access_enabled` property ([#18566](https://github.com/hashicorp/terraform-provider-azurerm/issues/18566))
 * `azurerm_iotcentral_application` - support for the `identity` and `public_network_access_enabled` properties ([#18564](https://github.com/hashicorp/terraform-provider-azurerm/issues/18564))
+* `azurerm_linux_virtual_machine` - support for the `gallery_application` property ([#18406](https://github.com/hashicorp/terraform-provider-azurerm/issues/18406))
 * `azurerm_machine_learning_workspace` - support for the `public_network_access_enabled` and `v1_legacy_mode` properties ([#18469](https://github.com/hashicorp/terraform-provider-azurerm/issues/18469))
 * `azurerm_storage_account` - support for the `multichannel_enabled` property ([#17999](https://github.com/hashicorp/terraform-provider-azurerm/issues/17999))
-* `azurerm_windows_virtual_machine` - support for the `gallery_application` property ([#18406](https://github.com/hashicorp/terraform-provider-azurerm/issues/18406))
 * `azurerm_virtual_hub_bgp_connection` - support for the `virtual_network_connection_id` property ([#18469](https://github.com/hashicorp/terraform-provider-azurerm/issues/18469))
 * `azurerm_windows_virtual_machine` - support for the `gallery_application` property ([#18406](https://github.com/hashicorp/terraform-provider-azurerm/issues/18406))
 

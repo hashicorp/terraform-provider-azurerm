@@ -90,11 +90,6 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
-						"path": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -109,6 +104,11 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -163,11 +163,6 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"path": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -182,6 +177,11 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},

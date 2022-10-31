@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -196,7 +196,15 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+	if !features.FourPointOhBeta() {
+		if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+			virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
+				GalleryApplications: galleryApplications,
+			}
+		}
+	}
+
+	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
 			GalleryApplications: galleryApplications,
 		}
@@ -945,7 +953,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("license_type", profile.LicenseType)
 
 		if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
-			d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
+
+			if !features.FourPointOhBeta() {
+				d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			}
 		}
 
 		// the service just return empty when this is not assigned when provisioned
@@ -1291,7 +1303,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
-		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
+		"gallery_application": VirtualMachineScaleSetGalleryApplicationSchema(),
 
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,
@@ -1469,6 +1481,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 	}
 
 	if !features.FourPointOhBeta() {
+		resourceSchema["gallery_applications"] = VirtualMachineScaleSetGalleryApplicationsSchema()
 		resourceSchema["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
 
 		resourceSchema["scale_in_policy"] = &schema.Schema{

@@ -167,7 +167,6 @@ A `scm` block exports the following:
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 
-
 ---
 
 A `sku` block exports the following:
@@ -177,7 +176,6 @@ A `sku` block exports the following:
 * `capacity` - Specifies the number of units associated with this API Management service.
 
 ---
-
 
 ## Timeouts
 

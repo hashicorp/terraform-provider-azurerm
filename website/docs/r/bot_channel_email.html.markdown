@@ -53,7 +53,6 @@ The following arguments are supported:
 
 * `email_password` - (Required) The email password that the Bot will authenticate with.
 
-
 ## Attributes Reference
 
 The following attributes are exported:

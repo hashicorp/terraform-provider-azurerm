@@ -216,6 +216,7 @@ A `os_profile` block supports the following:
 -> **NOTE:** If using Linux, it may be preferable to use SSH Key authentication (available in the `os_profile_linux_config` block) instead of password authentication.
 
 ~> **NOTE:** `admin_password` must be between 6-72 characters long and must satisfy at least 3 of password complexity requirements from the following:
+
 1. Contains an uppercase character
 2. Contains a lowercase character
 3. Contains a numeric digit
@@ -278,7 +279,6 @@ A `ssh_keys` block supports the following:
 * `path` - (Required) The path of the destination file on the virtual machine
 
 -> **NOTE:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
-
 
 ---
 

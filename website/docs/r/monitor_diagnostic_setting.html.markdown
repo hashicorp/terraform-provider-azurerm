@@ -131,7 +131,6 @@ A `retention_policy` block supports the following:
 
 -> **NOTE:** Setting this to `0` will retain the events indefinitely.
 
-
 ## Attributes Reference
 
 The following attributes are exported:

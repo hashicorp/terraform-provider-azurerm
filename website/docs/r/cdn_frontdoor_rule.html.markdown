@@ -197,7 +197,9 @@ An `url_redirect_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-* `cache_duration` - (Required) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
+->**NOTE:** In the v3.x of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will have default values. You can use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) functionality to ignore these default values. In v4.0 of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will **NOT** have default values and will need to be explicitly set in the configuration file.
+
+* `cache_duration` - (Optional) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`). Defaults to `1.12:00:00`.
 
 * `cdn_frontdoor_origin_group_id` - (Optional) The Front Door Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the Front Door Endpoint route.
 
@@ -211,11 +213,11 @@ A `route_configuration_override_action` block supports the following:
 
 ->**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
 
-* `compression_enabled` - (Optional) Should the Front Door Profile dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
+* `compression_enabled` - (Optional) Should the Front Door dynamically compress the content? Possible values include `true` or `false`. Defaults to `false`.
 
 ->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
-* `cache_behavior` - (Optional) `HonorOrigin` the Front Door Profile will always honor origin response header directive. If the origin directive is missing, Front Door Profile will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. Possible values include `HonorOrigin`, `OverrideAlways` or `OverrideIfOriginMissing`. Defaults to `HonorOrigin`.
+* `cache_behavior` - (Optional) `HonorOrigin` the Front Door will always honor origin response header directive. If the origin directive is missing, Front Door will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. `Disabled` the Front Door will not cache the response contents, irrespective of Front Door Origin response directives. Possible values include `HonorOrigin`, `OverrideAlways`, `OverrideIfOriginMissing` or `Disabled`. Defaults to `HonorOrigin`.
 
 ---
 
@@ -327,7 +329,7 @@ A `host_name_condition` block supports the following:
 
 A `server_port_condition` block supports the following:
 
-->The `server_port_condition` identifies requests based on which port of the Front Door Profile server accepted the request on.
+->The `server_port_condition` identifies requests based on which port of the Front Door server accepted the request on.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -351,7 +353,7 @@ A `client_port_condition` block supports the following:
 
 A `socket_address_condition` block supports the following:
 
-->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer. 
+->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
 
 ->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
@@ -383,7 +385,7 @@ A `remote_address_condition` block supports the following:
 
 A `request_method_condition` block supports the following:
 
-->The `request_method_condition` identifies requests that use the specified HTTP request method. 
+->The `request_method_condition` identifies requests that use the specified HTTP request method.
 
 * `match_values` - (Required) A list of one or more HTTP methods. Possible values include `GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS` or `TRACE`. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -594,14 +596,14 @@ Rule Set server variables provide access to structured information about the req
 | `geo_country`    | Indicates the requester's country/region of origin through its country/region code. |
 | `http_method`    | The method used to make the URL request, such as `GET` or `POST`. |
 | `http_version`   | The request protocol. Usually `HTTP/1.0`, `HTTP/1.1`, or `HTTP/2.0`. |
-| `query_string`   | The list of variable/value pairs that follows the "?" in the requested URL.<br/>For example, in the request `http://contoso.com:8080/article.aspx?id=123&title=fabrikam`, the `query_string` value will be `id=123&title=fabrikam`. |
+| `query_string`   | The list of variable/value pairs that follows the "?" in the requested URL. For example, in the request `http://contoso.com:8080/article.aspx?id=123&title=fabrikam`, the `query_string` value will be `id=123&title=fabrikam`. |
 | `request_scheme` | The request scheme: `http` or `https`. |
-| `request_uri`    | The full original request URI (with arguments).<br/>For example, in the request `http://contoso.com:8080/article.aspx?id=123&title=fabrikam`, the `request_uri` value will be `/article.aspx?id=123&title=fabrikam`. |
+| `request_uri`    | The full original request URI (with arguments). For example, in the request `http://contoso.com:8080/article.aspx?id=123&title=fabrikam`, the `request_uri` value will be `/article.aspx?id=123&title=fabrikam`. |
 | `ssl_protocol`   | The protocol of an established TLS connection. |
 | `server_port`    | The port of the server that accepted a request. |
-| `url_path`       | Identifies the specific resource in the host that the web client wants to access. This is the part of the request URI without the arguments.<br/>For example, in the request `http://contoso.com:8080/article.aspx?id=123&title=fabrikam`, the `uri_path` value will be `/article.aspx`. |
+| `url_path`       | Identifies the specific resource in the host that the web client wants to access. This is the part of the request URI without the arguments. For example, in the request `http://contoso.com:8080/article.aspx?id=123&title=fabrikam`, the `uri_path` value will be `/article.aspx`. |
 
-### Action Server Variable Format    
+### Action Server Variable Format
 
 Server variables can be specified using the following formats:
 

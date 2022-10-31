@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the App Configuration.
 
@@ -50,7 +50,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
 * `public_network_access` - The Public Network Access setting of this App Configuration.
- 
+
 * `purge_protection_enabled` - Whether Purge Protection is enabled.
 
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.

@@ -1900,16 +1900,16 @@ resource "azurerm_storage_blob" "test" {
   name                   = "script"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
   name                   = "script2"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script2"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {

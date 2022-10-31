@@ -26,6 +26,9 @@ require (
 	github.com/tombuildsstuff/giovanni v0.20.0
 	golang.org/x/crypto v0.1.0
 	golang.org/x/net v0.1.0
+	github.com/tombuildsstuff/kermit v0.20221025.1151856
+	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	gopkg.in/yaml.v3 v3.0.1
 )
 

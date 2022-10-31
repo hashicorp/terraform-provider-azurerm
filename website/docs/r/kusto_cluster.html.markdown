@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `engine` - (Optional). The engine type that will be used in the backend. Possible values are `V2` and `V3`. Defaults to `V2`. Changing this forces a new Kusto Cluster to be created.
 
-~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, default engine type will be changed to `V3`. 
+~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, default engine type will be changed to `V3`.
 
 ---
 
@@ -145,8 +145,6 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID associated with this System Assigned Managed Service Identity.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

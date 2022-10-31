@@ -67,9 +67,9 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Desktop Host Pool.
 
-* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.  
+* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
 
-* `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.    
+* `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.
 
 * `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/windows-server/remote/remote-desktop-services/clients/rdp-files).
 
@@ -98,7 +98,7 @@ A `scheduled_agent_updates` block supports the following:
 
 * `timezone` - (Optional) Specifies the time zone in which the agent update schedule will apply, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). If `use_session_host_timezone` is enabled then it will override this setting. Default is `UTC`
 * `use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `timezone`. Default is `false`.
-* `schedule` - (Optional) A `schedule` block as defined below. A maximum of two blocks can be added. 
+* `schedule` - (Optional) A `schedule` block as defined below. A maximum of two blocks can be added.
 
 ---
 ---
@@ -109,7 +109,6 @@ A `schedule` block supports the following:
 * `hour_of_day` - (Required) The hour of day the update window should start. The update is a 2 hour period following the hour provided. The value should be provided as a number between 0 and 23, with 0 being midnight and 23 being 11pm. A leading zero should not be used.
 
 ---
-
 
 ## Attributes Reference
 
@@ -126,11 +125,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Desktop Host Pool.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Desktop Host Pool.
 
-
 ## Import
 
 Virtual Desktop Host Pools can be imported using the `resource id`, e.g.
 
-```
+```text
 terraform import azurerm_virtual_desktop_host_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/hostpools/myhostpool
 ```

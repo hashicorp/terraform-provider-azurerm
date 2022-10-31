@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `source` - (Optional) The source that the routing rule is to be applied to. Possible values include: `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `Invalid`, `TwinChangeEvents`. Defaults to `DeviceMessages`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed. Currently only one endpoint is allowed.
 
@@ -99,8 +99,6 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub Route.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

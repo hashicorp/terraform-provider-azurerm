@@ -12,7 +12,7 @@ Manages a Static Site Custom Domain.
 
 !> DNS validation polling is only done for CNAME records, terraform will not validate TXT validation records are complete.
 
-## Example Usage 
+## Example Usage
 
 ### CNAME validation
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Static Site Custom Domain.
 
