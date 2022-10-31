@@ -242,8 +242,6 @@ resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id                               = azurerm_mssql_server.test.id
   blob_storage_endpoint                   = azurerm_storage_account.test2.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
-  storage_account_access_key_is_secondary = true
-  retention_in_days                       = 3
 }
 `, r.template(data), data.RandomString)
 }
