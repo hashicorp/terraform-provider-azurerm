@@ -203,7 +203,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("converting Stream Input EventHub to an Stream Input: %+v", err)
 		}
 
-		eventHub, ok := v.Datasource.AsEventHubStreamInputDataSource()
+		eventHub, ok := v.Datasource.AsEventHubV2StreamInputDataSource()
 		if !ok {
 			return fmt.Errorf("converting Stream Input EventHub to an EventHub Stream Input: %+v", err)
 		}
