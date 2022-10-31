@@ -37,11 +37,25 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Application Gateway.
 
+* `backend_address_pool` - A `backend_address_pool` block as defined below.
+
 * `identity` - A `identity` block as defined below.
 
 * `location` - The Azure Region where the Application Gateway exists.
 
 * `tags` - A mapping of tags assigned to the Application Gateway.
+
+---
+
+A `backend_address_pool` block exports the following:
+
+* `id` - The ID of the Backend Address Pool.
+
+* `name` - The name of the Backend Address Pool.
+
+* `fqdns` - A list of FQDN's that are included in the Backend Address Pool.
+
+* `ip_addresses` - A list of IP Addresses that are included in the Backend Address Pool.
 
 ---
 
