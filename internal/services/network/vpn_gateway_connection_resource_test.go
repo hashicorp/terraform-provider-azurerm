@@ -293,20 +293,15 @@ func (r VPNGatewayConnectionResource) customRouteTable(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-RouteTable-%[2]d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
 resource "azurerm_vpn_gateway_connection" "test" {
   name               = "acctest-VpnGwConn-%[2]d"
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   routing {
-    associated_route_table = azurerm_virtual_hub_route_table.test.id
+    associated_route_table = azurerm_virtual_hub.test.default_route_table_id
 
     propagated_route_table {
-      route_table_ids = [azurerm_virtual_hub_route_table.test.id]
+      route_table_ids = [azurerm_virtual_hub.test.default_route_table_id]
       labels          = ["label1"]
     }
   }
@@ -344,25 +339,15 @@ func (r VPNGatewayConnectionResource) customRouteTableUpdate(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-RouteTable-%[2]d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
-resource "azurerm_virtual_hub_route_table" "test2" {
-  name           = "acctest-RouteTable-%[2]d-2"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
 resource "azurerm_vpn_gateway_connection" "test" {
   name               = "acctest-VpnGwConn-%[2]d"
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   routing {
-    associated_route_table = azurerm_virtual_hub_route_table.test2.id
+    associated_route_table = azurerm_virtual_hub.test.default_route_table_id
 
     propagated_route_table {
-      route_table_ids = [azurerm_virtual_hub_route_table.test2.id]
+      route_table_ids = [azurerm_virtual_hub.test.default_route_table_id]
       labels          = ["label2"]
     }
   }
