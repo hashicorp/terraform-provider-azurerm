@@ -47,7 +47,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following Attributes are exported: 
+The following Attributes are exported:
 
 * `id` - The ID of the Attestation Provider.
 

@@ -99,10 +99,7 @@ The following attributes are exported:
 
 * `partition_ids` - The identifiers for partitions created for Event Hubs.
 
-
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

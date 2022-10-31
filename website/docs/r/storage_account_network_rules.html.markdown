@@ -95,7 +95,6 @@ A `private_link_access` block supports the following:
 
 * `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
 
-
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:

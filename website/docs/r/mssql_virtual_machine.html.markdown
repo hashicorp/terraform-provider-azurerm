@@ -139,7 +139,7 @@ The `storage_settings` block supports the following:
 
 * `default_file_path` - (Required) The SQL Server default path
 
-* `luns` - (Required) A list of Logical Unit Numbers for the disks. 
+* `luns` - (Required) A list of Logical Unit Numbers for the disks.
 
 ---
 
@@ -147,7 +147,7 @@ The `temp_db_settings` block supports the following:
 
 * `default_file_path` - (Required) The SQL Server default path
 
-* `luns` - (Required) A list of Logical Unit Numbers for the disks. 
+* `luns` - (Required) A list of Logical Unit Numbers for the disks.
 
 * `data_file_count` - (Optional) The SQL Server default file count. This value defaults to `8`
 
@@ -179,7 +179,7 @@ The `schedule` block supports the following:
 
 ~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
-* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`. 
+* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`.
 
 * `start_time` - (Optional) What time the assessment will be run. Must be in the format `HH:mm`.
 
@@ -198,11 +198,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Virtual Machine.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Microsoft SQL Virtual Machine.
 
-
 ## Import
 
 Microsoft SQL Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_mssql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example1
+terraform import azurerm_mssql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example1
 ```

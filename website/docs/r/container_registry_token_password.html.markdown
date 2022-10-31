@@ -71,7 +71,7 @@ A `password` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Registry Token Password.
 
@@ -81,7 +81,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `password` block exports the following:
 
-- `value` - The value of the password (Sensitive).
+* `value` - The value of the password (Sensitive).
 
 ## Timeouts
 

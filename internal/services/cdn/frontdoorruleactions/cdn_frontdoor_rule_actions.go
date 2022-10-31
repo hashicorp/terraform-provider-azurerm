@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -106,7 +108,7 @@ func ExpandCdnFrontDoorRequestHeaderAction(input []interface{}) (*[]cdn.BasicDel
 
 		if value == "" {
 			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
-				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' can not be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
+				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' cannot be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
 			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
@@ -140,7 +142,7 @@ func ExpandCdnFrontDoorResponseHeaderAction(input []interface{}) (*[]cdn.BasicDe
 
 		if headerValue := *responseHeaderAction.Parameters.Value; headerValue == "" {
 			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
-				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' can not be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
+				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' cannot be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
 			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
@@ -207,49 +209,134 @@ func ExpandCdnFrontDoorUrlRewriteAction(input []interface{}) (*[]cdn.BasicDelive
 
 func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
-
 	m := InitializeCdnFrontDoorActionMappings()
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		originGroupOverride := &cdn.OriginGroupOverride{
-			OriginGroup: &cdn.ResourceReference{
-				ID: utils.String(item["cdn_frontdoor_origin_group_id"].(string)),
-			},
-			ForwardingProtocol: cdn.ForwardingProtocol(item["forwarding_protocol"].(string)),
-		}
-
+		var originGroupOverride cdn.OriginGroupOverride
+		var cacheConfiguration cdn.CacheConfiguration
+		originGroupIdRaw := item["cdn_frontdoor_origin_group_id"].(string)
+		protocol := item["forwarding_protocol"].(string)
+		cacheBehavior := item["cache_behavior"].(string)
 		compressionEnabled := cdn.RuleIsCompressionEnabledEnabled
+
 		if !item["compression_enabled"].(bool) {
 			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
 		}
 
-		cacheConfiguration := &cdn.CacheConfiguration{
-			QueryStringCachingBehavior: cdn.RuleQueryStringCachingBehavior(item["query_string_caching_behavior"].(string)),
-			QueryParameters:            expandStringSliceToCsvFormat(item["query_string_parameters"].([]interface{})),
-			IsCompressionEnabled:       compressionEnabled,
-			CacheBehavior:              cdn.RuleCacheBehavior(item["cache_behavior"].(string)),
-			CacheDuration:              utils.String(item["cache_duration"].(string)),
+		if !features.FourPointOhBeta() {
+			// set the default value for forwarding protocol to avoid a breaking change...
+			if protocol == "" {
+				protocol = string(cdn.ForwardingProtocolMatchRequest)
+			}
+		}
+
+		// NOTE: It is valid to not define the originGroupOverride in the Route Configuration Override Action
+		// however, if you do not define the Origin Group ID you also cannot define the Forwarding Protocol either
+		if originGroupIdRaw != "" {
+			if protocol == "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'forwarding_protocol' field must be set")
+			}
+
+			originGroupOverride = cdn.OriginGroupOverride{
+				OriginGroup: &cdn.ResourceReference{
+					ID: utils.String(originGroupIdRaw),
+				},
+				ForwardingProtocol: cdn.ForwardingProtocol(protocol),
+			}
+		} else if originGroupIdRaw == "" && item["forwarding_protocol"].(string) != "" {
+			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol', got %q", protocol)
+		}
+
+		if cacheBehavior == string(cdn.RuleIsCompressionEnabledDisabled) {
+			if queryStringCachingBehavior := cdn.RuleQueryStringCachingBehavior(item["query_string_caching_behavior"].(string)); queryStringCachingBehavior != "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'query_string_caching_behavior', got %q", queryStringCachingBehavior)
+			}
+
+			if queryParameters := item["query_string_parameters"].([]interface{}); len(queryParameters) != 0 {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'query_string_parameters', got %d", len(queryParameters))
+			}
+
+			if cacheDuration := item["cache_duration"].(string); cacheDuration != "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'cache_duration', got %q", cacheDuration)
+			}
+		} else {
+			var cacheDuration string
+			var queryStringCachingBehavior string
+			var cacheBehavior string
+
+			if !features.FourPointOhBeta() {
+				// since 'cache_duration', 'query_string_caching_behavior' and 'cache_behavior' are optional create a default values
+				// for those values if not set.
+				cacheDuration = "1.12:00:00"
+				queryStringCachingBehavior = string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString)
+				cacheBehavior = string(cdn.RuleCacheBehaviorHonorOrigin)
+
+				if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw != "" {
+					cacheBehavior = cacheBehaviorRaw
+				}
+
+				if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw != "" {
+					cacheDuration = cacheDurationRaw
+				}
+
+				if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw != "" {
+					queryStringCachingBehavior = queryStringCachingBehaviorRaw
+				}
+			}
+
+			if features.FourPointOhBeta() {
+				if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw == "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_behavior' field must be set")
+				} else {
+					cacheBehavior = cacheBehaviorRaw
+				}
+
+				if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw == "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
+				} else {
+					cacheDuration = cacheDurationRaw
+				}
+
+				if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw == "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set")
+				} else {
+					queryStringCachingBehavior = queryStringCachingBehaviorRaw
+				}
+			}
+
+			cacheConfiguration = cdn.CacheConfiguration{
+				QueryStringCachingBehavior: cdn.RuleQueryStringCachingBehavior(queryStringCachingBehavior),
+				QueryParameters:            expandStringSliceToCsvFormat(item["query_string_parameters"].([]interface{})),
+				IsCompressionEnabled:       compressionEnabled,
+				CacheBehavior:              cdn.RuleCacheBehavior(cacheBehavior),
+				CacheDuration:              utils.String(cacheDuration),
+			}
+
+			if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
+				if cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' cannot be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
+				}
+			} else {
+				if cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorUseQueryString || cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreQueryString {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
+				}
+			}
 		}
 
 		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
 			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
-				TypeName:            utils.String(m.RouteConfigurationOverride.TypeName),
-				OriginGroupOverride: originGroupOverride,
-				CacheConfiguration:  cacheConfiguration,
+				TypeName: utils.String(m.RouteConfigurationOverride.TypeName),
 			},
 		}
 
-		queryStringCachingBehavior := cacheConfiguration.QueryStringCachingBehavior
-		if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
-			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' can not be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
-			}
-		} else {
-			if queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorUseQueryString || queryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreQueryString {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
-			}
+		if originGroupOverride.OriginGroup != nil {
+			routeConfigurationOverrideAction.Parameters.OriginGroupOverride = &originGroupOverride
+		}
+
+		if cacheConfiguration.CacheDuration != nil {
+			routeConfigurationOverrideAction.Parameters.CacheConfiguration = &cacheConfiguration
 		}
 
 		output = append(output, routeConfigurationOverrideAction)
@@ -338,7 +425,7 @@ func FlattenCdnFrontDoorUrlRewriteAction(input cdn.URLRewriteAction) map[string]
 	}
 }
 
-func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleRouteConfigurationOverrideAction) map[string]interface{} {
+func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleRouteConfigurationOverrideAction) (map[string]interface{}, error) {
 	queryStringCachingBehavior := ""
 	cacheBehavior := ""
 	compressionEnabled := false
@@ -354,14 +441,21 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleR
 			compressionEnabled = config.IsCompressionEnabled == cdn.RuleIsCompressionEnabledEnabled
 			cacheDuration = *config.CacheDuration
 			queryParameters = flattenCsvToStringSlice(config.QueryParameters)
+		} else {
+			cacheBehavior = string(cdn.RuleIsCompressionEnabledDisabled)
 		}
 
 		if override := params.OriginGroupOverride; override != nil {
 			forwardingProtocol = string(override.ForwardingProtocol)
 
-			if group := override.OriginGroup; group != nil && group.ID != nil {
-				originGroupId = *group.ID
+			// NOTE: Need to normalize this ID here because if you modified this in portal the resourceGroup comes back as resourcegroup.
+			// ignore the error here since it was set on the resource in Azure and we know it is valid.
+			originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.ID)
+			if err != nil {
+				return nil, err
 			}
+
+			originGroupId = originGroup.ID()
 		}
 	}
 
@@ -373,5 +467,5 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleR
 		"query_string_parameters":       queryParameters,
 		"forwarding_protocol":           forwardingProtocol,
 		"cdn_frontdoor_origin_group_id": originGroupId,
-	}
+	}, nil
 }

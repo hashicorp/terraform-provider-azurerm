@@ -60,11 +60,11 @@ The following arguments are supported:
 
 * `values` - (Optional) A mapping of key value pairs passed to the connection. Different `type` needs different parameters in the `values`. Builtin types have required field values as below:
 
-  - `Azure`: parameters `AutomationCertificateName` and `SubscriptionID`.
+  * `Azure`: parameters `AutomationCertificateName` and `SubscriptionID`.
 
-  - `AzureClassicCertificate`: parameters `SubscriptionName`, `SubscriptionId` and `CertificateAssetName`.
+  * `AzureClassicCertificate`: parameters `SubscriptionName`, `SubscriptionId` and `CertificateAssetName`.
 
-  - `AzureServicePrincipal`: parameters `ApplicationId`, `CertificateThumbprint`, `SubscriptionId` and `TenantId`.
+  * `AzureServicePrincipal`: parameters `ApplicationId`, `CertificateThumbprint`, `SubscriptionId` and `TenantId`.
 
 * `description` - (Optional) A description for this Connection.
 

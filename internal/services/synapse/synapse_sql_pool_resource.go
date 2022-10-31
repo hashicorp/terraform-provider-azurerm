@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -192,7 +192,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlPoolInfo := synapse.SQLPool{
 		Location: workspace.Location,
 		SQLPoolResourceProperties: &synapse.SQLPoolResourceProperties{
-			CreateMode: utils.String(mode),
+			CreateMode: synapse.CreateMode(*utils.String(mode)),
 		},
 		Sku: &synapse.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),

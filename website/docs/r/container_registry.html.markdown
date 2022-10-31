@@ -207,7 +207,7 @@ The following arguments are supported:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+~> **NOTE:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
@@ -264,6 +264,7 @@ An `identity` block supports the following:
 ~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:

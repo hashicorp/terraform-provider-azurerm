@@ -10,7 +10,7 @@ description: |-
 
 Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Frontend Endpoint.
 
-!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain).
 
 -> **NOTE:** Defining custom HTTPS configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
 
@@ -97,7 +97,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 
 ## Argument Reference
 
-The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments: 
+The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments:
 
 * `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to.
 
@@ -120,7 +120,6 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 * `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX. Defaults to `Latest`.
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instructions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
-
 
 ## Attributes Reference
 

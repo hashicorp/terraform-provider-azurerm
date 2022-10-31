@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `provider_name` - (Required) The name of the third-party Certificate Issuer. Possible values are: `DigiCert`, `GlobalSign`, `OneCertV2-PrivateCA`, `OneCertV2-PublicCA` and `SslAdminV2`.
 
-* `org_id` - (Optional) The ID of the organization as provided to the issuer. 
+* `org_id` - (Optional) The ID of the organization as provided to the issuer.
 
 * `account_id` - (Optional) The account number with the third-party Certificate Issuer.
 
@@ -70,7 +70,7 @@ An `admin` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Key Vault Certificate Issuer.
 

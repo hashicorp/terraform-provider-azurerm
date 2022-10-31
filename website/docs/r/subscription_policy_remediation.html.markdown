@@ -78,7 +78,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Remediation.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Policy Remediation.
 
-
 ## Import
 
 Policy Remediations can be imported using the `resource id`, e.g.

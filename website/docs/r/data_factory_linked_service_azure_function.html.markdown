@@ -61,7 +61,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to Azure Function Linked Service:
 
-* `url` - (Required) The url of the Azure Function. 
+* `url` - (Required) The url of the Azure Function.
 
 * `key` - (Optional) The system key of the Azure Function. Exactly one of either `key` or `key_vault_key` is required
 

@@ -19,11 +19,11 @@ import (
 )
 
 type PrivateDNSResolverInboundEndpointModel struct {
-	Name                            string                 `tfschema:"name"`
-	PrivateDNSResolverDnsResolverId string                 `tfschema:"private_dns_resolver_id"`
-	IPConfigurations                []IPConfigurationModel `tfschema:"ip_configurations"`
-	Location                        string                 `tfschema:"location"`
-	Tags                            map[string]string      `tfschema:"tags"`
+	Name                 string                 `tfschema:"name"`
+	PrivateDNSResolverId string                 `tfschema:"private_dns_resolver_id"`
+	IPConfigurations     []IPConfigurationModel `tfschema:"ip_configurations"`
+	Location             string                 `tfschema:"location"`
+	Tags                 map[string]string      `tfschema:"tags"`
 }
 
 type IPConfigurationModel struct {
@@ -112,7 +112,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.PrivateDnsResolver.InboundEndpointsClient
-			dnsResolverId, err := dnsresolvers.ParseDnsResolverID(model.PrivateDNSResolverDnsResolverId)
+			dnsResolverId, err := dnsresolvers.ParseDnsResolverID(model.PrivateDNSResolverId)
 			if err != nil {
 				return err
 			}
@@ -230,9 +230,9 @@ func (r PrivateDNSResolverInboundEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			state := PrivateDNSResolverInboundEndpointModel{
-				Name:                            id.InboundEndpointName,
-				PrivateDNSResolverDnsResolverId: dnsresolvers.NewDnsResolverID(id.SubscriptionId, id.ResourceGroupName, id.DnsResolverName).ID(),
-				Location:                        location.Normalize(model.Location),
+				Name:                 id.InboundEndpointName,
+				PrivateDNSResolverId: dnsresolvers.NewDnsResolverID(id.SubscriptionId, id.ResourceGroupName, id.DnsResolverName).ID(),
+				Location:             location.Normalize(model.Location),
 			}
 
 			properties := &model.Properties

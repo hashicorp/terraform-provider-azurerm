@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -30,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 	"golang.org/x/net/context"
 )
 
@@ -1443,9 +1443,9 @@ func expandAzureRmVirtualMachineIdentity(d *pluginsdk.ResourceData) *compute.Vir
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue)
+	identityIds := make(map[string]*compute.UserAssignedIdentitiesValue)
 	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
+		identityIds[id.(string)] = &compute.UserAssignedIdentitiesValue{}
 	}
 
 	vmIdentity := compute.VirtualMachineIdentity{

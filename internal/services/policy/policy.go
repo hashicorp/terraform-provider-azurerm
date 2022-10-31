@@ -50,9 +50,9 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 
 func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
-		res, err = client.Get(ctx, name)
+		res, err = client.GetBuiltIn(ctx, name)
 		if utils.ResponseWasNotFound(res.Response) {
-			res, err = client.GetBuiltIn(ctx, name)
+			res, err = client.Get(ctx, name)
 		}
 	} else {
 		res, err = client.GetAtManagementGroup(ctx, name, managementGroupName)
@@ -63,9 +63,9 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 
 func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
-		res, err = client.Get(ctx, name)
+		res, err = client.GetBuiltIn(ctx, name)
 		if utils.ResponseWasNotFound(res.Response) {
-			res, err = client.GetBuiltIn(ctx, name)
+			res, err = client.Get(ctx, name)
 		}
 	} else {
 		res, err = client.GetAtManagementGroup(ctx, name, managementGroupID)

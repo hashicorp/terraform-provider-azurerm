@@ -56,6 +56,7 @@ resource "azurerm_data_protection_backup_policy_disk" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this Backup Policy Disk. Changing this forces a new Backup Policy Disk to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Backup Policy Disk should exist. Changing this forces a new Backup Policy Disk to be created.
@@ -90,7 +91,7 @@ A `criteria` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Policy Disk.
 

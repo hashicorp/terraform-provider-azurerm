@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Function App.
 
@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backup` - A `backup` block as defined below.
 
-* `builtin_logging_enabled` - Is built in logging enabled? 
+* `builtin_logging_enabled` - Is built in logging enabled?
 
 * `client_certificate_enabled` - Are Client Certificates enabled?
 
@@ -91,7 +91,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_account_name` - The backend storage account name used by this Function App.
 
-* `storage_account_access_key` -  The access key used to access the backend storage account for the Function App. 
+* `storage_account_access_key` -  The access key used to access the backend storage account for the Function App.
 
 * `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
 
@@ -135,9 +135,9 @@ A `application_stack` block exports the following:
 
 An `app_service_logs` block exports the following:
 
-* `disk_quota_mb` -  The amount of disk space used for logs. 
+* `disk_quota_mb` -  The amount of disk space used for logs.
 
-* `retention_period_days` - The retention period for logs in days. 
+* `retention_period_days` - The retention period for logs in days.
 
 ---
 
@@ -247,11 +247,11 @@ A `google` block exports the following:
 
 * `client_id` - The OpenID Connect Client ID for the Google web application.
 
-* `client_secret` - The client secret associated with the Google web application. 
+* `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login. 
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are requested as part of Google Sign-In authentication. 
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are requested as part of Google Sign-In authentication.
 
 ---
 
@@ -301,11 +301,11 @@ A `microsoft` block exports the following:
 
 * `client_id` -  The OAuth 2.0 client ID that was created for the app used for authentication.
 
-* `client_secret` -  The OAuth 2.0 client secret that was created for the app used for authentication. 
+* `client_secret` -  The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `client_secret_setting_name` - The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. 
+* `oauth_scopes` - A list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication.
 
 ---
 
@@ -381,7 +381,7 @@ A `site_config` block exports the following:
 
 * `elastic_instance_minimum` -  The number of minimum instances for this Linux Function App.
 
-* `ftps_state` - State of FTP / FTPS service for this function app. 
+* `ftps_state` - State of FTP / FTPS service for this function app.
 
 * `health_check_path` - The path that is checked for this function app health.
 
@@ -393,7 +393,7 @@ A `site_config` block exports the following:
 
 * `load_balancing_mode` -  The Site load balancing mode.
 
-* `managed_pipeline_mode` - Managed pipeline mode. 
+* `managed_pipeline_mode` - Managed pipeline mode.
 
 * `minimum_tls_version` -  The minimum version of TLS required for SSL requests.
 
