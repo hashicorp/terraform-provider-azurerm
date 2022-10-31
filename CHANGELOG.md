@@ -16,6 +16,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
+* `azurerm_eventhub_namespace_disaster_recovery_config` - will now correctly break the pairing [GH-19030]
 * `azurerm_kubernetes_cluster` - set a valid default value for `auto_scaler_profile.expander` [GH-19057]
 * `azurerm_virtual_network_gateway_connection` - correctly set `authorization_key` from state as the API returnes `*`s [GH-19071]
 
