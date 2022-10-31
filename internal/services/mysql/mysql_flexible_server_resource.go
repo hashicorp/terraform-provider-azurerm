@@ -390,7 +390,6 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			return fmt.Errorf("updating Mysql Flexible Server %q maintenance window (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
-
 		if err := mwFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q maintenance window (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
@@ -406,7 +405,7 @@ func mySqlFlexibleServerCreationRefreshFunc(ctx context.Context, client *mysqlfl
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return resp, "Pending", err
+				return resp, "Pending", nil
 			}
 			return resp, "Error", err
 		}
