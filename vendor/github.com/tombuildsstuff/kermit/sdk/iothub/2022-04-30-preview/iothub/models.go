@@ -9,16 +9,17 @@ package devices
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
+const fqdn = "home/runner/work/kermit/kermit/sdk/iothub/2022-04-30-preview/iothub"
 
 // ArmIdentity ...
 type ArmIdentity struct {
@@ -26,7 +27,7 @@ type ArmIdentity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; Tenant Id
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The type of identity used for the resource. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the service. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeSystemAssignedUserAssigned', 'ResourceIdentityTypeNone'
+	// Type - The type of identity used for the resource. The type 'SystemAssigned,UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the service. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeSystemAssignedUserAssigned', 'ResourceIdentityTypeNone'
 	Type                   ResourceIdentityType        `json:"type,omitempty"`
 	UserAssignedIdentities map[string]*ArmUserIdentity `json:"userAssignedIdentities"`
 }
@@ -188,6 +189,14 @@ type CloudToDeviceProperties struct {
 	// DefaultTTLAsIso8601 - The default time to live for cloud-to-device messages in the device queue. See: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-messaging#cloud-to-device-messages.
 	DefaultTTLAsIso8601 *string             `json:"defaultTtlAsIso8601,omitempty"`
 	Feedback            *FeedbackProperties `json:"feedback,omitempty"`
+}
+
+// EncryptionPropertiesDescription the encryption properties for the IoT hub.
+type EncryptionPropertiesDescription struct {
+	// KeySource - The source of the key.
+	KeySource *string `json:"keySource,omitempty"`
+	// KeyVaultProperties - The properties of the KeyVault key.
+	KeyVaultProperties *[]KeyVaultKeyProperties `json:"keyVaultProperties,omitempty"`
 }
 
 // EndpointHealthData the health data for an endpoint
@@ -714,6 +723,16 @@ type GroupIDInformationProperties struct {
 	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
 }
 
+// IPFilterRule the IP filter rules for the IoT hub.
+type IPFilterRule struct {
+	// FilterName - The name of the IP filter rule.
+	FilterName *string `json:"filterName,omitempty"`
+	// Action - The desired action for requests captured by this rule. Possible values include: 'IPFilterActionTypeAccept', 'IPFilterActionTypeReject'
+	Action IPFilterActionType `json:"action,omitempty"`
+	// IPMask - A string that contains the IP address range in CIDR notation for the rule.
+	IPMask *string `json:"ipMask,omitempty"`
+}
+
 // ImportDevicesRequest use to provide parameters when requesting an import of all devices in the hub.
 type ImportDevicesRequest struct {
 	// InputBlobContainerURI - The input blob container URI.
@@ -1075,12 +1094,17 @@ type IotHubProperties struct {
 	CloudToDevice                 *CloudToDeviceProperties `json:"cloudToDevice,omitempty"`
 	// Comments - IoT hub comments.
 	Comments *string `json:"comments,omitempty"`
+	// DeviceStreams - The device streams properties of iothub.
+	DeviceStreams *IotHubPropertiesDeviceStreams `json:"deviceStreams,omitempty"`
 	// Features - The capabilities and features enabled for the IoT hub. Possible values include: 'CapabilitiesNone', 'CapabilitiesDeviceManagement'
 	Features Capabilities `json:"features,omitempty"`
+	// Encryption - The encryption properties for the IoT hub.
+	Encryption *EncryptionPropertiesDescription `json:"encryption,omitempty"`
 	// Locations - READ-ONLY; Primary and secondary location for iot hub
 	Locations *[]IotHubLocationDescription `json:"locations,omitempty"`
 	// EnableDataResidency - This property when set to true, will enable data residency, thus, disabling disaster recovery.
-	EnableDataResidency *bool `json:"enableDataResidency,omitempty"`
+	EnableDataResidency *bool                      `json:"enableDataResidency,omitempty"`
+	RootCertificate     *RootCertificateProperties `json:"rootCertificate,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IotHubProperties.
@@ -1140,13 +1164,28 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	if ihp.Comments != nil {
 		objectMap["comments"] = ihp.Comments
 	}
+	if ihp.DeviceStreams != nil {
+		objectMap["deviceStreams"] = ihp.DeviceStreams
+	}
 	if ihp.Features != "" {
 		objectMap["features"] = ihp.Features
+	}
+	if ihp.Encryption != nil {
+		objectMap["encryption"] = ihp.Encryption
 	}
 	if ihp.EnableDataResidency != nil {
 		objectMap["enableDataResidency"] = ihp.EnableDataResidency
 	}
+	if ihp.RootCertificate != nil {
+		objectMap["rootCertificate"] = ihp.RootCertificate
+	}
 	return json.Marshal(objectMap)
+}
+
+// IotHubPropertiesDeviceStreams the device streams properties of iothub.
+type IotHubPropertiesDeviceStreams struct {
+	// StreamingEndpoints - List of Device Streams Endpoints.
+	StreamingEndpoints *[]string `json:"streamingEndpoints,omitempty"`
 }
 
 // IotHubQuotaMetricInfo quota metrics properties.
@@ -1678,16 +1717,6 @@ func (ihsi IotHubSkuInfo) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// IPFilterRule the IP filter rules for the IoT hub.
-type IPFilterRule struct {
-	// FilterName - The name of the IP filter rule.
-	FilterName *string `json:"filterName,omitempty"`
-	// Action - The desired action for requests captured by this rule. Possible values include: 'IPFilterActionTypeAccept', 'IPFilterActionTypeReject'
-	Action IPFilterActionType `json:"action,omitempty"`
-	// IPMask - A string that contains the IP address range in CIDR notation for the rule.
-	IPMask *string `json:"ipMask,omitempty"`
-}
-
 // JobResponse the properties of the Job Response object.
 type JobResponse struct {
 	autorest.Response `json:"-"`
@@ -1881,6 +1910,14 @@ func NewJobResponseListResultPage(cur JobResponseListResult, getNextPage func(co
 		fn:   getNextPage,
 		jrlr: cur,
 	}
+}
+
+// KeyVaultKeyProperties the properties of the KeyVault key.
+type KeyVaultKeyProperties struct {
+	// KeyIdentifier - The identifier of the key.
+	KeyIdentifier *string `json:"keyIdentifier,omitempty"`
+	// Identity - Managed identity properties of KeyVault Key.
+	Identity *ManagedIdentity `json:"identity,omitempty"`
 }
 
 // ListPrivateEndpointConnection ...
@@ -2331,6 +2368,23 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// RootCertificateProperties this property store root certificate related information
+type RootCertificateProperties struct {
+	// EnableRootCertificateV2 - This property when set to true, hub will use G2 cert; while it's set to false, hub uses Baltimore Cert.
+	EnableRootCertificateV2 *bool `json:"enableRootCertificateV2,omitempty"`
+	// LastUpdatedTimeUtc - READ-ONLY; the last update time to root certificate flag.
+	LastUpdatedTimeUtc *date.Time `json:"lastUpdatedTimeUtc,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RootCertificateProperties.
+func (rcp RootCertificateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rcp.EnableRootCertificateV2 != nil {
+		objectMap["enableRootCertificateV2"] = rcp.EnableRootCertificateV2
+	}
+	return json.Marshal(objectMap)
+}
+
 // RouteCompilationError compilation error when evaluating route
 type RouteCompilationError struct {
 	// Message - Route error message
@@ -2361,7 +2415,7 @@ type RouteErrorRange struct {
 type RouteProperties struct {
 	// Name - The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
 	Name *string `json:"name,omitempty"`
-	// Source - The source that the routing rule is to be applied to, such as DeviceMessages. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceJobLifecycleEvents', 'RoutingSourceDeviceConnectionStateEvents'
+	// Source - The source that the routing rule is to be applied to, such as DeviceMessages. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceJobLifecycleEvents', 'RoutingSourceDigitalTwinChangeEvents', 'RoutingSourceDeviceConnectionStateEvents', 'RoutingSourceMqttBrokerMessages'
 	Source RoutingSource `json:"source,omitempty"`
 	// Condition - The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language
 	Condition *string `json:"condition,omitempty"`
@@ -2369,6 +2423,36 @@ type RouteProperties struct {
 	EndpointNames *[]string `json:"endpointNames,omitempty"`
 	// IsEnabled - Used to specify whether a route is enabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
+}
+
+// RoutingCosmosDBSQLAPIProperties the properties related to a cosmos DB sql collection endpoint.
+type RoutingCosmosDBSQLAPIProperties struct {
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.
+	Name *string `json:"name,omitempty"`
+	// ID - Id of the cosmos DB sql collection endpoint
+	ID *string `json:"id,omitempty"`
+	// SubscriptionID - The subscription identifier of the cosmos DB account.
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
+	// ResourceGroup - The name of the resource group of the cosmos DB account.
+	ResourceGroup *string `json:"resourceGroup,omitempty"`
+	// EndpointURI - The url of the cosmos DB account. It must include the protocol https://
+	EndpointURI *string `json:"endpointUri,omitempty"`
+	// AuthenticationType - Method used to authenticate against the cosmos DB sql collection endpoint. Possible values include: 'AuthenticationTypeKeyBased', 'AuthenticationTypeIdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+	// Identity - Managed identity properties of routing cosmos DB collection endpoint.
+	Identity *ManagedIdentity `json:"identity,omitempty"`
+	// PrimaryKey - The primary key of the cosmos DB account.
+	PrimaryKey *string `json:"primaryKey,omitempty"`
+	// SecondaryKey - The secondary key of the cosmos DB account.
+	SecondaryKey *string `json:"secondaryKey,omitempty"`
+	// DatabaseName - The name of the cosmos DB database in the cosmos DB account.
+	DatabaseName *string `json:"databaseName,omitempty"`
+	// CollectionName - The name of the cosmos DB sql collection in the cosmos DB database.
+	CollectionName *string `json:"collectionName,omitempty"`
+	// PartitionKeyName - The name of the partition key associated with this cosmos DB sql collection if one exists. This is an optional parameter.
+	PartitionKeyName *string `json:"partitionKeyName,omitempty"`
+	// PartitionKeyTemplate - The template for generating a synthetic partition key value for use with this cosmos DB sql collection. The template must include at least one of the following placeholders: {iothub}, {deviceid}, {DD}, {MM}, and {YYYY}. Any one placeholder may be specified at most once, but order and non-placeholder components are arbitrary. This parameter is only required if PartitionKeyName is specified.
+	PartitionKeyTemplate *string `json:"partitionKeyTemplate,omitempty"`
 }
 
 // RoutingEndpoints the properties related to the custom endpoints to which your IoT hub routes messages
@@ -2383,6 +2467,8 @@ type RoutingEndpoints struct {
 	EventHubs *[]RoutingEventHubProperties `json:"eventHubs,omitempty"`
 	// StorageContainers - The list of storage container endpoints that IoT hub routes messages to, based on the routing rules.
 	StorageContainers *[]RoutingStorageContainerProperties `json:"storageContainers,omitempty"`
+	// CosmosDBSQLCollections - The list of Cosmos DB collection endpoints that IoT hub routes messages to, based on the routing rules.
+	CosmosDBSQLCollections *[]RoutingCosmosDBSQLAPIProperties `json:"cosmosDBSqlCollections,omitempty"`
 }
 
 // RoutingEventHubProperties the properties related to an event hub endpoint.
@@ -2770,7 +2856,7 @@ func (tr TagsResource) MarshalJSON() ([]byte, error) {
 
 // TestAllRoutesInput input for testing all routes
 type TestAllRoutesInput struct {
-	// RoutingSource - Routing source. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceJobLifecycleEvents', 'RoutingSourceDeviceConnectionStateEvents'
+	// RoutingSource - Routing source. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceJobLifecycleEvents', 'RoutingSourceDigitalTwinChangeEvents', 'RoutingSourceDeviceConnectionStateEvents', 'RoutingSourceMqttBrokerMessages'
 	RoutingSource RoutingSource `json:"routingSource,omitempty"`
 	// Message - Routing message
 	Message *RoutingMessage `json:"message,omitempty"`

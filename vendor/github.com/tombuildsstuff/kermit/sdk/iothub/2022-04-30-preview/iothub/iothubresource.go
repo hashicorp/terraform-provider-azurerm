@@ -8,11 +8,12 @@ package devices
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // IotHubResourceClient is the use this API to manage the IoT hubs in your Azure subscription.
@@ -80,7 +81,7 @@ func (client IotHubResourceClient) CheckNameAvailabilityPreparer(ctx context.Con
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +171,7 @@ func (client IotHubResourceClient) CreateEventHubConsumerGroupPreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -205,8 +206,7 @@ func (client IotHubResourceClient) CreateEventHubConsumerGroupResponder(resp *ht
 
 // CreateOrUpdate create or update the metadata of an Iot hub. The usual pattern to modify a property is to retrieve
 // the IoT hub metadata and security metadata, and then combine them with the modified values in a new body to update
-// the IoT hub. If certain properties are missing in the JSON, updating IoT Hub may cause these values to fallback to
-// default, which may lead to unexpected behavior.
+// the IoT hub.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the IoT hub.
 // resourceName - the name of the IoT hub.
@@ -281,7 +281,7 @@ func (client IotHubResourceClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -367,7 +367,7 @@ func (client IotHubResourceClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -457,7 +457,7 @@ func (client IotHubResourceClient) DeleteEventHubConsumerGroupPreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -542,7 +542,7 @@ func (client IotHubResourceClient) ExportDevicesPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -620,7 +620,7 @@ func (client IotHubResourceClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -698,7 +698,7 @@ func (client IotHubResourceClient) GetEndpointHealthPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -815,7 +815,7 @@ func (client IotHubResourceClient) GetEventHubConsumerGroupPreparer(ctx context.
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -894,7 +894,7 @@ func (client IotHubResourceClient) GetJobPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -973,7 +973,7 @@ func (client IotHubResourceClient) GetKeysForKeyNamePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1054,7 +1054,7 @@ func (client IotHubResourceClient) GetQuotaMetricsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1167,7 +1167,7 @@ func (client IotHubResourceClient) GetStatsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1248,7 +1248,7 @@ func (client IotHubResourceClient) GetValidSkusPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1371,7 +1371,7 @@ func (client IotHubResourceClient) ImportDevicesPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1452,7 +1452,7 @@ func (client IotHubResourceClient) ListByResourceGroupPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1565,7 +1565,7 @@ func (client IotHubResourceClient) ListBySubscriptionPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1686,7 +1686,7 @@ func (client IotHubResourceClient) ListEventHubConsumerGroupsPreparer(ctx contex
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1805,7 +1805,7 @@ func (client IotHubResourceClient) ListJobsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1924,7 +1924,7 @@ func (client IotHubResourceClient) ListKeysPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2038,7 +2038,7 @@ func (client IotHubResourceClient) TestAllRoutesPreparer(ctx context.Context, in
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2131,7 +2131,7 @@ func (client IotHubResourceClient) TestRoutePreparer(ctx context.Context, input 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2203,7 +2203,7 @@ func (client IotHubResourceClient) UpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-07-02"
+	const APIVersion = "2022-04-30-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
