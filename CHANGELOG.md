@@ -11,6 +11,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
+* `azurerm_kubernetes_cluster` - set a valid default value for `auto_scaler_profile.expander` [GH-19057]
 
 ## 3.29.1 (October 28, 2022)
 
