@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,7 +27,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 		Delete: resourceKustoIotHubDataConnectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectionID(id)
+			_, err := dataconnections.ParseDataConnectionID(id)
 			return err
 		}, importDataConnection(dataconnections.IotHubDataConnection{})),
 
@@ -68,7 +67,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: iothubValidate.IotHubID,
+				ValidateFunc: dataconnections.ValidateDataConnectionID,
 			},
 
 			"consumer_group": {
