@@ -3,8 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_mssql_server_microsoft_support_auditing_policy` [GH-18609]
-
-ENHANCEMENTS:
+* **New Resource:** `azurerm_private_dns_resolver_virtual_network_link` [GH-19029]
 
 * dependencies: updating to `v0.46.0` of `github.com/hashicorp/go-azure-helpers` [GH-19038]
 * dependencies: updating to `v0.20221028.1081410` of `github.com/hashicorp/go-azure-sdk` [GH-19038]
