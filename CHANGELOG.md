@@ -2,6 +2,8 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.46.0` of `github.com/hashicorp/go-azure-helpers` [GH-19038]
+* dependencies: updating to `v0.20221028.1081410` of `github.com/hashicorp/go-azure-sdk` [GH-19038]
 * `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
 * `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
