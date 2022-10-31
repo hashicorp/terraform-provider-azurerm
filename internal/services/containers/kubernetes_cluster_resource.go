@@ -125,7 +125,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"expander": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Default:  string(managedclusters.ExpanderRandom),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.ExpanderLeastNegativewaste),
 								string(managedclusters.ExpanderMostNegativepods),
