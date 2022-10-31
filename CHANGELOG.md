@@ -1,5 +1,9 @@
 ## 3.30.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_mssql_server_microsoft_support_auditing_policy` [GH-18609]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.46.0` of `github.com/hashicorp/go-azure-helpers` [GH-19038]
