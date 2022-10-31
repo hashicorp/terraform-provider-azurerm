@@ -116,6 +116,7 @@ func TestAccPublicIpPrefix_prefixLength31(t *testing.T) {
 func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 	// NOTE: This test will fail unless the subscription is updated
 	//        to accept a minimum PrefixLength of 24
+	t.Skip("skip for test subscription's `Public IPv4 Prefix Length` is 28")
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
