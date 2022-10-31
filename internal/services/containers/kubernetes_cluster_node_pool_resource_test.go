@@ -2231,18 +2231,19 @@ resource "azurerm_kubernetes_cluster" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-
-  depends_on = [
-    azurerm_role_assignment.test
-  ]
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_D2s_v3"
   node_count            = 1
   host_group_id         = azurerm_dedicated_host_group.test.id
+
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_dedicated_host.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
