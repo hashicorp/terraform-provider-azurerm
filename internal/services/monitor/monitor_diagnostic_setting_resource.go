@@ -319,15 +319,14 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("name", id.Name)
 
-	resourceUri := id.ResourceUri
-	resourceId, err := azure.ParseAzureResourceID(resourceUri)
+	resourceId, err := azure.ParseAzureResourceID(actualResourceId)
 	if err != nil {
 		return err
 	}
 	if resourceId.ResourceGroup != "" {
-		resourceUri = strings.Replace(resourceUri, "/resourcegroups/", "/resourceGroups/", 1)
+		actualResourceId = strings.Replace(actualResourceId, "/resourcegroups/", "/resourceGroups/", 1)
 	}
-	d.Set("target_resource_id", resourceUri)
+	d.Set("target_resource_id", actualResourceId)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
