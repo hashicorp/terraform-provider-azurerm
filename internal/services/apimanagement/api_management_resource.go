@@ -1743,7 +1743,7 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	virtualNetworkConfiguration := make(map[string]interface{})
 
 	if input.SubnetResourceID != nil {
-		subnetId, err := networkParse.SubnetID(*input.SubnetResourceID)
+		subnetId, err := networkParse.SubnetIDInsensitively(*input.SubnetResourceID)
 		if err != nil {
 			return []interface{}{}, err
 		}
