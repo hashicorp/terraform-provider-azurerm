@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"reflect"
 	"strings"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,11 +53,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
-				DiffSuppressFunc: ResourceIDCaseDifference,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"eventhub_name": {
@@ -321,7 +318,16 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.Set("name", id.Name)
-	d.Set("target_resource_id", id.ResourceUri)
+
+	resourceUri := id.ResourceUri
+	resourceId, err := azure.ParseAzureResourceID(resourceUri)
+	if err != nil {
+		return err
+	}
+	if resourceId.ResourceGroup != "" {
+		resourceUri = strings.Replace(resourceUri, "/resourcegroups/", "/resourceGroups/", 1)
+	}
+	d.Set("target_resource_id", resourceUri)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -622,21 +628,4 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
-}
-
-func ResourceIDCaseDifference(_, old, new string, _ *schema.ResourceData) bool {
-	oldResourceId, err := azure.ParseAzureResourceID(old)
-	if err != nil {
-		return false
-	}
-
-	newResourceId, err := azure.ParseAzureResourceID(new)
-	if err != nil {
-		return false
-	}
-
-	if oldResourceId == nil || newResourceId == nil {
-		return false
-	}
-	return reflect.DeepEqual(oldResourceId, newResourceId)
 }
