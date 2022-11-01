@@ -149,6 +149,21 @@ func PossibleEndpointHealthStatusValues() []EndpointHealthStatus {
 	return []EndpointHealthStatus{EndpointHealthStatusDead, EndpointHealthStatusDegraded, EndpointHealthStatusHealthy, EndpointHealthStatusUnhealthy, EndpointHealthStatusUnknown}
 }
 
+// IPFilterActionType enumerates the values for ip filter action type.
+type IPFilterActionType string
+
+const (
+	// IPFilterActionTypeAccept ...
+	IPFilterActionTypeAccept IPFilterActionType = "Accept"
+	// IPFilterActionTypeReject ...
+	IPFilterActionTypeReject IPFilterActionType = "Reject"
+)
+
+// PossibleIPFilterActionTypeValues returns an array of possible values for the IPFilterActionType const type.
+func PossibleIPFilterActionTypeValues() []IPFilterActionType {
+	return []IPFilterActionType{IPFilterActionTypeAccept, IPFilterActionTypeReject}
+}
+
 // IotHubNameUnavailabilityReason enumerates the values for iot hub name unavailability reason.
 type IotHubNameUnavailabilityReason string
 
@@ -236,21 +251,6 @@ const (
 // PossibleIotHubSkuTierValues returns an array of possible values for the IotHubSkuTier const type.
 func PossibleIotHubSkuTierValues() []IotHubSkuTier {
 	return []IotHubSkuTier{IotHubSkuTierBasic, IotHubSkuTierFree, IotHubSkuTierStandard}
-}
-
-// IPFilterActionType enumerates the values for ip filter action type.
-type IPFilterActionType string
-
-const (
-	// IPFilterActionTypeAccept ...
-	IPFilterActionTypeAccept IPFilterActionType = "Accept"
-	// IPFilterActionTypeReject ...
-	IPFilterActionTypeReject IPFilterActionType = "Reject"
-)
-
-// PossibleIPFilterActionTypeValues returns an array of possible values for the IPFilterActionType const type.
-func PossibleIPFilterActionTypeValues() []IPFilterActionType {
-	return []IPFilterActionType{IPFilterActionTypeAccept, IPFilterActionTypeReject}
 }
 
 // JobStatus enumerates the values for job status.
@@ -400,15 +400,19 @@ const (
 	RoutingSourceDeviceLifecycleEvents RoutingSource = "DeviceLifecycleEvents"
 	// RoutingSourceDeviceMessages ...
 	RoutingSourceDeviceMessages RoutingSource = "DeviceMessages"
+	// RoutingSourceDigitalTwinChangeEvents ...
+	RoutingSourceDigitalTwinChangeEvents RoutingSource = "DigitalTwinChangeEvents"
 	// RoutingSourceInvalid ...
 	RoutingSourceInvalid RoutingSource = "Invalid"
+	// RoutingSourceMqttBrokerMessages ...
+	RoutingSourceMqttBrokerMessages RoutingSource = "MqttBrokerMessages"
 	// RoutingSourceTwinChangeEvents ...
 	RoutingSourceTwinChangeEvents RoutingSource = "TwinChangeEvents"
 )
 
 // PossibleRoutingSourceValues returns an array of possible values for the RoutingSource const type.
 func PossibleRoutingSourceValues() []RoutingSource {
-	return []RoutingSource{RoutingSourceDeviceConnectionStateEvents, RoutingSourceDeviceJobLifecycleEvents, RoutingSourceDeviceLifecycleEvents, RoutingSourceDeviceMessages, RoutingSourceInvalid, RoutingSourceTwinChangeEvents}
+	return []RoutingSource{RoutingSourceDeviceConnectionStateEvents, RoutingSourceDeviceJobLifecycleEvents, RoutingSourceDeviceLifecycleEvents, RoutingSourceDeviceMessages, RoutingSourceDigitalTwinChangeEvents, RoutingSourceInvalid, RoutingSourceMqttBrokerMessages, RoutingSourceTwinChangeEvents}
 }
 
 // TestResultStatus enumerates the values for test result status.

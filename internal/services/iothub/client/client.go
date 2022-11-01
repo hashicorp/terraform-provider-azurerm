@@ -1,11 +1,11 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 type Client struct {

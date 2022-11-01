@@ -25,7 +25,6 @@ github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/gu
 github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight
 github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot
 github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis
-github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault
 github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto
@@ -590,9 +589,10 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
-# github.com/tombuildsstuff/kermit v0.20221025.1151856
+# github.com/tombuildsstuff/kermit v0.20221031.1114338
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute
+github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
