@@ -265,7 +265,6 @@ A `connection_draining` block supports the following:
 
 ---
 
-
 A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
@@ -329,7 +328,7 @@ A `http_listener` block supports the following:
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
- 
+
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
 
 ---
@@ -341,6 +340,7 @@ A `private_link_configuration` block supports the following:
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
 -> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
+
 ```bash
 az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
 ```
@@ -433,7 +433,7 @@ A `request_routing_rule` block supports the following:
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
-* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. 
+* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
 -> **NOTE:** `priority` is required when `sku.0.tier` is set to `*_v2`.
 
@@ -521,15 +521,13 @@ A `ssl_policy` block supports the following:
 When using a `policy_type` of `Predefined` the following fields are supported:
 
 * `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and
-are published here https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
+are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
 
 * `cipher_suites` - (Optional) A List of accepted cipher suites. Possible values are: `TLS_DHE_DSS_WITH_AES_128_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA256`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA256`, `TLS_DHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_DHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_RSA_WITH_3DES_EDE_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA256`, `TLS_RSA_WITH_AES_128_GCM_SHA256`, `TLS_RSA_WITH_AES_256_CBC_SHA`, `TLS_RSA_WITH_AES_256_CBC_SHA256` and `TLS_RSA_WITH_AES_256_GCM_SHA384`.
 
 * `min_protocol_version` - (Optional) The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
-
-
 
 ---
 

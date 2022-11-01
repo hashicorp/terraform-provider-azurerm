@@ -47,9 +47,9 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -132,7 +132,7 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags: tags.Expand(t),
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		publicIpPrefix.Zones = &zones
 	}
@@ -174,7 +174,7 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", id.PublicIPPrefixeName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	skuName := ""
 	if sku := resp.Sku; sku != nil {

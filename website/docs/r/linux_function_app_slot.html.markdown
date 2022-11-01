@@ -148,7 +148,7 @@ an `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) a `microsoft` block as detailed below.
 
@@ -390,7 +390,7 @@ An `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`.
+* `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
 
@@ -496,7 +496,6 @@ A `storage_account` block supports the following:
 
 * `mount_path` - (Optional) The path at which to mount the storage share.
 
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -536,7 +535,6 @@ A `site_credential` block exports the following:
 * `name` - The Site Credentials Username used for publishing.
 
 * `password` - The Site Credentials Password used for publishing.
-
 
 ## Timeouts
 

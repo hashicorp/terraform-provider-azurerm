@@ -32,7 +32,6 @@ data "azurerm_blueprint_published_version" "test" {
 
 * `version` - (Required) The Version name of the Published Version of the Blueprint Definition
 
-
 ## Attributes Reference
 
 * `id` - The ID of the Published Version
@@ -44,7 +43,6 @@ data "azurerm_blueprint_published_version" "test" {
 * `display_name` - The display name of the Blueprint Published Version
 
 * `description` - The description of the Blueprint Published Version
-
 
 ## Timeouts
 

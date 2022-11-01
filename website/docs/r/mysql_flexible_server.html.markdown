@@ -153,7 +153,7 @@ A `maintenance_window` block supports the following:
 
 A `storage` block supports the following:
 
-* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`. 
+* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`.
 
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are between `360` and `20000`.
 
@@ -161,7 +161,7 @@ A `storage` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MySQL Flexible Server.
 

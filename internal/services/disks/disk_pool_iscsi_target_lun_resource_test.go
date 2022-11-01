@@ -98,7 +98,7 @@ func TestAccDiskPoolIscsiTargetLun_destroy(t *testing.T) {
 }
 
 func (r DisksPoolIscsiTargetLunResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ParseIscsiTargetLunID(state.ID)
+	id, err := parse.IscsiTargetLunID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (r DisksPoolIscsiTargetLunResource) Exists(ctx context.Context, clients *cl
 func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
 	defer cancel()
-	id, err := parse.ParseIscsiTargetLunID(state.ID)
+	id, err := parse.IscsiTargetLunID(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -1548,16 +1548,16 @@ resource "azurerm_storage_blob" "test" {
   name                   = "script"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
   name                   = "script2"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script2"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {

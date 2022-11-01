@@ -1,15 +1,17 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 type Client struct {
@@ -20,7 +22,7 @@ type Client struct {
 	DedicatedHostGroupsClient        *dedicatedhostgroups.DedicatedHostGroupsClient
 	DisksClient                      *disks.DisksClient
 	DiskAccessClient                 *compute.DiskAccessesClient
-	DiskEncryptionSetsClient         *compute.DiskEncryptionSetsClient
+	DiskEncryptionSetsClient         *diskencryptionsets.DiskEncryptionSetsClient
 	GalleriesClient                  *compute.GalleriesClient
 	GalleryApplicationsClient        *compute.GalleryApplicationsClient
 	GalleryApplicationVersionsClient *compute.GalleryApplicationVersionsClient
@@ -30,7 +32,7 @@ type Client struct {
 	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
 	ProximityPlacementGroupsClient   *proximityplacementgroups.ProximityPlacementGroupsClient
 	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
-	SnapshotsClient                  *compute.SnapshotsClient
+	SnapshotsClient                  *snapshots.SnapshotsClient
 	UsageClient                      *compute.UsageClient
 	VMExtensionImageClient           *compute.VirtualMachineExtensionImagesClient
 	VMExtensionClient                *compute.VirtualMachineExtensionsClient
@@ -64,7 +66,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	diskAccessClient := compute.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&diskAccessClient.Client, o.ResourceManagerAuthorizer)
 
-	diskEncryptionSetsClient := compute.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	diskEncryptionSetsClient := diskencryptionsets.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&diskEncryptionSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	galleriesClient := compute.NewGalleriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -91,7 +93,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	proximityPlacementGroupsClient := proximityplacementgroups.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&proximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	snapshotsClient := snapshots.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&snapshotsClient.Client, o.ResourceManagerAuthorizer)
 
 	sshPublicKeysClient := sshpublickeys.NewSshPublicKeysClientWithBaseURI(o.ResourceManagerEndpoint)

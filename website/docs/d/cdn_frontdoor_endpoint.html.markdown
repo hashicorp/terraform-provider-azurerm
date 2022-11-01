@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_endpoint"
 description: |-
-  Gets information about an existing CDN FrontDoor Endpoint.
+  Gets information about an existing Front Door (standard/premium) Endpoint.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_endpoint
 
-Use this data source to access information about an existing CDN FrontDoor Endpoint.
+Use this data source to access information about an existing Front Door (standard/premium) Endpoint.
 
 ## Example Usage
 
@@ -24,26 +24,26 @@ data "azurerm_cdn_frontdoor_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the FrontDoor Endpoint.
+* `name` - (Required) Specifies the name of the Front Door Endpoint.
 
-* `profile_name` - (Required) The name of the FrontDoor Profile within which CDN FrontDoor Endpoint exists.
+* `profile_name` - (Required) The name of the Front Door Profile within which Front Door Endpoint exists.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the CDN FrontDoor Profile exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Front Door Profile exists.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of this CDN FrontDoor Endpoint.
+* `id` - The ID of this Front Door Endpoint.
 
-* `enabled` - Specifies whether this CDN FrontDoor Endpoint is enabled or not.
+* `enabled` - Specifies whether this Front Door Endpoint is enabled or not.
 
-* `host_name` - Specifies the host name of the CDN FrontDoor Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
+* `host_name` - Specifies the host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
 
-* `tags` - Specifies a mapping of Tags assigned to this CDN FrontDoor Endpoint.
+* `tags` - Specifies a mapping of Tags assigned to this Front Door Endpoint.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Endpoint.

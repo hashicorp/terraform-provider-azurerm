@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_iothub_certificate
 
-Manages an IotHub Certificate. 
+Manages an IotHub Certificate.
 
 ## Example Usage
 
@@ -60,8 +60,6 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub Certificate.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

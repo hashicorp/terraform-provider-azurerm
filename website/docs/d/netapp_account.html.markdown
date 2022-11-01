@@ -23,7 +23,6 @@ output "netapp_account_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -31,7 +30,6 @@ The following arguments are supported:
 * `name` - The name of the NetApp Account.
 
 * `resource_group_name` - The Name of the Resource Group where the NetApp Account exists.
-
 
 ## Attributes Reference
 

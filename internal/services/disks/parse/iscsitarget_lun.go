@@ -4,32 +4,40 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 )
 
 const iscsiTargetLunSeparator = "/lun|"
 
-var _ resourceid.Formatter = DiskPoolIscsiTargetLunId{}
+var _ resourceids.Id = DiskPoolIscsiTargetLunId{}
 
 type DiskPoolIscsiTargetLunId struct {
 	IscsiTargetId iscsitargets.IscsiTargetId
-	ManagedDiskId computeParse.ManagedDiskId
+	ManagedDiskId disks.DiskId
 }
 
-func NewDiskPoolIscsiTargetLunId(iscsiTargetId iscsitargets.IscsiTargetId, managedDiskId computeParse.ManagedDiskId) DiskPoolIscsiTargetLunId {
+func NewDiskPoolIscsiTargetLunId(iscsiTargetId iscsitargets.IscsiTargetId, managedDiskId disks.DiskId) DiskPoolIscsiTargetLunId {
 	return DiskPoolIscsiTargetLunId{
 		IscsiTargetId: iscsiTargetId,
 		ManagedDiskId: managedDiskId,
 	}
 }
 
-func (d DiskPoolIscsiTargetLunId) ID() string {
-	return fmt.Sprintf("%s%s%s", d.IscsiTargetId.ID(), iscsiTargetLunSeparator, d.ManagedDiskId.ID())
+func (id DiskPoolIscsiTargetLunId) ID() string {
+	return fmt.Sprintf("%s%s%s", id.IscsiTargetId.ID(), iscsiTargetLunSeparator, id.ManagedDiskId.ID())
 }
 
-func ParseIscsiTargetLunID(input string) (*DiskPoolIscsiTargetLunId, error) {
+func (id DiskPoolIscsiTargetLunId) String() string {
+	components := []string{
+		fmt.Sprintf("Iscsi Target %q", id.IscsiTargetId.String()),
+		fmt.Sprintf("Managed Disk %q", id.ManagedDiskId.String()),
+	}
+	return fmt.Sprintf("Disk Pool Iscsi Target Lun: %s", strings.Join(components, " / "))
+}
+
+func IscsiTargetLunID(input string) (*DiskPoolIscsiTargetLunId, error) {
 	if !strings.Contains(input, iscsiTargetLunSeparator) {
 		return nil, fmt.Errorf("malformed iscsi target lun id:%q", input)
 	}
@@ -45,7 +53,7 @@ func ParseIscsiTargetLunID(input string) (*DiskPoolIscsiTargetLunId, error) {
 	if err != nil {
 		return nil, fmt.Errorf("malformed iscsi target id: %q, %v", input, err)
 	}
-	managedDiskId, err := computeParse.ManagedDiskID(parts[1])
+	managedDiskId, err := disks.ParseDiskID(parts[1])
 	if managedDiskId == nil {
 		return nil, fmt.Errorf("malformed iscsi target id: %q", input)
 	}

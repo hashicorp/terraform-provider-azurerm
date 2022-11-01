@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -53,7 +54,7 @@ func devTestLinuxVirtualMachineSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"size": {
 			Type:     pluginsdk.TypeString,

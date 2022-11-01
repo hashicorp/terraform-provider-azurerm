@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -118,7 +118,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
@@ -196,7 +196,15 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+	if !features.FourPointOhBeta() {
+		if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+			virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
+				GalleryApplications: galleryApplications,
+			}
+		}
+	}
+
+	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
 			GalleryApplications: galleryApplications,
 		}
@@ -528,7 +536,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 		if d.HasChange("rolling_upgrade_policy") {
 			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
-			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+			zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 			rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0)
 			if err != nil {
 				return err
@@ -837,7 +845,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	var skuName *string
 	var instances int
@@ -945,7 +953,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("license_type", profile.LicenseType)
 
 		if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
-			d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
+
+			if !features.FourPointOhBeta() {
+				d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			}
 		}
 
 		// the service just return empty when this is not assigned when provisioned
@@ -1165,9 +1177,9 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			ValidateFunc: computeValidate.VirtualMachineName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		// Required
 		"admin_username": {
@@ -1291,7 +1303,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
-		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
+		"gallery_application": VirtualMachineScaleSetGalleryApplicationSchema(),
 
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,
@@ -1469,6 +1481,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 	}
 
 	if !features.FourPointOhBeta() {
+		resourceSchema["gallery_applications"] = VirtualMachineScaleSetGalleryApplicationsSchema()
 		resourceSchema["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
 
 		resourceSchema["scale_in_policy"] = &schema.Schema{

@@ -47,11 +47,11 @@ The following arguments are supported:
 
 * `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited) if omitted.
 
-~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`. 
+~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`.
 
 * `cmk_for_query_forced` - (Optional) Is Customer Managed Storage mandatory for query management?
 
-* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster. 
+~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster.
 
 ## Attributes Reference
 

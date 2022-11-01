@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Function App enabled?
 
-* `content_share_force_disabled` - (Optional) Should the settings for linking the Function App to storage be suppressed. 
+* `content_share_force_disabled` - (Optional) Should the settings for linking the Function App to storage be suppressed.
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
-* `sticky_settings` - A `sticky_settings` block as defined below.
+* `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`.
 
@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
 
-~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`. 
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
 
 ~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
@@ -152,7 +152,7 @@ A `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11` & `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16` and `18`.
 
@@ -166,9 +166,9 @@ A `application_stack` block supports the following:
 
 An `app_service_logs` block supports the following:
 
-* `disk_quota_mb` - (Required) The amount of disk space to use for logs. Valid values are between `25` and `100`. 
+* `disk_quota_mb` - (Required) The amount of disk space to use for logs. Valid values are between `25` and `100`.
 
-* `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete). 
+* `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).
 
 ~> **NOTE:** This block is not supported on Consumption plans.
 
@@ -196,7 +196,7 @@ An `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Linux Web App.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
@@ -231,7 +231,6 @@ A `connection_string` block supports the following:
 * `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
 
 * `value` - (Required) The connection string value.
-
 
 ---
 
@@ -359,7 +358,7 @@ A `schedule` block supports the following:
 
 ~> **NOTE:** Not all intervals are supported on all Linux Function App SKUs. Please refer to the official documentation for appropriate values.
 
-* `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`. 
+* `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.
 
 * `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.
 
@@ -497,7 +496,7 @@ A `twitter` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Function App.
 

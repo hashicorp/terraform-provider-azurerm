@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -34,6 +34,8 @@ func resourceCosmosDbNotebookWorkspace() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: `CosmosDb Notebook Workspace is now Deprecated - as such the 'azurerm_cosmosdb_notebook_workspace' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
@@ -44,7 +46,7 @@ func resourceCosmosDbNotebookWorkspace() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,

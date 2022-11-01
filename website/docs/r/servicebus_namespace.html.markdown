@@ -74,13 +74,11 @@ An `identity` block supports the following:
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-
 ---
 
 -> **Note:** Once customer-managed key encryption has been enabled, it cannot be disabled.
 
 A `customer_managed_key` block supports the following:
-
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this ServiceBus Namespace.
 
@@ -103,7 +101,6 @@ A `identity` block exports the following:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
-
 
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.

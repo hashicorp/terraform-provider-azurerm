@@ -78,6 +78,7 @@ The following supported locations for a Binary Dataset. One of these should be s
 * `azure_blob_storage_location` - (Optional) A `azure_blob_storage_location` block as defined below.
 
 * `sftp_server_location` - (Optional) A `sftp_server_location` block as defined below.
+
 ---
 
 A `compression` block supports the following:
@@ -127,7 +128,6 @@ A `sftp_server_location` block supports the following:
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
-
 
 ## Attributes Reference
 

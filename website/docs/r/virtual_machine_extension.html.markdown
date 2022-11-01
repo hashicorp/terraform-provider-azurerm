@@ -112,9 +112,9 @@ resource "azurerm_virtual_machine_extension" "example" {
   type_handler_version = "2.0"
 
   settings = <<SETTINGS
-	{
-		"commandToExecute": "hostname && uptime"
-	}
+ {
+  "commandToExecute": "hostname && uptime"
+ }
 SETTINGS
 
 
@@ -139,8 +139,9 @@ The following arguments are supported:
     be found using the Azure CLI.
 
 ~> **Note:** The `Publisher` and `Type` of Virtual Machine Extensions can be found using the Azure CLI, via:
+
 ```shell
-$ az vm extension image list --location westus -o table
+az vm extension image list --location westus -o table
 ```
 
 * `type_handler_version` - (Required) Specifies the version of the extension to

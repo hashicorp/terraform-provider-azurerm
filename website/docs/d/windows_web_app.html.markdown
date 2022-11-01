@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Windows Web App.
 
@@ -480,7 +480,6 @@ A `storage_account` block exports the following:
 * `share_name` - The Name of the File Share.
 
 * `type` - The Azure Storage Type.
-
 
 ---
 

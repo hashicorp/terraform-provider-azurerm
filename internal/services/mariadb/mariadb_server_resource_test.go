@@ -188,7 +188,7 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-			Config:    r.createPointInTimeRestore(data, version, restoreTime.Format(time.RFC3339)),
+			Config:    r.createPointInTimeRestore(data, version, restoreTime.Add(5*time.Second).Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_mariadb_server.restore").ExistsInAzure(r),

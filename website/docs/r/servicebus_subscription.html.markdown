@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `status` - (Optional) The status of the Subscription. Possible values are `Active`,`ReceiveDisabled`, or `Disabled`. Defaults to `Active`.
 
-* `client_scoped_subscription_enabled` - (Optional)  whether the subscription is scoped to a client id. Defaults to `False`. 
+* `client_scoped_subscription_enabled` - (Optional)  whether the subscription is scoped to a client id. Defaults to `False`.
 
 ~> **NOTE:** Client Scoped Subscription can only be used for JMS subscription (Java Message Service).
 

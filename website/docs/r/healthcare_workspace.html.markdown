@@ -37,6 +37,7 @@ The following attributes are exported:
 * `id` - The ID of the Healthcare Workspace.
 
 ## Timeouts
+
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare Workspace.

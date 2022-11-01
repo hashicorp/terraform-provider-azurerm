@@ -61,7 +61,7 @@ A `github_configuration` block supports the following:
 
 * `branch_name` - (Required) Specifies the branch of the repository to get code from.
 
-* `git_url` - (Required) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com. Use https://github.com for open source repositories.
+* `git_url` - (Required) Specifies the GitHub Enterprise host name. For example: <https://github.mydomain.com>. Use <https://github.com> for open source repositories.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
 
@@ -122,7 +122,6 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
-
 
 ## Timeouts
 
