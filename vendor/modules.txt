@@ -77,7 +77,6 @@ github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/strea
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
 github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
-github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 ## explicit
@@ -397,6 +396,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
+github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01
+github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub
 # github.com/hashicorp/go-checkpoint v0.5.0
 ## explicit
 github.com/hashicorp/go-checkpoint
