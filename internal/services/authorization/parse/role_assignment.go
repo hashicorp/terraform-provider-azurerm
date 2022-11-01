@@ -2,7 +2,6 @@ package parse
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -125,6 +124,17 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if roleAssignmentId.Name, err = id.PopSegment("roleAssignments"); err != nil {
 			return nil, err
 		}
+	case strings.HasPrefix(input, "/providers/Microsoft.Subscription/") || strings.HasPrefix(input, "/providers/Microsoft.Marketplace/"):
+		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
+		if len(idParts) != 2 {
+			return nil, fmt.Errorf("could not parse Role Assignment ID %q for subscription scope", input)
+		}
+		roleAssignmentId.IsRootLevel = true
+		if idParts[1] == "" {
+			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
+		}
+		roleAssignmentId.ResourceProvider = strings.Split(input, "/")[2]
+		roleAssignmentId.Name = idParts[1]
 	case strings.HasPrefix(input, "/providers/Microsoft.Management/"):
 		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
 		if len(idParts) != 2 {
@@ -136,15 +146,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		roleAssignmentId.Name = idParts[1]
 		roleAssignmentId.ManagementGroup = strings.TrimPrefix(idParts[0], "/providers/Microsoft.Management/managementGroups/")
 	default:
-		re := regexp.MustCompile(`^/providers/(Microsoft.[a-zA-Z]+)/providers/Microsoft.Authorization/roleAssignments/([a-fA-F\d]{8}-[a-fA-F\d]{4}-[a-fA-F\d]{4}-[a-fA-F\d]{4}-[a-fA-F\d]{12})$`)
-		matches := re.FindStringSubmatch(input)
-		if len(matches) != 3 {
-			return nil, fmt.Errorf("could not parse Role Assignment ID %q", input)
-		}
-
-		roleAssignmentId.IsRootLevel = true
-		roleAssignmentId.ResourceProvider = matches[1]
-		roleAssignmentId.Name = matches[2]
+		return nil, fmt.Errorf("could not parse Role Assignment ID %q", input)
 	}
 
 	return &roleAssignmentId, nil
