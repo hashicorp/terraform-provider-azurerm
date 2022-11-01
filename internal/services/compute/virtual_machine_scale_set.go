@@ -1933,8 +1933,12 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 				},
 			},
 		},
-		// TODO remove ConflictsWith in 4.0
-		ConflictsWith: []string{"terminate_notification"},
+		ConflictsWith: func() []string {
+			if !features.FourPointOhBeta() {
+				return []string{"terminate_notification"}
+			}
+			return []string{}
+		}(),
 	}
 }
 
