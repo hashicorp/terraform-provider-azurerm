@@ -82,14 +82,14 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_managed_instance_security_alert_policy" "test" {
-  resource_group_name        = azurerm_resource_group.test.name
-  managed_instance_name      = azurerm_mssql_managed_instance.test.name
-  state                      = "Enabled"
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  retention_days             = 20
-  email_account_admins       = true
-  email_addresses            = ["pearcec@example.com"]
+  resource_group_name          = azurerm_resource_group.test.name
+  managed_instance_name        = azurerm_mssql_managed_instance.test.name
+  enabled                      = true
+  storage_endpoint             = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key   = azurerm_storage_account.test.primary_access_key
+  retention_days               = 20
+  email_account_admins_enabled = true
+  email_addresses              = ["pearcec@example.com"]
 
   disabled_alerts = [
     "Sql_Injection",
@@ -114,7 +114,7 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_mssql_managed_instance_security_alert_policy" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   managed_instance_name      = azurerm_mssql_managed_instance.test.name
-  state                      = "Enabled"
+  enabled                    = true
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   retention_days             = 30

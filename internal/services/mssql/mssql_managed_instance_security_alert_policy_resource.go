@@ -62,7 +62,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"email_account_admins": {
+			"email_account_admins_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -84,14 +84,9 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
-			"state": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.SecurityAlertPolicyStateDisabled),
-					string(sql.SecurityAlertPolicyStateEnabled),
-					string(sql.SecurityAlertPolicyStateNew),
-				}, false),
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"storage_account_access_key": {
@@ -184,8 +179,8 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 			props.DisabledAlerts = nil
 		}
 	}
-	if d.HasChange("email_account_admins") {
-		props.EmailAccountAdmins = utils.Bool(d.Get("email_account_admins").(bool))
+	if d.HasChange("email_account_admins_enabled") {
+		props.EmailAccountAdmins = utils.Bool(d.Get("email_account_admins_enabled").(bool))
 	}
 
 	if d.HasChange("retention_days") {
@@ -204,8 +199,12 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	if d.HasChange("state") {
-		props.State = sql.SecurityAlertsPolicyState(d.Get("state").(string))
+	if d.HasChange("enabled") {
+		if d.Get("enabled").(bool) {
+			props.State = sql.SecurityAlertsPolicyStateEnabled
+		} else {
+			props.State = sql.SecurityAlertsPolicyStateDisabled
+		}
 	}
 
 	props.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
@@ -255,7 +254,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	d.Set("managed_instance_name", id.ManagedInstanceName)
 
 	if props := result.SecurityAlertsPolicyProperties; props != nil {
-		d.Set("state", string(props.State))
+		d.Set("enabled", props.State == sql.SecurityAlertsPolicyStateEnabled)
 
 		if props.DisabledAlerts != nil {
 			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
@@ -269,7 +268,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 		}
 
 		if props.EmailAccountAdmins != nil {
-			d.Set("email_account_admins", props.EmailAccountAdmins)
+			d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
 		}
 
 		if props.EmailAddresses != nil {
@@ -332,7 +331,11 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.Resource
 }
 
 func expandManagedServerSecurityAlertPolicy(d *pluginsdk.ResourceData) *sql.ManagedServerSecurityAlertPolicy {
-	state := sql.SecurityAlertsPolicyState(d.Get("state").(string))
+	state := sql.SecurityAlertsPolicyStateDisabled
+
+	if d.Get("enabled").(bool) {
+		state = sql.SecurityAlertsPolicyStateEnabled
+	}
 
 	policy := sql.ManagedServerSecurityAlertPolicy{
 		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
@@ -358,7 +361,7 @@ func expandManagedServerSecurityAlertPolicy(d *pluginsdk.ResourceData) *sql.Mana
 		props.EmailAddresses = &emailAddresses
 	}
 
-	if v, ok := d.GetOk("email_account_admins"); ok {
+	if v, ok := d.GetOk("email_account_admins_enabled"); ok {
 		props.EmailAccountAdmins = utils.Bool(v.(bool))
 	}
 

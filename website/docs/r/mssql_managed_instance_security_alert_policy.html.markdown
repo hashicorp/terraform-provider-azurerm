@@ -204,7 +204,7 @@ resource "azurerm_mssql_managed_instance" "example" {
 resource "azurerm_mssql_managed_instance_security_alert_policy" "example" {
   resource_group_name        = azurerm_resource_group.example.name
   managed_instance_name      = azurerm_mssql_managed_instance.example.name
-  state                      = "Enabled"
+  enabled                    = true
   storage_endpoint           = azurerm_storage_account.example.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
   disabled_alerts = [
@@ -223,11 +223,11 @@ The following arguments are supported:
 
 * `managed_instance_name` - (Required) Specifies the name of the MS SQL Managed Instance. Changing this forces a new resource to be created.
 
-* `state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific database. Possible values are `Disabled`, `Enabled`.
-
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Possible values are `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action` and `Brute_Force`.
 
-* `email_account_admins` - (Optional) Boolean flag which specifies if the alert is sent to the account administrators or not. Defaults to `false`.
+* `enabled` - (Optional) Specifies the state of the Security Alert Policy, whether it is enabled or disabled. Possible values are `true`, `false`. Defaults to `false`.
+
+* `email_account_admins_enabled` - (Optional) Boolean flag which specifies if the alert is sent to the account administrators or not. Defaults to `false`.
 
 * `email_addresses` - (Optional) Specifies an array of email addresses to which the alert is sent.
 
