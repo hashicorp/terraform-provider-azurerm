@@ -7,10 +7,14 @@ FEATURES:
 
 ENHANCEMENTS
 
+* dependencies: `iothub` updating to `2022-04-30-preview` [GH-19070]
 * dependencies: updating to `v0.46.0` of `github.com/hashicorp/go-azure-helpers` [GH-19038]
 * dependencies: updating to `v0.20221028.1081410` of `github.com/hashicorp/go-azure-sdk` [GH-19038]
 * Data Source: `azurerm_application_gateway` - export the `backend_address_pool` block [GH-19026]
 * Data Source: `azurerm_function_app_host_keys` - export `webpubsub_extension_key` property [GH-19073]
+* `azurerm_iothub` - support for `DigitalTwinChangeEvents` as `source` and `fallback_route.source` [GH-19070]
+* `azurerm_iothub_fallback_route` - support for `DigitalTwinChangeEvents` as `source` [GH-19070]
+* `azurerm_iothub_route` - support for `DigitalTwinChangeEvents` as `source` [GH-19070]
 * `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
 * `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
