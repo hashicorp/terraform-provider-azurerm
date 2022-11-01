@@ -3,7 +3,7 @@ subcategory: "VMware (AVS)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vmware_netapp_volume_attachment"
 description: |-
-  Manages a VMware Private Cloud Netapp attachment.
+  Manages a VMware Private Cloud Netapp File Attachment.
 
 # azurerm_vmware_netapp_volume_attachment
 
@@ -154,6 +154,8 @@ resource "azurerm_vmware_netapp_volume_attachment" "test" {
   name              = "example-vmwareattachment"
   netapp_volume_id  = azurerm_netapp_volume.test.id
   vmware_cluster_id = azurerm_vmware_cluster.test.id
+
+  depends_on = [azurerm_virtual_network_gateway_connection.test]
 }
 ```
 

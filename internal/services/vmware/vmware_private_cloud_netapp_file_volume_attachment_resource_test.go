@@ -3,6 +3,8 @@ package vmware_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -10,10 +12,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"testing"
 )
 
 type VmwareNetappFileVolumeAttachmentResource struct{}
+
+func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
+	r := VmwareNetappFileVolumeAttachmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
 
 func (r VmwareNetappFileVolumeAttachmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := datastores.ParseDataStoreID(state.ID)
@@ -31,35 +46,6 @@ func (r VmwareNetappFileVolumeAttachmentResource) Exists(ctx context.Context, cl
 	return utils.Bool(true), nil
 }
 
-func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
-	r := VmwareNetappFileVolumeAttachmentResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
-		},
-		data.ImportStep(),
-	})
-}
-
-// for testing purpose as the creation of vmware private cloud takes long time.
-func TestAccVmwarePrivateCloudNetappFileVolumeAttachmentDataSource(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
-	r := VmwareNetappFileVolumeAttachmentResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDataSourcePc(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r VmwareNetappFileVolumeAttachmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -74,31 +60,20 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_vmware_netapp_volume_attachment" "test" {
   name              = "acctest-vmwareattachment-%d"
   netapp_volume_id  = azurerm_netapp_volume.test.id
-  vmware_cluster_id = azurerm_vmware_cluster.test.id
+  vmware_cluster_id = "${azurerm_vmware_private_cloud.test.id}/clusters/Cluster-1"
 
   depends_on = [azurerm_virtual_network_gateway_connection.test]
 }`, data.RandomInteger, r.templatePrivateCloud(data), r.templateNetappFile(data), data.RandomInteger)
 }
 
-func (r VmwareNetappFileVolumeAttachmentResource) basicDataSourcePc(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-%s
-
-resource "azurerm_vmware_netapp_volume_attachment" "test" {
-  name              = "acctest-vmwareattachment-%d"
-  netapp_volume_id  = azurerm_netapp_volume.test.id
-  vmware_cluster_id = "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/xiaxintestrg-avs/providers/Microsoft.AVS/privateClouds/xiaxintest-PC-VM/clusters/Cluster-1"
-
-  depends_on = [azurerm_virtual_network_gateway_connection.test]
-}`, r.templatePrivateCloudDataSource(data), r.templateNetappFile(data), data.RandomInteger)
-}
-
 func (r VmwareNetappFileVolumeAttachmentResource) templatePrivateCloud(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
   # In Vmware acctest, please disable correlation request id, else the continuous operations like update or delete will not be triggered
   # issue https://github.com/Azure/azure-rest-api-specs/issues/14086 
   disable_correlation_request_id = true
@@ -140,13 +115,6 @@ resource "azurerm_vmware_private_cloud" "test" {
   network_subnet_cidr = "192.168.48.0/22"
 }
 
-resource "azurerm_vmware_cluster" "test" {
-  name               = "acctest-Cluster-%d"
-  vmware_cloud_id    = azurerm_vmware_private_cloud.test.id
-  cluster_node_count = 3
-  sku_name           = "av36"
-}
-
 resource "azurerm_vmware_express_route_authorization" "test" {
   name             = "acctest-VmwareAuthorization-%d"
   private_cloud_id = azurerm_vmware_private_cloud.test.id
@@ -162,67 +130,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   express_route_circuit_id   = azurerm_vmware_private_cloud.test.circuit[0].express_route_id
   authorization_key          = azurerm_vmware_express_route_authorization.test.express_route_authorization_key
 }
-`, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r VmwareNetappFileVolumeAttachmentResource) templatePrivateCloudDataSource(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-  # In Vmware acctest, please disable correlation request id, else the continuous operations like update or delete will not be triggered
-  # issue https://github.com/Azure/azure-rest-api-specs/issues/14086 
-  disable_correlation_request_id = true
-}
-
-%s
-
-data "azurerm_resource_group" "test" {
-  name = "xiaxintestrg-avs"
-}
-
-resource "azurerm_subnet" "gatewaySubnet" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = data.azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.1.0/24"]
-}
-
-resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctestvnetgw-%d"
-  location            = "centralus"
-  resource_group_name = data.azurerm_resource_group.test.name
-
-  type = "ExpressRoute"
-  sku  = "Standard"
-
-  ip_configuration {
-    name                 = "vnetGatewayConfig"
-    public_ip_address_id = azurerm_public_ip.test.id
-    subnet_id            = azurerm_subnet.gatewaySubnet.id
-  }
-}
-
-data "azurerm_vmware_private_cloud" "test" {
-  name                = "xiaxintest-PC-VM"
-  resource_group_name = data.azurerm_resource_group.test.name
-}
-
-resource "azurerm_vmware_express_route_authorization" "test" {
-  name             = "acctest-VmwareAuthorization-%d"
-  private_cloud_id = data.azurerm_vmware_private_cloud.test.id
-}
-
-resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                = "acctestvnetgwconn-%d"
-  location            = "centralus"
-  resource_group_name = data.azurerm_resource_group.test.name
-
-  type                       = "ExpressRoute"
-  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
-  express_route_circuit_id   = data.azurerm_vmware_private_cloud.test.circuit[0].express_route_id
-  authorization_key          = azurerm_vmware_express_route_authorization.test.express_route_authorization_key
-}
-`, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VmwareNetappFileVolumeAttachmentResource) templateNetappFile(data acceptance.TestData) string {

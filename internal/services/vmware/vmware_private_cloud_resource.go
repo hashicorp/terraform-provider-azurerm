@@ -1,6 +1,7 @@
 package vmware
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -229,8 +230,20 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, privateCloud); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, privateCloud); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(privateclouds.PrivateCloudProvisioningStateBuilding)},
+		Target:     []string{string(privateclouds.PrivateCloudProvisioningStateSucceeded)},
+		Refresh:    privateCloudStateRefreshFunc(ctx, client, id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for vmware private cloud %s provisioning state to become available error: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -355,4 +368,20 @@ func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func privateCloudStateRefreshFunc(ctx context.Context, client *privateclouds.PrivateCloudsClient, id privateclouds.PrivateCloudId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for status of vmware private cloud %s error: %+v", id, err)
+		}
+
+		if model := res.Model; model != nil {
+			if model.Properties.ProvisioningState != nil {
+				return res, string(*res.Model.Properties.ProvisioningState), nil
+			}
+		}
+		return nil, "", fmt.Errorf("unable to read the provisioning state")
+	}
 }
