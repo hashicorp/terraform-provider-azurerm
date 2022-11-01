@@ -373,7 +373,7 @@ func resourceIotHub() *pluginsdk.Resource {
 								string(devices.RoutingSourceDeviceLifecycleEvents),
 								string(devices.RoutingSourceDeviceMessages),
 								string(devices.RoutingSourceDigitalTwinChangeEvents),
-								string(devices.IotHubNameUnavailabilityReasonInvalid),
+								string(devices.RoutingSourceInvalid),
 								string(devices.RoutingSourceTwinChangeEvents),
 							}, false),
 						},
