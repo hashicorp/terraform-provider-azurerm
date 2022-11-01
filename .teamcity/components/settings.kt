@@ -52,7 +52,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5),
+        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false)),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
