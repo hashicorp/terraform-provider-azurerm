@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 // TODO: outside of this pr make this private
@@ -368,12 +368,13 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"DeviceConnectionStateEvents",
-								"DeviceJobLifecycleEvents",
-								"DeviceLifecycleEvents",
-								"DeviceMessages",
-								"Invalid",
-								"TwinChangeEvents",
+								string(devices.RoutingSourceDeviceConnectionStateEvents),
+								string(devices.RoutingSourceDeviceJobLifecycleEvents),
+								string(devices.RoutingSourceDeviceLifecycleEvents),
+								string(devices.RoutingSourceDeviceMessages),
+								string(devices.RoutingSourceDigitalTwinChangeEvents),
+								string(devices.IotHubNameUnavailabilityReasonInvalid),
+								string(devices.RoutingSourceTwinChangeEvents),
 							}, false),
 						},
 						"condition": {
