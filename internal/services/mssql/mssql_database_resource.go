@@ -552,7 +552,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				return err
 			}
 			d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
-		}else {
+		} else {
 			d.Set("maintenance_configuration_name", "SQL_Default")
 		}
 		d.Set("ledger_enabled", ledgerEnabled)
