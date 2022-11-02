@@ -62,6 +62,52 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"source_setting": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// Service will auto-fill this if not given in request, based on the "alert_rule_template_guid".
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"source_sub_type": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"enabled_severities": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													string(securityinsight.AlertSeverityHigh),
+													string(securityinsight.AlertSeverityMedium),
+													string(securityinsight.AlertSeverityLow),
+													string(securityinsight.AlertSeverityInformational),
+												},
+												false,
+											),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -98,6 +144,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 		FusionAlertRuleProperties: &securityinsight.FusionAlertRuleProperties{
 			AlertRuleTemplateName: utils.String(d.Get("alert_rule_template_guid").(string)),
 			Enabled:               utils.Bool(d.Get("enabled").(bool)),
+			SourceSettings:        expandFusionSourceSettings(d.Get("source_setting").([]interface{})),
 		},
 	}
 
@@ -155,6 +202,9 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 	if prop := rule.FusionAlertRuleProperties; prop != nil {
 		d.Set("enabled", prop.Enabled)
 		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+		if err := d.Set("source_setting", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
+			return fmt.Errorf("setting `source_setting`: %v", err)
+		}
 	}
 
 	return nil
@@ -175,4 +225,126 @@ func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandFusionSourceSettings(input []interface{}) *[]securityinsight.FusionSourceSettings {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]securityinsight.FusionSourceSettings, 0)
+
+	for _, e := range input {
+		e := e.(map[string]interface{})
+		setting := securityinsight.FusionSourceSettings{
+			Enabled:        utils.Bool(true),
+			SourceName:     utils.String(e["name"].(string)),
+			SourceSubTypes: expandFusionSourceSubTypes(e["source_sub_type"].([]interface{})),
+		}
+		result = append(result, setting)
+	}
+
+	return &result
+}
+
+func expandFusionSourceSubTypes(input []interface{}) *[]securityinsight.FusionSourceSubTypeSetting {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]securityinsight.FusionSourceSubTypeSetting, 0)
+
+	for _, e := range input {
+		e := e.(map[string]interface{})
+		setting := securityinsight.FusionSourceSubTypeSetting{
+			Enabled:           utils.Bool(true),
+			SourceSubTypeName: utils.String(e["name"].(string)),
+			SeverityFilters: &securityinsight.FusionSubTypeSeverityFilter{
+				Filters: expandFusionSubTypeSeverityFiltersItems(e["enabled_severities"].(*pluginsdk.Set).List()),
+			},
+		}
+		result = append(result, setting)
+	}
+
+	return &result
+}
+
+func expandFusionSubTypeSeverityFiltersItems(input []interface{}) *[]securityinsight.FusionSubTypeSeverityFiltersItem {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]securityinsight.FusionSubTypeSeverityFiltersItem, 0)
+
+	for _, e := range input {
+		item := securityinsight.FusionSubTypeSeverityFiltersItem{
+			Enabled:  utils.Bool(true),
+			Severity: securityinsight.AlertSeverity(e.(string)),
+		}
+		result = append(result, item)
+	}
+
+	return &result
+}
+
+func flattenFusionSourceSettings(input *[]securityinsight.FusionSourceSettings) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var name string
+		if e.SourceName != nil {
+			name = *e.SourceName
+		}
+		output = append(output, map[string]interface{}{
+			"name":            name,
+			"source_sub_type": flattenFusionSourceSubTypes(e.SourceSubTypes),
+		})
+	}
+
+	return output
+}
+
+func flattenFusionSourceSubTypes(input *[]securityinsight.FusionSourceSubTypeSetting) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var name string
+		if e.SourceSubTypeName != nil {
+			name = *e.SourceSubTypeName
+		}
+		var enabledSeverities []interface{}
+		if e.SeverityFilters != nil {
+			enabledSeverities = flattenFusionSubTypeSeverityFiltersItems(e.SeverityFilters.Filters)
+		}
+		output = append(output, map[string]interface{}{
+			"name":               name,
+			"enabled_severities": enabledSeverities,
+		})
+	}
+
+	return output
+}
+
+func flattenFusionSubTypeSeverityFiltersItems(input *[]securityinsight.FusionSubTypeSeverityFiltersItem) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		if e.Enabled != nil && *e.Enabled {
+			output = append(output, string(e.Severity))
+		}
+	}
+
+	return output
 }
