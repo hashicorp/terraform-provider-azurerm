@@ -22,7 +22,7 @@ resource "azurerm_policy_definition" "example" {
   display_name = "Allowed resource types"
 
   policy_rule = <<POLICY_RULE
-	{
+ {
     "if": {
       "not": {
         "field": "location",

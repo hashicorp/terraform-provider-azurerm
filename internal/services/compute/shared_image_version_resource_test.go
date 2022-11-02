@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 type SharedImageVersionResource struct{}
@@ -274,15 +275,13 @@ func (r SharedImageVersionResource) Exists(ctx context.Context, clients *clients
 }
 
 func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	subscriptionId := client.Account.SubscriptionId
 	snapShotName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 
-	future, err := client.Compute.SnapshotsClient.RevokeAccess(ctx, resourceGroup, snapShotName)
-	if err != nil {
-		return fmt.Errorf("bad: cannot revoke SAS on the snapshot: %+v", err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Compute.SnapshotsClient.Client); err != nil {
-		return fmt.Errorf("bad: waiting the revoke of SAS on the snapshot: %+v", err)
+	snapshotId := snapshots.NewSnapshotID(subscriptionId, resourceGroup, snapShotName)
+	if err := client.Compute.SnapshotsClient.RevokeAccessThenPoll(ctx, snapshotId); err != nil {
+		return fmt.Errorf("revoking SAS on %s: %+v", snapshotId, err)
 	}
 
 	return nil

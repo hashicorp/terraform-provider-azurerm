@@ -148,7 +148,7 @@ an `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) a `microsoft` block as detailed below.
 
@@ -496,7 +496,6 @@ A `storage_account` block supports the following:
 
 * `mount_path` - (Optional) The path at which to mount the storage share.
 
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -536,7 +535,6 @@ A `site_credential` block exports the following:
 * `name` - The Site Credentials Username used for publishing.
 
 * `password` - The Site Credentials Password used for publishing.
-
 
 ## Timeouts
 

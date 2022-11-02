@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `name` - Specifies the name of the Cosmos DB SQL Database.
 
-* `resource_group_name` - The name of the resource group in which the Cosmos DB SQL Database is created. 
+* `resource_group_name` - The name of the resource group in which the Cosmos DB SQL Database is created.
 
 * `account_name` - The name of the Cosmos DB SQL Database to create the table within.
 
@@ -46,7 +46,6 @@ The following attributes are exported:
 An `autoscale_settings` block supports the following:
 
 * `max_throughput` - The maximum throughput of the SQL database (RU/s).
-
 
 ## Timeouts
 

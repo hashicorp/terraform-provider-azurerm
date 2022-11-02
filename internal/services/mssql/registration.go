@@ -52,6 +52,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mssql_outbound_firewall_rule":                          resourceMsSqlOutboundFirewallRule(),
 		"azurerm_mssql_server":                                          resourceMsSqlServer(),
 		"azurerm_mssql_server_extended_auditing_policy":                 resourceMsSqlServerExtendedAuditingPolicy(),
+		"azurerm_mssql_server_microsoft_support_auditing_policy":        resourceMsSqlServerMicrosoftSupportAuditingPolicy(),
 		"azurerm_mssql_server_security_alert_policy":                    resourceMsSqlServerSecurityAlertPolicy(),
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceMsSqlServerVulnerabilityAssessment(),
 		"azurerm_mssql_virtual_machine":                                 resourceMsSqlVirtualMachine(),

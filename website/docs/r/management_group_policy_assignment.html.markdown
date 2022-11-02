@@ -25,7 +25,7 @@ resource "azurerm_policy_definition" "example" {
   management_group_id = azurerm_management_group.example.id
 
   policy_rule = <<POLICY_RULE
-	{
+ {
     "if": {
       "not": {
         "field": "location",

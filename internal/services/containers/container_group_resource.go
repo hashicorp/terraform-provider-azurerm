@@ -675,7 +675,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	zones := zones.Expand(d.Get("zones").(*pluginsdk.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*pluginsdk.Set).List())
 	initContainers, initContainerVolumes, err := expandContainerGroupInitContainers(d, addedEmptyDirs)
 	if err != nil {
 		return err
@@ -828,7 +828,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
-		d.Set("zones", zones.Flatten(model.Zones))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		props := model.Properties
 		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)

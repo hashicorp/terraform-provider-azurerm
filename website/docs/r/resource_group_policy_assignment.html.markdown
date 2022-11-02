@@ -25,7 +25,7 @@ resource "azurerm_policy_definition" "example" {
   display_name = "my-policy-definition"
 
   policy_rule = <<POLICY_RULE
-	{
+ {
     "if": {
       "not": {
         "field": "location",

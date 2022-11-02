@@ -102,7 +102,6 @@ resource "azurerm_logic_app_standard" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -288,14 +287,13 @@ A `headers` block supports the following:
 
 * `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Logic App
 
-* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record. 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname associated with the Logic App - such as `mysite.azurewebsites.net`
 

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_cdn_endpoint
 
-A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format <endpointname>.azureedge.net.
+A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format `<endpointname>.azureedge.net`.
 
 !> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
@@ -237,8 +237,6 @@ A `cookies_condition` block supports the following:
 * `negate_condition` - (Optional) Defaults to `false`.
 
 * `match_values` - (Optional) List of values for the cookie. This is required if `operator` is not `Any`.
-
-
 
 * `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 

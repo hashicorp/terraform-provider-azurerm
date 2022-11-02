@@ -41,7 +41,6 @@ resource "azurerm_api_management_api_version_set" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:

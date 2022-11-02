@@ -13,8 +13,8 @@ type SystemData struct {
 	LastModifiedAt     string `json:"lastModifiedAt"`
 }
 
-// SystemData is a Read Only type. If Systemdata is part of a request some Azure APIs will ignore it,
-// others will return HTTP 400. We're returning nothing on purpose to avoid the error.
 func (s *SystemData) MarshalJSON() ([]byte, error) {
-	return json.Marshal([]byte{})
+	// SystemData is a Read Only type. If Systemdata is part of a request some Azure APIs will ignore it,
+	// others will return HTTP 400. We're returning nothing on purpose to avoid the error.
+	return json.Marshal(nil)
 }

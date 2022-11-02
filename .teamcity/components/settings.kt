@@ -52,10 +52,13 @@ var serviceTestConfigurationOverrides = mapOf(
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5),
+        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false)),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
+
+        // Datadog is available only in WestUS2 region 
+        "datadog" to testConfiguration(locationOverride = LocationConfiguration("westus2", "westus2", "centraluseuap", false)),
 
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
@@ -70,7 +73,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "elastic" to testConfiguration(parallelism = 1),
 
         // HPC Cache has a 4 instance per subscription quota as of early 2021
-        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
+        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6", useDevTestSubscription = true),
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
@@ -84,11 +87,11 @@ var serviceTestConfigurationOverrides = mapOf(
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
 
-         // Logic uses app service which is only available in certain locations
-         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+        // Logic uses app service which is only available in certain locations
+        "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
-         // Logz is only available in certain locations
-         "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+        // Logz is only available in certain locations
+        "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
@@ -101,8 +104,8 @@ var serviceTestConfigurationOverrides = mapOf(
 
         "policy" to testConfiguration(useAltSubscription = true),
 
-         // Private DNS Resolver is only available in certain locations
-         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
+        // Private DNS Resolver is only available in certain locations
+        "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),

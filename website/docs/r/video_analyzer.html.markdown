@@ -108,7 +108,6 @@ A `identity` block supports the following:
 
 ---
 
-
 ## Attributes Reference
 
 The following attributes are exported:

@@ -30,7 +30,7 @@ type Client struct {
 	Environment azure.Environment
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewContainersClient(o *common.ClientOptions) *Client {
 	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&registriesClient.Client, o.ResourceManagerAuthorizer)
 

@@ -148,7 +148,7 @@ A `microsoft_peering_config` block contains:
 
 * `customer_asn` - (Optional) The CustomerASN of the peering.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc. 
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc.
 
 ---
 
@@ -157,7 +157,7 @@ A `ipv6` block contains:
 * `primary_peer_address_prefix` - (Required) A subnet for the primary link.
 
 * `secondary_peer_address_prefix` - (Required) A subnet for the secondary link.
- 
+
 * `enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
 
 * `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below.  
@@ -176,8 +176,6 @@ A `microsoft_peering` block contains:
 
 * `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example:  `ARIN`, `RIPE`, `AFRINIC` etc.
 
-
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -191,8 +189,6 @@ The following attributes are exported:
 * `secondary_azure_port` - The Secondary Port used by Azure for this Peering.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

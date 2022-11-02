@@ -154,13 +154,13 @@ The following arguments are supported:
 
 * `encrption` - (Optional) An `encryption` block as defined below.
 
-* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. 
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`.
 
 * `public_network_access` - (Optional) The Public Network Access setting of the App Configuration. Possible values are `Enabled` and `Disabled`.
 
 ~> **NOTE:** If `public_network_access` is not specified, the App Configuration will be created as  `Automatic`. However, once a different value is defined, can not be set again as automatic.
 
-* `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. This field only works for `standard` sku. Defaults to `false`. 
+* `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. This field only works for `standard` sku. Defaults to `false`.
 
 !> **Note:** Once Purge Protection has been enabled it's not possible to disable it. Deleting the App Configuration with Purge Protection enabled will schedule the App Configuration to be deleted (which will happen by Azure in the configured number of days).
 
@@ -191,6 +191,7 @@ An `identity` block supports the following:
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:
