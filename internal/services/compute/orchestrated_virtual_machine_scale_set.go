@@ -534,8 +534,11 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumV2LRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 						string(compute.StorageAccountTypesUltraSSDLRS),
 					}, false),
 				},
@@ -602,10 +605,12 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// NOTE: OS Disks don't support Ultra SSDs
+						// NOTE: OS Disks don't support Ultra SSDs or PremiumV2_LRS
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 					}, false),
 				},
 
