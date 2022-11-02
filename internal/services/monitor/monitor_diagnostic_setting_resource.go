@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -35,6 +35,11 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := ParseMonitorDiagnosticId(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DiagnosticSettingUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -138,7 +143,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceMonitorDiagnosticLogSettingHash,
+				Set: validate.ResourceMonitorDiagnosticLogSettingHash,
 			},
 
 			"metric": {
@@ -178,7 +183,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceMonitorDiagnosticMetricsSettingHash,
+				Set: validate.ResourceMonitorDiagnosticMetricsSettingHash,
 			},
 		},
 	}
@@ -319,14 +324,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("name", id.Name)
 
-	resourceId, err := azure.ParseAzureResourceID(actualResourceId)
-	if err != nil {
-		return err
-	}
-	if resourceId.ResourceGroup != "" {
-		actualResourceId = strings.Replace(actualResourceId, "/resourcegroups/", "/resourceGroups/", 1)
-	}
-	d.Set("target_resource_id", actualResourceId)
+	d.Set("target_resource_id", migration.CorrectDiagnosticSettingIdResourceGroup(actualResourceId))
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -582,49 +580,4 @@ func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagn
 		Name:        v[1],
 	}
 	return &identifier, nil
-}
-
-func resourceMonitorDiagnosticLogSettingHash(input interface{}) int {
-	var buf bytes.Buffer
-	if rawData, ok := input.(map[string]interface{}); ok {
-		if category, ok := rawData["category"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
-		}
-		if categoryGroup, ok := rawData["category_group"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", categoryGroup.(string)))
-		}
-		if enabled, ok := rawData["enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
-		}
-		if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
-			if policyEnabled, ok := policy["enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
-			}
-			if days, ok := policy["days"]; ok {
-				buf.WriteString(fmt.Sprintf("%d-", days.(int)))
-			}
-		}
-	}
-	return pluginsdk.HashString(buf.String())
-}
-
-func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
-	var buf bytes.Buffer
-	if rawData, ok := input.(map[string]interface{}); ok {
-		if category, ok := rawData["category"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
-		}
-		if enabled, ok := rawData["enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
-		}
-		if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
-			if policyEnabled, ok := policy["enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
-			}
-			if days, ok := policy["days"]; ok {
-				buf.WriteString(fmt.Sprintf("%d-", days.(int)))
-			}
-		}
-	}
-	return pluginsdk.HashString(buf.String())
 }
