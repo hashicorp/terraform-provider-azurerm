@@ -68,9 +68,9 @@ resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "example" {
 }
 
 resource "azurerm_private_dns_resolver_virtual_network_link" "example" {
-  name                                           = "example-link"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.example.id
-  virtual_network_id                             = azurerm_virtual_network.example.id
+  name                      = "example-link"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.example.id
+  virtual_network_id        = azurerm_virtual_network.example.id
   metadata = {
     key = "value"
   }

@@ -15,10 +15,10 @@ import (
 )
 
 type PrivateDNSResolverVirtualNetworkLinkModel struct {
-	Name                                     string            `tfschema:"name"`
-	PrivateDNSResolverDnsForwardingRulesetId string            `tfschema:"private_dns_resolver_dns_forwarding_ruleset_id"`
-	Metadata                                 map[string]string `tfschema:"metadata"`
-	VirtualNetworkId                         string            `tfschema:"virtual_network_id"`
+	Name                   string            `tfschema:"name"`
+	DnsForwardingRulesetId string            `tfschema:"dns_forwarding_ruleset_id"`
+	Metadata               map[string]string `tfschema:"metadata"`
+	VirtualNetworkId       string            `tfschema:"virtual_network_id"`
 }
 
 type PrivateDNSResolverVirtualNetworkLinkResource struct{}
@@ -46,7 +46,7 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Arguments() map[string]*pl
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"private_dns_resolver_dns_forwarding_ruleset_id": {
+		"dns_forwarding_ruleset_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -84,7 +84,7 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Create() sdk.ResourceFunc 
 			}
 
 			client := metadata.Client.PrivateDnsResolver.VirtualNetworkLinksClient
-			dnsForwardingRulesetId, err := dnsforwardingrulesets.ParseDnsForwardingRulesetID(model.PrivateDNSResolverDnsForwardingRulesetId)
+			dnsForwardingRulesetId, err := dnsforwardingrulesets.ParseDnsForwardingRulesetID(model.DnsForwardingRulesetId)
 			if err != nil {
 				return err
 			}
@@ -191,8 +191,8 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Read() sdk.ResourceFunc {
 			}
 
 			state := PrivateDNSResolverVirtualNetworkLinkModel{
-				Name:                                     id.VirtualNetworkLinkName,
-				PrivateDNSResolverDnsForwardingRulesetId: dnsforwardingrulesets.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID(),
+				Name:                   id.VirtualNetworkLinkName,
+				DnsForwardingRulesetId: dnsforwardingrulesets.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID(),
 			}
 
 			properties := &model.Properties

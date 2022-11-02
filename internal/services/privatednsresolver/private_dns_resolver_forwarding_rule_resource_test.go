@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/virtualnetworklinks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/forwardingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateDNSResolverVirtualNetworkLinkResource struct{}
+type PrivateDNSResolverForwardingRuleResource struct{}
 
-func TestAccPrivateDNSResolverVirtualNetworkLink_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_virtual_network_link", "test")
-	r := PrivateDNSResolverVirtualNetworkLinkResource{}
+func TestAccPrivateDNSResolverForwardingRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
+	r := PrivateDNSResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -30,9 +30,9 @@ func TestAccPrivateDNSResolverVirtualNetworkLink_basic(t *testing.T) {
 	})
 }
 
-func TestAccPrivateDNSResolverVirtualNetworkLink_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_virtual_network_link", "test")
-	r := PrivateDNSResolverVirtualNetworkLinkResource{}
+func TestAccPrivateDNSResolverForwardingRule_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
+	r := PrivateDNSResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -44,9 +44,9 @@ func TestAccPrivateDNSResolverVirtualNetworkLink_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPrivateDNSResolverVirtualNetworkLink_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_virtual_network_link", "test")
-	r := PrivateDNSResolverVirtualNetworkLinkResource{}
+func TestAccPrivateDNSResolverForwardingRule_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
+	r := PrivateDNSResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -58,9 +58,9 @@ func TestAccPrivateDNSResolverVirtualNetworkLink_complete(t *testing.T) {
 	})
 }
 
-func TestAccPrivateDNSResolverVirtualNetworkLink_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_virtual_network_link", "test")
-	r := PrivateDNSResolverVirtualNetworkLinkResource{}
+func TestAccPrivateDNSResolverForwardingRule_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
+	r := PrivateDNSResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -79,13 +79,13 @@ func TestAccPrivateDNSResolverVirtualNetworkLink_update(t *testing.T) {
 	})
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := virtualnetworklinks.ParseVirtualNetworkLinkID(state.ID)
+func (r PrivateDNSResolverForwardingRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := forwardingrules.ParseForwardingRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.PrivateDnsResolver.VirtualNetworkLinksClient
+	client := clients.PrivateDnsResolver.ForwardingRulesClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -96,7 +96,7 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Exists(ctx context.Context
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) template(data acceptance.TestData) string {
+func (r PrivateDNSResolverForwardingRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,41 +152,54 @@ resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) basic(data acceptance.TestData) string {
+func (r PrivateDNSResolverForwardingRuleResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                      = "acctest-drvnl-%d"
+resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
+  name                      = "acctest-drfr-%d"
   dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id        = azurerm_virtual_network.test.id
+  domain_name               = "onprem.local."
+  target_dns_servers {
+    ip_address = "10.10.0.1"
+    port       = 53
+  }
 }
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) requiresImport(data acceptance.TestData) string {
+func (r PrivateDNSResolverForwardingRuleResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_private_dns_resolver_virtual_network_link" "import" {
-  name                      = azurerm_private_dns_resolver_virtual_network_link.test.name
+resource "azurerm_private_dns_resolver_forwarding_rule" "import" {
+  name                      = azurerm_private_dns_resolver_forwarding_rule.test.name
   dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id        = azurerm_private_dns_resolver_virtual_network_link.test.virtual_network_id
+  domain_name               = azurerm_private_dns_resolver_forwarding_rule.test.domain_name
+  target_dns_servers {
+    ip_address = "10.10.0.1"
+    port       = 53
+  }
 }
 `, config)
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) complete(data acceptance.TestData) string {
+func (r PrivateDNSResolverForwardingRuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                      = "acctest-drvnl-%d"
+resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
+  name                      = "acctest-drfr-%d"
   dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id        = azurerm_virtual_network.test.id
+  domain_name               = "onprem.local."
+  enabled                   = true
+  target_dns_servers {
+    ip_address = "10.10.0.1"
+    port       = 53
+  }
   metadata = {
     key = "value"
   }
@@ -194,15 +207,20 @@ resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) update(data acceptance.TestData) string {
+func (r PrivateDNSResolverForwardingRuleResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                      = "acctest-drvnl-%d"
+resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
+  name                      = "acctest-drfr-%d"
   dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id        = azurerm_virtual_network.test.id
+  domain_name               = "onprem.local."
+  enabled                   = false
+  target_dns_servers {
+    ip_address = "10.10.0.2"
+    port       = 53
+  }
   metadata = {
     key = "updated value"
   }

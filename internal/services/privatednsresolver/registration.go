@@ -48,6 +48,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		PrivateDNSResolverDnsForwardingRulesetResource{},
 		PrivateDNSResolverDnsResolverResource{},
+		PrivateDNSResolverForwardingRuleResource{},
 		PrivateDNSResolverInboundEndpointResource{},
 		PrivateDNSResolverOutboundEndpointResource{},
 		PrivateDNSResolverVirtualNetworkLinkResource{},
