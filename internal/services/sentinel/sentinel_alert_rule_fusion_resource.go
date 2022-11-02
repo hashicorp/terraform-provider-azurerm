@@ -75,6 +75,11 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 						"source_sub_type": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -84,6 +89,11 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
 									},
 									"enabled_severities": {
 										Type:     pluginsdk.TypeSet,
@@ -237,7 +247,7 @@ func expandFusionSourceSettings(input []interface{}) *[]securityinsight.FusionSo
 	for _, e := range input {
 		e := e.(map[string]interface{})
 		setting := securityinsight.FusionSourceSettings{
-			Enabled:        utils.Bool(true),
+			Enabled:        utils.Bool(e["enabled"].(bool)),
 			SourceName:     utils.String(e["name"].(string)),
 			SourceSubTypes: expandFusionSourceSubTypes(e["source_sub_type"].([]interface{})),
 		}
@@ -257,7 +267,7 @@ func expandFusionSourceSubTypes(input []interface{}) *[]securityinsight.FusionSo
 	for _, e := range input {
 		e := e.(map[string]interface{})
 		setting := securityinsight.FusionSourceSubTypeSetting{
-			Enabled:           utils.Bool(true),
+			Enabled:           utils.Bool(e["enabled"].(bool)),
 			SourceSubTypeName: utils.String(e["name"].(string)),
 			SeverityFilters: &securityinsight.FusionSubTypeSeverityFilter{
 				Filters: expandFusionSubTypeSeverityFiltersItems(e["enabled_severities"].(*pluginsdk.Set).List()),
@@ -276,10 +286,21 @@ func expandFusionSubTypeSeverityFiltersItems(input []interface{}) *[]securityins
 
 	result := make([]securityinsight.FusionSubTypeSeverityFiltersItem, 0)
 
+	// We can't simply remove the disabled properties in the request, as that will be reflected to the backend model (i.e. those unspecified severity will be absent also).
+	// As any absent severity then will not be shown in the Portal when users try to edit the alert rule. The drop down menu won't show these absent severities...
+	filters := map[string]bool{}
+	for _, e := range securityinsight.PossibleAlertSeverityValues() {
+		filters[string(e)] = false
+	}
+
 	for _, e := range input {
+		filters[e.(string)] = true
+	}
+
+	for severity, enabled := range filters {
 		item := securityinsight.FusionSubTypeSeverityFiltersItem{
-			Enabled:  utils.Bool(true),
-			Severity: securityinsight.AlertSeverity(e.(string)),
+			Enabled:  utils.Bool(enabled),
+			Severity: securityinsight.AlertSeverity(severity),
 		}
 		result = append(result, item)
 	}
@@ -299,8 +320,15 @@ func flattenFusionSourceSettings(input *[]securityinsight.FusionSourceSettings) 
 		if e.SourceName != nil {
 			name = *e.SourceName
 		}
+
+		var enabled bool
+		if e.Enabled != nil {
+			enabled = *e.Enabled
+		}
+
 		output = append(output, map[string]interface{}{
 			"name":            name,
+			"enabled":         enabled,
 			"source_sub_type": flattenFusionSourceSubTypes(e.SourceSubTypes),
 		})
 	}
@@ -320,12 +348,20 @@ func flattenFusionSourceSubTypes(input *[]securityinsight.FusionSourceSubTypeSet
 		if e.SourceSubTypeName != nil {
 			name = *e.SourceSubTypeName
 		}
+
 		var enabledSeverities []interface{}
 		if e.SeverityFilters != nil {
 			enabledSeverities = flattenFusionSubTypeSeverityFiltersItems(e.SeverityFilters.Filters)
 		}
+
+		var enabled bool
+		if e.Enabled != nil {
+			enabled = *e.Enabled
+		}
+
 		output = append(output, map[string]interface{}{
 			"name":               name,
+			"enabled":            enabled,
 			"enabled_severities": enabledSeverities,
 		})
 	}
