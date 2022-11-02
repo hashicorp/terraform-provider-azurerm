@@ -158,9 +158,9 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) basic(data acceptance.Test
 				%s
 
 resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                                           = "acctest-drvnl-%d"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id                             = azurerm_virtual_network.test.id
+  name                      = "acctest-drvnl-%d"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  virtual_network_id        = azurerm_virtual_network.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -171,9 +171,9 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) requiresImport(data accept
 			%s
 
 resource "azurerm_private_dns_resolver_virtual_network_link" "import" {
-  name                                           = azurerm_private_dns_resolver_virtual_network_link.test.name
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id                             = azurerm_private_dns_resolver_virtual_network_link.test.virtual_network_id
+  name                      = azurerm_private_dns_resolver_virtual_network_link.test.name
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  virtual_network_id        = azurerm_private_dns_resolver_virtual_network_link.test.virtual_network_id
 }
 `, config)
 }
@@ -184,9 +184,9 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) complete(data acceptance.T
 			%s
 
 resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                                           = "acctest-drvnl-%d"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id                             = azurerm_virtual_network.test.id
+  name                      = "acctest-drvnl-%d"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  virtual_network_id        = azurerm_virtual_network.test.id
   metadata = {
     key = "value"
   }
@@ -200,9 +200,9 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) update(data acceptance.Tes
 			%s
 
 resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                                           = "acctest-drvnl-%d"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id                             = azurerm_virtual_network.test.id
+  name                      = "acctest-drvnl-%d"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  virtual_network_id        = azurerm_virtual_network.test.id
   metadata = {
     key = "updated value"
   }
