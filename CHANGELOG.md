@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_mssql_server_microsoft_support_auditing_policy` [GH-18609]
 * **New Resource:** `azurerm_private_dns_resolver_virtual_network_link` [GH-19029]
+* **New Resource:** `azurerm_private_dns_resolver_forwarding_rule` [GH-19028]
 
 ENHANCEMENTS
 
