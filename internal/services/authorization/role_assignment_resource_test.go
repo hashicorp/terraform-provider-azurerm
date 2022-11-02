@@ -246,6 +246,7 @@ func TestAccRoleAssignment_subscriptionScoped(t *testing.T) {
 	})
 }
 
+// To run this testcase, the calling principal must first be assigned Privileged Role Administrator (like `Owner` role) or Global Administrator. See https://learn.microsoft.com/en-us/marketplace/create-manage-private-azure-marketplace-new#prerequisites for more information.
 func TestAccRoleAssignment_marketPlaceScoped(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	r := RoleAssignmentResource{}
