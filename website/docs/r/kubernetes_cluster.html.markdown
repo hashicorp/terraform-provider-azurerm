@@ -225,6 +225,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
+
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
 ---
@@ -689,6 +691,12 @@ A `sysctl_config` block supports the following:
 * `vm_vfs_cache_pressure` - (Optional) The sysctl setting vm.vfs_cache_pressure. Must be between `0` and `100`. Changing this forces a new resource to be created.
 
 ---
+
+A `web_app_routing` block supports the following:
+
+* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled.
+
+ ---
 
 A `windows_profile` block supports the following:
 

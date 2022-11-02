@@ -1643,7 +1643,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		gateway.Zones = &zones
 	}
@@ -1907,7 +1907,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("zones") {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		if len(zones) > 0 {
 			applicationGateway.Zones = &zones
 		}
@@ -2040,7 +2040,7 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	d.Set("location", location.NormalizeNilable(applicationGateway.Location))
-	d.Set("zones", zones.Flatten(applicationGateway.Zones))
+	d.Set("zones", zones.FlattenUntyped(applicationGateway.Zones))
 
 	identity, err := flattenApplicationGatewayIdentity(applicationGateway.Identity)
 	if err != nil {

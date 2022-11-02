@@ -159,8 +159,8 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 			for iter.NotDone() {
 				kv := iter.Value()
 				var krmodel KeyDataSourceModel
-				krmodel.Key = *kv.Key
-				krmodel.Label = *kv.Label
+				krmodel.Key = utils.NormalizeNilableString(kv.Key)
+				krmodel.Label = utils.NormalizeNilableString(kv.Label)
 				if contentType := utils.NormalizeNilableString(kv.ContentType); contentType != VaultKeyContentType {
 					krmodel.Type = KeyTypeKV
 					krmodel.ContentType = contentType

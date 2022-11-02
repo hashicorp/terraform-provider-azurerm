@@ -6,18 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -44,7 +44,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 		SchemaVersion: 1,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebPubsubID(id)
+			_, err := webpubsub.ParseWebPubSubID(id)
 			return err
 		}),
 
@@ -53,8 +53,9 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateWebpubsubName(),
+				ValidateFunc: validate.WebPubSubName(),
 			},
+
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
@@ -183,31 +184,28 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubClient
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := parse.NewWebPubsubID(subscriptionId, resourceGroup, name)
+	id := webpubsub.NewWebPubSubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	liveTraceConfig := d.Get("live_trace").([]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %q: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_web_pubsub", id.ID())
 		}
 	}
@@ -217,37 +215,32 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		publicNetworkAcc = "Disabled"
 	}
 
-	identity, err := expandManagedIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	parameters := webpubsub.ResourceType{
+	parameters := webpubsub.WebPubSubResource{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
-		Properties: &webpubsub.Properties{
+		Properties: &webpubsub.WebPubSubProperties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
 			PublicNetworkAccess:    utils.String(publicNetworkAcc),
 			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
 			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
-			TLS: &webpubsub.TLSSettings{
+			Tls: &webpubsub.WebPubSubTlsSettings{
 				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
 			},
 		},
 		Sku: &webpubsub.ResourceSku{
-			Name:     utils.String(d.Get("sku").(string)),
-			Capacity: utils.Int32(int32(d.Get("capacity").(int))),
+			Name:     d.Get("sku").(string),
+			Capacity: pointer.To(int64(d.Get("capacity").(int))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.WebPubSubName)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -255,18 +248,18 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubClient
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubsubID(d.Id())
+	id, err := webpubsub.ParseWebPubSubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Web Pubsub %s does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -274,84 +267,97 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.WebPubSubName)
+	keys, err := client.ListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("primary_access_key", keys.PrimaryKey)
-	d.Set("primary_connection_string", keys.PrimaryConnectionString)
-	d.Set("secondary_access_key", keys.SecondaryKey)
-	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
+	d.Set("name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("name", id.WebPubSubName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if sku := resp.Sku; sku != nil {
-		if sku.Name != nil {
-			d.Set("sku", sku.Name)
+		skuName := ""
+		skuCapacity := int64(0)
+		if model.Sku != nil {
+			skuName = model.Sku.Name
+			skuCapacity = *model.Sku.Capacity
 		}
-		if sku.Capacity != nil {
-			d.Set("capacity", sku.Capacity)
+		d.Set("sku", skuName)
+		d.Set("capacity", skuCapacity)
+
+		if props := model.Properties; props != nil {
+			d.Set("external_ip", props.ExternalIP)
+			d.Set("hostname", props.HostName)
+			d.Set("public_port", props.PublicPort)
+			d.Set("server_port", props.ServerPort)
+			d.Set("version", props.Version)
+
+			aadAuthEnabled := true
+			if props.DisableAadAuth != nil {
+				aadAuthEnabled = !(*props.DisableAadAuth)
+			}
+			d.Set("aad_auth_enabled", aadAuthEnabled)
+
+			disableLocalAuth := false
+			if props.DisableLocalAuth != nil {
+				disableLocalAuth = !(*props.DisableLocalAuth)
+			}
+			d.Set("local_auth_enabled", disableLocalAuth)
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			tlsClientCertEnabled := false
+			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
+				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
+			}
+			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
+
+			if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
+			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", identity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return fmt.Errorf("setting `tags`: %+v", err)
+			}
 		}
 	}
 
-	if props := resp.Properties; props != nil {
-		d.Set("external_ip", props.ExternalIP)
-		d.Set("hostname", props.HostName)
-		d.Set("public_port", props.PublicPort)
-		d.Set("server_port", props.ServerPort)
-		d.Set("version", props.Version)
-		if props.DisableAadAuth != nil {
-			d.Set("aad_auth_enabled", !(*props.DisableAadAuth))
-		}
-		if props.DisableLocalAuth != nil {
-			d.Set("local_auth_enabled", !(*props.DisableLocalAuth))
-		}
-		if props.PublicNetworkAccess != nil {
-			d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
-		}
-		if props.TLS != nil {
-			d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
-		}
-
-		if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
-			return fmt.Errorf("setting `live_trace`:%+v", err)
-		}
-
-		identity, err := flattenManagedIdentity(resp.Identity)
-		if err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
-
-		if err := d.Set("identity", identity); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
+	if model := keys.Model; model != nil {
+		d.Set("primary_access_key", model.PrimaryKey)
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("secondary_access_key", model.SecondaryKey)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubClient
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubsubID(d.Id())
+	id, err := webpubsub.ParseWebPubSubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WebPubSubName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
-		}
 	}
 
 	return nil
@@ -450,51 +456,4 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		"connectivity_logs_enabled": connectivityLogEnabled,
 		"http_request_logs_enabled": httpLogsEnabled,
 	}}
-}
-
-func expandManagedIdentity(input []interface{}) (*webpubsub.ManagedIdentity, error) {
-	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := webpubsub.ManagedIdentity{
-		Type: webpubsub.ManagedIdentityType(string(expanded.Type)),
-	}
-
-	if len(expanded.IdentityIds) > 0 {
-		out.UserAssignedIdentities = make(map[string]*webpubsub.UserAssignedIdentityProperty)
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &webpubsub.UserAssignedIdentityProperty{
-				// intentionally empty
-			}
-		}
-	}
-
-	return &out, nil
-}
-
-func flattenManagedIdentity(input *webpubsub.ManagedIdentity) (*[]interface{}, error) {
-	var transform *identity.SystemOrUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemOrUserAssignedMap{
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-			Type:        identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transform.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transform.TenantId = *input.TenantID
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-
-	return identity.FlattenSystemOrUserAssignedMap(transform)
 }

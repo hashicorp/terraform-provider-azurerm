@@ -194,7 +194,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 
 	if model := resp.Model; model != nil && model.Properties != nil {
 		props := model.Properties
-		d.Set("zones", zones.Flatten(props.AvailabilityZones))
+		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)

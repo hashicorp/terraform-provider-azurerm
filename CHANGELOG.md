@@ -1,3 +1,38 @@
+## 3.30.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_mssql_server_microsoft_support_auditing_policy` [GH-18609]
+* **New Resource:** `azurerm_private_dns_resolver_virtual_network_link` [GH-19029]
+
+ENHANCEMENTS
+
+* dependencies: `iothub` updating to `2022-04-30-preview` [GH-19070]
+* dependencies: updating to `v0.46.0` of `github.com/hashicorp/go-azure-helpers` [GH-19038]
+* dependencies: updating to `v0.20221028.1081410` of `github.com/hashicorp/go-azure-sdk` [GH-19038]
+* webpubsub: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18892]
+* Data Source: `azurerm_application_gateway` - export the `backend_address_pool` block [GH-19026]
+* Data Source: `azurerm_function_app_host_keys` - export `webpubsub_extension_key` property [GH-19073]
+* `azurerm_iothub` - support for `DigitalTwinChangeEvents` as `source` and `fallback_route.source` [GH-19070]
+* `azurerm_iothub_fallback_route` - support for `DigitalTwinChangeEvents` as `source` [GH-19070]
+* `azurerm_iothub_route` - support for `DigitalTwinChangeEvents` as `source` [GH-19070]
+* `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
+* `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
+* `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
+
+BUG FIXES:
+
+* Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
+* `azurerm_eventhub_namespace_disaster_recovery_config` - will now correctly break the pairing [GH-19030]
+* `azurerm_kubernetes_cluster` - set a valid default value for `auto_scaler_profile.expander` [GH-19057]
+* `azurerm_virtual_network_gateway_connection` - correctly set `authorization_key` from state as the API returnes `*`s [GH-19071]
+
+## 3.29.1 (October 28, 2022)
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - prevent panic when setting `public_network_access_enabled` [GH-19048]
+
 ## 3.29.0 (October 27, 2022)
 
 FEATURES:

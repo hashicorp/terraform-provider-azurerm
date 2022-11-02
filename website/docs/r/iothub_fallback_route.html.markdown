@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `iothub_name` - (Required) The name of the IoTHub to which this Fallback Route belongs. Changing this forces a new resource to be created.
 
-* `source` - (Required) The source that the routing rule is to be applied to. Possible values include: `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `Invalid`, `TwinChangeEvents`.
+* `source` - (Required) The source that the routing rule is to be applied to. Possible values include: `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `DigitalTwinChangeEvents`, `Invalid`, `TwinChangeEvents`.
 
 * `enabled` - (Required) Used to specify whether the fallback route is enabled.
 

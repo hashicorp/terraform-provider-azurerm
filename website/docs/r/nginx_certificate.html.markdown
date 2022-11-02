@@ -55,5 +55,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 An Nginx Certificate can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_nginx_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Nginx Certificate.NginxPlus/nginxDeployments/deploy1/certificates/cer1
+terraform import azurerm_nginx_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/deploy1/certificates/cer1
 ```

@@ -268,7 +268,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name          = "default"
     node_count    = 1
-    vm_size       = "Standard_DS2_v2"
+    vm_size       = "Standard_D2s_v3"
     host_group_id = azurerm_dedicated_host_group.test.id
   }
 
@@ -278,7 +278,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   depends_on = [
-    azurerm_role_assignment.test
+    azurerm_role_assignment.test,
+    azurerm_dedicated_host.test
   ]
 }
   `, data.RandomInteger, data.Locations.Primary)

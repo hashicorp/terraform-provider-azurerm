@@ -803,7 +803,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		if publicIpAddressId == "" {
 			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
 		}
-		zones := zones.Expand(v)
+		zones := zones.ExpandUntyped(v)
 		properties.Zones = &zones
 	}
 
@@ -1049,7 +1049,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings, err := signInClient.Get(ctx, id.ResourceGroup, id.ServiceName)
@@ -1424,7 +1424,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		if len(zones) > 0 {
 			additionalLocation.Zones = &zones
 		}
@@ -1480,7 +1480,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			"public_ip_address_id":          publicIpAddressId,
 			"public_ip_addresses":           publicIPAddresses,
 			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
-			"zones":                         zones.Flatten(prop.Zones),
+			"zones":                         zones.FlattenUntyped(prop.Zones),
 			"gateway_disabled":              gatewayDisabled,
 		})
 	}
