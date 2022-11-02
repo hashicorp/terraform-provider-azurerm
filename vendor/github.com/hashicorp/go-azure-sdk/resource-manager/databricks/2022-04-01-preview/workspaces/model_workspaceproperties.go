@@ -13,7 +13,9 @@ type WorkspaceProperties struct {
 	Authorizations             *[]WorkspaceProviderAuthorization `json:"authorizations,omitempty"`
 	CreatedBy                  *CreatedBy                        `json:"createdBy,omitempty"`
 	CreatedDateTime            *string                           `json:"createdDateTime,omitempty"`
+	DiskEncryptionSetId        *string                           `json:"diskEncryptionSetId,omitempty"`
 	Encryption                 *WorkspacePropertiesEncryption    `json:"encryption,omitempty"`
+	ManagedDiskIdentity        *ManagedIdentityConfiguration     `json:"managedDiskIdentity,omitempty"`
 	ManagedResourceGroupId     string                            `json:"managedResourceGroupId"`
 	Parameters                 *WorkspaceCustomParameters        `json:"parameters,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection      `json:"privateEndpointConnections,omitempty"`
