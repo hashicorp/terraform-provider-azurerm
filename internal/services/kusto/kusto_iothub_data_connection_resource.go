@@ -67,7 +67,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: dataconnections.ValidateDataConnectionID,
+				ValidateFunc: iothubValidate.IotHubID,
 			},
 
 			"consumer_group": {
