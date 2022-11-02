@@ -203,6 +203,8 @@ A `managed_rule` block supports the following:
 
 * `action` - (Required) The action to perform when the managed rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
+->**NOTE:** When using DRS (`Microsoft_DefaultRuleSet`) 2.0 or later the `managed_rule`'s `action` can only be set to `AnomalyScoring`. Please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) for more information.
+
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
 * `override` - (Optional) One or more `override` blocks as defined below.
