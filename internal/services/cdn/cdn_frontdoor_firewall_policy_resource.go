@@ -802,19 +802,20 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*frontdoor.Man
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]interface{}))
 
 		fVersion := 1.0
-		if s, err := strconv.ParseFloat(version, 64); err == nil {
-			fVersion = s
+		if v, err := strconv.ParseFloat(version, 64); err == nil {
+			fVersion = v
 		}
 
 		// NOTE: The API is deferring the version range from the rule type name
-		// 'DefaultRuleSet' is < 2.0 and 'Microsoft_DefaultRuleSet' >= 2.0
-		if ruleType == "DefaultRuleSet" && fVersion >= 2.0 {
-			return nil, fmt.Errorf("the managed rule set type %q and version %q is not supported. If you wish to use the 'DefaultRuleSet' type please update your configuration files 'version' field to be '1.0' or '1.1', got %q", ruleType, version, version)
-		} else if ruleType == "Microsoft_DefaultRuleSet" && fVersion < 2.0 {
-			return nil, fmt.Errorf("the managed rule set type %q and version %q is not supported. If you wish to use the 'Microsoft_DefaultRuleSet' type please update your configuration files 'version' field to be '2.0', got %q", ruleType, version, version)
+		// 'DefaultRuleSet' is < 1.1 and 'Microsoft_DefaultRuleSet' >= 1.1
+		// 'AnomalyScoring' action only valid on 2.0 and above
+		if ruleType == "DefaultRuleSet" && fVersion > 1.0 {
+			return nil, fmt.Errorf("the managed rule set type %q and version %q is not supported. If you wish to use the 'DefaultRuleSet' type please update your 'version' field to be '1.0' or 'preview-0.1', got %q", ruleType, version, version)
+		} else if ruleType == "Microsoft_DefaultRuleSet" && fVersion < 1.1 {
+			return nil, fmt.Errorf("the managed rule set type %q and version %q is not supported. If you wish to use the 'Microsoft_DefaultRuleSet' type please update your 'version' field to be '1.1', '2.0' or '2.1', got %q", ruleType, version, version)
 		}
 
-		ruleGroupOverrides, err := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides, fVersion)
+		ruleGroupOverrides, err := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides, version, fVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -861,7 +862,7 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 	return &results
 }
 
-func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, version float64) (*[]frontdoor.ManagedRuleGroupOverride, error) {
+func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, versionRaw string, version float64) (*[]frontdoor.ManagedRuleGroupOverride, error) {
 	result := make([]frontdoor.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
@@ -872,7 +873,7 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, ver
 
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{}))
 		ruleGroupName := override["rule_group_name"].(string)
-		rules, err := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}), version)
+		rules, err := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}), versionRaw, version)
 		if err != nil {
 			return nil, err
 		}
@@ -887,7 +888,7 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, ver
 	return &result, nil
 }
 
-func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, version float64) (*[]frontdoor.ManagedRuleOverride, error) {
+func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw string, version float64) (*[]frontdoor.ManagedRuleOverride, error) {
 	result := make([]frontdoor.ManagedRuleOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
@@ -904,10 +905,11 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, version float64
 		actionTypeRaw := rule["action"].(string)
 		action := frontdoor.ActionType(actionTypeRaw)
 
-		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of AnomalyScoring
-		if version < 2 && actionTypeRaw == "AnomalyScoring" {
-			return nil, fmt.Errorf("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above, got %.1f", version)
-		} else if version >= 2 && actionTypeRaw != "AnomalyScoring" {
+		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring'
+		// This will still work for bot rules as well since it will be the default value of 1.0
+		if version < 2.0 && actionTypeRaw == "AnomalyScoring" {
+			return nil, fmt.Errorf("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above, got %q", versionRaw)
+		} else if version >= 2.0 && actionTypeRaw != "AnomalyScoring" {
 			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' if the managed rule is DRS 2.0 or above, got %q", action)
 		}
 
