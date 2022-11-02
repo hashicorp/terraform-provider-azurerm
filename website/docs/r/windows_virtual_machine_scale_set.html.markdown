@@ -338,6 +338,10 @@ An `extension` block supports the following:
 
 -> **NOTE:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
+* `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
+
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
+
 * `provision_after_extensions` - (Optional) An ordered list of Extension names which this should be provisioned after.
 
 * `settings` - (Optional) A JSON String which specifies Settings for the Extension.
@@ -479,6 +483,14 @@ A `scale_in` block supports the following:
 * `rule` - (Optional) The scale-in policy rule that decides which virtual machines are chosen for removal when a Virtual Machine Scale Set is scaled in. Possible values for the scale-in policy rules are `Default`, `NewestVM` and `OldestVM`, defaults to `Default`. For more information about scale in policy, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).
 
 * `force_deletion_enabled` - (Optional) Should the virtual machines chosen for removal be force deleted when the virtual machine scale set is being scaled-in? Possible values are `true` or `false`. Defaults to `false`.
+
+---
+
+A `protected_settings_from_key_vault` block supports the following:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret which stores the protected settings.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ---
 

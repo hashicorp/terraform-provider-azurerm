@@ -301,6 +301,10 @@ An `extension` block supports the following:
 
 -> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information.
 
+* `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
+
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
+
 * `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`. Defaults to `false`.
 
 -> **NOTE:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
@@ -384,6 +388,14 @@ A `plan` block supports the following:
 * `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
 
 * `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
+
+---
+
+A `protected_settings_from_key_vault` block supports the following:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret which stores the protected settings.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ---
 
