@@ -14,12 +14,12 @@ import (
 )
 
 type PrivateDNSResolverForwardingRuleModel struct {
-	Name                                     string                 `tfschema:"name"`
-	PrivateDNSResolverDnsForwardingRulesetId string                 `tfschema:"private_dns_resolver_dns_forwarding_ruleset_id"`
-	DomainName                               string                 `tfschema:"domain_name"`
-	Enabled                                  bool                   `tfschema:"enabled"`
-	Metadata                                 map[string]string      `tfschema:"metadata"`
-	TargetDnsServers                         []TargetDnsServerModel `tfschema:"target_dns_servers"`
+	Name                   string                 `tfschema:"name"`
+	DnsForwardingRulesetId string                 `tfschema:"dns_forwarding_ruleset_id"`
+	DomainName             string                 `tfschema:"domain_name"`
+	Enabled                bool                   `tfschema:"enabled"`
+	Metadata               map[string]string      `tfschema:"metadata"`
+	TargetDnsServers       []TargetDnsServerModel `tfschema:"target_dns_servers"`
 }
 
 type TargetDnsServerModel struct {
@@ -52,7 +52,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"private_dns_resolver_dns_forwarding_ruleset_id": {
+		"dns_forwarding_ruleset_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -114,7 +114,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.PrivateDnsResolver.ForwardingRulesClient
-			dnsForwardingRulesetId, err := dnsforwardingrulesets.ParseDnsForwardingRulesetID(model.PrivateDNSResolverDnsForwardingRulesetId)
+			dnsForwardingRulesetId, err := dnsforwardingrulesets.ParseDnsForwardingRulesetID(model.DnsForwardingRulesetId)
 			if err != nil {
 				return err
 			}
@@ -250,8 +250,8 @@ func (r PrivateDNSResolverForwardingRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			state := PrivateDNSResolverForwardingRuleModel{
-				Name:                                     id.ForwardingRuleName,
-				PrivateDNSResolverDnsForwardingRulesetId: dnsforwardingrulesets.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID(),
+				Name:                   id.ForwardingRuleName,
+				DnsForwardingRulesetId: dnsforwardingrulesets.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID(),
 			}
 
 			properties := &model.Properties

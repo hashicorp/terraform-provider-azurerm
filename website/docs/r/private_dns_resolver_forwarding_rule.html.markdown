@@ -58,10 +58,10 @@ resource "azurerm_private_dns_resolver_outbound_endpoint" "example" {
 }
 
 resource "azurerm_private_dns_resolver_forwarding_rule" "example" {
-  name                                           = "example-rule"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.example.id
-  domain_name                                    = "onprem.local."
-  enabled                                        = true
+  name                      = "example-rule"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.example.id
+  domain_name               = "onprem.local."
+  enabled                   = true
   target_dns_servers {
     ip_address = "10.10.0.1"
     port       = 53
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name which should be used for this Private DNS Resolver Forwarding Rule. Changing this forces a new Private DNS Resolver Forwarding Rule to be created.
 
-* `private_dns_resolver_dns_forwarding_ruleset_id` - (Required) Specifies the ID of the Private DNS Resolver Forwarding Ruleset. Changing this forces a new Private DNS Resolver Forwarding Rule to be created.
+* `dns_forwarding_ruleset_id` - (Required) Specifies the ID of the Private DNS Resolver Forwarding Ruleset. Changing this forces a new Private DNS Resolver Forwarding Rule to be created.
 
 * `domain_name` - (Required) Specifies the domain name for the Private DNS Resolver Forwarding Rule.
 

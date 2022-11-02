@@ -158,9 +158,9 @@ func (r PrivateDNSResolverForwardingRuleResource) basic(data acceptance.TestData
 				%s
 
 resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
-  name                                           = "acctest-drfr-%d"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  domain_name                                    = "onprem.local."
+  name                      = "acctest-drfr-%d"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  domain_name               = "onprem.local."
   target_dns_servers {
     ip_address = "10.10.0.1"
     port       = 53
@@ -175,9 +175,9 @@ func (r PrivateDNSResolverForwardingRuleResource) requiresImport(data acceptance
 			%s
 
 resource "azurerm_private_dns_resolver_forwarding_rule" "import" {
-  name                                           = azurerm_private_dns_resolver_forwarding_rule.test.name
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  domain_name                                    = azurerm_private_dns_resolver_forwarding_rule.test.domain_name
+  name                      = azurerm_private_dns_resolver_forwarding_rule.test.name
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  domain_name               = azurerm_private_dns_resolver_forwarding_rule.test.domain_name
   target_dns_servers {
     ip_address = "10.10.0.1"
     port       = 53
@@ -192,10 +192,10 @@ func (r PrivateDNSResolverForwardingRuleResource) complete(data acceptance.TestD
 			%s
 
 resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
-  name                                           = "acctest-drfr-%d"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  domain_name                                    = "onprem.local."
-  enabled                                        = true
+  name                      = "acctest-drfr-%d"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  domain_name               = "onprem.local."
+  enabled                   = true
   target_dns_servers {
     ip_address = "10.10.0.1"
     port       = 53
@@ -213,10 +213,10 @@ func (r PrivateDNSResolverForwardingRuleResource) update(data acceptance.TestDat
 			%s
 
 resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
-  name                                           = "acctest-drfr-%d"
-  private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  domain_name                                    = "onprem.local."
-  enabled                                        = false
+  name                      = "acctest-drfr-%d"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  domain_name               = "onprem.local."
+  enabled                   = false
   target_dns_servers {
     ip_address = "10.10.0.2"
     port       = 53
