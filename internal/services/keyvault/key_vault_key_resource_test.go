@@ -284,6 +284,58 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_RotationPolicyWithoutAutoRotation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rotationPolicyWithoutAutoRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
+func TestAccKeyVaultKey_RotationPolicyWithOnlyAutoRotation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rotationPolicyWithOnlyAutoRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
+func TestAccKeyVaultKey_RotationPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rotationPolicyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.rotationPolicyBasicUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
 func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultsClient := clients.KeyVault
@@ -800,6 +852,9 @@ resource "azurerm_key_vault" "test" {
       "Purge",
       "Recover",
       "Update",
+      "SetRotationPolicy",
+      "GetRotationPolicy",
+      "Rotate",
     ]
 
     secret_permissions = [
@@ -814,4 +869,121 @@ resource "azurerm_key_vault" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyWithoutAutoRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    expiry_time       = "P60D"
+    notification_time = "P7D"
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyWithOnlyAutoRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    auto_rotation {
+      time_after_create = "P31D"
+    }
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    auto_rotation {
+      time_before_expiry = "P30D"
+    }
+
+    expiry_time       = "P60D"
+    notification_time = "P7D"
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyBasicUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    auto_rotation {
+      time_before_expiry = "P31D"
+    }
+
+    expiry_time       = "P61D"
+    notification_time = "P8D"
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
 }

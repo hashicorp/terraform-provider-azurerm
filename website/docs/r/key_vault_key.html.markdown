@@ -96,6 +96,26 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `rotation_policy` - (Optional) A `rotation_policy` block as defined below.
+
+---
+
+A `rotation_policy` block supports the following:
+
+* `expiry_time` - (Optional) Expire a Key Vault Key after given time as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+
+* `auto_rotation` - (Optional) An `auto_rotation` block as defined below.
+
+* `notification_time` - (Optional) Notify at a given time before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+
+---
+
+An `auto_rotation` block supports the following:
+
+* `time_after_create` - (Optional) Rotate automatically at a given time after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+
+* `time_before_expiry` - (Optional) Rotate automatically at a given time before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+
 ## Attributes Reference
 
 The following attributes are exported:
