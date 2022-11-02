@@ -3,6 +3,7 @@ package dynatrace
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -63,10 +64,10 @@ func (r MonitorsResource) Arguments() map[string]*schema.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  "SystemAssigned",
+			Default:  string(identity.TypeSystemAssigned),
 			ValidateFunc: validation.StringInSlice([]string{
-				"SystemAssigned",
-				"UserAssigned",
+				string(identity.TypeSystemAssigned),
+				string(identity.TypeUserAssigned),
 			}, false),
 		},
 
