@@ -19,11 +19,13 @@ ENHANCEMENTS
 * `azurerm_iothub_route` - support for `DigitalTwinChangeEvents` as `source` [GH-19070]
 * `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
+* `azurerm_linux_virtual_machine_scale_set` - support for `StandardSSD_ZRS`, `PremiumV2_LRS`, and `Premium_ZRS` storage account types [GH-19091]
 * `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_virtual_machine_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
 * `azurerm_virtual_machine_scale_set_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
+* `azurerm_windows_virtual_machine_scale_set` - support for `StandardSSD_ZRS`, `PremiumV2_LRS`, and `Premium_ZRS` storage account types [GH-19091]
 
 BUG FIXES:
 
