@@ -101,6 +101,7 @@ data "azurerm_client_config" "example" {
 }
 
 data "azurerm_management_group" "example" {
+  name = "00000000-0000-0000-0000-000000000000"
 }
 
 resource "azurerm_role_definition" "example" {
