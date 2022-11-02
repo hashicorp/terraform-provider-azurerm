@@ -143,7 +143,7 @@ type Server struct {
 }
 
 func (s *Server) initialConnRecvWindowSize() int32 {
-	if s.MaxUploadBufferPerConnection >= initialWindowSize {
+	if s.MaxUploadBufferPerConnection > initialWindowSize {
 		return s.MaxUploadBufferPerConnection
 	}
 	return 1 << 20
@@ -869,7 +869,9 @@ func (sc *serverConn) serve() {
 
 	// Each connection starts with initialWindowSize inflow tokens.
 	// If a higher value is configured, we add more tokens.
-	sc.sendWindowUpdate(nil)
+	if diff := sc.srv.initialConnRecvWindowSize() - initialWindowSize; diff > 0 {
+		sc.sendWindowUpdate(nil, int(diff))
+	}
 
 	if err := sc.readPreface(); err != nil {
 		sc.condlogf(err, "http2: server: error reading preface from client %v: %v", sc.conn.RemoteAddr(), err)
@@ -1369,9 +1371,6 @@ func (sc *serverConn) startGracefulShutdownInternal() {
 func (sc *serverConn) goAway(code ErrCode) {
 	sc.serveG.check()
 	if sc.inGoAway {
-		if sc.goAwayCode == ErrCodeNo {
-			sc.goAwayCode = code
-		}
 		return
 	}
 	sc.inGoAway = true
@@ -1586,7 +1585,7 @@ func (sc *serverConn) closeStream(st *stream, err error) {
 	if p := st.body; p != nil {
 		// Return any buffered unread bytes worth of conn-level flow control.
 		// See golang.org/issue/16481
-		sc.sendWindowUpdate(nil)
+		sc.sendWindowUpdate(nil, p.Len())
 
 		p.CloseWithError(err)
 	}
@@ -1734,7 +1733,7 @@ func (sc *serverConn) processData(f *DataFrame) error {
 		// sendWindowUpdate, which also schedules sending the
 		// frames.
 		sc.inflow.take(int32(f.Length))
-		sc.sendWindowUpdate(nil) // conn-level
+		sc.sendWindowUpdate(nil, int(f.Length)) // conn-level
 
 		if st != nil && st.resetQueued {
 			// Already have a stream error in flight. Don't send another.
@@ -1748,12 +1747,6 @@ func (sc *serverConn) processData(f *DataFrame) error {
 
 	// Sender sending more than they'd declared?
 	if st.declBodyBytes != -1 && st.bodyBytes+int64(len(data)) > st.declBodyBytes {
-		if sc.inflow.available() < int32(f.Length) {
-			return sc.countError("data_flow", streamError(id, ErrCodeFlowControl))
-		}
-		sc.inflow.take(int32(f.Length))
-		sc.sendWindowUpdate(nil) // conn-level
-
 		st.body.CloseWithError(fmt.Errorf("sender tried to send more than declared Content-Length of %d bytes", st.declBodyBytes))
 		// RFC 7540, sec 8.1.2.6: A request or response is also malformed if the
 		// value of a content-length header field does not equal the sum of the
@@ -1770,7 +1763,7 @@ func (sc *serverConn) processData(f *DataFrame) error {
 		if len(data) > 0 {
 			wrote, err := st.body.Write(data)
 			if err != nil {
-				sc.sendWindowUpdate32(nil, int32(f.Length)-int32(wrote))
+				sc.sendWindowUpdate(nil, int(f.Length)-wrote)
 				return sc.countError("body_write_err", streamError(id, ErrCodeStreamClosed))
 			}
 			if wrote != len(data) {
@@ -2097,6 +2090,12 @@ func (sc *serverConn) newWriterAndRequest(st *stream, f *MetaHeadersFrame) (*res
 		return nil, nil, sc.countError("bad_path_method", streamError(f.StreamID, ErrCodeProtocol))
 	}
 
+	bodyOpen := !f.StreamEnded()
+	if rp.method == "HEAD" && bodyOpen {
+		// HEAD requests can't have bodies
+		return nil, nil, sc.countError("head_body", streamError(f.StreamID, ErrCodeProtocol))
+	}
+
 	rp.header = make(http.Header)
 	for _, hf := range f.RegularFields() {
 		rp.header.Add(sc.canonicalHeader(hf.Name), hf.Value)
@@ -2109,7 +2108,6 @@ func (sc *serverConn) newWriterAndRequest(st *stream, f *MetaHeadersFrame) (*res
 	if err != nil {
 		return nil, nil, err
 	}
-	bodyOpen := !f.StreamEnded()
 	if bodyOpen {
 		if vv, ok := rp.header["Content-Length"]; ok {
 			if cl, err := strconv.ParseUint(vv[0], 10, 63); err == nil {
@@ -2225,9 +2223,6 @@ func (sc *serverConn) runHandler(rw *responseWriter, req *http.Request, handler 
 	didPanic := true
 	defer func() {
 		rw.rws.stream.cancelCtx()
-		if req.MultipartForm != nil {
-			req.MultipartForm.RemoveAll()
-		}
 		if didPanic {
 			e := recover()
 			sc.writeFrameFromHandler(FrameWriteRequest{
@@ -2322,32 +2317,17 @@ func (sc *serverConn) noteBodyReadFromHandler(st *stream, n int, err error) {
 
 func (sc *serverConn) noteBodyRead(st *stream, n int) {
 	sc.serveG.check()
-	sc.sendWindowUpdate(nil) // conn-level
+	sc.sendWindowUpdate(nil, n) // conn-level
 	if st.state != stateHalfClosedRemote && st.state != stateClosed {
 		// Don't send this WINDOW_UPDATE if the stream is closed
 		// remotely.
-		sc.sendWindowUpdate(st)
+		sc.sendWindowUpdate(st, n)
 	}
 }
 
 // st may be nil for conn-level
-func (sc *serverConn) sendWindowUpdate(st *stream) {
+func (sc *serverConn) sendWindowUpdate(st *stream, n int) {
 	sc.serveG.check()
-
-	var n int32
-	if st == nil {
-		if avail, windowSize := sc.inflow.available(), sc.srv.initialConnRecvWindowSize(); avail > windowSize/2 {
-			return
-		} else {
-			n = windowSize - avail
-		}
-	} else {
-		if avail, windowSize := st.inflow.available(), sc.srv.initialStreamRecvWindowSize(); avail > windowSize/2 {
-			return
-		} else {
-			n = windowSize - avail
-		}
-	}
 	// "The legal range for the increment to the flow control
 	// window is 1 to 2^31-1 (2,147,483,647) octets."
 	// A Go Read call on 64-bit machines could in theory read
@@ -2513,10 +2493,6 @@ func (rws *responseWriterState) writeChunk(p []byte) (n int, err error) {
 		rws.writeHeader(200)
 	}
 
-	if rws.handlerDone {
-		rws.promoteUndeclaredTrailers()
-	}
-
 	isHeadResp := rws.req.Method == "HEAD"
 	if !rws.sentHeader {
 		rws.sentHeader = true
@@ -2586,6 +2562,10 @@ func (rws *responseWriterState) writeChunk(p []byte) (n int, err error) {
 	}
 	if len(p) == 0 && !rws.handlerDone {
 		return 0, nil
+	}
+
+	if rws.handlerDone {
+		rws.promoteUndeclaredTrailers()
 	}
 
 	// only send trailers if they have actually been defined by the

@@ -430,7 +430,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(&model.Location))
-	d.Set("zones", zones.FlattenUntyped(&model.Zones))
+	d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 	d.Set("public_network_access_enabled", *model.Properties.PublicNetworkAccess == clusters.PublicNetworkAccessEnabled)
 
