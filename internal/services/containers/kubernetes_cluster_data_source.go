@@ -1051,7 +1051,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			"upgrade_settings":         flattenKubernetesClusterDataSourceUpgradeSettings(profile.UpgradeSettings),
 			"vm_size":                  vmSize,
 			"vnet_subnet_id":           vnetSubnetId,
-			"zones":                    zones.Flatten(profile.AvailabilityZones),
+			"zones":                    zones.FlattenUntyped(profile.AvailabilityZones),
 		}
 		agentPoolProfiles = append(agentPoolProfiles, out)
 	}

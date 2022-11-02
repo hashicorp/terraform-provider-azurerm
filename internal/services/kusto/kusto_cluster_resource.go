@@ -353,7 +353,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Tags:       expandClusterTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		kustoCluster.Zones = &zones
 	}
@@ -429,9 +429,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-
 	d.Set("location", location.NormalizeNilable(&model.Location))
-	d.Set("zones", zones.Flatten(model.Zones))
+	d.Set("zones", zones.FlattenUntyped(&model.Zones))
 
 	d.Set("public_network_access_enabled", *model.Properties.PublicNetworkAccess == clusters.PublicNetworkAccessEnabled)
 
