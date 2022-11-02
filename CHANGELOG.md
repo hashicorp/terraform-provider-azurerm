@@ -8,7 +8,7 @@ FEATURES:
 ENHANCEMENTS
 
 * dependencies: `iothub` updating to `2022-04-30-preview` [GH-19070]
-* dependencies: updating to `v0.46.0` of `github.com/hashicorp/go-azure-helpers` [GH-19038]
+* dependencies: updating to `v0.47.0` of `github.com/hashicorp/go-azure-helpers` [GH-19107]
 * dependencies: updating to `v0.20221101.1170513` of `github.com/hashicorp/go-azure-sdk` [GH-19105]
 * webpubsub: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18892]
 * Data Source: `azurerm_application_gateway` - export the `backend_address_pool` block [GH-19026]
