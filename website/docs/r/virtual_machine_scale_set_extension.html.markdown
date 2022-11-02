@@ -92,11 +92,23 @@ az vmss extension image list --location westus -o table
 
 ~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
 
+* `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
+
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
+
 * `provision_after_extensions` - (Optional) An ordered list of Extension names which this should be provisioned after.
 
 * `settings` - (Optional) A JSON String which specifies Settings for the Extension.
 
 ~> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+
+---
+
+A `protected_settings_from_key_vault` block supports the following:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret which stores the protected settings.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ## Attributes Reference
 

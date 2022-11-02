@@ -237,6 +237,9 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsJSON,
 				},
 
+				// Need to check `protected_settings_from_key_vault` conflicting with `protected_settings` in iteration
+				"protected_settings_from_key_vault": protectedSettingsFromKeyVaultSchema(false),
+
 				"extensions_to_provision_after_vm_creation": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -1389,7 +1392,14 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 			extensionProps.Settings = settings
 		}
 
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
+
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
+			if protectedSettingsFromKeyVault != nil {
+				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
+			}
+
 			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON for `protected_settings`: %+v", err)
@@ -1438,6 +1448,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
+		var protectedSettingsFromKeyVault *compute.KeyVaultSecretReference
 		extPublisher := ""
 		extSettings := ""
 		extType := ""
@@ -1483,6 +1494,8 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 				}
 				extSettings = extSettingsRaw
 			}
+
+			protectedSettingsFromKeyVault = props.ProtectedSettingsFromKeyVault
 		}
 		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
 		if ext, ok := extensionsFromState[name]; ok {
@@ -1501,6 +1514,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 			"failure_suppression_enabled":               suppressFailures,
 			"extensions_to_provision_after_vm_creation": provisionAfterExtension,
 			"protected_settings":                        protectedSettings,
+			"protected_settings_from_key_vault":         flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
 			"publisher":                                 extPublisher,
 			"settings":                                  extSettings,
 			"type":                                      extType,

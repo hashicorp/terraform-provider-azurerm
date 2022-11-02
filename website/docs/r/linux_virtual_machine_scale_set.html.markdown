@@ -350,6 +350,10 @@ An `extension` block supports the following:
 
 -> **NOTE:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
+* `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
+
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
+
 * `provision_after_extensions` - (Optional) An ordered list of Extension names which this should be provisioned after.
 
 * `settings` - (Optional) A JSON String which specifies Settings for the Extension.
@@ -483,6 +487,14 @@ A `plan` block supports the following:
 * `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
 
 * `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
+
+---
+
+A `protected_settings_from_key_vault` block supports the following:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret which stores the protected settings.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ---
 
