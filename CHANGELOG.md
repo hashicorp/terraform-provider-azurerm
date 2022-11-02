@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_eventhub_namespace_disaster_recovery_config` - will now correctly break the pairing [GH-19030]
 * `azurerm_kubernetes_cluster` - set a valid default value for `auto_scaler_profile.expander` [GH-19057]
 * `azurerm_mssql_database` - handle the `license_type` property no longer being returned by API [GH-19084]
+* `azurerm_postgresql_flexible_server_database` - is now correctly removed from state on deletion [GH-19081]
 * `azurerm_virtual_network_gateway_connection` - correctly set `authorization_key` from state as the API returnes `*`s [GH-19071]
 
 ## 3.29.1 (October 28, 2022)
