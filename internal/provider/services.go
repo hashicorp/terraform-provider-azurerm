@@ -126,7 +126,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		bot.Registration{},
 		compute.Registration{},
 		consumption.Registration{},
-		containers.Registration{},
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
