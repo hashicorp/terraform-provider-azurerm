@@ -287,7 +287,7 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if !valid {
-		return fmt.Errorf("Either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id` or `storage_account_id` or `partner_solution_id` must be set")
+		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, diagnosticSettingId, parameters); err != nil {
