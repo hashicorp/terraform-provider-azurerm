@@ -1881,9 +1881,6 @@ func (LogicAppStandardResource) vNetIntegration_basic(data acceptance.TestData) 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-  tags = {
-    "SkipNRMSNSG" = "true"
-  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1965,9 +1962,6 @@ func (LogicAppStandardResource) vNetIntegration_subnet1(data acceptance.TestData
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-  tags = {
-    "SkipNRMSNSG" = "true"
-  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2050,9 +2044,6 @@ func (LogicAppStandardResource) vNetIntegration_subnet2(data acceptance.TestData
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-  tags = {
-    "SkipNRMSNSG" = "true"
-  }
 }
 
 resource "azurerm_storage_account" "test" {
