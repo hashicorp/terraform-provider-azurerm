@@ -63,7 +63,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"source_setting": {
+			"source": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				// Service will auto-fill this if not given in request, based on the "alert_rule_template_guid".
@@ -80,7 +80,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 							Optional: true,
 							Default:  true,
 						},
-						"source_sub_type": {
+						"sub_type": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -154,7 +154,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 		FusionAlertRuleProperties: &securityinsight.FusionAlertRuleProperties{
 			AlertRuleTemplateName: utils.String(d.Get("alert_rule_template_guid").(string)),
 			Enabled:               utils.Bool(d.Get("enabled").(bool)),
-			SourceSettings:        expandFusionSourceSettings(d.Get("source_setting").([]interface{})),
+			SourceSettings:        expandFusionSourceSettings(d.Get("source").([]interface{})),
 		},
 	}
 
@@ -212,8 +212,8 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 	if prop := rule.FusionAlertRuleProperties; prop != nil {
 		d.Set("enabled", prop.Enabled)
 		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-		if err := d.Set("source_setting", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
-			return fmt.Errorf("setting `source_setting`: %v", err)
+		if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
+			return fmt.Errorf("setting `source`: %v", err)
 		}
 	}
 
@@ -249,7 +249,7 @@ func expandFusionSourceSettings(input []interface{}) *[]securityinsight.FusionSo
 		setting := securityinsight.FusionSourceSettings{
 			Enabled:        utils.Bool(e["enabled"].(bool)),
 			SourceName:     utils.String(e["name"].(string)),
-			SourceSubTypes: expandFusionSourceSubTypes(e["source_sub_type"].([]interface{})),
+			SourceSubTypes: expandFusionSourceSubTypes(e["sub_type"].([]interface{})),
 		}
 		result = append(result, setting)
 	}
@@ -327,9 +327,9 @@ func flattenFusionSourceSettings(input *[]securityinsight.FusionSourceSettings) 
 		}
 
 		output = append(output, map[string]interface{}{
-			"name":            name,
-			"enabled":         enabled,
-			"source_sub_type": flattenFusionSourceSubTypes(e.SourceSubTypes),
+			"name":     name,
+			"enabled":  enabled,
+			"sub_type": flattenFusionSourceSubTypes(e.SourceSubTypes),
 		})
 	}
 

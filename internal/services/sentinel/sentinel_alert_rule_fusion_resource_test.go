@@ -168,59 +168,59 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%[2]d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
-  source_setting {
+  source {
     name    = "Anomalies"
     enabled = %[3]t
   }
-  source_setting {
+  source {
     name    = "Alert providers"
     enabled = %[3]t
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Active Directory Identity Protection"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft 365 Defender"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Cloud App Security"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Defender"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Defender for Endpoint"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Defender for Identity"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Defender for IoT"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Defender for Office 365"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Sentinel scheduled analytics rules"
       enabled            = %[3]t
     }
-    source_sub_type {
+    sub_type {
       enabled_severities = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Sentinel NRT analytic rules"
       enabled            = %[3]t

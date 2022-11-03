@@ -57,21 +57,21 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 
-* `source_setting` (Optional) One or more `source_setting` blocks as defined below.
+* `source` (Optional) One or more `source` blocks as defined below.
 
 ---
 
-A `source_setting` block supports the following:
+A `source` block supports the following:
 
 * `name` - (Required) The name of the Fusion source signal. Refer to Fusion alert rule template for supported values.
 
 * `enabled` - (Optional) Whether this source signal is enabled or disabled in Fusion detection? Defaults to `true`.
 
-* `source_sub_type` - (Optional) One or more `source_sub_type` blocks as defined below.
+* `sub_type` - (Optional) One or more `sub_type` blocks as defined below.
 
 ---
 
-A `source_sub_type` block supports the following:
+A `sub_type` block supports the following:
 
 * `name` - (Required) The Name of the source subtype under a given source signal in Fusion detection. Refer to Fusion alert rule template for supported values.
 
