@@ -819,6 +819,10 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.RemoteDebuggingVersion = utils.String(windowsSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(windowsSlotSiteConfig.RuntimeScaleMonitoring)
+	}
+
 	expanded.Use32BitWorkerProcess = utils.Bool(windowsSlotSiteConfig.Use32BitWorker)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
@@ -1153,6 +1157,10 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(linuxSlotSiteConfig.RemoteDebuggingVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(linuxSlotSiteConfig.RuntimeScaleMonitoring)
 	}
 
 	expanded.Use32BitWorkerProcess = utils.Bool(linuxSlotSiteConfig.Use32BitWorker)

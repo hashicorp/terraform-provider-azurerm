@@ -277,7 +277,7 @@ A `data_disk` block supports the following:
 
 * `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.
 
-* `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include Standard_LRS, StandardSSD_LRS, Premium_LRS and UltraSSD_LRS.
+* `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS` and `UltraSSD_LRS`.
 
 ---
 
@@ -300,6 +300,10 @@ An `extension` block supports the following:
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
 
 -> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information.
+
+* `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
+
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
 
 * `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`. Defaults to `false`.
 
@@ -365,7 +369,7 @@ An `os_disk` block supports the following:
 
 * `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
-* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS` and `Premium_LRS`.
+* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS` and `Premium_ZRS`.
 
 * `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above.
 
@@ -384,6 +388,14 @@ A `plan` block supports the following:
 * `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
 
 * `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
+
+---
+
+A `protected_settings_from_key_vault` block supports the following:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret which stores the protected settings.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ---
 

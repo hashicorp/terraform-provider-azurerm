@@ -1313,8 +1313,11 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumV2LRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 						string(compute.StorageAccountTypesUltraSSDLRS),
 					}, false),
 				},
@@ -1503,10 +1506,12 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
+						// note: OS Disks don't support Ultra SSDs or PremiumV2_LRS
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 					}, false),
 				},
 
@@ -2094,6 +2099,9 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsJSON,
 				},
 
+				// Need to check `protected_settings_from_key_vault` conflicting with `protected_settings` in iteration
+				"protected_settings_from_key_vault": protectedSettingsFromKeyVaultSchema(false),
+
 				"provision_after_extensions": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -2156,6 +2164,14 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 				}
 			}
 		}
+
+		if v, ok := m["protected_settings_from_key_vault"]; ok {
+			protectedSettingsFromKeyVault := v.([]interface{})
+			if protectedSettingsFromKeyVault != nil && len(protectedSettingsFromKeyVault) > 0 {
+				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string)))
+				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string)))
+			}
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -2200,7 +2216,14 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			extensionProps.Settings = settings
 		}
 
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
+
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
+			if protectedSettingsFromKeyVault != nil {
+				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
+			}
+
 			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
@@ -2247,6 +2270,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
+		var protectedSettingsFromKeyVault *compute.KeyVaultSecretReference
 		extPublisher := ""
 		extSettings := ""
 		extType := ""
@@ -2288,6 +2312,8 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 				}
 				extSettings = extSettingsRaw
 			}
+
+			protectedSettingsFromKeyVault = props.ProtectedSettingsFromKeyVault
 		}
 		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
 		if ext, ok := extensionsFromState[name]; ok {
@@ -2299,16 +2325,17 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                       name,
-			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
-			"automatic_upgrade_enabled":  enableAutomaticUpgrade,
-			"force_update_tag":           forceUpdateTag,
-			"provision_after_extensions": provisionAfterExtension,
-			"protected_settings":         protectedSettings,
-			"publisher":                  extPublisher,
-			"settings":                   extSettings,
-			"type":                       extType,
-			"type_handler_version":       extTypeVersion,
+			"name":                              name,
+			"auto_upgrade_minor_version":        autoUpgradeMinorVersion,
+			"automatic_upgrade_enabled":         enableAutomaticUpgrade,
+			"force_update_tag":                  forceUpdateTag,
+			"provision_after_extensions":        provisionAfterExtension,
+			"protected_settings":                protectedSettings,
+			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
+			"publisher":                         extPublisher,
+			"settings":                          extSettings,
+			"type":                              extType,
+			"type_handler_version":              extTypeVersion,
 		})
 	}
 	return result, nil

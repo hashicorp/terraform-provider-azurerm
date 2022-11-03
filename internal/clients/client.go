@@ -273,7 +273,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ConfidentialLedger = confidentialledger.NewClient(o)
 	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
-	client.Containers = containerServices.NewClient(o)
+	client.Containers = containerServices.NewContainersClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)

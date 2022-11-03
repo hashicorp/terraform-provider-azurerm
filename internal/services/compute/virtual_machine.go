@@ -169,7 +169,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
+						// note: OS Disks don't support Ultra SSDs or PremiumV2_LRS
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),

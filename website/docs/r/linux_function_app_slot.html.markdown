@@ -256,6 +256,8 @@ A `site_config` block supports the following:
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Functions Runtime Scale Monitoring be enabled.
 
+~> **NOTE:** Functions runtime scale monitoring can only be enabled for Elastic Premium Function Apps or Workflow Standard Logic Apps and requires a minimum prewarmed instance count of 1.
+
 * `scm_ip_restriction` - (Optional) a `scm_ip_restriction` block as detailed below.
 
 * `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.

@@ -105,6 +105,8 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
+			"protected_settings_from_key_vault": protectedSettingsFromKeyVaultSchema(true),
+
 			"provision_after_extensions": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -157,31 +159,30 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
 	provisionAfterExtensions := utils.ExpandStringSlice(provisionAfterExtensionsRaw)
 
-	protectedSettings := map[string]interface{}{}
-	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		ps, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
-		if err != nil {
-			return fmt.Errorf("unable to parse `protected_settings`: %s", err)
-		}
-		protectedSettings = ps
-	}
-
 	props := compute.VirtualMachineScaleSetExtension{
 		Name: utils.String(id.ExtensionName),
 		VirtualMachineScaleSetExtensionProperties: &compute.VirtualMachineScaleSetExtensionProperties{
-			Publisher:                utils.String(d.Get("publisher").(string)),
-			Type:                     utils.String(d.Get("type").(string)),
-			TypeHandlerVersion:       utils.String(d.Get("type_handler_version").(string)),
-			AutoUpgradeMinorVersion:  utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
-			EnableAutomaticUpgrade:   utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
-			SuppressFailures:         utils.Bool(d.Get("failure_suppression_enabled").(bool)),
-			ProtectedSettings:        protectedSettings,
-			ProvisionAfterExtensions: provisionAfterExtensions,
-			Settings:                 settings,
+			Publisher:                     utils.String(d.Get("publisher").(string)),
+			Type:                          utils.String(d.Get("type").(string)),
+			TypeHandlerVersion:            utils.String(d.Get("type_handler_version").(string)),
+			AutoUpgradeMinorVersion:       utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
+			EnableAutomaticUpgrade:        utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
+			SuppressFailures:              utils.Bool(d.Get("failure_suppression_enabled").(bool)),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProvisionAfterExtensions:      provisionAfterExtensions,
+			Settings:                      settings,
 		},
 	}
 	if v, ok := d.GetOk("force_update_tag"); ok {
 		props.VirtualMachineScaleSetExtensionProperties.ForceUpdateTag = utils.String(v.(string))
+	}
+
+	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
+		protectedSettings, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
+		if err != nil {
+			return fmt.Errorf("unable to parse `protected_settings`: %s", err)
+		}
+		props.VirtualMachineScaleSetExtensionProperties.ProtectedSettings = &protectedSettings
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, props)
@@ -233,6 +234,10 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 		}
 
 		props.ProtectedSettings = protectedSettings
+	}
+
+	if d.HasChange("protected_settings_from_key_vault") {
+		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{}))
 	}
 
 	if d.HasChange("provision_after_extensions") {
@@ -323,6 +328,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 		d.Set("force_update_tag", props.ForceUpdateTag)
+		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
 		d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
 		d.Set("publisher", props.Publisher)
 		d.Set("type", props.Type)

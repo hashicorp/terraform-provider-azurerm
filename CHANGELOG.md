@@ -4,12 +4,13 @@ FEATURES:
 
 * **New Resource:** `azurerm_mssql_server_microsoft_support_auditing_policy` [GH-18609]
 * **New Resource:** `azurerm_private_dns_resolver_virtual_network_link` [GH-19029]
+* **New Resource:** `azurerm_private_dns_resolver_forwarding_rule` [GH-19028]
 
 ENHANCEMENTS
 
 * dependencies: `iothub` updating to `2022-04-30-preview` [GH-19070]
-* dependencies: updating to `v0.46.0` of `github.com/hashicorp/go-azure-helpers` [GH-19038]
-* dependencies: updating to `v0.20221028.1081410` of `github.com/hashicorp/go-azure-sdk` [GH-19038]
+* dependencies: updating to `v0.47.0` of `github.com/hashicorp/go-azure-helpers` [GH-19107]
+* dependencies: updating to `v0.20221102.1171058` of `github.com/hashicorp/go-azure-sdk` [GH-19108]
 * webpubsub: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-18892]
 * Data Source: `azurerm_application_gateway` - export the `backend_address_pool` block [GH-19026]
 * Data Source: `azurerm_function_app_host_keys` - export `webpubsub_extension_key` property [GH-19073]
@@ -17,16 +18,27 @@ ENHANCEMENTS
 * `azurerm_iothub_fallback_route` - support for `DigitalTwinChangeEvents` as `source` [GH-19070]
 * `azurerm_iothub_route` - support for `DigitalTwinChangeEvents` as `source` [GH-19070]
 * `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
+* `azurerm_linux_virtual_machine_scale_set` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
+* `azurerm_linux_virtual_machine_scale_set` - support for `StandardSSD_ZRS`, `PremiumV2_LRS`, and `Premium_ZRS` storage account types [GH-19091]
 * `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
+* `azurerm_virtual_machine_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
+* `azurerm_virtual_machine_scale_set_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
+* `azurerm_windows_virtual_machine_scale_set` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
+* `azurerm_windows_virtual_machine_scale_set` - support for `StandardSSD_ZRS`, `PremiumV2_LRS`, and `Premium_ZRS` storage account types [GH-19091]
 
 BUG FIXES:
 
 * Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
+* `azurerm_api_management` - correct the api return `subnet_id` with the wrong case [GH-18988]
 * `azurerm_eventhub_namespace_disaster_recovery_config` - will now correctly break the pairing [GH-19030]
 * `azurerm_kubernetes_cluster` - set a valid default value for `auto_scaler_profile.expander` [GH-19057]
+* `azurerm_linux_virtual_machine_scale_set` - can now set `automatic_os_upgrade_policy` with rolling upgrades enables [GH-18605]
+* `azurerm_mssql_database` - handle the `license_type` property no longer being returned by API [GH-19084]
+* `azurerm_postgresql_flexible_server_database` - is now correctly removed from state on deletion [GH-19081]
 * `azurerm_virtual_network_gateway_connection` - correctly set `authorization_key` from state as the API returnes `*`s [GH-19071]
-
+* `azurerm_windows_virtual_machine_scale_set` - can now set `automatic_os_upgrade_policy` with rolling upgrades enables [GH-18605]
+* 
 ## 3.29.1 (October 28, 2022)
 
 BUG FIXES:
