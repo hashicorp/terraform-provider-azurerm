@@ -13,7 +13,7 @@ Manages a Key Vault Key.
 
 ## Example Usage
 
-~> **Note:** the Azure Provider include a Feature Toggle which will purge a Key Vault Key resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_keys_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_keys_on_destroy) for more information.
+~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Key resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_keys_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_keys_on_destroy) for more information.
 
 ```hcl
 data "azurerm_client_config" "current" {}
