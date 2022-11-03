@@ -146,23 +146,29 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// at least 28 days
 						"expire_after": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validate.ISO8601DurationBetween("P28D", "P100Y"),
 							AtLeastOneOf: []string{
 								"rotation_policy.0.expire_after",
 								"rotation_policy.0.automatic",
 							},
+							RequiredWith: []string{
+								"rotation_policy.0.expire_after",
+								"rotation_policy.0.notify_before_expiry",
+							},
 						},
 
-						// >= expiry_time - 7
+						// <= expiry_time - 7, >=7
 						"notify_before_expiry": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validate.ISO8601DurationBetween("P7D", "P36493D"),
+							RequiredWith: []string{
+								"rotation_policy.0.expire_after",
+								"rotation_policy.0.notify_before_expiry",
+							},
 						},
 
 						"automatic": {
@@ -753,7 +759,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 	}
 
 	policy := make(map[string]interface{})
-	if input.Attributes != nil && input.Attributes.ExpiryTime != nil {
+	if input.Attributes != nil && input.Attributes.ExpiryTime != nil && *input.Attributes.ExpiryTime != "" {
 		policy["expire_after"] = *input.Attributes.ExpiryTime
 	}
 
@@ -762,7 +768,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			action := ltAction.Action
 			trigger := ltAction.Trigger
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.Notify)) && trigger.TimeBeforeExpiry != nil {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.Notify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
 				policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
 			}
 
@@ -777,6 +783,12 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 				policy["automatic"] = []map[string]interface{}{autoRotation}
 			}
 		}
+	}
+
+	// Somehow a default is set after creation for notify_before_expiry
+	// Submitting this set value in the next run will not work though..
+	if policy["expire_after"] == nil {
+		policy["notify_before_expiry"] = nil
 	}
 
 	return []interface{}{policy}
