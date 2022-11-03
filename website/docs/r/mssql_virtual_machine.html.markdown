@@ -131,6 +131,8 @@ The `storage_configuration` block supports the following:
 
 * `log_settings` - (Optional) An `storage_settings` as defined below.
 
+* `system_db_on_data_disk_enabled` - (Optional) Specifies whether to set system databases (except tempDb) location to newly created data storage. Possible values are `true` and `false`. Defaults to `false`.
+
 * `temp_db_settings` - (Optional) An `temp_db_settings` as defined below.
 
 ---
