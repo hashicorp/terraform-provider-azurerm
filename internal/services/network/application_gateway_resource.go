@@ -4376,6 +4376,10 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
 		defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string)
 
+		if defaultBackendAddressPoolName == "" && defaultBackendHTTPSettingsName == "" && defaultRedirectConfigurationName == "" {
+			return nil, fmt.Errorf("both the `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` must be specified")
+		}
+
 		if defaultBackendAddressPoolName != "" && defaultRedirectConfigurationName != "" {
 			return nil, fmt.Errorf("Conflict between `default_backend_address_pool_name` and `default_redirect_configuration_name` (back-end pool not applicable when redirection specified)")
 		}
