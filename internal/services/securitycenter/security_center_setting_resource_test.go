@@ -67,19 +67,6 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
-
-		// WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW is skipped on purpose as it is enabled by default (at least in our subscription).
-		//
-		// {
-		// 	Config: r.cfg("WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW", true),
-		// 	Check:  acceptance.ComposeTestCheckFunc(),
-		// },
-		// data.ImportStep(),
-		// {
-		// 	Config: r.cfg("WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW", false),
-		// 	Check:  acceptance.ComposeTestCheckFunc(),
-		// },
-		// data.ImportStep(),
 	})
 }
 

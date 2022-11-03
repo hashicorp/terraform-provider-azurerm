@@ -43,7 +43,6 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"MCAS",
 					"WDATP",
-					"WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW",
 					"SENTINEL",
 				}, false),
 			},
@@ -138,7 +137,7 @@ func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interfa
 
 func expandSecurityCenterSetting(name string, enabled bool) (security.BasicSetting, error) {
 	switch name {
-	case "MCAS", "WDATP", "WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW":
+	case "MCAS", "WDATP":
 		return security.DataExportSettings{
 			DataExportSettingProperties: &security.DataExportSettingProperties{
 				Enabled: &enabled,
