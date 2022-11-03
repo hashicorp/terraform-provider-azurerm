@@ -5913,11 +5913,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
-
-  tags = {
-    "SkipASMAzSecPack" = "true",
-    "SkipNRMSNSG"      = "true"
-  }
 }
 
 resource "azurerm_virtual_network" "test" {
