@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,7 +18,7 @@ import (
 )
 
 func resourceSecurityCenterContact() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSecurityCenterContactCreateUpdate,
 		Read:   resourceSecurityCenterContactRead,
 		Update: resourceSecurityCenterContactCreateUpdate,
@@ -36,10 +37,11 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
+			// This becomes Required and ForceNew in 4.0 - override happens further down
 			"name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Optional:     true,
+				Default:      "default1",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -66,6 +68,17 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if features.FourPointOh() {
+		resource.Schema["name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+	}
+
+	return resource
 }
 
 func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
