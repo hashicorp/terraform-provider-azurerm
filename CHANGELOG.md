@@ -22,6 +22,7 @@ ENHANCEMENTS
 * `azurerm_linux_virtual_machine_scale_set` - support for `StandardSSD_ZRS`, `PremiumV2_LRS`, and `Premium_ZRS` storage account types [GH-19091]
 * `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
+* `azurerm_security_center_contact` - support for the `name` property [GH-18999]
 * `azurerm_virtual_machine_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
 * `azurerm_virtual_machine_scale_set_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
