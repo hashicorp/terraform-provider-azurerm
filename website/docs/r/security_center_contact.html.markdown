@@ -16,7 +16,7 @@ Manages the subscription's Security Center Contact.
 
 ```hcl
 resource "azurerm_security_center_contact" "example" {
-  name = "contact"
+  name  = "contact"
   email = "contact@example.com"
   phone = "+1-555-555-5555"
 
