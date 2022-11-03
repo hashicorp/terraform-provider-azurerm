@@ -21,6 +21,7 @@ ENHANCEMENTS
 * `azurerm_kubernetes_cluster` - support for the `web_app_routing` block [GH-18667]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
 * `azurerm_linux_virtual_machine_scale_set` - support for `StandardSSD_ZRS`, `PremiumV2_LRS`, and `Premium_ZRS` storage account types [GH-19091]
+* `azurerm_mssql_virtual_machine` - support for the `system_db_on_data_disk_enabled` property [GH-19115]
 * `azurerm_monitor_diagnostic_setting` - support for the `partner_solution_id` property [GH-19114]
 * `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
