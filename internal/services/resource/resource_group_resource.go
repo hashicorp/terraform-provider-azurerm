@@ -171,31 +171,16 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		if len(unknownApiVersionResourceIds) > 0 {
-			err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-				results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
-				if err != nil {
-					return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
-				}
-				nestedResourceIds := make([]string, 0)
-				for results.NotDone() {
-					val := results.Value()
-					if val.ID != nil && !utils.SliceContainsValue(nonExistResourceIds, *val.ID) {
-						nestedResourceIds = append(nestedResourceIds, *val.ID)
-					}
+			stateConf := &pluginsdk.StateChangeConf{
+				Delay:      30 * time.Second,
+				Pending:    []string{"full"},
+				Target:     []string{"empty"},
+				Refresh:    resourcesListByGroupStateRefreshFunc(ctx, resourceClient, *id, nonExistResourceIds),
+				MinTimeout: 15 * time.Second,
+				Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+			}
 
-					if err := results.NextWithContext(ctx); err != nil {
-						return pluginsdk.NonRetryableError(fmt.Errorf("retrieving next page of nested items for %s: %+v", id, err))
-					}
-				}
-
-				if len(nestedResourceIds) > 0 {
-					time.Sleep(30 * time.Second)
-					return pluginsdk.RetryableError(resourceGroupContainsItemsError(id.ResourceGroup, nestedResourceIds))
-				}
-				return nil
-			})
-
-			if err != nil {
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return err
 			}
 		}
@@ -300,4 +285,31 @@ func splitProviderAndResourceTypes(fullResourceType string) (provider string, re
 		return "", "", fmt.Errorf("spliting resourceType %s failed", provider)
 	}
 	return p, r, nil
+}
+
+func resourcesListByGroupStateRefreshFunc(ctx context.Context, client *resources.Client, id parse.ResourceGroupId, nonExistResourceIds []string) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		results, err := client.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+		if err != nil {
+			return nil, "error", fmt.Errorf("listing resources in %s: %v", id, err)
+		}
+
+		nestedResourceIds := make([]string, 0)
+		for results.NotDone() {
+			val := results.Value()
+			if val.ID != nil && !utils.SliceContainsValue(nonExistResourceIds, *val.ID) {
+				nestedResourceIds = append(nestedResourceIds, *val.ID)
+			}
+
+			if err := results.NextWithContext(ctx); err != nil {
+				return nil, "error", fmt.Errorf("retrieving next page of nested items for %s: %+v", id, err)
+			}
+		}
+
+		if len(nestedResourceIds) > 0 {
+			time.Sleep(30 * time.Second)
+			return nil, "full", nil
+		}
+		return nil, "empty", nil
+	}
 }
