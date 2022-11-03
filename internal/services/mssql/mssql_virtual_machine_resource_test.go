@@ -148,6 +148,80 @@ func TestAccMsSqlVirtualMachine_keyVault(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlVirtualMachine_sqlInstanceSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sqlInstanceSettingDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sql_instance_setting.0.adhoc_workloads_optimization_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("sql_instance_setting.0.collation").HasValue("SQL_Latin1_General_CP1_CI_AS"),
+				check.That(data.ResourceName).Key("sql_instance_setting.0.instant_file_initialization_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("sql_instance_setting.0.lock_pages_in_memory_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("sql_instance_setting.0.max_dop").HasValue("0"),
+				check.That(data.ResourceName).Key("sql_instance_setting.0.max_server_memory_mb").HasValue("2147483647"),
+				check.That(data.ResourceName).Key("sql_instance_setting.0.min_server_memory_mb").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sqlInstanceSettingUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlVirtualMachine_sqlInstanceSettingCollation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sqlInstanceSettingCollation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlVirtualMachine_sqlInstanceSettingInstantFileInitializationEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sqlInstanceSettingInstantFileInitializationEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlVirtualMachine_sqlInstanceSettingLockPagesInMemoryEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sqlInstanceSettingLockPagesInMemoryEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
@@ -629,6 +703,82 @@ resource "azurerm_mssql_virtual_machine" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlVirtualMachineResource) sqlInstanceSettingDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  sql_instance_setting {}
+}
+`, r.template(data))
+}
+
+func (r MsSqlVirtualMachineResource) sqlInstanceSettingUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  sql_instance_setting {
+    adhoc_workloads_optimization_enabled = true
+    max_dop                              = 3
+    max_server_memory_mb                 = 2048
+    min_server_memory_mb                 = 2
+  }
+}
+`, r.template(data))
+}
+
+func (r MsSqlVirtualMachineResource) sqlInstanceSettingCollation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  sql_instance_setting {
+    collation = "SQL_AltDiction_CP850_CI_AI"
+  }
+}
+`, r.template(data))
+}
+
+func (r MsSqlVirtualMachineResource) sqlInstanceSettingInstantFileInitializationEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  sql_instance_setting {
+    instant_file_initialization_enabled = true
+  }
+}
+`, r.template(data))
+}
+
+func (r MsSqlVirtualMachineResource) sqlInstanceSettingLockPagesInMemoryEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  sql_instance_setting {
+    lock_pages_in_memory_enabled = true
+  }
+}
+`, r.template(data))
 }
 
 func (r MsSqlVirtualMachineResource) storageConfiguration(data acceptance.TestData) string {
