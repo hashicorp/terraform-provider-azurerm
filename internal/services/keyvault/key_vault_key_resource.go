@@ -583,13 +583,14 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(respPolicy.Response) {
-			log.Printf("[DEBUG] Key Rotation Policy for key %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
-			d.SetId("")
-			return nil
+		// If client is not authorized the policy or it was not found:
+		// - we don't try to set it, just ignore it
+		if utils.ResponseWasForbidden(respPolicy.Response) || utils.ResponseWasNotFound(respPolicy.Response) {
+			return tags.FlattenAndSet(d, resp.Tags)
 		}
-
-		return err
+		if !utils.ResponseWasNotFound(respPolicy.Response) {
+			return err
+		}
 	}
 
 	rotationPolicy := flattenKeyVaultKeyRotationPolicy(respPolicy)
