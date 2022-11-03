@@ -157,11 +157,34 @@ func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 			Config: r.storageConfiguration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_configuration.0.system_db_on_data_disk_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.storageConfigurationRevert(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlVirtualMachine_storageConfigurationSystemDbOnDataDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageConfigurationSystemDbOnDataDisk(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageConfigurationSystemDbOnDataDisk(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -675,6 +698,10 @@ resource "azurerm_mssql_virtual_machine" "test" {
       log_file_size_mb  = 512
     }
   }
+
+  depends_on = [
+    azurerm_virtual_machine_data_disk_attachment.test
+  ]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -702,8 +729,66 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
+
+  depends_on = [
+    azurerm_virtual_machine_data_disk_attachment.test
+  ]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlVirtualMachineResource) storageConfigurationSystemDbOnDataDisk(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "accmd-sqlvm-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = "0"
+  caching            = "None"
+}
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "OLTP"
+
+    system_db_on_data_disk_enabled = %t
+
+    data_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLData"
+    }
+
+    log_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLLog"
+    }
+
+    temp_db_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLTemp"
+      log_file_size_mb  = 512
+    }
+  }
+
+  depends_on = [
+    azurerm_virtual_machine_data_disk_attachment.test
+  ]
+}
+`, r.template(data), data.RandomInteger, enabled)
 }
 
 func (r MsSqlVirtualMachineResource) assessmentSettingsWeekly(data acceptance.TestData) string {

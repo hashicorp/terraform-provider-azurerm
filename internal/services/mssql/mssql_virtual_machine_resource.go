@@ -339,6 +339,11 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 								string(sqlvirtualmachines.SqlWorkloadTypeDW),
 							}, false),
 						},
+						"system_db_on_data_disk_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"data_settings":    helper.StorageSettingSchema(),
 						"log_settings":     helper.StorageSettingSchema(),
 						"temp_db_settings": helper.SQLTempDBStorageSettingSchema(),
@@ -1027,6 +1032,7 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 	return &sqlvirtualmachines.StorageConfigurationSettings{
 		DiskConfigurationType: &diskConfigurationType,
 		StorageWorkloadType:   &storageWorkloadType,
+		SqlSystemDbOnDataDisk: utils.Bool(storageSettings["system_db_on_data_disk_enabled"].(bool)),
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
 		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
@@ -1043,12 +1049,18 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		diskType = string(*input.DiskConfigurationType)
 	}
 
+	systemDbOnDataDisk := false
+	if input.SqlSystemDbOnDataDisk != nil {
+		systemDbOnDataDisk = *input.SqlSystemDbOnDataDisk
+	}
+
 	output := map[string]interface{}{
-		"storage_workload_type": storageWorkloadType,
-		"disk_type":             diskType,
-		"data_settings":         flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
-		"log_settings":          flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
-		"temp_db_settings":      flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
+		"storage_workload_type":          storageWorkloadType,
+		"disk_type":                      diskType,
+		"system_db_on_data_disk_enabled": systemDbOnDataDisk,
+		"data_settings":                  flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
+		"log_settings":                   flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
+		"temp_db_settings":               flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
 	}
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
