@@ -26,6 +26,7 @@ ENHANCEMENTS
 * `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_security_center_contact` - support for the `name` property [GH-18999]
+* `azurerm_stream_analytics_job` - support for the `job_storage_account` block [GH-19120]
 * `azurerm_virtual_machine_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
 * `azurerm_virtual_machine_scale_set_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
