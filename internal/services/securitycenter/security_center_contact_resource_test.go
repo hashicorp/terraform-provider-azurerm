@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -118,12 +119,15 @@ func testAccSecurityCenterContact_phoneOptional(t *testing.T) {
 	})
 }
 
-func (SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, _ *pluginsdk.InstanceState) (*bool, error) {
-	contactName := "test-account"
-
-	resp, err := clients.SecurityCenter.ContactsClient.Get(ctx, contactName)
+func (SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.ContactID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Center Subscription Contact (%s): %+v", contactName, err)
+		return nil, err
+	}
+
+	resp, err := clients.SecurityCenter.ContactsClient.Get(ctx, id.SecurityContactName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ContactProperties != nil), nil
