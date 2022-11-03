@@ -15,6 +15,8 @@ Manages a Key Vault Certificate.
 
 ~> **Note:** this example assumed the PFX file is located in the same directory at `certificate-to-import.pfx`.
 
+~> **Note:** the Azure Provider include a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information.
+
 ```hcl
 data "azurerm_client_config" "current" {}
 
