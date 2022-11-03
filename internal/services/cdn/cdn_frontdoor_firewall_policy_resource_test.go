@@ -443,7 +443,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
       rule {
         rule_id = "933100"
         enabled = false
-        action  = "Log"
+        action  = "AnomalyScoring"
       }
     }
 
@@ -458,7 +458,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
       rule {
         rule_id = "942200"
-        action  = "Log"
+        action  = "AnomalyScoring"
 
         exclusion {
           match_variable = "QueryStringArgNames"
