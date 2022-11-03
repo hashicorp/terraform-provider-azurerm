@@ -57,6 +57,29 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.cfg("SENTINEL", true),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cfg("SENTINEL", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+
+		// WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW is skipped on purpose as it is enabled by default (at least in our subscription).
+		//
+		// {
+		// 	Config: r.cfg("WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW", true),
+		// 	Check:  acceptance.ComposeTestCheckFunc(),
+		// },
+		// data.ImportStep(),
+		// {
+		// 	Config: r.cfg("WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW", false),
+		// 	Check:  acceptance.ComposeTestCheckFunc(),
+		// },
+		// data.ImportStep(),
 	})
 }
 
@@ -72,6 +95,11 @@ func TestAccSecurityCenterSetting_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+		// reset
+		{
+			Config: r.cfg("MCAS", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
 	})
 }
 
