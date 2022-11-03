@@ -891,8 +891,8 @@ resource "azurerm_key_vault_key" "test" {
   ]
 
   rotation_policy {
-    expiry_time       = "P60D"
-    notification_time = "P7D"
+    expire_after         = "P60D"
+    notify_before_expiry = "P7D"
   }
 }
 `, r.template(data, "standard"), data.RandomString)
@@ -918,8 +918,8 @@ resource "azurerm_key_vault_key" "test" {
   ]
 
   rotation_policy {
-    auto_rotation {
-      time_after_create = "P31D"
+    automatic {
+      time_after_creation = "P31D"
     }
   }
 }
@@ -946,12 +946,12 @@ resource "azurerm_key_vault_key" "test" {
   ]
 
   rotation_policy {
-    auto_rotation {
+    automatic {
       time_before_expiry = "P30D"
     }
 
-    expiry_time       = "P60D"
-    notification_time = "P7D"
+    expire_after         = "P60D"
+    notify_before_expiry = "P7D"
   }
 }
 `, r.template(data, "standard"), data.RandomString)
@@ -977,12 +977,12 @@ resource "azurerm_key_vault_key" "test" {
   ]
 
   rotation_policy {
-    auto_rotation {
+    automatic {
       time_before_expiry = "P31D"
     }
 
-    expiry_time       = "P61D"
-    notification_time = "P8D"
+    expire_after         = "P61D"
+    notify_before_expiry = "P8D"
   }
 }
 `, r.template(data, "standard"), data.RandomString)

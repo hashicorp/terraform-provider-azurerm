@@ -102,19 +102,19 @@ The following arguments are supported:
 
 A `rotation_policy` block supports the following:
 
-* `expiry_time` - (Optional) Expire a Key Vault Key after given time as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+* `expire_after` - (Optional) Expire a Key Vault Key after given duration as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
-* `auto_rotation` - (Optional) An `auto_rotation` block as defined below.
+* `automatic` - (Optional) An `automatic` block as defined below.
 
-* `notification_time` - (Optional) Notify at a given time before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+* `notify_before_expiry` - (Optional) Notify at a given duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Default is `P30D`.
 
 ---
 
-An `auto_rotation` block supports the following:
+An `automatic` block supports the following:
 
-* `time_after_create` - (Optional) Rotate automatically at a given time after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+* `time_after_creation` - (Optional) Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
-* `time_before_expiry` - (Optional) Rotate automatically at a given time before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+* `time_before_expiry` - (Optional) Rotate automatically at a duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
 ## Attributes Reference
 

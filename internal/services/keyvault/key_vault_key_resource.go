@@ -147,36 +147,37 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						// at least 28 days
-						"expiry_time": {
+						"expire_after": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.ISO8601Duration,
 							AtLeastOneOf: []string{
-								"rotation_policy.0.expiry_time",
-								"rotation_policy.0.auto_rotation",
+								"rotation_policy.0.expire_after",
+								"rotation_policy.0.automatic",
 							},
 						},
 
 						// >= expiry_time - 7
-						"notification_time": {
+						"notify_before_expiry": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validate.ISO8601Duration,
 						},
 
-						"auto_rotation": {
+						"automatic": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"time_after_create": {
+									"time_after_creation": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validate.ISO8601Duration,
 										AtLeastOneOf: []string{
-											"rotation_policy.0.auto_rotation.0.time_after_create",
-											"rotation_policy.0.auto_rotation.0.time_before_expiry",
+											"rotation_policy.0.automatic.0.time_after_creation",
+											"rotation_policy.0.automatic.0.time_before_expiry",
 										},
 									},
 									"time_before_expiry": {
@@ -184,8 +185,8 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 										Optional:     true,
 										ValidateFunc: validate.ISO8601Duration,
 										AtLeastOneOf: []string{
-											"rotation_policy.0.auto_rotation.0.time_after_create",
-											"rotation_policy.0.auto_rotation.0.time_before_expiry",
+											"rotation_policy.0.automatic.0.time_after_creation",
+											"rotation_policy.0.automatic.0.time_before_expiry",
 										},
 									},
 								},
@@ -687,11 +688,17 @@ func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvault.JSONWebKeyO
 func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
 	policies := v.([]interface{})
 	policy := policies[0].(map[string]interface{})
+
+	var expiryTime *string = nil // needs to be set to nil if not set
+	if rawExpiryTime := policy["expire_after"]; rawExpiryTime != nil && rawExpiryTime.(string) != "" {
+		expiryTime = utils.String(rawExpiryTime.(string))
+	}
+
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
-	if rawNotificationTime := policy["notification_time"]; rawNotificationTime != nil {
+	if rawNotificationTime := policy["notify_before_expiry"]; rawNotificationTime != nil && rawNotificationTime.(string) != "" {
 		lifetimeActionNotify := keyvault.LifetimeActions{
 			Trigger: &keyvault.LifetimeActionsTrigger{
-				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for notify always before expiry
+				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
 			},
 			Action: &keyvault.LifetimeActionsType{
 				Type: keyvault.Notify,
@@ -700,22 +707,21 @@ func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
 		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
 	}
 
-	autoRotation := policy["auto_rotation"].([]interface{})
-	if autoRotation != nil && len(autoRotation) == 1 && autoRotation[0] != nil {
+	if autoRotationList := policy["automatic"].([]interface{}); len(autoRotationList) == 1 && autoRotationList[0] != nil {
 		lifetimeActionRotate := keyvault.LifetimeActions{
 			Action: &keyvault.LifetimeActionsType{
 				Type: keyvault.Rotate,
 			},
 			Trigger: &keyvault.LifetimeActionsTrigger{},
 		}
-		autoRotationRaw := autoRotation[0].(map[string]interface{})
+		autoRotationRaw := autoRotationList[0].(map[string]interface{})
 
-		if v := autoRotationRaw["time_after_create"]; v != "" {
+		if v := autoRotationRaw["time_after_creation"]; v != nil && v.(string) != "" {
 			timeAfterCreate := v.(string)
 			lifetimeActionRotate.Trigger.TimeAfterCreate = &timeAfterCreate
 		}
 
-		if v := autoRotationRaw["time_before_expiry"]; v != "" {
+		if v := autoRotationRaw["time_before_expiry"]; v != nil && v.(string) != "" {
 			timeBeforeExpiry := v.(string)
 			lifetimeActionRotate.Trigger.TimeBeforeExpiry = &timeBeforeExpiry
 		}
@@ -723,18 +729,12 @@ func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
 	}
 
-	result := keyvault.KeyRotationPolicy{
+	return keyvault.KeyRotationPolicy{
 		LifetimeActions: &lifetimeActions,
 		Attributes: &keyvault.KeyRotationPolicyAttributes{
-			ExpiryTime: nil,
+			ExpiryTime: expiryTime,
 		},
 	}
-
-	if rawExpiryTime := policy["expiry_time"]; rawExpiryTime != nil {
-		result.Attributes.ExpiryTime = utils.String(rawExpiryTime.(string))
-	}
-
-	return result
 }
 
 func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
@@ -754,26 +754,27 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 
 	policy := make(map[string]interface{})
 	if input.Attributes != nil && input.Attributes.ExpiryTime != nil {
-		policy["expiry_time"] = *input.Attributes.ExpiryTime
+		policy["expire_after"] = *input.Attributes.ExpiryTime
 	}
 
 	if input.LifetimeActions != nil {
 		for _, ltAction := range *input.LifetimeActions {
 			action := ltAction.Action
 			trigger := ltAction.Trigger
+
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.Notify)) && trigger.TimeBeforeExpiry != nil {
+				policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
+			}
+
 			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.Rotate)) {
 				autoRotation := make(map[string]interface{}, 0)
 				if timeAfterCreate := trigger.TimeAfterCreate; timeAfterCreate != nil {
-					autoRotation["time_after_create"] = *timeAfterCreate
+					autoRotation["time_after_creation"] = *timeAfterCreate
 				}
 				if timeBeforeExpiry := trigger.TimeBeforeExpiry; timeBeforeExpiry != nil {
 					autoRotation["time_before_expiry"] = *timeBeforeExpiry
 				}
-				policy["auto_rotation"] = []map[string]interface{}{autoRotation}
-			}
-
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.Notify)) && trigger.TimeBeforeExpiry != nil {
-				policy["notification_time"] = *trigger.TimeBeforeExpiry
+				policy["automatic"] = []map[string]interface{}{autoRotation}
 			}
 		}
 	}
