@@ -440,7 +440,7 @@ func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.Queues
 
 		resp, err := client.Get(ctx, id)
 		if err != nil {
-			return nil, "", fmt.Errorf("checking servicebus queue %s error: %+v", id, err)
+			return nil, "Error", fmt.Errorf("checking servicebus queue %s error: %+v", id, err)
 		}
 
 		queueStatus := "Updating"
@@ -448,15 +448,35 @@ func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.Queues
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil {
 				if props.Status != nil && *props.Status == userConfig["status"] &&
-					props.MaxDeliveryCount != nil && *props.MaxDeliveryCount == userConfig["maxDeliveryCount"] &&
-					props.DeadLetteringOnMessageExpiration != nil && *props.DeadLetteringOnMessageExpiration == userConfig["deadLetteringOnMesExp"] &&
-					props.EnableExpress != nil && *props.EnableExpress == userConfig["enableExpress"] &&
-					props.EnablePartitioning != nil && *props.EnablePartitioning == userConfig["enablePartitioning"] &&
-					props.ForwardDeadLetteredMessagesTo != nil && *props.ForwardDeadLetteredMessagesTo == userConfig["forwardDeadLetteredMessagesTo"] &&
-					props.ForwardTo != nil && *props.ForwardTo == userConfig["forwardTo"] &&
-					props.LockDuration != nil && *props.LockDuration == userConfig["lockDuration"] &&
-					props.EnableBatchedOperations != nil && *props.EnableBatchedOperations == userConfig["enableBatchOps"] {
+					props.MaxDeliveryCount != nil && int(*props.MaxDeliveryCount) == userConfig["maxDeliveryCount"].(int) &&
+					props.EnableExpress != nil && *props.EnableExpress == userConfig["enableExpress"].(bool) &&
+					props.EnablePartitioning != nil && *props.EnablePartitioning == userConfig["enablePartitioning"].(bool) &&
+					props.EnableBatchedOperations != nil && *props.EnableBatchedOperations == userConfig["enableBatchOps"].(bool) {
 					queueStatus = "Succeeded"
+				}
+
+				if props.DeadLetteringOnMessageExpiration != nil && userConfig["deadLetteringOnMesExp"] != "" {
+					if *props.DeadLetteringOnMessageExpiration != userConfig["deadLetteringOnMesExp"].(bool) {
+						queueStatus = "Updating"
+					}
+				}
+
+				if props.LockDuration != nil && userConfig["lockDuration"] != "" {
+					if *props.LockDuration != userConfig["lockDuration"].(string) {
+						queueStatus = "Updating"
+					}
+				}
+
+				if props.ForwardTo != nil && userConfig["forwardTo"] != "" {
+					if *props.ForwardTo != userConfig["forwardTo"].(string) {
+						queueStatus = "Updating"
+					}
+				}
+
+				if props.ForwardDeadLetteredMessagesTo != nil && userConfig["forwardDeadLetteredMessagesTo"] != nil {
+					if *props.ForwardDeadLetteredMessagesTo != userConfig["forwardDeadLetteredMessagesTo"].(string) {
+						queueStatus = "Updating"
+					}
 				}
 			}
 		}
