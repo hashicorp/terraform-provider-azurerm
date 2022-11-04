@@ -1,16 +1,16 @@
 ---
 subcategory: "Stream Analytics"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_stream_analytics_stream_input_eventhub"
+page_title: "Azure Resource Manager: azurerm_stream_analytics_stream_input_eventhub_v2"
 description: |-
-  Manages a Stream Analytics Stream Input EventHub.
+  Manages a Stream Analytics Stream Input EventHub V2.
 ---
 
-# azurerm_stream_analytics_stream_input_eventhub
+# azurerm_stream_analytics_stream_input_eventhub_v2
 
-~> **Note:** This resource creates a Stream Input of type `Microsoft.ServiceBus/EventHub`, to create a Stream Input of type `Microsoft.EventHub/EventHub` please use the resource azurerm_stream_analytics_stream_input_eventhub_v2.
+~> **Note:** This resource creates a Stream Input of type `Microsoft.EventHub/EventHub`, to create a Stream Input of type `Microsoft.ServiceBus/EventHub` please use the resource azurerm_stream_analytics_stream_input_eventhub.
 
-Manages a Stream Analytics Stream Input EventHub.
+Manages a Stream Analytics Stream Input EventHub V2.
 
 ## Example Usage
 
@@ -48,10 +48,9 @@ resource "azurerm_eventhub_consumer_group" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_stream_analytics_stream_input_eventhub" "example" {
+resource "azurerm_stream_analytics_stream_input_eventhub_v2" "example" {
   name                         = "eventhub-stream-input"
-  stream_analytics_job_name    = data.azurerm_stream_analytics_job.example.name
-  resource_group_name          = data.azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_id      = data.azurerm_stream_analytics_job.example.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.example.name
   eventhub_name                = azurerm_eventhub.example.name
   servicebus_namespace         = azurerm_eventhub_namespace.example.name
@@ -69,11 +68,9 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Stream Input EventHub. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Stream Input EventHub V2. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Stream Analytics Job exists. Changing this forces a new resource to be created.
-
-* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created.
+* `stream_analytics_job_id` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created.
 
 * `eventhub_name` - (Required) The name of the Event Hub.
 
@@ -109,21 +106,21 @@ A `serialization` block supports the following:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The ID of the Stream Analytics Stream Input EventHub.
+* `id` - The ID of the Stream Analytics Stream Input EventHub V2.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Stream Input EventHub.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input EventHub.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Stream Input EventHub.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Stream Input EventHub.
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Stream Input EventHub V2.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input EventHub V2.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Stream Input EventHub V2.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Stream Input EventHub V2.
 
 ## Import
 
 Stream Analytics Stream Input EventHub's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_stream_input_eventhub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
+terraform import azurerm_stream_analytics_stream_input_eventhub_v2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
 ```
