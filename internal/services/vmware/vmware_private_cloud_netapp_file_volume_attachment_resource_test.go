@@ -16,7 +16,7 @@ import (
 
 type VmwareNetappFileVolumeAttachmentResource struct{}
 
-func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basic(t *testing.T) {
+func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
 	r := VmwareNetappFileVolumeAttachmentResource{}
 
@@ -74,9 +74,6 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
-  # In Vmware acctest, please disable correlation request id, else the continuous operations like update or delete will not be triggered
-  # issue https://github.com/Azure/azure-rest-api-specs/issues/14086 
-  disable_correlation_request_id = true
 }
 
 %s
