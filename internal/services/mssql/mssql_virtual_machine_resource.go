@@ -315,7 +315,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validate.SqlVirtualMachineLoginUserName,
 			},
 
-			"sql_instance_setting": {
+			"sql_instance": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -465,9 +465,9 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("location is empty from making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
 	}
 
-	sqlInstanceSetting, err := expandSqlVirtualMachineSQLInstanceSetting(d.Get("sql_instance_setting").([]interface{}))
+	sqlInstance, err := expandSqlVirtualMachineSQLInstance(d.Get("sql_instance").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding `sql_instance_setting`: %+v", err)
+		return fmt.Errorf("expanding `sql_instance`: %+v", err)
 	}
 
 	connectivityType := sqlvirtualmachines.ConnectivityType(d.Get("sql_connectivity_type").(string))
@@ -491,7 +491,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 					SqlAuthUpdatePassword: utils.String(d.Get("sql_connectivity_update_password").(string)),
 					SqlAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
 				},
-				SqlInstanceSettings: sqlInstanceSetting,
+				SqlInstanceSettings: sqlInstance,
 			},
 			SqlManagement:                &sqlManagement,
 			SqlServerLicenseType:         &sqlServerLicenseType,
@@ -606,7 +606,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 					d.Set("sql_connectivity_type", mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType)
 				}
 
-				d.Set("sql_instance_setting", flattenSqlVirtualMachineSQLInstanceSetting(mgmtSettings.SqlInstanceSettings))
+				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))
 			}
 
 			// `storage_configuration.0.storage_workload_type` is in a different spot than the rest of the `storage_configuration`
@@ -1220,7 +1220,7 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 
 	return []interface{}{attrs}
 }
-func expandSqlVirtualMachineSQLInstanceSetting(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
+func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &sqlvirtualmachines.SQLInstanceSettings{}, nil
 	}
@@ -1246,7 +1246,7 @@ func expandSqlVirtualMachineSQLInstanceSetting(input []interface{}) (*sqlvirtual
 	return &result, nil
 }
 
-func flattenSqlVirtualMachineSQLInstanceSetting(input *sqlvirtualmachines.SQLInstanceSettings) []interface{} {
+func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSettings) []interface{} {
 	if input == nil || input.Collation == nil {
 		return []interface{}{}
 	}

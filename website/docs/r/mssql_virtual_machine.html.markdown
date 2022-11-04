@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `sql_connectivity_update_username` - (Optional) The SQL Server sysadmin login to create.
 
-* `sql_instance_setting` - (Optional) A `sql_instance_setting` block as defined below.
+* `sql_instance` - (Optional) A `sql_instance` block as defined below.
 
 * `storage_configuration` - (Optional) An `storage_configuration` block as defined below.
 
@@ -123,7 +123,7 @@ The `key_vault_credential` block supports the following:
 
 ---
 
-The `sql_instance_setting` block supports the following:
+The `sql_instance` block supports the following:
 
 * `adhoc_workloads_optimization_enabled` - (Optional) Specifies if the SQL Server is optimized for adhoc workloads. Possible values are `true` and `false`. Defaults to `false`.
 
