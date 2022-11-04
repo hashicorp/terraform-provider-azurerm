@@ -3,14 +3,20 @@ subcategory: "Containers"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_fleet_manager"
 description: |-
-  Manages a Kubernetes Fleet Manager.
+  Manages a Kubernetes Fleet Manager
+
+~> **Note:** This Resource is in **Preview** to use this you must be opted into the Preview. You can do this by running `az feature register --namespace Microsoft.ContainerService --name FleetResourcePreview` and then `az provider register -n Microsoft.ContainerService`
+.
 ---
 
 <!-- Note: This documentation is generated. Any manual changes will be overwritten -->
 
 # azurerm_kubernetes_fleet_manager
 
-Manages a Kubernetes Fleet Manager.
+Manages a Kubernetes Fleet Manager
+
+~> **Note:** This Resource is in **Preview** to use this you must be opted into the Preview. You can do this by running `az feature register --namespace Microsoft.ContainerService --name FleetResourcePreview` and then `az provider register -n Microsoft.ContainerService`
+.
 
 ## Example Usage
 
