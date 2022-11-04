@@ -95,7 +95,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 										Optional: true,
 										Default:  true,
 									},
-									"enabled_severities": {
+									"severities_allowed": {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
 										MinItems: 1,
@@ -270,7 +270,7 @@ func expandFusionSourceSubTypes(input []interface{}) *[]securityinsight.FusionSo
 			Enabled:           utils.Bool(e["enabled"].(bool)),
 			SourceSubTypeName: utils.String(e["name"].(string)),
 			SeverityFilters: &securityinsight.FusionSubTypeSeverityFilter{
-				Filters: expandFusionSubTypeSeverityFiltersItems(e["enabled_severities"].(*pluginsdk.Set).List()),
+				Filters: expandFusionSubTypeSeverityFiltersItems(e["severities_allowed"].(*pluginsdk.Set).List()),
 			},
 		}
 		result = append(result, setting)
@@ -362,7 +362,7 @@ func flattenFusionSourceSubTypes(input *[]securityinsight.FusionSourceSubTypeSet
 		output = append(output, map[string]interface{}{
 			"name":               name,
 			"enabled":            enabled,
-			"enabled_severities": enabledSeverities,
+			"severities_allowed": enabledSeverities,
 		})
 	}
 

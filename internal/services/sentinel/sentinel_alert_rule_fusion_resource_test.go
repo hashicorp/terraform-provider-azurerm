@@ -176,52 +176,52 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
     name    = "Alert providers"
     enabled = %[3]t
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Active Directory Identity Protection"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft 365 Defender"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Cloud App Security"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Defender"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Defender for Endpoint"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Defender for Identity"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Defender for IoT"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Microsoft Defender for Office 365"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Sentinel scheduled analytics rules"
       enabled            = %[3]t
     }
     sub_type {
-      enabled_severities = ["High", "Informational", "Low", "Medium"]
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
       name               = "Azure Sentinel NRT analytic rules"
       enabled            = %[3]t
     }
