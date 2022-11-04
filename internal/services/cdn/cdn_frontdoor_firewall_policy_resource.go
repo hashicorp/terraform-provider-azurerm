@@ -3,6 +3,7 @@ package cdn
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
@@ -417,6 +418,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 														string(frontdoor.ActionTypeLog),
 														string(frontdoor.ActionTypeBlock),
 														string(frontdoor.ActionTypeRedirect),
+														"AnomalyScoring", // Only valid with 2.0 and above
 													}, false),
 												},
 											},
@@ -476,7 +478,10 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
-	managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+	managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding managed_rule: %+v", err)
+	}
 
 	if sku != string(frontdoor.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
 		return fmt.Errorf("the 'managed_rule' field is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
@@ -581,10 +586,15 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("managed_rule") {
-		managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+		managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding managed_rule: %+v", err)
+		}
+
 		if existing.Sku.Name != frontdoor.SkuNamePremiumAzureFrontDoor && managedRules != nil {
 			return fmt.Errorf("the 'managed_rule' field is only supported when using the sku 'Premium_AzureFrontDoor', got %q", existing.Sku.Name)
 		}
+
 		if managedRules != nil {
 			props.ManagedRules = managedRules
 		}
@@ -776,9 +786,9 @@ func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.Tran
 	return &result
 }
 
-func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
+func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*frontdoor.ManagedRuleSetList, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	result := make([]frontdoor.ManagedRuleSet, 0)
@@ -790,7 +800,25 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 		action := managedRule["action"].(string)
 		overrides := managedRule["override"].([]interface{})
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]interface{}))
-		ruleGroupOverrides := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides)
+
+		fVersion := 1.0
+		if v, err := strconv.ParseFloat(version, 64); err == nil {
+			fVersion = v
+		}
+
+		// NOTE: The API is deferring the version range from the rule type name
+		// 'DefaultRuleSet' is < 1.1 and 'Microsoft_DefaultRuleSet' >= 1.1
+		// 'AnomalyScoring' action only valid on 2.0 and above
+		if ruleType == "DefaultRuleSet" && fVersion > 1.0 {
+			return nil, fmt.Errorf("the managed rule set type %q and version %q is not supported. If you wish to use the 'DefaultRuleSet' type please update your 'version' field to be '1.0' or 'preview-0.1', got %q", ruleType, version, version)
+		} else if ruleType == "Microsoft_DefaultRuleSet" && fVersion < 1.1 {
+			return nil, fmt.Errorf("the managed rule set type %q and version %q is not supported. If you wish to use the 'Microsoft_DefaultRuleSet' type please update your 'version' field to be '1.1', '2.0' or '2.1', got %q", ruleType, version, version)
+		}
+
+		ruleGroupOverrides, err := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides, version, fVersion)
+		if err != nil {
+			return nil, err
+		}
 
 		managedRuleSet := frontdoor.ManagedRuleSet{
 			Exclusions:         exclusions,
@@ -808,7 +836,7 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 
 	return &frontdoor.ManagedRuleSetList{
 		ManagedRuleSets: &result,
-	}
+	}, nil
 }
 
 func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]frontdoor.ManagedRuleExclusion {
@@ -834,10 +862,10 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 	return &results
 }
 
-func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
+func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, versionRaw string, version float64) (*[]frontdoor.ManagedRuleGroupOverride, error) {
 	result := make([]frontdoor.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	for _, v := range input {
@@ -845,7 +873,10 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{}))
 		ruleGroupName := override["rule_group_name"].(string)
-		rules := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}))
+		rules, err := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}), versionRaw, version)
+		if err != nil {
+			return nil, err
+		}
 
 		result = append(result, frontdoor.ManagedRuleGroupOverride{
 			Exclusions:    exclusions,
@@ -854,13 +885,13 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 		})
 	}
 
-	return &result
+	return &result, nil
 }
 
-func expandCdnFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.ManagedRuleOverride {
+func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw string, version float64) (*[]frontdoor.ManagedRuleOverride, error) {
 	result := make([]frontdoor.ManagedRuleOverride, 0)
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	for _, v := range input {
@@ -871,7 +902,17 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 			enabled = frontdoor.ManagedRuleEnabledStateEnabled
 		}
 		ruleId := rule["rule_id"].(string)
-		action := frontdoor.ActionType(rule["action"].(string))
+		actionTypeRaw := rule["action"].(string)
+		action := frontdoor.ActionType(actionTypeRaw)
+
+		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring'
+		// This will still work for bot rules as well since it will be the default value of 1.0
+		if version < 2.0 && actionTypeRaw == "AnomalyScoring" {
+			return nil, fmt.Errorf("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above, got %q", versionRaw)
+		} else if version >= 2.0 && actionTypeRaw != "AnomalyScoring" {
+			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' if the managed rule is DRS 2.0 or above, got %q", action)
+		}
+
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{}))
 
 		result = append(result, frontdoor.ManagedRuleOverride{
@@ -882,7 +923,7 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 		})
 	}
 
-	return &result
+	return &result, nil
 }
 
 func flattenCdnFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
@@ -1067,7 +1108,7 @@ func flattenCdnFrontDoorFirewallRules(input *[]frontdoor.ManagedRuleOverride) []
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		action := ""
+		action := "AnomalyScoring"
 		if v.Action != "" {
 			action = string(v.Action)
 		}
