@@ -23,8 +23,8 @@ ENHANCEMENTS
 * `azurerm_linux_virtual_machine_scale_set` - support for `StandardSSD_ZRS`, `PremiumV2_LRS`, and `Premium_ZRS` storage account types [GH-19091]
 * `azurerm_mssql_virtual_machine` - support for the `system_db_on_data_disk_enabled` property [GH-19115]
 * `azurerm_monitor_diagnostic_setting` - support for the `partner_solution_id` property [GH-19114]
-* `azurerm_policy_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
-* `azurerm_policy_set_definition` - Reverse the order of policies lookup to favour builtin [GH-18338]
+* `azurerm_policy_definition` - reverse the order of policies lookup to favour builtin [GH-18338]
+* `azurerm_policy_set_definition` - reverse the order of policies lookup to favour builtin [GH-18338]
 * `azurerm_security_center_contact` - support for the `name` property [GH-18999]
 * `azurerm_stream_analytics_job` - support for the `job_storage_account` block [GH-19120]
 * `azurerm_virtual_machine_extension` - support for the `protected_settings_from_key_vault` blovk [GH-19098]
@@ -44,7 +44,7 @@ BUG FIXES:
 * `azurerm_postgresql_flexible_server_database` - is now correctly removed from state on deletion [GH-19081]
 * `azurerm_virtual_network_gateway_connection` - correctly set `authorization_key` from state as the API returnes `*`s [GH-19071]
 * `azurerm_windows_virtual_machine_scale_set` - can now set `automatic_os_upgrade_policy` with rolling upgrades enables [GH-18605]
-* 
+
 ## 3.29.1 (October 28, 2022)
 
 BUG FIXES:
