@@ -3652,8 +3652,8 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigWindows{siteConfig}
@@ -3722,8 +3722,8 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigLinux{siteConfig}
