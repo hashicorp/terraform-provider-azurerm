@@ -36,6 +36,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_app_configuration_keys` - fix a crash when `label` is not set [GH-19032]
 * `azurerm_api_management` - correct the api return `subnet_id` with the wrong case [GH-18988]
+* `azurerm_cdn_frontdoor_firewall_policy` - expose `AnomalyScoring` in override rule action for DRS `2.0` [GH-19095]
 * `azurerm_eventhub_namespace_disaster_recovery_config` - will now correctly break the pairing [GH-19030]
 * `azurerm_kubernetes_cluster` - set a valid default value for `auto_scaler_profile.expander` [GH-19057]
 * `azurerm_linux_virtual_machine_scale_set` - can now set `automatic_os_upgrade_policy` with rolling upgrades enables [GH-18605]
