@@ -67,7 +67,7 @@ The following arguments are supported:
 
 A `password` block supports the following:
 
-* `expiry` - (Optional) The expiration date of the password in RFC3339 format.
+* `expiry` - (Optional) The expiration date of the password in RFC3339 format. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
