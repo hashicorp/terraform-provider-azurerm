@@ -16,7 +16,7 @@ import (
 
 type VmwareNetappFileVolumeAttachmentResource struct{}
 
-func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basics(t *testing.T) {
+func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
 	r := VmwareNetappFileVolumeAttachmentResource{}
 
