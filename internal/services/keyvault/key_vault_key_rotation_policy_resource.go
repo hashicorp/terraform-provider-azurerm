@@ -24,10 +24,10 @@ func resourceKeyVaultKeyRotationPolicy() *pluginsdk.Resource {
 		Update: resourceKeyVaultKeyRotationPolicyUpdate,
 		Delete: resourceKeyVaultKeyRotationPolicyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ParseNestedItemID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ParseNestedItemID(id) // TODO as it is not a real nested item with a version..
 			return err
-		}, nestedItemResourceImporter),
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -38,45 +38,50 @@ func resourceKeyVaultKeyRotationPolicy() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"key_vault_id": {
+			"key_resource_versionless_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
+				ValidateFunc: keyVaultValidate.KeyVersionlessID,
 			},
 
-			"key_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
-			},
-
-			"expiry_time": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ISO8601Duration,
-			},
-
-			"notification_time": {
+			"expire_after": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ISO8601Duration,
+				AtLeastOneOf: []string{
+					"expire_after",
+					"automatic",
+				},
+				RequiredWith: []string{
+					"expire_after",
+					"notify_before_expiry",
+				},
 			},
 
-			"auto_rotation": {
+			"notify_before_expiry": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.ISO8601Duration,
+				RequiredWith: []string{
+					"expire_after",
+					"notify_before_expiry",
+				},
+			},
+
+			"automatic": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"time_after_create": {
+						"time_after_creation": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.ISO8601Duration,
 							AtLeastOneOf: []string{
-								"auto_rotation.0.time_after_create",
-								"auto_rotation.0.time_before_expiry",
+								"automatic.0.time_after_creation",
+								"automatic.0.time_before_expiry",
 							},
 						},
 						"time_before_expiry": {
@@ -84,8 +89,8 @@ func resourceKeyVaultKeyRotationPolicy() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validate.ISO8601Duration,
 							AtLeastOneOf: []string{
-								"auto_rotation.0.time_after_create",
-								"auto_rotation.0.time_before_expiry",
+								"automatic.0.time_after_creation",
+								"automatic.0.time_before_expiry",
 							},
 						},
 					},
@@ -107,21 +112,21 @@ func resourceKeyVaultKeyRotationPolicyCreate(d *pluginsdk.ResourceData, meta int
 	defer cancel()
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key Rotation Policy creation.")
-	keyName := d.Get("key_name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVersionlessId, err := parse.KeyVersionlessID(d.Get("key_resource_versionless_id").(string))
 	if err != nil {
 		return err
 	}
+	keyVaultId := parse.NewVaultID(keyVersionlessId.SubscriptionId, keyVersionlessId.ResourceGroup, keyVersionlessId.VaultName)
 
-	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", keyName, *keyVaultId, err)
+		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", keyVersionlessId.KeyName, keyVaultId, err)
 	}
 
-	existing, err := client.GetKeyRotationPolicy(ctx, *keyVaultBaseUri, keyName)
+	existing, err := client.GetKeyRotationPolicy(ctx, *keyVaultBaseUri, keyVersionlessId.KeyName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Key Rotation Policy for Key %q (Key Vault %q): %s", keyName, *keyVaultBaseUri, err)
+			return fmt.Errorf("checking for presence of existing Key Rotation Policy for Key %q (Key Vault %q): %s", keyVersionlessId.KeyName, *keyVaultBaseUri, err)
 		}
 	}
 
@@ -129,11 +134,11 @@ func resourceKeyVaultKeyRotationPolicyCreate(d *pluginsdk.ResourceData, meta int
 		return tf.ImportAsExistsError("azurerm_key_vault_key_rotation_policy", *existing.ID)
 	}
 
-	if _, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, keyName, expandKeyVaultKeyRotationPolicyOptions(d)); err != nil {
+	if _, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, keyVersionlessId.KeyName, expandKeyVaultKeyRotationPolicyOptions(d)); err != nil {
 		return fmt.Errorf("Creating Key Rotation Policy: %+v", err)
 	}
 
-	read, err := client.GetKeyRotationPolicy(ctx, *keyVaultBaseUri, keyName)
+	read, err := client.GetKeyRotationPolicy(ctx, *keyVaultBaseUri, keyVersionlessId.KeyName)
 	if err != nil {
 		return err
 	}
@@ -150,7 +155,7 @@ func resourceKeyVaultKeyRotationPolicyUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id()) // TODO
+	id, err := parse.ParseNestedItemID(d.Id()) // TODO as it is not a real nested item with a version..
 	if err != nil {
 		return err
 	}
@@ -192,7 +197,7 @@ func resourceKeyVaultKeyRotationPolicyRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id()) // TODO
+	id, err := parse.ParseNestedItemID(d.Id()) // TODO as it is not a real nested item with a version..
 	if err != nil {
 		return err
 	}
@@ -232,10 +237,10 @@ func resourceKeyVaultKeyRotationPolicyRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	d.Set("key_name", id.Name)
-
+	expiryTimeSet := false
 	if resp.Attributes != nil && resp.Attributes.ExpiryTime != nil {
-		d.Set("expiry_time", *resp.Attributes.ExpiryTime)
+		d.Set("expire_after", *resp.Attributes.ExpiryTime)
+		expiryTimeSet = true
 	}
 
 	if resp.LifetimeActions != nil {
@@ -246,23 +251,24 @@ func resourceKeyVaultKeyRotationPolicyRead(d *pluginsdk.ResourceData, meta inter
 				log.Printf("[DEBUG] Key Rotation Policy for key %q in Key Vault at URI %q has no trigger or action", id.Name, id.KeyVaultBaseUrl)
 			}
 
-			if strings.ToLower(string(action.Type)) == strings.ToLower(string(keyvault.Rotate)) {
+			if strings.EqualFold(string(action.Type), string(keyvault.Rotate)) {
 				autoRotation := make(map[string]interface{}, 0)
 				if timeAfterCreate := trigger.TimeAfterCreate; timeAfterCreate != nil {
-					autoRotation["time_after_create"] = *timeAfterCreate
+					autoRotation["time_after_creation"] = *timeAfterCreate
 				}
 				if timeBeforeExpiry := trigger.TimeBeforeExpiry; timeBeforeExpiry != nil {
 					autoRotation["time_before_expiry"] = *timeBeforeExpiry
 				}
-				d.Set("auto_rotation", []map[string]interface{}{autoRotation})
+				d.Set("automatic", []map[string]interface{}{autoRotation})
 			}
 
-			if strings.ToLower(string(action.Type)) == strings.ToLower(string(keyvault.Notify)) && trigger.TimeBeforeExpiry != nil {
-				d.Set("notification_time", *trigger.TimeBeforeExpiry)
+			if strings.EqualFold(string(action.Type), string(keyvault.Notify)) && trigger.TimeBeforeExpiry != nil && expiryTimeSet {
+				d.Set("notify_before_expiry", *trigger.TimeBeforeExpiry)
 			}
 		}
 	}
 
+	d.Set("key_resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 	d.Set("resource_id", parse.NewKeyRotationPolicyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
 	return nil
@@ -275,7 +281,7 @@ func resourceKeyVaultKeyRotationPolicyDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id()) // TODO
+	id, err := parse.ParseNestedItemID(d.Id()) // TODO as it is not a real nested item with a version..
 	if err != nil {
 		return err
 	}
@@ -319,17 +325,24 @@ func resourceKeyVaultKeyRotationPolicyDelete(d *pluginsdk.ResourceData, meta int
 func expandKeyVaultKeyRotationPolicyOptions(d *pluginsdk.ResourceData) keyvault.KeyRotationPolicy {
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
 
-	lifetimeActionNotify := keyvault.LifetimeActions{
-		Trigger: &keyvault.LifetimeActionsTrigger{
-			TimeBeforeExpiry: utils.String(d.Get("notification_time").(string)), // for notify always before expiry
-		},
-		Action: &keyvault.LifetimeActionsType{
-			Type: keyvault.Notify,
-		},
+	var expiryTime *string = nil // needs to be set to nil if not set
+	if rawExpiryTime := d.Get("expire_after").(string); rawExpiryTime != "" {
+		expiryTime = utils.String(rawExpiryTime)
 	}
-	lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
 
-	autoRotation := d.Get("auto_rotation").([]interface{})
+	if notifyBeforeExpiry := d.Get("notify_before_expiry").(string); notifyBeforeExpiry != "" {
+		lifetimeActionNotify := keyvault.LifetimeActions{
+			Trigger: &keyvault.LifetimeActionsTrigger{
+				TimeBeforeExpiry: utils.String(notifyBeforeExpiry), // for notify always before expiry
+			},
+			Action: &keyvault.LifetimeActionsType{
+				Type: keyvault.Notify,
+			},
+		}
+		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
+	}
+
+	autoRotation := d.Get("automatic").([]interface{})
 	if autoRotation != nil && len(autoRotation) == 1 && autoRotation[0] != nil {
 		lifetimeActionRotate := keyvault.LifetimeActions{
 			Action: &keyvault.LifetimeActionsType{
@@ -339,7 +352,7 @@ func expandKeyVaultKeyRotationPolicyOptions(d *pluginsdk.ResourceData) keyvault.
 		}
 		autoRotationRaw := autoRotation[0].(map[string]interface{})
 
-		if v := autoRotationRaw["time_after_create"]; v != "" {
+		if v := autoRotationRaw["time_after_creation"]; v != "" {
 			timeAfterCreate := v.(string)
 			lifetimeActionRotate.Trigger.TimeAfterCreate = &timeAfterCreate
 		}
@@ -352,12 +365,10 @@ func expandKeyVaultKeyRotationPolicyOptions(d *pluginsdk.ResourceData) keyvault.
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
 	}
 
-	result := keyvault.KeyRotationPolicy{
+	return keyvault.KeyRotationPolicy{
 		LifetimeActions: &lifetimeActions,
 		Attributes: &keyvault.KeyRotationPolicyAttributes{
-			ExpiryTime: utils.String(d.Get("expiry_time").(string)),
+			ExpiryTime: expiryTime,
 		},
 	}
-
-	return result
 }

@@ -16,19 +16,33 @@ import (
 
 type KeyVaultKeyRotationPolicyResource struct{}
 
-func TestAccKeyVaultKeyRotationPolicy_basic(t *testing.T) {
+func TestAccKeyVaultKeyRotationPolicy_withoutAutoRotation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key_rotation_policy", "test")
 	r := KeyVaultKeyRotationPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withoutAutoRotation(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.KeyVault/vaults/[\w-]+/keys/[\w-]+/rotationpolicy`)),
 			),
 		},
-		data.ImportStep("key_vault_id"),
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultKeyRotationPolicy_withOnlyAutoRotation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key_rotation_policy", "test")
+	r := KeyVaultKeyRotationPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withOnlyAutoRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -59,6 +73,7 @@ func TestAccKeyVaultKeyRotationPolicy_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.KeyVault/vaults/[\w-]+/keys/[\w-]+/rotationpolicy`)),
 			),
 		},
 		{
@@ -101,6 +116,64 @@ func (r KeyVaultKeyRotationPolicyResource) Exists(ctx context.Context, clients *
 	return utils.Bool(resp.ID != nil), nil
 }
 
+func (r KeyVaultKeyRotationPolicyResource) withoutAutoRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+
+resource "azurerm_key_vault_key_rotation_policy" "test" {
+  key_resource_versionless_id = azurerm_key_vault_key.test.resource_versionless_id
+
+  expire_after         = "P60D"
+  notify_before_expiry = "P7D"
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultKeyRotationPolicyResource) withOnlyAutoRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+
+resource "azurerm_key_vault_key_rotation_policy" "test" {
+  key_resource_versionless_id = azurerm_key_vault_key.test.resource_versionless_id
+  automatic {
+    time_after_creation = "P30D"
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
 func (r KeyVaultKeyRotationPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -122,14 +195,13 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_key_rotation_policy" "test" {
-  key_name     = azurerm_key_vault_key.test.name
-  key_vault_id = azurerm_key_vault.test.id
-  auto_rotation {
-    time_after_create = "P30D"
+  key_resource_versionless_id = azurerm_key_vault_key.test.resource_versionless_id
+  automatic {
+    time_before_expiry = "P30D"
   }
 
-  expiry_time       = "P60D"
-  notification_time = "P7D"
+  expire_after         = "P60D"
+  notify_before_expiry = "P7D"
 }
 `, r.template(data), data.RandomString)
 }
@@ -155,14 +227,13 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_key_rotation_policy" "test" {
-  key_name     = azurerm_key_vault_key.test.name
-  key_vault_id = azurerm_key_vault.test.id
-  auto_rotation {
-    time_after_create = "P31D"
+  key_resource_versionless_id = azurerm_key_vault_key.test.resource_versionless_id
+  automatic {
+    time_before_expiry = "P31D"
   }
 
-  expiry_time       = "P61D"
-  notification_time = "P8D"
+  expire_after         = "P61D"
+  notify_before_expiry = "P8D"
 }
 `, r.template(data), data.RandomString)
 }
@@ -172,15 +243,14 @@ func (r KeyVaultKeyRotationPolicyResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_key_vault_key_rotation_policy" "import" {
-  key_name     = azurerm_key_vault_key_rotation_policy.test.key_name
-  key_vault_id = azurerm_key_vault.test.id
+  key_resource_versionless_id = azurerm_key_vault_key.test.resource_versionless_id
 
-  auto_rotation {
-    time_after_create = "P30D"
+  automatic {
+    time_after_creation = "P30D"
   }
 
-  expiry_time       = "P60D"
-  notification_time = "P2D"
+  expire_after         = "P60D"
+  notify_before_expiry = "P2D"
 }
 `, r.basic(data))
 }
