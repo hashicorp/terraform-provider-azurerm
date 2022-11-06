@@ -315,6 +315,64 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validate.SqlVirtualMachineLoginUserName,
 			},
 
+			"sql_instance": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"adhoc_workloads_optimization_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"collation": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      "SQL_Latin1_General_CP1_CI_AS",
+							ValidateFunc: validate.DatabaseCollation(),
+						},
+
+						"instant_file_initialization_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
+
+						"lock_pages_in_memory_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
+
+						"max_dop": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 32767),
+						},
+
+						"max_server_memory_mb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      2147483647,
+							ValidateFunc: validation.IntBetween(128, 2147483647),
+						},
+
+						"min_server_memory_mb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 2147483647),
+						},
+					},
+				},
+			},
+
 			"storage_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -412,6 +470,11 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("location is empty from making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
 	}
 
+	sqlInstance, err := expandSqlVirtualMachineSQLInstance(d.Get("sql_instance").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `sql_instance`: %+v", err)
+	}
+
 	connectivityType := sqlvirtualmachines.ConnectivityType(d.Get("sql_connectivity_type").(string))
 	sqlManagement := sqlvirtualmachines.SqlManagementModeFull
 	sqlServerLicenseType := sqlvirtualmachines.SqlServerLicenseType(d.Get("sql_license_type").(string))
@@ -433,6 +496,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 					SqlAuthUpdatePassword: utils.String(d.Get("sql_connectivity_update_password").(string)),
 					SqlAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
 				},
+				SqlInstanceSettings: sqlInstance,
 			},
 			SqlManagement:                &sqlManagement,
 			SqlServerLicenseType:         &sqlServerLicenseType,
@@ -546,6 +610,8 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 					d.Set("sql_connectivity_port", mgmtSettings.SqlConnectivityUpdateSettings.Port)
 					d.Set("sql_connectivity_type", mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType)
 				}
+
+				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))
 			}
 
 			// `storage_configuration.0.storage_workload_type` is in a different spot than the rest of the `storage_configuration`
@@ -1165,4 +1231,79 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 	}
 
 	return []interface{}{attrs}
+}
+func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
+	if len(input) == 0 || input[0] == nil {
+		return &sqlvirtualmachines.SQLInstanceSettings{}, nil
+	}
+
+	settings := input[0].(map[string]interface{})
+	maxServerMemoryMB := settings["max_server_memory_mb"].(int)
+	minServerMemoryMB := settings["min_server_memory_mb"].(int)
+
+	if maxServerMemoryMB < minServerMemoryMB {
+		return nil, fmt.Errorf("`max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`")
+	}
+
+	result := sqlvirtualmachines.SQLInstanceSettings{
+		Collation:                          utils.String(settings["collation"].(string)),
+		IsIfiEnabled:                       utils.Bool(settings["instant_file_initialization_enabled"].(bool)),
+		IsLpimEnabled:                      utils.Bool(settings["lock_pages_in_memory_enabled"].(bool)),
+		IsOptimizeForAdHocWorkloadsEnabled: utils.Bool(settings["adhoc_workloads_optimization_enabled"].(bool)),
+		MaxDop:                             utils.Int64(int64(settings["max_dop"].(int))),
+		MaxServerMemoryMB:                  utils.Int64(int64(maxServerMemoryMB)),
+		MinServerMemoryMB:                  utils.Int64(int64(minServerMemoryMB)),
+	}
+
+	return &result, nil
+}
+
+func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSettings) []interface{} {
+	if input == nil || input.Collation == nil {
+		return []interface{}{}
+	}
+
+	collation := *input.Collation
+
+	isIfiEnabled := false
+	if input.IsIfiEnabled != nil {
+		isIfiEnabled = *input.IsIfiEnabled
+	}
+
+	isLpimEnabled := false
+	if input.IsLpimEnabled != nil {
+		isLpimEnabled = *input.IsLpimEnabled
+	}
+
+	isOptimizeForAdhocWorkloadsEnabled := false
+	if input.IsOptimizeForAdHocWorkloadsEnabled != nil {
+		isOptimizeForAdhocWorkloadsEnabled = *input.IsOptimizeForAdHocWorkloadsEnabled
+	}
+
+	var maxDop int64 = 0
+	if input.MaxDop != nil {
+		maxDop = *input.MaxDop
+	}
+
+	var maxServerMemoryMB int64 = 2147483647
+	if input.MaxServerMemoryMB != nil {
+		maxServerMemoryMB = *input.MaxServerMemoryMB
+	}
+
+	var minServerMemoryMB int64 = 0
+	if input.MinServerMemoryMB != nil {
+		minServerMemoryMB = *input.MinServerMemoryMB
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"adhoc_workloads_optimization_enabled": isOptimizeForAdhocWorkloadsEnabled,
+			"collation":                            collation,
+			"instant_file_initialization_enabled":  isIfiEnabled,
+			"lock_pages_in_memory_enabled":         isLpimEnabled,
+			"max_dop":                              maxDop,
+			"max_server_memory_mb":                 maxServerMemoryMB,
+			"min_server_memory_mb":                 minServerMemoryMB,
+		},
+	}
 }
