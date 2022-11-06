@@ -1,6 +1,8 @@
 ## 3.31.0 (Unreleased)
 
+ENHANCEMENTS
 * dependencies: `network` updating to `2022-05-01` [GH-19124]
+* `azurerm_sentinel_alert_rule_nrt` - support for the `techniques` property [GH-19142]
 
 ## 3.30.0 (November 03, 2022)
 
