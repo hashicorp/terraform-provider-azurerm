@@ -1,5 +1,9 @@
 ## 3.31.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_stream_analytics_stream_input_eventhub_v2` [GH-19150]
+
 ENHANCEMENTS
 
 * dependencies: `network` updating to `2022-05-01` [GH-19124]
