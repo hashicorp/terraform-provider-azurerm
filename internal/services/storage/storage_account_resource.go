@@ -112,9 +112,9 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.StorageAccountName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"account_kind": {
 				Type:     pluginsdk.TypeString,
@@ -1165,8 +1165,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// for encryption of blob, file, table and queue
 	var encryption *storage.Encryption
 	if v, ok := d.GetOk("customer_managed_key"); ok {
-		if accountKind != string(storage.KindStorageV2) {
-			return fmt.Errorf("customer managed key can only be used with account kind `StorageV2`")
+		if accountTier != string(storage.AccessTierPremium) && accountKind != string(storage.KindStorageV2) {
+			return fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
 		}
 		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned {
 			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned`")

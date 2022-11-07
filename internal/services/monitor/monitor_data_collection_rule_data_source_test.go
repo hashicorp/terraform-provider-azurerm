@@ -28,6 +28,7 @@ func TestAccMonitorDataCollectionRuleDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("data_flow.2.streams.0").HasValue("Microsoft-Event"),
 				check.That(data.ResourceName).Key("data_flow.2.destinations.0").HasValue("test-destination-log1"),
 				check.That(data.ResourceName).Key("data_sources.0.syslog.0.facility_names.#").HasValue("5"),
+				check.That(data.ResourceName).Key("data_sources.0.syslog.0.streams.#").HasValue("2"),
 				check.That(data.ResourceName).Key("data_sources.0.performance_counter.#").HasValue("2"),
 				check.That(data.ResourceName).Key("data_sources.0.performance_counter.1.sampling_frequency_in_seconds").HasValue("20"),
 				check.That(data.ResourceName).Key("data_sources.0.performance_counter.1.name").HasValue("test-datasource-perfcounter2"),

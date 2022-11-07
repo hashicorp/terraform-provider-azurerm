@@ -75,29 +75,6 @@ func TestAccAutomationWebhook_WithParameters(t *testing.T) {
 	})
 }
 
-func TestAccAutomationWebhook_ChangeUri(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
-	r := AutomationWebhookResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.WebhookURIChange(data, "https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefghijklm"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("uri").HasValue("https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefghijklm"),
-			),
-		},
-		data.ImportStep("uri"),
-		{
-			Config: r.WebhookURIChange(data, "https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefg313377"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("uri").HasValue("https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefg313377"),
-			),
-		},
-	})
-}
-
 func TestAccAutomationWebhook_WithWorkerGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
 	r := AutomationWebhookResource{}
@@ -228,21 +205,4 @@ resource "azurerm_automation_webhook" "test" {
   run_on_worker_group     = "workergroup"
 }
 `, template)
-}
-
-func (AutomationWebhookResource) WebhookURIChange(data acceptance.TestData, uri string) string {
-	template := AutomationWebhookResource{}.ParentResources(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_automation_webhook" "test" {
-  name                    = "TestRunbook_webhook"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  expiry_time             = "%s"
-  enabled                 = true
-  runbook_name            = azurerm_automation_runbook.test.name
-  uri                     = "%s"
-}
-`, template, time.Now().UTC().Add(time.Hour).Format(time.RFC3339), uri)
 }

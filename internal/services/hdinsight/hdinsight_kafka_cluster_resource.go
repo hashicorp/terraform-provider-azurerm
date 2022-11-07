@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,9 +73,9 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"cluster_version": SchemaHDInsightClusterVersion(),
 
@@ -108,6 +109,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
+
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
 
 			"encryption_in_transit_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -246,6 +249,8 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	kafkaRestProperty := expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
 
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
+
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
@@ -265,7 +270,8 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
-			KafkaRestProperties: kafkaRestProperty,
+			KafkaRestProperties:        kafkaRestProperty,
+			ComputeIsolationProperties: computeIsolationProperties,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
@@ -428,6 +434,11 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		if props.NetworkProperties != nil {
 			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
 				return fmt.Errorf("flatten `network`: %+v", err)
+			}
+		}
+		if props.ComputeIsolationProperties.EnableComputeIsolation != nil {
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 		}
 

@@ -58,6 +58,7 @@ type LinuxFunctionAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                 `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential                 `tfschema:"site_credential"`
+	StorageAccounts               []helpers.StorageAccount                 `tfschema:"storage_account"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -231,6 +232,8 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
+
+		"storage_account": helpers.StorageAccountSchema(),
 
 		"tags": tags.Schema(),
 
@@ -502,6 +505,15 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
+					}
+				}
+			}
+
 			if _, ok := metadata.ResourceData.GetOk("site_config.0.app_service_logs"); ok {
 				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(functionAppSlot.SiteConfig[0].AppServiceLogs)
 				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, appServiceLogs, id.SlotName); err != nil {
@@ -524,18 +536,18 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			functionApp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			functionAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
-				if utils.ResponseWasNotFound(functionApp.Response) {
+				if utils.ResponseWasNotFound(functionAppSlot.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			if functionApp.SiteProperties == nil {
+			if functionAppSlot.SiteProperties == nil {
 				return fmt.Errorf("reading properties of Linux %s", id)
 			}
-			props := *functionApp.SiteProperties
+			props := *functionAppSlot.SiteProperties
 
 			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
@@ -572,6 +584,11 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
+			}
+
 			logs, err := client.GetDiagnosticLogsConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading logs configuration for Linux %s: %+v", id, err)
@@ -580,12 +597,12 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state := LinuxFunctionAppSlotModel{
 				Name:                        id.SlotName,
 				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:              string(functionApp.ClientCertMode),
-				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
+				Enabled:                     utils.NormaliseNilableBool(functionAppSlot.Enabled),
+				ClientCertMode:              string(functionAppSlot.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionAppSlot.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                        tags.ToTypedObject(functionApp.Tags),
-				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
+				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
+				Kind:                        utils.NormalizeNilableString(functionAppSlot.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
@@ -614,8 +631,10 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 
-			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
-			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
+
+			state.HttpsOnly = utils.NormaliseNilableBool(functionAppSlot.HTTPSOnly)
+			state.ClientCertEnabled = utils.NormaliseNilableBool(functionAppSlot.ClientCertEnabled)
 
 			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
@@ -625,7 +644,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("encoding: %+v", err)
 			}
 
-			flattenedIdentity, err := flattenIdentity(functionApp.Identity)
+			flattenedIdentity, err := flattenIdentity(functionAppSlot.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -743,6 +762,13 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
 				} else {
 					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
 				}
 			}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -48,6 +49,12 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: resourcegroups.ValidateName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			},
+
+			"alias_authorization_rule_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"partner_namespace_id": {
@@ -124,7 +131,16 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 
 	d.SetId(id.ID())
 
-	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, d.Get("name").(string))
+	// the auth rule cannot be retrieved by dr config name, the shared access policy should either be specified by user or using the default one which is `RootManageSharedAccessKey`
+	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)
+	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
+		ruleId, err := disasterrecoveryconfigs.ParseAuthorizationRuleID(input)
+		if err != nil {
+			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
+		}
+		authRuleId = *ruleId
+	}
+
 	keys, err := client.ListKeys(ctx, authRuleId)
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)

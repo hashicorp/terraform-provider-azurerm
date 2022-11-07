@@ -124,7 +124,7 @@ The following arguments are supported:
 * `data_collection_endpoint_id` - (Optional) The ID of the Data Collection Endpoint which will be associated to the target resource.
 
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule which will be associated to the target resource.
- 
+
 -> **NOTE** Exactly one of `data_collection_endpoint_id` and `data_collection_rule_id` blocks must be specified.
 
 * `description` - (Optional) The description of the Data Collection Rule Association.

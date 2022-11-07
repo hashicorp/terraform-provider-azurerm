@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `iotcentral_application_id` - (Required) The ID of the IoT Central Application. Changing this forces a new resource to be created.
 
-* `apply_to_device` - (Optional) Whether these IP Rules apply for device connectivity to IoT Hub and Device Provisioning Service associated with this IoT Central Application. Possible values are `true`, `false`. Defaults to `true` 
+* `apply_to_device` - (Optional) Whether these IP Rules apply for device connectivity to IoT Hub and Device Provisioning Service associated with this IoT Central Application. Possible values are `true`, `false`. Defaults to `true`
 
 * `default_action` - (Optional) Specifies the default action for the IoT Central Application Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
@@ -69,7 +69,7 @@ A `ip_rule` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the IoT Central Application Network Rule Set.
 

@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourcePublicIp() *pluginsdk.Resource {
@@ -50,9 +50,9 @@ func resourcePublicIp() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"allocation_method": {
 				Type:     pluginsdk.TypeString,
@@ -203,7 +203,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		publicIp.Zones = &zones
 	}
@@ -285,7 +285,7 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))

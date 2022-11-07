@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `record` - (Required) One or more `record` blocks as defined below.
 
-* `ttl ` - (Required) The Time To Live (TTL) of the DNS record in seconds.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `peering_location` - (Required) The name of the peering location that this Express Route Port is physically mapped to. Changing this forces a new Express Route Port to be created.
 
-* `link1` - (Optional) A list of `link` blocks as defined below. 
+* `link1` - (Optional) A list of `link` blocks as defined below.
 
 * `link2` - (Optional) A list of `link` blocks as defined below.
 
@@ -78,7 +78,7 @@ A `link` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Express Route Port.
 

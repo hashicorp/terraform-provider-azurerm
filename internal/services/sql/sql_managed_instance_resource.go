@@ -53,9 +53,9 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     schema.TypeString,

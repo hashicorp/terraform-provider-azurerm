@@ -178,7 +178,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		zones := zones.Expand(v.(*pluginsdk.Set).List())
+		zones := zones.ExpandUntyped(v.(*pluginsdk.Set).List())
 		if len(zones) > 0 {
 			parameters.Zones = &zones
 		}
@@ -218,7 +218,7 @@ func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("zones", zones.Flatten(model.Zones))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		props := model.Properties
 

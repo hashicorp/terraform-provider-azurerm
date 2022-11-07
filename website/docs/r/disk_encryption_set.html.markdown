@@ -10,7 +10,6 @@ description: |-
 
 Manages a Disk Encryption Set.
 
-
 ## Example Usage
 
 ```hcl
@@ -137,7 +136,11 @@ In this case, `azurerm_key_vault_access_policy` is not needed.
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set. The only possible value is `SystemAssigned`.
+* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set.  Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). 
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Disk Encryption Set.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -154,8 +157,6 @@ An `identity` block exports the following:
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

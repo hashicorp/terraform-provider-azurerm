@@ -116,7 +116,7 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Compute Instance to be created.
-  
+
 * `ssh` - (Optional) A `ssh` block as defined below. Specifies policy and settings for SSH access. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `subnet_resource_id` - (Optional) Virtual network subnet resource ID the compute nodes belong to. Changing this forces a new Machine Learning Compute Instance to be created.
@@ -132,6 +132,7 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Compute Instance.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
 ---
 
 A `assign_to_user` block supports the following:

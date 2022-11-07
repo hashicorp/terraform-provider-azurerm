@@ -57,6 +57,7 @@ type WindowsFunctionAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential                   `tfschema:"site_credential"`
+	StorageAccounts               []helpers.StorageAccount                   `tfschema:"storage_account"`
 	VirtualNetworkSubnetID        string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
@@ -231,6 +232,8 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
+
+		"storage_account": helpers.StorageAccountSchemaWindows(),
 
 		"tags": tags.Schema(),
 
@@ -504,6 +507,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
+					}
+				}
+			}
+
 			connectionStrings := helpers.ExpandConnectionStrings(functionAppSlot.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStrings, id.SlotName); err != nil {
@@ -554,6 +566,11 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			connectionStrings, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
+			}
+
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -622,6 +639,8 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
@@ -745,6 +764,13 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					existing.SiteProperties.VirtualNetworkSubnetID = empty
 				} else {
 					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 

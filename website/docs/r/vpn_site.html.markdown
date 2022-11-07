@@ -76,7 +76,7 @@ A `bgp` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
-* `peering_address` - (Required) The BGP peering IP address. 
+* `peering_address` - (Required) The BGP peering IP address.
 
 ---
 
@@ -116,7 +116,7 @@ A `traffic_category` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the VPN Site.
 

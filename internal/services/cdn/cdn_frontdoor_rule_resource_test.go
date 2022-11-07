@@ -30,6 +30,183 @@ func TestAccCdnFrontDoorRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRule_urlRedirectAction(t *testing.T) {
+	// NOTE: Regression test case for issue #18249
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlRedirectAction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_originGroupIdOptional(t *testing.T) {
+	// NOTE: Regression test case for issue #18889
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptional(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_originGroupIdOptionalUpdate(t *testing.T) {
+	// NOTE: Regression test case for issue #18889
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptional(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.originGroupIdOptionalUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.originGroupIdOptional(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
+	// NOTE: Regression test case for issue #18889
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptionalError(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol'"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCache(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheOriginGroupId(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheOriginGroupId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheOriginGroupId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableCacheOriginGroupId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableCacheOriginGroupId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheUpdate(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCache(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableCache(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableCache(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheError(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheError(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'cache_duration'"),
+		},
+	})
+}
+
 func TestAccCdnFrontDoorRule_actionOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
@@ -85,6 +262,13 @@ func TestAccCdnFrontDoorRule_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -192,6 +376,350 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
       compression_enabled           = true
       cache_behavior                = "OverrideIfOriginMissing"
       cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) urlRedirectAction(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 1
+
+  conditions {
+    request_scheme_condition {
+      match_values     = ["HTTP"]
+      negate_condition = false
+      operator         = "Equal"
+    }
+  }
+
+  actions {
+    url_redirect_action {
+      redirect_type        = "PermanentRedirect"
+      redirect_protocol    = "Https"
+      destination_hostname = ""
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) originGroupIdOptional(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) originGroupIdOptionalUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+      forwarding_protocol           = "HttpsOnly"
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) originGroupIdOptionalError(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      forwarding_protocol           = "HttpsOnly"
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) disableCache(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      cache_behavior = "Disabled"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) disableCacheOriginGroupId(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+      forwarding_protocol           = "HttpsOnly"
+      cache_behavior                = "Disabled"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) enableCacheOriginGroupId(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+      forwarding_protocol           = "HttpsOnly"
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["RUSH", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "21.12:04:01"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) enableCache(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["RUSH", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "21.12:04:01"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) disableCacheError(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "RegEx"
+      negate_condition = false
+      match_values     = ["api/?(.*)"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      cache_behavior = "Disabled"
+      cache_duration = "365.23:59:59"
     }
   }
 }

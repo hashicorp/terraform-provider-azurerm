@@ -57,6 +57,16 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.cfg("SENTINEL", true),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cfg("SENTINEL", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -72,6 +82,11 @@ func TestAccSecurityCenterSetting_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+		// reset
+		{
+			Config: r.cfg("MCAS", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
 	})
 }
 
