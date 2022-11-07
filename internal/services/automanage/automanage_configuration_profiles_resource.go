@@ -2,10 +2,10 @@ package automanage
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
