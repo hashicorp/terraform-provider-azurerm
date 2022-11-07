@@ -57,7 +57,7 @@ The following supported arguments are specific to Web Linked Service:
 
 * `authentication_type` - (Required) The type of authentication used to connect to the web table source. Valid options are `Anonymous`, `Basic` and `ClientCertificate`.
 
-* `url` - (Required) The URL of the web service endpoint (e.g. https://www.microsoft.com).
+* `url` - (Required) The URL of the web service endpoint (e.g. <https://www.microsoft.com>).
 
 ## Attributes Reference
 

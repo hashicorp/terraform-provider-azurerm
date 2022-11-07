@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_origin_group"
 description: |-
-  Gets information about an existing CDN FrontDoor Origin Group.
+  Gets information about an existing Front Door (standard/premium) Origin Group.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_origin_group
 
-Use this data source to access information about an existing CDN FrontDoor Origin Group.
+Use this data source to access information about an existing Front Door (standard/premium) Origin Group.
 
 ## Example Usage
 
@@ -24,19 +24,19 @@ data "azurerm_cdn_frontdoor_origin_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the FrontDoor Origin Group.
+* `name` - (Required) Specifies the name of the Front Door Origin Group.
 
-* `profile_name` - (Required) The name of the FrontDoor Profile within which CDN FrontDoor Origin Group exists.
+* `profile_name` - (Required) The name of the Front Door Profile within which Front Door Origin Group exists.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the CDN FrontDoor Profile exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Front Door Profile exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CDN FrontDoor Origin Group.
+* `id` - The ID of the Front Door Origin Group.
 
-* `cdn_frontdoor_profile_id` - Specifies the ID of the CDN FrontDoor Profile within which this CDN FrontDoor Origin Group exists.
+* `cdn_frontdoor_profile_id` - Specifies the ID of the Front Door Profile within which this Front Door Origin Group exists.
 
 * `health_probe` - A `health_probe` block as defined below.
 
@@ -70,4 +70,4 @@ A `load_balancing` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the CDN FrontDoor Origin Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Origin Group.

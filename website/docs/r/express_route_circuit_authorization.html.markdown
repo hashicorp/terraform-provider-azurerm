@@ -57,7 +57,6 @@ The following arguments are supported:
 
 * `express_route_circuit_name` - (Required) The name of the Express Route Circuit in which to create the Authorization.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -69,8 +68,6 @@ The following attributes are exported:
 * `authorization_use_status` - The authorization use status.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

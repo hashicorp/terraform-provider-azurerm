@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management API Operation Policy
 
-
 ## Example Usage
 
 ```hcl
@@ -65,7 +64,6 @@ XML
 
 }
 ```
-
 
 ## Argument Reference
 

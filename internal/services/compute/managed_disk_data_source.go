@@ -171,7 +171,7 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("zones", zones.Flatten(model.Zones))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		storageAccountType := ""
 		if sku := model.Sku; sku != nil {

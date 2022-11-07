@@ -41,7 +41,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Group instance.
 
@@ -51,7 +51,25 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Container Group instance exists.
 
+* `identity` - A `identity` block as defined below.
+
+* `subnet_ids` - The subnet resource IDs for a container group.
+
+* `zones` - A list of Availability Zones in which this Container Group is located.
+
 * `tags` - A mapping of tags assigned to the Container Group instance.
+
+---
+
+A `identity` block exports the following:
+
+* `type` - Type of Managed Service Identity configured on this Container Group.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Container Group.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Container Group.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Container Group.
 
 ## Timeouts
 

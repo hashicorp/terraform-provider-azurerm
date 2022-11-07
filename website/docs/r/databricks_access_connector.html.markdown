@@ -52,7 +52,6 @@ The following attributes are exported:
 
 * `id` - The ID of the Databricks Access Connector in the Azure management plane.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

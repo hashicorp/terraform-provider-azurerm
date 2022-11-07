@@ -202,6 +202,7 @@ resource "azurerm_sql_managed_instance" "example" {
   ]
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -228,11 +229,11 @@ The following arguments are supported:
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`. 
+* `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`.
 
-* `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`. 
+* `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.
 
-* `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`. 
+* `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`.
 
 * `timezone_id` - (Optional) The TimeZone ID that the SQL Managed Instance will be operating in. Default value is `UTC`. Changing this forces a new resource to be created.
 
@@ -270,9 +271,9 @@ The following attributes are exported:
 
  The `identity` block exports the following:
 
- * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
- * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
 ## Import
 

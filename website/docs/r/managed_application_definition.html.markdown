@@ -100,5 +100,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Managed Application Definition can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_managed_application_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applicationDefinitions/appDefinition1
+terraform import azurerm_managed_application_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applicationDefinitions/appDefinition1
 ```

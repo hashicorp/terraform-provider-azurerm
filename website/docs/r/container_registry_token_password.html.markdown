@@ -67,11 +67,11 @@ The following arguments are supported:
 
 A `password` block supports the following:
 
-* `expiry` - (Optional) The expiration date of the password in RFC3339 format.
+* `expiry` - (Optional) The expiration date of the password in RFC3339 format. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Registry Token Password.
 
@@ -81,7 +81,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `password` block exports the following:
 
-- `value` - The value of the password (Sensitive).
+* `value` - The value of the password (Sensitive).
 
 ## Timeouts
 

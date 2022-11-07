@@ -10,7 +10,6 @@ description: |-
 
 Manages a Disk Encryption Set.
 
-
 ## Example Usage
 
 ```hcl
@@ -137,7 +136,13 @@ In this case, `azurerm_key_vault_access_policy` is not needed.
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set. The only possible value is `SystemAssigned`.
+* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set.  Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). 
+
+* -> **Note:** Before setting `type` to `UserAssigned`, `SystemAssigned, UserAssigned`, it's required to enable the feature with Azure CLI `az feature register --namespace Microsoft.Compute --name EncryptionAtRestWithCrossTenantKey` then `az provider register -n Microsoft.Compute`. See more details from https://learn.microsoft.com/en-us/azure/virtual-machines/disks-cross-tenant-customer-managed-keys.
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Disk Encryption Set.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -154,8 +159,6 @@ An `identity` block exports the following:
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

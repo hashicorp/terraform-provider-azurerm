@@ -15,6 +15,7 @@ Manages a Blueprint Assignment resource
 ~> **NOTE:** Azure Blueprint Assignments can only be applied to Subscriptions.  Assignments to Management Groups is not currently supported by the service or by Terraform.
 
 ## Example Usage
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -103,7 +104,6 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ```
 
-
 ## Argument Reference
 
 * `name` - (Required) The name of the Blueprint Assignment
@@ -137,7 +137,6 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Blueprint. Only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Blueprint.
-
 
 ## Attributes Reference
 

@@ -8,14 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -61,9 +60,9 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"storage_data_lake_gen2_filesystem_id": {
 				Type:     pluginsdk.TypeString,
@@ -73,14 +72,14 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 
 			"sql_administrator_login": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SqlAdministratorLoginName,
 			},
 
 			"sql_administrator_login_password": {
 				Type:      pluginsdk.TypeString,
-				Required:  true,
+				Optional:  true,
 				Sensitive: true,
 			},
 
@@ -177,7 +176,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityRequired(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"managed_resource_group_name": commonschema.ResourceGroupNameOptionalComputed(),
 
@@ -438,6 +437,10 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for configuration of Sql Identity Control for %s: %+v", id, err)
 	}
 
+	if err := waitSynapseWorkspaceProvisioningState(ctx, client, &id); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 	return resourceSynapseWorkspaceRead(d, meta)
 }
@@ -489,7 +492,12 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+	flattenIdenties, err := flattenIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+
+	if err := d.Set("identity", flattenIdenties); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.WorkspaceProperties; props != nil {
@@ -584,6 +592,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
+		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+		}
+
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, workspacePatchInfo)
 		if err != nil {
 			return fmt.Errorf("updating Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -596,11 +608,15 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
+
 	}
 
 	if d.HasChange("aad_admin") {
 		aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
 		if aadAdmin != nil {
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 			workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
 			if err != nil {
 				return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -610,6 +626,9 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		} else {
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 			workspaceAadAdminsDeleteFuture, err := aadAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -624,6 +643,9 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("sql_aad_admin") {
 		sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
 		if sqlAdmin != nil {
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 			workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
 			if err != nil {
 				return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -633,6 +655,9 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		} else {
+			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+			}
 			workspaceSqlAdminsDeleteFuture, err := sqlAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -646,6 +671,9 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("sql_identity_control_enabled") {
 		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
+		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+		}
 		future, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
 		if err != nil {
 			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
@@ -653,6 +681,10 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for update workspace identity control for SQL pool of %q: %+v", id, err)
 		}
+	}
+
+	if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 	}
 
 	return resourceSynapseWorkspaceRead(d, meta)
@@ -720,6 +752,40 @@ func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *syna
 			return res, *res.Encryption.Cmk.Status, nil
 		}
 		return res, "Succeeded", nil
+	}
+}
+
+func waitSynapseWorkspaceProvisioningState(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			"Provisioning",
+		},
+		Target: []string{
+			"Succeeded",
+		},
+		Refresh:                   synapseWorkspaceProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+	}
+	return nil
+}
+
+func synapseWorkspaceProvisioningStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		return res, *res.ProvisioningState, nil
 	}
 }
 
@@ -920,7 +986,7 @@ func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface
 }
 
 func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
@@ -928,15 +994,25 @@ func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
 	out := synapse.ManagedIdentity{
 		Type: synapse.ResourceIdentityType(string(expanded.Type)),
 	}
+
+	if len(expanded.IdentityIds) > 0 {
+		userAssignedIdentities := make(map[string]*synapse.UserAssignedManagedIdentity)
+		for id := range expanded.IdentityIds {
+			userAssignedIdentities[id] = &synapse.UserAssignedManagedIdentity{}
+		}
+		out.UserAssignedIdentities = userAssignedIdentities
+	}
+
 	return &out, nil
 }
 
-func flattenIdentity(input *synapse.ManagedIdentity) []interface{} {
-	var config *identity.SystemAssigned
+func flattenIdentity(input *synapse.ManagedIdentity) (interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		config = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: nil,
 		}
 
 		if input.PrincipalID != nil {
@@ -945,7 +1021,18 @@ func flattenIdentity(input *synapse.ManagedIdentity) []interface{} {
 		if input.TenantID != nil {
 			config.TenantId = input.TenantID.String()
 		}
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		if input.UserAssignedIdentities != nil {
+			for k, v := range input.UserAssignedIdentities {
+				identityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    utils.String(v.ClientID.String()),
+					PrincipalId: utils.String(v.PrincipalID.String()),
+				}
+			}
+		}
+
+		config.IdentityIds = identityIds
 	}
 
-	return identity.FlattenSystemAssigned(config)
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }

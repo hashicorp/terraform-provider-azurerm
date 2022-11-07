@@ -80,7 +80,7 @@ A `access_policy` block supports the following:
 
 * `permissions` - (Required) The permissions which should be associated with this Shared Identifier. Possible value is combination of `r` (read), `w` (write), `d` (delete), and `l` (list).
 
-~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above. 
+~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above.
 
 * `start` - (Optional) The time at which this Access Policy should be valid from, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 

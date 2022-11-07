@@ -70,7 +70,6 @@ A `identity` block supports the following:
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid Topic has been created. More details are available below.
 
-
 ---
 
 A `input_mapping_fields` supports the following:

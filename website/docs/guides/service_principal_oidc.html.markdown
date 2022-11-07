@@ -29,9 +29,9 @@ This guide will cover how to create an Application and linked Service Principal,
 
 We're going to create the Application in the Azure Portal - to do this navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview). Click the **New registration** button at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
-- **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
-- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
-- **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
+* **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
+* **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
+* **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
 
 At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application.
 
@@ -47,7 +47,7 @@ An application will need a federated credential specified for each GitHub Enviro
 
 On the Azure Active Directory application page, go to **Certificates and secrets**.
 
-In the Federated credentials tab, select Add credential. The Add a credential blade opens. In the **Federated credential scenario** drop-down box select **GitHub actions deploying Azure resources**. 
+In the Federated credentials tab, select Add credential. The Add a credential blade opens. In the **Federated credential scenario** drop-down box select **GitHub actions deploying Azure resources**.
 
 Specify the **Organization** and **Repository** for your GitHub Actions workflow. For **Entity type**, select **Environment**, **Branch**, **Pull request**, or **Tag** and specify the value. The values must exactly match the configuration in the GitHub workflow. For our example, let's select **Branch** and specify `main`.
 
@@ -103,9 +103,9 @@ As we've obtained the credentials for this Service Principal - it's possible to 
 When storing the credentials as Environment Variables, for example:
 
 ```bash
-$ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
+export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
 The provider will use the `ARM_OIDC_TOKEN` environment variable as an OIDC token. You can use this variable to specify the token provided by your OIDC provider.
@@ -145,7 +145,7 @@ provider "azurerm" {
 
 -> **Note:** Support for OpenID Connect was added in version 3.7.0 of the Terraform AzureRM provider.
 
-~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information. 
+~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information.
 
 More information on [the fields supported in the Provider block can be found here](../index.html#argument-reference).
 

@@ -129,8 +129,6 @@ resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
   express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
-
-  depends_on = [azurerm_virtual_hub_route_table.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -161,11 +159,11 @@ resource "azurerm_express_route_connection" "test" {
   enable_internet_security         = true
 
   routing {
-    associated_route_table_id = azurerm_virtual_hub_route_table.test.id
+    associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id
 
     propagated_route_table {
       labels          = ["label1"]
-      route_table_ids = [azurerm_virtual_hub_route_table.test.id]
+      route_table_ids = [azurerm_virtual_hub.test.default_route_table_id]
     }
   }
 }
@@ -179,25 +177,25 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-erconnection-%d"
-  location = "%s"
+  name     = "acctestRG-erconnection-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_express_route_port" "test" {
-  name                = "acctest-erp-%d"
+  name                = "acctest-erp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "CDC-Canberra"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
 
 resource "azurerm_express_route_circuit" "test" {
-  name                  = "acctest-erc-%d"
+  name                  = "acctest-erc-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
-  bandwidth_in_gbps     = 1
+  bandwidth_in_gbps     = 5
 
   sku {
     tier   = "Premium"
@@ -217,13 +215,13 @@ resource "azurerm_express_route_circuit_peering" "test" {
 }
 
 resource "azurerm_virtual_wan" "test" {
-  name                = "acctest-vwan-%d"
+  name                = "acctest-vwan-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-vhub-%d"
+  name                = "acctest-vhub-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
@@ -231,16 +229,11 @@ resource "azurerm_virtual_hub" "test" {
 }
 
 resource "azurerm_express_route_gateway" "test" {
-  name                = "acctest-ergw-%d"
+  name                = "acctest-ergw-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_hub_id      = azurerm_virtual_hub.test.id
   scale_units         = 1
 }
-
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-vhubrt-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

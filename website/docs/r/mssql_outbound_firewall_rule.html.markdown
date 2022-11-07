@@ -34,6 +34,7 @@ resource "azurerm_mssql_outbound_firewall_rule" "example" {
   server_id = azurerm_mssql_server.example.id
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:

@@ -74,11 +74,11 @@ A `filter` block supports the following:
 ~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
 
 * `include_blob_versions` - (Optional) Includes blob versions in blob inventory or not? Defaults to `false`.
- 
+
 ~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `IsCurrentVersion` and `VersionId` so that you can specify the `include_blob_versions`.
 
 * `include_snapshots` - (Optional) Includes blob snapshots in blob inventory or not? Defaults to `false`.
- 
+
 ~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
 
 * `prefix_match` - (Optional) A set of strings for blob prefixes to be matched.
@@ -88,11 +88,11 @@ A `filter` block supports the following:
 A `rules` block supports the following:
 
 * `name` - (Required) The name which should be used for this Blob Inventory Policy Rule.
- 
+
 * `storage_container_name` - (Required) The storage container name to store the blob inventory files for this rule.
 
 * `format` - (Required) The format of the inventory files. Possible values are `Csv` and `Parquet`.
- 
+
 * `schedule` - (Required) The inventory schedule applied by this rule. Possible values are `Daily` and `Weekly`.
 
 * `scope` - (Required) The scope of the inventory for this rule. Possible values are `Blob` and `Container`.

@@ -252,7 +252,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if utils.ResponseWasNotFound(functionApp.Response) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("Linux %s not found", id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}

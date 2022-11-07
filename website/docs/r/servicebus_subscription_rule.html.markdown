@@ -135,7 +135,6 @@ The following arguments are supported:
 
 ~> **NOTE:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
 
-
 ## Attributes Reference
 
 The following attributes are exported:

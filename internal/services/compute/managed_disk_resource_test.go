@@ -672,6 +672,50 @@ func TestAccManagedDisk_storageAccountType(t *testing.T) {
 	})
 }
 
+func TestAccManagedDisk_premiumV2WithIOpsReadWriteAndMBpsReadWrite(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumV2WithIOpsReadWriteAndMBpsReadWrite(data, "westeurope", 3000, 125),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premiumV2WithIOpsReadWriteAndMBpsReadWrite(data, "westeurope", 4000, 200),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_premiumV2WithIOpsReadOnlyAndMBpsReadOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data, "westeurope", 3000, 125),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data, "westeurope", 4000, 126),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := disks.ParseDiskID(state.ID)
 	if err != nil {
@@ -2292,6 +2336,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
+  logical_sector_size  = 512
 
   tags = {
     environment = "acctest"
@@ -2299,4 +2344,59 @@ resource "azurerm_managed_disk" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) premiumV2WithIOpsReadWriteAndMBpsReadWrite(data acceptance.TestData, location string, diskIOpsReadWrite, diskMBpsReadWrite int) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 256
+  disk_iops_read_write = %d
+  disk_mbps_read_write = %d
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, diskIOpsReadWrite, diskMBpsReadWrite)
+}
+
+func (ManagedDiskResource) premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data acceptance.TestData, location string, diskIOpsReadOnly, diskMBpsReadOnly int) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 256
+  disk_iops_read_only  = %d
+  disk_mbps_read_only  = %d
+  max_shares           = 5
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, diskIOpsReadOnly, diskMBpsReadOnly)
 }

@@ -51,11 +51,11 @@ The following arguments are supported:
 * `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys.
 * `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this Mongo Collection. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 * `default_ttl_seconds` - (Optional) The default Time To Live in seconds. If the value is `-1`, items are not automatically expired.
-* # `index` - (Optional) One or more `index` blocks as defined below.
+* `index` - (Optional) One or more `index` blocks as defined below.
 * `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 * `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
-~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 
+~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 
 ---
 

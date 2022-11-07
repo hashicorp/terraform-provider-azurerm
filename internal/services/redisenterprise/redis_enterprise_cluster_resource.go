@@ -138,7 +138,7 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", id, err)
 		}
-		zones := zones.Expand(v.(*pluginsdk.Set).List())
+		zones := zones.ExpandUntyped(v.(*pluginsdk.Set).List())
 		if len(zones) > 0 {
 			parameters.Zones = &zones
 		}
@@ -198,7 +198,7 @@ func resourceRedisEnterpriseClusterRead(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 
-		d.Set("zones", zones.Flatten(model.Zones))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		if props := model.Properties; props != nil {
 			d.Set("hostname", props.HostName)
 

@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below.
 
+* `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
+
 * `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
@@ -188,6 +190,14 @@ A `network` block supports the following:
 -> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
 
 * `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+
+---
+
+A `compute_isolation` block supports the following:
+
+* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+
+* `host_sku` - (Optional) The name of the host SKU.
 
 ---
 
@@ -341,7 +351,6 @@ A `hive` block supports the following:
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
-
 ---
 
 An `oozie` block supports the following:
@@ -447,8 +456,6 @@ The following attributes are exported:
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Hadoop Cluster.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

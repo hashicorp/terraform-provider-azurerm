@@ -47,7 +47,6 @@ resource "azurerm_container_registry_scope_map" "example" {
 
 The following arguments are supported:
 
-
 * `name` - (Required) Specifies the name of the scope map. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry token. Changing this forces a new resource to be created.
@@ -57,6 +56,7 @@ The following arguments are supported:
 * `actions` - (Required) A list of actions to attach to the scope map (e.g. `repo/content/read`, `repo2/content/delete`).
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:

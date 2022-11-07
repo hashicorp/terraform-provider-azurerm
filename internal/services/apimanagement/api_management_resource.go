@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -90,9 +91,9 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"publisher_name": {
 			Type:         pluginsdk.TypeString,
@@ -803,7 +804,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		if publicIpAddressId == "" {
 			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
 		}
-		zones := zones.Expand(v)
+		zones := zones.ExpandUntyped(v)
 		properties.Zones = &zones
 	}
 
@@ -1024,12 +1025,19 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
-
-		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
+		additionalLocation, err := flattenApiManagementAdditionalLocations(props.AdditionalLocations)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("additional_location", additionalLocation); err != nil {
 			return fmt.Errorf("setting `additional_location`: %+v", err)
 		}
 
-		if err := d.Set("virtual_network_configuration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("virtual_network_configuration", virtualNetworkConfiguration); err != nil {
 			return fmt.Errorf("setting `virtual_network_configuration`: %+v", err)
 		}
 
@@ -1049,7 +1057,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings, err := signInClient.Get(ctx, id.ResourceGroup, id.ServiceName)
@@ -1424,7 +1432,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		if len(zones) > 0 {
 			additionalLocation.Zones = &zones
 		}
@@ -1435,10 +1443,10 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 	return &additionalLocations, nil
 }
 
-func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
+func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, prop := range *input {
@@ -1471,7 +1479,10 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 		if prop.DisableGateway != nil {
 			gatewayDisabled = *prop.DisableGateway
 		}
-
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
+		if err != nil {
+			return results, err
+		}
 		results = append(results, map[string]interface{}{
 			"capacity":                      capacity,
 			"gateway_regional_url":          gatewayRegionalUrl,
@@ -1479,13 +1490,13 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			"private_ip_addresses":          privateIPAddresses,
 			"public_ip_address_id":          publicIpAddressId,
 			"public_ip_addresses":           publicIPAddresses,
-			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
-			"zones":                         zones.Flatten(prop.Zones),
+			"virtual_network_configuration": virtualNetworkConfiguration,
+			"zones":                         zones.FlattenUntyped(prop.Zones),
 			"gateway_disabled":              gatewayDisabled,
 		})
 	}
 
-	return results
+	return results, nil
 }
 
 func expandIdentity(input []interface{}) (*apimanagement.ServiceIdentity, error) {
@@ -1724,18 +1735,22 @@ func flattenApiManagementProtocolsCustomProperties(input map[string]*string) []i
 	return []interface{}{output}
 }
 
-func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) []interface{} {
+func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	virtualNetworkConfiguration := make(map[string]interface{})
 
 	if input.SubnetResourceID != nil {
-		virtualNetworkConfiguration["subnet_id"] = *input.SubnetResourceID
+		subnetId, err := networkParse.SubnetIDInsensitively(*input.SubnetResourceID)
+		if err != nil {
+			return []interface{}{}, err
+		}
+		virtualNetworkConfiguration["subnet_id"] = subnetId.ID()
 	}
 
-	return []interface{}{virtualNetworkConfiguration}
+	return []interface{}{virtualNetworkConfiguration}, nil
 }
 
 func parseApiManagementNilableDictionary(input map[string]*string, key string) bool {

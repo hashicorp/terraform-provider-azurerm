@@ -79,7 +79,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `delete` - (Defaults to 60 minutes) Used when deleting the ExpressRoute Gateway.
 
-
 ## Import
 
 ExpressRoute Gateways can be imported using the `resource id`, e.g.

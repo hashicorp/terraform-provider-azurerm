@@ -71,6 +71,7 @@ resource "azurerm_mssql_failover_group" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:

@@ -138,8 +138,6 @@ The following arguments are supported:
 
 * `skip_first_record` - (Optional) is the first record of every file ignored? Defaults to `false`.
 
-
-
 ## Attributes Reference
 
 The following attributes are exported:

@@ -51,9 +51,9 @@ func resourceAppService() *pluginsdk.Resource {
 				ValidateFunc: validate.AppServiceName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
