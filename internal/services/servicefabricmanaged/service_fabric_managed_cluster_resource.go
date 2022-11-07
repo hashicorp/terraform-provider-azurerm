@@ -48,8 +48,8 @@ type ADAuthentication struct {
 }
 
 type Authentication struct {
-	ADAuth             ADAuthentication `tfschema:"active_directory"`
-	CertAuthentication []ThumbprintAuth `tfschema:"certificate"`
+	ADAuth             []ADAuthentication `tfschema:"active_directory"`
+	CertAuthentication []ThumbprintAuth   `tfschema:"certificate"`
 }
 
 type PortRange struct {
@@ -680,11 +680,15 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	if aad := properties.AzureActiveDirectory; aad != nil {
 		model.Authentication = append(model.Authentication, Authentication{})
+		adModels := make([]ADAuthentication, 0)
+
 		adModel := ADAuthentication{}
 		adModel.ClientApp = utils.NormalizeNilableString(aad.ClientApplication)
 		adModel.ClusterApp = utils.NormalizeNilableString(aad.ClusterApplication)
 		adModel.TenantId = utils.NormalizeNilableString(aad.TenantId)
-		model.Authentication[0].ADAuth = adModel
+
+		adModels = append(adModels, adModel)
+		model.Authentication[0].ADAuth = adModels
 	}
 
 	if clients := properties.Clients; clients != nil {
@@ -840,12 +844,13 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	}
 
 	if auth := model.Authentication; len(auth) > 0 {
-		adAuth := auth[0].ADAuth
-		if adAuth.ClientApp != "" && adAuth.ClusterApp != "" && adAuth.TenantId != "" {
-			out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
-				ClientApplication:  utils.String(adAuth.ClientApp),
-				ClusterApplication: utils.String(adAuth.ClusterApp),
-				TenantId:           utils.String(adAuth.TenantId),
+		if adAuth := auth[0].ADAuth; len(adAuth) > 0 {
+			if adAuth[0].ClientApp != "" && adAuth[0].ClusterApp != "" && adAuth[0].TenantId != "" {
+				out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
+					ClientApplication:  utils.String(adAuth[0].ClientApp),
+					ClusterApplication: utils.String(adAuth[0].ClusterApp),
+					TenantId:           utils.String(adAuth[0].TenantId),
+				}
 			}
 		}
 		if certs := auth[0].CertAuthentication; len(certs) > 0 {
