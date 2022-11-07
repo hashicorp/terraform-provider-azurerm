@@ -1,8 +1,13 @@
 ## 3.31.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_stream_analytics_stream_input_eventhub_v2` [GH-19150]
+
 ENHANCEMENTS
 
-* dependencies: `network` updating to `2022-05-01` [GH-19124]
+* dependencies: updating `network` to API Version `2022-05-01` [GH-19124]
+* dependencies: updating `sentinel` to API Version `2022-10-01-preview` [GH-19161]
 * `azurerm_mssql_virtual_machine` - support for the `sql_instance` block [GH-19123]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `techniques` property [GH-19142]
 * `azurerm_sentinel_alert_rule_fusion` - support for the source block [GH-19093]
