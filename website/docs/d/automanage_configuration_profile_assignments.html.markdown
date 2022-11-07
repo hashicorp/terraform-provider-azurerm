@@ -14,9 +14,9 @@ Use this data source to access information about an existing automanage Configur
 
 ```hcl
 data "azurerm_automanage_configuration_profile_assignment" "example" {
-  name = "example-configurationprofileassignment"
+  name                = "example-configurationprofileassignment"
   resource_group_name = "existing"
-  vm_name = "existing"
+  vm_name             = "existing"
 }
 
 output "id" {

@@ -88,9 +88,9 @@ func (r AutomanageConfigurationProfileHCIAssignmentResource) requiresImport(data
 %s
 
 resource "azurerm_automanage_configuration_profile_hci_assignment" "import" {
-  name = azurerm_automanage_configuration_profile_hci_assignment.test.name
-  resource_group_name = azurerm_automanage_configuration_profile_hci_assignment.test.resource_group_name
-  cluster_name = azurerm_automanage_configuration_profile_hci_assignment.test.cluster_name
+  name                  = azurerm_automanage_configuration_profile_hci_assignment.test.name
+  resource_group_name   = azurerm_automanage_configuration_profile_hci_assignment.test.resource_group_name
+  cluster_name          = azurerm_automanage_configuration_profile_hci_assignment.test.cluster_name
   configuration_profile = azurerm_automanage_configuration_profile_hci_assignment.test.configuration_profile
 }
 `, config)
@@ -102,9 +102,9 @@ func (r AutomanageConfigurationProfileHCIAssignmentResource) complete(data accep
 %s
 
 resource "azurerm_automanage_configuration_profile_hci_assignment" "test" {
-  name = "default"
-  resource_group_name = azurerm_resource_group.test.name
-  cluster_name = azurerm_stack_hci_cluster.test.name
+  name                  = "default"
+  resource_group_name   = azurerm_resource_group.test.name
+  cluster_name          = azurerm_stack_hci_cluster.test.name
   configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
 `, template)

@@ -33,9 +33,9 @@ resource "azurerm_stack_hci_cluster" "test" {
 }
 
 resource "azurerm_automanage_configuration_profile_hci_assignment" "test" {
-  name = "default"
-  resource_group_name = azurerm_resource_group.test.name
-  cluster_name = azurerm_stack_hci_cluster.test.name
+  name                  = "default"
+  resource_group_name   = azurerm_resource_group.test.name
+  cluster_name          = azurerm_stack_hci_cluster.test.name
   configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
 ```

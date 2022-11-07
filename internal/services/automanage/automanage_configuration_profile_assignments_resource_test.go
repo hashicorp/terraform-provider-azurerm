@@ -81,7 +81,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-sub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes       = ["10.0.2.0/24"]
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -163,9 +163,9 @@ func (r AutomanageConfigurationProfileAssignmentResource) requiresImport(data ac
 %s
 
 resource "azurerm_automanage_configuration_profile_assignment" "import" {
-  name = azurerm_automanage_configuration_profile_assignment.test.name
-  resource_group_name = azurerm_automanage_configuration_profile_assignment.test.resource_group_name
-  vm_name = azurerm_automanage_configuration_profile_assignment.test.vm_name
+  name                  = azurerm_automanage_configuration_profile_assignment.test.name
+  resource_group_name   = azurerm_automanage_configuration_profile_assignment.test.resource_group_name
+  vm_name               = azurerm_automanage_configuration_profile_assignment.test.vm_name
   configuration_profile = azurerm_automanage_configuration_profile_assignment.test.configuration_profile
 }
 `, config)
@@ -177,9 +177,9 @@ func (r AutomanageConfigurationProfileAssignmentResource) complete(data acceptan
 %s
 
 resource "azurerm_automanage_configuration_profile_assignment" "test" {
-  name = "default"
-  resource_group_name = azurerm_resource_group.test.name
-  vm_name = azurerm_virtual_machine.test.name
+  name                  = "default"
+  resource_group_name   = azurerm_resource_group.test.name
+  vm_name               = azurerm_virtual_machine.test.name
   configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
 `, template)

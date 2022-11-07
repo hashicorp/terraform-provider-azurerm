@@ -33,7 +33,7 @@ resource "azurerm_subnet" "test" {
   name                 = "example-sub"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes       = ["10.0.2.0/24"]
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -103,9 +103,9 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_automanage_configuration_profile_assignment" "test" {
-  name = "default"
-  resource_group_name = azurerm_resource_group.test.name
-  vm_name = azurerm_virtual_machine.test.name
+  name                  = "default"
+  resource_group_name   = azurerm_resource_group.test.name
+  vm_name               = azurerm_virtual_machine.test.name
   configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
 ```
