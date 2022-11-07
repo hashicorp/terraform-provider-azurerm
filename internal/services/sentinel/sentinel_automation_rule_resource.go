@@ -73,6 +73,26 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"triggers_on": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(securityinsight.TriggersOnIncidents),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(securityinsight.TriggersOnIncidents),
+					string(securityinsight.TriggersOnAlerts),
+				}, false),
+			},
+
+			"triggers_when": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(securityinsight.TriggersWhenCreated),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(securityinsight.TriggersWhenCreated),
+					string(securityinsight.TriggersWhenUpdated),
+				}, false),
+			},
+
 			"expiration": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -306,8 +326,8 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			Order:       utils.Int32(int32(d.Get("order").(int))),
 			TriggeringLogic: &securityinsight.AutomationRuleTriggeringLogic{
 				IsEnabled:    utils.Bool(d.Get("enabled").(bool)),
-				TriggersOn:   securityinsight.TriggersOnIncidents, // TODO: make this configurable
-				TriggersWhen: securityinsight.TriggersWhenCreated, // TODO: make this configurable
+				TriggersOn:   securityinsight.TriggersOn(d.Get("triggers_on").(string)),
+				TriggersWhen: securityinsight.TriggersWhen(d.Get("triggers_when").(string)),
 				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
 			},
 			Actions: actions,
@@ -367,6 +387,9 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 				enabled = *tl.IsEnabled
 			}
 			d.Set("enabled", enabled)
+
+			d.Set("triggers_on", string(tl.TriggersOn))
+			d.Set("triggers_when", string(tl.TriggersWhen))
 
 			var expiration string
 			if tl.ExpirationTimeUtc != nil {

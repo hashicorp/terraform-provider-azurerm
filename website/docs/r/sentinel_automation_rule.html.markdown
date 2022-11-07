@@ -80,6 +80,10 @@ The following arguments are supported:
 
 * `expiration` - (Optional) The time in RFC3339 format of kind `UTC` that determines when this Automation Rule should expire and be disabled.
 
+* `triggers_on` - (Optional) Specifies what triggesr this automation rule. Possible values are `Alerts` and `Incidents`. Defaults to `Incidents`.
+
+* `triggers_when` - (Optional) Specifies when will this automation rule be triggered. Possible values are `Created` and `Updated`. Defaults to `Created`.
+
 ---
 
 A `action_incident` block supports the following:
