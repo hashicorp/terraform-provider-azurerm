@@ -460,8 +460,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			managedDiskRaw := items[0].(map[string]interface{})
-			if v, ok := managedDiskRaw["no_downtime_resize"]; ok {
-				featuresMap.ManagedDisk.NoDowntimeResize = v.(bool)
+			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
+				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
 			}
 		}
 	}

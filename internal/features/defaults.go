@@ -32,7 +32,7 @@ func Default() UserFeatures {
 			PermanentlyDeleteOnDestroy: true,
 		},
 		ManagedDisk: ManagedDiskFeatures{
-			NoDowntimeResize: true,
+			ExpandWithoutDowntime: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,

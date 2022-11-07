@@ -64,7 +64,7 @@ type ApplicationInsightFeatures struct {
 }
 
 type ManagedDiskFeatures struct {
-	NoDowntimeResize bool
+	ExpandWithoutDowntime bool
 }
 
 type AppConfigurationFeatures struct {

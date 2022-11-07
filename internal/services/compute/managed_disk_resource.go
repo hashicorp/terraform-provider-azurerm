@@ -561,6 +561,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
+	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
+	skusClient := meta.(*clients.Client).Compute.SkusClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -672,11 +674,26 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("disk_size_gb") {
-		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			if !meta.(*clients.Client).Features.ManagedDisk.NoDowntimeResize || shutDownOnResize(disk.Model, old.(int), new.(int)) {
+		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
+			canBeResizedWithoutDowntime := false
+			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
+				diskSupportsNoDowntimeResize, err := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
+				if err != nil {
+					return fmt.Errorf("determining if the Disk supports no-downtime-resize: %+v", err)
+				}
+
+				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
+				if err != nil {
+					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
+				}
+
+				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
+			}
+			if !canBeResizedWithoutDowntime {
+				log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
 				shouldShutDown = true
 			}
-			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(new.(int)))
+			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(newSize.(int)))
 		} else {
 			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
 		}
@@ -1001,28 +1018,4 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
-}
-
-// shutDownOnResize implements live resize restrictions according to https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks#expand-without-downtime
-func shutDownOnResize(disk *disks.Disk, oldSizeGB, newSizeGB int) bool {
-	// OS disks can't be expanded without downtime.
-	if *disk.Properties.OsType != "" {
-		return true
-	}
-	// Disks smaller than 4 TiB can't be expanded to 4 TiB or larger without downtime.
-	if oldSizeGB < 4096 && newSizeGB >= 4096 {
-		return true
-	}
-	// Only  Premium SSD v1 and Standard SSD disks support live resize
-	for _, diskType := range []disks.DiskStorageAccountTypes{
-		disks.DiskStorageAccountTypesPremiumLRS,
-		disks.DiskStorageAccountTypesPremiumZRS,
-		disks.DiskStorageAccountTypesStandardSSDLRS,
-		disks.DiskStorageAccountTypesStandardSSDZRS,
-	} {
-		if *disk.Sku.Name == diskType {
-			return false
-		}
-	}
-	return true
 }

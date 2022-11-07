@@ -47,7 +47,7 @@ func TestExpandFeatures(t *testing.T) {
 					PermanentlyDeleteOnDestroy: true,
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
-					NoDowntimeResize: true,
+					ExpandWithoutDowntime: true,
 				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
@@ -113,7 +113,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"managed_disk": []interface{}{
 						map[string]interface{}{
-							"no_downtime_resize": true,
+							"expand_without_downtime": true,
 						},
 					},
 					"network": []interface{}{
@@ -177,7 +177,7 @@ func TestExpandFeatures(t *testing.T) {
 					PermanentlyDeleteOnDestroy: true,
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
-					NoDowntimeResize: true,
+					ExpandWithoutDowntime: true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
@@ -243,7 +243,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"managed_disk": []interface{}{
 						map[string]interface{}{
-							"no_downtime_resize": false,
+							"expand_without_downtime": false,
 						},
 					},
 					"network_locking": []interface{}{
@@ -307,7 +307,7 @@ func TestExpandFeatures(t *testing.T) {
 					PermanentlyDeleteOnDestroy: false,
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
-					NoDowntimeResize: false,
+					ExpandWithoutDowntime: false,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
@@ -1155,7 +1155,7 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				ManagedDisk: features.ManagedDiskFeatures{
-					NoDowntimeResize: true,
+					ExpandWithoutDowntime: true,
 				},
 			},
 		},
@@ -1165,14 +1165,14 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 				map[string]interface{}{
 					"managed_disk": []interface{}{
 						map[string]interface{}{
-							"no_downtime_resize": true,
+							"expand_without_downtime": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				ManagedDisk: features.ManagedDiskFeatures{
-					NoDowntimeResize: true,
+					ExpandWithoutDowntime: true,
 				},
 			},
 		},
@@ -1182,14 +1182,14 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 				map[string]interface{}{
 					"managed_disk": []interface{}{
 						map[string]interface{}{
-							"no_downtime_resize": false,
+							"expand_without_downtime": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				ManagedDisk: features.ManagedDiskFeatures{
-					NoDowntimeResize: false,
+					ExpandWithoutDowntime: false,
 				},
 			},
 		},
