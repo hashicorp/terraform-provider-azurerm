@@ -203,11 +203,21 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("host_name", props.HostName)
 
-		if err := d.Set("dns_zone_id", flattenResourceReference(props.AzureDNSZone)); err != nil {
+		dnsZoneId, err := flattenDNSZoneResourceReference(props.AzureDNSZone)
+		if err != nil {
+			return fmt.Errorf("flattening `dns_zone_id`: %+v", err)
+		}
+
+		if err := d.Set("dns_zone_id", dnsZoneId); err != nil {
 			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 		}
 
-		if err := d.Set("tls", flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)); err != nil {
+		tls, err := flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)
+		if err != nil {
+			return fmt.Errorf("flattening `tls`: %+v", err)
+		}
+
+		if err := d.Set("tls", tls); err != nil {
 			return fmt.Errorf("setting `tls`: %+v", err)
 		}
 
@@ -348,16 +358,21 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	return &tls, nil
 }
 
-func flattenCustomDomainAFDDomainHttpsParameters(input *cdn.AFDDomainHTTPSParameters) []interface{} {
+func flattenCustomDomainAFDDomainHttpsParameters(input *cdn.AFDDomainHTTPSParameters) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
+	}
+
+	secretId, err := flattenSecretResourceReference(input.Secret)
+	if err != nil {
+		return []interface{}{}, err
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"cdn_frontdoor_secret_id": flattenResourceReference(input.Secret),
+			"cdn_frontdoor_secret_id": secretId,
 			"certificate_type":        string(input.CertificateType),
 			"minimum_tls_version":     string(input.MinimumTLSVersion),
 		},
-	}
+	}, nil
 }
