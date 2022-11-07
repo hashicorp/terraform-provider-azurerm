@@ -10,6 +10,7 @@ var services = mapOf(
         "applicationinsights" to "Application Insights",
         "attestation" to "Attestation",
         "authorization" to "Authorization",
+        "automanage" to "Automanage",
         "automation" to "Automation",
         "azurestackhci" to "Azure Stack HCI",
         "batch" to "Batch",
