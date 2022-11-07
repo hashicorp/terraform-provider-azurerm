@@ -36,11 +36,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_automanage_configuration_profile":                 resourceAutomanageConfigurationProfile(),
-		"azurerm_automanage_configuration_profiles_version":        resourceAutomanageConfigurationProfilesVersion(),
-		"azurerm_automanage_configuration_profile_assignment":      resourceAutomanageConfigurationProfileAssignment(),
-		"azurerm_automanage_configuration_profile_hcrp_assignment": resourceAutomanageConfigurationProfileHCRPAssignment(),
-		"azurerm_automanage_configuration_profile_hci_assignment":  resourceAutomanageConfigurationProfileHCIAssignment(),
+		"azurerm_automanage_configuration_profile":                resourceAutomanageConfigurationProfile(),
+		"azurerm_automanage_configuration_profile_assignment":     resourceAutomanageConfigurationProfileAssignment(),
+		"azurerm_automanage_configuration_profile_hci_assignment": resourceAutomanageConfigurationProfileHCIAssignment(),
 	}
 }
 
