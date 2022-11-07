@@ -8,38 +8,39 @@ package automanage
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
-// ReportsClient is the automanage Client
-type ReportsClient struct {
+// HCIReportsClient is the automanage Client
+type HCIReportsClient struct {
 	BaseClient
 }
 
-// NewReportsClient creates an instance of the ReportsClient client.
-func NewReportsClient(subscriptionID string) ReportsClient {
-	return NewReportsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewHCIReportsClient creates an instance of the HCIReportsClient client.
+func NewHCIReportsClient(subscriptionID string) HCIReportsClient {
+	return NewHCIReportsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewReportsClientWithBaseURI creates an instance of the ReportsClient client using a custom endpoint.  Use this when
-// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewReportsClientWithBaseURI(baseURI string, subscriptionID string) ReportsClient {
-	return ReportsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewHCIReportsClientWithBaseURI creates an instance of the HCIReportsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewHCIReportsClientWithBaseURI(baseURI string, subscriptionID string) HCIReportsClient {
+	return HCIReportsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get get information about a report associated with a configuration profile assignment run
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
+// clusterName - the name of the Arc machine.
 // configurationProfileAssignmentName - the configuration profile assignment name.
 // reportName - the report name.
-// VMName - the name of the virtual machine.
-func (client ReportsClient) Get(ctx context.Context, resourceGroupName string, configurationProfileAssignmentName string, reportName string, VMName string) (result Report, err error) {
+func (client HCIReportsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string, reportName string) (result Report, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ReportsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/HCIReportsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -54,25 +55,25 @@ func (client ReportsClient) Get(ctx context.Context, resourceGroupName string, c
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automanage.ReportsClient", "Get", err.Error())
+		return result, validation.NewError("automanage.HCIReportsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, configurationProfileAssignmentName, reportName, VMName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, clusterName, configurationProfileAssignmentName, reportName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ReportsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "automanage.HCIReportsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "automanage.ReportsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automanage.HCIReportsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ReportsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "automanage.HCIReportsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -80,13 +81,13 @@ func (client ReportsClient) Get(ctx context.Context, resourceGroupName string, c
 }
 
 // GetPreparer prepares the Get request.
-func (client ReportsClient) GetPreparer(ctx context.Context, resourceGroupName string, configurationProfileAssignmentName string, reportName string, VMName string) (*http.Request, error) {
+func (client HCIReportsClient) GetPreparer(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string, reportName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"clusterName":                        autorest.Encode("path", clusterName),
 		"configurationProfileAssignmentName": autorest.Encode("path", configurationProfileAssignmentName),
 		"reportName":                         autorest.Encode("path", reportName),
 		"resourceGroupName":                  autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                     autorest.Encode("path", client.SubscriptionID),
-		"vmName":                             autorest.Encode("path", VMName),
 	}
 
 	const APIVersion = "2022-05-04"
@@ -97,20 +98,20 @@ func (client ReportsClient) GetPreparer(ctx context.Context, resourceGroupName s
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}/reports/{reportName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AzureStackHci/clusters/{clusterName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}/reports/{reportName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client ReportsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client HCIReportsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ReportsClient) GetResponder(resp *http.Response) (result Report, err error) {
+func (client HCIReportsClient) GetResponder(resp *http.Response) (result Report, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -123,11 +124,11 @@ func (client ReportsClient) GetResponder(resp *http.Response) (result Report, er
 // ListByConfigurationProfileAssignments retrieve a list of reports within a given configuration profile assignment
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
+// clusterName - the name of the Arc machine.
 // configurationProfileAssignmentName - the configuration profile assignment name.
-// VMName - the name of the virtual machine.
-func (client ReportsClient) ListByConfigurationProfileAssignments(ctx context.Context, resourceGroupName string, configurationProfileAssignmentName string, VMName string) (result ReportList, err error) {
+func (client HCIReportsClient) ListByConfigurationProfileAssignments(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (result ReportList, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ReportsClient.ListByConfigurationProfileAssignments")
+		ctx = tracing.StartSpan(ctx, fqdn+"/HCIReportsClient.ListByConfigurationProfileAssignments")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -142,25 +143,25 @@ func (client ReportsClient) ListByConfigurationProfileAssignments(ctx context.Co
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automanage.ReportsClient", "ListByConfigurationProfileAssignments", err.Error())
+		return result, validation.NewError("automanage.HCIReportsClient", "ListByConfigurationProfileAssignments", err.Error())
 	}
 
-	req, err := client.ListByConfigurationProfileAssignmentsPreparer(ctx, resourceGroupName, configurationProfileAssignmentName, VMName)
+	req, err := client.ListByConfigurationProfileAssignmentsPreparer(ctx, resourceGroupName, clusterName, configurationProfileAssignmentName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ReportsClient", "ListByConfigurationProfileAssignments", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "automanage.HCIReportsClient", "ListByConfigurationProfileAssignments", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListByConfigurationProfileAssignmentsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "automanage.ReportsClient", "ListByConfigurationProfileAssignments", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automanage.HCIReportsClient", "ListByConfigurationProfileAssignments", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListByConfigurationProfileAssignmentsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ReportsClient", "ListByConfigurationProfileAssignments", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "automanage.HCIReportsClient", "ListByConfigurationProfileAssignments", resp, "Failure responding to request")
 		return
 	}
 
@@ -168,12 +169,12 @@ func (client ReportsClient) ListByConfigurationProfileAssignments(ctx context.Co
 }
 
 // ListByConfigurationProfileAssignmentsPreparer prepares the ListByConfigurationProfileAssignments request.
-func (client ReportsClient) ListByConfigurationProfileAssignmentsPreparer(ctx context.Context, resourceGroupName string, configurationProfileAssignmentName string, VMName string) (*http.Request, error) {
+func (client HCIReportsClient) ListByConfigurationProfileAssignmentsPreparer(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"clusterName":                        autorest.Encode("path", clusterName),
 		"configurationProfileAssignmentName": autorest.Encode("path", configurationProfileAssignmentName),
 		"resourceGroupName":                  autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                     autorest.Encode("path", client.SubscriptionID),
-		"vmName":                             autorest.Encode("path", VMName),
 	}
 
 	const APIVersion = "2022-05-04"
@@ -184,20 +185,20 @@ func (client ReportsClient) ListByConfigurationProfileAssignmentsPreparer(ctx co
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}/reports", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AzureStackHci/clusters/{clusterName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}/reports", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListByConfigurationProfileAssignmentsSender sends the ListByConfigurationProfileAssignments request. The method will close the
 // http.Response Body if it receives an error.
-func (client ReportsClient) ListByConfigurationProfileAssignmentsSender(req *http.Request) (*http.Response, error) {
+func (client HCIReportsClient) ListByConfigurationProfileAssignmentsSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByConfigurationProfileAssignmentsResponder handles the response to the ListByConfigurationProfileAssignments request. The method always
 // closes the http.Response Body.
-func (client ReportsClient) ListByConfigurationProfileAssignmentsResponder(resp *http.Response) (result ReportList, err error) {
+func (client HCIReportsClient) ListByConfigurationProfileAssignmentsResponder(resp *http.Response) (result ReportList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

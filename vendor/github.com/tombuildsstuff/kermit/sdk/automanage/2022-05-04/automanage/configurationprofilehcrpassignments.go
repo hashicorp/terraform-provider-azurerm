@@ -8,41 +8,42 @@ package automanage
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
-// ConfigurationProfileHCIAssignmentsClient is the automanage Client
-type ConfigurationProfileHCIAssignmentsClient struct {
+// ConfigurationProfileHCRPAssignmentsClient is the automanage Client
+type ConfigurationProfileHCRPAssignmentsClient struct {
 	BaseClient
 }
 
-// NewConfigurationProfileHCIAssignmentsClient creates an instance of the ConfigurationProfileHCIAssignmentsClient
+// NewConfigurationProfileHCRPAssignmentsClient creates an instance of the ConfigurationProfileHCRPAssignmentsClient
 // client.
-func NewConfigurationProfileHCIAssignmentsClient(subscriptionID string) ConfigurationProfileHCIAssignmentsClient {
-	return NewConfigurationProfileHCIAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewConfigurationProfileHCRPAssignmentsClient(subscriptionID string) ConfigurationProfileHCRPAssignmentsClient {
+	return NewConfigurationProfileHCRPAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewConfigurationProfileHCIAssignmentsClientWithBaseURI creates an instance of the
-// ConfigurationProfileHCIAssignmentsClient client using a custom endpoint.  Use this when interacting with an Azure
+// NewConfigurationProfileHCRPAssignmentsClientWithBaseURI creates an instance of the
+// ConfigurationProfileHCRPAssignmentsClient client using a custom endpoint.  Use this when interacting with an Azure
 // cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewConfigurationProfileHCIAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) ConfigurationProfileHCIAssignmentsClient {
-	return ConfigurationProfileHCIAssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewConfigurationProfileHCRPAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) ConfigurationProfileHCRPAssignmentsClient {
+	return ConfigurationProfileHCRPAssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates an association between a AzureStackHCI cluster and Automanage configuration profile
+// CreateOrUpdate creates an association between a ARC machine and Automanage configuration profile
 // Parameters:
 // parameters - parameters supplied to the create or update configuration profile assignment.
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// clusterName - the name of the Arc machine.
+// machineName - the name of the Arc machine.
 // configurationProfileAssignmentName - name of the configuration profile assignment. Only default is
 // supported.
-func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdate(ctx context.Context, parameters ConfigurationProfileAssignment, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (result ConfigurationProfileAssignment, err error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) CreateOrUpdate(ctx context.Context, parameters ConfigurationProfileAssignment, resourceGroupName string, machineName string, configurationProfileAssignmentName string) (result ConfigurationProfileAssignment, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationProfileHCIAssignmentsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationProfileHCRPAssignmentsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -57,25 +58,25 @@ func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdate(ctx contex
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automanage.ConfigurationProfileHCIAssignmentsClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewError("automanage.ConfigurationProfileHCRPAssignmentsClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, parameters, resourceGroupName, clusterName, configurationProfileAssignmentName)
+	req, err := client.CreateOrUpdatePreparer(ctx, parameters, resourceGroupName, machineName, configurationProfileAssignmentName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateOrUpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "CreateOrUpdate", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "CreateOrUpdate", resp, "Failure responding to request")
 		return
 	}
 
@@ -83,10 +84,10 @@ func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdate(ctx contex
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdatePreparer(ctx context.Context, parameters ConfigurationProfileAssignment, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (*http.Request, error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) CreateOrUpdatePreparer(ctx context.Context, parameters ConfigurationProfileAssignment, resourceGroupName string, machineName string, configurationProfileAssignmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"clusterName":                        autorest.Encode("path", clusterName),
 		"configurationProfileAssignmentName": autorest.Encode("path", configurationProfileAssignmentName),
+		"machineName":                        autorest.Encode("path", machineName),
 		"resourceGroupName":                  autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                     autorest.Encode("path", client.SubscriptionID),
 	}
@@ -102,7 +103,7 @@ func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdatePreparer(ct
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AzureStackHci/clusters/{clusterName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HybridCompute/machines/{machineName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -110,13 +111,13 @@ func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdatePreparer(ct
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result ConfigurationProfileAssignment, err error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result ConfigurationProfileAssignment, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -129,11 +130,11 @@ func (client ConfigurationProfileHCIAssignmentsClient) CreateOrUpdateResponder(r
 // Delete delete a configuration profile assignment
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// clusterName - the name of the Arc machine.
+// machineName - the name of the Arc machine.
 // configurationProfileAssignmentName - name of the configuration profile assignment
-func (client ConfigurationProfileHCIAssignmentsClient) Delete(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (result autorest.Response, err error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) Delete(ctx context.Context, resourceGroupName string, machineName string, configurationProfileAssignmentName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationProfileHCIAssignmentsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationProfileHCRPAssignmentsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -143,30 +144,30 @@ func (client ConfigurationProfileHCIAssignmentsClient) Delete(ctx context.Contex
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automanage.ConfigurationProfileHCIAssignmentsClient", "Delete", err.Error())
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automanage.ConfigurationProfileHCRPAssignmentsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, clusterName, configurationProfileAssignmentName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, machineName, configurationProfileAssignmentName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "Delete", resp, "Failure responding to request")
 		return
 	}
 
@@ -174,10 +175,10 @@ func (client ConfigurationProfileHCIAssignmentsClient) Delete(ctx context.Contex
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ConfigurationProfileHCIAssignmentsClient) DeletePreparer(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (*http.Request, error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) DeletePreparer(ctx context.Context, resourceGroupName string, machineName string, configurationProfileAssignmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"clusterName":                        autorest.Encode("path", clusterName),
 		"configurationProfileAssignmentName": autorest.Encode("path", configurationProfileAssignmentName),
+		"machineName":                        autorest.Encode("path", machineName),
 		"resourceGroupName":                  autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                     autorest.Encode("path", client.SubscriptionID),
 	}
@@ -190,20 +191,20 @@ func (client ConfigurationProfileHCIAssignmentsClient) DeletePreparer(ctx contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AzureStackHci/clusters/{clusterName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HybridCompute/machines/{machineName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client ConfigurationProfileHCIAssignmentsClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client ConfigurationProfileHCIAssignmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -215,11 +216,11 @@ func (client ConfigurationProfileHCIAssignmentsClient) DeleteResponder(resp *htt
 // Get get information about a configuration profile assignment
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// clusterName - the name of the Arc machine.
+// machineName - the name of the Arc machine.
 // configurationProfileAssignmentName - the configuration profile assignment name.
-func (client ConfigurationProfileHCIAssignmentsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (result ConfigurationProfileAssignment, err error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) Get(ctx context.Context, resourceGroupName string, machineName string, configurationProfileAssignmentName string) (result ConfigurationProfileAssignment, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationProfileHCIAssignmentsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationProfileHCRPAssignmentsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -234,25 +235,25 @@ func (client ConfigurationProfileHCIAssignmentsClient) Get(ctx context.Context, 
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automanage.ConfigurationProfileHCIAssignmentsClient", "Get", err.Error())
+		return result, validation.NewError("automanage.ConfigurationProfileHCRPAssignmentsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, clusterName, configurationProfileAssignmentName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, machineName, configurationProfileAssignmentName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCIAssignmentsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "automanage.ConfigurationProfileHCRPAssignmentsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -260,10 +261,10 @@ func (client ConfigurationProfileHCIAssignmentsClient) Get(ctx context.Context, 
 }
 
 // GetPreparer prepares the Get request.
-func (client ConfigurationProfileHCIAssignmentsClient) GetPreparer(ctx context.Context, resourceGroupName string, clusterName string, configurationProfileAssignmentName string) (*http.Request, error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) GetPreparer(ctx context.Context, resourceGroupName string, machineName string, configurationProfileAssignmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"clusterName":                        autorest.Encode("path", clusterName),
 		"configurationProfileAssignmentName": autorest.Encode("path", configurationProfileAssignmentName),
+		"machineName":                        autorest.Encode("path", machineName),
 		"resourceGroupName":                  autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                     autorest.Encode("path", client.SubscriptionID),
 	}
@@ -276,20 +277,20 @@ func (client ConfigurationProfileHCIAssignmentsClient) GetPreparer(ctx context.C
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AzureStackHci/clusters/{clusterName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HybridCompute/machines/{machineName}/providers/Microsoft.Automanage/configurationProfileAssignments/{configurationProfileAssignmentName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client ConfigurationProfileHCIAssignmentsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ConfigurationProfileHCIAssignmentsClient) GetResponder(resp *http.Response) (result ConfigurationProfileAssignment, err error) {
+func (client ConfigurationProfileHCRPAssignmentsClient) GetResponder(resp *http.Response) (result ConfigurationProfileAssignment, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

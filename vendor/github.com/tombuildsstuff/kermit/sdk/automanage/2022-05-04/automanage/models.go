@@ -8,12 +8,13 @@ package automanage
 
 import (
 	"encoding/json"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 )
 
 // The package's fully qualified name.
-const fqdn = "home/yunliu/sdkoutput/"
+const fqdn = "home/runner/work/kermit/kermit/sdk/automanage/2022-05-04/automanage"
 
 // AssignmentReportProperties data related to the report detail.
 type AssignmentReportProperties struct {
