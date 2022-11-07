@@ -13,84 +13,88 @@ Manages a automanage ConfigurationProfileAssignment.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" {
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
   name     = "example-automanage"
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "example" {
+resource "azurerm_virtual_network" "test" {
   name                = "example-VN"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "example" {
+resource "azurerm_subnet" "test" {
   name                 = "example-sub"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes       = ["10.0.2.0/24"]
 }
 
-resource "azurerm_public_ip" "example" {
+resource "azurerm_public_ip" "test" {
   name                = "examplepublicip"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
-resource "azurerm_network_interface" "examplesource" {
+resource "azurerm_network_interface" "testsource" {
   name                = "acctnicsource"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
-    name                          = "exampleconfigurationsource"
-    subnet_id                     = azurerm_subnet.example.id
+    name                          = "testconfigurationsource"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.example.id
+    public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
 
-resource "azurerm_storage_account" "example" {
+resource "azurerm_storage_account" "test" {
   name                     = "examplesads"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "example" {
-  name                  = "acctexample-sc"
-  storage_account_name  = azurerm_storage_account.example.name
+resource "azurerm_storage_container" "test" {
+  name                  = "accttest-sc"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "blob"
 }
 
-resource "azurerm_virtual_machine" "example" {
+resource "azurerm_virtual_machine" "test" {
   name                  = "example-vm"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = [azurerm_network_interface.example.id]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2012-Datacenter"
-    version   = "laexample"
+    version   = "latest"
   }
 
   storage_os_disk {
     name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}/myosdisk1.vhd"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
   }
 
   os_profile {
     computer_name  = "winhost01"
-    admin_username = "exampleadmin"
-    admin_password = "Password1234!"
+    admin_username = "testadmin"
+    admin_password = "Password1234567!"
   }
 
   os_profile_windows_config {
@@ -98,10 +102,11 @@ resource "azurerm_virtual_machine" "example" {
   }
 }
 
-resource "azurerm_automanage_configuration_profile_assignment" "example" {
-  name = "example-configurationprofileassignment"
-  resource_group_name = azurerm_resource_group.example.name
-  vm_name = azurerm_virtual_machine.example.name
+resource "azurerm_automanage_configuration_profile_assignment" "test" {
+  name = "default"
+  resource_group_name = azurerm_resource_group.test.name
+  vm_name = azurerm_virtual_machine.test.name
+  configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
 ```
 
@@ -115,9 +120,7 @@ The following arguments are supported:
 
 * `vm_name` - (Required) The name of the virtual machine. Changing this forces a new automanage ConfigurationProfileAssignment to be created.
 
----
-
-* `configuration_profile` - (Optional) The Automanage configurationProfile ARM Resource URI.
+* `configuration_profile` - (Required) The Automanage configurationProfile ARM Resource URI.
 
 ## Attributes Reference
 

@@ -13,95 +13,30 @@ Manages a automanage ConfigurationProfileHCIAssignment.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" {
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
   name     = "example-automanage"
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "example" {
-  name                = "example-VN"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_stack_hci_cluster" "test" {
+  name                = "example-azshci"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  client_id           = data.azurerm_client_config.current.client_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 
-resource "azurerm_subnet" "example" {
-  name                 = "example-sub"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_public_ip" "example" {
-  name                = "examplepublicip"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Static"
-}
-
-resource "azurerm_network_interface" "examplesource" {
-  name                = "acctnicsource"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  ip_configuration {
-    name                          = "exampleconfigurationsource"
-    subnet_id                     = azurerm_subnet.example.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.example.id
-  }
-}
-
-resource "azurerm_storage_account" "example" {
-  name                     = "examplesads"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "example" {
-  name                  = "acctexample-sc"
-  storage_account_name  = azurerm_storage_account.example.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "example" {
-  name                  = "example-vm"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2012-Datacenter"
-    version   = "laexample"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "winhost01"
-    admin_username = "exampleadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_windows_config {
-    timezone = "Pacific Standard Time"
-  }
-}
-
-resource "azurerm_automanage_configuration_profile_assignment" "example" {
-  name = "example-configurationprofileassignment"
-  resource_group_name = azurerm_resource_group.example.name
-  vm_name = azurerm_virtual_machine.example.name
+resource "azurerm_automanage_configuration_profile_hci_assignment" "test" {
+  name = "default"
+  resource_group_name = azurerm_resource_group.test.name
+  cluster_name = azurerm_stack_hci_cluster.test.name
+  configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
 ```
 
@@ -115,9 +50,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) The name of the Arc machine. Changing this forces a new automanage ConfigurationProfileHCIAssignment to be created.
 
----
-
-* `configuration_profile` - (Optional) The Automanage configurationProfile ARM Resource URI.
+* `configuration_profile` - (Required) The Automanage configurationProfile ARM Resource URI.
 
 ## Attributes Reference
 
