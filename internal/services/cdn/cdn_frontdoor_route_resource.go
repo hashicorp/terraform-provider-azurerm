@@ -326,7 +326,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorRouteIDInsensitively(d.Id())
+	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
 	}
