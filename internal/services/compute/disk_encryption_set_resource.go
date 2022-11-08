@@ -80,6 +80,12 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"federated_client_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 			"tags": commonschema.Tags(),
@@ -126,6 +132,8 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	encryptionType := diskencryptionsets.DiskEncryptionSetType(d.Get("encryption_type").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	federatedClientId := d.Get("federated_client_id").(string)
+
 	expandedIdentity, err := expandDiskEncryptionSetIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -139,6 +147,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 			},
 			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 			EncryptionType:                    &encryptionType,
+			FederatedClientId:                 &federatedClientId,
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(t),
@@ -205,6 +214,12 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			encryptionType = string(*props.EncryptionType)
 		}
 		d.Set("encryption_type", encryptionType)
+
+		federatedClientId := ""
+		if props.FederatedClientId != nil {
+			federatedClientId = *props.FederatedClientId
+		}
+		d.Set("federated_client_id", federatedClientId)
 	}
 
 	flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
@@ -271,6 +286,18 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		update.Properties.RotationToLatestKeyVersionEnabled = utils.Bool(d.Get("auto_key_rotation_enabled").(bool))
+	}
+
+	if d.HasChange("federated_client_id") {
+		if update.Properties == nil {
+			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{}
+		}
+		v, ok := d.GetOk("federated_client_id")
+		if ok {
+			update.Properties.FederatedClientId = utils.String(v.(string))
+		} else {
+			update.Properties.FederatedClientId = utils.String("None") // this is the only way to remove the federated client id
+		}
 	}
 
 	err = client.UpdateThenPoll(ctx, *id, update)
