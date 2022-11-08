@@ -125,9 +125,10 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									// NOTE: it is valid for the query string to be an empty string.
 									// Leave blank to preserve the incoming query string. Issue #18249
 									"query_string": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      "",
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "",
+										// Update validation logic to match RP. Issue #19097
 										ValidateFunc: validate.CdnFrontDoorUrlRedirectActionQueryString,
 									},
 
