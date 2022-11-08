@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,6 +30,7 @@ type DataConnectorThreatIntelligenceTAXIIModel struct {
 	UserName                string `tfschema:"user_name"`
 	Password                string `tfschema:"password"`
 	PollingFrequency        string `tfschema:"polling_frequency"`
+	LookbackDate            string `tfschema:"lookback_date"`
 	TenantId                string `tfschema:"tenant_id"`
 }
 
@@ -73,12 +76,20 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Arguments() map[string]*pl
 		},
 		"polling_frequency": {
 			Type:     pluginsdk.TypeString,
-			Required: true,
+			Optional: true,
+			Default:  string(securityinsight.PollingFrequencyOnceAnHour),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(securityinsight.PollingFrequencyOnceADay),
-				string(securityinsight.PollingFrequencyOnceAnHour),
 				string(securityinsight.PollingFrequencyOnceAMinute),
-			}, false),
+				string(securityinsight.PollingFrequencyOnceAnHour),
+				string(securityinsight.PollingFrequencyOnceADay),
+			},
+				false),
+		},
+		"lookback_date": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "1970-01-01T00:00:00Z",
+			ValidateFunc: validation.IsRFC3339Time,
 		},
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
@@ -161,17 +172,20 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 				tenantId = metadata.Client.Account.TenantId
 			}
 
+			// Format is guaranteed by schema validation
+			lookbackDate, _ := time.Parse(time.RFC3339, plan.LookbackDate)
+
 			params := securityinsight.TiTaxiiDataConnector{
 				Name: &plan.Name,
 				TiTaxiiDataConnectorProperties: &securityinsight.TiTaxiiDataConnectorProperties{
-					WorkspaceID:  &wspId,
-					FriendlyName: &plan.DisplayName,
-					TaxiiServer:  &plan.APIRootURL,
-					CollectionID: &plan.CollectionID,
-					// TaxiiLookbackPeriod: &date.Time{
-					// 	Time: time.Time{},
-					// },
+					WorkspaceID:      &wspId,
+					FriendlyName:     &plan.DisplayName,
+					TaxiiServer:      &plan.APIRootURL,
+					CollectionID:     &plan.CollectionID,
 					PollingFrequency: securityinsight.PollingFrequency(plan.PollingFrequency),
+					TaxiiLookbackPeriod: &date.Time{
+						Time: lookbackDate,
+					},
 					DataTypes: &securityinsight.TiTaxiiDataConnectorDataTypes{
 						TaxiiClient: &securityinsight.TiTaxiiDataConnectorDataTypesTaxiiClient{
 							State: securityinsight.DataTypeStateEnabled,
@@ -206,6 +220,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
+			wrapperClient := azuresdkhacks.DataConnectorsClient{BaseClient: client.BaseClient}
 
 			var state DataConnectorThreatIntelligenceTAXIIModel
 			if err := metadata.Decode(&state); err != nil {
@@ -219,7 +234,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 
 			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := wrapperClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return metadata.MarkAsGone(id)
@@ -227,7 +242,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			dc, ok := existing.Value.(securityinsight.TiTaxiiDataConnector)
+			dc, ok := existing.Value.(azuresdkhacks.TiTaxiiDataConnector)
 			if !ok {
 				return fmt.Errorf("%s was not an Threat Intelligence TAXII Data Connector", id)
 			}
@@ -256,6 +271,10 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 				}
 
 				model.PollingFrequency = string(props.PollingFrequency)
+
+				if props.TaxiiLookbackPeriod != nil {
+					model.LookbackDate = props.TaxiiLookbackPeriod.Format(time.RFC3339)
+				}
 
 				if props.TenantID != nil {
 					model.TenantId = *props.TenantID
