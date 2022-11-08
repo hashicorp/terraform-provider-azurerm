@@ -23,6 +23,7 @@ Confidential Ledger
 Connections
 Consumption
 Container
+Containers
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
@@ -49,7 +50,6 @@ Healthcare
 IoT Central
 IoT Hub
 Key Vault
-Kubernetes Fleet Manager
 Lighthouse
 Load Balancer
 Load Test

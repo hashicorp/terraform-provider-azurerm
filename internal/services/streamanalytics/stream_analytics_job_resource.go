@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,6 +130,47 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
 			},
 
+			"content_storage_policy": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.ContentStoragePolicySystemAccount),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.ContentStoragePolicySystemAccount),
+					string(streamanalytics.ContentStoragePolicyJobStorageAccount),
+				}, false),
+			},
+
+			"job_storage_account": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"authentication_mode": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(streamanalytics.AuthenticationModeConnectionString),
+								string(streamanalytics.AuthenticationModeMsi),
+								string(streamanalytics.AuthenticationModeUserToken),
+							}, false),
+						},
+
+						"account_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"account_key": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"transformation_query": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -182,6 +224,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	outputErrorPolicy := d.Get("output_error_policy").(string)
 	transformationQuery := d.Get("transformation_query").(string)
+	contentStoragePolicy := d.Get("content_storage_policy").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	// needs to be defined inline for a Create but via a separate API for Update
@@ -216,6 +259,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			Sku: &streamanalytics.Sku{
 				Name: streamanalytics.SkuNameStandard,
 			},
+			ContentStoragePolicy:               streamanalytics.ContentStoragePolicy(contentStoragePolicy),
 			CompatibilityLevel:                 streamanalytics.CompatibilityLevel(compatibilityLevel),
 			EventsLateArrivalMaxDelayInSeconds: utils.Int32(int32(eventsLateArrivalMaxDelayInSeconds)),
 			EventsOutOfOrderMaxDelayInSeconds:  utils.Int32(int32(eventsOutOfOrderMaxDelayInSeconds)),
@@ -225,6 +269,14 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(t),
+	}
+
+	if contentStoragePolicy == string(streamanalytics.ContentStoragePolicyJobStorageAccount) {
+		if v, ok := d.GetOk("job_storage_account"); ok {
+			props.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
+		} else {
+			return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
+		}
 	}
 
 	if jobType == string(streamanalytics.JobTypeEdge) {
@@ -327,6 +379,8 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
 		d.Set("type", string(props.JobType))
+		d.Set("content_storage_policy", string(props.ContentStoragePolicy))
+		d.Set("job_storage_account", flattenJobStorageAccount(d, props.JobStorageAccount))
 
 		// Computed
 		d.Set("job_id", props.JobID)
@@ -409,6 +463,37 @@ func flattenJobIdentity(identity *streamanalytics.Identity) []interface{} {
 			"type":         t,
 			"tenant_id":    tenantId,
 			"principal_id": principalId,
+		},
+	}
+}
+
+func expandJobStorageAccount(input []interface{}) *streamanalytics.JobStorageAccount {
+	if input == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	authenticationMode := v["authentication_mode"].(string)
+	accountName := v["account_name"].(string)
+	accountKey := v["account_key"].(string)
+
+	return &streamanalytics.JobStorageAccount{
+		AuthenticationMode: streamanalytics.AuthenticationMode(authenticationMode),
+		AccountName:        utils.String(accountName),
+		AccountKey:         utils.String(accountKey),
+	}
+}
+
+func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamanalytics.JobStorageAccount) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"authentication_mode": string(input.AuthenticationMode),
+			"account_name":        *input.AccountName,
+			"account_key":         d.Get("job_storage_account.0.account_key").(string),
 		},
 	}
 }

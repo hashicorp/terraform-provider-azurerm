@@ -61,6 +61,8 @@ The following arguments are supported:
 
 * `sql_connectivity_update_username` - (Optional) The SQL Server sysadmin login to create.
 
+* `sql_instance` - (Optional) A `sql_instance` block as defined below.
+
 * `storage_configuration` - (Optional) An `storage_configuration` block as defined below.
 
 * `assessment` - (Optional) An `assessment` block as defined below.
@@ -121,6 +123,26 @@ The `key_vault_credential` block supports the following:
 
 ---
 
+The `sql_instance` block supports the following:
+
+* `adhoc_workloads_optimization_enabled` - (Optional) Specifies if the SQL Server is optimized for adhoc workloads. Possible values are `true` and `false`. Defaults to `false`.
+
+* `collation` - (Optional) Collation of the SQL Server. Defaults to `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
+
+* `instant_file_initialization_enabled` - (Optional) Specifies if Instant File Initialization is enabled for the SQL Server. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `lock_pages_in_memory_enabled` - (Optional) Specifies if Lock Pages in Memory is enabled for the SQL Server. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `max_dop` - (Optional) Maximum Degree of Parallelism of the SQL Server. Possible values are between `0` and `32767`. Defaults to `0`.
+
+* `max_server_memory_mb` - (Optional) Maximum amount memory that SQL Server Memory Manager can allocate to the SQL Server process. Possible values are between `128` and `2147483647` Defaults to `2147483647`.
+
+* `min_server_memory_mb` - (Optional) Minimum amount memory that SQL Server Memory Manager can allocate to the SQL Server process. Possible values are between `0` and `2147483647` Defaults to `0`.
+
+~> **NOTE:** `max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`
+
+---
+
 The `storage_configuration` block supports the following:
 
 * `disk_type` - (Required) The type of disk configuration to apply to the SQL Server. Valid values include `NEW`, `EXTEND`, or `ADD`.
@@ -130,6 +152,8 @@ The `storage_configuration` block supports the following:
 * `data_settings` - (Optional) An `storage_settings` as defined below.
 
 * `log_settings` - (Optional) An `storage_settings` as defined below.
+
+* `system_db_on_data_disk_enabled` - (Optional) Specifies whether to set system databases (except tempDb) location to newly created data storage. Possible values are `true` and `false`. Defaults to `false`.
 
 * `temp_db_settings` - (Optional) An `temp_db_settings` as defined below.
 

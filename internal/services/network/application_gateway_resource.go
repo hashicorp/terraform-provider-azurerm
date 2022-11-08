@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -26,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 // See https://github.com/Azure/azure-sdk-for-go/blob/master/services/network/mgmt/2018-04-01/network/models.go
@@ -4375,6 +4375,10 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 		defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string)
 		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
 		defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string)
+
+		if defaultBackendAddressPoolName == "" && defaultBackendHTTPSettingsName == "" && defaultRedirectConfigurationName == "" {
+			return nil, fmt.Errorf("both the `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` must be specified")
+		}
 
 		if defaultBackendAddressPoolName != "" && defaultRedirectConfigurationName != "" {
 			return nil, fmt.Errorf("Conflict between `default_backend_address_pool_name` and `default_redirect_configuration_name` (back-end pool not applicable when redirection specified)")

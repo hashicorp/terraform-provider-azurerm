@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
@@ -30,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 	"golang.org/x/net/context"
 )
 

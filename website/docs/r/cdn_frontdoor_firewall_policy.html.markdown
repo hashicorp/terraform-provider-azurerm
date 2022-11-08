@@ -197,11 +197,13 @@ A `match_condition` block supports the following:
 
 A `managed_rule` block supports the following:
 
-* `type` - (Required) The name of the managed rule to use with this resource.
+* `type` - (Required) The name of the managed rule to use with this resource. Possible values include `DefaultRuleSet`, `Microsoft_DefaultRuleSet`, `BotProtection` or `Microsoft_BotManagerRuleSet`.
 
-* `version` - (Required) The version on the managed rule to use with this resource.
+* `version` - (Required) The version of the managed rule to use with this resource. Possible values depends on which DRS type you are using, for the `DefaultRuleSet` type the possible values include `1.0` or `preview-0.1`. For `Microsoft_DefaultRuleSet` the possible values include `1.1`, `2.0` or `2.1`. For `BotProtection` the value must be `preview-0.1` and for `Microsoft_BotManagerRuleSet` the value must be `1.0`.
 
-* `action` - (Required) The action to perform when the managed rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
+* `action` - (Required) The action to perform when the managed rule is matched. Possible values depends on which DRS version you are using, for DRS `1.0`, `1.1` and `preview-0.1` the possible values include `Allow`, `Block`, `Log`, or `Redirect`. For DRS `2.0` and `2.1` the value must be `AnomalyScoring`.
+
+->**NOTE:** Please see the DRS [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) for more information.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
