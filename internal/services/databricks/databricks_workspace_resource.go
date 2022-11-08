@@ -91,6 +91,19 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
 
+			"managed_disk_cmk_key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+			},
+
+			"managed_disk_cmk_rotation_to_latest_version_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"managed_disk_cmk_key_vault_key_id"},
+			},
+
 			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -408,23 +421,22 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// Set up customer-managed keys for managed services encryption (e.g. notebook)
 	setEncrypt := false
 	encrypt := &workspaces.WorkspacePropertiesEncryption{}
-	keyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
-	if keyIdRaw != "" {
+	encrypt.Entities = workspaces.EncryptionEntitiesDefinition{}
+	servicesKeyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
+	if servicesKeyIdRaw != "" {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(keyIdRaw)
+		key, err := keyVaultParse.ParseNestedItemID(servicesKeyIdRaw)
 		if err != nil {
 			return err
 		}
 
-		encrypt.Entities = workspaces.EncryptionEntitiesDefinition{
-			ManagedServices: &workspaces.EncryptionV2{
-				// There is only one valid source for this field at this point in time so I have hardcoded the value
-				KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
-				KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
-					KeyName:     key.Name,
-					KeyVersion:  key.Version,
-					KeyVaultUri: key.KeyVaultBaseUrl,
-				},
+		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
+			// There is only one valid source for this field at this point in time so I have hardcoded the value
+			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
+			KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
+				KeyName:     key.Name,
+				KeyVersion:  key.Version,
+				KeyVaultUri: key.KeyVaultBaseUrl,
 			},
 		}
 
@@ -432,6 +444,36 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
 		if err != nil || keyVaultIdRaw == nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+		}
+	}
+
+	diskKeyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
+	if diskKeyIdRaw != "" {
+		setEncrypt = true
+		key, err := keyVaultParse.ParseNestedItemID(diskKeyIdRaw)
+		if err != nil {
+			return err
+		}
+
+		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
+			// There is only one valid source for this field at this point in time so I have hardcoded the value
+			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
+			KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
+				KeyName:     key.Name,
+				KeyVersion:  key.Version,
+				KeyVaultUri: key.KeyVaultBaseUrl,
+			},
+		}
+
+		rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool)
+		if rotationEnabled {
+
+		}
+
+		// make sure the key vault exists
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+		if err != nil || keyVaultIdRaw == nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 		}
 	}
 
@@ -490,8 +532,12 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
 	}
 
-	if encrypt != nil && keyIdRaw != "" {
-		d.Set("managed_services_cmk_key_vault_key_id", keyIdRaw)
+	if encrypt != nil && servicesKeyIdRaw != "" {
+		d.Set("managed_services_cmk_key_vault_key_id", servicesKeyIdRaw)
+	}
+
+	if encrypt != nil && diskKeyIdRaw != "" {
+		d.Set("managed_disk_cmk_key_vault_key_id", diskKeyIdRaw)
 	}
 
 	return resourceDatabricksWorkspaceRead(d, meta)
@@ -601,6 +647,37 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
 			}
 		}
+		// customer managed key for managed disk
+		encryptDiskKeyName := ""
+		encryptDiskKeyVersion := ""
+		encryptDiskKeyVaultURI := ""
+		encryptDiskRotationEnabled := false
+
+		if encryption := model.Properties.Encryption; encryption != nil {
+			if encryptionProps := encryption.Entities.ManagedDisk; encryptionProps != nil {
+				encryptDiskKeyName = encryptionProps.KeyVaultProperties.KeyName
+				encryptDiskKeyVersion = encryptionProps.KeyVaultProperties.KeyVersion
+				encryptDiskKeyVaultURI = encryptionProps.KeyVaultProperties.KeyVaultUri
+				encryptDiskRotationEnabled = *encryptionProps.RotationToLatestKeyVersionEnabled
+			}
+
+		}
+
+		if encryptKeyVaultURI != "" {
+			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
+			if err == nil {
+				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
+			}
+		}
+
+		if encryptDiskKeyVaultURI != "" {
+			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, "keys", encryptDiskKeyName, encryptDiskKeyVersion)
+			if err == nil {
+				d.Set("managed_disk_cmk_key_vault_key_id", key.ID())
+			}
+			d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
+		}
+
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 
