@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS
 
+* dependencies: updating to `v0.20221108.1145701` of `github.com/hashicorp/go-azure-sdk` [GH-19193]
 * dependencies: updating `network` to API Version `2022-05-01` [GH-19124]
 * dependencies: updating `sentinel` to API Version `2022-10-01-preview` [GH-19161]
 * `azurerm_mssql_virtual_machine` - support for the `sql_instance` block [GH-19123]
