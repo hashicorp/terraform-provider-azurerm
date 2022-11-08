@@ -249,7 +249,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
 	deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 	if err != nil {
-		if !response.WasNotFound(deleted.HttpResponse) {
+		if !response.WasNotFound(deleted.HttpResponse) && !response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
 			return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
 		}
 	}
