@@ -2656,6 +2656,10 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableMongo"
   }
 
+  capabilities {
+    name = "EnableMongo16MBDocumentSupport"
+  }
+
   consistency_policy {
     consistency_level = "%s"
   }
