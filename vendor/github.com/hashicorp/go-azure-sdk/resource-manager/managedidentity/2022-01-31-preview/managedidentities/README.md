@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentities` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities` Documentation
 
-The `managedidentities` SDK allows for interaction with the Azure Resource Manager Service `managedidentity` (API Version `2018-11-30`).
+The `managedidentities` SDK allows for interaction with the Azure Resource Manager Service `managedidentity` (API Version `2022-01-31-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentities"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities"
 ```
 
 
@@ -17,6 +17,76 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-
 ```go
 client := managedidentities.NewManagedIdentitiesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `ManagedIdentitiesClient.FederatedIdentityCredentialsCreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "federatedIdentityCredentialResourceValue")
+
+payload := managedidentities.FederatedIdentityCredential{
+	// ...
+}
+
+
+read, err := client.FederatedIdentityCredentialsCreateOrUpdate(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ManagedIdentitiesClient.FederatedIdentityCredentialsDelete`
+
+```go
+ctx := context.TODO()
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "federatedIdentityCredentialResourceValue")
+
+read, err := client.FederatedIdentityCredentialsDelete(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ManagedIdentitiesClient.FederatedIdentityCredentialsGet`
+
+```go
+ctx := context.TODO()
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "federatedIdentityCredentialResourceValue")
+
+read, err := client.FederatedIdentityCredentialsGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ManagedIdentitiesClient.FederatedIdentityCredentialsList`
+
+```go
+ctx := context.TODO()
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+
+// alternatively `client.FederatedIdentityCredentialsList(ctx, id, managedidentities.DefaultFederatedIdentityCredentialsListOperationOptions())` can be used to do batched pagination
+items, err := client.FederatedIdentityCredentialsListComplete(ctx, id, managedidentities.DefaultFederatedIdentityCredentialsListOperationOptions())
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
 ```
 
 
@@ -85,6 +155,23 @@ if err != nil {
 }
 if model := read.Model; model != nil {
 	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ManagedIdentitiesClient.UserAssignedIdentitiesListAssociatedResources`
+
+```go
+ctx := context.TODO()
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+
+// alternatively `client.UserAssignedIdentitiesListAssociatedResources(ctx, id, managedidentities.DefaultUserAssignedIdentitiesListAssociatedResourcesOperationOptions())` can be used to do batched pagination
+items, err := client.UserAssignedIdentitiesListAssociatedResourcesComplete(ctx, id, managedidentities.DefaultUserAssignedIdentitiesListAssociatedResourcesOperationOptions())
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 
