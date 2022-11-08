@@ -38,6 +38,12 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"target_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
 		"maximum_bytes_per_packet": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
@@ -119,6 +125,34 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
+					},
+				},
+			},
+		},
+
+		"scope": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"exclude": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"include": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
 					},
 				},
 			},

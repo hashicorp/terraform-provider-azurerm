@@ -60,6 +60,16 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"target_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.PacketCaptureTargetTypeAzureVM),
+					string(network.PacketCaptureTargetTypeAzureVMSS),
+				}, false),
+			},
+
 			"maximum_bytes_per_packet": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -146,6 +156,36 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"scope": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"exclude": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"include": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -190,6 +230,14 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
+	if v, ok := d.GetOk("target_type"); ok {
+		properties.PacketCaptureParameters.TargetType = network.PacketCaptureTargetType(v.(string))
+	}
+
+	if v, ok := d.GetOk("scope"); ok {
+		properties.PacketCaptureParameters.Scope = expandNetworkPacketCaptureScope(v.([]interface{}))
+	}
+
 	future, err := client.Create(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name, properties)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -231,6 +279,7 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
 		d.Set("target_resource_id", props.Target)
+		d.Set("target_type", props.TargetType)
 		d.Set("maximum_bytes_per_packet", int(*props.BytesToCapturePerPacket))
 		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
 		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
@@ -243,6 +292,10 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 		filters := flattenNetworkPacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
 			return fmt.Errorf("setting `filter`: %+v", err)
+		}
+
+		if err := d.Set("scope", flattenNetworkPacketCaptureScope(props.Scope)); err != nil {
+			return fmt.Errorf(`setting "scope": %+v`, err)
 		}
 	}
 
@@ -373,4 +426,36 @@ func flattenNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []
 	}
 
 	return filters
+}
+
+func expandNetworkPacketCaptureScope(input []interface{}) *network.PacketCaptureMachineScope {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	output := &network.PacketCaptureMachineScope{}
+
+	if exclude := raw["exclude"].([]interface{}); len(exclude) > 0 {
+		output.Exclude = utils.ExpandStringSlice(exclude)
+	}
+
+	if include := raw["include"].([]interface{}); len(include) > 0 {
+		output.Include = utils.ExpandStringSlice(include)
+	}
+
+	return output
+}
+
+func flattenNetworkPacketCaptureScope(input *network.PacketCaptureMachineScope) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"exclude": utils.FlattenStringSlice(input.Exclude),
+			"include": utils.FlattenStringSlice(input.Include),
+		},
+	}
 }
