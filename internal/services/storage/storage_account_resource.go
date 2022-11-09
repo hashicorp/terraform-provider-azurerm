@@ -402,10 +402,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"default_action": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.DefaultActionAllow),
-								string(storage.DefaultActionDeny),
-							}, false),
 						},
 
 						"private_link_access": {
