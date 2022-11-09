@@ -50,7 +50,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": commonschema.Location(),
+			"location": commonschema.LocationOptional(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
