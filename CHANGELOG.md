@@ -16,6 +16,7 @@ ENHANCEMENTS
 
 BUG FIXES:
 
+* `azurerm_cdn_frontdoor_route` - update read function to parse `cdn_frontdoor_origin_group_id` insensitively [GH-19178]
 * `azurerm_cdn_frontdoor_rule` - update `url_redirect_action` to allow `query_string` field to pass multiple query string parameters [GH-19180]
 
 ## 3.30.0 (November 03, 2022)
