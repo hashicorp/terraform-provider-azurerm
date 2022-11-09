@@ -783,18 +783,19 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
 			}
 
-			_, planSku, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
-
-			_, updatedPlanSKU, err := helpers.GetServicePlanSku(ctx, metadata, *id, serviceFarmId)
+			_, planSKU, err := helpers.GetServicePlanSku(ctx, metadata, *id, serviceFarmId)
 			if err != nil {
 				return err
 			}
 
-			if updatedPlanSKU != nil {
-				planSku = updatedPlanSKU
+			if planSKU == nil {
+				_, planSKU, err = helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+				if err != nil {
+					return err
+				}
 			}
 			// Only send for ElasticPremium and consumption plan
-			sendContentSettings := (helpers.PlanIsConsumption(planSku) || helpers.PlanIsElastic(planSku)) && !state.ForceDisableContentShare
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {
