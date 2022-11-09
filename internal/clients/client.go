@@ -66,6 +66,7 @@ import (
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
+	labservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/client"
 	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
@@ -187,6 +188,7 @@ type Client struct {
 	Legacy                *legacy.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
+	LabService            *labservice.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
 	Logz                  *logz.Client
@@ -308,6 +310,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Kusto = kusto.NewClient(o)
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
+	client.LabService = labservice.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
 	client.Logic = logic.NewClient(o)
