@@ -2,12 +2,10 @@ package storage
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	azautorest "github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -333,7 +331,6 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -355,23 +352,6 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("secondary_blob_connection_string", "")
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
-
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, storage.ListKeyExpandKerb)
-	if err != nil {
-		// the API returns a 200 with an inner error of a 409..
-		var hasWriteLock bool
-		var doesntHavePermissions bool
-		if e, ok := err.(azautorest.DetailedError); ok {
-			if status, ok := e.StatusCode.(int); ok {
-				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = status == http.StatusUnauthorized
-			}
-		}
-
-		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for %s: %+v", id, err)
-		}
-	}
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("account_kind", resp.Kind)
@@ -399,41 +379,12 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccessKeys := *accessKeys
-			if len(storageAccessKeys) > 0 {
-				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[0].Value, endpointSuffix)
-				d.Set("primary_connection_string", pcs)
-			}
-
-			if len(storageAccessKeys) > 1 {
-				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[1].Value, endpointSuffix)
-				d.Set("secondary_connection_string", scs)
-			}
-		}
-
 		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if accessKeys := keys.Keys; accessKeys != nil {
-			var primaryBlobConnectStr string
-			if v := props.PrimaryEndpoints; v != nil {
-				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[0].Value)
-			}
-			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
-		}
-
 		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
-		}
-
-		if accessKeys := keys.Keys; accessKeys != nil {
-			var secondaryBlobConnectStr string
-			if v := props.SecondaryEndpoints; v != nil {
-				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[1].Value)
-			}
-			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
 
 		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
@@ -462,12 +413,6 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
 			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
-	}
-
-	if accessKeys := keys.Keys; accessKeys != nil {
-		storageAccountKeys := *accessKeys
-		d.Set("primary_access_key", storageAccountKeys[0].Value)
-		d.Set("secondary_access_key", storageAccountKeys[1].Value)
 	}
 
 	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
