@@ -785,18 +785,18 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
 			}
 
-			_, currentPlanSku, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			_, planSku, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
 
 			_, updatedPlanSKU, err := helpers.GetServicePlanSku(ctx, metadata, *id, serviceFarmId)
 			if err != nil {
 				return err
 			}
 
-			if updatedPlanSKU == nil {
-				updatedPlanSKU = currentPlanSku
+			if updatedPlanSKU != nil {
+				planSku = updatedPlanSKU
 			}
 			// Only send for ElasticPremium and consumption plan
-			sendContentSettings := (helpers.PlanIsConsumption(updatedPlanSKU) || helpers.PlanIsElastic(updatedPlanSKU)) && !state.ForceDisableContentShare
+			sendContentSettings := (helpers.PlanIsConsumption(planSku) || helpers.PlanIsElastic(planSku)) && !state.ForceDisableContentShare
 
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
