@@ -48,6 +48,10 @@ resource "azurerm_logic_app_standard" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
   
+  app_settings = {
+    "FUNCTIONS_WORKER_RUNTIME"      = "node"
+    "WEBSITE_NODE_DEFAULT_VERSION" = "<version>"
+  }
 }
 ```
 
