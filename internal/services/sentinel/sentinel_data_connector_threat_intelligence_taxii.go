@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
@@ -66,6 +65,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Arguments() map[string]*pl
 		"user_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"password": {
@@ -128,7 +128,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Sentinel.DataConnectorsClient
+			client := azuresdkhacks.DataConnectorsClient{BaseClient: metadata.Client.Sentinel.DataConnectorsClient.BaseClient}
 			wspClient := metadata.Client.LogAnalytics.WorkspacesClient
 
 			var plan DataConnectorThreatIntelligenceTAXIIModel
@@ -175,15 +175,15 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 			// Format is guaranteed by schema validation
 			lookbackDate, _ := time.Parse(time.RFC3339, plan.LookbackDate)
 
-			params := securityinsight.TiTaxiiDataConnector{
+			params := azuresdkhacks.TiTaxiiDataConnector{
 				Name: &plan.Name,
-				TiTaxiiDataConnectorProperties: &securityinsight.TiTaxiiDataConnectorProperties{
+				TiTaxiiDataConnectorProperties: &azuresdkhacks.TiTaxiiDataConnectorProperties{
 					WorkspaceID:      &wspId,
 					FriendlyName:     &plan.DisplayName,
 					TaxiiServer:      &plan.APIRootURL,
 					CollectionID:     &plan.CollectionID,
-					PollingFrequency: securityinsight.PollingFrequency(plan.PollingFrequency),
-					TaxiiLookbackPeriod: &date.Time{
+					PollingFrequency: azuresdkhacks.PollingFrequency(plan.PollingFrequency),
+					TaxiiLookbackPeriod: &azuresdkhacks.Time{
 						Time: lookbackDate,
 					},
 					DataTypes: &securityinsight.TiTaxiiDataConnectorDataTypes{
@@ -219,8 +219,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Sentinel.DataConnectorsClient
-			wrapperClient := azuresdkhacks.DataConnectorsClient{BaseClient: client.BaseClient}
+			client := azuresdkhacks.DataConnectorsClient{BaseClient: metadata.Client.Sentinel.DataConnectorsClient.BaseClient}
 
 			var state DataConnectorThreatIntelligenceTAXIIModel
 			if err := metadata.Decode(&state); err != nil {
@@ -234,7 +233,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 
 			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-			existing, err := wrapperClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return metadata.MarkAsGone(id)
@@ -250,6 +249,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 			model := DataConnectorThreatIntelligenceTAXIIModel{
 				Name:                    id.Name,
 				LogAnalyticsWorkspaceId: workspaceId.ID(),
+				UserName:                state.UserName, // setting the user name from state, as it is not returned from API
 				Password:                state.Password, // setting the password from state, as it is not returned from API
 			}
 
@@ -264,10 +264,6 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Read() sdk.ResourceFunc {
 
 				if props.CollectionID != nil {
 					model.CollectionID = *props.CollectionID
-				}
-
-				if props.UserName != nil {
-					model.UserName = *props.UserName
 				}
 
 				model.PollingFrequency = string(props.PollingFrequency)
@@ -290,7 +286,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Update() sdk.ResourceFunc 
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Sentinel.DataConnectorsClient
+			client := azuresdkhacks.DataConnectorsClient{BaseClient: metadata.Client.Sentinel.DataConnectorsClient.BaseClient}
 
 			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
@@ -307,13 +303,13 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			dc, ok := existing.Value.(securityinsight.TiTaxiiDataConnector)
+			dc, ok := existing.Value.(azuresdkhacks.TiTaxiiDataConnector)
 			if !ok {
 				return fmt.Errorf("%s was not an Threat Intelligence TAXII Data Connector", id)
 			}
 
 			if props := dc.TiTaxiiDataConnectorProperties; props != nil {
-				if metadata.ResourceData.HasChange("friendly_name") {
+				if metadata.ResourceData.HasChange("display_name") {
 					props.FriendlyName = &plan.DisplayName
 				}
 				if metadata.ResourceData.HasChange("api_root_url") {
@@ -329,7 +325,22 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Update() sdk.ResourceFunc 
 					props.Password = &plan.Password
 				}
 				if metadata.ResourceData.HasChange("polling_frequency") {
-					props.PollingFrequency = securityinsight.PollingFrequency(plan.PollingFrequency)
+					props.PollingFrequency = azuresdkhacks.PollingFrequency(plan.PollingFrequency)
+				}
+				if metadata.ResourceData.HasChange("lookback_date") {
+					// Format is guaranteed by schema validation
+					lookbackDate, _ := time.Parse(time.RFC3339, plan.LookbackDate)
+					props.TaxiiLookbackPeriod = &azuresdkhacks.Time{
+						Time: lookbackDate,
+					}
+				}
+
+				// Setting the user name and password if non empty in plan, which are required by the API.
+				if plan.UserName != "" {
+					props.UserName = &plan.UserName
+				}
+				if plan.Password != "" {
+					props.Password = &plan.Password
 				}
 			}
 

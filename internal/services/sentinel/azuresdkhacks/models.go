@@ -10,6 +10,8 @@ import (
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
+// Hacking the SDK model, together with the Create and Get method for working around issue: https://github.com/Azure/azure-rest-api-specs/issues/21487
+
 type DataConnectorModel struct {
 	autorest.Response `json:"-"`
 	Value             securityinsight.BasicDataConnector `json:"value,omitempty"`
@@ -323,8 +325,10 @@ func (freq *PollingFrequency) UnmarshalJSON(body []byte) error {
 		*freq = PollingFrequencyOnceAnHour
 	case 2:
 		*freq = PollingFrequencyOnceADay
+	default:
+		return fmt.Errorf("unknown enum for pollingFrequency %d", v)
 	}
-	return fmt.Errorf("unknown enum for pollingFrequency %d", v)
+	return nil
 }
 
 const (
@@ -336,7 +340,7 @@ const (
 type Time date.Time
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
-	t.Time, err = time.Parse("01/02/2006 15:04:05", string(data))
+	t.Time, err = time.Parse(`"01/02/2006 15:04:05"`, string(data))
 	return err
 }
 
